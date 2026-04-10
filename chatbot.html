@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Proximity Care Services — Chat With Us</title>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --blue: #1d5fa8;
+    --blue-light: #4a8fd4;
+    --blue-dark: #0f3a6e;
+    --blue-dim: rgba(29,95,168,0.09);
+    --warm: #f8f6f2;
+    --warm2: #f0ece4;
+    --warm3: #e2dbd0;
+    --dark: #0d1b2a;
+    --white: #ffffff;
+    --muted: #5a6a7e;
+    --text: #1a2738;
+    --green: #2d7a4a;
+    --shadow: 0 4px 24px rgba(0,0,0,0.08);
+  }
+  html, body {
+    height: 100%;
+    font-family: 'Inter', sans-serif;
+    background: var(--warm);
+    color: var(--text);
+    overflow: hidden;
+    font-weight: 400;
+  }
+
+  /* LAYOUT */
+  .chat-app {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    height: 100dvh;
+    max-width: 600px;
+    margin: 0 auto;
+    background: var(--white);
+    box-shadow: 0 0 60px rgba(0,0,0,0.08);
+  }
+
+  /* HEADER */
+  .chat-header {
+    background: var(--dark);
+    padding: 20px 24px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-shrink: 0;
+  }
+  .chat-avatar {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: var(--blue);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    position: relative;
+  }
+  .chat-avatar svg { width: 22px; height: 22px; fill: var(--white); }
+  .chat-avatar::after {
+    content: '';
+    position: absolute;
+    bottom: 1px;
+    right: 1px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--green);
+    border: 2px solid var(--dark);
+  }
+  .chat-header-info { flex: 1; min-width: 0; }
+  .chat-header-name {
+    font-family: 'Lora', serif;
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--white);
+  }
+  .chat-header-name em { color: var(--blue-light); font-style: italic; }
+  .chat-header-status {
+    font-size: 11px;
+    color: rgba(255,255,255,0.4);
+    margin-top: 2px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .status-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--green);
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(45,122,74,0.4); }
+    50% { opacity: 0.7; box-shadow: 0 0 0 4px rgba(45,122,74,0); }
+  }
+
+  /* MESSAGES */
+  .chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    background: var(--warm);
+    scroll-behavior: smooth;
+  }
+  .chat-messages::-webkit-scrollbar { width: 4px; }
+  .chat-messages::-webkit-scrollbar-track { background: transparent; }
+  .chat-messages::-webkit-scrollbar-thumb { background: var(--warm3); border-radius: 4px; }
+
+  /* BUBBLES */
+  .msg { display: flex; gap: 10px; max-width: 88%; animation: msgIn 0.3s ease; }
+  @keyframes msgIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+  .msg.assistant { align-self: flex-start; }
+  .msg.user { align-self: flex-end; flex-direction: row-reverse; }
+  .msg-avatar {
+    width: 30px; height: 30px; border-radius: 50%; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center; margin-top: 2px;
+  }
+  .msg.assistant .msg-avatar { background: var(--blue); }
+  .msg.assistant .msg-avatar svg { width: 14px; height: 14px; fill: var(--white); }
+  .msg.user .msg-avatar { display: none; }
+  .msg-bubble {
+    padding: 12px 16px; font-size: 14px; line-height: 1.6;
+    border-radius: 16px; word-wrap: break-word; overflow-wrap: break-word;
+  }
+  .msg.assistant .msg-bubble {
+    background: var(--white); color: var(--text);
+    border-bottom-left-radius: 4px; box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+  }
+  .msg.user .msg-bubble {
+    background: var(--blue); color: var(--white); border-bottom-right-radius: 4px;
+  }
+  .msg-bubble a { color: var(--blue); font-weight: 500; text-decoration: underline; text-underline-offset: 2px; }
+  .msg.user .msg-bubble a { color: #b8d4f0; }
+  .msg-bubble p { margin-bottom: 8px; }
+  .msg-bubble p:last-child { margin-bottom: 0; }
+  .msg-bubble strong { font-weight: 600; }
+
+  /* TYPING */
+  .typing { display: flex; gap: 10px; align-self: flex-start; max-width: 88%; animation: msgIn 0.3s ease; }
+  .typing .msg-avatar {
+    width: 30px; height: 30px; border-radius: 50%; background: var(--blue);
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .typing .msg-avatar svg { width: 14px; height: 14px; fill: var(--white); }
+  .typing-dots {
+    background: var(--white); border-radius: 16px; border-bottom-left-radius: 4px;
+    padding: 14px 18px; display: flex; gap: 5px; align-items: center;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+  }
+  .typing-dots span {
+    width: 7px; height: 7px; border-radius: 50%; background: var(--muted);
+    opacity: 0.4; animation: typingBounce 1.4s infinite;
+  }
+  .typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+  .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes typingBounce {
+    0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+    30% { transform: translateY(-4px); opacity: 1; }
+  }
+
+  /* QUICK REPLIES */
+  .quick-replies { display: flex; flex-wrap: wrap; gap: 8px; padding: 0 20px 12px; background: var(--warm); }
+  .quick-reply {
+    background: var(--white); border: 1px solid var(--warm3); color: var(--blue);
+    font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 500;
+    padding: 8px 16px; border-radius: 20px; cursor: pointer; transition: all 0.2s; white-space: nowrap;
+  }
+  .quick-reply:hover { background: var(--blue); color: var(--white); border-color: var(--blue); }
+
+  /* INPUT */
+  .chat-input-wrap { padding: 16px 20px; background: var(--white); border-top: 1px solid var(--warm3); flex-shrink: 0; }
+  .chat-input-row { display: flex; gap: 10px; align-items: flex-end; }
+  .chat-input {
+    flex: 1; font-family: 'Inter', sans-serif; font-size: 14px; padding: 12px 16px;
+    border: 1px solid var(--warm3); border-radius: 24px; background: var(--warm);
+    color: var(--text); outline: none; resize: none; max-height: 120px; line-height: 1.4; transition: border-color 0.2s;
+  }
+  .chat-input::placeholder { color: var(--muted); }
+  .chat-input:focus { border-color: var(--blue); }
+  .chat-send {
+    width: 44px; height: 44px; border-radius: 50%; background: var(--blue); border: none;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; transition: background 0.2s, transform 0.1s;
+  }
+  .chat-send:hover { background: var(--blue-light); }
+  .chat-send:active { transform: scale(0.94); }
+  .chat-send:disabled { background: var(--warm3); cursor: not-allowed; }
+  .chat-send svg { width: 20px; height: 20px; fill: var(--white); }
+  .chat-disclaimer { font-size: 10px; color: var(--muted); text-align: center; margin-top: 8px; line-height: 1.4; }
+
+  /* ERROR */
+  .error-banner {
+    background: #fef2f2; border: 1px solid #fecaca; color: #991b1b;
+    font-size: 13px; padding: 10px 16px; margin: 0 20px 8px; border-radius: 8px; display: none;
+  }
+  .error-banner.visible { display: block; }
+
+  /* RESPONSIVE */
+  @media (min-width: 601px) {
+    .chat-app { height: 100vh; height: 100dvh; border-left: 1px solid var(--warm3); border-right: 1px solid var(--warm3); }
+  }
+  @media (max-width: 600px) {
+    .chat-app { max-width: 100%; }
+    .chat-header { padding: 16px 16px; gap: 12px; }
+    .chat-messages { padding: 16px 14px; gap: 12px; }
+    .chat-input-wrap { padding: 12px 14px; }
+    .quick-replies { padding: 0 14px 8px; }
+    .msg { max-width: 92%; }
+    .chat-avatar { width: 38px; height: 38px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="chat-app">
+  <div class="chat-header">
+    <div class="chat-avatar">
+      <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+    </div>
+    <div class="chat-header-info">
+      <div class="chat-header-name">Proximity <em>Care</em></div>
+      <div class="chat-header-status">
+        <span class="status-dot"></span>
+        Online now — here to help
+      </div>
+    </div>
+  </div>
+
+  <div class="chat-messages" id="chatMessages"></div>
+  <div class="quick-replies" id="quickReplies"></div>
+  <div class="error-banner" id="errorBanner"></div>
+
+  <div class="chat-input-wrap">
+    <div class="chat-input-row">
+      <textarea class="chat-input" id="chatInput" rows="1" placeholder="Type your message..." autocomplete="off"></textarea>
+      <button class="chat-send" id="chatSend" aria-label="Send message">
+        <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+      </button>
+    </div>
+    <div class="chat-disclaimer">
+      This assistant provides general information. For medical emergencies, call 911.
+    </div>
+  </div>
+</div>
+
+<script>
+const API_URL = 'https://young-meadow-e6fb.lancesalazar56.workers.dev';
+const MODEL = 'claude-haiku-4-5-20251001';
+const WEBHOOK_URL = 'https://hook.us2.make.com/puxwuxhi69h2hevxgfw28vcowsr9caak';
+
+const SYSTEM_PROMPT = `You are a warm, empathetic care coordinator for Proximity Care Services, a trusted in-home senior care agency serving families in Mississauga, Brampton, and Caledon, Ontario.
+
+Your personality:
+- Warm, patient, and genuinely caring — like talking to a trusted friend who happens to know everything about home care
+- You understand that families reaching out are often stressed, overwhelmed, or feeling guilty
+- You make people feel heard before jumping to solutions
+- You speak simply and clearly — no jargon, no corporate language
+
+Services offered:
+- Personal Care (bathing, dressing, mobility, toileting)
+- Companionship & social engagement for seniors
+- Light housekeeping and meal preparation
+- Medication reminders
+- Respite care for exhausted family caregivers
+- Post-surgery and post-hospital recovery support
+- Dementia and Alzheimer's care
+- Overnight and 24-hour care
+- Palliative comfort care
+
+Key facts:
+- Service area: Mississauga, Brampton, and Caledon (Peel Region)
+- Free in-home assessment with no obligation
+- Flexible scheduling — a few hours a week to 24/7 live-in care
+- All PSWs are screened, trained, and insured
+- Locally owned and operated in Mississauga
+- Culturally sensitive care with a diverse team
+
+Conversation guidelines:
+- Start by understanding their situation — who needs care and why
+- Acknowledge their feelings before asking the next question
+- Ask ONE question at a time
+- Keep responses to 2-3 sentences max
+- If someone is outside the service area, be kind but let them know
+- If someone describes an emergency, tell them to call 911
+- Do NOT give medical advice or specific pricing
+- For cost questions, explain that it depends on the care plan and encourage a free assessment
+- Keep the whole conversation to 5-6 exchanges
+
+INTAKE COLLECTION:
+Your goal is to naturally collect these four pieces of information through conversation:
+1. Their name
+2. Their phone number
+3. Their city
+4. What type of care they need
+
+Do NOT ask for all four at once. Weave them into the conversation naturally. For example, after understanding their situation, you might say "I'd love to have one of our care coordinators reach out — what's your name?" Then ask for their number, etc.
+
+Once you have ALL four pieces of information, output a hidden block in EXACTLY this format on its own line:
+
+<!--INTAKE_DATA:{"Full_Name":"...","Phone":"...","City":"...","Care_Type":"..."}-->
+
+Then write a warm confirmation telling them a care coordinator will reach out within the hour. Thank them for trusting Proximity Care Services and reassure them they're making a great decision for their family.
+
+CRITICAL: Do NOT output the block until you have all four fields. Keep it on its own line. Do NOT redirect to external forms — handle everything in this chat.
+
+Format responses in plain text. Use **bold** sparingly for emphasis. Be conversational and human.`;
+
+let conversationHistory = [];
+let isProcessing = false;
+let lastIntakeData = null;
+
+const messagesEl = document.getElementById('chatMessages');
+const inputEl = document.getElementById('chatInput');
+const sendBtn = document.getElementById('chatSend');
+const quickRepliesEl = document.getElementById('quickReplies');
+const errorBanner = document.getElementById('errorBanner');
+
+const botAvatarSVG = `<svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>`;
+
+function scrollToBottom() {
+  requestAnimationFrame(() => { messagesEl.scrollTop = messagesEl.scrollHeight; });
+}
+
+function formatMessage(text) {
+  text = text.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
+  text = text.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+  const paragraphs = text.split(/\n\n+/).filter(p => p.trim());
+  if (paragraphs.length > 1) return paragraphs.map(p => `<p>${p.replace(/\n/g, '<br>')}</p>`).join('');
+  return text.replace(/\n/g, '<br>');
+}
+
+function addMessage(role, text) {
+  const div = document.createElement('div');
+  div.className = `msg ${role}`;
+  if (role === 'assistant') {
+    div.innerHTML = `<div class="msg-avatar">${botAvatarSVG}</div><div class="msg-bubble">${formatMessage(text)}</div>`;
+  } else {
+    div.innerHTML = `<div class="msg-bubble">${formatMessage(text)}</div>`;
+  }
+  messagesEl.appendChild(div);
+  scrollToBottom();
+}
+
+function showTyping() {
+  const div = document.createElement('div');
+  div.className = 'typing'; div.id = 'typingIndicator';
+  div.innerHTML = `<div class="msg-avatar">${botAvatarSVG}</div><div class="typing-dots"><span></span><span></span><span></span></div>`;
+  messagesEl.appendChild(div); scrollToBottom();
+}
+
+function hideTyping() { const el = document.getElementById('typingIndicator'); if (el) el.remove(); }
+
+function showQuickReplies(replies) {
+  quickRepliesEl.innerHTML = '';
+  replies.forEach(text => {
+    const btn = document.createElement('button');
+    btn.className = 'quick-reply'; btn.textContent = text;
+    btn.addEventListener('click', () => { quickRepliesEl.innerHTML = ''; sendMessage(text); });
+    quickRepliesEl.appendChild(btn);
+  });
+}
+
+function showError(msg) {
+  errorBanner.textContent = msg; errorBanner.classList.add('visible');
+  setTimeout(() => errorBanner.classList.remove('visible'), 8000);
+}
+
+inputEl.addEventListener('input', () => {
+  inputEl.style.height = 'auto';
+  inputEl.style.height = Math.min(inputEl.scrollHeight, 120) + 'px';
+});
+
+async function sendMessage(text) {
+  if (!text.trim() || isProcessing) return;
+
+  quickRepliesEl.innerHTML = '';
+  errorBanner.classList.remove('visible');
+
+  addMessage('user', text);
+  conversationHistory.push({ role: 'user', content: text });
+
+  inputEl.value = ''; inputEl.style.height = 'auto'; inputEl.focus();
+
+  isProcessing = true; sendBtn.disabled = true; showTyping();
+
+  try {
+    const response = await fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model: MODEL, max_tokens: 512, system: SYSTEM_PROMPT, messages: conversationHistory })
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) throw new Error(data.error?.message || `API error (${response.status})`);
+
+    const rawReply = data.content?.[0]?.text || "I'm sorry, I had trouble responding. Please try again.";
+
+    const intakeMatch = rawReply.match(/<!--\s*INTAKE_DATA\s*:\s*(\{[\s\S]*?\})\s*-->/);
+
+    let intakeSuccess = false;
+    if (intakeMatch) {
+      try {
+        const raw = JSON.parse(intakeMatch[1]);
+        const intakeData = {
+          Full_Name: raw.Full_Name || raw.full_name || '',
+          Phone: raw.Phone || raw.phone || '',
+          City: raw.City || raw.city || '',
+          Care_Type: raw.Care_Type || raw.care_type || '',
+          Source: 'Family Chatbot',
+          Timestamp: new Date().toISOString()
+        };
+        await fetch(WEBHOOK_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(intakeData)
+        });
+        intakeSuccess = true;
+      } catch (webhookErr) {
+        console.error('Webhook error:', webhookErr);
+      }
+    }
+
+    let reply = rawReply.replace(/<!--\s*INTAKE_DATA\s*:\s*\{[\s\S]*?\}\s*-->\n?/, '').trim();
+
+    hideTyping();
+    addMessage('assistant', reply);
+    conversationHistory.push({ role: 'assistant', content: reply });
+
+    if (intakeSuccess) {
+      inputEl.disabled = true;
+      inputEl.placeholder = "We've got your info — a coordinator will call soon!";
+      sendBtn.disabled = true;
+    }
+
+  } catch (err) {
+    hideTyping();
+    console.error('Chat error:', err);
+    showError('Something went wrong. Please try again.');
+  } finally {
+    if (!inputEl.disabled) { isProcessing = false; sendBtn.disabled = false; }
+    else { isProcessing = false; }
+  }
+}
+
+sendBtn.addEventListener('click', () => sendMessage(inputEl.value));
+inputEl.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(inputEl.value); }
+});
+
+function init() {
+  const greeting = "Hi there. Welcome to **Proximity Care Services**. I'm here to help you find the right care for your loved one.\n\nWhat's going on with your family right now?";
+  addMessage('assistant', greeting);
+  conversationHistory.push({ role: 'assistant', content: greeting });
+  showQuickReplies([
+    "My parent needs help at home",
+    "What services do you offer?",
+    "How much does it cost?",
+    "Book a free assessment"
+  ]);
+}
+
+init();
+</script>
+</body>
+</html>
