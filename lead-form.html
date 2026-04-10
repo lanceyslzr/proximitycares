@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Proximity Care Services — Book a Free Assessment</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --blue: #1d5fa8;
+    --blue-light: #4a8fd4;
+    --blue-pale: #edf4fc;
+    --blue-dim: rgba(29,95,168,0.09);
+    --blue-dark: #0f3a6e;
+    --warm: #f8f6f2;
+    --warm2: #f0ece4;
+    --warm3: #e2dbd0;
+    --dark: #0d1b2a;
+    --text: #1a2738;
+    --muted: #5a6a7e;
+    --white: #ffffff;
+    --green-soft: #2d7a4a;
+    --red: #c0392b;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body { font-family: 'Inter', sans-serif; font-weight: 300; background: var(--warm); color: var(--text); overflow-x: hidden; line-height: 1.7; font-size: 15px; }
+
+  /* TOP BAR */
+  .top-bar { background: var(--blue-dark); padding: 11px 48px; display: flex; align-items: center; justify-content: center; gap: 40px; flex-wrap: wrap; }
+  .top-bar-item { font-size: 0.73rem; color: rgba(255,255,255,0.85); letter-spacing: 0.06em; display: flex; align-items: center; gap: 8px; }
+  .top-bar-item strong { color: #fff; font-weight: 500; }
+  .top-bar-item a { color: #fff; text-decoration: none; font-weight: 500; border-bottom: 1px solid rgba(255,255,255,0.3); padding-bottom: 1px; }
+  .top-bar-divider { color: rgba(255,255,255,0.2); }
+
+  /* NAV */
+  nav { background: var(--white); border-bottom: 1px solid var(--warm3); padding: 0 48px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; height: 68px; box-shadow: 0 1px 8px rgba(0,0,0,0.06); }
+  .nav-logo { font-family: 'Lora', serif; font-size: 1.1rem; font-weight: 600; color: var(--dark); text-decoration: none; }
+  .nav-logo span { color: var(--blue); }
+  .nav-right { display: flex; align-items: center; gap: 20px; }
+  .nav-phone-num { font-size: 0.95rem; font-weight: 600; color: var(--blue); text-decoration: none; }
+  .nav-cta { background: var(--blue); color: #fff; padding: 10px 22px; border-radius: 4px; font-size: 0.78rem; font-weight: 500; text-decoration: none; transition: all 0.2s; }
+  .nav-cta:hover { background: var(--blue-dark); }
+
+  /* PAGE */
+  .page-wrap { max-width: 640px; margin: 0 auto; padding: 60px 24px 80px; }
+
+  .page-eyebrow {
+    font-size: 0.7rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--blue);
+    font-weight: 500;
+    margin-bottom: 12px;
+  }
+  .page-title {
+    font-family: 'Lora', serif;
+    font-size: clamp(1.8rem, 4vw, 2.4rem);
+    font-weight: 600;
+    color: var(--dark);
+    line-height: 1.2;
+    margin-bottom: 10px;
+  }
+  .page-title em { font-style: italic; color: var(--blue); }
+  .page-sub {
+    font-size: 0.88rem;
+    color: var(--muted);
+    line-height: 1.7;
+    margin-bottom: 40px;
+  }
+
+  /* FORM */
+  .form-card {
+    background: var(--white);
+    border: 1px solid var(--warm3);
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.05);
+  }
+  .form-card-header {
+    background: var(--dark);
+    padding: 20px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .form-card-title {
+    font-family: 'Lora', serif;
+    font-size: 1.05rem;
+    color: #fff;
+    font-weight: 500;
+  }
+  .form-card-badge {
+    font-size: 0.68rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--green-soft);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .badge-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--green-soft);
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.3;} }
+
+  .form-body { padding: 36px 32px; }
+
+  .form-group { margin-bottom: 20px; }
+  .form-label {
+    display: block;
+    font-size: 0.72rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-weight: 500;
+    margin-bottom: 6px;
+  }
+  .form-label .req { color: var(--red); margin-left: 2px; }
+  .form-input, .form-select, .form-textarea {
+    width: 100%;
+    background: var(--warm);
+    border: 1px solid var(--warm3);
+    border-radius: 4px;
+    padding: 12px 16px;
+    font-size: 0.88rem;
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    transition: all 0.2s;
+    -webkit-appearance: none;
+    appearance: none;
+  }
+  .form-input:focus, .form-select:focus, .form-textarea:focus {
+    outline: none;
+    border-color: var(--blue);
+    background: var(--white);
+    box-shadow: 0 0 0 3px var(--blue-dim);
+  }
+  .form-input::placeholder, .form-textarea::placeholder { color: var(--muted); opacity: 0.5; }
+  .form-textarea { resize: vertical; min-height: 100px; line-height: 1.6; }
+  .form-select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%235a6a7e' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    padding-right: 36px;
+    cursor: pointer;
+  }
+
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+  .form-footer {
+    padding: 20px 32px;
+    background: var(--warm);
+    border-top: 1px solid var(--warm3);
+  }
+  .form-submit {
+    width: 100%;
+    background: var(--blue);
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    padding: 14px;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.88rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .form-submit:hover { background: var(--blue-dark); }
+  .form-submit:disabled { background: var(--muted); cursor: not-allowed; }
+  .form-note {
+    text-align: center;
+    font-size: 0.72rem;
+    color: var(--muted);
+    margin-top: 12px;
+    line-height: 1.6;
+  }
+
+  /* SUCCESS */
+  .success-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(13,27,42,0.92);
+    z-index: 500;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 20px;
+    text-align: center;
+    padding: 24px;
+  }
+  .success-overlay.show { display: flex; }
+  .success-icon { font-size: 56px; }
+  .success-title { font-family: 'Lora', serif; font-size: 1.8rem; color: #fff; font-weight: 500; }
+  .success-sub { font-size: 0.85rem; color: rgba(255,255,255,0.5); line-height: 1.8; max-width: 400px; }
+  .success-btn {
+    background: var(--blue);
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    padding: 12px 32px;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 500;
+    cursor: pointer;
+    margin-top: 8px;
+    transition: background 0.2s;
+  }
+  .success-btn:hover { background: var(--blue-dark); }
+
+  /* FOOTER */
+  footer { background: var(--dark); padding: 64px 48px 32px; }
+  .footer-inner { max-width: 1240px; margin: 0 auto; }
+  .footer-top { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 64px; margin-bottom: 48px; }
+  .footer-brand { font-family: 'Lora', serif; font-size: 1.1rem; font-weight: 600; color: #fff; margin-bottom: 10px; }
+  .footer-brand span { color: var(--blue-light); }
+  .footer-desc { font-size: 0.77rem; color: rgba(255,255,255,0.28); line-height: 1.75; margin-bottom: 22px; max-width: 300px; }
+  .footer-contact a { display: block; font-size: 0.78rem; color: rgba(255,255,255,0.42); text-decoration: none; margin-bottom: 7px; transition: color 0.2s; }
+  .footer-contact a:hover { color: var(--blue-light); }
+  .footer-col-title { font-size: 0.6rem; letter-spacing: 0.22em; text-transform: uppercase; color: rgba(255,255,255,0.2); margin-bottom: 18px; font-weight: 600; }
+  .footer-links { list-style: none; display: flex; flex-direction: column; gap: 11px; }
+  .footer-links a { font-size: 0.78rem; color: rgba(255,255,255,0.35); text-decoration: none; transition: color 0.2s; }
+  .footer-links a:hover { color: var(--blue-light); }
+  .footer-bottom { border-top: 1px solid rgba(255,255,255,0.07); padding-top: 24px; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
+  .footer-copy { font-size: 0.7rem; color: rgba(255,255,255,0.14); }
+
+  /* MOBILE */
+  .mobile-bar { display: none; position: fixed; bottom: 0; left: 0; right: 0; background: var(--white); border-top: 1px solid var(--warm3); z-index: 90; padding: 12px 20px; gap: 10px; box-shadow: 0 -4px 20px rgba(0,0,0,0.08); }
+  .mobile-bar a { flex: 1; text-align: center; padding: 12px; border-radius: 4px; font-size: 0.8rem; font-weight: 500; text-decoration: none; }
+  .mobile-bar-call { border: 1.5px solid var(--blue); color: var(--blue); }
+
+  @media (max-width: 768px) {
+    .top-bar { display: none; }
+    nav { padding: 0 20px; height: 56px; }
+    .nav-right .nav-phone-num { display: none; }
+    .page-wrap { padding: 40px 16px 100px; }
+    .form-body { padding: 24px 20px; }
+    .form-footer { padding: 16px 20px; }
+    .form-row { grid-template-columns: 1fr; }
+    .footer-top { grid-template-columns: 1fr; gap: 36px; }
+    footer { padding: 48px 20px 100px; }
+    .mobile-bar { display: flex; }
+  }
+</style>
+</head>
+<body>
+
+<!-- SUCCESS OVERLAY -->
+<div class="success-overlay" id="successOverlay">
+  <div class="success-icon">&#10003;</div>
+  <div class="success-title">We've Received Your Request</div>
+  <div class="success-sub">A care coordinator will reach out within the hour to discuss your family's needs. Thank you for trusting Proximity Care Services.</div>
+  <button class="success-btn" onclick="window.location.href='/'">Back to Home</button>
+</div>
+
+<!-- TOP BAR -->
+<div class="top-bar">
+  <div class="top-bar-item">Serving <strong>Mississauga, Brampton & Caledon</strong></div>
+  <div class="top-bar-divider">|</div>
+  <div class="top-bar-item">Call us: <a href="tel:6473828047">647-382-8047</a></div>
+</div>
+
+<!-- NAV -->
+<nav>
+  <a href="/" class="nav-logo">Proximity <span>Care</span> Services</a>
+  <div class="nav-right">
+    <a href="tel:6473828047" class="nav-phone-num">647-382-8047</a>
+    <a href="/" class="nav-cta">Back to Home</a>
+  </div>
+</nav>
+
+<!-- FORM PAGE -->
+<div class="page-wrap">
+  <div class="page-eyebrow">Free Assessment</div>
+  <h1 class="page-title">Start Your <em>Care Journey</em></h1>
+  <p class="page-sub">Tell us about your family's needs and a care coordinator will reach out within the hour to schedule a free in-home assessment. No obligations.</p>
+
+  <div class="form-card">
+    <div class="form-card-header">
+      <div class="form-card-title">Client Assessment Request</div>
+      <div class="form-card-badge"><div class="badge-dot"></div>Free &middot; No Obligation</div>
+    </div>
+    <div class="form-body">
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Full Name <span class="req">*</span></label>
+          <input class="form-input" id="full-name" type="text" placeholder="Your full name" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Phone Number <span class="req">*</span></label>
+          <input class="form-input" id="phone" type="tel" placeholder="647-000-0000" required>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Email</label>
+          <input class="form-input" id="email" type="email" placeholder="your@email.com">
+        </div>
+        <div class="form-group">
+          <label class="form-label">City <span class="req">*</span></label>
+          <select class="form-select" id="city">
+            <option value="">Select your city...</option>
+            <option>Mississauga</option>
+            <option>Brampton</option>
+            <option>Caledon</option>
+            <option>Other</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Type of Care Needed <span class="req">*</span></label>
+        <select class="form-select" id="care-type">
+          <option value="">What best describes your needs?</option>
+          <option>Personal Care (bathing, dressing, mobility)</option>
+          <option>Companionship & Social Engagement</option>
+          <option>Overnight Care</option>
+          <option>Dementia & Memory Care</option>
+          <option>Post-Hospital Recovery</option>
+          <option>Other / Not Sure Yet</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Tell us about your situation</label>
+        <textarea class="form-textarea" id="message" placeholder="Share any details about your loved one's needs, schedule preferences, or questions you have..."></textarea>
+      </div>
+
+    </div>
+    <div class="form-footer">
+      <button class="form-submit" id="submitBtn" onclick="submitForm()">Book My Free Assessment</button>
+      <div class="form-note">We respond within 1 hour during business hours. Your information is private and secure.</div>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-top">
+      <div>
+        <div class="footer-brand">Proximity <span>Care</span> Services Inc.</div>
+        <div class="footer-desc">In-home senior care for families in Mississauga, Brampton, and Caledon. Consistent PSWs. Real communication. Care that actually works.</div>
+        <div class="footer-contact">
+          <a href="tel:6473828047">647-382-8047</a>
+          <a href="mailto:lancesalazar56@gmail.com">lancesalazar56@gmail.com</a>
+          <a href="#">Mississauga, Ontario, Canada</a>
+        </div>
+      </div>
+      <div>
+        <div class="footer-col-title">Navigate</div>
+        <ul class="footer-links">
+          <li><a href="/">Home</a></li>
+          <li><a href="/#who">Who We Help</a></li>
+          <li><a href="/#pricing">Care Plans</a></li>
+          <li><a href="/#testimonials">Reviews</a></li>
+        </ul>
+      </div>
+      <div>
+        <div class="footer-col-title">Get Started</div>
+        <ul class="footer-links">
+          <li><a href="/lead-form.html">Free Assessment</a></li>
+          <li><a href="tel:6473828047">Call Us Now</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <div class="footer-copy">&copy; 2026 Proximity Care Services Inc. All rights reserved.</div>
+      <div class="footer-copy">Mississauga &middot; Brampton &middot; Caledon &middot; Peel Region, Ontario</div>
+    </div>
+  </div>
+</footer>
+
+<div class="mobile-bar">
+  <a href="tel:6473828047" class="mobile-bar-call">Call Now</a>
+</div>
+
+<script>
+  const WEBHOOK_URL = 'https://hook.us2.make.com/gkus4m2lusfv3anug85pfjfedqpn9pju';
+
+  async function submitForm() {
+    const fullName = document.getElementById('full-name').value.trim();
+    const phone = document.getElementById('phone').value.trim();
+    const email = document.getElementById('email').value.trim();
+    const city = document.getElementById('city').value;
+    const careType = document.getElementById('care-type').value;
+    const message = document.getElementById('message').value.trim();
+
+    if (!fullName || !phone || !city || !careType) {
+      alert('Please fill in Full Name, Phone Number, City, and Type of Care Needed.');
+      return;
+    }
+
+    const btn = document.getElementById('submitBtn');
+    btn.disabled = true;
+    btn.textContent = 'Submitting...';
+
+    const payload = {
+      full_name: fullName,
+      phone: phone,
+      email: email,
+      city: city,
+      care_type: careType,
+      message: message,
+      Source: 'Proximity Care Website',
+      Timestamp: new Date().toISOString()
+    };
+
+    try {
+      await fetch(WEBHOOK_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+    } catch (e) {
+      console.log('Webhook error:', e);
+      try {
+        await fetch(WEBHOOK_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+          mode: 'no-cors'
+        });
+      } catch (e2) {
+        console.log('Fallback error:', e2);
+      }
+    }
+
+    document.getElementById('successOverlay').classList.add('show');
+  }
+</script>
+</body>
+</html>
