@@ -1,0 +1,1224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Ann Silverman Community Health Clinic — Accessible Care for All | Meri L. Gaumond</title>
+<meta name="description" content="The Ann Silverman Community Health Clinic provides accessible medical, dental, and behavioral health services to those in need in Doylestown, Pennsylvania." />
+<link href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,300;0,400;0,600;0,700;1,400;1,600&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --white: #ffffff;
+    --off: #f8f7fb;
+    --warm: #f3f0f8;
+    --ink: #1a1520;
+    --ink2: #2d2535;
+    --mid: #625a70;
+    --muted: #a098b0;
+    --purple: #5b2d8e;
+    --purple2: #7a4db8;
+    --purple3: #9a6dd8;
+    --purple-pale: #f0eaf8;
+    --purple-dark: #3d1e66;
+    --lavender: #c8b8e8;
+    --gold: #c8a84b;
+    --border: #e2daf0;
+    --border2: #d0c8e0;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--white);
+    color: var(--ink);
+    font-family: 'Inter', sans-serif;
+    font-weight: 300;
+    line-height: 1.8;
+    overflow-x: hidden;
+    cursor: none;
+  }
+
+  .cursor {
+    position: fixed;
+    width: 10px; height: 10px;
+    background: var(--purple);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 9999;
+    transform: translate(-50%, -50%);
+    transition: width 0.2s, height 0.2s;
+    mix-blend-mode: multiply;
+  }
+
+  .cursor-ring {
+    position: fixed;
+    width: 36px; height: 36px;
+    border: 1px solid rgba(91,45,142,0.3);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 9998;
+    transform: translate(-50%, -50%);
+  }
+
+  /* NAV */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 500;
+    padding: 24px 64px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transition: all 0.4s;
+  }
+
+  nav.scrolled {
+    background: rgba(255,255,255,0.97);
+    backdrop-filter: blur(16px);
+    padding: 16px 64px;
+    box-shadow: 0 1px 0 var(--border);
+  }
+
+  .nav-logo { text-decoration: none; }
+
+  .nav-logo-main {
+    font-family: 'Spectral', serif;
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--white);
+    line-height: 1;
+    display: block;
+    transition: color 0.4s;
+    letter-spacing: 0.01em;
+  }
+
+  nav.scrolled .nav-logo-main { color: var(--purple); }
+
+  .nav-logo-sub {
+    font-size: 8px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.4);
+    display: block;
+    margin-top: 3px;
+    transition: color 0.4s;
+  }
+
+  nav.scrolled .nav-logo-sub { color: var(--muted); }
+
+  .nav-links { display: flex; align-items: center; gap: 30px; list-style: none; }
+
+  .nav-links a {
+    font-size: 11px;
+    font-weight: 400;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.5);
+    text-decoration: none;
+    transition: color 0.2s;
+    position: relative;
+  }
+
+  nav.scrolled .nav-links a { color: var(--mid); }
+
+  .nav-links a::after {
+    content: '';
+    position: absolute;
+    bottom: -2px; left: 0;
+    width: 0; height: 1px;
+    background: var(--purple);
+    transition: width 0.3s;
+  }
+
+  .nav-links a:hover { color: var(--white) !important; }
+  nav.scrolled .nav-links a:hover { color: var(--purple) !important; }
+  .nav-links a:hover::after { width: 100%; }
+
+  .nav-btn {
+    background: var(--white) !important;
+    color: var(--purple) !important;
+    padding: 10px 22px;
+    border-radius: 50px;
+    font-size: 11px !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.08em !important;
+    transition: all 0.2s !important;
+  }
+
+  nav.scrolled .nav-btn {
+    background: var(--purple) !important;
+    color: var(--white) !important;
+  }
+
+  .nav-btn::after { display: none !important; }
+  .nav-btn:hover { transform: translateY(-1px) !important; box-shadow: 0 8px 24px rgba(91,45,142,0.2) !important; }
+
+  /* HERO */
+  .hero {
+    min-height: 100vh;
+    background: var(--purple);
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+  }
+
+  #hero-canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%; height: 100%;
+    pointer-events: none;
+  }
+
+  .hero-circle {
+    position: absolute;
+    right: -20%;
+    top: -20%;
+    width: 80%;
+    height: 140%;
+    background: rgba(255,255,255,0.02);
+    border-radius: 50%;
+    pointer-events: none;
+  }
+
+  .hero-inner {
+    position: relative;
+    z-index: 2;
+    padding: 160px 64px 100px;
+    max-width: 1300px;
+    margin: 0 auto;
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1.15fr 0.85fr;
+    gap: 80px;
+    align-items: center;
+  }
+
+  .hero-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 10px;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.5);
+    margin-bottom: 26px;
+    opacity: 0;
+    animation: riseUp 0.9s cubic-bezier(0.16,1,0.3,1) 0.2s forwards;
+  }
+  .hero-eyebrow::before { content: ''; width: 24px; height: 1px; background: var(--lavender); }
+
+  .hero-h1 {
+    font-family: 'Spectral', serif;
+    font-size: clamp(44px, 5.5vw, 72px);
+    font-weight: 600;
+    line-height: 1.1;
+    color: var(--white);
+    margin-bottom: 26px;
+    opacity: 0;
+    animation: riseUp 0.9s cubic-bezier(0.16,1,0.3,1) 0.35s forwards;
+  }
+
+  .hero-h1 em { font-style: italic; color: var(--lavender); font-weight: 300; }
+  .hero-h1 .gold-text { color: var(--gold); font-style: italic; font-weight: 300; }
+
+  .hero-sub {
+    font-size: 16px;
+    color: rgba(255,255,255,0.5);
+    max-width: 480px;
+    margin-bottom: 44px;
+    line-height: 1.9;
+    opacity: 0;
+    animation: riseUp 0.9s cubic-bezier(0.16,1,0.3,1) 0.5s forwards;
+  }
+
+  .hero-actions {
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+    opacity: 0;
+    animation: riseUp 0.9s cubic-bezier(0.16,1,0.3,1) 0.65s forwards;
+  }
+
+  .btn-white {
+    background: var(--white);
+    color: var(--purple);
+    font-family: 'Inter', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 15px 32px;
+    text-decoration: none;
+    display: inline-block;
+    border-radius: 50px;
+    transition: all 0.25s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .btn-white::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--gold);
+    border-radius: 50px;
+    transform: translateX(-100%);
+    transition: transform 0.35s cubic-bezier(0.16,1,0.3,1);
+  }
+  .btn-white:hover::before { transform: translateX(0); }
+  .btn-white span { position: relative; z-index: 1; }
+  .btn-white:hover { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(0,0,0,0.15); }
+
+  .btn-ghost {
+    background: transparent;
+    color: rgba(255,255,255,0.65);
+    font-family: 'Inter', sans-serif;
+    font-size: 11px;
+    font-weight: 400;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 15px 32px;
+    text-decoration: none;
+    display: inline-block;
+    border: 1px solid rgba(255,255,255,0.18);
+    border-radius: 50px;
+    transition: all 0.25s;
+  }
+  .btn-ghost:hover { border-color: rgba(255,255,255,0.45); color: var(--white); transform: translateY(-2px); }
+
+  /* HERO CARD */
+  .hero-right {
+    opacity: 0;
+    animation: riseUp 0.9s cubic-bezier(0.16,1,0.3,1) 0.55s forwards;
+  }
+
+  .card-3d-wrap { perspective: 1000px; }
+
+  .hero-card {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.11);
+    border-radius: 24px;
+    padding: 44px;
+    transform-style: preserve-3d;
+    transition: transform 0.1s ease;
+    position: relative;
+    overflow: hidden;
+    backdrop-filter: blur(10px);
+  }
+
+  .hero-card::before {
+    content: '';
+    position: absolute;
+    top: 0; right: 0;
+    width: 180px; height: 180px;
+    background: radial-gradient(circle, rgba(200,184,232,0.12) 0%, transparent 70%);
+  }
+
+  .hc-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(200,184,232,0.15);
+    color: var(--lavender);
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    padding: 7px 16px;
+    border-radius: 20px;
+    margin-bottom: 28px;
+  }
+  .hc-badge::before { content: ''; width: 6px; height: 6px; background: var(--lavender); border-radius: 50%; }
+
+  .hc-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 22px;
+    margin-bottom: 26px;
+  }
+
+  .hs-num {
+    font-family: 'Spectral', serif;
+    font-size: 36px;
+    font-weight: 600;
+    color: var(--white);
+    line-height: 1;
+    display: block;
+    margin-bottom: 5px;
+  }
+  .hs-label { font-size: 11px; color: rgba(255,255,255,0.35); line-height: 1.5; }
+
+  .hc-divider { height: 1px; background: rgba(255,255,255,0.09); margin: 22px 0; }
+
+  .hc-quote {
+    font-family: 'Spectral', serif;
+    font-size: 16px;
+    font-style: italic;
+    color: rgba(255,255,255,0.65);
+    line-height: 1.7;
+    font-weight: 300;
+  }
+  .hc-attr { font-size: 10px; color: rgba(255,255,255,0.28); margin-top: 12px; letter-spacing: 0.06em; }
+
+  /* MARQUEE */
+  .marquee-wrap {
+    overflow: hidden;
+    background: var(--purple-dark);
+    padding: 17px 0;
+  }
+
+  .marquee-track {
+    display: flex;
+    animation: marquee 28s linear infinite;
+    width: max-content;
+  }
+
+  .marquee-item {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 0 40px;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.3);
+    white-space: nowrap;
+  }
+
+  .m-sep { width: 4px; height: 4px; background: var(--lavender); border-radius: 50%; display: inline-block; opacity: 0.6; }
+
+  @keyframes marquee {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+  }
+
+  /* SECTIONS */
+  .container { max-width: 1200px; margin: 0 auto; padding: 0 64px; }
+  .section { padding: 120px 0; }
+
+  .s-label {
+    font-size: 9px;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--purple);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 18px;
+  }
+  .s-label::before { content: ''; width: 18px; height: 1px; background: var(--gold); }
+
+  .s-h2 {
+    font-family: 'Spectral', serif;
+    font-size: clamp(34px, 4.2vw, 56px);
+    font-weight: 600;
+    line-height: 1.12;
+    margin-bottom: 18px;
+  }
+  .s-h2 em { font-style: italic; color: var(--purple); font-weight: 300; }
+  .s-p { font-size: 15px; color: var(--mid); max-width: 500px; line-height: 1.9; }
+
+  /* MISSION */
+  .mission-bg { background: var(--off); }
+
+  .mission-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 90px;
+    align-items: center;
+  }
+
+  .mission-quote {
+    font-family: 'Spectral', serif;
+    font-size: 24px;
+    font-style: italic;
+    font-weight: 300;
+    color: var(--purple);
+    line-height: 1.6;
+    border-left: 3px solid var(--gold);
+    padding-left: 28px;
+    margin-top: 32px;
+  }
+
+  .mission-attr { font-size: 12px; color: var(--muted); margin-top: 14px; padding-left: 28px; letter-spacing: 0.05em; }
+
+  .mission-points { display: flex; flex-direction: column; gap: 0; margin-top: 16px; }
+
+  .mp-item {
+    display: flex;
+    gap: 18px;
+    padding: 22px 0;
+    border-bottom: 1px solid var(--border);
+    transition: padding-left 0.25s;
+    cursor: default;
+  }
+  .mp-item:first-child { border-top: 1px solid var(--border); }
+  .mp-item:hover { padding-left: 8px; }
+
+  .mp-dot {
+    width: 20px; height: 20px;
+    background: var(--purple-pale);
+    border-radius: 50%;
+    flex-shrink: 0;
+    margin-top: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.25s;
+  }
+  .mp-dot::after { content: ''; width: 6px; height: 6px; background: var(--purple); border-radius: 50%; }
+  .mp-item:hover .mp-dot { background: var(--purple); }
+  .mp-item:hover .mp-dot::after { background: white; }
+
+  .mp-title { font-weight: 500; font-size: 14px; margin-bottom: 3px; color: var(--ink); }
+  .mp-body { font-size: 13px; color: var(--mid); line-height: 1.65; }
+
+  /* SERVICES */
+  .svc-top {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 80px;
+    align-items: end;
+    margin-bottom: 56px;
+  }
+
+  .svc-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+  }
+
+  .svc-card {
+    background: var(--off);
+    border: 1.5px solid var(--border);
+    border-radius: 20px;
+    padding: 36px 28px;
+    transition: all 0.35s cubic-bezier(0.16,1,0.3,1);
+    cursor: default;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .svc-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--purple);
+    border-radius: 20px;
+    transform: translateY(100%);
+    transition: transform 0.4s cubic-bezier(0.16,1,0.3,1);
+  }
+
+  .svc-card:hover { transform: translateY(-6px); box-shadow: 0 24px 56px rgba(91,45,142,0.12); border-color: var(--purple); }
+  .svc-card:hover::before { transform: translateY(0); }
+  .svc-card:hover .sv-num { color: rgba(255,255,255,0.3); }
+  .svc-card:hover .sv-title { color: white; }
+  .svc-card:hover .sv-body { color: rgba(255,255,255,0.55); }
+
+  .sv-num {
+    font-size: 9px;
+    font-weight: 600;
+    color: var(--purple);
+    letter-spacing: 0.2em;
+    margin-bottom: 16px;
+    position: relative;
+    z-index: 1;
+    transition: color 0.3s;
+    text-transform: uppercase;
+  }
+
+  .sv-title {
+    font-family: 'Spectral', serif;
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 10px;
+    position: relative;
+    z-index: 1;
+    line-height: 1.25;
+    transition: color 0.3s;
+    color: var(--ink);
+  }
+
+  .sv-body {
+    font-size: 12px;
+    color: var(--mid);
+    line-height: 1.8;
+    position: relative;
+    z-index: 1;
+    transition: color 0.3s;
+  }
+
+  /* DEMENTIA SECTION */
+  .dementia-bg { background: var(--purple-dark); color: var(--white); padding: 120px 0; }
+
+  .dementia-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 90px;
+    align-items: center;
+  }
+
+  .dementia-bg .s-label { color: rgba(255,255,255,0.4); }
+  .dementia-bg .s-label::before { background: var(--lavender); }
+  .dementia-bg .s-h2 { color: var(--white); }
+  .dementia-bg .s-h2 em { color: var(--lavender); }
+  .dementia-bg .s-p { color: rgba(255,255,255,0.45); }
+
+  .credential-list { display: flex; flex-direction: column; gap: 14px; margin-top: 16px; }
+
+  .cred-row {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 16px;
+    padding: 22px 24px;
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+    transition: background 0.25s;
+  }
+  .cred-row:hover { background: rgba(255,255,255,0.09); }
+
+  .cr-badge {
+    background: rgba(200,184,232,0.15);
+    color: var(--lavender);
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    padding: 5px 12px;
+    border-radius: 12px;
+    white-space: nowrap;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  .cr-title { font-weight: 500; font-size: 14px; color: var(--white); margin-bottom: 3px; }
+  .cr-body { font-size: 12px; color: rgba(255,255,255,0.45); line-height: 1.65; }
+
+  /* ABOUT */
+  .about-layout {
+    display: grid;
+    grid-template-columns: 0.85fr 1.15fr;
+    gap: 90px;
+    align-items: center;
+  }
+
+  .about-photo {
+    width: 100%;
+    aspect-ratio: 3/4;
+    background: var(--purple-pale);
+    border: 1.5px solid var(--border);
+    border-radius: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .about-photo::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(91,45,142,0.08) 0%, transparent 60%);
+  }
+
+  .about-initials {
+    font-family: 'Spectral', serif;
+    font-size: 80px;
+    font-weight: 600;
+    color: rgba(91,45,142,0.12);
+    letter-spacing: -0.02em;
+  }
+
+  .about-float {
+    position: absolute;
+    bottom: 20px; right: 20px;
+    background: var(--purple);
+    color: white;
+    padding: 18px 22px;
+    border-radius: 18px;
+    min-width: 145px;
+  }
+
+  .af-num {
+    font-family: 'Spectral', serif;
+    font-size: 30px;
+    font-weight: 600;
+    display: block;
+    margin-bottom: 4px;
+    color: var(--lavender);
+  }
+  .af-label { font-size: 10px; color: rgba(255,255,255,0.5); line-height: 1.5; letter-spacing: 0.04em; text-transform: uppercase; }
+
+  .about-body { font-size: 15px; color: var(--mid); line-height: 1.95; margin-bottom: 20px; }
+  .about-body strong { color: var(--ink); font-weight: 500; }
+
+  .about-creds { display: flex; flex-direction: column; gap: 12px; margin-top: 28px; padding-top: 28px; border-top: 1px solid var(--border); }
+  .ac-item { display: flex; gap: 12px; font-size: 13px; color: var(--muted); align-items: flex-start; }
+  .ac-dot { width: 16px; height: 16px; background: var(--purple-pale); border-radius: 50%; flex-shrink: 0; margin-top: 2px; display: flex; align-items: center; justify-content: center; }
+  .ac-dot::after { content: ''; width: 5px; height: 5px; background: var(--purple); border-radius: 50%; }
+
+  /* DONATE */
+  .donate-section {
+    padding: 140px 0;
+    text-align: center;
+    background: var(--warm);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .donate-bg-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-family: 'Spectral', serif;
+    font-size: clamp(80px, 16vw, 200px);
+    font-weight: 700;
+    color: rgba(91,45,142,0.05);
+    pointer-events: none;
+    white-space: nowrap;
+    font-style: italic;
+  }
+
+  .donate-section .s-label { justify-content: center; }
+  .donate-section .s-label::before { display: none; }
+
+  .donate-h2 {
+    font-family: 'Spectral', serif;
+    font-size: clamp(36px, 4.5vw, 58px);
+    font-weight: 600;
+    line-height: 1.12;
+    margin: 0 auto 20px;
+    max-width: 620px;
+    position: relative;
+    z-index: 1;
+  }
+  .donate-h2 em { font-style: italic; color: var(--purple); font-weight: 300; }
+
+  .donate-sub {
+    font-size: 15px;
+    color: var(--mid);
+    max-width: 460px;
+    margin: 0 auto 44px;
+    line-height: 1.9;
+    position: relative;
+    z-index: 1;
+  }
+
+  .donate-actions { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; position: relative; z-index: 1; }
+
+  .btn-purple {
+    background: var(--purple);
+    color: white;
+    font-family: 'Inter', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 16px 36px;
+    text-decoration: none;
+    display: inline-block;
+    border-radius: 50px;
+    transition: all 0.2s;
+  }
+  .btn-purple:hover { background: var(--purple-dark); transform: translateY(-2px); box-shadow: 0 12px 32px rgba(91,45,142,0.25); }
+
+  .btn-outline {
+    background: transparent;
+    color: var(--ink);
+    font-family: 'Inter', sans-serif;
+    font-size: 11px;
+    font-weight: 400;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 16px 36px;
+    text-decoration: none;
+    display: inline-block;
+    border: 1px solid var(--border);
+    border-radius: 50px;
+    transition: all 0.2s;
+  }
+  .btn-outline:hover { border-color: var(--purple); color: var(--purple); transform: translateY(-2px); }
+
+  /* FOOTER */
+  footer {
+    background: var(--ink);
+    padding: 48px 64px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 20px;
+  }
+
+  .f-logo {
+    font-family: 'Spectral', serif;
+    font-size: 16px;
+    font-weight: 600;
+    color: rgba(255,255,255,0.7);
+  }
+  .f-logo span { color: var(--lavender); font-style: italic; font-weight: 300; }
+
+  .f-links { display: flex; gap: 28px; list-style: none; }
+  .f-links a {
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.25);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+  .f-links a:hover { color: rgba(255,255,255,0.65); }
+
+  .f-copy { font-size: 10px; color: rgba(255,255,255,0.18); }
+
+  /* ANIMATIONS */
+  @keyframes riseUp {
+    from { opacity: 0; transform: translateY(28px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .reveal {
+    opacity: 0;
+    transform: translateY(26px);
+    transition: opacity 0.8s cubic-bezier(0.16,1,0.3,1), transform 0.8s cubic-bezier(0.16,1,0.3,1);
+  }
+  .reveal.in { opacity: 1; transform: none; }
+  .d1 { transition-delay: 0.1s; }
+  .d2 { transition-delay: 0.2s; }
+  .d3 { transition-delay: 0.3s; }
+
+  @media (max-width: 960px) {
+    nav { padding: 18px 24px; }
+    nav.scrolled { padding: 14px 24px; }
+    .nav-links { display: none; }
+    .hero-inner { grid-template-columns: 1fr; padding: 130px 24px 70px; gap: 50px; }
+    .container { padding: 0 24px; }
+    .mission-layout, .svc-top, .dementia-layout, .about-layout { grid-template-columns: 1fr; gap: 50px; }
+    .svc-grid { grid-template-columns: 1fr 1fr; }
+    footer { padding: 34px 24px; flex-direction: column; align-items: flex-start; }
+    body { cursor: auto; }
+    .cursor, .cursor-ring { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+<nav id="nav">
+  <a href="#" class="nav-logo">
+    <span class="nav-logo-main">Ann Silverman Community Health Clinic</span>
+    <span class="nav-logo-sub">Accessible Care for All · Doylestown, Pennsylvania</span>
+  </a>
+  <ul class="nav-links">
+    <li><a href="#mission">Our Mission</a></li>
+    <li><a href="#services">Services</a></li>
+    <li><a href="#dementia">Dementia Care</a></li>
+    <li><a href="#about">About Meri</a></li>
+    <li><a href="#donate" class="nav-btn">Donate Now</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <canvas id="hero-canvas"></canvas>
+  <div class="hero-circle"></div>
+  <div class="hero-inner">
+    <div>
+      <div class="hero-eyebrow">Community Health · Dementia Care · Doylestown, PA</div>
+      <h1 class="hero-h1">
+        Health care that<br>
+        reaches those<br>
+        <span class="gold-text">who need it most.</span>
+      </h1>
+      <p class="hero-sub">The Ann Silverman Community Health Clinic provides accessible medical, dental, and behavioral health services to those in need — led by Executive Director Meri L. Gaumond, CDP, CADDCT, CDCM.</p>
+      <div class="hero-actions">
+        <a href="#donate" class="btn-white"><span>Donate Today</span></a>
+        <a href="#services" class="btn-ghost">Our Services</a>
+      </div>
+    </div>
+    <div class="hero-right">
+      <div class="card-3d-wrap">
+        <div class="hero-card" id="heroCard">
+          <div class="hc-badge">CDP · CADDCT · CDCM · PAC Certified</div>
+          <div class="hc-stats">
+            <div>
+              <span class="hs-num">13+</span>
+              <p class="hs-label">Years in memory care and dementia program leadership</p>
+            </div>
+            <div>
+              <span class="hs-num">3</span>
+              <p class="hs-label">Healthcare service pillars — medical, dental, behavioral</p>
+            </div>
+            <div>
+              <span class="hs-num">Free</span>
+              <p class="hs-label">Accessible care for those who qualify in the community</p>
+            </div>
+            <div>
+              <span class="hs-num">2026</span>
+              <p class="hs-label">Upcoming book — Led by Love, Guided by Faith</p>
+            </div>
+          </div>
+          <div class="hc-divider"></div>
+          <p class="hc-quote">"Feel the peace and joy of living by giving health to yourself and others."</p>
+          <p class="hc-attr">Meri L. Gaumond · Executive Director, Ann Silverman Community Health Clinic</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- MARQUEE -->
+<div class="marquee-wrap">
+  <div class="marquee-track">
+    <div class="marquee-item">Medical Services <span class="m-sep"></span></div>
+    <div class="marquee-item">Dental Care <span class="m-sep"></span></div>
+    <div class="marquee-item">Behavioral Health <span class="m-sep"></span></div>
+    <div class="marquee-item">Dementia Care Training <span class="m-sep"></span></div>
+    <div class="marquee-item">DementiaBuddy <span class="m-sep"></span></div>
+    <div class="marquee-item">Community Health <span class="m-sep"></span></div>
+    <div class="marquee-item">Mission-Driven Care <span class="m-sep"></span></div>
+    <div class="marquee-item">Doylestown Pennsylvania <span class="m-sep"></span></div>
+    <div class="marquee-item">Medical Services <span class="m-sep"></span></div>
+    <div class="marquee-item">Dental Care <span class="m-sep"></span></div>
+    <div class="marquee-item">Behavioral Health <span class="m-sep"></span></div>
+    <div class="marquee-item">Dementia Care Training <span class="m-sep"></span></div>
+    <div class="marquee-item">DementiaBuddy <span class="m-sep"></span></div>
+    <div class="marquee-item">Community Health <span class="m-sep"></span></div>
+    <div class="marquee-item">Mission-Driven Care <span class="m-sep"></span></div>
+    <div class="marquee-item">Doylestown Pennsylvania <span class="m-sep"></span></div>
+  </div>
+</div>
+
+<!-- MISSION -->
+<section class="section mission-bg" id="mission">
+  <div class="container">
+    <div class="mission-layout">
+      <div class="reveal">
+        <div class="s-label">Our Mission</div>
+        <h2 class="s-h2">Accessible care<br>for those who<br><em>need it most.</em></h2>
+        <p class="s-p">The Ann Silverman Community Health Clinic exists to bridge the gap — providing accessible medical, dental, and behavioral services to community members who would otherwise go without.</p>
+        <div class="mission-quote">
+          "Not every moment of care needs more activity. Sometimes, it needs more understanding."
+        </div>
+        <p class="mission-attr">Meri L. Gaumond · Executive Director</p>
+      </div>
+      <div class="mission-points reveal d1">
+        <div class="mp-item">
+          <div class="mp-dot"></div>
+          <div>
+            <p class="mp-title">Medical Services</p>
+            <p class="mp-body">Comprehensive primary care services for qualified community members — delivered with dignity, compassion, and clinical excellence.</p>
+          </div>
+        </div>
+        <div class="mp-item">
+          <div class="mp-dot"></div>
+          <div>
+            <p class="mp-title">Dental Care</p>
+            <p class="mp-body">Accessible dental services for those who could not otherwise afford care — because oral health is foundational to overall wellbeing.</p>
+          </div>
+        </div>
+        <div class="mp-item">
+          <div class="mp-dot"></div>
+          <div>
+            <p class="mp-title">Behavioral Health</p>
+            <p class="mp-body">Mental health and behavioral services that meet people where they are — with empathy, evidence-based care, and deep respect for the whole person.</p>
+          </div>
+        </div>
+        <div class="mp-item">
+          <div class="mp-dot"></div>
+          <div>
+            <p class="mp-title">Community Outreach</p>
+            <p class="mp-body">Education, fundraising, and stakeholder engagement to advance the clinic's mission and deepen its impact across Doylestown and Bucks County.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SERVICES -->
+<section class="section" id="services">
+  <div class="container">
+    <div class="svc-top">
+      <div class="reveal">
+        <div class="s-label">Services</div>
+        <h2 class="s-h2">Care without<br><em>barriers.</em></h2>
+      </div>
+      <div class="reveal d1">
+        <p class="s-p">The clinic's services are designed to remove the barriers that keep people from getting care — financial, geographic, and systemic. Every person who walks through the door deserves to be seen.</p>
+      </div>
+    </div>
+    <div class="svc-grid reveal">
+      <div class="svc-card">
+        <p class="sv-num">01</p>
+        <p class="sv-title">Primary Medical Care</p>
+        <p class="sv-body">Accessible primary care for qualified individuals and families — preventive, diagnostic, and treatment services delivered with clinical skill and human compassion.</p>
+      </div>
+      <div class="svc-card">
+        <p class="sv-num">02</p>
+        <p class="sv-title">Dental Services</p>
+        <p class="sv-body">Oral health care for community members who cannot afford private dental services — because a healthy mouth is fundamental to a healthy life.</p>
+      </div>
+      <div class="svc-card">
+        <p class="sv-num">03</p>
+        <p class="sv-title">Behavioral Health</p>
+        <p class="sv-body">Mental and behavioral health support for individuals and families navigating anxiety, depression, trauma, and life transitions — with dignity at the center of every session.</p>
+      </div>
+      <div class="svc-card">
+        <p class="sv-num">04</p>
+        <p class="sv-title">Dementia Education</p>
+        <p class="sv-body">Community education on Alzheimer's disease, dementia care, and caregiver support — helping families understand what their loved ones are experiencing and how to respond.</p>
+      </div>
+      <div class="svc-card">
+        <p class="sv-num">05</p>
+        <p class="sv-title">Caregiver Support</p>
+        <p class="sv-body">Resources, training, and guidance for family caregivers — because the people caring for others need care too, especially when memory and behavior change daily.</p>
+      </div>
+      <div class="svc-card">
+        <p class="sv-num">06</p>
+        <p class="sv-title">Volunteer Programs</p>
+        <p class="sv-body">Opportunities for community members to serve alongside the clinic team — contributing skills, time, and heart to a mission that makes a real difference in people's lives.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- DEMENTIA -->
+<section class="dementia-bg" id="dementia">
+  <div class="container">
+    <div class="dementia-layout">
+      <div class="reveal">
+        <div class="s-label">Dementia Care</div>
+        <h2 class="s-h2">Where memory<br>fails, <em>spirit</em><br>does not.</h2>
+        <p class="s-p">Meri L. Gaumond brings over a decade of specialized dementia care expertise to the clinic's work — developing programs, training caregivers, and creating tools that change how families experience memory care.</p>
+        <br /><br />
+        <a href="#contact" class="btn-white" style="background:var(--lavender);color:var(--purple-dark);"><span>Learn About Dementia Programs</span></a>
+      </div>
+      <div class="credential-list reveal d1">
+        <div class="cred-row">
+          <span class="cr-badge">CDP</span>
+          <div>
+            <p class="cr-title">Certified Dementia Practitioner</p>
+            <p class="cr-body">Advanced certification in dementia care practices and person-centered care approaches for individuals living with Alzheimer's and related dementias.</p>
+          </div>
+        </div>
+        <div class="cred-row">
+          <span class="cr-badge">CADDCT</span>
+          <div>
+            <p class="cr-title">Certified Alzheimer's Disease and Dementia Care Trainer</p>
+            <p class="cr-body">Authorized to train healthcare professionals and family caregivers in evidence-based dementia care practices across organizations and communities.</p>
+          </div>
+        </div>
+        <div class="cred-row">
+          <span class="cr-badge">CDCM</span>
+          <div>
+            <p class="cr-title">Certified Dementia Care Manager</p>
+            <p class="cr-body">Specialized in developing, coordinating, and implementing dementia care programs, policies, and procedures for residential memory care settings.</p>
+          </div>
+        </div>
+        <div class="cred-row">
+          <span class="cr-badge">DB</span>
+          <div>
+            <p class="cr-title">Co-Creator of DementiaBuddy</p>
+            <p class="cr-body">Co-created DementiaBuddy — a tool designed to support caregivers and families navigating the day-to-day realities of caring for a loved one with dementia.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ABOUT -->
+<section class="section" id="about">
+  <div class="container">
+    <div class="about-layout">
+      <div class="reveal">
+        <div class="about-photo">
+          <span class="about-initials">MLG</span>
+          <div class="about-float">
+            <span class="af-num">13+</span>
+            <p class="af-label">Years in memory care and dementia leadership</p>
+          </div>
+        </div>
+      </div>
+      <div class="reveal d1">
+        <div class="s-label">About Meri</div>
+        <h2 class="s-h2" style="font-size:clamp(30px,3.8vw,48px);">Led by love.<br><em>Guided by faith.</em></h2>
+        <p class="about-body">Meri L. Gaumond is the Executive Director of the <strong>Ann Silverman Community Health Clinic</strong> in Doylestown, Pennsylvania — leading a team dedicated to providing accessible medical, dental, and behavioral health services to those in need.</p>
+        <p class="about-body">With over 13 years at Pickering Manor as Administrator of Memory Care and Dementia Trainer, Meri brings deep expertise in dementia program development, policy, and care to everything she leads. She is the co-creator of DementiaBuddy and Founder of Dementia Care at Home and the International Dementia Care and Cure Nonprofit.</p>
+        <p class="about-body">Her forthcoming book <em>Led by Love, Guided by Faith</em> (July 2026) reflects the spiritual core of her mission — that every act of care is an act of love.</p>
+        <div class="about-creds">
+          <div class="ac-item"><div class="ac-dot"></div>Executive Director · Ann Silverman Community Health Clinic · Doylestown, PA</div>
+          <div class="ac-item"><div class="ac-dot"></div>CDP · CADDCT · CDCM · PAC Certified</div>
+          <div class="ac-item"><div class="ac-dot"></div>Co-Creator · DementiaBuddy</div>
+          <div class="ac-item"><div class="ac-dot"></div>Founder · Dementia Care at Home · International Dementia Care and Cure Nonprofit</div>
+          <div class="ac-item"><div class="ac-dot"></div>National Council of Certified Dementia Practitioners</div>
+          <div class="ac-item"><div class="ac-dot"></div>Co-Author · Led by Love, Guided by Faith (July 2026)</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- DONATE -->
+<section class="donate-section" id="donate">
+  <div class="donate-bg-text">Give</div>
+  <div class="container">
+    <div class="s-label">Support the Mission</div>
+    <h2 class="donate-h2">Your gift makes<br><em>care possible</em><br>for someone today.</h2>
+    <p class="donate-sub">Every donation to the Ann Silverman Community Health Clinic helps provide accessible medical, dental, and behavioral health services to those who need it most in our community.</p>
+    <div class="donate-actions">
+      <a href="https://www.aschealthclinic.org/donatenow" class="btn-purple" target="_blank">Donate Now</a>
+      <a href="https://www.aschealthclinic.org" class="btn-outline" target="_blank">Learn More</a>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <span class="f-logo">Ann Silverman <span>Community Health Clinic</span></span>
+  <ul class="f-links">
+    <li><a href="#mission">Mission</a></li>
+    <li><a href="#services">Services</a></li>
+    <li><a href="#dementia">Dementia Care</a></li>
+    <li><a href="#about">About Meri</a></li>
+    <li><a href="#donate">Donate</a></li>
+  </ul>
+  <span class="f-copy">© 2025 Ann Silverman Community Health Clinic · Doylestown, Pennsylvania</span>
+</footer>
+
+<script>
+  const cursor = document.getElementById('cursor');
+  const ring = document.getElementById('cursorRing');
+  let mx = 0, my = 0, rx = 0, ry = 0;
+
+  document.addEventListener('mousemove', e => {
+    mx = e.clientX; my = e.clientY;
+    cursor.style.left = mx + 'px';
+    cursor.style.top = my + 'px';
+  });
+
+  function animRing() {
+    rx += (mx - rx) * 0.1;
+    ry += (my - ry) * 0.1;
+    ring.style.left = rx + 'px';
+    ring.style.top = ry + 'px';
+    requestAnimationFrame(animRing);
+  }
+  animRing();
+
+  document.querySelectorAll('a, button').forEach(el => {
+    el.addEventListener('mouseenter', () => {
+      cursor.style.width = '18px'; cursor.style.height = '18px';
+      ring.style.width = '52px'; ring.style.height = '52px';
+    });
+    el.addEventListener('mouseleave', () => {
+      cursor.style.width = '10px'; cursor.style.height = '10px';
+      ring.style.width = '36px'; ring.style.height = '36px';
+    });
+  });
+
+  const nav = document.getElementById('nav');
+  window.addEventListener('scroll', () => {
+    nav.classList.toggle('scrolled', window.scrollY > 60);
+  });
+
+  const heroCard = document.getElementById('heroCard');
+  const heroWrap = heroCard?.parentElement;
+  if (heroWrap) {
+    heroWrap.addEventListener('mousemove', e => {
+      const r = heroWrap.getBoundingClientRect();
+      const x = (e.clientX - r.left) / r.width - 0.5;
+      const y = (e.clientY - r.top) / r.height - 0.5;
+      heroCard.style.transform = `rotateY(${x * 12}deg) rotateX(${-y * 9}deg) translateZ(10px)`;
+    });
+    heroWrap.addEventListener('mouseleave', () => {
+      heroCard.style.transform = 'rotateY(0deg) rotateX(0deg) translateZ(0)';
+    });
+  }
+
+  const canvas = document.getElementById('hero-canvas');
+  const ctx = canvas.getContext('2d');
+  let W, H, particles = [];
+
+  function resize() {
+    W = canvas.width = canvas.offsetWidth;
+    H = canvas.height = canvas.offsetHeight;
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  class Particle {
+    constructor() { this.reset(); }
+    reset() {
+      this.x = Math.random() * W;
+      this.y = Math.random() * H;
+      this.size = Math.random() * 2 + 0.5;
+      this.speedX = (Math.random() - 0.5) * 0.28;
+      this.speedY = (Math.random() - 0.5) * 0.28;
+      this.opacity = Math.random() * 0.18 + 0.04;
+      this.color = Math.random() > 0.55
+        ? `rgba(200,184,232,${this.opacity})`
+        : `rgba(255,255,255,${this.opacity})`;
+    }
+    update() {
+      this.x += this.speedX;
+      this.y += this.speedY;
+      if (this.x < 0 || this.x > W || this.y < 0 || this.y > H) this.reset();
+    }
+    draw() {
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+      ctx.fillStyle = this.color;
+      ctx.globalAlpha = 1;
+      ctx.fill();
+    }
+  }
+
+  for (let i = 0; i < 80; i++) particles.push(new Particle());
+
+  function drawLines() {
+    for (let i = 0; i < particles.length; i++) {
+      for (let j = i + 1; j < particles.length; j++) {
+        const dx = particles[i].x - particles[j].x;
+        const dy = particles[i].y - particles[j].y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < 110) {
+          ctx.beginPath();
+          ctx.moveTo(particles[i].x, particles[i].y);
+          ctx.lineTo(particles[j].x, particles[j].y);
+          ctx.strokeStyle = 'rgba(200,184,232,1)';
+          ctx.globalAlpha = (1 - dist / 110) * 0.07;
+          ctx.lineWidth = 0.5;
+          ctx.stroke();
+        }
+      }
+    }
+  }
+
+  function animate() {
+    ctx.clearRect(0, 0, W, H);
+    ctx.globalAlpha = 1;
+    particles.forEach(p => { p.update(); p.draw(); });
+    drawLines();
+    requestAnimationFrame(animate);
+  }
+  animate();
+
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) { e.target.classList.add('in'); observer.unobserve(e.target); }
+    });
+  }, { threshold: 0.1 });
+  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+</script>
+</body>
+</html>
