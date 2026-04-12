@@ -171,10 +171,10 @@ input[type=range]::-webkit-slider-runnable-track{height:2px}
 .step-next:hover{background:rgba(46,125,209,0.1)}
 
 /* ── HOW IT WORKS ── */
-.how-section{background:var(--cream2);padding:100px 48px}
+.how-section{background:var(--white);padding:100px 48px}
 .steps-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;margin-top:60px}
-.how-step{background:var(--white);padding:40px 36px;border:1px solid var(--border);position:relative;transition:all .3s}
-.how-step:hover{transform:translateY(-4px);box-shadow:0 20px 60px rgba(0,0,0,0.06)}
+.how-step{background:var(--cream2);padding:40px 36px;border:1px solid var(--border);border-top:3px solid var(--gold);position:relative;transition:all .3s}
+.how-step:hover{transform:translateY(-4px);box-shadow:0 20px 60px rgba(46,125,209,0.1);border-top-color:var(--gold2)}
 .how-step-num{font-family:var(--serif);font-size:80px;color:rgba(46,125,209,0.08);line-height:1;position:absolute;top:20px;right:24px;font-weight:300}
 .how-step-icon{font-size:32px;margin-bottom:20px}
 .how-step-title{font-family:var(--serif);font-size:22px;font-weight:400;color:var(--navy);margin-bottom:12px}
@@ -191,10 +191,10 @@ input[type=range]::-webkit-slider-runnable-track{height:2px}
 .test-author strong{color:rgba(255,255,255,0.6);display:block;font-weight:500;font-size:13px;letter-spacing:.5px;text-transform:none;margin-bottom:2px}
 
 /* ── SERVICES ── */
-.services-section{background:var(--cream2);padding:100px 48px}
+.services-section{background:var(--white);padding:100px 48px}
 .services-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:2px;margin-top:48px}
-.service-card{background:var(--white);border:1px solid var(--border);padding:32px 28px;transition:all .3s}
-.service-card:hover{border-color:var(--gold);transform:translateY(-2px)}
+.service-card{background:var(--cream2);border:1px solid var(--border);border-left:3px solid transparent;padding:32px 28px;transition:all .3s}
+.service-card:hover{border-left-color:var(--gold);transform:translateY(-2px);box-shadow:0 12px 40px rgba(46,125,209,0.08)}
 .service-card-icon{font-size:28px;margin-bottom:16px}
 .service-card-title{font-family:var(--serif);font-size:18px;color:var(--navy);margin-bottom:8px}
 .service-card-desc{font-size:13px;line-height:1.7;color:var(--muted);font-weight:300}
@@ -225,7 +225,7 @@ input[type=range]::-webkit-slider-runnable-track{height:2px}
 .about-badge-lbl{font-size:9px;letter-spacing:2px;text-transform:uppercase;font-weight:600;display:block;margin-top:2px}
 
 /* ── CTA SECTION ── */
-.cta-section{background:var(--cream2);padding:100px 48px}
+.cta-section{background:var(--white);padding:100px 48px;border-top:1px solid var(--border)}
 .cta-inner{max-width:800px;margin:0 auto;text-align:center}
 .cta-title{font-family:var(--serif);font-size:clamp(32px,5vw,60px);font-weight:300;color:var(--navy);line-height:1.05;margin-bottom:16px}
 .cta-title em{font-style:italic;color:var(--teal)}
@@ -306,7 +306,7 @@ footer{background:var(--navy);padding:60px 48px 32px;border-top:1px solid rgba(2
 
 <!-- NAV -->
 <nav id="nav">
-  <a href="#" class="nav-logo">Proximity <em>Care</em></a>
+  <a href="#" class="nav-logo">Proximity <em>Care Services</em></a>
   <ul class="nav-links">
     <li><a href="#builder">Build Your Plan</a></li>
     <li><a href="#how">How It Works</a></li>
@@ -684,7 +684,7 @@ footer{background:var(--navy);padding:60px 48px 32px;border-top:1px solid rgba(2
   <div class="footer-inner">
     <div class="footer-top">
       <div>
-        <div class="footer-logo">Proximity <em>Care</em></div>
+        <div class="footer-logo">Proximity <em>Care Services</em></div>
         <p class="footer-desc">In-home senior care for families in Mississauga, Brampton, and Caledon. Consistent PSWs. Real communication. Care that actually works.</p>
         <div class="footer-contact">
           <a href="tel:6473828047">📞 647-382-8047</a>
@@ -731,7 +731,7 @@ footer{background:var(--navy);padding:60px 48px 32px;border-top:1px solid rgba(2
     <div class="chat-info"><h4>Proximity Care</h4><p>Ask me anything about care options</p></div>
   </div>
   <div class="chat-msgs" id="cmsgs">
-    <div class="cmsg b"><div class="cbub">Hi — I'm here to help you find the right care for your loved one. What's your situation right now?</div></div>
+    <div class="cmsg b"><div class="cbub">Hi — what's going on with your loved one right now?</div></div>
   </div>
   <div class="ctyping" id="ctyp"><div class="ctyd"></div><div class="ctyd"></div><div class="ctyd"></div></div>
   <div class="chat-inp-wrap">
@@ -852,18 +852,11 @@ function updatePlanCard(final=false){
 // ── CHATBOT ──
 const CW='https://young-meadow-e6fb.lancesalazar56.workers.dev';
 const CM='claude-haiku-4-5-20251001';
-const CSYS=`You are the care assistant for Proximity Care Services, a premium in-home senior care agency in Mississauga, Brampton, and Caledon, Ontario. You help families find the right care for their loved ones.
+const CSYS=`You are a warm care assistant for Proximity Care Services in Mississauga, Brampton, and Caledon. You help families find care for their parents.
 
-SERVICES: Personal hygiene & grooming, meal preparation, medication reminders, mobility assistance, companionship, accompany to appointments, light housekeeping, dementia care, overnight care.
+RULES: Keep every reply to 1-2 short sentences. Be warm and human, not salesy. Ask one simple question at a time. Never use bullet points or bold text. If they seem ready, say "I can have Lance call you today — just leave your number."
 
-CARE PLANS:
-- Essential Support: ~$800/month, 20hrs/month, 1-2 visits/week
-- Standard Care: ~$1,600/month, 40hrs/month, daily support
-- Full-Time Care: ~$3,000/month, 80+ hrs/month, intensive
-
-KEY FACTS: Same PSW every visit. First 6 hours free. No contracts. Lance personally does the first in-home assessment. Serving Mississauga, Brampton, Caledon. Call: 647-382-8047.
-
-TONE: Warm, caring, empathetic. Speak to the worry families are carrying. Keep answers to 2-3 sentences. If they seem ready, direct them to book a free assessment.`;
+FACTS: Same PSW every visit. First 6 hours free. No contracts. Call 647-382-8047. Book at proximitycares.ca/lead-form.html.`;
 
 let chist=[];
 function toggleChat(){
@@ -876,7 +869,7 @@ async function csend(){
   addCMsg('u',msg);chist.push({role:'user',content:msg});
   document.getElementById('ctyp').classList.add('show');csc();
   try{
-    const r=await fetch(CW,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:CM,max_tokens:200,system:CSYS,messages:chist})});
+    const r=await fetch(CW,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:CM,max_tokens:80,system:CSYS,messages:chist})});
     const d=await r.json();
     const rep=d.content?.[0]?.text||'Please call us at 647-382-8047 and we\'ll be happy to help.';
     chist.push({role:'assistant',content:rep});
