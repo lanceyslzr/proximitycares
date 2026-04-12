@@ -4,853 +4,898 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Proximity Care Services — In-Home Senior Care in Mississauga & Brampton</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<meta name="description" content="Premium in-home senior care for families in Mississauga, Brampton, and Caledon. Same PSW every visit. First 6 hours free. Book a free in-home assessment today.">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400;1,500&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --blue: #1d5fa8;
-    --blue-light: #4a8fd4;
-    --blue-pale: #edf4fc;
-    --blue-dim: rgba(29,95,168,0.09);
-    --blue-dark: #0f3a6e;
-    --warm: #f8f6f2;
-    --warm2: #f0ece4;
-    --warm3: #e2dbd0;
-    --dark: #0d1b2a;
-    --text: #1a2738;
-    --muted: #5a6a7e;
-    --white: #ffffff;
-    --gold: #c4973a;
-    --green-soft: #2d7a4a;
-  }
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  html { scroll-behavior: smooth; }
-  body { font-family: 'Inter', sans-serif; font-weight: 300; background: var(--warm); color: var(--text); overflow-x: hidden; line-height: 1.7; font-size: 15px; }
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --navy:#1a3a5c;--navy2:#1e4068;--cream:#f0f6ff;--cream2:#f7faff;--white:#ffffff;
+  --gold:#2e7dd1;--gold2:#4a9de8;--teal:#1d6fa8;--text:#1a2e3d;--muted:#5a6a7a;
+  --border:#d0e4f5;--border2:rgba(46,125,209,0.2);
+  --serif:'Cormorant Garamond',serif;--sans:'Jost',sans-serif;
+}
+html{scroll-behavior:smooth}
+body{font-family:var(--sans);background:var(--cream2);color:var(--text);overflow-x:hidden}
 
-  /* TOP BAR */
-  .top-bar { background: var(--blue-dark); padding: 11px 48px; display: flex; align-items: center; justify-content: center; gap: 40px; flex-wrap: wrap; }
-  .top-bar-item { font-size: 0.73rem; color: rgba(255,255,255,0.85); letter-spacing: 0.06em; display: flex; align-items: center; gap: 8px; }
-  .top-bar-item strong { color: #fff; font-weight: 500; }
-  .top-bar-item a { color: #fff; text-decoration: none; font-weight: 500; border-bottom: 1px solid rgba(255,255,255,0.3); padding-bottom: 1px; }
-  .top-bar-divider { color: rgba(255,255,255,0.2); }
+/* ── NAV ── */
+nav{position:fixed;top:0;left:0;right:0;z-index:500;padding:0 48px;height:70px;display:flex;align-items:center;justify-content:space-between;transition:all .4s}
+nav.scrolled{background:rgba(10,22,40,0.96);backdrop-filter:blur(20px)}
+.nav-logo{font-family:var(--serif);font-size:20px;color:var(--white);letter-spacing:2px;text-decoration:none;font-weight:400}
+.nav-logo em{color:var(--gold2);font-style:italic}
+.nav-links{display:flex;align-items:center;gap:32px;list-style:none}
+.nav-links a{color:rgba(255,255,255,0.7);font-size:12px;letter-spacing:2px;text-transform:uppercase;text-decoration:none;transition:color .2s}
+.nav-links a:hover{color:var(--gold2)}
+.nav-cta{background:var(--gold);color:var(--navy)!important;padding:10px 24px;font-size:11px!important;letter-spacing:2px;text-transform:uppercase;font-weight:600;transition:all .2s!important}
+.nav-cta:hover{background:var(--gold2)!important;transform:translateY(-1px)}
 
-  /* NAV */
-  nav { background: var(--white); border-bottom: 1px solid var(--warm3); padding: 0 48px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; height: 68px; box-shadow: 0 1px 8px rgba(0,0,0,0.06); }
-  .nav-logo { font-family: 'Lora', serif; font-size: 1.1rem; font-weight: 600; color: var(--dark); text-decoration: none; }
-  .nav-logo span { color: var(--blue); }
-  .nav-center { display: flex; gap: 32px; align-items: center; list-style: none; }
-  .nav-center a { font-size: 0.78rem; color: var(--muted); text-decoration: none; transition: color 0.2s; }
-  .nav-center a:hover { color: var(--blue); }
-  .nav-right { display: flex; align-items: center; gap: 20px; }
-  .nav-phone-num { font-size: 0.95rem; font-weight: 600; color: var(--blue); text-decoration: none; }
-  .nav-cta { background: var(--blue); color: #fff; padding: 10px 22px; border-radius: 4px; font-size: 0.78rem; font-weight: 500; text-decoration: none; transition: all 0.2s; }
-  .nav-cta:hover { background: var(--blue-dark); }
+/* ── HERO ── */
+.hero{min-height:100vh;background:var(--navy);position:relative;display:flex;align-items:center;overflow:hidden}
+.hero-bg{position:absolute;inset:0;background:radial-gradient(ellipse at 70% 50%,rgba(46,125,209,0.15) 0%,transparent 60%),radial-gradient(ellipse at 20% 80%,rgba(46,125,209,0.08) 0%,transparent 50%);pointer-events:none}
+.hero-grain{position:absolute;inset:0;opacity:.03;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");pointer-events:none}
+.hero-content{position:relative;z-index:2;padding:0 48px;max-width:1200px;margin:0 auto;width:100%;padding-top:70px}
+.hero-location{display:inline-flex;align-items:center;gap:8px;background:rgba(46,125,209,0.12);border:1px solid rgba(46,125,209,0.25);padding:8px 18px;margin-bottom:32px;opacity:0;animation:fadeUp .8s ease forwards .2s}
+.hero-location-dot{width:8px;height:8px;border-radius:50%;background:var(--gold2);animation:pulse2 2s infinite}
+@keyframes pulse2{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(74,157,232,0.4)}50%{opacity:.7;box-shadow:0 0 0 8px rgba(74,157,232,0)}}
+.hero-location-text{font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--gold2)}
+.hero-h1{font-family:var(--serif);font-size:clamp(48px,6vw,88px);font-weight:300;line-height:1.0;color:var(--white);margin-bottom:24px;opacity:0;animation:fadeUp .8s ease forwards .4s}
+.hero-h1 em{font-style:italic;color:var(--gold2)}
+.hero-sub{font-size:16px;line-height:1.8;color:rgba(255,255,255,0.6);max-width:520px;margin-bottom:40px;font-weight:300;opacity:0;animation:fadeUp .8s ease forwards .6s}
+.hero-sub strong{color:rgba(255,255,255,0.9);font-weight:400}
+.hero-btns{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:64px;opacity:0;animation:fadeUp .8s ease forwards .8s}
+.btn-primary{background:var(--gold);color:var(--navy);padding:16px 36px;font-size:12px;letter-spacing:2px;text-transform:uppercase;font-weight:600;text-decoration:none;display:inline-block;transition:all .3s;border:none;cursor:pointer;font-family:var(--sans)}
+.btn-primary:hover{background:var(--gold2);transform:translateY(-2px);box-shadow:0 12px 40px rgba(46,125,209,0.3)}
+.btn-outline{background:transparent;color:var(--white);padding:16px 36px;font-size:12px;letter-spacing:2px;text-transform:uppercase;font-weight:400;text-decoration:none;display:inline-block;border:1px solid rgba(255,255,255,0.3);transition:all .3s;cursor:pointer;font-family:var(--sans)}
+.btn-outline:hover{border-color:var(--gold2);color:var(--gold2)}
+.hero-trust{display:flex;gap:40px;opacity:0;animation:fadeUp .8s ease forwards 1s}
+.trust-item{display:flex;align-items:center;gap:10px;font-size:12px;color:rgba(255,255,255,0.45);letter-spacing:1px}
+.trust-icon{font-size:18px}
+.hero-right{position:absolute;right:48px;top:50%;transform:translateY(-50%);width:380px;opacity:0;animation:fadeRight .8s ease forwards 1s}
+.hero-card{background:rgba(255,255,255,0.04);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.08);padding:32px;border-top:2px solid var(--gold)}
+.hero-card-label{font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--gold2);margin-bottom:20px}
+.hero-stat{display:flex;align-items:baseline;gap:8px;margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid rgba(255,255,255,0.06)}
+.hero-stat:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0}
+.hero-stat-val{font-family:var(--serif);font-size:32px;color:var(--white);font-weight:300}
+.hero-stat-lbl{font-size:12px;color:rgba(255,255,255,0.45)}
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeRight{from{opacity:0;transform:translate(20px,-50%)}to{opacity:1;transform:translate(0,-50%)}}
 
-  /* BUTTONS */
-  .btn-primary { display: inline-block; background: var(--blue); color: #fff; padding: 14px 30px; text-decoration: none; font-size: 0.82rem; font-weight: 500; border-radius: 4px; transition: all 0.2s; font-family: 'Inter', sans-serif; }
-  .btn-primary:hover { background: var(--blue-dark); transform: translateY(-1px); box-shadow: 0 4px 16px rgba(29,95,168,0.25); }
-  .btn-call { display: inline-flex; align-items: center; gap: 8px; color: var(--blue); font-size: 0.88rem; font-weight: 500; text-decoration: none; border: 1.5px solid rgba(29,95,168,0.3); padding: 13px 22px; border-radius: 4px; transition: all 0.2s; }
-  .btn-call:hover { background: var(--blue-dim); border-color: var(--blue); }
-  .btn-white { display: inline-block; background: #fff; color: var(--blue); padding: 15px 34px; text-decoration: none; font-size: 0.83rem; font-weight: 600; border-radius: 4px; transition: all 0.2s; font-family: 'Inter', sans-serif; }
-  .btn-white:hover { background: var(--blue-pale); }
-  .btn-outline-white { display: inline-block; border: 1.5px solid rgba(255,255,255,0.4); color: #fff; padding: 15px 34px; text-decoration: none; font-size: 0.83rem; border-radius: 4px; transition: all 0.2s; font-family: 'Inter', sans-serif; }
-  .btn-outline-white:hover { border-color: rgba(255,255,255,0.8); background: rgba(255,255,255,0.08); }
+/* ── SECTION BASE ── */
+.section{padding:100px 48px}
+.section-inner{max-width:1200px;margin:0 auto}
+.section-eyebrow{display:flex;align-items:center;gap:16px;margin-bottom:20px}
+.ey-line{width:40px;height:1px;background:var(--gold)}
+.ey-tag{font-size:10px;letter-spacing:4px;text-transform:uppercase;color:var(--gold)}
+.section-title{font-family:var(--serif);font-size:clamp(36px,5vw,64px);font-weight:300;line-height:1.05;color:var(--navy);margin-bottom:20px}
+.section-title em{font-style:italic;color:var(--teal)}
+.section-sub{font-size:16px;line-height:1.8;color:var(--muted);max-width:600px;font-weight:300}
 
-  /* SECTION */
-  .section-outer { border-bottom: 1px solid var(--warm3); }
-  .section-inner { max-width: 1240px; margin: 0 auto; padding: 88px 48px; }
-  .section-label { font-size: 0.62rem; letter-spacing: 0.24em; text-transform: uppercase; color: var(--blue); margin-bottom: 14px; font-weight: 600; display: flex; align-items: center; gap: 10px; }
-  .section-label::before { content: ''; width: 24px; height: 2px; background: var(--blue); border-radius: 2px; }
-  h2 { font-family: 'Lora', serif; font-size: clamp(1.75rem, 3vw, 2.4rem); font-weight: 600; line-height: 1.22; color: var(--dark); margin-bottom: 16px; letter-spacing: -0.02em; }
-  h2 em { font-style: italic; color: var(--blue); }
-  .section-intro { font-size: 0.95rem; color: var(--muted); line-height: 1.9; max-width: 580px; margin-bottom: 52px; }
+/* ── CARE BUILDER ── */
+.builder-section{background:var(--navy);padding:100px 48px;position:relative;overflow:hidden}
+.builder-section::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 30% 50%,rgba(46,125,209,0.12),transparent 60%);pointer-events:none}
+.builder-inner{max-width:1100px;margin:0 auto;position:relative;z-index:1}
+.builder-eyebrow{display:flex;align-items:center;gap:16px;margin-bottom:20px}
+.builder-title{font-family:var(--serif);font-size:clamp(32px,4.5vw,58px);font-weight:300;color:var(--white);line-height:1.05;margin-bottom:12px}
+.builder-title em{font-style:italic;color:var(--gold2)}
+.builder-sub{font-size:15px;color:rgba(255,255,255,0.5);margin-bottom:48px;font-weight:300;max-width:560px}
 
-  /* REVEAL */
-  .reveal { opacity: 0; transform: translateY(18px); transition: opacity 0.6s ease, transform 0.6s ease; }
-  .reveal.visible { opacity: 1; transform: translateY(0); }
-  .d1 { transition-delay: 0.1s; } .d2 { transition-delay: 0.2s; } .d3 { transition-delay: 0.3s; }
+/* BUILDER LAYOUT */
+.builder-grid{display:grid;grid-template-columns:1fr 360px;gap:32px;align-items:start}
+.builder-steps{display:flex;flex-direction:column;gap:4px}
 
-  /* ============================================================
-     HERO
-  ============================================================ */
-  .hero-wrap { background: var(--white); border-bottom: 1px solid var(--warm3); }
-  .hero { max-width: 1240px; margin: 0 auto; padding: 72px 48px 68px; display: grid; grid-template-columns: 1fr 420px; gap: 72px; align-items: start; }
-  .hero-eyebrow { font-size: 0.68rem; letter-spacing: 0.22em; text-transform: uppercase; color: var(--blue); margin-bottom: 18px; font-weight: 600; display: flex; align-items: center; gap: 10px; }
-  .hero-eyebrow::before { content: ''; width: 28px; height: 2px; background: var(--blue); border-radius: 2px; }
-  .hero h1 { font-family: 'Lora', serif; font-size: clamp(2.2rem, 3.8vw, 3.1rem); font-weight: 600; line-height: 1.15; color: var(--dark); margin-bottom: 22px; letter-spacing: -0.02em; }
-  .hero h1 em { font-style: italic; color: var(--blue); }
-  .hero-sub { font-size: 1rem; color: var(--muted); line-height: 1.9; margin-bottom: 36px; max-width: 540px; }
-  .hero-sub strong { color: var(--text); font-weight: 500; }
+/* STEP */
+.step{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:2px;overflow:hidden;transition:all .3s}
+.step.active{background:rgba(255,255,255,0.06);border-color:rgba(46,125,209,0.25)}
+.step-header{padding:18px 22px;display:flex;align-items:center;gap:14px;cursor:pointer}
+.step-num{width:28px;height:28px;border-radius:50%;border:1px solid rgba(46,125,209,0.3);display:flex;align-items:center;justify-content:center;font-family:'DM Mono',monospace;font-size:11px;color:rgba(46,125,209,0.6);flex-shrink:0;transition:all .3s}
+.step.active .step-num{background:var(--gold);color:var(--navy);border-color:var(--gold);font-weight:600}
+.step.done .step-num{background:rgba(46,125,209,0.15);color:var(--gold2)}
+.step-title{font-size:13px;color:rgba(255,255,255,0.6);letter-spacing:1px;text-transform:uppercase;font-weight:400;transition:color .3s}
+.step.active .step-title{color:var(--white)}
+.step-check{margin-left:auto;color:var(--gold2);font-size:14px;opacity:0;transition:opacity .3s}
+.step.done .step-check{opacity:1}
+.step-body{padding:0 22px 20px;display:none}
+.step.active .step-body{display:block}
 
-  .situation-label { font-size: 0.68rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); margin-bottom: 10px; font-weight: 500; }
-  .situations { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 32px; }
-  .situation-tag { padding: 8px 16px; border: 1px solid var(--warm3); border-radius: 100px; font-size: 0.76rem; color: var(--text); cursor: pointer; transition: all 0.2s; background: var(--warm); }
-  .situation-tag:hover, .situation-tag.active { background: var(--blue); color: #fff; border-color: var(--blue); }
+/* CARE TYPE SELECT */
+.care-types{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+.care-type{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);padding:14px 16px;cursor:pointer;transition:all .2s;text-align:left}
+.care-type:hover{border-color:rgba(46,125,209,0.3);background:rgba(46,125,209,0.05)}
+.care-type.selected{border-color:var(--gold);background:rgba(46,125,209,0.1)}
+.care-type-icon{font-size:20px;margin-bottom:6px;display:block}
+.care-type-name{font-size:12px;color:rgba(255,255,255,0.8);font-weight:500;display:block;margin-bottom:2px}
+.care-type-desc{font-size:10px;color:rgba(255,255,255,0.35);line-height:1.4}
 
-  .hero-btns { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; margin-bottom: 36px; }
-  .trust-row { display: flex; gap: 24px; flex-wrap: wrap; padding-top: 24px; border-top: 1px solid var(--warm3); }
-  .trust-item { display: flex; align-items: center; gap: 7px; font-size: 0.74rem; color: var(--muted); }
-  .trust-item-icon { color: var(--blue); font-weight: 600; }
+/* HOURS SLIDER */
+.hours-wrap{margin-top:12px}
+.hours-display{display:flex;align-items:baseline;gap:8px;margin-bottom:16px}
+.hours-val{font-family:var(--serif);font-size:48px;color:var(--gold2);font-weight:300;line-height:1}
+.hours-unit{font-size:14px;color:rgba(255,255,255,0.4)}
+.hours-range{font-size:11px;color:rgba(255,255,255,0.3);letter-spacing:1px;margin-top:4px}
+input[type=range]{width:100%;-webkit-appearance:none;height:2px;background:rgba(255,255,255,0.1);outline:none;margin:12px 0}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:var(--gold);cursor:pointer;border:2px solid var(--navy)}
+input[type=range]::-webkit-slider-runnable-track{height:2px}
+.hours-markers{display:flex;justify-content:space-between;font-size:9px;color:rgba(255,255,255,0.25);letter-spacing:1px;margin-top:4px}
+.care-tier-display{margin:10px 0 4px;padding:12px 16px;background:rgba(46,125,209,0.08);border-left:2px solid var(--gold2)}
+.care-tier-name{font-family:var(--serif);font-size:22px;color:var(--white);font-weight:300;line-height:1.1;margin-bottom:3px}
+.care-tier-desc{font-size:10px;color:rgba(255,255,255,0.4);letter-spacing:1px}
+.plan-compare{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;margin-top:16px}
+.pc-card{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);padding:12px 10px;transition:all .3s}
+.pc-card.active{background:rgba(46,125,209,0.12);border-color:rgba(46,125,209,0.35);border-top:2px solid var(--gold2)}
+.pc-label{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.35);margin-bottom:5px;transition:color .3s}
+.pc-card.active .pc-label{color:var(--gold2)}
+.pc-hrs{font-size:9px;color:rgba(255,255,255,0.25);margin-bottom:8px;letter-spacing:.5px}
+.pc-price{font-family:var(--serif);font-size:15px;color:rgba(255,255,255,0.45);font-weight:300;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid rgba(255,255,255,0.06);transition:color .3s;line-height:1.2}
+.pc-price span{font-size:10px;color:rgba(255,255,255,0.25)}
+.pc-card.active .pc-price{color:var(--white)}
+.pc-feat{font-size:9px;color:rgba(255,255,255,0.25);padding:2px 0;display:flex;align-items:flex-start;gap:5px;line-height:1.3;transition:color .3s}
+.pc-feat::before{content:'✓';color:rgba(255,255,255,0.12);flex-shrink:0;transition:color .3s}
+.pc-card.active .pc-feat{color:rgba(255,255,255,0.65)}
+.pc-card.active .pc-feat::before{color:var(--gold2)}
 
-  /* FORM CARD */
-  .form-card { background: var(--white); border: 1px solid var(--warm3); border-radius: 12px; overflow: hidden; box-shadow: 0 8px 40px rgba(0,0,0,0.09); position: sticky; top: 80px; }
-  .form-card-header { background: var(--blue); padding: 24px 28px; }
-  .form-card-title { font-family: 'Lora', serif; font-size: 1.15rem; font-weight: 600; color: #fff; margin-bottom: 4px; }
-  .form-card-sub { font-size: 0.76rem; color: rgba(255,255,255,0.72); }
-  .form-card-body { padding: 24px 28px; }
-  .form-urgency { background: #fff7ed; border: 1px solid #f0c07a; border-radius: 6px; padding: 12px 16px; margin-bottom: 18px; display: flex; align-items: flex-start; gap: 10px; }
-  .form-urgency-text { font-size: 0.76rem; color: var(--text); line-height: 1.55; }
-  .form-urgency-text strong { color: #b45309; font-weight: 600; display: block; margin-bottom: 2px; font-size: 0.8rem; }
-  .tally-embed iframe { width: 100%; border: none; min-height: 300px; display: block; }
-  .form-or { text-align: center; margin-top: 14px; font-size: 0.74rem; color: var(--muted); }
-  .form-or a { color: var(--blue); text-decoration: none; font-weight: 500; }
+/* SERVICES TOGGLES */
+.services-grid{display:flex;flex-direction:column;gap:6px;margin-top:12px}
+.service-toggle{display:flex;align-items:center;justify-content:space-between;padding:11px 14px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.06);cursor:pointer;transition:all .2s}
+.service-toggle:hover{background:rgba(255,255,255,0.04)}
+.service-toggle.active{border-color:rgba(46,125,209,0.25);background:rgba(46,125,209,0.06)}
+.service-toggle-left{display:flex;align-items:center;gap:10px}
+.service-icon{font-size:14px;width:24px;text-align:center}
+.service-name{font-size:12px;color:rgba(255,255,255,0.65);transition:color .2s}
+.service-toggle.active .service-name{color:rgba(255,255,255,0.9)}
+.service-badge{font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--gold2);background:rgba(46,125,209,0.12);padding:2px 7px;border-radius:20px}
+.toggle-switch{width:32px;height:18px;border-radius:20px;background:rgba(255,255,255,0.1);position:relative;transition:background .2s;flex-shrink:0}
+.service-toggle.active .toggle-switch{background:var(--gold)}
+.toggle-knob{position:absolute;width:12px;height:12px;border-radius:50%;background:#fff;top:3px;left:3px;transition:transform .2s}
+.service-toggle.active .toggle-knob{transform:translateX(14px)}
 
-  /* ============================================================
-     WHY US — THE DIFFERENCE SECTION
-  ============================================================ */
-  .difference-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-  .diff-card { border-radius: 12px; padding: 32px; position: relative; overflow: hidden; transition: transform 0.2s, box-shadow 0.2s; }
-  .diff-card:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(0,0,0,0.08); }
-  .diff-card.blue { background: var(--blue); color: #fff; }
-  .diff-card.pale { background: var(--white); border: 1px solid var(--warm3); }
-  .diff-card.dark { background: var(--dark); color: #fff; }
-  .diff-card.warm { background: var(--warm2); border: 1px solid var(--warm3); }
-  .diff-card.gold-border { background: var(--white); border: 2px solid var(--gold); }
-  .diff-card.wide { grid-column: span 2; display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: center; }
-  .diff-card-eyebrow { font-size: 0.6rem; letter-spacing: 0.2em; text-transform: uppercase; margin-bottom: 12px; font-weight: 600; opacity: 0.6; }
-  .diff-card-title { font-family: 'Lora', serif; font-size: 1.3rem; font-weight: 600; line-height: 1.25; margin-bottom: 12px; }
-  .diff-card.blue .diff-card-title { color: #fff; }
-  .diff-card.dark .diff-card-title { color: #fff; }
-  .diff-card-body { font-size: 0.82rem; line-height: 1.8; }
-  .diff-card.blue .diff-card-body { color: rgba(255,255,255,0.8); }
-  .diff-card.dark .diff-card-body { color: rgba(255,255,255,0.6); }
-  .diff-card.pale .diff-card-body, .diff-card.warm .diff-card-body, .diff-card.gold-border .diff-card-body { color: var(--muted); }
-  .diff-card-icon { font-size: 2.4rem; margin-bottom: 18px; line-height: 1; }
-  .diff-card-tag { display: inline-block; background: rgba(255,255,255,0.15); color: #fff; font-size: 0.65rem; letter-spacing: 0.12em; text-transform: uppercase; padding: 5px 12px; border-radius: 100px; margin-bottom: 14px; font-weight: 500; }
-  .diff-card.pale .diff-card-tag, .diff-card.warm .diff-card-tag { background: var(--blue-dim); color: var(--blue); }
-  .diff-card.gold-border .diff-card-tag { background: rgba(196,151,58,0.12); color: var(--gold); }
-  .diff-stat { font-family: 'Lora', serif; font-size: 3rem; font-weight: 600; line-height: 1; margin-bottom: 8px; }
-  .diff-card.blue .diff-stat { color: rgba(255,255,255,0.9); }
-  .diff-card.dark .diff-stat { color: var(--blue-light); }
-  .diff-list { list-style: none; display: flex; flex-direction: column; gap: 10px; margin-top: 16px; }
-  .diff-list li { font-size: 0.82rem; display: flex; gap: 10px; align-items: flex-start; }
-  .diff-list li::before { content: '✓'; font-weight: 700; flex-shrink: 0; margin-top: 1px; }
-  .diff-card.blue .diff-list li { color: rgba(255,255,255,0.85); }
-  .diff-card.blue .diff-list li::before { color: #7dd3fc; }
-  .diff-card.dark .diff-list li { color: rgba(255,255,255,0.6); }
-  .diff-card.dark .diff-list li::before { color: var(--blue-light); }
-  .diff-card.pale .diff-list li, .diff-card.warm .diff-list li { color: var(--muted); }
-  .diff-card.pale .diff-list li::before, .diff-card.warm .diff-list li::before { color: var(--blue); }
+/* PLAN SUMMARY CARD */
+.plan-card{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-top:2px solid var(--gold);padding:28px;position:sticky;top:90px}
+.plan-card-label{font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--gold2);margin-bottom:20px;display:flex;align-items:center;gap:8px}
+.plan-card-label::before{content:'';width:20px;height:1px;background:var(--gold)}
+.plan-care-type{font-family:var(--serif);font-size:22px;color:var(--white);font-weight:300;margin-bottom:4px}
+.plan-hours{font-size:13px;color:rgba(255,255,255,0.4);margin-bottom:20px;letter-spacing:1px}
+.plan-divider{height:1px;background:rgba(255,255,255,0.06);margin:16px 0}
+.plan-services-lbl{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.3);margin-bottom:10px}
+.plan-service-item{display:flex;align-items:center;gap:8px;padding:4px 0;font-size:11px;color:rgba(255,255,255,0.55)}
+.plan-service-item::before{content:'✓';color:var(--gold2);font-size:10px;flex-shrink:0}
+.plan-price-wrap{margin-top:20px;background:rgba(46,125,209,0.08);border:1px solid rgba(46,125,209,0.15);padding:16px}
+.plan-price-lbl{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.35);margin-bottom:4px}
+.plan-price-val{font-family:var(--serif);font-size:36px;color:var(--gold2);font-weight:300;line-height:1}
+.plan-price-note{font-size:10px;color:rgba(255,255,255,0.3);margin-top:4px}
+.plan-cta{display:block;width:100%;background:var(--gold);color:var(--navy);text-align:center;padding:14px;font-size:11px;letter-spacing:2px;text-transform:uppercase;font-weight:600;text-decoration:none;margin-top:16px;border:none;cursor:pointer;font-family:var(--sans);transition:all .3s}
+.plan-cta:hover{background:var(--gold2);transform:translateY(-1px)}
+.plan-free{font-size:10px;color:rgba(255,255,255,0.3);text-align:center;margin-top:10px;letter-spacing:1px}
+.plan-empty{text-align:center;padding:32px 0;color:rgba(255,255,255,0.2);font-size:13px;line-height:1.6}
 
-  /* BEFORE / AFTER */
-  .before-after { display: grid; grid-template-columns: 1fr 1fr; gap: 0; border-radius: 12px; overflow: hidden; box-shadow: 0 8px 32px rgba(0,0,0,0.07); }
-  .ba-col { padding: 36px 32px; }
-  .ba-col.before { background: #fdf2f2; border-right: 1px solid #f0d0d0; }
-  .ba-col.after { background: var(--blue-pale); }
-  .ba-label { font-size: 0.62rem; letter-spacing: 0.2em; text-transform: uppercase; font-weight: 700; margin-bottom: 20px; }
-  .ba-col.before .ba-label { color: #b91c1c; }
-  .ba-col.after .ba-label { color: var(--blue); }
-  .ba-item { display: flex; gap: 12px; align-items: flex-start; margin-bottom: 14px; }
-  .ba-icon { width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.65rem; flex-shrink: 0; margin-top: 2px; font-weight: 700; }
-  .ba-col.before .ba-icon { background: rgba(185,28,28,0.1); color: #b91c1c; }
-  .ba-col.after .ba-icon { background: rgba(29,95,168,0.12); color: var(--blue); }
-  .ba-text { font-size: 0.84rem; color: var(--text); line-height: 1.6; }
-  .ba-text strong { display: block; font-weight: 500; color: var(--dark); margin-bottom: 2px; font-size: 0.88rem; }
-  .ba-col.before .ba-text strong { color: #991b1b; }
+/* NEXT STEP BTN */
+.step-next{display:inline-block;background:transparent;border:1px solid rgba(46,125,209,0.35);color:var(--gold2);padding:10px 22px;font-size:10px;letter-spacing:2px;text-transform:uppercase;cursor:pointer;margin-top:14px;font-family:var(--sans);transition:all .2s}
+.step-next:hover{background:rgba(46,125,209,0.1)}
 
-  /* WHO WE HELP */
-  .who-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; }
-  .who-card { background: var(--white); border: 1px solid var(--warm3); border-radius: 10px; padding: 28px 26px; transition: all 0.25s; }
-  .who-card:hover { border-color: var(--blue-light); box-shadow: 0 6px 24px rgba(29,95,168,0.1); transform: translateY(-2px); }
-  .who-card-icon { font-size: 1.8rem; margin-bottom: 14px; }
-  .who-card-title { font-family: 'Lora', serif; font-size: 1rem; font-weight: 600; color: var(--dark); margin-bottom: 8px; }
-  .who-card-desc { font-size: 0.79rem; color: var(--muted); line-height: 1.8; margin-bottom: 16px; }
-  .who-card-link { font-size: 0.75rem; color: var(--blue); font-weight: 500; text-decoration: none; }
-  .who-card-link:hover { text-decoration: underline; }
+/* ── HOW IT WORKS ── */
+.how-section{background:var(--cream2);padding:100px 48px}
+.steps-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;margin-top:60px}
+.how-step{background:var(--white);padding:40px 36px;border:1px solid var(--border);position:relative;transition:all .3s}
+.how-step:hover{transform:translateY(-4px);box-shadow:0 20px 60px rgba(0,0,0,0.06)}
+.how-step-num{font-family:var(--serif);font-size:80px;color:rgba(46,125,209,0.08);line-height:1;position:absolute;top:20px;right:24px;font-weight:300}
+.how-step-icon{font-size:32px;margin-bottom:20px}
+.how-step-title{font-family:var(--serif);font-size:22px;font-weight:400;color:var(--navy);margin-bottom:12px}
+.how-step-desc{font-size:14px;line-height:1.8;color:var(--muted);font-weight:300}
 
-  /* SERVICES */
-  .services-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 1px; background: var(--warm3); border: 1px solid var(--warm3); border-radius: 10px; overflow: hidden; }
-  .service-item { background: var(--white); padding: 26px 30px; display: flex; gap: 16px; align-items: flex-start; transition: background 0.2s; }
-  .service-item:hover { background: var(--blue-pale); }
-  .service-check { width: 26px; height: 26px; background: var(--blue-dim); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--blue); font-size: 0.72rem; font-weight: 600; flex-shrink: 0; margin-top: 2px; }
-  .service-name { font-size: 0.88rem; font-weight: 500; color: var(--dark); margin-bottom: 4px; }
-  .service-desc { font-size: 0.77rem; color: var(--muted); line-height: 1.7; }
+/* ── TESTIMONIALS ── */
+.test-section{background:var(--navy);padding:100px 48px}
+.test-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;margin-top:60px}
+.test-card{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);padding:36px 32px;transition:all .3s}
+.test-card:hover{background:rgba(255,255,255,0.05);transform:translateY(-2px)}
+.test-stars{color:var(--gold2);font-size:14px;letter-spacing:4px;margin-bottom:20px}
+.test-quote{font-family:var(--serif);font-size:17px;line-height:1.65;color:rgba(255,255,255,0.75);font-weight:300;font-style:italic;margin-bottom:24px}
+.test-author{font-size:12px;color:rgba(255,255,255,0.35);letter-spacing:1px;text-transform:uppercase}
+.test-author strong{color:rgba(255,255,255,0.6);display:block;font-weight:500;font-size:13px;letter-spacing:.5px;text-transform:none;margin-bottom:2px}
 
-  /* PRICING */
-  .pricing-wrapper { display: grid; grid-template-columns: 1fr 2px 1.18fr 2px 1fr; gap: 0; border: 1px solid var(--warm3); border-radius: 16px; overflow: hidden; box-shadow: 0 12px 48px rgba(0,0,0,0.08); }
-  .pricing-col { background: var(--white); display: flex; flex-direction: column; }
-  .pricing-col.featured { background: var(--blue); position: relative; }
-  .pricing-col.featured::before { content: 'MOST POPULAR'; position: absolute; top: 0; left: 50%; transform: translateX(-50%); background: var(--gold); color: #fff; font-size: 0.58rem; letter-spacing: 0.18em; font-weight: 700; padding: 5px 18px; border-radius: 0 0 8px 8px; }
-  .pricing-col-divider { width: 1px; background: var(--warm3); }
-  .pricing-col.featured + .pricing-col-divider { background: rgba(255,255,255,0.15); }
-  .pricing-top { padding: 40px 32px 28px; border-bottom: 1px solid var(--warm3); }
-  .pricing-col.featured .pricing-top { border-bottom-color: rgba(255,255,255,0.15); }
-  .pricing-tier { font-size: 0.62rem; letter-spacing: 0.2em; text-transform: uppercase; font-weight: 600; color: var(--blue); margin-bottom: 10px; }
-  .pricing-col.featured .pricing-tier { color: rgba(255,255,255,0.6); }
-  .pricing-name { font-family: 'Lora', serif; font-size: 1.4rem; font-weight: 600; color: var(--dark); margin-bottom: 6px; }
-  .pricing-col.featured .pricing-name { color: #fff; }
-  .pricing-desc { font-size: 0.78rem; color: var(--muted); line-height: 1.6; }
-  .pricing-col.featured .pricing-desc { color: rgba(255,255,255,0.65); }
-  .pricing-price-wrap { margin-top: 24px; display: flex; align-items: baseline; gap: 4px; }
-  .pricing-dollar { font-size: 1.1rem; color: var(--muted); font-weight: 400; }
-  .pricing-col.featured .pricing-dollar { color: rgba(255,255,255,0.5); }
-  .pricing-amount { font-family: 'Lora', serif; font-size: 2.8rem; font-weight: 600; color: var(--dark); line-height: 1; }
-  .pricing-col.featured .pricing-amount { color: #fff; }
-  .pricing-per { font-size: 0.82rem; color: var(--muted); }
-  .pricing-col.featured .pricing-per { color: rgba(255,255,255,0.5); }
-  .pricing-hours-tag { display: inline-block; margin-top: 10px; background: var(--blue-dim); color: var(--blue); font-size: 0.7rem; font-weight: 500; padding: 4px 12px; border-radius: 100px; }
-  .pricing-col.featured .pricing-hours-tag { background: rgba(255,255,255,0.15); color: rgba(255,255,255,0.85); }
-  .pricing-body { padding: 28px 32px 36px; flex: 1; display: flex; flex-direction: column; }
-  .pricing-includes { list-style: none; display: flex; flex-direction: column; gap: 11px; margin-bottom: 28px; flex: 1; }
-  .pricing-includes li { font-size: 0.8rem; color: var(--muted); display: flex; gap: 10px; align-items: flex-start; line-height: 1.55; }
-  .pricing-includes li::before { content: '✓'; color: var(--blue); font-weight: 700; font-size: 0.78rem; flex-shrink: 0; margin-top: 1px; }
-  .pricing-col.featured .pricing-includes li { color: rgba(255,255,255,0.8); }
-  .pricing-col.featured .pricing-includes li::before { color: rgba(255,255,255,0.9); }
-  .pricing-includes li.highlight { color: var(--text); font-weight: 500; }
-  .pricing-col.featured .pricing-includes li.highlight { color: #fff; }
-  .pricing-includes li.highlight::before { color: var(--gold); }
-  .pricing-col.featured .pricing-includes li.highlight::before { color: #ffd080; }
-  .pricing-cta { display: block; text-align: center; padding: 14px; border-radius: 6px; font-size: 0.8rem; font-weight: 600; text-decoration: none; transition: all 0.2s; font-family: 'Inter', sans-serif; }
-  .pricing-cta.outline { border: 1.5px solid var(--warm3); color: var(--blue); }
-  .pricing-cta.outline:hover { border-color: var(--blue); background: var(--blue-dim); }
-  .pricing-cta.solid { background: #fff; color: var(--blue); }
-  .pricing-cta.solid:hover { background: var(--blue-pale); }
-  .pricing-note { text-align: center; font-size: 0.76rem; color: var(--muted); margin-top: 28px; line-height: 1.7; }
-  .pricing-note strong { color: var(--text); font-weight: 500; }
+/* ── SERVICES ── */
+.services-section{background:var(--cream2);padding:100px 48px}
+.services-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:2px;margin-top:48px}
+.service-card{background:var(--white);border:1px solid var(--border);padding:32px 28px;transition:all .3s}
+.service-card:hover{border-color:var(--gold);transform:translateY(-2px)}
+.service-card-icon{font-size:28px;margin-bottom:16px}
+.service-card-title{font-family:var(--serif);font-size:18px;color:var(--navy);margin-bottom:8px}
+.service-card-desc{font-size:13px;line-height:1.7;color:var(--muted);font-weight:300}
 
-  /* HOW IT WORKS */
-  .steps-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 0; position: relative; }
-  .steps-grid::before { content: ''; position: absolute; top: 27px; left: calc(16.67% + 14px); right: calc(16.67% + 14px); height: 1px; background: linear-gradient(90deg, var(--warm3), var(--blue-light), var(--warm3)); }
-  .step-item { text-align: center; padding: 0 28px; }
-  .step-num-outer { display: flex; justify-content: center; margin-bottom: 28px; position: relative; z-index: 1; }
-  .step-num { width: 54px; height: 54px; border-radius: 50%; background: var(--white); border: 2px solid var(--blue); display: flex; align-items: center; justify-content: center; font-family: 'Lora', serif; font-size: 1.2rem; font-weight: 600; color: var(--blue); box-shadow: 0 0 0 6px var(--warm); }
-  .step-title { font-family: 'Lora', serif; font-size: 1rem; font-weight: 600; color: var(--dark); margin-bottom: 10px; }
-  .step-desc { font-size: 0.79rem; color: var(--muted); line-height: 1.85; }
+/* ── ABOUT ── */
+.about-section{background:var(--navy2);padding:100px 48px}
+.about-grid{display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:center;max-width:1100px;margin:0 auto}
+.about-tag{display:inline-flex;align-items:center;gap:8px;background:rgba(46,125,209,0.1);border:1px solid rgba(46,125,209,0.2);padding:6px 14px;margin-bottom:24px}
+.about-tag-text{font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--gold2)}
+.about-title{font-family:var(--serif);font-size:clamp(28px,4vw,48px);font-weight:300;color:var(--white);line-height:1.1;margin-bottom:20px}
+.about-title em{font-style:italic;color:var(--gold2)}
+.about-body{font-size:15px;line-height:1.9;color:rgba(255,255,255,0.55);font-weight:300;margin-bottom:28px}
+.about-quote{border-left:2px solid var(--gold);padding:16px 24px;margin-bottom:28px}
+.about-quote p{font-family:var(--serif);font-size:18px;font-style:italic;color:rgba(255,255,255,0.65);line-height:1.6}
+.about-quote cite{font-size:11px;color:rgba(255,255,255,0.3);letter-spacing:1px;text-transform:uppercase;margin-top:8px;display:block}
+.about-stats{display:grid;grid-template-columns:repeat(2,1fr);gap:2px}
+.about-stat{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);padding:20px;text-align:center}
+.about-stat-val{font-family:var(--serif);font-size:36px;color:var(--gold2);font-weight:300;margin-bottom:4px}
+.about-stat-lbl{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.3)}
+.about-img-wrap{position:relative}
+.about-img-frame{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);padding:32px;text-align:center}
+.about-img-inner{background:rgba(46,125,209,0.08);border:1px solid rgba(46,125,209,0.15);padding:48px 32px}
+.about-img-icon{font-size:64px;margin-bottom:16px}
+.about-img-name{font-family:var(--serif);font-size:22px;color:var(--white);margin-bottom:4px}
+.about-img-role{font-size:11px;color:rgba(255,255,255,0.3);letter-spacing:2px;text-transform:uppercase}
+.about-badge{position:absolute;bottom:-16px;right:-16px;background:var(--gold);color:var(--navy);padding:14px 18px;text-align:center}
+.about-badge-num{font-family:var(--serif);font-size:28px;font-weight:300;line-height:1;display:block}
+.about-badge-lbl{font-size:9px;letter-spacing:2px;text-transform:uppercase;font-weight:600;display:block;margin-top:2px}
 
-  /* TESTIMONIALS */
-  .testi-section { background: var(--dark); }
-  .testi-inner { max-width: 1240px; margin: 0 auto; padding: 88px 48px; }
-  .testi-section .section-label { color: var(--blue-light); }
-  .testi-section .section-label::before { background: var(--blue-light); }
-  .testi-section h2 { color: #fff; }
-  .testi-section h2 em { color: var(--blue-light); }
-  .testi-section .section-intro { color: rgba(255,255,255,0.4); margin-bottom: 48px; }
-  .testi-layout { display: grid; grid-template-columns: 1.6fr 1fr; gap: 20px; }
-  .testi-main { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 40px; }
-  .testi-side { display: flex; flex-direction: column; gap: 16px; }
-  .testi-small { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; padding: 28px; flex: 1; }
-  .testi-stars { color: #f0c040; font-size: 0.85rem; letter-spacing: 3px; margin-bottom: 18px; }
-  .testi-text { font-family: 'Lora', serif; font-size: 1.02rem; font-style: italic; color: rgba(255,255,255,0.82); line-height: 1.8; margin-bottom: 22px; }
-  .testi-small .testi-text { font-size: 0.9rem; }
-  .testi-author-name { font-size: 0.8rem; color: var(--blue-light); font-weight: 500; display: block; margin-bottom: 2px; }
-  .testi-author-meta { font-size: 0.72rem; color: rgba(255,255,255,0.28); }
+/* ── CTA SECTION ── */
+.cta-section{background:var(--cream2);padding:100px 48px}
+.cta-inner{max-width:800px;margin:0 auto;text-align:center}
+.cta-title{font-family:var(--serif);font-size:clamp(32px,5vw,60px);font-weight:300;color:var(--navy);line-height:1.05;margin-bottom:16px}
+.cta-title em{font-style:italic;color:var(--teal)}
+.cta-sub{font-size:16px;color:var(--muted);margin-bottom:40px;font-weight:300;line-height:1.7}
+.cta-badges{display:flex;justify-content:center;gap:32px;flex-wrap:wrap;margin-top:32px}
+.cta-badge{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);letter-spacing:1px}
+.cta-badge-icon{font-size:16px}
 
-  /* ABOUT */
-  .about-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 72px; align-items: start; }
-  .about-body { font-size: 0.92rem; color: var(--muted); line-height: 1.95; }
-  .about-body p { margin-bottom: 16px; }
-  .about-body strong { color: var(--text); font-weight: 500; }
-  .about-pull { margin-top: 28px; border-left: 3px solid var(--blue); padding: 20px 24px; background: var(--blue-pale); border-radius: 0 6px 6px 0; }
-  .about-pull p { font-family: 'Lora', serif; font-size: 1rem; font-style: italic; color: var(--text); line-height: 1.7; margin-bottom: 8px; }
-  .about-pull cite { font-size: 0.74rem; color: var(--muted); }
-  .about-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-  .about-stat { background: var(--white); border: 1px solid var(--warm3); border-radius: 10px; padding: 24px 20px; }
-  .about-stat-num { font-family: 'Lora', serif; font-size: 2.2rem; font-weight: 600; color: var(--blue); line-height: 1; margin-bottom: 6px; }
-  .about-stat-label { font-size: 0.76rem; color: var(--muted); line-height: 1.6; }
-  .about-stat-label strong { color: var(--text); display: block; font-weight: 500; margin-bottom: 2px; }
-  .about-cta { margin-top: 14px; grid-column: span 2; }
+/* ── FOOTER ── */
+footer{background:var(--navy);padding:60px 48px 32px;border-top:1px solid rgba(255,255,255,0.06)}
+.footer-inner{max-width:1200px;margin:0 auto}
+.footer-top{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:60px;margin-bottom:48px}
+.footer-logo{font-family:var(--serif);font-size:22px;color:var(--white);margin-bottom:12px;font-weight:300}
+.footer-logo em{color:var(--gold2);font-style:italic}
+.footer-desc{font-size:13px;color:rgba(255,255,255,0.35);line-height:1.7;margin-bottom:20px;max-width:280px;font-weight:300}
+.footer-contact a{display:flex;align-items:center;gap:8px;font-size:13px;color:rgba(255,255,255,0.45);text-decoration:none;margin-bottom:6px;transition:color .2s}
+.footer-contact a:hover{color:var(--gold2)}
+.footer-col-title{font-size:9px;letter-spacing:3px;text-transform:uppercase;color:rgba(255,255,255,0.25);margin-bottom:16px}
+.footer-links{list-style:none}
+.footer-links li{margin-bottom:8px}
+.footer-links a{font-size:13px;color:rgba(255,255,255,0.4);text-decoration:none;transition:color .2s;font-weight:300}
+.footer-links a:hover{color:var(--gold2)}
+.footer-bottom{border-top:1px solid rgba(255,255,255,0.06);padding-top:24px;display:flex;justify-content:space-between;align-items:center}
+.footer-copy{font-size:12px;color:rgba(255,255,255,0.2);letter-spacing:1px}
+.footer-areas{font-size:12px;color:rgba(255,255,255,0.2);letter-spacing:1px}
 
-  /* AREAS */
-  .areas-pills { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 32px; }
-  .area-pill { background: var(--white); border: 1px solid var(--warm3); border-radius: 100px; padding: 10px 22px; font-size: 0.81rem; color: var(--text); display: flex; align-items: center; gap: 7px; transition: all 0.2s; }
-  .area-pill:hover { border-color: var(--blue); color: var(--blue); }
-  .area-pill::before { content: '📍'; font-size: 0.78rem; }
+/* ── CHATBOT ── */
+#chat-bubble{position:fixed;bottom:28px;right:28px;z-index:1000;width:52px;height:52px;border-radius:50%;background:var(--navy);border:2px solid var(--gold);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .3s;box-shadow:0 8px 32px rgba(0,0,0,0.3)}
+#chat-bubble:hover{transform:scale(1.08);box-shadow:0 12px 40px rgba(0,0,0,0.4)}
+#chat-bubble svg{width:22px;height:22px;fill:var(--gold2)}
+#chat-overlay{position:fixed;bottom:92px;right:28px;z-index:1000;width:340px;background:var(--navy2);border:1px solid rgba(255,255,255,0.08);border-top:2px solid var(--gold);box-shadow:0 24px 80px rgba(0,0,0,0.4);display:none;flex-direction:column;height:460px}
+#chat-overlay.open{display:flex}
+.chat-head{padding:14px 18px;border-bottom:1px solid rgba(255,255,255,0.06);display:flex;align-items:center;gap:10px}
+.chat-av{width:32px;height:32px;border-radius:50%;background:rgba(46,125,209,0.15);border:1px solid rgba(46,125,209,0.3);display:flex;align-items:center;justify-content:center;font-family:var(--serif);font-style:italic;font-size:13px;color:var(--gold2)}
+.chat-info h4{font-size:12px;color:var(--white);font-weight:400}
+.chat-info p{font-size:10px;color:rgba(255,255,255,0.35)}
+.chat-msgs{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px}
+.chat-msgs::-webkit-scrollbar{width:3px}
+.chat-msgs::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.08)}
+.cmsg{max-width:86%;display:flex;flex-direction:column}
+.cmsg.b{align-self:flex-start}
+.cmsg.u{align-self:flex-end}
+.cmsg .cbub{padding:9px 12px;font-size:12px;line-height:1.5}
+.cmsg.b .cbub{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.07);border-radius:2px 10px 10px 10px;color:rgba(255,255,255,0.75)}
+.cmsg.u .cbub{background:rgba(46,125,209,0.18);border:1px solid rgba(46,125,209,0.25);color:rgba(255,255,255,0.88);border-radius:10px 2px 10px 10px}
+.ctyping{display:none;align-self:flex-start;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.07);padding:9px 12px;border-radius:2px 10px 10px 10px}
+.ctyping.show{display:flex;gap:4px;align-items:center}
+.ctyd{width:5px;height:5px;background:rgba(255,255,255,0.3);border-radius:50%;animation:tyb 1.2s infinite}
+.ctyd:nth-child(2){animation-delay:.2s}.ctyd:nth-child(3){animation-delay:.4s}
+@keyframes tyb{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-4px)}}
+.chat-inp-wrap{padding:10px 14px;border-top:1px solid rgba(255,255,255,0.06);display:flex;gap:8px}
+.chat-inp{flex:1;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);padding:8px 12px;font-size:12px;font-family:var(--sans);color:var(--white);outline:none;resize:none;max-height:56px;transition:border-color .2s}
+.chat-inp:focus{border-color:rgba(46,125,209,0.35)}
+.chat-inp::placeholder{color:rgba(255,255,255,0.2)}
+.chat-send{width:32px;height:32px;background:var(--gold);border:none;color:var(--navy);font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .2s;flex-shrink:0;align-self:flex-end}
+.chat-send:hover{background:var(--gold2)}
 
-  /* FINAL CTA */
-  .final-cta { background: linear-gradient(135deg, var(--blue-dark) 0%, var(--blue) 100%); padding: 100px 48px; text-align: center; }
-  .final-cta h2 { color: #fff; max-width: 680px; margin: 0 auto 16px; }
-  .final-cta h2 em { color: var(--blue-light); }
-  .final-cta p { color: rgba(255,255,255,0.7); max-width: 520px; margin: 0 auto 40px; font-size: 0.95rem; line-height: 1.9; }
-  .final-btns { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
-  .final-note { font-size: 0.74rem; color: rgba(255,255,255,0.4); margin-top: 22px; }
+/* ── SCROLL REVEAL ── */
+.reveal{opacity:0;transform:translateY(24px);transition:opacity .7s ease,transform .7s ease}
+.reveal.visible{opacity:1;transform:translateY(0)}
 
-  /* FOOTER */
-  footer { background: var(--dark); padding: 64px 48px 32px; }
-  .footer-inner { max-width: 1240px; margin: 0 auto; }
-  .footer-top { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 64px; margin-bottom: 48px; }
-  .footer-brand { font-family: 'Lora', serif; font-size: 1.1rem; font-weight: 600; color: #fff; margin-bottom: 10px; }
-  .footer-brand span { color: var(--blue-light); }
-  .footer-desc { font-size: 0.77rem; color: rgba(255,255,255,0.28); line-height: 1.75; margin-bottom: 22px; max-width: 300px; }
-  .footer-contact a { display: block; font-size: 0.78rem; color: rgba(255,255,255,0.42); text-decoration: none; margin-bottom: 7px; transition: color 0.2s; }
-  .footer-contact a:hover { color: var(--blue-light); }
-  .footer-col-title { font-size: 0.6rem; letter-spacing: 0.22em; text-transform: uppercase; color: rgba(255,255,255,0.2); margin-bottom: 18px; font-weight: 600; }
-  .footer-links { list-style: none; display: flex; flex-direction: column; gap: 11px; }
-  .footer-links a { font-size: 0.78rem; color: rgba(255,255,255,0.35); text-decoration: none; transition: color 0.2s; }
-  .footer-links a:hover { color: var(--blue-light); }
-  .footer-bottom { border-top: 1px solid rgba(255,255,255,0.07); padding-top: 24px; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
-  .footer-copy { font-size: 0.7rem; color: rgba(255,255,255,0.14); }
-
-  /* MOBILE */
-  .mobile-bar { display: none; position: fixed; bottom: 0; left: 0; right: 0; background: var(--white); border-top: 1px solid var(--warm3); z-index: 90; padding: 12px 20px; gap: 10px; box-shadow: 0 -4px 20px rgba(0,0,0,0.08); }
-  .mobile-bar a { flex: 1; text-align: center; padding: 12px; border-radius: 4px; font-size: 0.8rem; font-weight: 500; text-decoration: none; }
-  .mobile-bar-book { background: var(--blue); color: #fff; }
-  .mobile-bar-call { border: 1.5px solid var(--blue); color: var(--blue); }
-
-  @media (max-width: 1024px) {
-    .top-bar { padding: 10px 20px; gap: 16px; }
-    nav { padding: 0 20px; }
-    .nav-center { display: none; }
-    .hero { grid-template-columns: 1fr; padding: 48px 20px; gap: 40px; }
-    .form-card { position: static; }
-    .section-inner { padding: 64px 20px; }
-    .difference-grid { grid-template-columns: 1fr; }
-    .diff-card.wide { grid-column: span 1; grid-template-columns: 1fr; gap: 24px; }
-    .before-after { grid-template-columns: 1fr; }
-    .who-grid { grid-template-columns: 1fr 1fr; gap: 12px; }
-    .services-grid { grid-template-columns: 1fr; }
-    .pricing-wrapper { grid-template-columns: 1fr; border-radius: 10px; }
-    .pricing-col-divider { width: 100%; height: 1px; }
-    .steps-grid { grid-template-columns: 1fr; gap: 36px; }
-    .steps-grid::before { display: none; }
-    .testi-layout { grid-template-columns: 1fr; }
-    .about-grid { grid-template-columns: 1fr; gap: 40px; }
-    .footer-top { grid-template-columns: 1fr; gap: 36px; }
-    .testi-inner { padding: 64px 20px; }
-    .final-cta { padding: 64px 20px; }
-    footer { padding: 48px 20px 100px; }
-    .mobile-bar { display: flex; }
-  }
-
-  /* CHAT BUBBLE */
-  .chat-bubble {
-    position: fixed; bottom: 28px; right: 28px; width: 60px; height: 60px;
-    border-radius: 50%; background: var(--blue); border: none; cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
-    box-shadow: 0 4px 20px rgba(29,95,168,0.4); z-index: 900;
-    transition: transform 0.2s, box-shadow 0.2s;
-  }
-  .chat-bubble:hover { transform: scale(1.08); box-shadow: 0 6px 28px rgba(29,95,168,0.5); }
-  .chat-bubble:active { transform: scale(0.95); }
-  .chat-bubble svg { width: 26px; height: 26px; fill: #fff; pointer-events: none; }
-
-  .chat-overlay {
-    display: none; position: fixed; inset: 0; z-index: 9999;
-    background: rgba(0,0,0,0.5); backdrop-filter: blur(4px);
-    align-items: center; justify-content: center;
-  }
-  .chat-overlay.open { display: flex; }
-  .chat-modal {
-    position: relative; width: 420px; height: 680px;
-    max-width: calc(100vw - 24px); max-height: calc(100vh - 24px); max-height: calc(100dvh - 24px);
-    border-radius: 16px; overflow: hidden;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.3); background: #fff;
-  }
-  .chat-modal iframe { width: 100%; height: 100%; border: none; display: block; }
-  .chat-modal-close {
-    position: absolute; top: 12px; right: 12px; width: 32px; height: 32px;
-    border-radius: 50%; background: rgba(0,0,0,0.5); border: none; cursor: pointer;
-    display: flex; align-items: center; justify-content: center; z-index: 10;
-    transition: background 0.2s;
-  }
-  .chat-modal-close:hover { background: rgba(0,0,0,0.7); }
-  .chat-modal-close svg { width: 16px; height: 16px; fill: #fff; pointer-events: none; }
-
-  @media (max-width: 1024px) {
-    .chat-bubble { bottom: 84px; right: 16px; width: 54px; height: 54px; }
-    .chat-bubble svg { width: 22px; height: 22px; }
-    .chat-modal { width: 100vw; height: 100vh; height: 100dvh; max-width: 100vw; max-height: 100vh; max-height: 100dvh; border-radius: 0; }
-  }
+/* ── RESPONSIVE ── */
+@media(max-width:900px){
+  .hero-right{display:none}
+  .builder-grid{grid-template-columns:1fr}
+  .care-types{grid-template-columns:1fr 1fr}
+  .test-grid,.services-grid,.steps-grid{grid-template-columns:1fr}
+  .about-grid{grid-template-columns:1fr}
+  .footer-top{grid-template-columns:1fr}
+  .section{padding:60px 24px}
+  nav{padding:0 24px}
+  .hero-content{padding:0 24px;padding-top:70px}
+  .price-grid{grid-template-columns:1fr}
+}
 </style>
 </head>
 <body>
 
-<!-- TOP BAR -->
-<div class="top-bar">
-  <div class="top-bar-item">🎁 <strong>First 6 hours free</strong> — No obligation</div>
-  <div class="top-bar-divider">|</div>
-  <div class="top-bar-item">⚡ <strong>Only 5 new families accepted this month</strong></div>
-  <div class="top-bar-divider">|</div>
-  <div class="top-bar-item">📞 <a href="tel:6473828047">647-382-8047</a></div>
-</div>
-
 <!-- NAV -->
-<nav>
-  <a href="#" class="nav-logo">Proximity <span>Care</span> Services</a>
-  <ul class="nav-center">
-    <li><a href="#difference">Why Us</a></li>
-    <li><a href="#who">Who We Help</a></li>
-    <li><a href="#pricing">Care Plans</a></li>
+<nav id="nav">
+  <a href="#" class="nav-logo">Proximity <em>Care</em></a>
+  <ul class="nav-links">
+    <li><a href="#builder">Build Your Plan</a></li>
     <li><a href="#how">How It Works</a></li>
-    <li><a href="#testimonials">Reviews</a></li>
+    <li><a href="#about">About Us</a></li>
+    <li><a href="lead-form.html" class="nav-cta">Book Free Assessment</a></li>
   </ul>
-  <div class="nav-right">
-    <a href="tel:6473828047" class="nav-phone-num">647-382-8047</a>
-    <a href="/lead-form.html" target="_blank" class="nav-cta">Get Started</a>
-  </div>
 </nav>
 
 <!-- HERO -->
-<div class="hero-wrap">
-  <div class="hero">
-    <div>
-      <div class="hero-eyebrow">In-Home Senior Care · Mississauga · Brampton · Caledon</div>
-      <h1>Finally, Care Your Family Can <em>Stop Worrying About.</em></h1>
-      <p class="hero-sub">We give families in Peel Region something most home care agencies can't — <strong>consistency, transparency, and a caregiver your parent actually looks forward to seeing.</strong> Every visit. Every week.</p>
-
-      <div class="situation-label">What's your situation right now?</div>
-      <div class="situations">
-        <div class="situation-tag active">Daily help at home</div>
-        <div class="situation-tag">Dementia or memory care</div>
-        <div class="situation-tag">Just home from hospital</div>
-        <div class="situation-tag">I'm burning out as caregiver</div>
-        <div class="situation-tag">After a fall or injury</div>
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-grain"></div>
+  <div class="hero-content">
+    <div class="hero-location">
+      <div class="hero-location-dot"></div>
+      <span class="hero-location-text">Serving Mississauga · Brampton · Caledon</span>
+    </div>
+    <h1 class="hero-h1">Your parent deserves<br>care that <em>shows up.</em></h1>
+    <p class="hero-sub">Premium in-home senior care built around <strong>consistency</strong>, <strong>dignity</strong>, and <strong>trust</strong>. The same caregiver. Every single visit. Right here in Peel Region.</p>
+    <div class="hero-btns">
+      <a href="#builder" class="btn-primary">Build Your Care Plan</a>
+      <a href="lead-form.html" class="btn-outline">Book Free Assessment</a>
+    </div>
+    <div class="hero-trust">
+      <div class="trust-item"><span class="trust-icon">⭐</span>100% five-star reviews</div>
+      <div class="trust-item"><span class="trust-icon">🛡️</span>First 6 hours free</div>
+      <div class="trust-item"><span class="trust-icon">📍</span>Locally owned & operated</div>
+    </div>
+  </div>
+  <div class="hero-right">
+    <div class="hero-card">
+      <div class="hero-card-label">Live Agency Numbers</div>
+      <div class="hero-stat">
+        <span class="hero-stat-val">100%</span>
+        <span class="hero-stat-lbl">five-star reviews from every family</span>
       </div>
-
-      <div class="hero-btns">
-        <a href="/lead-form.html" target="_blank" class="btn-primary">Book a Free Home Assessment</a>
-        <a href="tel:6473828047" class="btn-call">📞 647-382-8047</a>
+      <div class="hero-stat">
+        <span class="hero-stat-val">Same</span>
+        <span class="hero-stat-lbl">PSW every single visit, no strangers</span>
       </div>
-
-      <div class="trust-row">
-        <div class="trust-item"><span class="trust-item-icon">✓</span> Same PSW every single visit</div>
-        <div class="trust-item"><span class="trust-item-icon">✓</span> You choose your caregiver</div>
-        <div class="trust-item"><span class="trust-item-icon">✓</span> First 6 hours completely free</div>
-        <div class="trust-item"><span class="trust-item-icon">★</span> 5-star reviewed</div>
+      <div class="hero-stat">
+        <span class="hero-stat-val">2hrs</span>
+        <span class="hero-stat-lbl">call-back guarantee after you reach out</span>
+      </div>
+      <div class="hero-stat">
+        <span class="hero-stat-val">6hrs</span>
+        <span class="hero-stat-lbl">free to start — no obligation, no contracts</span>
       </div>
     </div>
+  </div>
+</section>
 
-    <div>
-      <div class="form-card">
-        <div class="form-card-header">
-          <div class="form-card-title">Book Your Free Assessment</div>
-          <div class="form-card-sub">We call you within 2 hours · No obligation · No contracts</div>
-        </div>
-        <div class="form-card-body">
-          <div class="form-urgency">
-            <div style="font-size:1.1rem;flex-shrink:0;">⚡</div>
-            <div class="form-urgency-text">
-              <strong>Only 5 spots available this month</strong>
-              We limit new clients so every family gets the care they deserve — not a rushed intake.
+<!-- CARE BUILDER -->
+<section class="builder-section" id="builder">
+  <div class="builder-inner">
+    <div class="builder-eyebrow">
+      <div class="ey-line"></div>
+      <span class="ey-tag" style="color:var(--gold2)">Interactive Care Builder</span>
+    </div>
+    <h2 class="builder-title">Build your parent's<br><em>care plan in minutes.</em></h2>
+    <p class="builder-sub">Tell us what your loved one needs. We'll show you exactly what to expect — hours, services, and estimated cost — before you ever speak to anyone.</p>
+
+    <div class="builder-grid">
+      <div class="builder-steps">
+
+        <!-- STEP 1 -->
+        <div class="step active" id="step1">
+          <div class="step-header" onclick="toggleStep(1)">
+            <div class="step-num">1</div>
+            <span class="step-title">What kind of care does your loved one need?</span>
+            <span class="step-check">✓</span>
+          </div>
+          <div class="step-body">
+            <div class="care-types">
+              <div class="care-type selected" onclick="selectCare(this,'Daily Living Support')">
+                <span class="care-type-icon">🤲</span>
+                <span class="care-type-name">Daily Living Support</span>
+                <span class="care-type-desc">Meals, hygiene, companionship, medication reminders</span>
+              </div>
+              <div class="care-type" onclick="selectCare(this,'Dementia & Memory Care')">
+                <span class="care-type-icon">🧠</span>
+                <span class="care-type-name">Dementia & Memory Care</span>
+                <span class="care-type-desc">Specialized routines for cognitive conditions</span>
+              </div>
+              <div class="care-type" onclick="selectCare(this,'Post-Hospital Recovery')">
+                <span class="care-type-icon">🏥</span>
+                <span class="care-type-name">Post-Hospital Recovery</span>
+                <span class="care-type-desc">Support after surgery or hospital discharge</span>
+              </div>
+              <div class="care-type" onclick="selectCare(this,'Overnight & Intensive Care')">
+                <span class="care-type-icon">🌙</span>
+                <span class="care-type-name">Overnight & Intensive</span>
+                <span class="care-type-desc">Round-the-clock support and monitoring</span>
+              </div>
             </div>
+            <button class="step-next" onclick="nextStep(2)">Continue →</button>
           </div>
-          <div class="tally-embed" style="text-align:center;padding:24px 0;">
-            <a href="/lead-form.html" style="display:inline-block;background:var(--blue);color:#fff;padding:14px 30px;text-decoration:none;font-size:0.88rem;font-weight:500;border-radius:4px;font-family:'Inter',sans-serif;">Book Your Free Assessment &rarr;</a>
+        </div>
+
+        <!-- STEP 2 -->
+        <div class="step" id="step2">
+          <div class="step-header" onclick="toggleStep(2)">
+            <div class="step-num">2</div>
+            <span class="step-title">How many hours per week?</span>
+            <span class="step-check">✓</span>
           </div>
-          <div class="form-or">Prefer to talk first? <a href="tel:6473828047">Call 647-382-8047</a></div>
+          <div class="step-body">
+            <div class="hours-wrap">
+              <div class="hours-display">
+                <span class="hours-val" id="hours-display">20</span>
+                <span class="hours-unit">hrs / week</span>
+              </div>
+              <div class="care-tier-display" id="care-tier-display">
+                <div class="care-tier-name" id="care-tier-name">Standard Care</div>
+                <div class="care-tier-desc" id="care-tier-desc">Daily support and routines, a few visits per week</div>
+              </div>
+              <input type="range" min="4" max="80" value="20" step="2" id="hours-slider" oninput="updateHours(this.value)">
+              <div class="hours-markers"><span>4hrs</span><span>20hrs</span><span>40hrs</span><span>60hrs</span><span>80hrs</span></div>
+              <div class="plan-compare" id="plan-compare">
+                <div class="pc-card" id="pc-essential">
+                  <div class="pc-label">Essential Support</div>
+                  <div class="pc-hrs">4–20 hrs/week</div>
+                  <div class="pc-price">~$800–$1,600<span>/mo</span></div>
+                  <div class="pc-feats">
+                    <div class="pc-feat">Personal hygiene & grooming</div>
+                    <div class="pc-feat">Meal preparation</div>
+                    <div class="pc-feat">Medication reminders</div>
+                    <div class="pc-feat">Companionship</div>
+                  </div>
+                </div>
+                <div class="pc-card" id="pc-standard">
+                  <div class="pc-label">Standard Care</div>
+                  <div class="pc-hrs">20–40 hrs/week</div>
+                  <div class="pc-price">~$1,600–$3,000<span>/mo</span></div>
+                  <div class="pc-feats">
+                    <div class="pc-feat">Everything in Essential</div>
+                    <div class="pc-feat">Daily morning/evening routines</div>
+                    <div class="pc-feat">Accompany to appointments</div>
+                    <div class="pc-feat">Weekly family updates</div>
+                  </div>
+                </div>
+                <div class="pc-card" id="pc-fulltime">
+                  <div class="pc-label">Full-Time Care</div>
+                  <div class="pc-hrs">40–80 hrs/week</div>
+                  <div class="pc-price">~$3,000–$5,000<span>/mo</span></div>
+                  <div class="pc-feats">
+                    <div class="pc-feat">Everything in Standard</div>
+                    <div class="pc-feat">Dementia & memory support</div>
+                    <div class="pc-feat">Overnight care available</div>
+                    <div class="pc-feat">Priority scheduling 24/7</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <button class="step-next" onclick="nextStep(3)">Continue →</button>
+          </div>
+        </div>
+
+        <!-- STEP 3 -->
+        <div class="step" id="step3">
+          <div class="step-header" onclick="toggleStep(3)">
+            <div class="step-num">3</div>
+            <span class="step-title">Which services do you want included?</span>
+            <span class="step-check">✓</span>
+          </div>
+          <div class="step-body">
+            <div class="services-grid" id="services-list">
+              <div class="service-toggle active" onclick="toggleService(this,'Personal Hygiene & Grooming')">
+                <div class="service-toggle-left"><span class="service-icon">🚿</span><span class="service-name">Personal Hygiene & Grooming</span></div>
+                <div class="toggle-switch"><div class="toggle-knob"></div></div>
+              </div>
+              <div class="service-toggle active" onclick="toggleService(this,'Meal Preparation')">
+                <div class="service-toggle-left"><span class="service-icon">🍽️</span><span class="service-name">Meal Preparation</span></div>
+                <div class="toggle-switch"><div class="toggle-knob"></div></div>
+              </div>
+              <div class="service-toggle active" onclick="toggleService(this,'Medication Reminders')">
+                <div class="service-toggle-left"><span class="service-icon">💊</span><span class="service-name">Medication Reminders</span></div>
+                <div class="toggle-switch"><div class="toggle-knob"></div></div>
+              </div>
+              <div class="service-toggle active" onclick="toggleService(this,'Companionship & Social Support')">
+                <div class="service-toggle-left"><span class="service-icon">🤝</span><span class="service-name">Companionship & Social Support</span></div>
+                <div class="toggle-switch"><div class="toggle-knob"></div></div>
+              </div>
+              <div class="service-toggle" onclick="toggleService(this,'Mobility Assistance')">
+                <div class="service-toggle-left"><span class="service-icon">🦽</span><span class="service-name">Mobility Assistance</span></div>
+                <div class="toggle-switch"><div class="toggle-knob"></div></div>
+              </div>
+              <div class="service-toggle" onclick="toggleService(this,'Accompany to Appointments')">
+                <div class="service-toggle-left"><span class="service-icon">🚗</span><span class="service-name">Accompany to Appointments</span></div>
+                <div class="toggle-switch"><div class="toggle-knob"></div></div>
+              </div>
+              <div class="service-toggle" onclick="toggleService(this,'Light Housekeeping')">
+                <div class="service-toggle-left"><span class="service-icon">🏠</span><span class="service-name">Light Housekeeping</span></div>
+                <div class="toggle-switch"><div class="toggle-knob"></div></div>
+              </div>
+              <div class="service-toggle" onclick="toggleService(this,'Indoor Camera Setup')">
+                <div class="service-toggle-left"><span class="service-icon">📷</span><span class="service-name">Indoor Camera Setup</span><span class="service-badge">Standard+</span></div>
+                <div class="toggle-switch"><div class="toggle-knob"></div></div>
+              </div>
+            </div>
+            <button class="step-next" onclick="nextStep(4)">See My Plan →</button>
+          </div>
+        </div>
+
+        <!-- STEP 4 -->
+        <div class="step" id="step4">
+          <div class="step-header" onclick="toggleStep(4)">
+            <div class="step-num">4</div>
+            <span class="step-title">Where is your loved one located?</span>
+            <span class="step-check">✓</span>
+          </div>
+          <div class="step-body">
+            <div class="care-types" style="grid-template-columns:repeat(3,1fr)">
+              <div class="care-type" onclick="selectCity(this,'Mississauga')">
+                <span class="care-type-icon">📍</span>
+                <span class="care-type-name">Mississauga</span>
+              </div>
+              <div class="care-type" onclick="selectCity(this,'Brampton')">
+                <span class="care-type-icon">📍</span>
+                <span class="care-type-name">Brampton</span>
+              </div>
+              <div class="care-type" onclick="selectCity(this,'Caledon')">
+                <span class="care-type-icon">📍</span>
+                <span class="care-type-name">Caledon</span>
+              </div>
+            </div>
+            <button class="step-next" onclick="finalizePlan()">Book Free Assessment →</button>
+          </div>
+        </div>
+
+      </div><!-- builder-steps -->
+
+      <!-- PLAN SUMMARY CARD -->
+      <div class="plan-card">
+        <div class="plan-card-label">Your Care Plan</div>
+        <div id="plan-summary">
+          <div class="plan-empty">Complete the steps on the left to build your loved one's personalized care plan.</div>
+        </div>
+        <div id="plan-cta-wrap" style="display:none">
+          <a href="lead-form.html" class="plan-cta" id="plan-cta-btn">Book Free In-Home Assessment</a>
+          <div class="plan-free">✓ First 6 hours completely free · No obligation · No contracts</div>
         </div>
       </div>
-    </div>
+
+    </div><!-- builder-grid -->
   </div>
-</div>
-
-<!-- WHY WE'RE DIFFERENT -->
-<div class="section-outer" style="background:var(--warm2);" id="difference">
-<div class="section-inner">
-  <div class="section-label reveal">Why Families Choose Us</div>
-  <h2 class="reveal">Other Agencies Send Whoever's Available.<br><em>We Don't.</em></h2>
-  <p class="section-intro reveal">Every single thing we do is designed to give your family more than you paid for — more consistency, more transparency, more peace of mind.</p>
-
-  <div class="difference-grid">
-
-    <!-- SAME PSW -->
-    <div class="diff-card blue reveal">
-      <div class="diff-card-tag">What makes us different</div>
-      <div class="diff-card-icon">🤝</div>
-      <div class="diff-card-title">Same PSW. Every Single Visit.</div>
-      <div class="diff-card-body">Most agencies rotate caregivers. Your parent meets a stranger every few days. We don't work that way. Your loved one sees the same trusted face, builds a real relationship, and actually looks forward to the visit.<br><br>That consistency isn't just comfort — it's better care.</div>
-    </div>
-
-    <!-- CHOOSE YOUR PSW -->
-    <div class="diff-card pale reveal d1">
-      <div class="diff-card-tag">Your control</div>
-      <div class="diff-card-icon">🎯</div>
-      <div class="diff-card-title">You Choose Who Walks Into Your Home.</div>
-      <div class="diff-card-body">We match you with the right caregiver based on personality, skills, and your loved one's specific needs. And on Standard and Full-Time plans — you have final say. This is your home. You should feel completely comfortable with who's in it.</div>
-      <ul class="diff-list">
-        <li>Meet your PSW before care begins</li>
-        <li>Request a different caregiver anytime</li>
-        <li>Change your care plan with one call</li>
-      </ul>
-    </div>
-
-    <!-- BEFORE / AFTER WIDE CARD -->
-    <div class="diff-card wide reveal" style="background:var(--white);border:1px solid var(--warm3);padding:0;overflow:hidden;">
-      <div class="ba-col before">
-        <div class="ba-label">❌ What most families deal with</div>
-        <div class="ba-item"><div class="ba-icon">✗</div><div class="ba-text"><strong>Different caregiver every visit</strong>Your parent has to re-explain everything. Trust never builds.</div></div>
-        <div class="ba-item"><div class="ba-icon">✗</div><div class="ba-text"><strong>No way to see what's happening</strong>You're at work. You have no idea if your parent is okay right now.</div></div>
-        <div class="ba-item"><div class="ba-icon">✗</div><div class="ba-text"><strong>Agency cancels with no backup</strong>You drop everything to cover. Again.</div></div>
-        <div class="ba-item"><div class="ba-icon">✗</div><div class="ba-text"><strong>You get a call centre when you call</strong>Nobody knows your parent's name.</div></div>
-      </div>
-      <div class="ba-col after">
-        <div class="ba-label">✓ What life looks like with Proximity Care</div>
-        <div class="ba-item"><div class="ba-icon">✓</div><div class="ba-text"><strong>Same familiar face, every time</strong>Your parent is comfortable. Happy. Looked after by someone who actually knows them.</div></div>
-        <div class="ba-item"><div class="ba-icon">✓</div><div class="ba-text"><strong>Indoor camera so you can see for yourself</strong>Check in anytime from your phone. Peace of mind that's actually real.</div></div>
-        <div class="ba-item"><div class="ba-icon">✓</div><div class="ba-text"><strong>We cover. We show up. No excuses.</strong>When other agencies fall through, families call us. We answer.</div></div>
-        <div class="ba-item"><div class="ba-icon">✓</div><div class="ba-text"><strong>Direct help call — reach Lance personally</strong>Not a call centre. The person who built this company answers your call.</div></div>
-      </div>
-    </div>
-
-    <!-- INDOOR CAMERA -->
-    <div class="diff-card dark reveal">
-      <div class="diff-card-tag">Standard & Full-Time plans</div>
-      <div class="diff-card-icon">📷</div>
-      <div class="diff-card-title">See Your Parent's Care Happening. From Anywhere.</div>
-      <div class="diff-card-body">We set up an indoor camera in your parent's home so you can check in anytime — from work, from another city, from your phone at midnight.<br><br>This isn't surveillance. It's the peace of mind you've been missing since you started worrying about leaving them alone.</div>
-    </div>
-
-    <!-- FREE FIRST 6 HOURS -->
-    <div class="diff-card gold-border reveal d1">
-      <div class="diff-card-tag">Risk-free start</div>
-      <div class="diff-card-icon">🎁</div>
-      <div class="diff-card-title">Try Us Before You Commit. Zero Risk.</div>
-      <div class="diff-card-body">Your first 6 hours of care are completely free. No payment required. No contracts to sign. We come in, care for your loved one, and let the experience speak for itself.<br><br>We're confident enough in our care that we'll prove it to you first — before you spend a single dollar.</div>
-      <div style="margin-top:20px;"><a href="/lead-form.html" target="_blank" class="btn-primary" style="font-size:0.78rem;padding:11px 22px;">Claim Your Free Hours →</a></div>
-    </div>
-
-  </div>
-</div>
-</div>
-
-<!-- WHO WE HELP -->
-<div class="section-outer" style="background:var(--white);" id="who">
-<div class="section-inner">
-  <div class="section-label reveal">Who We Help</div>
-  <h2 class="reveal">Every Family's Situation Is <em>Different.</em> We've Seen Them All.</h2>
-  <p class="section-intro reveal">Whether your parent just came home from hospital or you've been managing alone for years — we meet you where you are.</p>
-  <div class="who-grid">
-    <div class="who-card reveal"><div class="who-card-icon">🧠</div><div class="who-card-title">Dementia & Memory Care</div><div class="who-card-desc">Consistent routines and patient, trained PSWs for parents with Alzheimer's or other memory conditions. Families finally get peace of mind.</div><a href="/lead-form.html" target="_blank" class="who-card-link">Get a care plan →</a></div>
-    <div class="who-card reveal d1"><div class="who-card-icon">🏥</div><div class="who-card-title">Post-Hospital Recovery</div><div class="who-card-desc">Home from surgery or a hospital stay? We provide professional support during recovery so your parent heals at home — not in a facility.</div><a href="/lead-form.html" target="_blank" class="who-card-link">Get a care plan →</a></div>
-    <div class="who-card reveal d2"><div class="who-card-icon">🤲</div><div class="who-card-title">Daily Living Support</div><div class="who-card-desc">Bathing, meals, medication reminders, mobility. The everyday tasks becoming harder — we handle them so your parent stays independent longer.</div><a href="/lead-form.html" target="_blank" class="who-card-link">Get a care plan →</a></div>
-    <div class="who-card reveal"><div class="who-card-icon">😮‍💨</div><div class="who-card-title">Caregiver Relief</div><div class="who-card-desc">You've been doing this alone. You're exhausted. We step in so you can work, rest, and live your life — knowing your parent is in the best hands.</div><a href="/lead-form.html" target="_blank" class="who-card-link">Get a care plan →</a></div>
-    <div class="who-card reveal d1"><div class="who-card-icon">🦽</div><div class="who-card-title">Mobility & Fall Recovery</div><div class="who-card-desc">After a fall the risk spikes. We provide daily support that keeps your parent moving safely and reduces that risk significantly.</div><a href="/lead-form.html" target="_blank" class="who-card-link">Get a care plan →</a></div>
-    <div class="who-card reveal d2"><div class="who-card-icon">🌙</div><div class="who-card-title">Overnight & Intensive Care</div><div class="who-card-desc">For parents who need round-the-clock support. We build intensive monthly plans so your loved one is never alone when it matters most.</div><a href="/lead-form.html" target="_blank" class="who-card-link">Get a care plan →</a></div>
-  </div>
-</div>
-</div>
-
-<!-- SERVICES -->
-<div class="section-outer" style="background:var(--warm2);">
-<div class="section-inner" id="services">
-  <div class="section-label reveal">What's Included</div>
-  <h2 class="reveal">Everything Your Loved One Needs, <em>Right at Home.</em></h2>
-  <p class="section-intro reveal">All care is delivered by trained, vetted PSWs matched to your loved one's specific needs — and who show up, every time.</p>
-  <div class="services-grid">
-    <div class="service-item reveal"><div class="service-check">✓</div><div><div class="service-name">Personal Hygiene & Grooming</div><div class="service-desc">Bathing, dressing, oral care — delivered with dignity and patience every visit.</div></div></div>
-    <div class="service-item reveal d1"><div class="service-check">✓</div><div><div class="service-name">Meal Planning & Preparation</div><div class="service-desc">Nutritious home-cooked meals tailored to dietary needs and medical requirements.</div></div></div>
-    <div class="service-item reveal"><div class="service-check">✓</div><div><div class="service-name">Medication Reminders</div><div class="service-desc">Consistent prompts to ensure medications are taken correctly and on schedule, every day.</div></div></div>
-    <div class="service-item reveal d1"><div class="service-check">✓</div><div><div class="service-name">Mobility Assistance</div><div class="service-desc">Safe transfers, walking support, and fall prevention so your parent stays active and confident.</div></div></div>
-    <div class="service-item reveal"><div class="service-check">✓</div><div><div class="service-name">Companionship & Social Support</div><div class="service-desc">Conversation, activities, genuine connection — because isolation is its own health risk.</div></div></div>
-    <div class="service-item reveal d1"><div class="service-check">✓</div><div><div class="service-name">Accompany to Appointments</div><div class="service-desc">We go with your loved one to medical appointments so they're never navigating it alone.</div></div></div>
-    <div class="service-item reveal"><div class="service-check">✓</div><div><div class="service-name">Light Housekeeping</div><div class="service-desc">A clean, safe home environment maintained during each visit — laundry, tidying, dishes included.</div></div></div>
-    <div class="service-item reveal d1"><div class="service-check">✓</div><div><div class="service-name">Dementia & Cognitive Support</div><div class="service-desc">Specialized routines and patient engagement for clients living with memory conditions.</div></div></div>
-  </div>
-</div>
-</div>
-
-<!-- PRICING -->
-<div class="section-outer" style="background:var(--white);" id="pricing">
-<div class="section-inner">
-  <div class="section-label reveal">Care Plans & Pricing</div>
-  <h2 class="reveal">Straightforward Monthly Plans. <em>No Hidden Fees.</em></h2>
-  <p class="section-intro reveal">All plans include a free in-home assessment and your first 6 hours of care at no cost. Every plan is fully customizable — change hours or services anytime.</p>
-
-  <div class="pricing-wrapper reveal">
-    <!-- ESSENTIAL -->
-    <div class="pricing-col">
-      <div class="pricing-top">
-        <div class="pricing-tier">Plan 01</div>
-        <div class="pricing-name">Essential Support</div>
-        <div class="pricing-desc">Reliable part-time care a few times a week. A solid start for families just beginning to need support.</div>
-        <div class="pricing-price-wrap">
-          <div class="pricing-dollar">~$</div>
-          <div class="pricing-amount">800</div>
-          <div class="pricing-per">/month</div>
-        </div>
-        <div class="pricing-hours-tag">20 hrs/month · 1–2 visits/week</div>
-      </div>
-      <div class="pricing-body">
-        <ul class="pricing-includes">
-          <li>Personal care & hygiene every visit</li>
-          <li>Meal preparation</li>
-          <li>Medication reminders</li>
-          <li>Companionship & social support</li>
-          <li>Same PSW every visit</li>
-          <li>Free in-home assessment</li>
-          <li>Change care plan anytime</li>
-        </ul>
-        <a href="/lead-form.html" target="_blank" class="pricing-cta outline">Get Started →</a>
-      </div>
-    </div>
-
-    <div class="pricing-col-divider"></div>
-
-    <!-- STANDARD -->
-    <div class="pricing-col featured">
-      <div class="pricing-top">
-        <div class="pricing-tier">Plan 02</div>
-        <div class="pricing-name">Standard Care</div>
-        <div class="pricing-desc">Everything in Essential — plus daily routines, premium add-ons, and the features families love most.</div>
-        <div class="pricing-price-wrap">
-          <div class="pricing-dollar">~$</div>
-          <div class="pricing-amount">1,600</div>
-          <div class="pricing-per">/month</div>
-        </div>
-        <div class="pricing-hours-tag">40 hrs/month · Daily support</div>
-      </div>
-      <div class="pricing-body">
-        <ul class="pricing-includes">
-          <li>Everything in Essential</li>
-          <li>Daily morning or evening routines</li>
-          <li>Light housekeeping included</li>
-          <li>Accompany to appointments</li>
-          <li>Weekly family progress updates</li>
-          <li>Change care plan anytime</li>
-          <li class="highlight">You choose your preferred PSW</li>
-          <li class="highlight">Indoor camera setup — see care happening live</li>
-          <li class="highlight">Direct help call — reach us anytime</li>
-        </ul>
-        <a href="/lead-form.html" target="_blank" class="pricing-cta solid">Get Started →</a>
-      </div>
-    </div>
-
-    <div class="pricing-col-divider"></div>
-
-    <!-- FULL TIME -->
-    <div class="pricing-col">
-      <div class="pricing-top">
-        <div class="pricing-tier">Plan 03</div>
-        <div class="pricing-name">Full-Time Care</div>
-        <div class="pricing-desc">Comprehensive, around-the-clock support for loved ones who need intensive daily care.</div>
-        <div class="pricing-price-wrap">
-          <div class="pricing-dollar">~$</div>
-          <div class="pricing-amount">3,000</div>
-          <div class="pricing-per">/month</div>
-        </div>
-        <div class="pricing-hours-tag">80+ hrs/month · Intensive support</div>
-      </div>
-      <div class="pricing-body">
-        <ul class="pricing-includes">
-          <li>Everything in Standard</li>
-          <li>Morning & evening routines daily</li>
-          <li>Dementia & memory care support</li>
-          <li>Overnight care available</li>
-          <li>Change care plan anytime</li>
-          <li class="highlight">You choose your preferred PSW</li>
-          <li class="highlight">Indoor camera setup included</li>
-          <li class="highlight">Priority scheduling & direct help call 24/7</li>
-        </ul>
-        <a href="/lead-form.html" target="_blank" class="pricing-cta outline">Get Started →</a>
-      </div>
-    </div>
-  </div>
-
-  <div class="pricing-note reveal">All plans start with a <strong>free in-home assessment</strong> and your <strong>first 6 hours of care at no cost.</strong><br>Custom hours available — call <a href="tel:6473828047" style="color:var(--blue);">647-382-8047</a> to talk through your specific situation.</div>
-</div>
-</div>
+</section>
 
 <!-- HOW IT WORKS -->
-<div class="section-outer" style="background:var(--warm2);">
-<div class="section-inner" id="how">
-  <div class="section-label reveal">How It Works</div>
-  <h2 class="reveal">Care Starts in <em>3 Simple Steps.</em></h2>
-  <p class="section-intro reveal">Most families have a PSW in their home within days of reaching out. No long waiting lists, no confusing paperwork.</p>
-  <div class="steps-grid">
-    <div class="step-item reveal">
-      <div class="step-num-outer"><div class="step-num">1</div></div>
-      <div class="step-title">Tell Us About Your Loved One</div>
-      <div class="step-desc">Fill out our short form or call us directly. We learn about your parent's needs, daily routine, medical conditions, and what matters most to your family.</div>
-    </div>
-    <div class="step-item reveal d1">
-      <div class="step-num-outer"><div class="step-num">2</div></div>
-      <div class="step-title">Lance Comes to You — Free</div>
-      <div class="step-desc">Lance personally visits your home, meets your loved one, and builds a customized care plan. We match the right PSW to your parent's personality and specific needs.</div>
-    </div>
-    <div class="step-item reveal d2">
-      <div class="step-num-outer"><div class="step-num">3</div></div>
-      <div class="step-title">Care Begins — You Finally Breathe</div>
-      <div class="step-desc">The same PSW shows up on schedule. You get updates after every visit. You have a direct line to Lance. No more guessing. No more worry.</div>
+<section class="how-section" id="how">
+  <div class="section-inner">
+    <div class="section-eyebrow reveal"><div class="ey-line"></div><span class="ey-tag">How It Works</span></div>
+    <h2 class="section-title reveal">Care starts in<br><em>3 simple steps.</em></h2>
+    <div class="steps-grid">
+      <div class="how-step reveal">
+        <div class="how-step-num">1</div>
+        <div class="how-step-icon">📋</div>
+        <h3 class="how-step-title">Tell Us About Your Loved One</h3>
+        <p class="how-step-desc">Fill out our short form or call us directly. We learn about your parent's needs, daily routine, and what matters most to your family.</p>
+      </div>
+      <div class="how-step reveal">
+        <div class="how-step-num">2</div>
+        <div class="how-step-icon">🏠</div>
+        <h3 class="how-step-title">Lance Comes to You — Free</h3>
+        <p class="how-step-desc">Lance personally visits your home, meets your loved one, and builds a customized care plan. We match the right PSW to your parent's personality and specific needs.</p>
+      </div>
+      <div class="how-step reveal">
+        <div class="how-step-num">3</div>
+        <div class="how-step-icon">❤️</div>
+        <h3 class="how-step-title">Care Begins. You Finally Breathe.</h3>
+        <p class="how-step-desc">The same PSW shows up on schedule. You get updates after every visit. You have a direct line to Lance. No more guessing. No more worry.</p>
+      </div>
     </div>
   </div>
-  <div style="text-align:center;margin-top:52px;" class="reveal">
-    <a href="/lead-form.html" target="_blank" class="btn-primary">Book Your Free Assessment →</a>
-    <div style="margin-top:12px;font-size:0.74rem;color:var(--muted);">We'll call you within 2 hours · Only 5 spots left this month</div>
-  </div>
-</div>
-</div>
+</section>
 
 <!-- TESTIMONIALS -->
-<div class="testi-section" id="testimonials">
-<div class="testi-inner">
-  <div class="section-label reveal">Real Families. Real Results.</div>
-  <h2 class="reveal">What Families Say About <em>Proximity Care.</em></h2>
-  <p class="section-intro reveal">Every review below is from a real family we serve in Peel Region.</p>
-  <div class="testi-layout">
-    <div class="testi-main reveal">
-      <div class="testi-stars">★★★★★</div>
-      <div class="testi-text">"Proximity Care has been a life saver. I was in need of help to care for my mom with dementia. Meeting with Lance, he made my mom comfortable. He is dependable and goes above and beyond for his clients. He understands my needs and tailors it accordingly. When the PSWs from other agencies fall through, his PSWs are there to pick up the slack. He has relieved my stress of caring for my mom. I would highly recommend his services to anyone that needs a break."</div>
-      <div><span class="testi-author-name">Jennifer Nguyen</span><span class="testi-author-meta">Verified Client · Dementia Care · Mississauga</span></div>
-    </div>
-    <div class="testi-side">
-      <div class="testi-small reveal d1">
-        <div class="testi-stars">★★★★★</div>
-        <div class="testi-text">"Lance has been a great help for my dad. He goes out of his way to help on what he needs. When my dad was in the hospital, he was the only PSW who stayed in touch. Always on time. A true professional."</div>
-        <div><span class="testi-author-name">Harbinger Bhangu</span><span class="testi-author-meta">Verified Client · Brampton</span></div>
+<section class="test-section">
+  <div class="section-inner">
+    <div class="section-eyebrow reveal"><div class="ey-line"></div><span class="ey-tag" style="color:var(--gold2)">What Families Say</span></div>
+    <h2 class="section-title reveal" style="color:var(--white)">Real families.<br><em style="color:var(--gold2)">Real results.</em></h2>
+    <div class="test-grid">
+      <div class="test-card reveal">
+        <div class="test-stars">★★★★★</div>
+        <p class="test-quote">"Proximity Care has been a life saver. Meeting with Lance, he made my mom comfortable. He is dependable and goes above and beyond. He understands my needs and tailors it accordingly. When other agencies fall through, his PSWs are there. He has relieved my stress completely."</p>
+        <div class="test-author"><strong>Jennifer Nguyen</strong>Verified Client · Dementia Care · Mississauga</div>
       </div>
-      <div class="testi-small reveal d2">
-        <div class="testi-stars">★★★★★</div>
-        <div class="testi-text">"Helpful PSWs at a reasonable price. Our experience was a good one for my dad."</div>
-        <div><span class="testi-author-name">Rick Vardzel</span><span class="testi-author-meta">Verified Client · Mississauga</span></div>
+      <div class="test-card reveal">
+        <div class="test-stars">★★★★★</div>
+        <p class="test-quote">"Lance has been a great help for my dad. He goes out of his way to help on what he needs. When my dad was in the hospital, he was the only PSW who stayed in touch. Always on time. A true professional."</p>
+        <div class="test-author"><strong>Harbinger Bhangu</strong>Verified Client · Brampton</div>
+      </div>
+      <div class="test-card reveal">
+        <div class="test-stars">★★★★★</div>
+        <p class="test-quote">"Helpful PSWs at a reasonable price. Our experience was a good one for my dad. The consistency of having the same person every visit made a real difference to his comfort and routine."</p>
+        <div class="test-author"><strong>Rick Vardzel</strong>Verified Client · Mississauga</div>
       </div>
     </div>
   </div>
-</div>
-</div>
+</section>
+
+<!-- SERVICES -->
+<section class="services-section">
+  <div class="section-inner">
+    <div class="section-eyebrow reveal"><div class="ey-line"></div><span class="ey-tag">What's Included</span></div>
+    <h2 class="section-title reveal">Everything your loved one<br><em>needs, right at home.</em></h2>
+    <div class="services-grid">
+      <div class="service-card reveal"><div class="service-card-icon">🚿</div><h3 class="service-card-title">Personal Hygiene</h3><p class="service-card-desc">Bathing, dressing, oral care — delivered with dignity and patience every visit.</p></div>
+      <div class="service-card reveal"><div class="service-card-icon">🍽️</div><h3 class="service-card-title">Meal Preparation</h3><p class="service-card-desc">Nutritious home-cooked meals tailored to dietary needs and medical requirements.</p></div>
+      <div class="service-card reveal"><div class="service-card-icon">💊</div><h3 class="service-card-title">Medication Reminders</h3><p class="service-card-desc">Consistent prompts to ensure medications are taken correctly and on schedule.</p></div>
+      <div class="service-card reveal"><div class="service-card-icon">🦽</div><h3 class="service-card-title">Mobility Assistance</h3><p class="service-card-desc">Safe transfers, walking support, and fall prevention so your parent stays active.</p></div>
+      <div class="service-card reveal"><div class="service-card-icon">🤝</div><h3 class="service-card-title">Companionship</h3><p class="service-card-desc">Conversation, activities, genuine connection — because isolation is its own health risk.</p></div>
+      <div class="service-card reveal"><div class="service-card-icon">🚗</div><h3 class="service-card-title">Accompany to Appointments</h3><p class="service-card-desc">We go with your loved one to medical appointments so they never navigate it alone.</p></div>
+      <div class="service-card reveal"><div class="service-card-icon">🏠</div><h3 class="service-card-title">Light Housekeeping</h3><p class="service-card-desc">A clean, safe home environment maintained during each visit.</p></div>
+      <div class="service-card reveal"><div class="service-card-icon">🧠</div><h3 class="service-card-title">Dementia Support</h3><p class="service-card-desc">Specialized routines and patient engagement for clients with memory conditions.</p></div>
+    </div>
+  </div>
+</section>
 
 <!-- ABOUT -->
-<div class="section-outer" style="background:var(--white);">
-<div class="section-inner">
+<section class="about-section">
   <div class="about-grid">
-    <div class="reveal">
-      <div class="section-label">About Proximity Care</div>
-      <h2>Built by Someone Who <em>Actually Shows Up.</em></h2>
-      <div class="about-body">
-        <p>Proximity Care Services was founded by Lance Salazar in Mississauga, Ontario. Lance started as a PSW himself — he's personally provided care to dozens of seniors across Peel Region.</p>
-        <p>He saw firsthand how chaotic and unreliable home care could be. Different PSWs every week. Families left in the dark. Seniors treated like a shift on a schedule.</p>
-        <p><strong>So he built the agency he wished existed.</strong> One where the same PSW shows up every time. Where families actually hear from someone. Where care is built around the person, not the paperwork.</p>
-      </div>
-      <div class="about-pull">
+    <div>
+      <div class="about-tag reveal"><span class="about-tag-text">Built by Someone Who Shows Up</span></div>
+      <h2 class="about-title reveal">Started as a PSW.<br><em>Built the agency he wished existed.</em></h2>
+      <p class="about-body reveal">Lance Salazar founded Proximity Care Services after years as a PSW himself — personally caring for dozens of seniors across Peel Region. He saw firsthand how chaotic and unreliable home care could be. Different PSWs every week. Families left in the dark. Seniors treated like a shift on a schedule.</p>
+      <div class="about-quote reveal">
         <p>"When my dad was in the hospital, Lance was the only PSW who stayed in touch to see how he was doing."</p>
         <cite>— Harbinger Bhangu, verified client</cite>
       </div>
+      <a href="lead-form.html" class="btn-primary reveal" style="display:inline-block">Book Your Free Assessment</a>
     </div>
-    <div class="about-stats reveal d1">
-      <div class="about-stat"><div class="about-stat-num">100%</div><div class="about-stat-label"><strong>5-star reviews</strong> from every family we've served across Peel Region.</div></div>
-      <div class="about-stat"><div class="about-stat-num">24/7</div><div class="about-stat-label"><strong>Direct help call</strong> — not an answering service. Lance answers personally.</div></div>
-      <div class="about-stat"><div class="about-stat-num">6hrs</div><div class="about-stat-label"><strong>Free to start</strong> — try us before you commit. Zero risk, zero obligation.</div></div>
-      <div class="about-stat"><div class="about-stat-num">5</div><div class="about-stat-label"><strong>New families max per month</strong> — so every family gets the care they deserve.</div></div>
-      <div class="about-cta"><a href="/lead-form.html" target="_blank" class="btn-primary" style="display:block;text-align:center;">Book a Free Assessment →</a></div>
+    <div class="about-img-wrap reveal">
+      <div class="about-img-frame">
+        <div class="about-img-inner">
+          <div class="about-img-icon">👨‍⚕️</div>
+          <div class="about-img-name" style="font-family:var(--serif);font-size:22px;color:var(--white);margin-bottom:4px">Lance Salazar</div>
+          <div class="about-img-role" style="font-size:11px;color:rgba(255,255,255,0.35);letter-spacing:2px;text-transform:uppercase">Founder & PSW · Proximity Care Services</div>
+        </div>
+        <div class="about-stats" style="margin-top:2px">
+          <div class="about-stat"><div class="about-stat-val">100%</div><div class="about-stat-lbl">5-star reviews</div></div>
+          <div class="about-stat"><div class="about-stat-val">6hrs</div><div class="about-stat-lbl">Free to start</div></div>
+          <div class="about-stat"><div class="about-stat-val">Same</div><div class="about-stat-lbl">PSW every visit</div></div>
+          <div class="about-stat"><div class="about-stat-val">24/7</div><div class="about-stat-lbl">Direct access</div></div>
+        </div>
+      </div>
+      <div class="about-badge">
+        <span class="about-badge-num">5★</span>
+        <span class="about-badge-lbl">Every Review</span>
+      </div>
     </div>
   </div>
-</div>
-</div>
+</section>
 
-<!-- AREAS -->
-<div class="section-outer" style="background:var(--warm2);">
-<div class="section-inner">
-  <div class="section-label reveal">Where We Serve</div>
-  <h2 class="reveal">Covering All of <em>Peel Region.</em></h2>
-  <p style="color:var(--muted);font-size:0.92rem;max-width:480px;line-height:1.85;" class="reveal">Not sure if we cover your area? Call us — we'll let you know right away.</p>
-  <div class="areas-pills reveal">
-    <div class="area-pill">Mississauga</div>
-    <div class="area-pill">Brampton</div>
-    <div class="area-pill">Caledon</div>
-    <div class="area-pill">Port Credit</div>
-    <div class="area-pill">Streetsville</div>
-    <div class="area-pill">Meadowvale</div>
-    <div class="area-pill">Malton</div>
-    <div class="area-pill">Bolton</div>
+<!-- CTA -->
+<section class="cta-section">
+  <div class="cta-inner">
+    <div class="section-eyebrow reveal" style="justify-content:center"><div class="ey-line"></div><span class="ey-tag">Get Started Today</span></div>
+    <h2 class="cta-title reveal">Stop worrying. Start knowing<br>your parent is <em>okay.</em></h2>
+    <p class="cta-sub reveal">Book a free in-home assessment. Lance comes to you, meets your loved one, and builds a real care plan. First 6 hours are free — no risk, no commitment.</p>
+    <div class="reveal">
+      <a href="lead-form.html" class="btn-primary" style="font-size:13px;padding:18px 48px">Book Your Free Assessment</a>
+    </div>
+    <div class="cta-badges reveal">
+      <div class="cta-badge"><span class="cta-badge-icon">✓</span>First 6 hours free</div>
+      <div class="cta-badge"><span class="cta-badge-icon">✓</span>No contracts</div>
+      <div class="cta-badge"><span class="cta-badge-icon">✓</span>We call within 2 hours</div>
+      <div class="cta-badge"><span class="cta-badge-icon">✓</span>Same PSW every visit</div>
+    </div>
   </div>
-</div>
-</div>
-
-<!-- FINAL CTA -->
-<div class="final-cta">
-  <div class="section-label reveal" style="justify-content:center;color:rgba(255,255,255,0.45);"><span style="width:24px;height:2px;background:rgba(255,255,255,0.3);display:inline-block;border-radius:2px;"></span> Get Started Today</div>
-  <h2 class="reveal">Stop Worrying. Start Knowing Your Parent Is <em>Okay.</em></h2>
-  <p class="reveal">Book a free in-home assessment. Lance comes to you, meets your loved one, and builds a real care plan. First 6 hours are free — no risk, no commitment.</p>
-  <div class="final-btns reveal">
-    <a href="/lead-form.html" target="_blank" class="btn-white">Book a Free Assessment</a>
-    <a href="tel:6473828047" class="btn-outline-white">📞 Call 647-382-8047</a>
-  </div>
-  <div class="final-note reveal">Only 5 new families accepted this month. First 6 hours free. No contracts. Cancel anytime.</div>
-</div>
+</section>
 
 <!-- FOOTER -->
 <footer>
   <div class="footer-inner">
     <div class="footer-top">
       <div>
-        <div class="footer-brand">Proximity <span>Care</span> Services Inc.</div>
-        <div class="footer-desc">In-home senior care for families in Mississauga, Brampton, and Caledon. Consistent PSWs. Real communication. Care that actually works.</div>
+        <div class="footer-logo">Proximity <em>Care</em></div>
+        <p class="footer-desc">In-home senior care for families in Mississauga, Brampton, and Caledon. Consistent PSWs. Real communication. Care that actually works.</p>
         <div class="footer-contact">
           <a href="tel:6473828047">📞 647-382-8047</a>
           <a href="mailto:lancesalazar56@gmail.com">✉ lancesalazar56@gmail.com</a>
-          <a href="#">📍 Mississauga, Ontario, Canada</a>
+          <a href="#">📍 Mississauga, Ontario</a>
         </div>
       </div>
       <div>
         <div class="footer-col-title">Navigate</div>
         <ul class="footer-links">
-          <li><a href="#difference">Why Us</a></li>
-          <li><a href="#who">Who We Help</a></li>
-          <li><a href="#services">Services</a></li>
-          <li><a href="#pricing">Care Plans</a></li>
-          <li><a href="#testimonials">Reviews</a></li>
+          <li><a href="#builder">Build Your Care Plan</a></li>
+          <li><a href="#how">How It Works</a></li>
+          <li><a href="#about">About Us</a></li>
+          <li><a href="lead-form.html">Book Assessment</a></li>
+          <li><a href="chatbot.html">Talk to Our AI</a></li>
         </ul>
       </div>
       <div>
-        <div class="footer-col-title">Get Started</div>
+        <div class="footer-col-title">Areas We Serve</div>
         <ul class="footer-links">
-          <li><a href="/lead-form.html" target="_blank">Free Assessment</a></li>
-          <li><a href="tel:6473828047">Call Us Now</a></li>
+          <li><a href="#">Mississauga</a></li>
+          <li><a href="#">Brampton</a></li>
+          <li><a href="#">Caledon</a></li>
+          <li><a href="#">Port Credit</a></li>
+          <li><a href="#">Streetsville</a></li>
+          <li><a href="#">Meadowvale</a></li>
         </ul>
       </div>
     </div>
     <div class="footer-bottom">
-      <div class="footer-copy">© 2026 Proximity Care Services Inc. All rights reserved.</div>
-      <div class="footer-copy">Mississauga · Brampton · Caledon · Peel Region, Ontario</div>
+      <span class="footer-copy">© 2026 Proximity Care Services Inc. All rights reserved.</span>
+      <span class="footer-areas">Mississauga · Brampton · Caledon · Peel Region, Ontario</span>
     </div>
   </div>
 </footer>
 
-<div class="mobile-bar">
-  <a href="/lead-form.html" target="_blank" class="mobile-bar-book">Book Free Assessment</a>
-  <a href="tel:6473828047" class="mobile-bar-call">📞 Call Now</a>
+<!-- CHATBOT -->
+<div id="chat-bubble" onclick="toggleChat()">
+  <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>
 </div>
-
-<!-- CHAT WIDGET -->
-<button class="chat-bubble" id="chatBubble" aria-label="Open chat">
-  <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z"/></svg>
-</button>
-<div class="chat-overlay" id="chatOverlay">
-  <div class="chat-modal">
-    <button class="chat-modal-close" id="chatClose" aria-label="Close chat">
-      <svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
-    </button>
-    <iframe id="chatFrame" loading="lazy" sandbox="allow-scripts allow-same-origin allow-forms allow-popups"></iframe>
+<div id="chat-overlay">
+  <div class="chat-head">
+    <div class="chat-av">P</div>
+    <div class="chat-info"><h4>Proximity Care</h4><p>Ask me anything about care options</p></div>
+  </div>
+  <div class="chat-msgs" id="cmsgs">
+    <div class="cmsg b"><div class="cbub">Hi — I'm here to help you find the right care for your loved one. What's your situation right now?</div></div>
+  </div>
+  <div class="ctyping" id="ctyp"><div class="ctyd"></div><div class="ctyd"></div><div class="ctyd"></div></div>
+  <div class="chat-inp-wrap">
+    <textarea class="chat-inp" id="cinp" placeholder="Ask anything..." rows="1" onkeydown="chk(event)" oninput="crs(this)"></textarea>
+    <button class="chat-send" onclick="csend()">→</button>
   </div>
 </div>
 
 <script>
-  const chatBubble = document.getElementById('chatBubble');
-  const chatOverlay = document.getElementById('chatOverlay');
-  const chatClose = document.getElementById('chatClose');
-  const chatFrame = document.getElementById('chatFrame');
-  chatBubble.addEventListener('click', () => {
-    if (!chatFrame.src) chatFrame.src = 'chatbot.html?v=1';
-    chatOverlay.classList.add('open'); chatBubble.style.display = 'none';
-  });
-  chatClose.addEventListener('click', () => {
-    chatOverlay.classList.remove('open'); chatBubble.style.display = 'flex';
-  });
-  chatOverlay.addEventListener('click', (e) => {
-    if (e.target === chatOverlay) { chatOverlay.classList.remove('open'); chatBubble.style.display = 'flex'; }
-  });
-  setTimeout(() => chatBubble.click(), 3000);
-</script>
+// ── NAV SCROLL ──
+window.addEventListener('scroll',()=>{
+  document.getElementById('nav').classList.toggle('scrolled',window.scrollY>60);
+});
 
-<script>
-  document.querySelectorAll('.situation-tag').forEach(tag=>{
-    tag.addEventListener('click',()=>{
-      document.querySelectorAll('.situation-tag').forEach(t=>t.classList.remove('active'));
-      tag.classList.add('active');
-    });
+// ── SCROLL REVEAL ──
+const obs=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('visible');obs.unobserve(e.target);}});
+},{threshold:.1,rootMargin:'0px 0px -40px 0px'});
+document.querySelectorAll('.reveal').forEach(el=>obs.observe(el));
+
+// ── CARE BUILDER STATE ──
+const plan={careType:'Daily Living Support',hours:20,services:['Personal Hygiene & Grooming','Meal Preparation','Medication Reminders','Companionship & Social Support'],city:''};
+
+function selectCare(el,type){
+  document.querySelectorAll('.care-type').forEach(c=>c.classList.remove('selected'));
+  el.classList.add('selected');
+  plan.careType=type;
+  updatePlanCard();
+}
+
+function updateHours(val){
+  plan.hours=parseInt(val);
+  document.getElementById('hours-display').textContent=val;
+  let tierName,tierDesc,monthly,activeCard;
+  if(val<=20){
+    tierName='Essential Support';
+    tierDesc='A few visits per week — light daily assistance';
+    monthly=800+Math.round(((val-4)/(20-4))*(1600-800));
+    activeCard='pc-essential';
+  } else if(val<=40){
+    tierName='Standard Care';
+    tierDesc='Daily support and routines, consistent visits every week';
+    monthly=1600+Math.round(((val-20)/(40-20))*(3000-1600));
+    activeCard='pc-standard';
+  } else {
+    tierName='Full-Time Care';
+    tierDesc='Intensive daily support — around-the-clock care';
+    monthly=3000+Math.round(((val-40)/(80-40))*(5000-3000));
+    activeCard='pc-fulltime';
+  }
+  document.getElementById('care-tier-name').textContent=tierName;
+  document.getElementById('care-tier-desc').textContent=tierDesc;
+  ['pc-essential','pc-standard','pc-fulltime'].forEach(id=>{
+    document.getElementById(id).classList.toggle('active',id===activeCard);
   });
-  const obs = new IntersectionObserver(entries=>{
-    entries.forEach(e=>{ if(e.isIntersecting) e.target.classList.add('visible'); });
-  },{threshold:0.08});
-  document.querySelectorAll('.reveal').forEach(el=>obs.observe(el));
+  plan.monthly=monthly;
+  updatePlanCard();
+}
+
+function toggleService(el,name){
+  el.classList.toggle('active');
+  if(el.classList.contains('active')){
+    if(!plan.services.includes(name))plan.services.push(name);
+  } else {
+    plan.services=plan.services.filter(s=>s!==name);
+  }
+  updatePlanCard();
+}
+
+function selectCity(el,city){
+  document.querySelectorAll('#step4 .care-type').forEach(c=>c.classList.remove('selected'));
+  el.classList.add('selected');
+  plan.city=city;
+  updatePlanCard();
+}
+
+function toggleStep(n){
+  const step=document.getElementById('step'+n);
+  step.classList.toggle('active');
+}
+
+function nextStep(n){
+  const prev=document.getElementById('step'+(n-1));
+  if(prev){prev.classList.remove('active');prev.classList.add('done');}
+  const next=document.getElementById('step'+n);
+  if(next){next.classList.add('active');next.scrollIntoView({behavior:'smooth',block:'nearest'});}
+  updatePlanCard();
+}
+
+function finalizePlan(){
+  updatePlanCard(true);
+  document.getElementById('plan-cta-wrap').style.display='block';
+  const btn=document.getElementById('plan-cta-btn');
+  btn.href=`lead-form.html?type=${encodeURIComponent(plan.careType)}&hours=${plan.hours}&city=${encodeURIComponent(plan.city)}`;
+}
+
+function updatePlanCard(final=false){
+  let monthly=plan.monthly||800;
+  if(!plan.monthly){
+    if(plan.hours<=20) monthly=800+Math.round(((plan.hours-4)/(20-4))*(1600-800));
+    else if(plan.hours<=40) monthly=1600+Math.round(((plan.hours-20)/(40-20))*(3000-1600));
+    else monthly=3000+Math.round(((plan.hours-40)/(80-40))*(5000-3000));
+  }
+  const servicesHTML=plan.services.map(s=>`<div class="plan-service-item">${s}</div>`).join('');
+  const cityText=plan.city?` · ${plan.city}`:'';
+  document.getElementById('plan-summary').innerHTML=`
+    <div class="plan-care-type">${plan.careType}</div>
+    <div class="plan-hours">${plan.hours} hrs/week${cityText}</div>
+    ${plan.services.length?`<div class="plan-divider"></div><div class="plan-services-lbl">Services Included</div>${servicesHTML}`:''}
+    <div class="plan-price-wrap">
+      <div class="plan-price-lbl">Estimated Monthly</div>
+      <div class="plan-price-val">~$${monthly.toLocaleString()}</div>
+      <div class="plan-price-note">Based on ${plan.hours}hrs/week · Exact quote at assessment</div>
+    </div>`;
+  if(final){document.getElementById('plan-cta-wrap').style.display='block';}
+}
+
+// ── CHATBOT ──
+const CW='https://young-meadow-e6fb.lancesalazar56.workers.dev';
+const CM='claude-haiku-4-5-20251001';
+const CSYS=`You are the care assistant for Proximity Care Services, a premium in-home senior care agency in Mississauga, Brampton, and Caledon, Ontario. You help families find the right care for their loved ones.
+
+SERVICES: Personal hygiene & grooming, meal preparation, medication reminders, mobility assistance, companionship, accompany to appointments, light housekeeping, dementia care, overnight care.
+
+CARE PLANS:
+- Essential Support: ~$800/month, 20hrs/month, 1-2 visits/week
+- Standard Care: ~$1,600/month, 40hrs/month, daily support
+- Full-Time Care: ~$3,000/month, 80+ hrs/month, intensive
+
+KEY FACTS: Same PSW every visit. First 6 hours free. No contracts. Lance personally does the first in-home assessment. Serving Mississauga, Brampton, Caledon. Call: 647-382-8047.
+
+TONE: Warm, caring, empathetic. Speak to the worry families are carrying. Keep answers to 2-3 sentences. If they seem ready, direct them to book a free assessment.`;
+
+let chist=[];
+function toggleChat(){
+  document.getElementById('chat-overlay').classList.toggle('open');
+}
+async function csend(){
+  const inp=document.getElementById('cinp');
+  const msg=inp.value.trim();if(!msg)return;
+  inp.value='';inp.style.height='auto';
+  addCMsg('u',msg);chist.push({role:'user',content:msg});
+  document.getElementById('ctyp').classList.add('show');csc();
+  try{
+    const r=await fetch(CW,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:CM,max_tokens:200,system:CSYS,messages:chist})});
+    const d=await r.json();
+    const rep=d.content?.[0]?.text||'Please call us at 647-382-8047 and we\'ll be happy to help.';
+    chist.push({role:'assistant',content:rep});
+    document.getElementById('ctyp').classList.remove('show');
+    addCMsg('b',rep);
+  }catch(e){
+    document.getElementById('ctyp').classList.remove('show');
+    addCMsg('b','Please call us at 647-382-8047 and we\'ll be happy to help right away.');
+  }
+  csc();
+}
+function addCMsg(type,text){
+  const d=document.createElement('div');d.className='cmsg '+type;
+  d.innerHTML=`<div class="cbub">${text.replace(/\n/g,'<br>')}</div>`;
+  document.getElementById('cmsgs').appendChild(d);csc();
+}
+function csc(){const m=document.getElementById('cmsgs');m.scrollTop=m.scrollHeight;}
+function chk(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();csend();}}
+function crs(el){el.style.height='auto';el.style.height=Math.min(el.scrollHeight,56)+'px';}
 </script>
 </body>
 </html>
