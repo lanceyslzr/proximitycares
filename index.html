@@ -253,9 +253,11 @@ footer{background:var(--navy);padding:60px 48px 32px;border-top:1px solid rgba(2
 .footer-areas{font-size:12px;color:rgba(255,255,255,0.2);letter-spacing:1px}
 
 /* ── CHATBOT ── */
-#chat-bubble{position:fixed;bottom:28px;right:28px;z-index:1000;width:52px;height:52px;border-radius:50%;background:#f0c040;border:2px solid #f0c040;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .3s;box-shadow:0 8px 32px rgba(240,192,64,0.4)}
-#chat-bubble:hover{transform:scale(1.08);box-shadow:0 12px 40px rgba(240,192,64,0.5)}
-#chat-bubble svg{width:22px;height:22px;fill:var(--navy)}
+#chat-widget{position:fixed;bottom:28px;right:28px;z-index:1000;display:flex;align-items:center;gap:10px}
+#chat-label{background:#ffffff;color:#1a3a5c;font-family:'DM Mono',monospace;font-size:11px;font-weight:600;letter-spacing:1px;padding:8px 16px;border-radius:20px;white-space:nowrap;box-shadow:0 4px 16px rgba(0,0,0,0.12);pointer-events:none}
+#chat-bubble{width:52px;height:52px;border-radius:50%;background:#ffffff;border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .3s;box-shadow:0 8px 32px rgba(255,255,255,0.3)}
+#chat-bubble:hover{transform:scale(1.08);box-shadow:0 12px 40px rgba(255,255,255,0.3)}
+#chat-bubble svg{width:22px;height:22px;fill:#1a3a5c}
 #chat-overlay{position:fixed;bottom:92px;right:28px;z-index:1000;width:340px;background:var(--navy2);border:1px solid rgba(255,255,255,0.08);border-top:2px solid var(--gold);box-shadow:0 24px 80px rgba(0,0,0,0.4);display:none;flex-direction:column;height:460px}
 #chat-overlay.open{display:flex}
 .chat-head{padding:14px 18px;border-bottom:1px solid rgba(255,255,255,0.06);display:flex;align-items:center;gap:10px}
@@ -722,8 +724,11 @@ footer{background:var(--navy);padding:60px 48px 32px;border-top:1px solid rgba(2
 </footer>
 
 <!-- CHATBOT -->
-<div id="chat-bubble" onclick="toggleChat()">
-  <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>
+<div id="chat-widget">
+  <span id="chat-label">24/7 Help</span>
+  <div id="chat-bubble" onclick="toggleChat()">
+    <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>
+  </div>
 </div>
 <div id="chat-overlay">
   <div class="chat-head">
