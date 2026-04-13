@@ -67,9 +67,9 @@ nav.scrolled{background:rgba(10,22,40,0.96);backdrop-filter:blur(20px)}
 .hero-card-footer-dot{width:6px;height:6px;border-radius:50%;background:var(--gold2)}
 .float-badge{position:absolute;background:rgba(10,22,40,0.92);border:1px solid rgba(46,125,209,0.3);padding:8px 14px;border-radius:8px;display:flex;align-items:center;gap:8px;font-size:11px;color:rgba(255,255,255,0.75);font-family:var(--sans);box-shadow:0 8px 24px rgba(0,0,0,0.3);white-space:nowrap;z-index:3}
 .float-badge .fb-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
-.fb-1{top:-16px;right:-30px;animation:floatBadge 4s ease-in-out infinite}
-.fb-2{left:-40px;top:50%;animation:floatBadge 5s ease-in-out infinite}
-.fb-3{bottom:20px;right:-35px;animation:floatBadge 4.5s ease-in-out infinite}
+.fb-1{top:-18px;right:-20px;animation:floatBadge 4s ease-in-out infinite}
+.fb-2{left:-20px;top:45%;animation:floatBadge 5s ease-in-out infinite}
+.fb-3{bottom:-18px;right:-20px;animation:floatBadge 4.5s ease-in-out infinite}
 @keyframes floatBadge{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
 @keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
 @keyframes fadeRight{from{opacity:0;transform:translate(20px,-50%)}to{opacity:1;transform:translate(0,-50%)}}
@@ -1325,22 +1325,24 @@ if(window.matchMedia('(min-width:768px)').matches){
     },{passive:true});
   }
 }
-
-// ── 3D CARD TILT ──
-var card3d=document.querySelector('.card-3d');
-if(card3d){
-  card3d.addEventListener('mousemove',function(e){
-    var r=card3d.getBoundingClientRect();
+</script>
+<script>
+document.addEventListener('DOMContentLoaded',function(){
+  var card=document.querySelector('.card-3d');
+  if(!card)return;
+  var wrap=card.closest('.card-3d-wrap')||card.parentElement;
+  wrap.addEventListener('mousemove',function(e){
+    var r=wrap.getBoundingClientRect();
     var x=(e.clientX-r.left)/r.width-0.5;
     var y=(e.clientY-r.top)/r.height-0.5;
-    card3d.style.transition='none';
-    card3d.style.transform='perspective(900px) rotateY('+x*24+'deg) rotateX('+(-y*24)+'deg)';
+    card.style.transition='transform 0.1s ease';
+    card.style.transform='perspective(900px) rotateY('+(x*20)+'deg) rotateX('+(-y*20)+'deg) scale(1.02)';
   });
-  card3d.addEventListener('mouseleave',function(){
-    card3d.style.transition='transform 0.6s ease';
-    card3d.style.transform='perspective(900px) rotateY(0) rotateX(0)';
+  wrap.addEventListener('mouseleave',function(){
+    card.style.transition='transform 0.6s ease';
+    card.style.transform='perspective(900px) rotateY(0) rotateX(0) scale(1)';
   });
-}
+});
 </script>
 </body>
 </html>
