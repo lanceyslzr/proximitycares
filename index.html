@@ -1171,7 +1171,7 @@ function renderScheduler(){
     if(!booking.time)return;
     widget.querySelector('#sched-next3').textContent='Booking...';
     widget.querySelector('#sched-next3').disabled=true;
-    var payload={name:booking.name,phone:booking.phone,source:'Family Chatbot Booking',preferred_date:booking.dateStr,preferred_time:booking.time,message:'Booking request via chatbot'};
+    var payload={Full_Name:booking.name,Phone:booking.phone,Source:'Family Chatbot Booking',Care_Type:'Booking Request',Notes:'Preferred date: '+booking.dateStr+' at '+booking.time,Status:'New Lead',Email:'',City:''};
     console.log('Chatbot booking payload:',payload);
     fetch('https://hook.us2.make.com/puxwuxhi69h2hevxgfw28vcowsr9caak',{
       method:'POST',headers:{'Content-Type':'application/json'},
