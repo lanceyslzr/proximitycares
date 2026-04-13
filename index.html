@@ -54,13 +54,23 @@ nav.scrolled{background:rgba(10,22,40,0.96);backdrop-filter:blur(20px)}
 .hero-trust{display:flex;gap:40px;opacity:0;animation:fadeUp .8s ease forwards 1s}
 .trust-item{display:flex;align-items:center;gap:10px;font-size:12px;color:rgba(255,255,255,0.45);letter-spacing:1px}
 .trust-icon{font-size:18px}
-.hero-right{position:absolute;right:48px;top:50%;transform:translateY(-50%);width:380px;opacity:0;animation:fadeRight .8s ease forwards 1s}
-.hero-card{background:rgba(255,255,255,0.04);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.08);padding:32px;border-top:2px solid var(--gold)}
+.hero-right{position:absolute;right:48px;top:50%;transform:translateY(-50%);width:400px;opacity:0;animation:fadeRight .8s ease forwards 1s}
+.card-3d-wrap{position:relative;width:340px;height:460px;margin:0 auto}
+.card-3d{width:340px;height:460px;background:linear-gradient(145deg,#1e3a5c,#162d4a);border:1px solid rgba(46,125,209,0.25);border-radius:14px;box-shadow:0 40px 80px rgba(0,0,0,0.4),0 0 0 1px rgba(46,125,209,0.08);transform-style:preserve-3d;transition:transform 0.15s ease;padding:32px;display:flex;flex-direction:column;justify-content:center}
 .hero-card-label{font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--gold2);margin-bottom:20px}
+.hero-card-divider{height:1px;background:rgba(46,125,209,0.2);margin-bottom:20px}
 .hero-stat{display:flex;align-items:baseline;gap:8px;margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid rgba(255,255,255,0.06)}
 .hero-stat:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0}
 .hero-stat-val{font-family:var(--serif);font-size:32px;color:var(--white);font-weight:300}
 .hero-stat-lbl{font-size:12px;color:rgba(255,255,255,0.45)}
+.hero-card-footer{margin-top:24px;display:flex;align-items:center;gap:8px;font-size:10px;color:rgba(255,255,255,0.3);letter-spacing:1px}
+.hero-card-footer-dot{width:6px;height:6px;border-radius:50%;background:var(--gold2)}
+.float-badge{position:absolute;background:rgba(10,22,40,0.92);border:1px solid rgba(46,125,209,0.3);padding:8px 14px;border-radius:8px;display:flex;align-items:center;gap:8px;font-size:11px;color:rgba(255,255,255,0.75);font-family:var(--sans);box-shadow:0 8px 24px rgba(0,0,0,0.3);white-space:nowrap;z-index:3}
+.float-badge .fb-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.fb-1{top:-16px;right:-30px;animation:floatBadge 4s ease-in-out infinite}
+.fb-2{left:-40px;top:50%;animation:floatBadge 5s ease-in-out infinite}
+.fb-3{bottom:20px;right:-35px;animation:floatBadge 4.5s ease-in-out infinite}
+@keyframes floatBadge{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
 @keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
 @keyframes fadeRight{from{opacity:0;transform:translate(20px,-50%)}to{opacity:1;transform:translate(0,-50%)}}
 
@@ -423,23 +433,30 @@ footer{background:var(--navy);padding:60px 48px 32px;border-top:1px solid rgba(2
     </div>
   </div>
   <div class="hero-right">
-    <div class="hero-card reveal">
-      <div class="hero-card-label">Live Agency Numbers</div>
-      <div class="hero-stat">
-        <span class="hero-stat-val">100%</span>
-        <span class="hero-stat-lbl">five-star reviews from every family</span>
-      </div>
-      <div class="hero-stat">
-        <span class="hero-stat-val">Same</span>
-        <span class="hero-stat-lbl">PSW every single visit, no strangers</span>
-      </div>
-      <div class="hero-stat">
-        <span class="hero-stat-val">2hrs</span>
-        <span class="hero-stat-lbl">call-back guarantee after you reach out</span>
-      </div>
-      <div class="hero-stat">
-        <span class="hero-stat-val">6hrs</span>
-        <span class="hero-stat-lbl">free to start — no obligation, no contracts</span>
+    <div class="card-3d-wrap">
+      <div class="float-badge fb-1"><span class="fb-dot" style="background:#22c55e"></span>New Inquiry Received</div>
+      <div class="float-badge fb-2"><span class="fb-dot" style="background:#2e7dd1"></span>Visit Confirmed</div>
+      <div class="float-badge fb-3"><span class="fb-dot" style="background:var(--gold2)"></span>Same PSW Every Visit</div>
+      <div class="card-3d">
+        <div class="hero-card-label">Live Agency Numbers</div>
+        <div class="hero-card-divider"></div>
+        <div class="hero-stat">
+          <span class="hero-stat-val">100%</span>
+          <span class="hero-stat-lbl">five-star reviews from every family</span>
+        </div>
+        <div class="hero-stat">
+          <span class="hero-stat-val">Same</span>
+          <span class="hero-stat-lbl">PSW every single visit, no strangers</span>
+        </div>
+        <div class="hero-stat">
+          <span class="hero-stat-val">2hrs</span>
+          <span class="hero-stat-lbl">call-back guarantee after you reach out</span>
+        </div>
+        <div class="hero-stat">
+          <span class="hero-stat-val">6hrs</span>
+          <span class="hero-stat-lbl">free to start — no obligation, no contracts</span>
+        </div>
+        <div class="hero-card-footer"><span class="hero-card-footer-dot"></span>Peel Region, Ontario</div>
       </div>
     </div>
   </div>
@@ -1249,7 +1266,7 @@ function renderScheduler(){
       if(p<1)requestAnimationFrame(tick);
     })(start);
   }
-  var card=document.querySelector('.hero-card');
+  var card=document.querySelector('.card-3d');
   if(!card)return;
   var sObs=new IntersectionObserver(function(entries){
     entries.forEach(function(e){
@@ -1307,6 +1324,22 @@ if(window.matchMedia('(min-width:768px)').matches){
       heroBg.style.transform='translateY('+Math.min(window.scrollY*0.05,20)+'px)';
     },{passive:true});
   }
+}
+
+// ── 3D CARD TILT ──
+var card3d=document.querySelector('.card-3d');
+if(card3d){
+  card3d.addEventListener('mousemove',function(e){
+    var r=card3d.getBoundingClientRect();
+    var x=(e.clientX-r.left)/r.width-0.5;
+    var y=(e.clientY-r.top)/r.height-0.5;
+    card3d.style.transition='none';
+    card3d.style.transform='perspective(900px) rotateY('+x*24+'deg) rotateX('+(-y*24)+'deg)';
+  });
+  card3d.addEventListener('mouseleave',function(){
+    card3d.style.transition='transform 0.6s ease';
+    card3d.style.transform='perspective(900px) rotateY(0) rotateX(0)';
+  });
 }
 </script>
 </body>
