@@ -940,6 +940,15 @@ async function csend(){
   const msg=inp.value.trim();if(!msg)return;
   inp.value='';inp.style.height='auto';
   addCMsg('u',msg);chist.push({role:'user',content:msg});
+  if(/\b(get started|getting started|how.*(start|begin))\b/i.test(msg)){
+    document.getElementById('ctyp').classList.add('show');csc();
+    setTimeout(function(){
+      document.getElementById('ctyp').classList.remove('show');
+      addCMsg('b','Getting started is simple — first 6 hours are completely free, no contracts.\nWould you like to book a call with Lance or fill out a quick form?');
+      renderChips(['Book a call with Lance','Fill out the form','Tell me more first']);
+    },1200);
+    return;
+  }
   if(BOOK_RE.test(msg)){
     document.getElementById('ctyp').classList.add('show');csc();
     setTimeout(function(){
@@ -1017,9 +1026,6 @@ function addCMsg(type,text){
   document.getElementById('cmsgs').appendChild(d);csc();
   if(type==='b'){
     renderChips(chips||getFallbackChips(text));
-    if(/lead-form/.test(text)){
-      setTimeout(function(){addCMsg('b','Once you submit it, Lance personally reviews every form and calls you back within 2 hours. Is there anything else you\'d like to know about care options before you reach out?');},2000);
-    }
   }
 }
 function csc(){const m=document.getElementById('cmsgs');m.scrollTop=m.scrollHeight;}
@@ -1027,9 +1033,8 @@ function chk(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();csend();}}
 function crs(el){el.style.height='auto';el.style.height=Math.min(el.scrollHeight,56)+'px';}
 function chipSend(el){
   var txt=el.textContent;
-  document.getElementById('cinp').value=txt;
   document.getElementById('chat-chips').classList.add('hidden');
-  if(/^book a call$/i.test(txt)){
+  if(/^book a call(?: with lance)?$/i.test(txt)){
     addCMsg('u',txt);
     chist.push({role:'user',content:txt});
     setTimeout(function(){
@@ -1038,6 +1043,32 @@ function chipSend(el){
     },1000);
     return;
   }
+  if(/^fill out the form$/i.test(txt)){
+    addCMsg('u',txt);
+    chist.push({role:'user',content:txt});
+    setTimeout(function(){
+      addCMsg('b','Here you go — proximitycares.ca/lead-form.html\nIt takes about 2 minutes. Lance personally reviews every one.');
+    },1000);
+    return;
+  }
+  if(/^tell me more first$/i.test(txt)){
+    addCMsg('u',txt);
+    chist.push({role:'user',content:txt});
+    setTimeout(function(){
+      addCMsg('b','Of course! What would you like to know?');
+    },1000);
+    return;
+  }
+  if(/^how do i get started\??$/i.test(txt)){
+    addCMsg('u',txt);
+    chist.push({role:'user',content:txt});
+    setTimeout(function(){
+      addCMsg('b','Getting started is simple — first 6 hours are completely free, no contracts.\nWould you like to book a call with Lance or fill out a quick form?');
+      renderChips(['Book a call with Lance','Fill out the form','Tell me more first']);
+    },1000);
+    return;
+  }
+  document.getElementById('cinp').value=txt;
   csend();
 }
 
