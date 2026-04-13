@@ -896,7 +896,7 @@ const CW='https://young-meadow-e6fb.lancesalazar56.workers.dev';
 const CM='claude-haiku-4-5-20251001';
 const CSYS=`You are a warm care assistant for Proximity Care Services in Mississauga, Brampton, and Caledon. You help families find care for their parents.
 
-RULES: Keep every reply to 1-2 short sentences. Be warm and human, not salesy. Ask one simple question at a time. Never use bullet points or bold text. If they seem ready, say "I can have Lance call you today — just leave your number."
+RULES: Maximum 2-3 sentences or a short bullet list (3 items max). Bullet points are allowed and preferred when listing options or prices. End every reply with one short relevant question. Be warm but efficient — like a knowledgeable friend, not a sales rep. Never over-explain. If they seem ready, say "I can have Lance call you today — just leave your number."
 
 FACTS: Same PSW every visit. First 6 hours free. No contracts. Call 647-382-8047. Book at proximitycares.ca/lead-form.html.`;
 
@@ -909,19 +909,21 @@ async function csend(){
   const msg=inp.value.trim();if(!msg)return;
   inp.value='';inp.style.height='auto';
   addCMsg('u',msg);chist.push({role:'user',content:msg});
+  var sendTime=Date.now();
   document.getElementById('ctyp').classList.add('show');csc();
   try{
-    const r=await fetch(CW,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:CM,max_tokens:80,system:CSYS,messages:chist})});
+    const r=await fetch(CW,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:CM,max_tokens:150,system:CSYS,messages:chist})});
     const d=await r.json();
     const rep=d.content?.[0]?.text||'Please call us at 647-382-8047 and we\'ll be happy to help.';
     chist.push({role:'assistant',content:rep});
-    document.getElementById('ctyp').classList.remove('show');
-    addCMsg('b',rep);
+    const elapsed=Date.now()-sendTime;
+    const delay=Math.max(0,(1500+Math.random()*500)-elapsed);
+    setTimeout(function(){document.getElementById('ctyp').classList.remove('show');addCMsg('b',rep);csc();},delay);
   }catch(e){
-    document.getElementById('ctyp').classList.remove('show');
-    addCMsg('b','Please call us at 647-382-8047 and we\'ll be happy to help right away.');
+    const elapsed=Date.now()-sendTime;
+    const delay=Math.max(0,(1500+Math.random()*500)-elapsed);
+    setTimeout(function(){document.getElementById('ctyp').classList.remove('show');addCMsg('b','Please call us at 647-382-8047 and we\'ll be happy to help right away.');csc();},delay);
   }
-  csc();
 }
 function addCMsg(type,text){
   var html=text.replace(/\n/g,'<br>');
