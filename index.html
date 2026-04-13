@@ -194,7 +194,7 @@ input[type=range]::-webkit-slider-runnable-track{height:2px}
 .services-section{background:var(--white);padding:100px 48px}
 .services-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:2px;margin-top:48px}
 .service-card{background:var(--cream2);border:1px solid var(--border);border-left:3px solid transparent;padding:32px 28px;transition:all .3s}
-.service-card:hover{border-left-color:var(--gold);transform:translateY(-2px);box-shadow:0 12px 40px rgba(46,125,209,0.08)}
+.service-card:hover{border-left:3px solid #2e7dd1;transform:translateY(-2px);box-shadow:0 12px 40px rgba(46,125,209,0.08);background:var(--white)}
 .service-card-icon{font-size:28px;margin-bottom:16px}
 .service-card-title{font-family:var(--serif);font-size:18px;color:var(--navy);margin-bottom:8px}
 .service-card-desc{font-size:13px;line-height:1.7;color:var(--muted);font-weight:300}
@@ -292,6 +292,19 @@ footer{background:var(--navy);padding:60px 48px 32px;border-top:1px solid rgba(2
 .reveal{opacity:0;transform:translateY(24px);transition:opacity .7s ease,transform .7s ease}
 .reveal.visible{opacity:1;transform:translateY(0)}
 
+/* ── BUILDER PROGRESS ── */
+.builder-progress{width:100%;height:3px;background:rgba(255,255,255,0.1);margin-bottom:32px;overflow:hidden}
+.builder-progress-fill{height:100%;background:#2e7dd1;width:0;transition:width 0.4s ease}
+
+/* ── TESTIMONIAL CAROUSEL ── */
+.test-dots{display:flex;justify-content:center;gap:8px;margin-top:24px}
+.test-dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,0.2);cursor:pointer;border:none;padding:0;transition:background 0.2s}
+.test-dot.active{background:var(--gold2)}
+
+/* ── BUTTON MICRO-INTERACTIONS ── */
+.btn-outline:hover,.step-next:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,0.12)}
+.btn-primary:active,.btn-outline:active,.plan-cta:active,.step-next:active,.nav-cta:active{transform:translateY(0)!important;box-shadow:none!important}
+
 /* ── RESPONSIVE ── */
 @media(max-width:900px){
   .hero-right{display:none}
@@ -304,7 +317,12 @@ footer{background:var(--navy);padding:60px 48px 32px;border-top:1px solid rgba(2
   nav{padding:0 24px}
   .hero-content{padding:0 24px;padding-top:70px}
   .price-grid{grid-template-columns:1fr}
+  .test-grid{position:relative;min-height:280px}
+  .test-card{transition:opacity 0.5s ease}
+  .test-card:not(.t-active){opacity:0;position:absolute;top:0;left:0;right:0;pointer-events:none}
+  .test-card.t-active{opacity:1;position:relative}
 }
+@media(min-width:901px){.test-dots{display:none}}
 </style>
 </head>
 <body>
@@ -342,7 +360,7 @@ footer{background:var(--navy);padding:60px 48px 32px;border-top:1px solid rgba(2
     </div>
   </div>
   <div class="hero-right">
-    <div class="hero-card">
+    <div class="hero-card reveal">
       <div class="hero-card-label">Live Agency Numbers</div>
       <div class="hero-stat">
         <span class="hero-stat-val">100%</span>
@@ -367,12 +385,13 @@ footer{background:var(--navy);padding:60px 48px 32px;border-top:1px solid rgba(2
 <!-- CARE BUILDER -->
 <section class="builder-section" id="builder">
   <div class="builder-inner">
-    <div class="builder-eyebrow">
+    <div class="builder-eyebrow reveal">
       <div class="ey-line"></div>
       <span class="ey-tag" style="color:var(--gold2)">Interactive Care Builder</span>
     </div>
-    <h2 class="builder-title">Build your parent's<br><em>care plan in minutes.</em></h2>
-    <p class="builder-sub">Tell us what your loved one needs. We'll show you exactly what to expect — hours, services, and estimated cost — before you ever speak to anyone.</p>
+    <h2 class="builder-title reveal">Build your parent's<br><em>care plan in minutes.</em></h2>
+    <p class="builder-sub reveal">Tell us what your loved one needs. We'll show you exactly what to expect — hours, services, and estimated cost — before you ever speak to anyone.</p>
+    <div class="builder-progress"><div class="builder-progress-fill" id="builder-progress-fill"></div></div>
 
     <div class="builder-grid">
       <div class="builder-steps">
@@ -609,6 +628,11 @@ footer{background:var(--navy);padding:60px 48px 32px;border-top:1px solid rgba(2
         <p class="test-quote">"Helpful PSWs at a reasonable price. Our experience was a good one for my dad. The consistency of having the same person every visit made a real difference to his comfort and routine."</p>
         <div class="test-author"><strong>Rick Vardzel</strong>Verified Client · Mississauga</div>
       </div>
+    </div>
+    <div class="test-dots" id="test-dots">
+      <button class="test-dot active" onclick="showTest(0)"></button>
+      <button class="test-dot" onclick="showTest(1)"></button>
+      <button class="test-dot" onclick="showTest(2)"></button>
     </div>
   </div>
 </section>
@@ -897,6 +921,76 @@ function addCMsg(type,text){
 function csc(){const m=document.getElementById('cmsgs');m.scrollTop=m.scrollHeight;}
 function chk(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();csend();}}
 function crs(el){el.style.height='auto';el.style.height=Math.min(el.scrollHeight,56)+'px';}
+
+// ── HERO STAT COUNTERS ──
+(function(){
+  function countUp(el,target,suffix){
+    var start=performance.now(),dur=1500;
+    (function tick(now){
+      var p=Math.min((now-start)/dur,1),ease=1-Math.pow(1-p,3);
+      el.textContent=Math.round(ease*target)+suffix;
+      if(p<1)requestAnimationFrame(tick);
+    })(start);
+  }
+  var card=document.querySelector('.hero-card');
+  if(!card)return;
+  var sObs=new IntersectionObserver(function(entries){
+    entries.forEach(function(e){
+      if(e.isIntersecting){
+        card.querySelectorAll('.hero-stat-val').forEach(function(v){
+          var t=v.textContent.trim();
+          if(t==='100%')countUp(v,100,'%');
+          else if(t==='2hrs')countUp(v,2,'hrs');
+          else if(t==='6hrs')countUp(v,6,'hrs');
+        });
+        sObs.disconnect();
+      }
+    });
+  },{threshold:0.3});
+  sObs.observe(card);
+})();
+
+// ── BUILDER PROGRESS BAR ──
+(function(){
+  var fill=document.getElementById('builder-progress-fill');
+  if(!fill)return;
+  var _next=window.nextStep,_final=window.finalizePlan;
+  window.nextStep=function(n){_next(n);fill.style.width=((n-1)*25)+'%';};
+  window.finalizePlan=function(){_final();fill.style.width='100%';};
+})();
+
+// ── TESTIMONIAL CAROUSEL (MOBILE) ──
+(function(){
+  var cards=document.querySelectorAll('.test-card');
+  var dots=document.querySelectorAll('.test-dot');
+  if(!cards.length)return;
+  var idx=0,timer;
+  function show(i){
+    idx=i;
+    cards.forEach(function(c,j){c.classList.toggle('t-active',j===i);});
+    dots.forEach(function(d,j){d.classList.toggle('active',j===i);});
+  }
+  function startAuto(){timer=setInterval(function(){show((idx+1)%cards.length);},5000);}
+  window.showTest=function(i){clearInterval(timer);show(i);startAuto();};
+  var mq=window.matchMedia('(max-width:900px)');
+  function handle(e){
+    clearInterval(timer);
+    if(e.matches){show(0);startAuto();}
+    else{cards.forEach(function(c){c.classList.add('t-active');});}
+  }
+  handle(mq);
+  mq.addEventListener('change',handle);
+})();
+
+// ── PARALLAX HERO (DESKTOP ONLY) ──
+if(window.matchMedia('(min-width:768px)').matches){
+  var heroBg=document.querySelector('.hero-bg');
+  if(heroBg){
+    window.addEventListener('scroll',function(){
+      heroBg.style.transform='translateY('+Math.min(window.scrollY*0.05,20)+'px)';
+    },{passive:true});
+  }
+}
 </script>
 </body>
 </html>
