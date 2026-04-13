@@ -1081,7 +1081,7 @@ function renderScheduler(){
   var wrap=document.createElement('div');wrap.className='cmsg b';
   var widget=document.createElement('div');widget.className='sched-widget';
   widget.id='sched-widget';
-  var booking={name:'',phone:'',date:null,dateStr:'',time:''};
+  var booking={name:'',phone:'',careFor:'',city:'',date:null,dateStr:'',time:''};
   var MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
   var DAYS=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
   var TIMES=['9:00 AM','10:00 AM','11:00 AM','1:00 PM','2:00 PM','3:00 PM','4:00 PM'];
@@ -1091,6 +1091,8 @@ function renderScheduler(){
   s1.innerHTML='<div class="sched-label">Your Details</div>'+
     '<input class="sched-input" id="sched-name" type="text" placeholder="Full Name">'+
     '<input class="sched-input" id="sched-phone" type="tel" placeholder="Phone Number">'+
+    '<input class="sched-input" id="sched-carefor" type="text" placeholder="Who is the care for? e.g. My mother, My father">'+
+    '<select class="sched-input" id="sched-city"><option value="" disabled selected>Which city are they in?</option><option value="Mississauga">Mississauga</option><option value="Brampton">Brampton</option><option value="Caledon">Caledon</option></select>'+
     '<button class="sched-btn" id="sched-next1">Next →</button>';
   widget.appendChild(s1);
 
@@ -1138,8 +1140,10 @@ function renderScheduler(){
   widget.querySelector('#sched-next1').addEventListener('click',function(){
     var n=widget.querySelector('#sched-name').value.trim();
     var p=widget.querySelector('#sched-phone').value.trim();
-    if(!n||!p)return;
-    booking.name=n;booking.phone=p;
+    var cf=widget.querySelector('#sched-carefor').value.trim();
+    var ct=widget.querySelector('#sched-city').value;
+    if(!n||!p||!cf||!ct)return;
+    booking.name=n;booking.phone=p;booking.careFor=cf;booking.city=ct;
     s1.classList.remove('active');s2.classList.add('active');csc();
   });
 
@@ -1171,7 +1175,7 @@ function renderScheduler(){
     if(!booking.time)return;
     widget.querySelector('#sched-next3').textContent='Booking...';
     widget.querySelector('#sched-next3').disabled=true;
-    var payload={Full_Name:booking.name,Phone:booking.phone,Source:'Family Chatbot Booking',Care_Type:'Booking Request',Notes:'Preferred date: '+booking.dateStr+' at '+booking.time,Status:'New Lead',Email:'',City:''};
+    var payload={Full_Name:booking.name,Phone:booking.phone,Source:'Family Chatbot Booking',Care_Type:'Booking Request',Notes:'Preferred date: '+booking.dateStr+' at '+booking.time,Status:'New Lead',Who_Is_Care_For:booking.careFor,City:booking.city};
     console.log('Chatbot booking payload:',payload);
     fetch('https://hook.us2.make.com/puxwuxhi69h2hevxgfw28vcowsr9caak',{
       method:'POST',headers:{'Content-Type':'application/json'},
