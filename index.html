@@ -924,9 +924,14 @@ async function csend(){
   csc();
 }
 function addCMsg(type,text){
+  var html=text.replace(/\n/g,'<br>');
+  if(type==='b')html=html.replace(/proximitycares\.ca\/lead-form\.html/g,'<a href="https://proximitycares.ca/lead-form.html" target="_blank" style="color:#4a9de8;text-decoration:underline;">Fill Out the Form Here</a>');
   const d=document.createElement('div');d.className='cmsg '+type;
-  d.innerHTML=`<div class="cbub">${text.replace(/\n/g,'<br>')}</div>`;
+  d.innerHTML=`<div class="cbub">${html}</div>`;
   document.getElementById('cmsgs').appendChild(d);csc();
+  if(type==='b'&&/lead-form/.test(text)){
+    setTimeout(function(){addCMsg('b','Once you submit it, Lance personally reviews every form and calls you back within 2 hours. Is there anything else you\'d like to know about care options before you reach out?');},2000);
+  }
 }
 function csc(){const m=document.getElementById('cmsgs');m.scrollTop=m.scrollHeight;}
 function chk(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();csend();}}
