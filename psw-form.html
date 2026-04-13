@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#3d7a8a">
+<title>Proximity Care — PSW Visit Log</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f6f3ee;
+    --dark: #0d1117;
+    --teal: #3d7a8a;
+    --teal-light: #6a9eaa;
+    --teal-pale: rgba(61,122,138,0.08);
+    --cream: #faf8f4;
+    --border: #e2ddd4;
+    --muted: #7a7a72;
+    --green: #3fb950;
+    --red: #f85149;
+    --text: #1e2420;
+    --white: #ffffff;
+    --surface: #ffffff;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: 'DM Mono', monospace;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* NAV */
+  .nav {
+    background: var(--dark);
+    padding: 16px 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .nav-brand {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 16px;
+    font-weight: 400;
+    letter-spacing: 3px;
+    color: var(--white);
+    text-transform: uppercase;
+  }
+  .nav-brand em { color: var(--teal-light); font-style: italic; }
+  .nav-badge {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 9px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--green);
+  }
+  .badge-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--green);
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.3;} }
+
+  /* PAGE */
+  .page { padding: 60px 40px; max-width: 800px; margin: 0 auto; }
+
+  .page-eyebrow {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+    opacity: 0;
+    animation: fadeUp 0.6s ease forwards 0.1s;
+  }
+  .eyebrow-line { width: 32px; height: 1px; background: var(--teal); }
+  .eyebrow-text { font-size: 9px; letter-spacing: 3px; text-transform: uppercase; color: var(--teal); }
+  .page-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(36px, 5vw, 56px);
+    font-weight: 300;
+    color: var(--dark);
+    line-height: 1.1;
+    margin-bottom: 12px;
+    opacity: 0;
+    animation: fadeUp 0.6s ease forwards 0.2s;
+  }
+  .page-title em { font-style: italic; color: var(--teal); }
+  .page-sub {
+    font-size: 11px;
+    color: var(--muted);
+    line-height: 1.8;
+    margin-bottom: 48px;
+    opacity: 0;
+    animation: fadeUp 0.6s ease forwards 0.3s;
+  }
+
+  /* FORM CARD */
+  .form-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    opacity: 0;
+    animation: fadeUp 0.6s ease forwards 0.4s;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.06);
+  }
+  .form-card-header {
+    background: var(--dark);
+    padding: 20px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .form-card-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 18px;
+    color: var(--white);
+    font-weight: 400;
+  }
+  .form-card-badge {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 9px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--green);
+  }
+  .form-body { padding: 40px 32px; }
+
+  /* SECTION */
+  .form-section { margin-bottom: 36px; }
+  .form-section-title {
+    font-size: 9px;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    color: var(--teal);
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border);
+    font-weight: 500;
+  }
+
+  /* GRID */
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .form-grid.full { grid-template-columns: 1fr; }
+  .form-group { display: flex; flex-direction: column; gap: 6px; }
+  .form-group.span2 { grid-column: span 2; }
+
+  /* LABEL */
+  .form-label {
+    font-size: 9px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-weight: 500;
+  }
+  .form-label .req { color: var(--red); margin-left: 2px; }
+
+  /* INPUTS */
+  .form-input, .form-select, .form-textarea {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 12px 16px;
+    font-size: 12px;
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    width: 100%;
+    transition: all 0.2s;
+    -webkit-appearance: none;
+    appearance: none;
+  }
+  .form-input:focus, .form-select:focus, .form-textarea:focus {
+    outline: none;
+    border-color: var(--teal);
+    background: var(--white);
+    box-shadow: 0 0 0 3px rgba(61,122,138,0.08);
+  }
+  .form-input::placeholder, .form-textarea::placeholder { color: var(--muted); opacity: 0.6; }
+  .form-textarea { resize: vertical; min-height: 100px; line-height: 1.6; }
+  .form-select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%237a7a72' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    padding-right: 36px;
+    cursor: pointer;
+  }
+
+  /* RADIO */
+  .radio-group { display: flex; flex-direction: column; gap: 8px; }
+  .radio-option {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .radio-option:hover { border-color: var(--teal-light); background: var(--teal-pale); }
+  .radio-option input { accent-color: var(--teal); cursor: pointer; }
+  .radio-option label { font-size: 11px; color: var(--text); cursor: pointer; line-height: 1.4; flex: 1; }
+
+  /* HOURS CALC */
+  .hours-calc {
+    background: var(--dark);
+    border-radius: 6px;
+    padding: 20px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 4px;
+  }
+  .hours-calc-label { font-size: 10px; color: rgba(255,255,255,0.4); letter-spacing: 1px; text-transform: uppercase; }
+  .hours-calc-value { font-family: 'Cormorant Garamond', serif; font-size: 32px; color: var(--white); font-weight: 300; }
+  .hours-calc-unit { font-size: 10px; color: rgba(255,255,255,0.4); }
+
+  /* PROFIT PREVIEW */
+  .profit-preview {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 12px;
+    margin-top: 20px;
+  }
+  .profit-card {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 16px;
+    text-align: center;
+  }
+  .profit-card.highlight { background: var(--dark); border-color: var(--teal); }
+  .profit-card-label { font-size: 8px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
+  .profit-card.highlight .profit-card-label { color: rgba(255,255,255,0.4); }
+  .profit-card-value { font-family: 'Cormorant Garamond', serif; font-size: 22px; color: var(--dark); }
+  .profit-card.highlight .profit-card-value { color: var(--green); }
+
+  /* DIVIDER */
+  .form-divider { border: none; border-top: 1px solid var(--border); margin: 32px 0; }
+
+  /* SUBMIT */
+  .form-footer { padding: 24px 32px; background: var(--bg); border-top: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; }
+  .form-submit {
+    background: var(--dark);
+    color: var(--white);
+    border: none;
+    border-radius: 3px;
+    padding: 14px 36px;
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .form-submit:hover { background: var(--teal); transform: translateY(-1px); }
+  .form-submit:active { transform: translateY(0); }
+  .form-note { font-size: 9px; color: var(--muted); line-height: 1.7; }
+  .form-note span { color: var(--green); }
+
+  /* SUCCESS STATE */
+  .success-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(13,17,23,0.9);
+    z-index: 500;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 24px;
+    text-align: center;
+  }
+  .success-overlay.show { display: flex; }
+  .success-icon { font-size: 56px; animation: scaleIn 0.4s ease; }
+  .success-title { font-family: 'Cormorant Garamond', serif; font-size: 36px; color: var(--white); font-weight: 300; }
+  .success-sub { font-size: 11px; color: rgba(255,255,255,0.4); line-height: 1.8; max-width: 400px; }
+  .success-btn {
+    background: var(--teal);
+    color: var(--white);
+    border: none;
+    border-radius: 3px;
+    padding: 12px 32px;
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    cursor: pointer;
+    margin-top: 8px;
+  }
+
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes scaleIn { from { transform: scale(0); } to { transform: scale(1); } }
+
+  @media (max-width: 640px) {
+    .page { padding: 40px 20px; }
+    .nav { padding: 14px 20px; }
+    .nav-brand { font-size: 13px; }
+    .form-grid { grid-template-columns: 1fr; }
+    .form-group.span2 { grid-column: span 1; }
+    .form-body { padding: 28px 20px; }
+    .form-footer { padding: 20px; }
+    .profit-preview { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- SUCCESS OVERLAY -->
+<div class="success-overlay" id="successOverlay">
+  <div class="success-icon">✅</div>
+  <div class="success-title">Submitted Successfully</div>
+  <div class="success-sub" id="successMessage">Visit log submitted. Hours calculated and added to monthly billing.</div>
+  <button class="success-btn" onclick="closeSuccess()">Submit Another</button>
+</div>
+
+<!-- NAV -->
+<div class="nav">
+  <div class="nav-brand">Proximity <em>Care</em></div>
+  <div class="nav-badge"><div class="badge-dot"></div>Connected to Make.com</div>
+</div>
+
+<!-- PSW VISIT LOG -->
+<div class="page">
+  <div class="page-eyebrow">
+    <div class="eyebrow-line"></div>
+    <div class="eyebrow-text">System 01 — PSW Timesheet</div>
+  </div>
+  <div class="page-title">PSW <em>Visit</em> Log</div>
+  <div class="page-sub">For PSWs to log visits from their phone. Hours auto-calculate. Submits directly to Google Sheets and billing.</div>
+
+  <div class="form-card">
+    <div class="form-card-header">
+      <div class="form-card-title">Log Today's Visit</div>
+      <div class="form-card-badge"><div class="badge-dot"></div>Auto-calculates hours + billing</div>
+    </div>
+    <div class="form-body">
+
+      <!-- VISIT DETAILS -->
+      <div class="form-section">
+        <div class="form-section-title">Visit Details</div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Your Name <span class="req">*</span></label>
+            <select class="form-select" id="psw-name">
+              <option value="">Select PSW...</option>
+              <option>Luz Peralta</option>
+              <option>Carolina Hermida</option>
+              <option>Sarah K.</option>
+              <option>James R.</option>
+              <option>Maria L.</option>
+              <option>David M.</option>
+              <option>Other</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Your Email <span class="req">*</span></label>
+            <input class="form-input" type="email" id="psw-email" placeholder="Enter your work email" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Client Name <span class="req">*</span></label>
+            <select class="form-select" id="psw-client">
+              <option value="">Select client...</option>
+              <option>Rosetta Ferrari</option>
+              <option>Bhangu Amrit</option>
+              <option>Priya Singh</option>
+              <option>Other</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Date of Visit <span class="req">*</span></label>
+            <input class="form-input" id="psw-date" type="date">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Visit Type</label>
+            <select class="form-select" id="psw-visit-type">
+              <option>Morning Routine</option>
+              <option>Evening Routine</option>
+              <option>Full Day</option>
+              <option>Overnight</option>
+              <option>Companion Visit</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <hr class="form-divider">
+
+      <!-- TIME TRACKING -->
+      <div class="form-section">
+        <div class="form-section-title">Time Tracking</div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Time In <span class="req">*</span></label>
+            <input class="form-input" id="psw-time-in" type="time" value="09:00" oninput="calcHours()">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Time Out <span class="req">*</span></label>
+            <input class="form-input" id="psw-time-out" type="time" value="17:00" oninput="calcHours()">
+          </div>
+        </div>
+
+        <!-- HOURS DISPLAY -->
+        <div class="hours-calc" style="margin-top:16px;">
+          <div>
+            <div class="hours-calc-label">Hours Worked</div>
+            <div style="font-size:10px;color:rgba(255,255,255,0.25);margin-top:3px;">Auto-calculated</div>
+          </div>
+          <div style="text-align:right;">
+            <div class="hours-calc-value" id="hours-display">8.0</div>
+            <div class="hours-calc-unit">hrs</div>
+          </div>
+        </div>
+
+        <!-- RATES -->
+        <div class="form-grid" style="margin-top:20px;">
+          <div class="form-group">
+            <label class="form-label">Your Rate ($/hr)</label>
+            <input class="form-input" id="psw-rate" type="number" value="19.00" step="0.50" oninput="calcProfit()">
+          </div>
+          <div class="form-group" style="display:none;">
+            <label class="form-label">Client Rate ($/hr)</label>
+            <input class="form-input" id="client-rate" type="number" value="22.00" step="0.50" oninput="calcProfit()">
+          </div>
+        </div>
+
+        <!-- PROFIT PREVIEW -->
+        <div class="profit-preview" style="grid-template-columns:1fr;">
+          <div class="profit-card">
+            <div class="profit-card-label">PSW Pay</div>
+            <div class="profit-card-value" id="psw-pay">$152</div>
+          </div>
+          <div class="profit-card" style="display:none;">
+            <div class="profit-card-label">Invoice Amount</div>
+            <div class="profit-card-value" id="invoice-amt">$176</div>
+          </div>
+          <div class="profit-card highlight" style="display:none;">
+            <div class="profit-card-label">Your Profit</div>
+            <div class="profit-card-value" id="profit-amt">$24</div>
+          </div>
+        </div>
+      </div>
+
+      <hr class="form-divider">
+
+      <!-- VISIT NOTES -->
+      <div class="form-section">
+        <div class="form-section-title">Visit Notes</div>
+        <div class="form-grid full">
+          <div class="form-group">
+            <label class="form-label">What was completed during this visit? <span class="req">*</span></label>
+            <textarea class="form-textarea" id="psw-notes" placeholder="e.g. Completed morning routine, prepared breakfast, assisted with medication, 30 min walk in the garden..."></textarea>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Client Mood & Wellbeing</label>
+            <div class="radio-group">
+              <div class="radio-option">
+                <input type="radio" name="mood" id="mood-great" value="Great — very engaged and happy" checked>
+                <label for="mood-great">Great — very engaged and happy</label>
+              </div>
+              <div class="radio-option">
+                <input type="radio" name="mood" id="mood-good" value="Good — normal day">
+                <label for="mood-good">Good — normal day</label>
+              </div>
+              <div class="radio-option">
+                <input type="radio" name="mood" id="mood-okay" value="Okay — a bit quiet">
+                <label for="mood-okay">Okay — a bit quiet</label>
+              </div>
+              <div class="radio-option">
+                <input type="radio" name="mood" id="mood-concern" value="Concerning — see notes below">
+                <label for="mood-concern">Concerning — see notes</label>
+              </div>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Any Incidents or Follow-up Needed?</label>
+            <textarea class="form-textarea" id="psw-incidents" placeholder="Leave blank if none. Otherwise describe any falls, medication issues, or items needing follow-up..." style="min-height:80px;"></textarea>
+          </div>
+        </div>
+      </div>
+
+    </div>
+    <div class="form-footer">
+      <div class="form-note">
+        <span>&#10003;</span> Hours auto-calculated &nbsp;&middot;&nbsp;
+        <span>&#10003;</span> Logged to Google Sheets &nbsp;&middot;&nbsp;
+        <span>&#10003;</span> Added to monthly billing
+      </div>
+      <button class="form-submit" onclick="submitPSW()">
+        <span>Submit Visit Log</span>
+        <span>&rarr;</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Set today's date as default
+  document.getElementById('psw-date').valueAsDate = new Date();
+
+  // CALCULATE HOURS
+  function calcHours() {
+    const timeIn = document.getElementById('psw-time-in').value;
+    const timeOut = document.getElementById('psw-time-out').value;
+    if (timeIn && timeOut) {
+      const [inH, inM] = timeIn.split(':').map(Number);
+      const [outH, outM] = timeOut.split(':').map(Number);
+      let mins = (outH * 60 + outM) - (inH * 60 + inM);
+      if (mins < 0) mins += 24 * 60;
+      const hours = mins / 60;
+      document.getElementById('hours-display').textContent = hours.toFixed(1);
+      calcProfit();
+    }
+  }
+
+  // CALCULATE PROFIT
+  function calcProfit() {
+    const hours = parseFloat(document.getElementById('hours-display').textContent) || 0;
+    const pswRate = parseFloat(document.getElementById('psw-rate').value) || 0;
+    const clientRate = parseFloat(document.getElementById('client-rate').value) || 0;
+    const pswPay = hours * pswRate;
+    const invoiceAmt = hours * clientRate;
+    const profit = invoiceAmt - pswPay;
+    document.getElementById('psw-pay').textContent = '$' + Math.round(pswPay);
+    document.getElementById('invoice-amt').textContent = '$' + Math.round(invoiceAmt);
+    document.getElementById('profit-amt').textContent = '$' + Math.round(profit);
+  }
+
+  const PSW_WEBHOOK = 'https://hook.us2.make.com/cmhgra3to6ov5zefs7ic9o89tqie25ue';
+
+  async function submitPSW() {
+    const pswName = document.getElementById('psw-name').value;
+    const pswEmail = document.getElementById('psw-email').value.trim();
+    const clientName = document.getElementById('psw-client').value;
+    const visitDate = document.getElementById('psw-date').value;
+    const notes = document.getElementById('psw-notes').value.trim();
+
+    if (!pswName || !pswEmail || !clientName || !visitDate || !notes) {
+      alert('Please fill in PSW Name, Email, Client Name, Date, and Visit Notes.');
+      return;
+    }
+
+    const hours = parseFloat(document.getElementById('hours-display').textContent) || 0;
+    const pswRate = parseFloat(document.getElementById('psw-rate').value) || 0;
+    const clientRate = parseFloat(document.getElementById('client-rate').value) || 0;
+    const mood = document.querySelector('input[name="mood"]:checked');
+
+    const payload = {
+      Timestamp: new Date().toISOString(),
+      PSW_Name: pswName,
+      psw_email: pswEmail,
+      Client_Name: clientName,
+      Date_of_Visit: visitDate,
+      Visit_Type: document.getElementById('psw-visit-type').value,
+      Time_In: document.getElementById('psw-time-in').value,
+      Time_Out: document.getElementById('psw-time-out').value,
+      Hours_Worked: hours,
+      PSW_Rate: pswRate,
+      Client_Rate: clientRate,
+      PSW_Cost: (hours * pswRate).toFixed(2),
+      Invoice_Total: (hours * clientRate).toFixed(2),
+      Profit: (hours * (clientRate - pswRate)).toFixed(2),
+      Visit_Notes: notes,
+      Client_Mood: mood ? mood.value : '',
+      Incidents: document.getElementById('psw-incidents').value
+    };
+
+    try {
+      const response = await fetch(PSW_WEBHOOK, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      console.log('PSW webhook response:', response.status);
+    } catch(e) {
+      console.log('PSW webhook error:', e);
+      try {
+        await fetch(PSW_WEBHOOK, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+          mode: 'no-cors'
+        });
+      } catch(e2) {
+        console.log('Fallback error:', e2);
+      }
+    }
+
+    showSuccess(pswName);
+  }
+
+  function showSuccess(name) {
+    document.getElementById('successMessage').textContent = 'Visit log for ' + name + ' submitted. Hours calculated and added to monthly billing.';
+    document.getElementById('successOverlay').classList.add('show');
+  }
+
+  function closeSuccess() {
+    document.getElementById('successOverlay').classList.remove('show');
+    document.querySelectorAll('input[type="text"], textarea').forEach(el => el.value = '');
+    document.querySelectorAll('select').forEach(el => el.selectedIndex = 0);
+    document.querySelectorAll('input[type="radio"]').forEach(el => el.checked = false);
+    document.getElementById('mood-great').checked = true;
+    document.getElementById('psw-date').valueAsDate = new Date();
+    document.getElementById('psw-time-in').value = '09:00';
+    document.getElementById('psw-time-out').value = '17:00';
+    calcHours();
+  }
+
+  // Init calculations
+  calcHours();
+</script>
+</body>
+</html>
