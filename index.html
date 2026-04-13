@@ -1140,9 +1140,11 @@ function renderScheduler(){
     if(!booking.time)return;
     widget.querySelector('#sched-next3').textContent='Booking...';
     widget.querySelector('#sched-next3').disabled=true;
+    var payload={name:booking.name,phone:booking.phone,source:'Family Chatbot Booking',preferred_date:booking.dateStr,preferred_time:booking.time,message:'Booking request via chatbot'};
+    console.log('Chatbot booking payload:',payload);
     fetch('https://hook.us2.make.com/puxwuxhi69h2hevxgfw28vcowsr9caak',{
       method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({name:booking.name,phone:booking.phone,source:'Family Chatbot Booking',preferred_date:booking.dateStr,preferred_time:booking.time,message:'Booking request via chatbot'})
+      body:JSON.stringify(payload)
     }).finally(function(){
       s3.classList.remove('active');s4.classList.add('active');
       widget.querySelector('#sched-confirm-inner').innerHTML=
