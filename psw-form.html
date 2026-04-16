@@ -572,29 +572,26 @@
       return;
     }
 
-    const hours = parseFloat(document.getElementById('hours-display').textContent) || 0;
-    const pswRate = parseFloat(document.getElementById('psw-rate').value) || 0;
-    const clientRate = parseFloat(document.getElementById('client-rate').value) || 0;
     const mood = document.querySelector('input[name="mood"]:checked');
+    const incidentNotes = document.getElementById('psw-incidents').value.trim();
+
+    const nameParts = clientName.trim().split(/\s+/);
+    const client_first_name = nameParts.shift() || '';
+    const client_last_name = nameParts.join(' ');
 
     const payload = {
-      Timestamp: new Date().toISOString(),
-      PSW_Name: pswName,
+      operator_id: 'proximity-care',
+      psw_name: pswName,
       psw_email: pswEmail,
-      Client_Name: clientName,
-      Date_of_Visit: visitDate,
-      Visit_Type: document.getElementById('psw-visit-type').value,
-      Time_In: document.getElementById('psw-time-in').value,
-      Time_Out: document.getElementById('psw-time-out').value,
-      Hours_Worked: hours,
-      PSW_Rate: pswRate,
-      Client_Rate: clientRate,
-      PSW_Cost: (hours * pswRate).toFixed(2),
-      Invoice_Total: (hours * clientRate).toFixed(2),
-      Profit: (hours * (clientRate - pswRate)).toFixed(2),
-      Visit_Notes: notes,
-      Client_Mood: mood ? mood.value : '',
-      Incidents: document.getElementById('psw-incidents').value
+      client_first_name,
+      client_last_name,
+      visit_date: visitDate,
+      time_in: document.getElementById('psw-time-in').value,
+      time_out: document.getElementById('psw-time-out').value,
+      tasks_completed: notes,
+      client_mood: mood ? mood.value : '',
+      incident_reported: incidentNotes.length > 0,
+      incident_notes: incidentNotes
     };
 
     try {
