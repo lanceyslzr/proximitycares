@@ -417,6 +417,45 @@ footer{background:var(--navy);padding:60px 48px 32px;border-top:1px solid rgba(2
 /* SERVICE ICON BOUNCE */
 .service-icon{display:inline-block;transition:transform .2s ease;}
 .service-toggle:hover .service-icon{transform:scale(1.2);}
+
+/* LIVE FEED */
+.live-feed-section{background:var(--navy);padding:60px 48px;border-top:1px solid rgba(46,125,209,0.1);}
+.live-feed-inner{max-width:1200px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:64px;align-items:center;}
+.live-feed-label{font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--gold2);margin-bottom:12px;display:flex;align-items:center;gap:8px;}
+.live-feed-dot{width:6px;height:6px;border-radius:50%;background:var(--gold2);animation:pulse2 1.5s infinite;}
+.live-feed-title{font-family:var(--serif);font-size:clamp(28px,3.5vw,44px);font-weight:300;color:var(--white);line-height:1.1;margin-bottom:8px;}
+.live-feed-title em{font-style:italic;color:var(--gold2);}
+.live-feed-sub{font-size:14px;color:rgba(255,255,255,0.45);font-weight:300;}
+.feed-card-wrap{position:relative;height:90px;}
+.feed-card{position:absolute;inset:0;background:rgba(255,255,255,0.04);border:1px solid rgba(46,125,209,0.2);padding:18px 22px;display:flex;align-items:center;gap:16px;transition:opacity .6s ease;opacity:0;}
+.feed-card.feed-active{opacity:1;}
+.feed-card-icon{width:38px;height:38px;border-radius:6px;background:rgba(46,125,209,0.12);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
+.feed-card-text{flex:1;}
+.feed-card-title{font-size:13px;font-weight:500;color:var(--white);margin-bottom:3px;}
+.feed-card-meta{font-size:11px;color:rgba(255,255,255,0.4);}
+.feed-card-time{font-size:10px;color:var(--gold2);letter-spacing:1px;flex-shrink:0;}
+.feed-dots{display:flex;gap:6px;margin-top:16px;}
+.feed-dot-btn{width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,0.2);border:none;padding:0;cursor:pointer;transition:background .3s;}
+.feed-dot-btn.active{background:var(--gold2);}
+
+/* COVERAGE MAP */
+.map-section{background:var(--navy);padding:80px 48px;border-top:1px solid rgba(46,125,209,0.1);}
+.map-inner{max-width:1200px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:64px;align-items:center;}
+.map-canvas-wrap{position:relative;border-radius:8px;overflow:hidden;border:1px solid rgba(46,125,209,0.15);}
+#coverage-map-canvas{display:block;width:100%;height:340px;}
+.map-city-labels{position:absolute;inset:0;pointer-events:none;}
+.map-label{position:absolute;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--gold2);font-family:var(--sans);}
+.map-info{display:flex;flex-direction:column;gap:24px;}
+.map-city-item{display:flex;align-items:center;gap:16px;padding:18px 20px;background:rgba(255,255,255,0.03);border:1px solid rgba(46,125,209,0.12);transition:border-color .3s;}
+.map-city-item:hover{border-color:rgba(46,125,209,0.35);}
+.map-city-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+.map-city-name{font-size:14px;font-weight:500;color:var(--white);}
+.map-city-desc{font-size:12px;color:rgba(255,255,255,0.4);margin-top:2px;}
+
+@media(max-width:900px){
+  .live-feed-inner,.map-inner{grid-template-columns:1fr;}
+  .live-feed-section,.map-section{padding:48px 24px;}
+}
 </style>
 </head>
 <body>
@@ -722,6 +761,25 @@ footer{background:var(--navy);padding:60px 48px 32px;border-top:1px solid rgba(2
   </div>
 </section>
 
+<section class="live-feed-section">
+  <div class="live-feed-inner">
+    <div>
+      <div class="live-feed-label">
+        <span class="live-feed-dot"></span>
+        Happening Right Now
+      </div>
+      <h2 class="live-feed-title">
+        Care that <em>never stops</em><br>working.
+      </h2>
+      <p class="live-feed-sub">Every visit confirmed. Every family updated. Every inquiry answered — automatically.</p>
+      <div class="feed-dots" id="feedDots"></div>
+    </div>
+    <div>
+      <div class="feed-card-wrap" id="feedWrap"></div>
+    </div>
+  </div>
+</section>
+
 <!-- TESTIMONIALS -->
 <section class="test-section">
   <div class="section-inner">
@@ -819,6 +877,49 @@ footer{background:var(--navy);padding:60px 48px 32px;border-top:1px solid rgba(2
       <div class="cta-badge"><span class="cta-badge-icon">✓</span>No contracts</div>
       <div class="cta-badge"><span class="cta-badge-icon">✓</span>We call within 2 hours</div>
       <div class="cta-badge"><span class="cta-badge-icon">✓</span>Same PSW every visit</div>
+    </div>
+  </div>
+</section>
+
+<section class="map-section" id="coverage">
+  <div class="map-inner">
+    <div class="map-info">
+      <div>
+        <div class="live-feed-label">
+          <span class="live-feed-dot"></span>
+          Where We Serve
+        </div>
+        <h2 class="live-feed-title">
+          Right here in <em>Peel Region.</em>
+        </h2>
+        <p class="live-feed-sub" style="margin-bottom:32px;">
+          Same-day response. Local caregivers. Families in Mississauga, Brampton, and Caledon trust Proximity Care.
+        </p>
+      </div>
+      <div class="map-city-item">
+        <div class="map-city-dot" style="background:#2e7dd1;box-shadow:0 0 8px #2e7dd1;"></div>
+        <div>
+          <div class="map-city-name">Mississauga</div>
+          <div class="map-city-desc">Port Credit · Streetsville · Meadowvale · Erin Mills</div>
+        </div>
+      </div>
+      <div class="map-city-item">
+        <div class="map-city-dot" style="background:#e8b84b;box-shadow:0 0 8px #e8b84b;"></div>
+        <div>
+          <div class="map-city-name">Brampton</div>
+          <div class="map-city-desc">Churchville · Heart Lake · Bramalea · Springdale</div>
+        </div>
+      </div>
+      <div class="map-city-item">
+        <div class="map-city-dot" style="background:#4a9de8;box-shadow:0 0 8px #4a9de8;"></div>
+        <div>
+          <div class="map-city-name">Caledon</div>
+          <div class="map-city-desc">Bolton · Caledon East · Inglewood · Palgrave</div>
+        </div>
+      </div>
+    </div>
+    <div class="map-canvas-wrap">
+      <canvas id="coverage-map-canvas"></canvas>
     </div>
   </div>
 </section>
@@ -1484,6 +1585,161 @@ document.querySelectorAll('.care-type').forEach(ct=>{
     this.classList.add('selected');
   });
 });
+
+// ── LIVE VISIT FEED ──
+const feedItems=[
+  {icon:'✅',title:'Visit Confirmed',meta:'Luz P. · Mississauga · 8hrs',time:'just now'},
+  {icon:'🔔',title:'New Inquiry Received',meta:'Chen Family · Brampton · Standard Care',time:'2 min ago'},
+  {icon:'📋',title:'Care Plan Updated',meta:'Margaret T. · Caledon · Dementia Support',time:'8 min ago'},
+  {icon:'⭐',title:'5-Star Review Left',meta:'Jennifer N. · Mississauga · Verified Client',time:'14 min ago'},
+  {icon:'🏠',title:'Assessment Booked',meta:'Nguyen Family · Brampton · Wednesday 10am',time:'22 min ago'},
+  {icon:'💊',title:'Medication Reminder Sent',meta:'Robert K. · Mississauga · Auto-delivered',time:'31 min ago'},
+  {icon:'✅',title:'Same PSW Confirmed',meta:'Dorine B. · Caledon · 6th visit this month',time:'45 min ago'},
+  {icon:'📞',title:'Family Update Sent',meta:'Vardzel Family · Mississauga · Weekly summary',time:'1 hr ago'},
+];
+let feedIdx=0;
+const feedWrap=document.getElementById('feedWrap');
+const feedDotsEl=document.getElementById('feedDots');
+if(feedWrap&&feedDotsEl){
+  feedItems.forEach((_,i)=>{
+    const d=document.createElement('button');
+    d.className='feed-dot-btn'+(i===0?' active':'');
+    d.onclick=()=>showFeed(i);
+    feedDotsEl.appendChild(d);
+  });
+  feedItems.forEach((item,i)=>{
+    const card=document.createElement('div');
+    card.className='feed-card'+(i===0?' feed-active':'');
+    card.id='feed-card-'+i;
+    card.innerHTML=`<div class="feed-card-icon">${item.icon}</div><div class="feed-card-text"><div class="feed-card-title">${item.title}</div><div class="feed-card-meta">${item.meta}</div></div><div class="feed-card-time">${item.time}</div>`;
+    feedWrap.appendChild(card);
+  });
+  function showFeed(idx){
+    document.querySelectorAll('.feed-card').forEach(c=>c.classList.remove('feed-active'));
+    document.querySelectorAll('.feed-dot-btn').forEach(d=>d.classList.remove('active'));
+    document.getElementById('feed-card-'+idx).classList.add('feed-active');
+    feedDotsEl.children[idx].classList.add('active');
+    feedIdx=idx;
+  }
+  setInterval(()=>{
+    feedIdx=(feedIdx+1)%feedItems.length;
+    showFeed(feedIdx);
+  },3500);
+}
+
+// ── COVERAGE MAP — THREE.JS ──
+const mapCanvas=document.getElementById('coverage-map-canvas');
+if(mapCanvas&&typeof THREE!=='undefined'){
+  const mW=mapCanvas.parentElement.offsetWidth||480;
+  const mH=340;
+  mapCanvas.width=mW*2;mapCanvas.height=mH*2;
+  mapCanvas.style.width=mW+'px';mapCanvas.style.height=mH+'px';
+
+  const mRenderer=new THREE.WebGLRenderer({canvas:mapCanvas,antialias:true,alpha:true});
+  mRenderer.setSize(mW*2,mH*2);mRenderer.setPixelRatio(2);mRenderer.setClearColor(0x000000,0);
+
+  const mScene=new THREE.Scene();
+  const mCamera=new THREE.PerspectiveCamera(38,mW/mH,0.1,100);
+  mCamera.position.set(0,7,4);mCamera.lookAt(0,0,0);
+
+  mScene.add(new THREE.AmbientLight(0xd0e8ff,1.0));
+  const mKey=new THREE.DirectionalLight(0xffffff,1.2);
+  mKey.position.set(-3,5,4);mScene.add(mKey);
+
+  const groundGeo=new THREE.PlaneGeometry(12,12);
+  const groundMat=new THREE.MeshStandardMaterial({color:0x0d1928,roughness:1.0,transparent:true,opacity:0.6});
+  const ground=new THREE.Mesh(groundGeo,groundMat);
+  ground.rotation.x=-Math.PI/2;mScene.add(ground);
+
+  const gridHelper=new THREE.GridHelper(12,12,0x1a3a5c,0x1a3a5c);
+  gridHelper.material.transparent=true;gridHelper.material.opacity=0.3;
+  mScene.add(gridHelper);
+
+  const cities=[
+    {x:-1.8,z:-0.5,color:0x2e7dd1,scale:1.0},
+    {x:0.8,z:-1.2,color:0xe8b84b,scale:0.85},
+    {x:1.4,z:1.4,color:0x4a9de8,scale:0.7},
+  ];
+
+  const cityMeshes=[];
+  cities.forEach(city=>{
+    const g=new THREE.Group();
+
+    const disc=new THREE.Mesh(
+      new THREE.CylinderGeometry(0.35*city.scale,0.35*city.scale,0.06,32),
+      new THREE.MeshStandardMaterial({color:city.color,roughness:0.3,metalness:0.6})
+    );
+    g.add(disc);
+
+    const ring=new THREE.Mesh(
+      new THREE.TorusGeometry(0.5*city.scale,0.03,8,40),
+      new THREE.MeshStandardMaterial({color:city.color,transparent:true,opacity:0.5})
+    );
+    ring.rotation.x=Math.PI/2;ring.position.y=0.04;g.add(ring);
+
+    const outer=new THREE.Mesh(
+      new THREE.TorusGeometry(0.8*city.scale,0.02,8,40),
+      new THREE.MeshStandardMaterial({color:city.color,transparent:true,opacity:0.25})
+    );
+    outer.rotation.x=Math.PI/2;outer.position.y=0.04;g.add(outer);
+
+    const spike=new THREE.Mesh(
+      new THREE.CylinderGeometry(0.04,0,0.6,8),
+      new THREE.MeshStandardMaterial({color:city.color,roughness:0.2,metalness:0.7})
+    );
+    spike.position.y=0.36;g.add(spike);
+
+    const sphere=new THREE.Mesh(
+      new THREE.SphereGeometry(0.12,16,16),
+      new THREE.MeshStandardMaterial({color:city.color,roughness:0.1,metalness:0.8})
+    );
+    sphere.position.y=0.72;g.add(sphere);
+
+    g.position.set(city.x,0.03,city.z);
+    mScene.add(g);
+    cityMeshes.push({group:g,ring,outer,sphere});
+  });
+
+  const lineMat=new THREE.LineBasicMaterial({color:0x2e7dd1,transparent:true,opacity:0.2});
+  for(let i=0;i<cities.length;i++){
+    for(let j=i+1;j<cities.length;j++){
+      const pts=[
+        new THREE.Vector3(cities[i].x,0.1,cities[i].z),
+        new THREE.Vector3((cities[i].x+cities[j].x)/2,0.3,(cities[i].z+cities[j].z)/2),
+        new THREE.Vector3(cities[j].x,0.1,cities[j].z),
+      ];
+      const curve=new THREE.CatmullRomCurve3(pts);
+      const points=curve.getPoints(30);
+      const geo=new THREE.BufferGeometry().setFromPoints(points);
+      mScene.add(new THREE.Line(geo,lineMat.clone()));
+    }
+  }
+
+  let mFrame=0;
+  function animateMap(){
+    requestAnimationFrame(animateMap);
+    mFrame++;
+    mScene.rotation.y+=0.004;
+    cityMeshes.forEach(({ring,outer,sphere},i)=>{
+      const phase=mFrame*0.04+i*1.2;
+      ring.scale.setScalar(1+Math.sin(phase)*0.12);
+      ring.material.opacity=0.4+Math.sin(phase)*0.15;
+      outer.scale.setScalar(1+Math.sin(phase+1)*0.18);
+      outer.material.opacity=0.18+Math.sin(phase+1)*0.1;
+      sphere.position.y=0.72+Math.sin(mFrame*0.03+i)*0.06;
+    });
+    mRenderer.render(mScene,mCamera);
+  }
+  animateMap();
+
+  window.addEventListener('resize',()=>{
+    const nW=mapCanvas.parentElement.offsetWidth||480;
+    mRenderer.setSize(nW*2,mH*2);
+    mapCanvas.style.width=nW+'px';
+    mCamera.aspect=nW/mH;
+    mCamera.updateProjectionMatrix();
+  });
+}
 </script>
 </body>
 </html>
