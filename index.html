@@ -11,6 +11,7 @@
 <link rel="shortcut icon" href="/favicon.ico">
 <link rel="apple-touch-icon" href="/icon-192.png">
 <meta name="theme-color" content="#1a3a5c">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -392,9 +393,22 @@ footer{background:var(--navy);padding:60px 48px 32px;border-top:1px solid rgba(2
   .test-card.t-active{opacity:1;position:relative}
 }
 @media(min-width:901px){.test-dots{display:none}}
+
+/* CURSOR */
+.cur{position:fixed;width:8px;height:8px;background:#2e7dd1;border-radius:50%;pointer-events:none;z-index:9999;transform:translate(-50%,-50%);transition:transform .08s;mix-blend-mode:multiply;}
+.cur-ring{position:fixed;width:28px;height:28px;border:1.5px solid rgba(46,125,209,0.4);border-radius:50%;pointer-events:none;z-index:9998;transform:translate(-50%,-50%);transition:all .2s ease;}
+
+/* HERO CANVAS */
+#hero-canvas{position:absolute;inset:0;pointer-events:none;z-index:1;opacity:0.5;}
+
+/* COUNT UP */
+.count-stat{transition:all .3s;}
 </style>
 </head>
 <body>
+
+<div class="cur" id="cur"></div>
+<div class="cur-ring" id="cur-ring"></div>
 
 <!-- NAV -->
 <nav id="nav">
@@ -416,6 +430,7 @@ footer{background:var(--navy);padding:60px 48px 32px;border-top:1px solid rgba(2
 
 <!-- HERO -->
 <section class="hero">
+  <canvas id="hero-canvas"></canvas>
   <div class="hero-bg"></div>
   <div class="hero-grain"></div>
   <div class="hero-content">
@@ -865,6 +880,81 @@ footer{background:var(--navy);padding:60px 48px 32px;border-top:1px solid rgba(2
 </div>
 
 <script>
+// CURSOR
+const cur=document.getElementById('cur');
+const curRing=document.getElementById('cur-ring');
+if(window.matchMedia('(pointer: fine)').matches){
+  document.addEventListener('mousemove',e=>{
+    cur.style.left=e.clientX+'px';
+    cur.style.top=e.clientY+'px';
+    curRing.style.left=e.clientX+'px';
+    curRing.style.top=e.clientY+'px';
+  });
+  document.querySelectorAll('a,button,.care-type,.service-toggle,.step-next,.btn-primary,.btn-outline').forEach(el=>{
+    el.addEventListener('mouseenter',()=>{curRing.style.transform='translate(-50%,-50%) scale(1.8)';curRing.style.borderColor='rgba(46,125,209,0.7)';});
+    el.addEventListener('mouseleave',()=>{curRing.style.transform='translate(-50%,-50%) scale(1)';curRing.style.borderColor='rgba(46,125,209,0.4)';});
+  });
+}
+
+// HERO PARTICLE CANVAS
+const heroCanvas=document.getElementById('hero-canvas');
+if(heroCanvas){
+  const hctx=heroCanvas.getContext('2d');
+  let hW,hH;
+  function resizeHero(){hW=heroCanvas.width=heroCanvas.offsetWidth;hH=heroCanvas.height=heroCanvas.offsetHeight;}
+  resizeHero();
+  window.addEventListener('resize',resizeHero);
+  const particles=Array.from({length:55},()=>({
+    x:Math.random()*hW,y:Math.random()*hH,
+    vx:(Math.random()-.5)*.25,vy:(Math.random()-.5)*.25,
+    r:Math.random()*1.8+.4,
+    a:Math.random()*.4+.1,
+    life:0,max:200+Math.random()*200
+  }));
+  function drawParticles(){
+    hctx.clearRect(0,0,hW,hH);
+    particles.forEach(p=>{
+      p.x+=p.vx;p.y+=p.vy;p.life++;
+      if(p.life>p.max||p.x<0||p.x>hW||p.y<0||p.y>hH){
+        p.x=Math.random()*hW;p.y=Math.random()*hH;
+        p.life=0;p.max=200+Math.random()*200;
+      }
+      const fade=Math.sin((p.life/p.max)*Math.PI);
+      hctx.beginPath();
+      hctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      hctx.fillStyle=`rgba(46,125,209,${p.a*fade})`;
+      hctx.fill();
+    });
+    requestAnimationFrame(drawParticles);
+  }
+  drawParticles();
+}
+
+// COUNT UP ON SCROLL
+function countUp(el){
+  const target=parseInt(el.dataset.target);
+  const suffix=el.dataset.suffix||'';
+  const prefix=el.dataset.prefix||'';
+  let count=0;
+  const step=Math.ceil(target/60);
+  const timer=setInterval(()=>{
+    count=Math.min(count+step,target);
+    el.textContent=prefix+count+suffix;
+    if(count>=target)clearInterval(timer);
+  },24);
+}
+const countObserver=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){
+      e.target.querySelectorAll('[data-target]').forEach(countUp);
+      countObserver.unobserve(e.target);
+    }
+  });
+},{threshold:.5});
+document.querySelectorAll('.hero-stat-val,[data-target]').forEach(el=>{
+  if(el.dataset.target)countObserver.observe(el.parentElement||el);
+});
+
 // ── NAV SCROLL ──
 window.addEventListener('scroll',()=>{
   document.getElementById('nav').classList.toggle('scrolled',window.scrollY>60);
