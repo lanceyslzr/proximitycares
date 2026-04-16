@@ -400,41 +400,49 @@
     }
 
     const btn = document.getElementById('submitBtn');
+    const originalLabel = btn.textContent;
     btn.disabled = true;
     btn.textContent = 'Submitting...';
 
+    const nameParts = fullName.split(/\s+/);
+    const first_name = nameParts.shift();
+    const last_name = nameParts.join(' ');
+
     const payload = {
-      Full_Name: fullName,
-      Phone: phone,
-      Email: email,
-      City: city,
-      Care_Type: careType,
-      Message: message,
-      Source: 'Proximity Care Website',
-      Timestamp: new Date().toISOString()
+      first_name,
+      last_name,
+      email,
+      phone,
+      city,
+      care_needed_for: message || null,
+      care_type_interest: careType,
+      urgency: null,
+      source: 'Proximity Care Website'
     };
 
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 15000);
+
     try {
-      await fetch(WEBHOOK_URL, {
+      const res = await fetch(WEBHOOK_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
+        body: JSON.stringify(payload),
+        signal: controller.signal
       });
+      clearTimeout(timeoutId);
+      if (!res.ok) throw new Error(`Server responded ${res.status}`);
+      document.getElementById('successOverlay').classList.add('show');
     } catch (e) {
-      console.log('Webhook error:', e);
-      try {
-        await fetch(WEBHOOK_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
-          mode: 'no-cors'
-        });
-      } catch (e2) {
-        console.log('Fallback error:', e2);
-      }
+      clearTimeout(timeoutId);
+      console.error('Submit failed:', e);
+      const msg = e.name === 'AbortError'
+        ? 'The request timed out. Please check your connection and try again.'
+        : 'Something went wrong submitting the form. Please try again, or call us directly.';
+      alert(msg);
+      btn.disabled = false;
+      btn.textContent = originalLabel;
     }
-
-    document.getElementById('successOverlay').classList.add('show');
   }
 </script>
 </body>
