@@ -396,7 +396,6 @@ footer{background:var(--navy);padding:60px 48px 32px;border-top:1px solid rgba(2
 
 /* CURSOR */
 .cur{position:fixed;width:8px;height:8px;background:#2e7dd1;border-radius:50%;pointer-events:none;z-index:9999;transform:translate(-50%,-50%);transition:transform .08s;mix-blend-mode:multiply;}
-.cur-ring{position:fixed;width:28px;height:28px;border:1.5px solid rgba(46,125,209,0.4);border-radius:50%;pointer-events:none;z-index:9998;transform:translate(-50%,-50%);transition:all .2s ease;}
 
 /* HERO CANVAS */
 #hero-canvas{position:absolute;inset:0;pointer-events:none;z-index:1;opacity:0.5;}
@@ -461,7 +460,6 @@ footer{background:var(--navy);padding:60px 48px 32px;border-top:1px solid rgba(2
 <body>
 
 <div class="cur" id="cur"></div>
-<div class="cur-ring" id="cur-ring"></div>
 
 <!-- NAV -->
 <nav id="nav">
@@ -997,17 +995,12 @@ footer{background:var(--navy);padding:60px 48px 32px;border-top:1px solid rgba(2
 <script>
 // CURSOR
 const cur=document.getElementById('cur');
-const curRing=document.getElementById('cur-ring');
 if(window.matchMedia('(pointer: fine)').matches){
   document.addEventListener('mousemove',e=>{
     cur.style.left=e.clientX+'px';
     cur.style.top=e.clientY+'px';
-    curRing.style.left=e.clientX+'px';
-    curRing.style.top=e.clientY+'px';
   });
   document.querySelectorAll('a,button,.care-type,.service-toggle,.step-next,.btn-primary,.btn-outline').forEach(el=>{
-    el.addEventListener('mouseenter',()=>{curRing.style.transform='translate(-50%,-50%) scale(1.8)';curRing.style.borderColor='rgba(46,125,209,0.7)';});
-    el.addEventListener('mouseleave',()=>{curRing.style.transform='translate(-50%,-50%) scale(1)';curRing.style.borderColor='rgba(46,125,209,0.4)';});
   });
 }
 
