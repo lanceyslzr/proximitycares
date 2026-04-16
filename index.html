@@ -1280,7 +1280,7 @@ function updatePlanCard(final=false){
 }
 
 // ── CHATBOT ──
-const CW='https://young-meadow-e6fb.lancesalazar56.workers.dev';
+const CW='https://proximity-agent-production.up.railway.app/chat';
 const CM='claude-haiku-4-5-20251001';
 const CSYS=`You are a warm care assistant for Proximity Care Services in Mississauga, Brampton, and Caledon. You help families find care for their parents.
 
@@ -1536,7 +1536,7 @@ function renderScheduler(){
     widget.querySelector('#sched-next3').disabled=true;
     var payload={Full_Name:booking.name,Phone:booking.phone,Source:'Family Chatbot Booking',Care_Type:'Booking Request',Notes:'Preferred date: '+booking.dateStr+' at '+booking.time,Status:'New Lead',Who_Is_Care_For:booking.careFor,City:booking.city};
     console.log('Chatbot booking payload:',payload);
-    fetch('https://hook.us2.make.com/puxwuxhi69h2hevxgfw28vcowsr9caak',{
+    fetch('https://proximity-agent-production.up.railway.app/webhook/lead',{
       method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify(payload)
     }).finally(function(){
