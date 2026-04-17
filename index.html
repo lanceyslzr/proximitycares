@@ -1326,11 +1326,11 @@ async function csend(){
     chist.push({role:'assistant',content:rep});
     const elapsed=Date.now()-sendTime;
     const delay=Math.max(0,(1500+Math.random()*500)-elapsed);
-    setTimeout(function(){document.getElementById('ctyp').classList.remove('show');addCMsg('b',rep);csc();},delay);
+    setTimeout(function(){document.getElementById('ctyp').classList.remove('show');addCMsg('b',rep);chatStage++;renderChips(getStageChips());csc();},delay);
   }catch(e){
     const elapsed=Date.now()-sendTime;
     const delay=Math.max(0,(1500+Math.random()*500)-elapsed);
-    setTimeout(function(){document.getElementById('ctyp').classList.remove('show');addCMsg('b','Please call us at 647-382-8047 and we\'ll be happy to help right away.');csc();},delay);
+    setTimeout(function(){document.getElementById('ctyp').classList.remove('show');addCMsg('b','Please call us at 647-382-8047 and we\'ll be happy to help right away.');renderChips(getStageChips());csc();},delay);
   }
 }
 var chatStage=0;
@@ -1361,10 +1361,11 @@ function handleBookingInput(text){
     bookingData.name=text;bookingStep++;
     setTimeout(function(){addCMsg('b','Best phone number or email to confirm?');},600);
   }else if(bookingStep===3){
-    bookingData.contact=text;bookingActive=false;
+    bookingData.contact=text;
     var nm=bookingData.name.split(/\s+/);
     setTimeout(function(){
       addCMsg('b','You\'re booked \u2014 '+bookingData.day+' '+bookingData.time+'. Lance will confirm within 1 hour at '+bookingData.contact+'.');
+      bookingActive=false;
       document.getElementById('chat-chips').classList.add('hidden');
     },600);
     fetch('https://proximity-agent-production.up.railway.app/webhook/lead',{
@@ -1418,9 +1419,8 @@ function addCMsg(type,text){
   const d=document.createElement('div');d.className='cmsg '+type;
   d.innerHTML=`<div class="cbub">${html}</div>`;
   document.getElementById('cmsgs').appendChild(d);csc();
-  if(type==='b'){
-    renderChips(chips||getStageChips());
-    chatStage++;
+  if(type==='b'&&chips){
+    renderChips(chips);
   }
 }
 function csc(){const m=document.getElementById('cmsgs');m.scrollTop=m.scrollHeight;}
