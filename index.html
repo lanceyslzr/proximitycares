@@ -1297,6 +1297,7 @@ async function csend(){
   const inp=document.getElementById('cinp');
   const msg=inp.value.trim();if(!msg)return;
   inp.value='';inp.style.height='auto';
+  if(bookingActive){handleBookingInput(msg);return;}
   addCMsg('u',msg);chist.push({role:'user',content:msg});
   if(/\b(get started|getting started|how.*(start|begin))\b/i.test(msg)){
     document.getElementById('ctyp').classList.add('show');csc();
@@ -1342,20 +1343,48 @@ function getStageChips(){
     default:return['__BOOK_ASSESSMENT__'];
   }
 }
+var bookingActive=false,bookingStep=0,bookingData={day:'',time:'',name:'',contact:''};
+function startBooking(){
+  bookingActive=true;bookingStep=0;
+  addCMsg('b','Perfect. Let me book that for you right now. What day works best this week?');
+  renderChips(['Monday','Tuesday','Wednesday','Thursday','Friday']);
+}
+function handleBookingInput(text){
+  addCMsg('u',text);
+  if(bookingStep===0){
+    bookingData.day=text;bookingStep++;
+    setTimeout(function(){addCMsg('b','What time works?');renderChips(['Morning 9-12','Afternoon 12-4','Evening 4-7']);},600);
+  }else if(bookingStep===1){
+    bookingData.time=text;bookingStep++;
+    setTimeout(function(){addCMsg('b','What name should we book under?');document.getElementById('chat-chips').classList.add('hidden');},600);
+  }else if(bookingStep===2){
+    bookingData.name=text;bookingStep++;
+    setTimeout(function(){addCMsg('b','Best phone number or email to confirm?');},600);
+  }else if(bookingStep===3){
+    bookingData.contact=text;bookingActive=false;
+    var nm=bookingData.name.split(/\s+/);
+    setTimeout(function(){
+      addCMsg('b','You\'re booked \u2014 '+bookingData.day+' '+bookingData.time+'. Lance will confirm within 1 hour at '+bookingData.contact+'.');
+      document.getElementById('chat-chips').classList.add('hidden');
+    },600);
+    fetch('https://proximity-agent-production.up.railway.app/webhook/lead',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({operator_id:'proximity-care',first_name:nm.shift()||'',last_name:nm.join(' '),phone:bookingData.contact,email:bookingData.contact.includes('@')?bookingData.contact:'',source:'chatbot_booking',urgency:'asap',care_type_interest:'Assessment Booking',care_needed_for:'Preferred: '+bookingData.day+' '+bookingData.time})
+    }).catch(function(e){console.error('Booking webhook error:',e);});
+  }
+}
 function renderChips(chips){
   var wrap=document.getElementById('chat-chips');
   wrap.innerHTML='';
   chips.forEach(function(c){
     if(c==='__BOOK_ASSESSMENT__'){
-      var a=document.createElement('a');
-      a.className='chat-chip';
-      a.textContent='Book a Free Assessment';
-      a.href='https://calendly.com/proximitycares/personal-care-assessment-bookin';
-      a.target='_blank';
-      a.style.textDecoration='none';
-      a.style.background='rgba(46,125,209,0.2)';
-      a.style.borderColor='rgba(46,125,209,0.5)';
-      wrap.appendChild(a);
+      var btn=document.createElement('button');
+      btn.className='chat-chip';
+      btn.textContent='Book a Free Assessment';
+      btn.style.background='rgba(46,125,209,0.2)';
+      btn.style.borderColor='rgba(46,125,209,0.5)';
+      btn.onclick=function(){document.getElementById('chat-chips').classList.add('hidden');startBooking();};
+      wrap.appendChild(btn);
     }else{
       var btn=document.createElement('button');
       btn.className='chat-chip';
@@ -1400,6 +1429,7 @@ function crs(el){el.style.height='auto';el.style.height=Math.min(el.scrollHeight
 function chipSend(el){
   var txt=el.textContent;
   document.getElementById('chat-chips').classList.add('hidden');
+  if(bookingActive){handleBookingInput(txt);return;}
   if(/^book a call(?: with lance)?$/i.test(txt)){
     addCMsg('u',txt);
     chist.push({role:'user',content:txt});
