@@ -1326,7 +1326,7 @@ async function csend(){
     chist.push({role:'assistant',content:rep});
     const elapsed=Date.now()-sendTime;
     const delay=Math.max(0,(1500+Math.random()*500)-elapsed);
-    setTimeout(function(){document.getElementById('ctyp').classList.remove('show');addCMsg('b',rep);chatStage++;renderChips(getStageChips());csc();},delay);
+    setTimeout(function(){document.getElementById('ctyp').classList.remove('show');addCMsg('b',rep);chatStage++;if(chatStage>=4){startBooking();}else{renderChips(getStageChips());}csc();},delay);
   }catch(e){
     const elapsed=Date.now()-sendTime;
     const delay=Math.max(0,(1500+Math.random()*500)-elapsed);
@@ -1414,7 +1414,7 @@ function addCMsg(type,text){
     text=parsed.text;
     chips=parsed.chips;
   }
-  var html=text.replace(/\n/g,'<br>');
+  var html=text.replace(/\*\*([^*]+)\*\*/g,'$1').replace(/\n/g,'<br>');
   if(type==='b')html=html.replace(/proximitycares\.ca\/lead-form\.html/g,'<a href="https://proximitycares.ca/lead-form.html" target="_blank" style="color:#4a9de8;text-decoration:underline;">Fill Out the Form Here</a>');
   const d=document.createElement('div');d.className='cmsg '+type;
   d.innerHTML=`<div class="cbub">${html}</div>`;
