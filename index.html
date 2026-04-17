@@ -1073,14 +1073,10 @@ footer{background:var(--navy);padding:60px 48px 32px;border-top:1px solid rgba(2
     <div class="chat-info"><h4>Proximity Care</h4><p>Ask me anything about care options</p></div>
   </div>
   <div class="chat-msgs" id="cmsgs">
-    <div class="cmsg b"><div class="cbub">Hi — what's going on with your loved one right now?</div></div>
+    <div class="cmsg b"><div class="cbub">Hi — who are you looking for care for?</div></div>
   </div>
   <div class="ctyping" id="ctyp"><div class="ctyd"></div><div class="ctyd"></div><div class="ctyd"></div></div>
-  <div class="chat-chips" id="chat-chips">
-    <button class="chat-chip" onclick="chipSend(this)">I need help for a loved one</button>
-    <button class="chat-chip" onclick="chipSend(this)">What areas do you serve?</button>
-    <button class="chat-chip" onclick="chipSend(this)">How does it work?</button>
-  </div>
+  <div class="chat-chips" id="chat-chips"></div>
   <div class="chat-inp-wrap">
     <textarea class="chat-inp" id="cinp" placeholder="Ask anything..." rows="1" onkeydown="chk(event)" oninput="crs(this)"></textarea>
     <button class="chat-send" onclick="csend()">→</button>
@@ -1278,198 +1274,99 @@ function updatePlanCard(final=false){
   if(final){document.getElementById('plan-cta-wrap').style.display='block';}
 }
 
-// ── CHATBOT ──
-const CW='https://proximity-agent-production.up.railway.app/chat';
-const CM='claude-haiku-4-5-20251001';
-const CSYS=`You are a warm care assistant for Proximity Care Services in Mississauga, Brampton, and Caledon. You help families find care for their parents.
-
-RULES: Maximum 2-3 sentences or a short bullet list (3 items max). Bullet points are allowed and preferred when listing options or prices. End every reply with one short relevant question. Be warm but efficient — like a knowledgeable friend, not a sales rep. Never over-explain. If they seem ready, say "I can have Lance call you today — just leave your number."
-
-FACTS: Same PSW every visit. First 6 hours free. No contracts. Call 647-382-8047. Book at proximitycares.ca/lead-form.html.
-
-CHIPS: After every response, append a hidden HTML comment with 2-3 clickable suggestion chips relevant to your closing question. Format exactly: <!--CHIPS:["Option 1","Option 2","Option 3"]--> This must be the very last thing in your reply.`;
-
-let chist=[];
-function toggleChat(){
-  document.getElementById('chat-overlay').classList.toggle('open');
-}
-async function csend(){
-  const inp=document.getElementById('cinp');
-  const msg=inp.value.trim();if(!msg)return;
-  inp.value='';inp.style.height='auto';
-  if(bookingActive){handleBookingInput(msg);return;}
-  addCMsg('u',msg);chist.push({role:'user',content:msg});
-  if(/\b(get started|getting started|how.*(start|begin))\b/i.test(msg)){
-    document.getElementById('ctyp').classList.add('show');csc();
-    setTimeout(function(){
-      document.getElementById('ctyp').classList.remove('show');
-      addCMsg('b','Getting started is simple — first 6 hours are completely free, no contracts.\nWould you like to book a call with Lance or fill out a quick form?');
-      renderChips(['Book a call with Lance','Fill out the form','Tell me more first']);
-    },1200);
-    return;
-  }
-  if(BOOK_RE.test(msg)){
-    document.getElementById('ctyp').classList.add('show');csc();
-    setTimeout(function(){
-      document.getElementById('ctyp').classList.remove('show');
-      addCMsg('b','Absolutely — let\'s get that set up for you. Fill in your details below:');
-      setTimeout(function(){renderScheduler();csc();},400);
-    },1200);
-    return;
-  }
-  var sendTime=Date.now();
-  document.getElementById('ctyp').classList.add('show');csc();
-  try{
-    const r=await fetch(CW,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({operator_id:'proximity-care',messages:chist})});
-    const d=await r.json();
-    const rep=d.response||'Please call us at 647-382-8047 and we\'ll be happy to help.';
-    chist.push({role:'assistant',content:rep});
-    const elapsed=Date.now()-sendTime;
-    const delay=Math.max(0,(1500+Math.random()*500)-elapsed);
-    setTimeout(function(){document.getElementById('ctyp').classList.remove('show');addCMsg('b',rep);chatStage++;if(chatStage>=4){startBooking();}else{renderChips(getStageChips());}csc();},delay);
-  }catch(e){
-    const elapsed=Date.now()-sendTime;
-    const delay=Math.max(0,(1500+Math.random()*500)-elapsed);
-    setTimeout(function(){document.getElementById('ctyp').classList.remove('show');addCMsg('b','Please call us at 647-382-8047 and we\'ll be happy to help right away.');renderChips(getStageChips());csc();},delay);
-  }
-}
+// ── CHATBOT — PURE INTAKE STATE MACHINE ──
 var chatStage=0;
-function getStageChips(){
-  switch(chatStage){
-    case 0:return['I need help for a loved one','What areas do you serve?','How does it work?'];
-    case 1:return['Personal care','Companionship','Overnight care'];
-    case 2:return['Mississauga','Brampton','Other city'];
-    case 3:return['As soon as possible','Within a month','Just exploring'];
-    default:return['__BOOK_ASSESSMENT__'];
-  }
+var intake={who:'',careType:'',city:'',urgency:'',name:'',contact:'',day:'',time:''};
+
+var STAGE_PROMPTS=[
+  {q:'What type of care do they need?',chips:['Personal care','Companionship','Overnight care','Dementia care']},
+  {q:'What city are they in?',chips:['Mississauga','Brampton','Caledon','Other']},
+  {q:'How soon do you need care to start?',chips:['As soon as possible','Within a month','Just exploring']},
+  {q:'What is your name?',chips:null},
+  {q:'Best phone number or email to reach you?',chips:null},
+  {q:'What day works best for a free assessment call?',chips:['Monday','Tuesday','Wednesday','Thursday','Friday']},
+  {q:'What time works?',chips:['Morning 9-12','Afternoon 12-4','Evening 4-7']}
+];
+
+function toggleChat(){document.getElementById('chat-overlay').classList.toggle('open');}
+
+function addCMsg(type,text){
+  var html=text.replace(/\*\*([^*]+)\*\*/g,'$1').replace(/\n/g,'<br>');
+  var d=document.createElement('div');d.className='cmsg '+type;
+  d.innerHTML='<div class="cbub">'+html+'</div>';
+  document.getElementById('cmsgs').appendChild(d);csc();
 }
-var bookingActive=false,bookingStep=0,bookingData={day:'',time:'',name:'',contact:''};
-function startBooking(){
-  bookingActive=true;bookingStep=0;
-  addCMsg('b','Perfect. Let me book that for you right now. What day works best this week?');
-  renderChips(['Monday','Tuesday','Wednesday','Thursday','Friday']);
-}
-function handleBookingInput(text){
-  addCMsg('u',text);
-  if(bookingStep===0){
-    bookingData.day=text;bookingStep++;
-    setTimeout(function(){addCMsg('b','What time works?');renderChips(['Morning 9-12','Afternoon 12-4','Evening 4-7']);},600);
-  }else if(bookingStep===1){
-    bookingData.time=text;bookingStep++;
-    setTimeout(function(){addCMsg('b','What name should we book under?');document.getElementById('chat-chips').classList.add('hidden');},600);
-  }else if(bookingStep===2){
-    bookingData.name=text;bookingStep++;
-    setTimeout(function(){addCMsg('b','Best phone number or email to confirm?');},600);
-  }else if(bookingStep===3){
-    bookingData.contact=text;
-    var nm=bookingData.name.split(/\s+/);
-    setTimeout(function(){
-      addCMsg('b','You\'re booked \u2014 '+bookingData.day+' '+bookingData.time+'. Lance will confirm within 1 hour at '+bookingData.contact+'.');
-      bookingActive=false;
-      document.getElementById('chat-chips').classList.add('hidden');
-    },600);
-    fetch('https://proximity-agent-production.up.railway.app/webhook/lead',{
-      method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({operator_id:'proximity-care',first_name:nm.shift()||'',last_name:nm.join(' '),phone:bookingData.contact,email:bookingData.contact.includes('@')?bookingData.contact:'',source:'chatbot_booking',urgency:'asap',care_type_interest:'Assessment Booking',care_needed_for:'Preferred: '+bookingData.day+' '+bookingData.time})
-    }).catch(function(e){console.error('Booking webhook error:',e);});
-  }
-}
+
 function renderChips(chips){
   var wrap=document.getElementById('chat-chips');
   wrap.innerHTML='';
+  if(!chips||!chips.length){wrap.classList.add('hidden');return;}
   chips.forEach(function(c){
-    if(c==='__BOOK_ASSESSMENT__'){
-      var btn=document.createElement('button');
-      btn.className='chat-chip';
-      btn.textContent='Book a Free Assessment';
-      btn.style.background='rgba(46,125,209,0.2)';
-      btn.style.borderColor='rgba(46,125,209,0.5)';
-      btn.onclick=function(){document.getElementById('chat-chips').classList.add('hidden');startBooking();};
-      wrap.appendChild(btn);
-    }else{
-      var btn=document.createElement('button');
-      btn.className='chat-chip';
-      btn.textContent=c;
-      btn.onclick=function(){chipSend(btn);};
-      wrap.appendChild(btn);
-    }
+    var btn=document.createElement('button');
+    btn.className='chat-chip';btn.textContent=c;
+    btn.onclick=function(){handleInput(c);};
+    wrap.appendChild(btn);
   });
   wrap.classList.remove('hidden');
 }
-function parseChips(text){
-  var match=text.match(/<!--CHIPS:\s*(\[.*?\])\s*-->/);
-  if(match){
-    try{
-      var chips=JSON.parse(match[1]);
-      var clean=text.replace(/<!--CHIPS:\s*\[.*?\]\s*-->/,'').trim();
-      return{text:clean,chips:chips};
-    }catch(e){}
-  }
-  return{text:text,chips:null};
-}
-function addCMsg(type,text){
-  var chips=null;
-  if(type==='b'){
-    var parsed=parseChips(text);
-    text=parsed.text;
-    chips=parsed.chips;
-  }
-  var html=text.replace(/\*\*([^*]+)\*\*/g,'$1').replace(/\n/g,'<br>');
-  if(type==='b')html=html.replace(/proximitycares\.ca\/lead-form\.html/g,'<a href="https://proximitycares.ca/lead-form.html" target="_blank" style="color:#4a9de8;text-decoration:underline;">Fill Out the Form Here</a>');
-  const d=document.createElement('div');d.className='cmsg '+type;
-  d.innerHTML=`<div class="cbub">${html}</div>`;
-  document.getElementById('cmsgs').appendChild(d);csc();
-  if(type==='b'&&chips){
-    renderChips(chips);
-  }
-}
-function csc(){const m=document.getElementById('cmsgs');m.scrollTop=m.scrollHeight;}
-function chk(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();csend();}}
-function crs(el){el.style.height='auto';el.style.height=Math.min(el.scrollHeight,56)+'px';}
-function chipSend(el){
-  var txt=el.textContent;
-  document.getElementById('chat-chips').classList.add('hidden');
-  if(bookingActive){handleBookingInput(txt);return;}
-  if(/^book a call(?: with lance)?$/i.test(txt)){
-    addCMsg('u',txt);
-    chist.push({role:'user',content:txt});
+
+function advanceStage(answer){
+  if(chatStage===0) intake.who=answer;
+  else if(chatStage===1) intake.careType=answer;
+  else if(chatStage===2) intake.city=answer;
+  else if(chatStage===3) intake.urgency=answer;
+  else if(chatStage===4) intake.name=answer;
+  else if(chatStage===5) intake.contact=answer;
+  else if(chatStage===6) intake.day=answer;
+  else if(chatStage===7) intake.time=answer;
+
+  chatStage++;
+
+  if(chatStage<=7){
+    var s=STAGE_PROMPTS[chatStage-1];
+    setTimeout(function(){addCMsg('b',s.q);renderChips(s.chips);csc();},500);
+  }else{
     setTimeout(function(){
-      addCMsg('b','Great choice — let\'s get you on Lance\'s calendar. Fill in your details below:');
-      setTimeout(function(){renderScheduler();csc();},400);
-    },1000);
-    return;
+      addCMsg('b','Perfect '+intake.name+'. We have you down for '+intake.day+' '+intake.time+'. Lance will call you at '+intake.contact+' to confirm. We look forward to meeting you.');
+      renderChips(null);
+      var nm=intake.name.split(/\s+/);
+      fetch('https://proximity-agent-production.up.railway.app/webhook/lead',{
+        method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({
+          operator_id:'proximity-care',
+          first_name:nm.shift()||'',
+          last_name:nm.join(' '),
+          phone:intake.contact,
+          email:intake.contact.includes('@')?intake.contact:'',
+          city:intake.city,
+          care_type_interest:intake.careType,
+          care_needed_for:intake.who,
+          urgency:intake.urgency,
+          source:'chatbot_booking',
+          preferred_time:intake.day+' '+intake.time
+        })
+      }).catch(function(e){console.error('Booking webhook error:',e);});
+    },500);
   }
-  if(/^fill out the form$/i.test(txt)){
-    addCMsg('u',txt);
-    chist.push({role:'user',content:txt});
-    setTimeout(function(){
-      addCMsg('b','Here you go — proximitycares.ca/lead-form.html\nIt takes about 2 minutes. Lance personally reviews every one.');
-    },1000);
-    return;
-  }
-  if(/^tell me more first$/i.test(txt)){
-    addCMsg('u',txt);
-    chist.push({role:'user',content:txt});
-    setTimeout(function(){
-      addCMsg('b','Of course! What would you like to know?');
-    },1000);
-    return;
-  }
-  if(/^how do i get started\??$/i.test(txt)){
-    addCMsg('u',txt);
-    chist.push({role:'user',content:txt});
-    setTimeout(function(){
-      addCMsg('b','Getting started is simple — first 6 hours are completely free, no contracts.\nWould you like to book a call with Lance or fill out a quick form?');
-      renderChips(['Book a call with Lance','Fill out the form','Tell me more first']);
-    },1000);
-    return;
-  }
-  document.getElementById('cinp').value=txt;
-  csend();
 }
 
-var BOOK_RE=/\b(book|schedule|call me|reach out|appointment|have lance|lance call)\b/i;
-var _origCsend=csend;
+function handleInput(text){
+  addCMsg('u',text);
+  advanceStage(text);
+}
+
+function csend(){
+  var inp=document.getElementById('cinp');
+  var msg=inp.value.trim();if(!msg)return;
+  inp.value='';inp.style.height='auto';
+  handleInput(msg);
+}
+
+function csc(){var m=document.getElementById('cmsgs');m.scrollTop=m.scrollHeight;}
+function chk(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();csend();}}
+function crs(el){el.style.height='auto';el.style.height=Math.min(el.scrollHeight,56)+'px';}
+
+renderChips(['A parent','My spouse','Myself','Someone else']);
 
 // ── SCHEDULER ──
 function renderScheduler(){
