@@ -1077,10 +1077,9 @@ footer{background:var(--navy);padding:60px 48px 32px;border-top:1px solid rgba(2
   </div>
   <div class="ctyping" id="ctyp"><div class="ctyd"></div><div class="ctyd"></div><div class="ctyd"></div></div>
   <div class="chat-chips" id="chat-chips">
-    <button class="chat-chip" onclick="chipSend(this)">What does care cost?</button>
-    <button class="chat-chip" onclick="chipSend(this)">How do I get started?</button>
-    <button class="chat-chip" onclick="chipSend(this)">What services do you offer?</button>
-    <button class="chat-chip" onclick="chipSend(this)">Do you serve my area?</button>
+    <button class="chat-chip" onclick="chipSend(this)">I need help for a loved one</button>
+    <button class="chat-chip" onclick="chipSend(this)">What areas do you serve?</button>
+    <button class="chat-chip" onclick="chipSend(this)">How does it work?</button>
   </div>
   <div class="chat-inp-wrap">
     <textarea class="chat-inp" id="cinp" placeholder="Ask anything..." rows="1" onkeydown="chk(event)" oninput="crs(this)"></textarea>
@@ -1333,30 +1332,37 @@ async function csend(){
     setTimeout(function(){document.getElementById('ctyp').classList.remove('show');addCMsg('b','Please call us at 647-382-8047 and we\'ll be happy to help right away.');csc();},delay);
   }
 }
-var FALLBACK_CHIPS={
-  price:['Essential $800-1,600/mo','Standard $1,600-3,000/mo','Full-Time $3,000-5,000/mo'],
-  care:['Daily Living','Dementia Care','Post-Hospital','Overnight Care'],
-  location:['Mississauga','Brampton','Caledon'],
-  start:['Fill out the form','Book a call','Tell me more first'],
-  general:['What does care cost?','How do I get started?','What services do you offer?']
-};
-function getFallbackChips(text){
-  var t=text.toLowerCase();
-  if(/cost|price|budget|afford|how much/.test(t))return FALLBACK_CHIPS.price;
-  if(/type|kind|care.*need|what.*looking/.test(t))return FALLBACK_CHIPS.care;
-  if(/where|area|city|locat|serve|region/.test(t))return FALLBACK_CHIPS.location;
-  if(/start|begin|next.*step|ready|sign.*up/.test(t))return FALLBACK_CHIPS.start;
-  return FALLBACK_CHIPS.general;
+var chatStage=0;
+function getStageChips(){
+  switch(chatStage){
+    case 0:return['I need help for a loved one','What areas do you serve?','How does it work?'];
+    case 1:return['Personal care','Companionship','Overnight care'];
+    case 2:return['Mississauga','Brampton','Other city'];
+    case 3:return['As soon as possible','Within a month','Just exploring'];
+    default:return['__BOOK_ASSESSMENT__'];
+  }
 }
 function renderChips(chips){
   var wrap=document.getElementById('chat-chips');
   wrap.innerHTML='';
   chips.forEach(function(c){
-    var btn=document.createElement('button');
-    btn.className='chat-chip';
-    btn.textContent=c;
-    btn.onclick=function(){chipSend(btn);};
-    wrap.appendChild(btn);
+    if(c==='__BOOK_ASSESSMENT__'){
+      var a=document.createElement('a');
+      a.className='chat-chip';
+      a.textContent='Book a Free Assessment';
+      a.href='https://calendly.com/proximitycares/personal-care-assessment-bookin';
+      a.target='_blank';
+      a.style.textDecoration='none';
+      a.style.background='rgba(46,125,209,0.2)';
+      a.style.borderColor='rgba(46,125,209,0.5)';
+      wrap.appendChild(a);
+    }else{
+      var btn=document.createElement('button');
+      btn.className='chat-chip';
+      btn.textContent=c;
+      btn.onclick=function(){chipSend(btn);};
+      wrap.appendChild(btn);
+    }
   });
   wrap.classList.remove('hidden');
 }
@@ -1384,7 +1390,8 @@ function addCMsg(type,text){
   d.innerHTML=`<div class="cbub">${html}</div>`;
   document.getElementById('cmsgs').appendChild(d);csc();
   if(type==='b'){
-    renderChips(chips||getFallbackChips(text));
+    renderChips(chips||getStageChips());
+    chatStage++;
   }
 }
 function csc(){const m=document.getElementById('cmsgs');m.scrollTop=m.scrollHeight;}

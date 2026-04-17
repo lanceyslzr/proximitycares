@@ -344,13 +344,32 @@ function showTyping() {
 
 function hideTyping() { const el = document.getElementById('typingIndicator'); if (el) el.remove(); }
 
+var chatStage=0;
+function getStageChips(){
+  switch(chatStage){
+    case 0:return['I need help for a loved one','What areas do you serve?','How does it work?'];
+    case 1:return['Personal care','Companionship','Overnight care'];
+    case 2:return['Mississauga','Brampton','Other city'];
+    case 3:return['As soon as possible','Within a month','Just exploring'];
+    default:return['__BOOK_ASSESSMENT__'];
+  }
+}
 function showQuickReplies(replies) {
   quickRepliesEl.innerHTML = '';
+  if(!replies)replies=getStageChips();
   replies.forEach(text => {
-    const btn = document.createElement('button');
-    btn.className = 'quick-reply'; btn.textContent = text;
-    btn.addEventListener('click', () => { quickRepliesEl.innerHTML = ''; sendMessage(text); });
-    quickRepliesEl.appendChild(btn);
+    if(text==='__BOOK_ASSESSMENT__'){
+      const a=document.createElement('a');
+      a.className='quick-reply';a.textContent='Book a Free Assessment';
+      a.href='https://calendly.com/proximitycares/personal-care-assessment-bookin';
+      a.target='_blank';a.style.textDecoration='none';a.style.background='#2e7dd1';a.style.color='#fff';a.style.borderColor='#2e7dd1';
+      quickRepliesEl.appendChild(a);
+    }else{
+      const btn = document.createElement('button');
+      btn.className = 'quick-reply'; btn.textContent = text;
+      btn.addEventListener('click', () => { quickRepliesEl.innerHTML = ''; sendMessage(text); });
+      quickRepliesEl.appendChild(btn);
+    }
   });
 }
 
@@ -423,11 +442,14 @@ async function sendMessage(text) {
     hideTyping();
     addMessage('assistant', reply);
     conversationHistory.push({ role: 'assistant', content: reply });
+    chatStage++;
+    showQuickReplies();
 
     if (intakeSuccess) {
       inputEl.disabled = true;
       inputEl.placeholder = "We've got your info — a coordinator will call soon!";
       sendBtn.disabled = true;
+      quickRepliesEl.innerHTML = '';
     }
 
   } catch (err) {
@@ -449,12 +471,7 @@ function init() {
   const greeting = "Hi there. Welcome to **Proximity Care Services**. I'm here to help you find the right care for your loved one.\n\nWhat's going on with your family right now?";
   addMessage('assistant', greeting);
   conversationHistory.push({ role: 'assistant', content: greeting });
-  showQuickReplies([
-    "My parent needs help at home",
-    "What services do you offer?",
-    "How much does it cost?",
-    "Book a free assessment"
-  ]);
+  showQuickReplies();
 }
 
 init();
