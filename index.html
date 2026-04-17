@@ -1073,7 +1073,7 @@ footer{background:var(--navy);padding:60px 48px 32px;border-top:1px solid rgba(2
     <div class="chat-info"><h4>Proximity Care</h4><p>Ask me anything about care options</p></div>
   </div>
   <div class="chat-msgs" id="cmsgs">
-    <div class="cmsg b"><div class="cbub">Hi — who are you looking for care for?</div></div>
+    <div class="cmsg b"><div class="cbub">Hi there. Who are you looking for care for?</div></div>
   </div>
   <div class="ctyping" id="ctyp"><div class="ctyd"></div><div class="ctyd"></div><div class="ctyd"></div></div>
   <div class="chat-chips" id="chat-chips"></div>
@@ -1290,15 +1290,17 @@ var STAGE_EXPECTED=[
   ['Morning 9-12','Afternoon 12-4','Evening 4-7']
 ];
 
-var STAGE_PROMPTS=[
-  {q:'What type of care do they need?',chips:['Personal care','Companionship','Overnight care','Dementia care']},
-  {q:'What city are they in?',chips:['Mississauga','Brampton','Caledon','Other']},
-  {q:'How soon do you need care to start?',chips:['As soon as possible','Within a month','Just exploring']},
-  {q:'What is your name?',chips:null},
-  {q:'Best phone number or email to reach you?',chips:null},
-  {q:'What day works best for a free assessment call?',chips:['Monday','Tuesday','Wednesday','Thursday','Friday']},
-  {q:'What time works?',chips:['Morning 9-12','Afternoon 12-4','Evening 4-7']}
+var STAGE_CHIPS=[
+  ['Personal care','Companionship','Overnight care','Dementia care'],
+  ['Mississauga','Brampton','Caledon','Other'],
+  ['As soon as possible','Within a month','Just exploring'],
+  null,
+  null,
+  ['Monday','Tuesday','Wednesday','Thursday','Friday'],
+  ['Morning 9-12','Afternoon 12-4','Evening 4-7']
 ];
+
+var AI_SYSTEM='You are a warm intake assistant for Proximity Care Services, a home care agency in Mississauga. Keep all responses under 2 sentences. Be conversational and human. Never use bullet points. After answering their question, bring them back to the intake flow with one gentle sentence.';
 
 function toggleChat(){document.getElementById('chat-overlay').classList.toggle('open');}
 
@@ -1333,12 +1335,20 @@ function advanceStage(answer){
   else if(chatStage===7) intake.time=answer;
 
   chatStage++;
+  var msg='';
+
+  if(chatStage===1) msg='Got it \u2014 care for '+intake.who.toLowerCase()+'. What kind of support are they needing?';
+  else if(chatStage===2) msg='Understood. What city are they in?';
+  else if(chatStage===3) msg='Perfect. How soon are you looking to get started?';
+  else if(chatStage===4) msg='We can definitely help with that. What\u2019s your name?';
+  else if(chatStage===5) msg='Nice to meet you '+intake.name+'. Best number or email to reach you?';
+  else if(chatStage===6) msg='Great. What day works for a free assessment call?';
+  else if(chatStage===7) msg='And what time works best?';
 
   if(chatStage<=7){
-    var s=STAGE_PROMPTS[chatStage-1];
-    setTimeout(function(){addCMsg('b',s.q);chatHistory.push({role:'assistant',content:s.q});renderChips(s.chips);csc();},500);
+    setTimeout(function(){addCMsg('b',msg);chatHistory.push({role:'assistant',content:msg});renderChips(STAGE_CHIPS[chatStage-1]);csc();},500);
   }else{
-    var confirm='Perfect '+intake.name+'. We have you down for '+intake.day+' '+intake.time+'. Lance will call you at '+intake.contact+' to confirm. We look forward to meeting you.';
+    var confirm='You\u2019re all set, '+intake.name+'. We\u2019ll call you '+intake.day+' '+intake.time+' at '+intake.contact+'. Looking forward to it.';
     setTimeout(function(){
       addCMsg('b',confirm);
       renderChips(null);
@@ -1374,10 +1384,10 @@ async function handleInput(text){
     try{
       var r=await fetch('https://proximity-agent-production.up.railway.app/chat',{
         method:'POST',headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({operator_id:'proximity-care',messages:chatHistory})
+        body:JSON.stringify({operator_id:'proximity-care',messages:[{role:'user',content:AI_SYSTEM+'\n\n'+text}].concat(chatHistory)})
       });
       var d=await r.json();
-      var reply=d.response||'Please call us at 647-382-8047 and we\'ll be happy to help.';
+      var reply=(d.response||'Please call us at 647-382-8047 and we\'ll be happy to help.').replace(/\*\*(.+?)\*\*/g,'$1');
       chatHistory.push({role:'assistant',content:reply});
       addCMsg('b',reply);
     }catch(e){
