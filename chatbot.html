@@ -381,14 +381,14 @@ async function sendMessage(text) {
     const response = await fetch(API_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ model: MODEL, max_tokens: 512, system: SYSTEM_PROMPT, messages: conversationHistory })
+      body: JSON.stringify({ operator_id: 'proximity-care', messages: conversationHistory })
     });
 
     const data = await response.json();
 
     if (!response.ok) throw new Error(data.error?.message || `API error (${response.status})`);
 
-    const rawReply = data.content?.[0]?.text || "I'm sorry, I had trouble responding. Please try again.";
+    const rawReply = data.response || "I'm sorry, I had trouble responding. Please try again.";
 
     const intakeMatch = rawReply.match(/<!--\s*INTAKE_DATA\s*:\s*(\{[\s\S]*?\})\s*-->/);
 

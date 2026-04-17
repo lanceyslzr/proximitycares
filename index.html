@@ -1320,9 +1320,9 @@ async function csend(){
   var sendTime=Date.now();
   document.getElementById('ctyp').classList.add('show');csc();
   try{
-    const r=await fetch(CW,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:CM,max_tokens:150,system:CSYS,messages:chist})});
+    const r=await fetch(CW,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({operator_id:'proximity-care',messages:chist})});
     const d=await r.json();
-    const rep=d.content?.[0]?.text||'Please call us at 647-382-8047 and we\'ll be happy to help.';
+    const rep=d.response||'Please call us at 647-382-8047 and we\'ll be happy to help.';
     chist.push({role:'assistant',content:rep});
     const elapsed=Date.now()-sendTime;
     const delay=Math.max(0,(1500+Math.random()*500)-elapsed);

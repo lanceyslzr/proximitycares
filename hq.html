@@ -479,14 +479,12 @@ async function sendMessage(text) {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        model: 'claude-haiku-4-5-20251001',
-        max_tokens: 1024,
-        system: SYSTEM_PROMPT,
+        operator_id: 'proximity-care',
         messages: conversationHistory
       })
     });
     const data = await res.json();
-    const reply = data.content?.[0]?.text || data.error?.message || 'No response received.';
+    const reply = data.response || data.error?.message || 'No response received.';
     conversationHistory.push({ role: 'assistant', content: reply });
     addMessage(reply, 'assistant');
   } catch (e) {
