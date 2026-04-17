@@ -1278,6 +1278,7 @@ function updatePlanCard(final=false){
 var chatStage=0;
 var intake={who:'',careType:'',city:'',urgency:'',name:'',contact:'',day:'',time:''};
 var chatHistory=[];
+var openChat=false;
 
 var STAGE_EXPECTED=[
   ['A parent','My spouse','Myself','Someone else'],
@@ -1369,11 +1370,34 @@ function advanceStage(answer){
           preferred_time:intake.day+' '+intake.time
         })
       }).catch(function(e){console.error('Booking webhook error:',e);});
+      setTimeout(function(){
+        addCMsg('b','In the meantime, feel free to ask me anything about our services or what to expect from your first visit.');
+        openChat=true;
+      },3000);
     },500);
   }
 }
 
 async function handleInput(text){
+  if(openChat){
+    addCMsg('u',text);
+    chatHistory.push({role:'user',content:text});
+    document.getElementById('chat-chips').classList.add('hidden');
+    try{
+      var r=await fetch('https://proximity-agent-production.up.railway.app/chat',{
+        method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({operator_id:'proximity-care',messages:[{role:'user',content:AI_SYSTEM+'\n\n'+text}].concat(chatHistory)})
+      });
+      var d=await r.json();
+      var reply=(d.response||'Please call us at 647-382-8047.').replace(/\*\*(.+?)\*\*/g,'$1');
+      chatHistory.push({role:'assistant',content:reply});
+      addCMsg('b',reply);
+    }catch(e){
+      addCMsg('b','Please call us at 647-382-8047 and we\'ll be happy to help.');
+    }
+    return;
+  }
+
   var isExpected=STAGE_EXPECTED[chatStage]===null||STAGE_EXPECTED[chatStage].includes(text);
   var isFreeform=text.includes('?')||text.length>40||!isExpected;
 
