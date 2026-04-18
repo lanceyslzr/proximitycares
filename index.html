@@ -302,6 +302,10 @@ footer{background:var(--navy);padding:60px 48px 32px;border-top:1px solid rgba(2
 .chat-chips{display:flex;flex-wrap:wrap;gap:6px;padding:8px 14px}
 .chat-chip{background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);color:rgba(255,255,255,0.85);font-family:var(--sans);font-size:12px;padding:6px 12px;border-radius:20px;cursor:pointer;transition:background .2s;line-height:1.3}
 .chat-chip:hover{background:rgba(255,255,255,0.15)}
+.typing-indicator{display:flex;gap:4px;align-items:center;align-self:flex-start;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.07);padding:9px 14px;border-radius:2px 10px 10px 10px;margin:4px 0}
+.typing-indicator span{width:5px;height:5px;background:rgba(255,255,255,0.3);border-radius:50%;animation:tyb 1.2s infinite}
+.typing-indicator span:nth-child(2){animation-delay:.2s}
+.typing-indicator span:nth-child(3){animation-delay:.4s}
 .chat-chips.hidden{display:none}
 
 /* ── CHAT SCHEDULER ── */
@@ -1277,18 +1281,18 @@ function updatePlanCard(final=false){
 // ── CHATBOT — PURE INTAKE STATE MACHINE ──
 var chatStage=0;
 var intake={who:'',careType:'',city:'',urgency:'',name:'',contact:'',day:'',time:''};
-var chatHistory=[];
+var chatHistory=[{role:'assistant',content:'Hi there. Who are you looking for care for?'}];
 var openChat=false;
 
 var STAGE_EXPECTED=[
-  ['A parent','My spouse','Myself','Someone else'],
-  ['Personal care','Companionship','Overnight care','Dementia care'],
-  ['Mississauga','Brampton','Caledon','Other'],
-  ['As soon as possible','Within a month','Just exploring'],
+  ['a parent','my spouse','myself','someone else'],
+  ['personal care','companionship','overnight care','dementia care'],
+  ['mississauga','brampton','caledon','other'],
+  ['as soon as possible','within a month','just exploring'],
   null,
   null,
-  ['Monday','Tuesday','Wednesday','Thursday','Friday'],
-  ['Morning 9-12','Afternoon 12-4','Evening 4-7']
+  ['monday','tuesday','wednesday','thursday','friday'],
+  ['morning 9-12','afternoon 12-4','evening 4-7']
 ];
 
 var STAGE_CHIPS=[
@@ -1325,6 +1329,13 @@ function renderChips(chips){
   wrap.classList.remove('hidden');
 }
 
+function showTyping(){
+  var el=document.createElement('div');el.className='typing-indicator';el.id='typing';
+  el.innerHTML='<span></span><span></span><span></span>';
+  document.getElementById('cmsgs').appendChild(el);csc();
+}
+function hideTyping(){var el=document.getElementById('typing');if(el)el.remove();}
+
 function advanceStage(answer){
   if(chatStage===0) intake.who=answer;
   else if(chatStage===1) intake.careType=answer;
@@ -1347,11 +1358,21 @@ function advanceStage(answer){
   else if(chatStage===7) msg='And what time works best?';
 
   if(chatStage<=7){
-    setTimeout(function(){addCMsg('b',msg);chatHistory.push({role:'assistant',content:msg});renderChips(STAGE_CHIPS[chatStage-1]);csc();},500);
+    chatHistory.push({role:'user',content:answer});
+    setTimeout(function(){
+      addCMsg('b',msg);
+      chatHistory.push({role:'assistant',content:msg});
+      renderChips(STAGE_CHIPS[chatStage-1]);csc();
+    },500);
   }else{
+    chatHistory.push({role:'user',content:answer});
+    var isEmail=intake.contact.includes('@');
+    var phone=isEmail?'':intake.contact;
+    var email=isEmail?intake.contact:'';
     var confirm='You\u2019re all set, '+intake.name+'. We\u2019ll call you '+intake.day+' '+intake.time+' at '+intake.contact+'. Looking forward to it.';
     setTimeout(function(){
       addCMsg('b',confirm);
+      chatHistory.push({role:'assistant',content:confirm});
       renderChips(null);
       var nm=intake.name.split(/\s+/);
       fetch('https://proximity-agent-production.up.railway.app/webhook/lead',{
@@ -1360,8 +1381,8 @@ function advanceStage(answer){
           operator_id:'proximity-care',
           first_name:nm.shift()||'',
           last_name:nm.join(' '),
-          phone:intake.contact,
-          email:intake.contact.includes('@')?intake.contact:'',
+          phone:phone,
+          email:email,
           city:intake.city,
           care_type_interest:intake.careType,
           care_needed_for:intake.who,
@@ -1371,7 +1392,9 @@ function advanceStage(answer){
         })
       }).catch(function(e){console.error('Booking webhook error:',e);});
       setTimeout(function(){
-        addCMsg('b','In the meantime, feel free to ask me anything about our services or what to expect from your first visit.');
+        var followUp='In the meantime, feel free to ask me anything about our services or what to expect from your first visit.';
+        addCMsg('b',followUp);
+        chatHistory.push({role:'assistant',content:followUp});
         openChat=true;
       },3000);
     },500);
@@ -1383,46 +1406,54 @@ async function handleInput(text){
     addCMsg('u',text);
     chatHistory.push({role:'user',content:text});
     document.getElementById('chat-chips').classList.add('hidden');
+    showTyping();
     try{
       var r=await fetch('https://proximity-agent-production.up.railway.app/chat',{
         method:'POST',headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({operator_id:'proximity-care',messages:[{role:'user',content:AI_SYSTEM+'\n\n'+text}].concat(chatHistory)})
+        body:JSON.stringify({operator_id:'proximity-care',messages:chatHistory,system_override:AI_SYSTEM})
       });
+      hideTyping();
       var d=await r.json();
-      var reply=(d.response||'Please call us at 647-382-8047.').replace(/\*\*(.+?)\*\*/g,'$1');
+      var reply=(d.response||'').replace(/\*\*(.+?)\*\*/g,'$1');
+      if(!reply) throw new Error('empty');
       chatHistory.push({role:'assistant',content:reply});
       addCMsg('b',reply);
     }catch(e){
-      addCMsg('b','Please call us at 647-382-8047 and we\'ll be happy to help.');
+      hideTyping();
+      addCMsg('b','Sorry, I had trouble connecting. Lance will reach out at your confirmed time.');
     }
     return;
   }
 
-  var isExpected=STAGE_EXPECTED[chatStage]===null||STAGE_EXPECTED[chatStage].includes(text);
-  var isFreeform=text.includes('?')||text.length>40||!isExpected;
+  var expected=STAGE_EXPECTED[chatStage];
+  var isExpected=expected===null||expected.includes(text.toLowerCase().trim());
+  var isFreeform=!isExpected&&(text.includes('?')||text.split(' ').length>5);
 
   if(isFreeform){
     addCMsg('u',text);
     chatHistory.push({role:'user',content:text});
     document.getElementById('chat-chips').classList.add('hidden');
+    showTyping();
     try{
       var r=await fetch('https://proximity-agent-production.up.railway.app/chat',{
         method:'POST',headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({operator_id:'proximity-care',messages:[{role:'user',content:AI_SYSTEM+'\n\n'+text}].concat(chatHistory)})
+        body:JSON.stringify({operator_id:'proximity-care',messages:chatHistory,system_override:AI_SYSTEM})
       });
+      hideTyping();
       var d=await r.json();
-      var reply=(d.response||'Please call us at 647-382-8047 and we\'ll be happy to help.').replace(/\*\*(.+?)\*\*/g,'$1');
+      var reply=(d.response||'').replace(/\*\*(.+?)\*\*/g,'$1');
+      if(!reply) throw new Error('empty');
       chatHistory.push({role:'assistant',content:reply});
       addCMsg('b',reply);
     }catch(e){
-      addCMsg('b','Please call us at 647-382-8047 and we\'ll be happy to help.');
+      hideTyping();
+      addCMsg('b','Sorry, I had trouble connecting. Lance will reach out at your confirmed time.');
     }
-    renderChips(STAGE_EXPECTED[chatStage]||null);
+    renderChips(STAGE_EXPECTED[chatStage]?STAGE_CHIPS[chatStage>0?chatStage-1:0]:null);
     return;
   }
 
   addCMsg('u',text);
-  chatHistory.push({role:'user',content:text});
   advanceStage(text);
 }
 
