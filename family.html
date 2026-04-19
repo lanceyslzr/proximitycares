@@ -490,10 +490,10 @@ async function sendMsg() {
   const msg = ta?.value?.trim();
   if (!msg) return;
   try {
-    await fetch('https://formspree.io/f/xdoqgbqg', {
+    await fetch(`${R}/family/message`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message: msg, from: 'Family Portal — ' + slug })
+      body: JSON.stringify({ slug, message: msg })
     });
   } catch (e) {}
   ta.value = '';
