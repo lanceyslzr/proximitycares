@@ -4,680 +4,681 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="theme-color" content="#2e7dd1">
+<meta name="theme-color" content="#0d1117">
 <link rel="manifest" href="/psw-manifest.json">
-<link rel="icon" type="image/png" href="/favicon-32.png">
-<link rel="shortcut icon" href="/favicon.ico">
-<link rel="apple-touch-icon" href="/psw-icon-192.png">
-<title>Proximity Care — PSW Visit Log</title>
+<title>Proximity Care — PSW Portal</title>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --bg: #0d1117;
-    --dark: #0d1117;
-    --teal: #3d7a8a;
-    --teal-light: #6a9eaa;
-    --teal-pale: rgba(61,122,138,0.08);
-    --cream: #faf8f4;
-    --border: rgba(61,122,138,0.2);
-    --muted: #6a7a8a;
-    --green: #3fb950;
-    --red: #f85149;
-    --text: #ddd9d0;
-    --white: #ffffff;
-    --surface: #111820;
-  }
-
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  html { scroll-behavior: smooth; }
-  body {
-    font-family: 'DM Mono', monospace;
-    background: #07090c;
-    color: var(--text);
-    min-height: 100vh;
-    overflow-x: hidden;
-    cursor: none;
-  }
-  .cur{position:fixed;width:7px;height:7px;background:#3d7a8a;border-radius:50%;pointer-events:none;z-index:9999;transform:translate(-50%,-50%);transition:transform .08s}
-  .cur-ring{position:fixed;width:28px;height:28px;border:1.5px solid rgba(61,122,138,0.4);border-radius:50%;pointer-events:none;z-index:9998;transform:translate(-50%,-50%);transition:all .18s ease}
-
-  /* NAV */
-  .nav {
-    background: var(--dark);
-    padding: 16px 40px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    position: sticky;
-    top: 0;
-    z-index: 100;
-  }
-  .nav-brand {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 16px;
-    font-weight: 400;
-    letter-spacing: 3px;
-    color: var(--white);
-    text-transform: uppercase;
-  }
-  .nav-brand em { color: var(--teal-light); font-style: italic; }
-  .nav-badge {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 9px;
-    letter-spacing: 1.5px;
-    text-transform: uppercase;
-    color: var(--green);
-  }
-  .badge-dot {
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: var(--green);
-    animation: pulse 2s infinite;
-  }
-  @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.3;} }
-
-  /* PAGE */
-  .page { padding: 60px 40px; max-width: 800px; margin: 0 auto; position: relative; z-index: 1; }
-
-  .page-eyebrow {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 16px;
-    opacity: 0;
-    animation: fadeUp 0.6s ease forwards 0.1s;
-  }
-  .eyebrow-line { width: 32px; height: 1px; background: var(--teal); }
-  .eyebrow-text { font-size: 9px; letter-spacing: 3px; text-transform: uppercase; color: var(--teal); }
-  .page-title {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: clamp(36px, 5vw, 56px);
-    font-weight: 300;
-    color: var(--white);
-    line-height: 1.1;
-    margin-bottom: 12px;
-    opacity: 0;
-    animation: fadeUp 0.6s ease forwards 0.2s;
-  }
-  .page-title em { font-style: italic; color: var(--teal); }
-  .page-sub {
-    font-size: 11px;
-    color: var(--muted);
-    line-height: 1.8;
-    margin-bottom: 48px;
-    opacity: 0;
-    animation: fadeUp 0.6s ease forwards 0.3s;
-  }
-
-  /* FORM CARD */
-  .form-card {
-    background: #111820;
-    border: 1px solid var(--border);
-    border-top: 1px solid rgba(61,122,138,0.35);
-    border-radius: 8px;
-    overflow: hidden;
-    opacity: 0;
-    animation: fadeUp 0.6s ease forwards 0.4s;
-    box-shadow: 0 0 0 1px rgba(61,122,138,0.12),0 24px 64px rgba(0,0,0,0.4);
-  }
-  .form-card-header {
-    background: var(--dark);
-    padding: 20px 32px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-  .form-card-title {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 18px;
-    color: var(--white);
-    font-weight: 400;
-  }
-  .form-card-badge {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 9px;
-    letter-spacing: 1.5px;
-    text-transform: uppercase;
-    color: var(--green);
-  }
-  .form-body { padding: 40px 32px; }
-
-  /* SECTION */
-  .form-section { margin-bottom: 36px; }
-  .form-section-title {
-    font-size: 9px;
-    letter-spacing: 2.5px;
-    text-transform: uppercase;
-    color: var(--teal);
-    margin-bottom: 20px;
-    padding-bottom: 10px;
-    border-bottom: 1px solid var(--border);
-    font-weight: 500;
-  }
-
-  /* GRID */
-  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-  .form-grid.full { grid-template-columns: 1fr; }
-  .form-group { display: flex; flex-direction: column; gap: 6px; }
-  .form-group.span2 { grid-column: span 2; }
-
-  /* LABEL */
-  .form-label {
-    font-size: 9px;
-    letter-spacing: 1.5px;
-    text-transform: uppercase;
-    color: var(--muted);
-    font-weight: 500;
-  }
-  .form-label .req { color: var(--red); margin-left: 2px; }
-
-  /* INPUTS */
-  .form-input, .form-select, .form-textarea {
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    padding: 12px 16px;
-    font-size: 12px;
-    color: var(--text);
-    font-family: 'DM Mono', monospace;
-    width: 100%;
-    transition: all 0.2s;
-    -webkit-appearance: none;
-    appearance: none;
-  }
-  .form-input:focus, .form-select:focus, .form-textarea:focus {
-    outline: none;
-    border-color: #3d7a8a;
-    background: #0a0d12;
-    box-shadow: 0 0 0 3px rgba(61,122,138,0.12);
-  }
-  .form-input::placeholder, .form-textarea::placeholder { color: var(--muted); opacity: 0.6; }
-  .form-textarea { resize: vertical; min-height: 100px; line-height: 1.6; }
-  .form-select {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%237a7a72' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 14px center;
-    padding-right: 36px;
-    cursor: pointer;
-  }
-
-  /* RADIO */
-  .radio-group { display: flex; flex-direction: column; gap: 8px; }
-  .radio-option {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 10px 14px;
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    cursor: pointer;
-    transition: all 0.15s;
-  }
-  .radio-option:hover { border-color: var(--teal-light); background: var(--teal-pale); }
-  .radio-option input { accent-color: var(--teal); cursor: pointer; }
-  .radio-option label { font-size: 11px; color: var(--text); cursor: pointer; line-height: 1.4; flex: 1; }
-
-  /* HOURS CALC */
-  .hours-calc {
-    background: var(--dark);
-    border-radius: 6px;
-    padding: 20px 24px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-top: 4px;
-  }
-  .hours-calc-label { font-size: 10px; color: rgba(255,255,255,0.4); letter-spacing: 1px; text-transform: uppercase; }
-  .hours-calc-value { font-family: 'Cormorant Garamond', serif; font-size: 32px; color: var(--white); font-weight: 300; }
-  .hours-calc-unit { font-size: 10px; color: rgba(255,255,255,0.4); }
-
-  /* PROFIT PREVIEW */
-  .profit-preview {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    gap: 12px;
-    margin-top: 20px;
-  }
-  .profit-card {
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    padding: 16px;
-    text-align: center;
-  }
-  .profit-card.highlight { background: var(--dark); border-color: var(--teal); }
-  .profit-card-label { font-size: 8px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
-  .profit-card.highlight .profit-card-label { color: rgba(255,255,255,0.4); }
-  .profit-card-value { font-family: 'Cormorant Garamond', serif; font-size: 22px; color: var(--text); }
-  .profit-card.highlight .profit-card-value { color: var(--green); }
-
-  /* DIVIDER */
-  .form-divider { border: none; border-top: 1px solid var(--border); margin: 32px 0; }
-
-  /* SUBMIT */
-  .form-footer { padding: 24px 32px; background: var(--bg); border-top: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; }
-  .form-submit {
-    background: linear-gradient(135deg,#3d7a8a,#5a9aaa);
-    color: var(--white);
-    border: none;
-    border-radius: 3px;
-    padding: 14px 36px;
-    font-family: 'DM Mono', monospace;
-    font-size: 10px;
-    letter-spacing: 2.5px;
-    text-transform: uppercase;
-    cursor: none;
-    transition: all 0.2s;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-  .form-submit:hover { filter: brightness(1.1); transform: translateY(-1px); }
-  .form-submit:active { transform: translateY(0); }
-  .form-note { font-size: 9px; color: var(--muted); line-height: 1.7; }
-  .form-note span { color: var(--green); }
-
-  /* SUCCESS STATE */
-  .success-overlay {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(13,17,23,0.9);
-    z-index: 500;
-    align-items: center;
-    justify-content: center;
-    flex-direction: column;
-    gap: 24px;
-    text-align: center;
-  }
-  .success-overlay.show { display: flex; }
-  .success-icon { font-size: 56px; animation: scaleIn 0.4s ease; filter: drop-shadow(0 0 20px rgba(61,122,138,0.4)); }
-  .success-title { font-family: 'Cormorant Garamond', serif; font-size: 36px; color: var(--white); font-weight: 300; }
-  .success-sub { font-size: 11px; color: rgba(255,255,255,0.4); line-height: 1.8; max-width: 400px; }
-  .success-btn {
-    background: var(--teal);
-    color: var(--white);
-    border: none;
-    border-radius: 3px;
-    padding: 12px 32px;
-    font-family: 'DM Mono', monospace;
-    font-size: 10px;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    cursor: pointer;
-    margin-top: 8px;
-  }
-
-  @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-  @keyframes scaleIn { from { transform: scale(0); } to { transform: scale(1); } }
-
-  @media (max-width: 768px) {
-    body { cursor: auto !important; }
-    .cur,.cursor,#cur,#curRing,.cur-ring { display: none !important; }
-  }
-  @media (max-width: 640px) {
-    .page { padding: 40px 20px; }
-    .nav { padding: 14px 20px; }
-    .nav-brand { font-size: 13px; }
-    .form-grid { grid-template-columns: 1fr; }
-    .form-group.span2 { grid-column: span 1; }
-    .form-body { padding: 28px 20px; }
-    .form-footer { padding: 20px; }
-    .profit-preview { grid-template-columns: 1fr; }
-  }
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+*{-webkit-tap-highlight-color:transparent;}
+:root{
+  --bg:#07090c;--dark:#0d1117;--surface:#111820;
+  --teal:#3d7a8a;--teal-l:#6a9eaa;--teal-p:rgba(61,122,138,0.08);
+  --border:rgba(61,122,138,0.2);--border-h:rgba(61,122,138,0.4);
+  --text:#ddd9d0;--muted:#6a7a8a;--white:#ffffff;
+  --green:#3fb950;--red:#f85149;--gold:#c8a96e;
+  --serif:'Cormorant Garamond',serif;--mono:'DM Mono',monospace;
+}
+html{scroll-behavior:smooth;}
+body{font-family:var(--mono);background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;-webkit-text-size-adjust:100%;}
+.cur{position:fixed;width:7px;height:7px;background:var(--teal);border-radius:50%;pointer-events:none;z-index:9999;transform:translate(-50%,-50%);transition:transform .08s;}
+.cur-ring{position:fixed;width:28px;height:28px;border:1.5px solid rgba(61,122,138,0.4);border-radius:50%;pointer-events:none;z-index:9998;transform:translate(-50%,-50%);transition:all .18s ease;}
+@media(hover:none){.cur,.cur-ring{display:none;}body{cursor:auto;}}
+#bgCanvas{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:0.4;}
+.nav{background:var(--dark);padding:14px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;border-bottom:1px solid var(--border);}
+.nav-brand{font-family:var(--serif);font-size:15px;font-weight:400;letter-spacing:3px;color:var(--white);text-transform:uppercase;}
+.nav-brand em{color:var(--teal-l);font-style:italic;}
+.nav-badge{display:flex;align-items:center;gap:6px;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--green);}
+.badge-dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.3;}}
+.tabs{display:flex;background:var(--dark);border-bottom:1px solid var(--border);position:sticky;top:49px;z-index:99;}
+.tab-btn{flex:1;padding:12px 6px;background:none;border:none;font-family:var(--mono);font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);cursor:pointer;transition:all 0.2s;border-bottom:2px solid transparent;min-height:44px;}
+.tab-btn.on{color:var(--teal-l);border-bottom-color:var(--teal);}
+.tab-btn:hover{color:var(--text);}
+.page{padding:28px 20px 60px;max-width:720px;margin:0 auto;position:relative;z-index:1;}
+.tab-content{display:none;}
+.tab-content.on{display:block;}
+.eyebrow{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+.eyebrow-line{width:24px;height:1px;background:var(--teal);}
+.eyebrow-text{font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--teal);}
+.page-title{font-family:var(--serif);font-size:clamp(26px,5vw,40px);font-weight:300;color:var(--white);line-height:1.1;margin-bottom:6px;}
+.page-title em{font-style:italic;color:var(--teal-l);}
+.page-sub{font-size:11px;color:var(--muted);margin-bottom:24px;line-height:1.65;}
+.form-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:14px;}
+.form-card-header{background:var(--dark);padding:13px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.form-card-title{font-family:var(--serif);font-size:16px;font-weight:400;color:var(--white);letter-spacing:1px;}
+.form-card-badge{font-size:8px;letter-spacing:1.5px;text-transform:uppercase;color:var(--teal);border:1px solid var(--border);border-radius:100px;padding:3px 8px;}
+.form-card-body{padding:18px;}
+.form-section{margin-bottom:22px;}
+.form-section:last-child{margin-bottom:0;}
+.form-section-title{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--teal);margin-bottom:12px;padding-bottom:7px;border-bottom:1px solid var(--border);}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.form-grid.full{grid-template-columns:1fr;}
+@media(max-width:480px){.form-grid{grid-template-columns:1fr;}}
+.form-group{display:flex;flex-direction:column;gap:5px;}
+.form-label{font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);}
+.req{color:var(--red);}
+.form-input,.form-select,.form-textarea{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:11px 13px;color:var(--text);font-family:var(--mono);font-size:13px;outline:none;transition:border-color 0.2s;width:100%;}
+input[type="date"],input[type="time"],input[type="email"]{font-size:16px;}
+.form-input:focus,.form-select:focus,.form-textarea:focus{border-color:var(--teal-l);}
+.form-input::placeholder,.form-textarea::placeholder{color:var(--muted);}
+.form-select{appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236a7a8a' d='M6 8L1 3h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 13px center;padding-right:34px;}
+.form-textarea{min-height:88px;resize:vertical;line-height:1.65;}
+.form-divider{border:none;border-top:1px solid var(--border);margin:18px 0;}
+.hours-calc{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:13px 15px;display:flex;align-items:center;justify-content:space-between;margin-top:10px;}
+.hours-label{font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);}
+.hours-sub{font-size:9px;color:rgba(255,255,255,0.2);margin-top:2px;}
+.hours-value{font-family:var(--serif);font-size:28px;color:var(--white);font-weight:300;}
+.hours-unit{font-size:9px;color:var(--muted);text-align:right;}
+.pay-preview{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:13px 15px;margin-top:10px;display:flex;align-items:center;justify-content:space-between;}
+.pay-label{font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:3px;}
+.pay-value{font-family:var(--serif);font-size:22px;color:var(--teal-l);font-weight:300;}
+.radio-group{display:flex;flex-direction:column;gap:7px;}
+.radio-option{display:flex;align-items:center;gap:10px;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 13px;cursor:pointer;transition:all 0.15s;font-size:12px;min-height:44px;}
+.radio-option:hover{border-color:var(--teal-l);background:var(--teal-p);}
+.radio-option input{accent-color:var(--teal);}
+.cl-group{margin-bottom:18px;}
+.cl-group-title{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);margin-bottom:9px;display:flex;align-items:center;gap:8px;}
+.cl-group-title::after{content:'';flex:1;height:1px;background:rgba(200,169,110,0.18);}
+.cl-items{display:flex;flex-direction:column;gap:5px;}
+.cl-item{display:flex;align-items:center;gap:12px;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:11px 13px;cursor:pointer;transition:all 0.15s;min-height:44px;}
+.cl-item:hover{border-color:var(--teal-l);background:var(--teal-p);}
+.cl-item input[type="checkbox"]{accent-color:var(--teal);width:16px;height:16px;flex-shrink:0;cursor:pointer;}
+.cl-item label{font-size:12px;color:var(--text);cursor:pointer;flex:1;line-height:1.4;}
+.cl-item.done{border-color:rgba(61,122,138,0.45);background:var(--teal-p);}
+.cl-item.done label{color:var(--teal-l);}
+.cl-summary{background:var(--dark);border:1px solid var(--border);border-radius:8px;padding:11px 15px;margin-top:10px;display:flex;align-items:center;justify-content:space-between;font-size:11px;color:var(--muted);}
+.cl-summary-val{font-family:var(--serif);font-size:20px;color:var(--teal-l);}
+.cl-notes-section{margin-top:20px;padding-top:18px;border-top:1px solid var(--border);}
+.cl-notes-title{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--teal);margin-bottom:14px;}
+.cl-note-group{display:flex;flex-direction:column;gap:5px;margin-bottom:12px;}
+.cl-note-group:last-child{margin-bottom:0;}
+/* PIN GATE */
+.pin-gate{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:32px 20px;text-align:center;}
+.pin-gate-icon{font-size:30px;margin-bottom:12px;}
+.pin-gate-title{font-family:var(--serif);font-size:22px;color:var(--white);margin-bottom:6px;}
+.pin-gate-sub{font-size:11px;color:var(--muted);margin-bottom:18px;line-height:1.65;}
+.pin-who{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:11px 13px;color:var(--text);font-family:var(--mono);font-size:13px;outline:none;width:100%;margin-bottom:18px;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236a7a8a' d='M6 8L1 3h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 13px center;padding-right:34px;transition:border-color 0.2s;}
+.pin-who:focus{border-color:var(--teal-l);}
+.pin-dots{display:flex;gap:12px;justify-content:center;margin-bottom:20px;}
+.pin-dot{width:14px;height:14px;border-radius:50%;border:2px solid var(--border);transition:all 0.2s;}
+.pin-dot.filled{background:var(--teal);border-color:var(--teal);}
+.pin-pad{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;max-width:240px;margin:0 auto;}
+.pin-btn{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px;font-size:18px;font-weight:500;font-family:var(--mono);color:var(--text);cursor:pointer;transition:all 0.15s;text-align:center;min-height:52px;}
+.pin-btn:hover{background:var(--teal-p);border-color:var(--teal-l);}
+.pin-btn:active{transform:scale(0.95);}
+.pin-btn.del{font-size:14px;color:var(--muted);}
+.pin-btn.empty{background:none;border:none;cursor:default;}
+.pin-err{font-size:11px;color:var(--red);margin-top:14px;opacity:0;transition:opacity 0.2s;min-height:16px;}
+.pin-err.show{opacity:1;}
+/* THREAD */
+.notes-thread{display:flex;flex-direction:column;gap:8px;margin-bottom:14px;max-height:440px;overflow-y:auto;padding:4px 2px;}
+.notes-thread::-webkit-scrollbar{width:3px;}
+.notes-thread::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+.note-msg{max-width:86%;padding:11px 14px;border-radius:12px;font-size:12px;line-height:1.65;}
+.note-msg.from-lance{background:var(--surface);border:1px solid var(--border);align-self:flex-start;border-bottom-left-radius:3px;}
+.note-msg.from-psw{background:var(--teal-p);border:1px solid var(--border-h);align-self:flex-end;border-bottom-right-radius:3px;}
+.note-sender{font-size:9px;letter-spacing:1px;text-transform:uppercase;margin-bottom:5px;}
+.from-lance .note-sender{color:var(--gold);}
+.from-psw .note-sender{color:var(--teal-l);text-align:right;}
+.note-msg-text{color:var(--text);}
+.note-msg-time{font-size:9px;color:var(--muted);margin-top:5px;}
+.from-psw .note-msg-time{text-align:right;}
+.notes-empty{text-align:center;padding:28px;font-size:11px;color:var(--muted);}
+.notes-loading{text-align:center;padding:28px;font-size:11px;color:var(--muted);}
+.note-compose{background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;}
+.note-compose-head{padding:10px 14px;border-bottom:1px solid var(--border);font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--teal);display:flex;align-items:center;justify-content:space-between;}
+.note-signed-as{font-size:9px;color:var(--muted);text-transform:none;letter-spacing:0;}
+.note-compose-body{padding:12px 14px;}
+.note-ta{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:11px 13px;color:var(--text);font-family:var(--mono);font-size:13px;outline:none;resize:none;min-height:75px;transition:border-color 0.2s;line-height:1.65;}
+.note-ta:focus{border-color:var(--teal-l);}
+.note-ta::placeholder{color:var(--muted);}
+.note-send-row{display:flex;align-items:center;justify-content:space-between;margin-top:9px;gap:10px;}
+.note-signout{font-size:9px;color:var(--muted);background:none;border:none;cursor:pointer;font-family:var(--mono);padding:0;transition:color 0.15s;min-height:44px;}
+.note-signout:hover{color:var(--red);}
+.note-send{background:var(--teal);border:none;border-radius:8px;padding:11px 18px;color:var(--white);font-family:var(--mono);font-size:9px;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;transition:all 0.2s;min-height:44px;display:flex;align-items:center;gap:6px;}
+.note-send:hover{background:var(--teal-l);}
+.note-send:disabled{opacity:0.4;cursor:not-allowed;}
+/* FOOTER */
+.form-footer{padding:14px 18px;background:var(--dark);border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;}
+.form-note{font-size:9px;color:var(--muted);letter-spacing:0.5px;line-height:1.8;}
+.form-note span{color:var(--green);}
+.form-submit{background:var(--teal);border:none;border-radius:8px;padding:13px 22px;color:var(--white);font-family:var(--mono);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;gap:8px;min-height:48px;}
+.form-submit:hover{background:var(--teal-l);}
+.form-submit:disabled{opacity:0.4;cursor:not-allowed;}
+/* SUCCESS */
+.success-overlay{position:fixed;inset:0;background:rgba(7,9,12,0.96);z-index:500;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity 0.3s;}
+.success-overlay.show{opacity:1;pointer-events:all;}
+.success-box{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:36px 28px;text-align:center;max-width:340px;margin:0 20px;}
+.success-icon{font-size:36px;margin-bottom:14px;}
+.success-title{font-family:var(--serif);font-size:26px;color:var(--white);margin-bottom:7px;}
+.success-msg{font-size:11px;color:var(--muted);line-height:1.7;margin-bottom:22px;}
+.success-btn{background:var(--teal);border:none;border-radius:8px;padding:13px 22px;color:var(--white);font-family:var(--mono);font-size:9px;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;min-height:48px;}
 </style>
 </head>
 <body>
+
 <div class="cur" id="cur"></div>
 <div class="cur-ring" id="curRing"></div>
-<canvas id="bgCanvas" style="position:fixed;inset:0;pointer-events:none;z-index:0;opacity:0.3;"></canvas>
+<canvas id="bgCanvas"></canvas>
 
-<!-- SUCCESS OVERLAY -->
 <div class="success-overlay" id="successOverlay">
-  <div class="success-icon">✅</div>
-  <div class="success-title">Submitted Successfully</div>
-  <div class="success-sub" id="successMessage">Visit log submitted. Hours calculated and added to monthly billing.</div>
-  <button class="success-btn" onclick="closeSuccess()">Submit Another</button>
-</div>
-
-<!-- NAV -->
-<div class="nav">
-  <div class="nav-brand">Proximity <em>Care</em></div>
-  <div class="nav-badge"><div class="badge-dot"></div>Connected to Make.com</div>
-</div>
-
-<!-- PSW VISIT LOG -->
-<div class="page">
-  <div class="page-eyebrow">
-    <div class="eyebrow-line"></div>
-    <div class="eyebrow-text">System 01 — PSW Timesheet</div>
+  <div class="success-box">
+    <div class="success-icon">✓</div>
+    <div class="success-title">Visit Logged.</div>
+    <div class="success-msg" id="successMsg">Your visit has been submitted and saved.</div>
+    <button class="success-btn" onclick="closeSuccess()">Log Another Visit</button>
   </div>
-  <div class="page-title">PSW <em>Visit</em> Log</div>
-  <div class="page-sub">For PSWs to log visits from their phone. Hours auto-calculate. Submits directly to Google Sheets and billing.</div>
+</div>
 
-  <div class="form-card">
-    <div class="form-card-header">
-      <div class="form-card-title">Log Today's Visit</div>
-      <div class="form-card-badge"><div class="badge-dot"></div>Auto-calculates hours + billing</div>
-    </div>
-    <div class="form-body">
+<nav class="nav">
+  <div class="nav-brand">Proximity <em>Care</em></div>
+  <div class="nav-badge"><div class="badge-dot"></div>PSW Portal</div>
+</nav>
 
-      <!-- VISIT DETAILS -->
-      <div class="form-section">
-        <div class="form-section-title">Visit Details</div>
-        <div class="form-grid">
-          <div class="form-group">
-            <label class="form-label">Your Name <span class="req">*</span></label>
-            <select class="form-select" id="psw-name">
-              <option value="">Select PSW...</option>
-              <option>Luz Peralta</option>
-              <option>Carolina Hermida</option>
-              <option>Sarah K.</option>
-              <option>James R.</option>
-              <option>Maria L.</option>
-              <option>David M.</option>
-              <option>Other</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label class="form-label">Your Email <span class="req">*</span></label>
-            <input class="form-input" type="email" id="psw-email" placeholder="Enter your work email" required>
-          </div>
-          <div class="form-group">
-            <label class="form-label">Client Name <span class="req">*</span></label>
-            <select class="form-select" id="psw-client">
-              <option value="">Select client...</option>
-              <option>Rosetta Ferrari</option>
-              <option>Bhangu Amrit</option>
-              <option>Priya Singh</option>
-              <option>Other</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label class="form-label">Date of Visit <span class="req">*</span></label>
-            <input class="form-input" id="psw-date" type="date">
-          </div>
-          <div class="form-group">
-            <label class="form-label">Visit Type</label>
-            <select class="form-select" id="psw-visit-type">
-              <option>Morning Routine</option>
-              <option>Evening Routine</option>
-              <option>Full Day</option>
-              <option>Overnight</option>
-              <option>Companion Visit</option>
-            </select>
-          </div>
-        </div>
+<div class="tabs">
+  <button class="tab-btn on" id="tab-visit" onclick="showTab('visit')">📋 Visit Log</button>
+  <button class="tab-btn" id="tab-check" onclick="showTab('check')">✓ Checklist</button>
+  <button class="tab-btn" id="tab-notes" onclick="showTab('notes')">💬 Messages</button>
+</div>
+
+<div class="page">
+
+  <!-- TAB 1 — VISIT LOG -->
+  <div class="tab-content on" id="content-visit">
+    <div class="eyebrow"><div class="eyebrow-line"></div><div class="eyebrow-text">System 01 — PSW Visit Log</div></div>
+    <div class="page-title">Log Today's <em>Visit</em></div>
+    <div class="page-sub">Fill in your visit details. Hours auto-calculate. Everything saves to the dashboard automatically.</div>
+    <div class="form-card">
+      <div class="form-card-header">
+        <div class="form-card-title">Visit Details</div>
+        <div class="form-card-badge">Required</div>
       </div>
-
-      <hr class="form-divider">
-
-      <!-- TIME TRACKING -->
-      <div class="form-section">
-        <div class="form-section-title">Time Tracking</div>
-        <div class="form-grid">
-          <div class="form-group">
-            <label class="form-label">Time In <span class="req">*</span></label>
-            <input class="form-input" id="psw-time-in" type="time" value="09:00" oninput="calcHours()">
-          </div>
-          <div class="form-group">
-            <label class="form-label">Time Out <span class="req">*</span></label>
-            <input class="form-input" id="psw-time-out" type="time" value="17:00" oninput="calcHours()">
-          </div>
-        </div>
-
-        <!-- HOURS DISPLAY -->
-        <div class="hours-calc" style="margin-top:16px;">
-          <div>
-            <div class="hours-calc-label">Hours Worked</div>
-            <div style="font-size:10px;color:rgba(255,255,255,0.25);margin-top:3px;">Auto-calculated</div>
-          </div>
-          <div style="text-align:right;">
-            <div class="hours-calc-value" id="hours-display">8.0</div>
-            <div class="hours-calc-unit">hrs</div>
-          </div>
-        </div>
-
-        <!-- RATES -->
-        <div class="form-grid" style="margin-top:20px;">
-          <div class="form-group">
-            <label class="form-label">Your Rate ($/hr)</label>
-            <input class="form-input" id="psw-rate" type="number" value="19.00" step="0.50" oninput="calcProfit()">
-          </div>
-          <div class="form-group" style="display:none;">
-            <label class="form-label">Client Rate ($/hr)</label>
-            <input class="form-input" id="client-rate" type="number" value="22.00" step="0.50" oninput="calcProfit()">
-          </div>
-        </div>
-
-        <!-- PROFIT PREVIEW -->
-        <div class="profit-preview" style="grid-template-columns:1fr;">
-          <div class="profit-card">
-            <div class="profit-card-label">PSW Pay</div>
-            <div class="profit-card-value" id="psw-pay">$152</div>
-          </div>
-          <div class="profit-card" style="display:none;">
-            <div class="profit-card-label">Invoice Amount</div>
-            <div class="profit-card-value" id="invoice-amt">$176</div>
-          </div>
-          <div class="profit-card highlight" style="display:none;">
-            <div class="profit-card-label">Your Profit</div>
-            <div class="profit-card-value" id="profit-amt">$24</div>
-          </div>
-        </div>
-      </div>
-
-      <hr class="form-divider">
-
-      <!-- VISIT NOTES -->
-      <div class="form-section">
-        <div class="form-section-title">Visit Notes</div>
-        <div class="form-grid full">
-          <div class="form-group">
-            <label class="form-label">What was completed during this visit? <span class="req">*</span></label>
-            <textarea class="form-textarea" id="psw-notes" placeholder="e.g. Completed morning routine, prepared breakfast, assisted with medication, 30 min walk in the garden..."></textarea>
-          </div>
-          <div class="form-group">
-            <label class="form-label">Client Mood & Wellbeing</label>
-            <div class="radio-group">
-              <div class="radio-option">
-                <input type="radio" name="mood" id="mood-great" value="Great — very engaged and happy" checked>
-                <label for="mood-great">Great — very engaged and happy</label>
-              </div>
-              <div class="radio-option">
-                <input type="radio" name="mood" id="mood-good" value="Good — normal day">
-                <label for="mood-good">Good — normal day</label>
-              </div>
-              <div class="radio-option">
-                <input type="radio" name="mood" id="mood-okay" value="Okay — a bit quiet">
-                <label for="mood-okay">Okay — a bit quiet</label>
-              </div>
-              <div class="radio-option">
-                <input type="radio" name="mood" id="mood-concern" value="Concerning — see notes below">
-                <label for="mood-concern">Concerning — see notes</label>
-              </div>
+      <div class="form-card-body">
+        <div class="form-section">
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">Your Name <span class="req">*</span></label>
+              <select class="form-select" id="psw-name">
+                <option value="">Select PSW...</option>
+                <option value="Carolina Hermida">Carolina Hermida</option>
+                <option value="Luz Peralta">Luz Peralta</option>
+                <option value="Dorine Biney">Dorine Biney</option>
+                <option value="Renay Wilson">Renay Wilson</option>
+                <option value="Edna Pakiwana">Edna Pakiwana</option>
+                <option value="Phurbu Lhamo">Phurbu Lhamo</option>
+                <option value="Mandeep Kamboj">Mandeep Kamboj</option>
+                <option value="Mellonie Richards">Mellonie Richards</option>
+                <option value="Harvinder Kaur">Harvinder Kaur</option>
+                <option value="Justin Nadres">Justin Nadres</option>
+                <option value="Ashalee Williams">Ashalee Williams</option>
+                <option value="Sandeep Bawa">Sandeep Bawa</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Your Email <span class="req">*</span></label>
+              <input class="form-input" id="psw-email" type="email" placeholder="your@email.com">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Client Name <span class="req">*</span></label>
+              <select class="form-select" id="psw-client">
+                <option value="">Select client...</option>
+                <option value="Rosetta Ferrari">Rosetta Ferrari</option>
+                <option value="Bhangu Amrit">Bhangu Amrit</option>
+                <option value="Priya Singh">Priya Singh</option>
+                <option value="Helia Cordeiro">Helia Cordeiro</option>
+                <option value="Samina Thedlo">Samina Thedlo</option>
+                <option value="Parul Priya">Parul Priya</option>
+                <option value="Kim Phung">Kim Phung</option>
+                <option value="Emmanuel Sagolili">Emmanuel Sagolili</option>
+                <option value="Blake Heald">Blake Heald</option>
+                <option value="Rick Vardzel">Rick Vardzel</option>
+                <option value="Roman Pinto">Roman Pinto</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Date of Visit <span class="req">*</span></label>
+              <input class="form-input" id="psw-date" type="date">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Visit Type</label>
+              <select class="form-select" id="psw-visit-type">
+                <option>Morning Routine</option>
+                <option>Evening Routine</option>
+                <option>Full Day</option>
+                <option>Overnight</option>
+                <option>Companion Visit</option>
+              </select>
             </div>
           </div>
-          <div class="form-group">
-            <label class="form-label">Any Incidents or Follow-up Needed?</label>
-            <textarea class="form-textarea" id="psw-incidents" placeholder="Leave blank if none. Otherwise describe any falls, medication issues, or items needing follow-up..." style="min-height:80px;"></textarea>
+        </div>
+        <div class="form-divider"></div>
+        <div class="form-section">
+          <div class="form-section-title">Time Tracking</div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">Time In <span class="req">*</span></label>
+              <input class="form-input" id="psw-time-in" type="time" value="09:00" oninput="calcHours()">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Time Out <span class="req">*</span></label>
+              <input class="form-input" id="psw-time-out" type="time" value="17:00" oninput="calcHours()">
+            </div>
+          </div>
+          <div class="hours-calc">
+            <div><div class="hours-label">Hours Worked</div><div class="hours-sub">Auto-calculated</div></div>
+            <div style="text-align:right;"><div class="hours-value" id="hours-display">8.0</div><div class="hours-unit">hrs</div></div>
+          </div>
+          <div class="pay-preview">
+            <div><div class="pay-label">Your Pay This Visit</div><div class="pay-value" id="psw-pay">$152</div></div>
+          </div>
+          <input type="hidden" id="psw-rate" value="19">
+          <input type="hidden" id="client-rate" value="22">
+        </div>
+        <div class="form-divider"></div>
+        <div class="form-section">
+          <div class="form-section-title">Visit Notes</div>
+          <div class="form-grid full">
+            <div class="form-group">
+              <label class="form-label">What was completed during this visit? <span class="req">*</span></label>
+              <textarea class="form-textarea" id="psw-notes" placeholder="e.g. Completed morning routine, prepared breakfast, assisted with medication, 30 min walk in the garden..."></textarea>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Client Mood and Wellbeing</label>
+              <div class="radio-group">
+                <div class="radio-option"><input type="radio" name="mood" id="mood-great" value="Great — very engaged and happy" checked><label for="mood-great">Great — very engaged and happy</label></div>
+                <div class="radio-option"><input type="radio" name="mood" id="mood-good" value="Good — normal day"><label for="mood-good">Good — normal day</label></div>
+                <div class="radio-option"><input type="radio" name="mood" id="mood-okay" value="Okay — a bit quiet"><label for="mood-okay">Okay — a bit quiet</label></div>
+                <div class="radio-option"><input type="radio" name="mood" id="mood-concern" value="Concerning — see notes"><label for="mood-concern">Concerning — see notes</label></div>
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Any Incidents or Follow-up Needed?</label>
+              <textarea class="form-textarea" id="psw-incidents" placeholder="Leave blank if none. Describe any falls, medication issues, or items needing follow-up..." style="min-height:70px;"></textarea>
+            </div>
           </div>
         </div>
       </div>
-
-    </div>
-    <div class="form-footer">
-      <div class="form-note">
-        <span>&#10003;</span> Hours auto-calculated &nbsp;&middot;&nbsp;
-        <span>&#10003;</span> Logged to Google Sheets &nbsp;&middot;&nbsp;
-        <span>&#10003;</span> Added to monthly billing
+      <div class="form-footer">
+        <div class="form-note"><span>✓</span> Hours auto-calculated &nbsp;·&nbsp; <span>✓</span> Saved to dashboard &nbsp;·&nbsp; <span>✓</span> Lance notified</div>
+        <button class="form-submit" id="submitVisitBtn" onclick="submitVisit()"><span>Submit Visit Log</span><span>→</span></button>
       </div>
-      <button class="form-submit" onclick="submitPSW()">
-        <span>Submit Visit Log</span>
-        <span>&rarr;</span>
-      </button>
     </div>
   </div>
+
+  <!-- TAB 2 — CHECKLIST -->
+  <div class="tab-content" id="content-check">
+    <div class="eyebrow"><div class="eyebrow-line"></div><div class="eyebrow-text">Daily Activity Report</div></div>
+    <div class="page-title">Daily <em>Checklist</em></div>
+    <div class="page-sub">Check off each task completed. Add notes on anything needing attention. Saves with your visit log when you submit.</div>
+    <div class="form-card">
+      <div class="form-card-header">
+        <div class="form-card-title">Activity Report</div>
+        <div class="form-card-badge" id="checkCount">0 tasks done</div>
+      </div>
+      <div class="form-card-body">
+        <div class="cl-group">
+          <div class="cl-group-title">Personal Care</div>
+          <div class="cl-items">
+            <div class="cl-item" onclick="toggleCheck(this)"><input type="checkbox" id="c1"><label for="c1">Morning AM care</label></div>
+            <div class="cl-item" onclick="toggleCheck(this)"><input type="checkbox" id="c2"><label for="c2">Afternoon PM care</label></div>
+            <div class="cl-item" onclick="toggleCheck(this)"><input type="checkbox" id="c3"><label for="c3">Bedtime care</label></div>
+            <div class="cl-item" onclick="toggleCheck(this)"><input type="checkbox" id="c4"><label for="c4">Sponge bath</label></div>
+            <div class="cl-item" onclick="toggleCheck(this)"><input type="checkbox" id="c5"><label for="c5">Assist tub or shower</label></div>
+            <div class="cl-item" onclick="toggleCheck(this)"><input type="checkbox" id="c6"><label for="c6">Hair care — shampoo and comb</label></div>
+            <div class="cl-item" onclick="toggleCheck(this)"><input type="checkbox" id="c7"><label for="c7">Care of hands and nails</label></div>
+            <div class="cl-item" onclick="toggleCheck(this)"><input type="checkbox" id="c8"><label for="c8">Oral hygiene</label></div>
+            <div class="cl-item" onclick="toggleCheck(this)"><input type="checkbox" id="c9"><label for="c9">Skin care — lotions and creams</label></div>
+          </div>
+        </div>
+        <div class="cl-group">
+          <div class="cl-group-title">Elimination</div>
+          <div class="cl-items">
+            <div class="cl-item" onclick="toggleCheck(this)"><input type="checkbox" id="c10"><label for="c10">Transfer to toilet or commode</label></div>
+            <div class="cl-item" onclick="toggleCheck(this)"><input type="checkbox" id="c11"><label for="c11">Empty and clean commode</label></div>
+            <div class="cl-item" onclick="toggleCheck(this)"><input type="checkbox" id="c12"><label for="c12">Change incontinence products</label></div>
+            <div class="cl-item" onclick="toggleCheck(this)"><input type="checkbox" id="c13"><label for="c13">Change or clean catheter bag</label></div>
+          </div>
+        </div>
+        <div class="cl-group">
+          <div class="cl-group-title">Physical Activities</div>
+          <div class="cl-items">
+            <div class="cl-item" onclick="toggleCheck(this)"><input type="checkbox" id="c14"><label for="c14">Assist to walk</label></div>
+            <div class="cl-item" onclick="toggleCheck(this)"><input type="checkbox" id="c15"><label for="c15">Assist in and out of bed or chair</label></div>
+            <div class="cl-item" onclick="toggleCheck(this)"><input type="checkbox" id="c16"><label for="c16">Apply elastic stockings</label></div>
+            <div class="cl-item" onclick="toggleCheck(this)"><input type="checkbox" id="c17"><label for="c17">Medication reminder</label></div>
+            <div class="cl-item" onclick="toggleCheck(this)"><input type="checkbox" id="c18"><label for="c18">Reinforce exercise</label></div>
+          </div>
+        </div>
+        <div class="cl-group">
+          <div class="cl-group-title">Nutrition</div>
+          <div class="cl-items">
+            <div class="cl-item" onclick="toggleCheck(this)"><input type="checkbox" id="c19"><label for="c19">Breakfast prepared</label></div>
+            <div class="cl-item" onclick="toggleCheck(this)"><input type="checkbox" id="c20"><label for="c20">Lunch prepared</label></div>
+            <div class="cl-item" onclick="toggleCheck(this)"><input type="checkbox" id="c21"><label for="c21">Dinner prepared</label></div>
+            <div class="cl-item" onclick="toggleCheck(this)"><input type="checkbox" id="c22"><label for="c22">Assist with feeding</label></div>
+            <div class="cl-item" onclick="toggleCheck(this)"><input type="checkbox" id="c23"><label for="c23">Clean up kitchen and dishes</label></div>
+          </div>
+        </div>
+        <div class="cl-group">
+          <div class="cl-group-title">Light Housekeeping</div>
+          <div class="cl-items">
+            <div class="cl-item" onclick="toggleCheck(this)"><input type="checkbox" id="c24"><label for="c24">Vacuum or sweep living areas</label></div>
+            <div class="cl-item" onclick="toggleCheck(this)"><input type="checkbox" id="c25"><label for="c25">Bathroom sanitation</label></div>
+            <div class="cl-item" onclick="toggleCheck(this)"><input type="checkbox" id="c26"><label for="c26">Damp mop floors</label></div>
+            <div class="cl-item" onclick="toggleCheck(this)"><input type="checkbox" id="c27"><label for="c27">General laundry</label></div>
+            <div class="cl-item" onclick="toggleCheck(this)"><input type="checkbox" id="c28"><label for="c28">Change bed linen</label></div>
+            <div class="cl-item" onclick="toggleCheck(this)"><input type="checkbox" id="c29"><label for="c29">Make bed</label></div>
+            <div class="cl-item" onclick="toggleCheck(this)"><input type="checkbox" id="c30"><label for="c30">Collect garbage</label></div>
+          </div>
+        </div>
+        <div class="cl-summary">
+          <span>Tasks completed today</span>
+          <span class="cl-summary-val" id="checkTotal">0</span>
+        </div>
+        <div class="cl-notes-section">
+          <div class="cl-notes-title">Checklist Notes</div>
+          <div class="cl-note-group">
+            <label class="form-label">Observations — anything to flag from today's tasks</label>
+            <textarea class="form-textarea" id="check-notes" placeholder="e.g. Client refused shower today, seemed more tired than usual. Noticed slight redness on left heel — no wound, monitoring..." style="min-height:90px;"></textarea>
+          </div>
+          <div class="cl-note-group">
+            <label class="form-label">Supply needs or follow-up for Lance</label>
+            <textarea class="form-textarea" id="check-supplies" placeholder="e.g. Running low on incontinence pads. Gloves size M almost out. Client asked about a physiotherapy referral..." style="min-height:70px;"></textarea>
+          </div>
+        </div>
+      </div>
+      <div class="form-footer">
+        <div class="form-note"><span>✓</span> Saves with your visit log &nbsp;·&nbsp; <span>✓</span> Goes to dashboard</div>
+        <button class="form-submit" onclick="showTab('visit')"><span>Go to Visit Log</span><span>→</span></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 3 — PRIVATE MESSAGES -->
+  <div class="tab-content" id="content-notes">
+    <div class="eyebrow"><div class="eyebrow-line"></div><div class="eyebrow-text">Private Messages</div></div>
+    <div class="page-title">Messages with <em>Lance</em></div>
+    <div class="page-sub">Private. Only you and Lance can see this. Use it for anything — supplies, concerns, complaints, questions. No paper trail.</div>
+
+    <div id="notesPinGate">
+      <div class="pin-gate">
+        <div class="pin-gate-icon">🔒</div>
+        <div class="pin-gate-title">Private Access</div>
+        <div class="pin-gate-sub">Select your name then enter your 4-digit PIN. Only you and Lance can see your messages.</div>
+        <select class="pin-who" id="pinWhoSelect" onchange="pinReset()">
+          <option value="">Select your name...</option>
+          <option value="Carolina Hermida">Carolina Hermida</option>
+          <option value="Luz Peralta">Luz Peralta</option>
+          <option value="Dorine Biney">Dorine Biney</option>
+          <option value="Renay Wilson">Renay Wilson</option>
+          <option value="Edna Pakiwana">Edna Pakiwana</option>
+          <option value="Phurbu Lhamo">Phurbu Lhamo</option>
+          <option value="Mandeep Kamboj">Mandeep Kamboj</option>
+          <option value="Mellonie Richards">Mellonie Richards</option>
+          <option value="Harvinder Kaur">Harvinder Kaur</option>
+          <option value="Justin Nadres">Justin Nadres</option>
+          <option value="Ashalee Williams">Ashalee Williams</option>
+          <option value="Sandeep Bawa">Sandeep Bawa</option>
+        </select>
+        <div class="pin-dots">
+          <div class="pin-dot" id="pd0"></div>
+          <div class="pin-dot" id="pd1"></div>
+          <div class="pin-dot" id="pd2"></div>
+          <div class="pin-dot" id="pd3"></div>
+        </div>
+        <div class="pin-pad">
+          <button class="pin-btn" onclick="pinPress('1')">1</button>
+          <button class="pin-btn" onclick="pinPress('2')">2</button>
+          <button class="pin-btn" onclick="pinPress('3')">3</button>
+          <button class="pin-btn" onclick="pinPress('4')">4</button>
+          <button class="pin-btn" onclick="pinPress('5')">5</button>
+          <button class="pin-btn" onclick="pinPress('6')">6</button>
+          <button class="pin-btn" onclick="pinPress('7')">7</button>
+          <button class="pin-btn" onclick="pinPress('8')">8</button>
+          <button class="pin-btn" onclick="pinPress('9')">9</button>
+          <button class="pin-btn empty"></button>
+          <button class="pin-btn" onclick="pinPress('0')">0</button>
+          <button class="pin-btn del" onclick="pinDel()">⌫</button>
+        </div>
+        <div class="pin-err" id="pinErr">Wrong PIN. Try again.</div>
+      </div>
+    </div>
+
+    <div id="notesThread" style="display:none;">
+      <div class="notes-thread" id="threadMsgs">
+        <div class="notes-loading">Loading messages...</div>
+      </div>
+      <div class="note-compose">
+        <div class="note-compose-head">
+          <span>Message Lance</span>
+          <span class="note-signed-as" id="signedInAs"></span>
+        </div>
+        <div class="note-compose-body">
+          <textarea class="note-ta" id="noteTa" placeholder="Supplies needed, concerns, questions, anything. Private between you and Lance only..."></textarea>
+          <div class="note-send-row">
+            <button class="note-signout" onclick="signOutNotes()">Sign out</button>
+            <button class="note-send" id="noteSendBtn" onclick="sendNote()"><span>Send</span><span>→</span></button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
 </div>
 
 <script>
-  // Set today's date as default
-  document.getElementById('psw-date').valueAsDate = new Date();
+const R = 'https://proximity-agent-production.up.railway.app';
+document.getElementById('psw-date').valueAsDate = new Date();
 
-  // CALCULATE HOURS
-  function calcHours() {
-    const timeIn = document.getElementById('psw-time-in').value;
-    const timeOut = document.getElementById('psw-time-out').value;
-    if (timeIn && timeOut) {
-      const [inH, inM] = timeIn.split(':').map(Number);
-      const [outH, outM] = timeOut.split(':').map(Number);
-      let mins = (outH * 60 + outM) - (inH * 60 + inM);
-      if (mins < 0) mins += 24 * 60;
-      const hours = mins / 60;
-      document.getElementById('hours-display').textContent = hours.toFixed(1);
-      calcProfit();
-    }
-  }
+function showTab(t) {
+  document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('on'));
+  document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('on'));
+  document.getElementById('content-' + t).classList.add('on');
+  document.getElementById('tab-' + t).classList.add('on');
+  window.scrollTo(0, 0);
+}
 
-  // CALCULATE PROFIT
-  function calcProfit() {
-    const hours = parseFloat(document.getElementById('hours-display').textContent) || 0;
-    const pswRate = parseFloat(document.getElementById('psw-rate').value) || 0;
-    const clientRate = parseFloat(document.getElementById('client-rate').value) || 0;
-    const pswPay = hours * pswRate;
-    const invoiceAmt = hours * clientRate;
-    const profit = invoiceAmt - pswPay;
-    document.getElementById('psw-pay').textContent = '$' + Math.round(pswPay);
-    document.getElementById('invoice-amt').textContent = '$' + Math.round(invoiceAmt);
-    document.getElementById('profit-amt').textContent = '$' + Math.round(profit);
-  }
+function calcHours() {
+  const tin = document.getElementById('psw-time-in').value;
+  const tout = document.getElementById('psw-time-out').value;
+  if (!tin || !tout) return;
+  const [ih, im] = tin.split(':').map(Number);
+  const [oh, om] = tout.split(':').map(Number);
+  let mins = (oh * 60 + om) - (ih * 60 + im);
+  if (mins < 0) mins += 24 * 60;
+  const hrs = mins / 60;
+  document.getElementById('hours-display').textContent = hrs.toFixed(1);
+  const rate = parseFloat(document.getElementById('psw-rate').value) || 19;
+  document.getElementById('psw-pay').textContent = '$' + Math.round(hrs * rate);
+}
+calcHours();
 
-  const PSW_WEBHOOK = 'https://proximity-agent-production.up.railway.app/webhook/visit';
-
-  async function submitPSW() {
-    const pswName = document.getElementById('psw-name').value;
-    const pswEmail = document.getElementById('psw-email').value.trim();
-    const clientName = document.getElementById('psw-client').value;
-    const visitDate = document.getElementById('psw-date').value;
-    const notes = document.getElementById('psw-notes').value.trim();
-
-    if (!pswName || !pswEmail || !clientName || !visitDate || !notes) {
-      alert('Please fill in PSW Name, Email, Client Name, Date, and Visit Notes.');
-      return;
-    }
-
-    const mood = document.querySelector('input[name="mood"]:checked');
-    const incidentNotes = document.getElementById('psw-incidents').value.trim();
-
-    const nameParts = clientName.trim().split(/\s+/);
-    const client_first_name = nameParts.shift() || '';
-    const client_last_name = nameParts.join(' ');
-
-    const payload = {
-      operator_id: 'proximity-care',
-      psw_name: pswName,
-      psw_email: pswEmail,
-      client_first_name,
-      client_last_name,
-      visit_date: visitDate,
-      time_in: document.getElementById('psw-time-in').value,
-      time_out: document.getElementById('psw-time-out').value,
-      tasks_completed: notes,
-      client_mood: mood ? mood.value : '',
-      incident_reported: incidentNotes.length > 0,
-      incident_notes: incidentNotes
-    };
-
-    try {
-      const response = await fetch(PSW_WEBHOOK, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-      console.log('PSW webhook response:', response.status);
-    } catch(e) {
-      console.log('PSW webhook error:', e);
-      try {
-        await fetch(PSW_WEBHOOK, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
-          mode: 'no-cors'
-        });
-      } catch(e2) {
-        console.log('Fallback error:', e2);
-      }
-    }
-
-    showSuccess(pswName);
-  }
-
-  function showSuccess(name) {
-    document.getElementById('successMessage').textContent = 'Visit log for ' + name + ' submitted. Hours calculated and added to monthly billing.';
-    document.getElementById('successOverlay').classList.add('show');
-  }
-
-  function closeSuccess() {
-    document.getElementById('successOverlay').classList.remove('show');
-    document.querySelectorAll('input[type="text"], textarea').forEach(el => el.value = '');
-    document.querySelectorAll('select').forEach(el => el.selectedIndex = 0);
-    document.querySelectorAll('input[type="radio"]').forEach(el => el.checked = false);
-    document.getElementById('mood-great').checked = true;
-    document.getElementById('psw-date').valueAsDate = new Date();
-    document.getElementById('psw-time-in').value = '09:00';
-    document.getElementById('psw-time-out').value = '17:00';
-    calcHours();
-  }
-
-  // Init calculations
-  calcHours();
-
-  // Custom cursor
-  if(window.matchMedia('(pointer: fine)').matches){
-    var cur=document.getElementById('cur');
-    var ring=document.getElementById('curRing');
-    document.addEventListener('mousemove',function(e){
-      cur.style.left=e.clientX+'px';cur.style.top=e.clientY+'px';
-      ring.style.left=e.clientX+'px';ring.style.top=e.clientY+'px';
-    });
-  }
-
-  // Particle background
-  var canvas=document.getElementById('bgCanvas');
-  var ctx=canvas.getContext('2d');
-  canvas.width=window.innerWidth;
-  canvas.height=window.innerHeight;
-  var pts=Array.from({length:50},function(){return{
-    x:Math.random()*canvas.width,
-    y:Math.random()*canvas.height,
-    vx:(Math.random()-.5)*.3,
-    vy:(Math.random()-.5)*.3,
-    r:Math.random()*1.5+.5
-  };});
-  function drawBg(){
-    ctx.clearRect(0,0,canvas.width,canvas.height);
-    pts.forEach(function(p){
-      p.x+=p.vx;p.y+=p.vy;
-      if(p.x<0||p.x>canvas.width)p.vx*=-1;
-      if(p.y<0||p.y>canvas.height)p.vy*=-1;
-      ctx.beginPath();
-      ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
-      ctx.fillStyle='rgba(61,122,138,0.6)';
-      ctx.fill();
-    });
-    requestAnimationFrame(drawBg);
-  }
-  drawBg();
-  window.addEventListener('resize',function(){
-    canvas.width=window.innerWidth;
-    canvas.height=window.innerHeight;
+function toggleCheck(el) {
+  const cb = el.querySelector('input[type="checkbox"]');
+  cb.checked = !cb.checked;
+  el.classList.toggle('done', cb.checked);
+  updateCheckCount();
+}
+function updateCheckCount() {
+  const done = document.querySelectorAll('.cl-item input:checked').length;
+  const total = document.querySelectorAll('.cl-item input').length;
+  document.getElementById('checkCount').textContent = done + ' of ' + total + ' done';
+  document.getElementById('checkTotal').textContent = done;
+}
+function getChecklistData() {
+  const completed = [];
+  document.querySelectorAll('.cl-item').forEach(el => {
+    if (el.querySelector('input').checked) completed.push(el.querySelector('label').textContent.trim());
   });
+  const obs = (document.getElementById('check-notes').value || '').trim();
+  const supplies = (document.getElementById('check-supplies').value || '').trim();
+  let extra = '';
+  if (completed.length) extra += '\n\nChecklist completed: ' + completed.join(', ');
+  if (obs) extra += '\n\nObservations: ' + obs;
+  if (supplies) extra += '\n\nSupply needs: ' + supplies;
+  return extra;
+}
+
+async function submitVisit() {
+  const pswName = document.getElementById('psw-name').value;
+  const pswEmail = document.getElementById('psw-email').value.trim();
+  const clientName = document.getElementById('psw-client').value;
+  const visitDate = document.getElementById('psw-date').value;
+  const notes = document.getElementById('psw-notes').value.trim();
+  if (!pswName || !pswEmail || !clientName || !visitDate || !notes) {
+    alert('Please fill in PSW Name, Email, Client, Date, and Visit Notes.');
+    return;
+  }
+  const btn = document.getElementById('submitVisitBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span>Submitting...</span>';
+  const mood = document.querySelector('input[name="mood"]:checked');
+  const incidents = document.getElementById('psw-incidents').value.trim();
+  const nameParts = clientName.trim().split(/\s+/);
+  const payload = {
+    operator_id: 'proximity-care',
+    psw_name: pswName,
+    psw_email: pswEmail,
+    client_first_name: nameParts[0] || '',
+    client_last_name: nameParts.slice(1).join(' '),
+    visit_date: visitDate,
+    time_in: document.getElementById('psw-time-in').value,
+    time_out: document.getElementById('psw-time-out').value,
+    tasks_completed: notes + getChecklistData(),
+    client_mood: mood ? mood.value : '',
+    incident_reported: incidents.length > 0,
+    incident_notes: incidents
+  };
+  try {
+    await fetch(R + '/webhook/visit', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+  } catch(e) {
+    try { await fetch(R + '/webhook/visit', { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) }); } catch(e2) {}
+  }
+  document.getElementById('successMsg').textContent = 'Visit for ' + clientName + ' logged. Lance has been notified.';
+  document.getElementById('successOverlay').classList.add('show');
+  btn.disabled = false;
+  btn.innerHTML = '<span>Submit Visit Log</span><span>→</span>';
+}
+
+function closeSuccess() {
+  document.getElementById('successOverlay').classList.remove('show');
+  document.getElementById('psw-name').selectedIndex = 0;
+  document.getElementById('psw-email').value = '';
+  document.getElementById('psw-client').selectedIndex = 0;
+  document.getElementById('psw-date').valueAsDate = new Date();
+  document.getElementById('psw-visit-type').selectedIndex = 0;
+  document.getElementById('psw-time-in').value = '09:00';
+  document.getElementById('psw-time-out').value = '17:00';
+  document.getElementById('psw-notes').value = '';
+  document.getElementById('psw-incidents').value = '';
+  document.getElementById('mood-great').checked = true;
+  document.getElementById('check-notes').value = '';
+  document.getElementById('check-supplies').value = '';
+  document.querySelectorAll('.cl-item').forEach(el => { el.querySelector('input').checked = false; el.classList.remove('done'); });
+  updateCheckCount();
+  calcHours();
+  showTab('visit');
+}
+
+// ── PIN GATE ──
+let pinVal = '', currentPsw = '', currentPin = '';
+
+function pinReset() { pinVal = ''; updatePinDots(); }
+function pinPress(d) {
+  const who = document.getElementById('pinWhoSelect').value;
+  if (!who) { alert('Please select your name first.'); return; }
+  if (pinVal.length >= 4) return;
+  pinVal += d;
+  updatePinDots();
+  if (pinVal.length === 4) setTimeout(verifyPin, 180);
+}
+function pinDel() { pinVal = pinVal.slice(0, -1); updatePinDots(); }
+function updatePinDots() {
+  for (let i = 0; i < 4; i++) document.getElementById('pd' + i).classList.toggle('filled', i < pinVal.length);
+}
+async function verifyPin() {
+  const who = document.getElementById('pinWhoSelect').value;
+  try {
+    const r = await fetch(R + '/psw/notes/' + encodeURIComponent(who) + '?pin=' + pinVal);
+    if (r.status === 401) { showPinErr(); return; }
+    const d = await r.json();
+    currentPsw = who;
+    currentPin = pinVal;
+    document.getElementById('notesPinGate').style.display = 'none';
+    document.getElementById('notesThread').style.display = 'block';
+    document.getElementById('signedInAs').textContent = who.split(' ')[0];
+    renderThread(d.notes || []);
+  } catch(e) { showPinErr(); }
+}
+function showPinErr() {
+  document.getElementById('pinErr').classList.add('show');
+  pinVal = '';
+  updatePinDots();
+  setTimeout(() => document.getElementById('pinErr').classList.remove('show'), 2500);
+}
+function signOutNotes() {
+  currentPsw = ''; currentPin = ''; pinVal = '';
+  document.getElementById('pinWhoSelect').selectedIndex = 0;
+  updatePinDots();
+  document.getElementById('notesPinGate').style.display = 'block';
+  document.getElementById('notesThread').style.display = 'none';
+  document.getElementById('threadMsgs').innerHTML = '<div class="notes-loading">Loading messages...</div>';
+}
+function renderThread(notes) {
+  const el = document.getElementById('threadMsgs');
+  if (!notes.length) { el.innerHTML = '<div class="notes-empty">No messages yet. Send Lance a message below.</div>'; return; }
+  el.innerHTML = notes.map(n => {
+    const isLance = n.sender === 'lance';
+    const time = new Date(n.created_at).toLocaleDateString('en-CA', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+    return '<div class="note-msg ' + (isLance ? 'from-lance' : 'from-psw') + '">' +
+      '<div class="note-sender">' + (isLance ? 'Lance' : currentPsw.split(' ')[0]) + '</div>' +
+      '<div class="note-msg-text">' + n.message.replace(/</g,'&lt;').replace(/>/g,'&gt;') + '</div>' +
+      '<div class="note-msg-time">' + time + '</div></div>';
+  }).join('');
+  el.scrollTop = el.scrollHeight;
+}
+async function sendNote() {
+  const ta = document.getElementById('noteTa');
+  const msg = ta.value.trim();
+  if (!msg || !currentPsw) return;
+  const btn = document.getElementById('noteSendBtn');
+  btn.disabled = true;
+  try {
+    const r = await fetch(R + '/psw/note', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ psw_name: currentPsw, sender: 'psw', message: msg, pin: currentPin })
+    });
+    const d = await r.json();
+    if (d.success) {
+      ta.value = '';
+      const r2 = await fetch(R + '/psw/notes/' + encodeURIComponent(currentPsw) + '?pin=' + currentPin);
+      const d2 = await r2.json();
+      renderThread(d2.notes || []);
+    }
+  } catch(e) {}
+  btn.disabled = false;
+}
+
+// ── CURSOR ──
+if (window.matchMedia('(pointer: fine)').matches) {
+  const cur = document.getElementById('cur'), ring = document.getElementById('curRing');
+  document.addEventListener('mousemove', e => { cur.style.left=e.clientX+'px'; cur.style.top=e.clientY+'px'; ring.style.left=e.clientX+'px'; ring.style.top=e.clientY+'px'; });
+}
+
+// ── CANVAS ──
+const canvas = document.getElementById('bgCanvas'), ctx = canvas.getContext('2d');
+function resizeCanvas() { canvas.width=window.innerWidth; canvas.height=window.innerHeight; }
+resizeCanvas();
+window.addEventListener('resize', resizeCanvas);
+const pts = Array.from({length:50},()=>({x:Math.random()*window.innerWidth,y:Math.random()*window.innerHeight,vx:(Math.random()-.5)*.3,vy:(Math.random()-.5)*.3,r:Math.random()*1.5+.5}));
+function drawBg(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  pts.forEach(p=>{p.x+=p.vx;p.y+=p.vy;if(p.x<0||p.x>canvas.width)p.vx*=-1;if(p.y<0||p.y>canvas.height)p.vy*=-1;ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fillStyle='rgba(61,122,138,0.5)';ctx.fill();});
+  requestAnimationFrame(drawBg);
+}
+drawBg();
 </script>
 </body>
 </html>
