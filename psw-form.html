@@ -93,6 +93,20 @@ input[type="date"],input[type="time"],input[type="email"]{font-size:16px;}
 .cl-notes-title{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--teal);margin-bottom:14px;}
 .cl-note-group{display:flex;flex-direction:column;gap:5px;margin-bottom:12px;}
 .cl-note-group:last-child{margin-bottom:0;}
+/* FILE UPLOAD */
+.file-upload-area{margin-top:10px;border:1px dashed var(--border);border-radius:8px;padding:12px 14px;display:flex;align-items:center;gap:12px;cursor:pointer;transition:all 0.2s;background:var(--bg);}
+.file-upload-area:hover{border-color:var(--teal-l);background:var(--teal-p);}
+.file-upload-icon{font-size:18px;flex-shrink:0;}
+.file-upload-text{font-size:10px;color:var(--muted);letter-spacing:0.5px;line-height:1.6;}
+.file-upload-text strong{color:var(--teal-l);display:block;margin-bottom:2px;}
+#fileInput{display:none;}
+.file-preview{display:none;margin-top:8px;background:var(--teal-p);border:1px solid var(--border-h);border-radius:8px;padding:10px 13px;font-size:11px;color:var(--teal-l);display:flex;align-items:center;justify-content:space-between;gap:8px;}
+.file-preview.show{display:flex;}
+.file-preview-name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.file-preview-remove{background:none;border:none;color:var(--muted);cursor:pointer;font-size:14px;padding:0;min-height:auto;flex-shrink:0;}
+.file-preview-remove:hover{color:var(--red);}
+.upload-progress{display:none;margin-top:8px;font-size:10px;color:var(--teal-l);letter-spacing:1px;}
+.upload-progress.show{display:block;}
 /* PIN GATE */
 .pin-gate{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:32px 20px;text-align:center;}
 .pin-gate-icon{font-size:30px;margin-bottom:12px;}
@@ -456,6 +470,16 @@ input[type="date"],input[type="time"],input[type="email"]{font-size:16px;}
         </div>
         <div class="note-compose-body">
           <textarea class="note-ta" id="noteTa" placeholder="Supplies needed, concerns, questions, anything. Private between you and Lance only..."></textarea>
+          <div class="file-upload-area" onclick="document.getElementById('fileInput').click()">
+            <div class="file-upload-icon">📎</div>
+            <div class="file-upload-text"><strong>Attach a file or photo</strong>CPR cert, incident photo, supply receipt, anything</div>
+          </div>
+          <input type="file" id="fileInput" accept="image/*,.pdf,.doc,.docx" onchange="handleFileSelect(this)">
+          <div class="file-preview" id="filePreview">
+            <span class="file-preview-name" id="filePreviewName"></span>
+            <button class="file-preview-remove" onclick="clearFile()">✕</button>
+          </div>
+          <div class="upload-progress" id="uploadProgress">Uploading...</div>
           <div class="note-send-row">
             <button class="note-signout" onclick="signOutNotes()">Sign out</button>
             <button class="note-send" id="noteSendBtn" onclick="sendNote()"><span>Send</span><span>→</span></button>
@@ -581,6 +605,41 @@ function closeSuccess() {
   showTab('visit');
 }
 
+// ── FILE UPLOAD ──
+let selectedFile = null;
+
+function handleFileSelect(input) {
+  const file = input.files[0];
+  if (!file) return;
+  selectedFile = file;
+  document.getElementById('filePreviewName').textContent = file.name;
+  document.getElementById('filePreview').classList.add('show');
+}
+
+function clearFile() {
+  selectedFile = null;
+  document.getElementById('fileInput').value = '';
+  document.getElementById('filePreview').classList.remove('show');
+  document.getElementById('filePreviewName').textContent = '';
+}
+
+async function uploadFile(psw_name, pin) {
+  if (!selectedFile) return null;
+  const progress = document.getElementById('uploadProgress');
+  progress.classList.add('show');
+  try {
+    const formData = new FormData();
+    formData.append('file', selectedFile);
+    formData.append('psw_name', psw_name);
+    formData.append('pin', pin);
+    const r = await fetch(R + '/psw/upload', { method: 'POST', body: formData });
+    const d = await r.json();
+    progress.classList.remove('show');
+    if (d.success) { clearFile(); return d.file_url; }
+    return null;
+  } catch(e) { progress.classList.remove('show'); return null; }
+}
+
 // ── PIN GATE ──
 let pinVal = '', currentPsw = '', currentPin = '';
 
@@ -641,14 +700,19 @@ function renderThread(notes) {
 async function sendNote() {
   const ta = document.getElementById('noteTa');
   const msg = ta.value.trim();
-  if (!msg || !currentPsw) return;
+  if (!msg && !selectedFile) return;
+  if (!currentPsw) return;
   const btn = document.getElementById('noteSendBtn');
   btn.disabled = true;
   try {
+    let fileUrl = null;
+    if (selectedFile) fileUrl = await uploadFile(currentPsw, currentPin);
+    const messageText = msg + (fileUrl ? '\n\n[File attached: ' + fileUrl + ']' : '');
+    if (!messageText.trim()) { btn.disabled = false; return; }
     const r = await fetch(R + '/psw/note', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ psw_name: currentPsw, sender: 'psw', message: msg, pin: currentPin })
+      body: JSON.stringify({ psw_name: currentPsw, sender: 'psw', message: messageText, pin: currentPin })
     });
     const d = await r.json();
     if (d.success) {
