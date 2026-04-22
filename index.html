@@ -391,9 +391,11 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
 .about-stat{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);padding:20px;text-align:center;}
 .about-stat-val{font-family:var(--serif);font-size:36px;color:var(--blue2);font-weight:300;margin-bottom:4px;}
 .about-stat-lbl{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.3);}
-.about-badge{position:absolute;bottom:-16px;right:-16px;background:var(--blue);color:var(--white);padding:14px 18px;text-align:center;}
+.about-badge{position:absolute;bottom:-16px;right:-16px;background:var(--blue);color:var(--white);padding:14px 18px;text-align:center;z-index:2;}
 .about-badge-num{font-family:var(--serif);font-size:28px;font-weight:300;line-height:1;display:block;}
 .about-badge-lbl{font-size:9px;letter-spacing:2px;text-transform:uppercase;font-weight:600;display:block;margin-top:2px;}
+/* Mobile stats strip — hidden on desktop, shown below 900px */
+.about-mobile-stats{display:none;}
 
 /* ══════════════════════════════════════
    CTA
@@ -611,9 +613,11 @@ footer{background:var(--navy);padding:60px 48px 32px;border-top:1px solid rgba(2
   .test-grid{min-height:340px;}
 
   /* About */
-  .about-grid{grid-template-columns:1fr;gap:40px;}
-  .about-badge{bottom:-12px;right:0;}
-  .about-img-wrap{max-width:480px;}
+  .about-grid{grid-template-columns:1fr;gap:32px;}
+  .about-img-wrap{display:none;}
+  .about-mobile-stats{display:grid;grid-template-columns:repeat(2,1fr);gap:2px;margin-top:8px;}
+  .about-mobile-stats .about-stat-val{font-size:28px;}
+  .about-mobile-stats .about-stat-lbl{font-size:9px;}
 
   /* CTA */
   .cta-badges{grid-template-columns:1fr 1fr;gap:12px;}
@@ -660,9 +664,7 @@ footer{background:var(--navy);padding:60px 48px 32px;border-top:1px solid rgba(2
   .test-grid{min-height:400px;}
   .test-quote{font-size:16px;}
 
-  /* About stats readable */
-  .about-stats{grid-template-columns:1fr 1fr;}
-  .about-stat-val{font-size:28px;}
+  /* About stats — img-wrap hidden at 900px, mobile strip handles this */
 }
 
 /* ── SMALL PHONE 480px (Samsung, older iPhones) ── */
@@ -677,16 +679,13 @@ footer{background:var(--navy);padding:60px 48px 32px;border-top:1px solid rgba(2
   .cta-badges{grid-template-columns:1fr;}
   .care-types{grid-template-columns:1fr 1fr;}
   .plan-compare{grid-template-columns:1fr;}
-  .about-stats{grid-template-columns:1fr 1fr;}
 
   /* Testimonials */
   .test-grid{min-height:440px;}
   .test-quote{font-size:15px;line-height:1.6;}
   .test-card{padding:28px 20px;}
 
-  /* About badge — don't let it bleed */
-  .about-badge{position:static;display:inline-block;margin-top:16px;}
-  .about-img-wrap{overflow:visible;}
+  /* About — img-wrap already hidden at 900px, nothing extra needed */
 
   /* Trust items wrap cleanly */
   .hero-trust{flex-direction:column;gap:12px;}
@@ -775,9 +774,6 @@ footer{background:var(--navy);padding:60px 48px 32px;border-top:1px solid rgba(2
 @media(max-width:480px){
   /* City stays 3 col — names are short enough */
   .care-types-city{grid-template-columns:repeat(3,1fr);}
-
-  /* About image frame hidden — saves huge vertical space */
-  .about-img-wrap{display:none;}
 
   /* Stat strip slightly smaller */
   .hms-val{font-size:18px;}
@@ -1118,6 +1114,13 @@ footer{background:var(--navy);padding:60px 48px 32px;border-top:1px solid rgba(2
         </div>
       </div>
       <div class="about-badge"><span class="about-badge-num">5★</span><span class="about-badge-lbl">Every Review</span></div>
+    </div>
+    <!-- Mobile-only stats strip — shown below 900px when frame is hidden -->
+    <div class="about-mobile-stats">
+      <div class="about-stat"><div class="about-stat-val">100%</div><div class="about-stat-lbl">5-star reviews</div></div>
+      <div class="about-stat"><div class="about-stat-val">6hrs</div><div class="about-stat-lbl">Free to start</div></div>
+      <div class="about-stat"><div class="about-stat-val">Same</div><div class="about-stat-lbl">PSW every visit</div></div>
+      <div class="about-stat"><div class="about-stat-val">24/7</div><div class="about-stat-lbl">Direct access</div></div>
     </div>
   </div>
 </section>
@@ -1529,6 +1532,7 @@ CRITICAL: Output the block the moment you have the 3rd answer. Never ask for con
 var chatHistory = [{role:'assistant', content:"Hi there. I'm here to help you find the right care. Who are you looking for care for?"}];
 var chatProcessing = false;
 var intakeData = {};
+var chatConfig = { system: null }; // use object so reassignment works inside closures
 
 var CHIP_SETS = {
   initial:   ['A parent','My spouse','Myself','Someone else'],
@@ -1734,16 +1738,17 @@ async function submitBooking(selectedDate, selectedTime) {
   chatHistory.push({role:'assistant', content: confirmMsg});
 
   // Re-enable input so they can keep asking questions
+  chatProcessing = false; // make sure not stuck
   var inp = document.getElementById('cinp');
   if(inp) {
     inp.disabled = false;
     inp.placeholder = 'Ask any follow-up questions...';
-    inp.focus();
+    setTimeout(function(){ inp.focus(); }, 100);
   }
   showChips(CHIP_SETS.post_book);
 
-  // Switch system prompt to full knowledge mode — no more intake flow
-  window.CHAT_SYSTEM = 'You are the care assistant for Proximity Care Services, run by Lance Salazar in Peel Region, Ontario. This person has already booked their assessment. Your job is to answer any follow-up questions they have — about services, pricing, what to expect, how caregivers are matched, what the first visit looks like, anything. Be warm, specific, and conversational. Never use bullet points. Pricing: Essential $800–$1,600/month (4–20hrs/week), Standard $1,600–$3,000/month (20–40hrs/week), Full-Time $3,000–$5,000/month (40–80hrs/week). First 6 hours free. Same PSW every visit. Service area: Mississauga, Brampton, Caledon. Phone: 647-382-8047.';
+  // Switch to open Q&A mode — no more intake flow
+  chatConfig.system = 'You are the care assistant for Proximity Care Services, run by Lance Salazar in Peel Region, Ontario. This person has already booked their free assessment with Lance. Your job is to answer any follow-up questions warmly and helpfully — about services, pricing, what to expect, how caregivers are matched, what the first visit looks like, dementia care, overnight care, anything. Be warm, specific, and conversational. Never use bullet points. Pricing: Essential $800–$1,600/month (4–20hrs/week), Standard $1,600–$3,000/month (20–40hrs/week), Full-Time $3,000–$5,000/month (40–80hrs/week). First 6 hours free. Same PSW every visit. Service area: Mississauga, Brampton, Caledon. Phone: 647-382-8047.';
 }
 
 /* ── UI HELPERS ── */
@@ -1812,7 +1817,7 @@ async function sendChat(text) {
       body:JSON.stringify({
         operator_id:'proximity-care',
         messages: chatHistory,
-        system_override: CHAT_SYSTEM
+        system_override: chatConfig.system || CHAT_SYSTEM
       })
     });
     var data = await response.json();
