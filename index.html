@@ -909,8 +909,10 @@ window.addEventListener('load',function(){
   const ctx=c.getContext('2d');
   let w,h,particles=[];
   function resize(){
-    w=c.width=c.offsetWidth;
-    h=c.height=c.offsetHeight;
+    const hero=document.querySelector('.hero');
+    const rect=hero.getBoundingClientRect();
+    w=c.width=Math.round(rect.width)||window.innerWidth;
+    h=c.height=Math.round(rect.height)||window.innerHeight;
     particles=Array.from({length:70},()=>({
       x:Math.random()*w,y:Math.random()*h,
       vx:(Math.random()-.5)*.3,vy:(Math.random()-.5)*.3,
@@ -918,7 +920,10 @@ window.addEventListener('load',function(){
       life:Math.random()*200,max:200+Math.random()*200
     }));
   }
-  resize();
+  requestAnimationFrame(function(){
+    resize();
+    draw();
+  });
   window.addEventListener('resize',resize);
   function draw(){
     ctx.clearRect(0,0,w,h);
@@ -942,7 +947,6 @@ window.addEventListener('load',function(){
     });
     requestAnimationFrame(draw);
   }
-  draw();
 });
 
 /* ── HERO CARD 3D TILT ── */
