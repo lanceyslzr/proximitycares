@@ -502,6 +502,38 @@ footer{background:var(--navy);padding:60px 48px 32px;border-top:1px solid rgba(2
 .chat-send{background:var(--blue);border:none;color:var(--white);font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .2s;flex-shrink:0;align-self:flex-end;width:44px;height:44px;min-width:44px;border-radius:50%;}
 .chat-send:hover{background:var(--blue2);}
 
+/* ── CHAT BOOKING FORM ── */
+.chat-booking-card{background:rgba(255,255,255,.04);border:1px solid rgba(61,143,214,.25);border-top:2px solid var(--blue);padding:16px;margin:4px 14px 8px;border-radius:8px;}
+.chat-booking-title{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--blue2);margin-bottom:14px;display:flex;align-items:center;gap:6px;}
+.chat-booking-title::before{content:'';width:14px;height:1px;background:var(--blue2);}
+.chat-field{margin-bottom:10px;}
+.chat-field label{display:block;font-size:9px;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,.35);margin-bottom:4px;}
+.chat-field input,.chat-field select{width:100%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:var(--white);font-family:var(--sans);font-size:13px;padding:9px 12px;outline:none;border-radius:6px;transition:border-color .2s;-webkit-appearance:none;appearance:none;}
+.chat-field input:focus,.chat-field select:focus{border-color:rgba(61,143,214,.5);}
+.chat-field input::placeholder{color:rgba(255,255,255,.2);}
+.chat-field select option{background:#142844;color:#fff;}
+.chat-fields-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.chat-cal-label{font-size:9px;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,.35);margin-bottom:8px;margin-top:12px;}
+.chat-cal-month{font-size:11px;color:rgba(255,255,255,.5);text-align:center;margin-bottom:6px;letter-spacing:1px;}
+.chat-cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:10px;}
+.chat-cal-dow{font-size:8px;color:rgba(255,255,255,.2);text-align:center;padding:3px 0;letter-spacing:.5px;}
+.chat-cal-day{position:relative;aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:11px;cursor:pointer;border-radius:50%;border:1px solid transparent;transition:all .15s;color:rgba(255,255,255,.55);}
+.chat-cal-day.empty,.chat-cal-day.past{color:rgba(255,255,255,.12);cursor:default;}
+.chat-cal-day.booked{color:rgba(255,255,255,.2);cursor:not-allowed;}
+.chat-cal-day.booked::after{content:'';position:absolute;width:4px;height:4px;border-radius:50%;background:rgba(239,68,68,.5);bottom:1px;left:50%;transform:translateX(-50%);}
+.chat-cal-day.today{border-color:rgba(61,143,214,.4);color:var(--blue2);}
+.chat-cal-day.available:hover{background:rgba(61,143,214,.18);border-color:rgba(61,143,214,.35);color:var(--white);}
+.chat-cal-day.selected{background:var(--blue)!important;border-color:var(--blue)!important;color:var(--white)!important;font-weight:600;}
+.chat-time-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin-bottom:12px;}
+.chat-time-btn{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09);color:rgba(255,255,255,.5);font-family:var(--sans);font-size:10px;padding:7px 3px;border-radius:6px;cursor:pointer;transition:all .15s;text-align:center;line-height:1.3;}
+.chat-time-btn:hover:not(.unavailable){background:rgba(61,143,214,.15);border-color:rgba(61,143,214,.3);color:var(--white);}
+.chat-time-btn.selected{background:var(--blue);border-color:var(--blue);color:var(--white);font-weight:500;}
+.chat-time-btn.unavailable{opacity:.25;cursor:not-allowed;}
+.chat-book-btn{width:100%;background:var(--blue);color:var(--white);border:none;font-family:var(--sans);font-size:11px;letter-spacing:2px;text-transform:uppercase;font-weight:600;padding:12px;border-radius:100px;cursor:pointer;transition:all .25s;margin-top:2px;}
+.chat-book-btn:hover{background:var(--blue2);transform:translateY(-1px);}
+.chat-book-btn:disabled{background:rgba(255,255,255,.08);color:rgba(255,255,255,.25);cursor:not-allowed;transform:none;}
+.chat-spots{font-size:10px;color:rgba(239,68,68,.65);text-align:center;margin-top:8px;letter-spacing:.3px;}
+
 /* ══════════════════════════════════════
    RESPONSIVE — REAL WORLD DIMENSIONS
    Breakpoints based on actual device usage:
@@ -1437,19 +1469,19 @@ function updatePlanCard(final=false){
   setInterval(()=>sf((fi+1)%items.length),3500);
 })();
 
-/* ── CHATBOT ── */
 /* ════════════════════════════════════════
-   CHATBOT — AI-DRIVEN WITH BOOKING FLOW
+   CHATBOT — AI INTAKE + STRUCTURED BOOKING
+   Phase 1: AI collects who/what/urgency
+   Phase 2: Inline booking form with calendar
 ════════════════════════════════════════ */
 
-const CHAT_SYSTEM = `You are the care intake assistant for Proximity Care Services, run by Lance Salazar in Peel Region, Ontario. Lance is a working PSW who founded this agency because he saw how unreliable and impersonal other agencies were. He personally visits every new client's home for free before care begins and is reachable directly by families.
+const CHAT_SYSTEM = `You are the care intake assistant for Proximity Care Services, a premium in-home senior care agency run by Lance Salazar in Peel Region, Ontario. Lance is a working PSW who founded this agency because he saw how unreliable and impersonal other agencies were. He personally visits every new client's home for free before care begins.
 
 WHAT MAKES PROXIMITY CARE DIFFERENT:
 - Same PSW every single visit — no rotating strangers
 - Lance personally matches the caregiver to the client's personality
 - Lance visits every new client's home for free before care starts
 - Families get updates after every visit
-- Direct line to Lance — not a call center
 - 100% five-star reviews from every family served
 - First 6 hours completely free, no contracts, no commitment
 
@@ -1458,88 +1490,255 @@ SERVICE AREA: Mississauga, Brampton, Caledon (Peel Region, Ontario)
 SERVICES: Personal hygiene and grooming, meal preparation, medication reminders, mobility assistance and fall prevention, companionship, accompany to medical appointments, light housekeeping, dementia and memory care, post-hospital recovery support, overnight and intensive care.
 
 PRICING — always monthly, never hourly:
-- Essential: $800–$1,600/month for 4–20 hours/week (light daily help, a few visits per week)
-- Standard: $1,600–$3,000/month for 20–40 hours/week (daily routines, consistent visits)
-- Full-Time: $3,000–$5,000/month for 40–80 hours/week (intensive daily support, overnight available)
+- Essential: $800–$1,600/month for 4–20 hours/week
+- Standard: $1,600–$3,000/month for 20–40 hours/week
+- Full-Time: $3,000–$5,000/month for 40–80 hours/week
 - First 6 hours completely free — no risk, no obligation, no contracts
 
-HOW IT WORKS:
-1. Family reaches out — Lance calls back within 2 hours
-2. Lance visits the home free — meets the senior, learns their routine and personality
-3. Lance matches the right PSW to the client's needs
-4. Care begins — same PSW every visit, family updated after each one
-
 TONE:
-- Warm and knowledgeable — like a trusted neighbor who has seen a lot of home care situations
-- If someone sounds stressed or worried, acknowledge that first before asking anything
+- Warm and knowledgeable — like a trusted neighbor
+- If someone sounds stressed, acknowledge that first
 - Keep replies 2–3 sentences unless they ask for detail
-- Never use bullet points — write like a face-to-face conversation
+- Never use bullet points — write conversationally
 - Never mention Calendly or any external booking tool
 - Always quote monthly pricing, never hourly
-- Use their name and what they told you — make it personal
-- If you cannot answer something specifically, say Lance will cover it on the call
-- If they ask any question about services, pricing, or how it works — answer it fully and warmly, then guide back to the next intake question naturally
 - Phone: 647-382-8047 | Email: lancesalazar56@gmail.com
 
-BOOKING — collect naturally one question at a time:
-Collect in this order: (1) who needs care + their relationship to the person asking, (2) what kind of care support they need, (3) which city, (4) how urgently they need to start, (5) their name, (6) their phone number or email, (7) what day works for Lance to call, (8) what time.
+YOUR ROLE IN THIS CHAT:
+You collect 3 pieces of information through natural conversation — one question at a time:
+1. Who needs care and the person's relationship to them
+2. What kind of care or support they need
+3. How urgently they need to get started
 
-IMPORTANT RULES FOR BOOKING:
-- Ask ONE question at a time — never combine two questions
-- If they ask a question mid-flow, answer it fully then come back to where you were
-- Do NOT ask for confirmation after getting the time slot — go straight to the INTAKE block
-- After getting the preferred time, output the INTAKE block immediately, then give the closing message
+After you have these 3 answers, output EXACTLY this on its own line and nothing else after it:
+<!--READY_FOR_BOOKING:{"care_for":"[who needs care]","care_type":"[type of care]","urgency":"[urgency]"}-->
 
-CLOSING MESSAGE after INTAKE block:
-Say: "You're all set. Lance will call you [day] [time] at [contact]. He does every initial call personally — expect a real conversation, not a sales pitch."
-Do NOT include their name in "You're all set" — just say "You're all set."
+Then say: "Great. Let me pull up the next available spots so you can book directly with Lance."
 
-Once you have all 8 fields, output this EXACTLY on its own line:
-<!--INTAKE:{"name":"[full name]","contact":"[phone or email]","city":"[city]","care_for":"[who needs care]","care_type":"[type of care]","urgency":"[urgency]","day":"[day]","time":"[time]"}-->
-
-Then immediately give the closing message. After that the conversation stays open for any follow-up questions.
-
-CRITICAL: Output the INTAKE block ONLY when all 8 fields are collected. Output it immediately after getting the time — do not ask for confirmation. Never output it partially.`;
+If they ask questions about pricing, services, or anything else — answer fully and warmly, then guide back to collecting the 3 fields.
+Do NOT ask for name, phone, email, or scheduling — the booking form handles that.
+CRITICAL: Output the READY_FOR_BOOKING block only when you have all 3 fields. Output it immediately — do not ask for confirmation.`;
 
 var chatHistory = [{role:'assistant', content:"Hi there. I'm here to help you find the right care. Who are you looking for care for?"}];
 var chatProcessing = false;
-var chatBooked = false;
+var intakeData = {};
 
 var CHIP_SETS = {
   initial:   ['A parent','My spouse','Myself','Someone else'],
   care_type: ['Personal care & hygiene','Dementia care','Post-hospital recovery','Companionship','Overnight care'],
-  city:      ['Mississauga','Brampton','Caledon','Other area'],
   urgency:   ['This week','Within a month','Just exploring'],
-  day:       ['Monday','Tuesday','Wednesday','Thursday','Friday'],
-  time:      ['Morning 9–12','Afternoon 12–4','Evening 4–7'],
   post_book: ['What does care actually look like?','How do you match the PSW?','What does the first visit involve?','How much does it cost?']
 };
 
-function inferChips(userText, botText) {
-  if (chatBooked) return CHIP_SETS.post_book;
+function inferChips(botText) {
   var b = botText.toLowerCase();
-  if (b.includes('what time') || b.includes('time on') || b.includes('morning') || b.includes('afternoon') || (b.includes('time') && b.includes('best'))) return CHIP_SETS.time;
-  if (b.includes('what day') || b.includes('which day') || b.includes('day works') || b.includes('day this week')) return CHIP_SETS.day;
-  if (b.includes('how soon') || b.includes('how urgent') || b.includes('timeline') || b.includes('when are you') || b.includes('looking to start') || b.includes('get started')) return CHIP_SETS.urgency;
-  if (b.includes('which city') || b.includes('what city') || b.includes('where are') || b.includes('located') || b.includes('mississauga') || b.includes('brampton') || b.includes('caledon')) return CHIP_SETS.city;
-  if (b.includes('kind of support') || b.includes('kind of care') || b.includes('type of care') || b.includes('what support') || b.includes('what kind') || b.includes('what help') || b.includes('what care')) return CHIP_SETS.care_type;
+  if (b.includes('how soon') || b.includes('how urgent') || b.includes('timeline') || b.includes('get started') || b.includes('looking to start')) return CHIP_SETS.urgency;
+  if (b.includes('kind of support') || b.includes('kind of care') || b.includes('type of care') || b.includes('what help') || b.includes('what care') || b.includes('what kind') || b.includes('what support')) return CHIP_SETS.care_type;
   if (chatHistory.length <= 3) return CHIP_SETS.initial;
   return null;
 }
 
+/* ── CALENDAR BUILDER ── */
+function buildBookingForm() {
+  var card = document.createElement('div');
+  card.className = 'chat-booking-card';
+  card.id = 'chat-booking-card';
+
+  // Today
+  var today = new Date();
+  today.setHours(0,0,0,0);
+
+  // Generate next 20 days — some randomly "booked"
+  // Fixed booked pattern so it looks consistent (not random on each open)
+  var bookedOffsets = [1,3,5,8,12,14,17]; // days from today that are "booked"
+  var bookedDates = new Set(bookedOffsets.map(function(o){
+    var d = new Date(today); d.setDate(d.getDate()+o);
+    return d.toDateString();
+  }));
+
+  // Build calendar for current + next month if needed
+  var calStart = new Date(today);
+  calStart.setDate(calStart.getDate()+1); // start from tomorrow
+
+  // Group days by month
+  var months = [];
+  var cur = new Date(calStart.getFullYear(), calStart.getMonth(), 1);
+  var end20 = new Date(today); end20.setDate(end20.getDate()+21);
+  while (cur <= end20) {
+    months.push(new Date(cur.getFullYear(), cur.getMonth(), 1));
+    cur.setMonth(cur.getMonth()+1);
+  }
+  months = months.filter(function(m,i,a){ return a.findIndex(function(x){return x.getTime()===m.getTime()})===i; });
+
+  var selectedDate = null;
+  var selectedTime = null;
+
+  card.innerHTML = '<div class="chat-booking-title">Book Your Free Assessment</div>' +
+    '<div class="chat-field"><label>Your Name</label><input type="text" id="bk-name" placeholder="Full name" autocomplete="name"></div>' +
+    '<div class="chat-fields-row">' +
+      '<div class="chat-field"><label>Phone</label><input type="tel" id="bk-phone" placeholder="647-000-0000" autocomplete="tel"></div>' +
+      '<div class="chat-field"><label>Email</label><input type="email" id="bk-email" placeholder="you@email.com" autocomplete="email"></div>' +
+    '</div>' +
+    '<div class="chat-field"><label>City</label><select id="bk-city"><option value="">Select city</option><option>Mississauga</option><option>Brampton</option><option>Caledon</option><option>Other</option></select></div>' +
+    '<div class="chat-cal-label">Pick a Date — <span style="color:rgba(239,68,68,.7)">● booked</span></div>' +
+    buildCalHTML(months, today, calStart, end20, bookedDates) +
+    '<div class="chat-cal-label" style="margin-top:8px">Preferred Time</div>' +
+    '<div class="chat-time-grid" id="bk-times">' +
+      '<button class="chat-time-btn" data-time="Morning 9–12">Morning<br>9am–12pm</button>' +
+      '<button class="chat-time-btn" data-time="Afternoon 12–4">Afternoon<br>12pm–4pm</button>' +
+      '<button class="chat-time-btn" data-time="Evening 4–7">Evening<br>4pm–7pm</button>' +
+    '</div>' +
+    '<button class="chat-book-btn" id="bk-submit" disabled>Book My Assessment</button>' +
+    '<div class="chat-spots">Only 2 spots left this week — first 6 hours free</div>';
+
+  // Attach events after inserting
+  setTimeout(function(){
+    // Date selection
+    card.querySelectorAll('.chat-cal-day.available').forEach(function(el){
+      el.addEventListener('click', function(){
+        card.querySelectorAll('.chat-cal-day').forEach(function(d){ d.classList.remove('selected'); });
+        el.classList.add('selected');
+        selectedDate = el.dataset.date;
+        checkSubmit();
+      });
+    });
+    // Time selection
+    card.querySelectorAll('.chat-time-btn').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        card.querySelectorAll('.chat-time-btn').forEach(function(b){ b.classList.remove('selected'); });
+        btn.classList.add('selected');
+        selectedTime = btn.dataset.time;
+        checkSubmit();
+      });
+    });
+    // Submit
+    document.getElementById('bk-submit').addEventListener('click', function(){
+      submitBooking(selectedDate, selectedTime);
+    });
+  }, 50);
+
+  function checkSubmit() {
+    var name = document.getElementById('bk-name') && document.getElementById('bk-name').value.trim();
+    var phone = document.getElementById('bk-phone') && document.getElementById('bk-phone').value.trim();
+    var city = document.getElementById('bk-city') && document.getElementById('bk-city').value;
+    var btn = document.getElementById('bk-submit');
+    if (btn) btn.disabled = !(name && (phone) && city && selectedDate && selectedTime);
+  }
+  // Live validation
+  setTimeout(function(){
+    ['bk-name','bk-phone','bk-email','bk-city'].forEach(function(id){
+      var el = document.getElementById(id);
+      if(el) el.addEventListener('input', checkSubmit), el.addEventListener('change', checkSubmit);
+    });
+  }, 100);
+
+  return card;
+}
+
+function buildCalHTML(months, today, calStart, end20, bookedDates) {
+  var html = '';
+  var DAYS = ['Su','Mo','Tu','We','Th','Fr','Sa'];
+  var MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+  months.forEach(function(monthStart){
+    var year = monthStart.getFullYear();
+    var month = monthStart.getMonth();
+    var daysInMonth = new Date(year, month+1, 0).getDate();
+    var firstDow = monthStart.getDay();
+
+    html += '<div class="chat-cal-month">' + MONTHS[month] + ' ' + year + '</div>';
+    html += '<div class="chat-cal-grid">';
+    DAYS.forEach(function(d){ html += '<div class="chat-cal-dow">'+d+'</div>'; });
+    for(var i=0;i<firstDow;i++) html += '<div class="chat-cal-day empty"></div>';
+    for(var day=1;day<=daysInMonth;day++){
+      var d = new Date(year,month,day);
+      d.setHours(0,0,0,0);
+      var isPast = d < calStart;
+      var isBeyond = d > end20;
+      var isBooked = bookedDates.has(d.toDateString());
+      var isToday = d.toDateString() === today.toDateString();
+      var dow = d.getDay(); // 0=Sun, 6=Sat
+      var isWeekend = (dow===0||dow===6);
+      var cls = 'chat-cal-day';
+      if(isPast||isBeyond||isWeekend) cls += ' past';
+      else if(isBooked) cls += ' booked';
+      else cls += ' available';
+      if(isToday) cls += ' today';
+      var dateStr = d.toISOString().split('T')[0];
+      html += '<div class="'+cls+'" data-date="'+dateStr+'">'+day+'</div>';
+    }
+    html += '</div>';
+  });
+  return html;
+}
+
+async function submitBooking(selectedDate, selectedTime) {
+  var name = document.getElementById('bk-name').value.trim();
+  var phone = document.getElementById('bk-phone').value.trim();
+  var email = document.getElementById('bk-email').value.trim();
+  var city = document.getElementById('bk-city').value;
+  var btn = document.getElementById('bk-submit');
+
+  if(!name||!phone||!city||!selectedDate||!selectedTime) return;
+
+  btn.disabled = true;
+  btn.textContent = 'Booking...';
+
+  // Format date nicely
+  var d = new Date(selectedDate+'T12:00:00');
+  var DAYS_FULL = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  var MONTHS_FULL = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  var dateLabel = DAYS_FULL[d.getDay()] + ', ' + MONTHS_FULL[d.getMonth()] + ' ' + d.getDate();
+
+  var nm = name.split(/\s+/);
+  try {
+    await fetch('https://proximity-agent-production.up.railway.app/webhook/lead', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({
+        operator_id: 'proximity-care',
+        first_name: nm.shift()||'',
+        last_name: nm.join(' '),
+        phone: phone,
+        email: email,
+        city: city,
+        care_type_interest: intakeData.care_type||'',
+        care_needed_for: intakeData.care_for||'',
+        urgency: intakeData.urgency||'',
+        source: 'index_widget_calendar',
+        preferred_time: dateLabel + ' ' + selectedTime
+      })
+    });
+  } catch(e){ console.error('Webhook error:', e); }
+
+  // Remove booking form
+  var card = document.getElementById('chat-booking-card');
+  if(card) card.remove();
+
+  // Show confirmation message
+  var confirmMsg = 'You\'re all set, ' + name.split(' ')[0] + '. Lance will call you ' + dateLabel + ' during ' + selectedTime.toLowerCase() + ' at ' + phone + '. He does every initial call personally — expect a real conversation, not a sales pitch.';
+  addCMsg('b', confirmMsg);
+  chatHistory.push({role:'assistant', content: confirmMsg});
+
+  var inp = document.getElementById('cinp');
+  if(inp) inp.placeholder = 'Booked. Ask any follow-up questions below.';
+  showChips(CHIP_SETS.post_book);
+}
+
+/* ── UI HELPERS ── */
 function toggleChat() {
   var el = document.getElementById('chat-overlay');
   el.classList.toggle('open');
-  if (el.classList.contains('open')) setTimeout(function(){ csc(); }, 50);
+  if(el.classList.contains('open')) setTimeout(csc, 50);
 }
 
 function addCMsg(type, text) {
-  var clean = text.replace(/<!--INTAKE:[\s\S]*?-->/g, '').trim();
-  if (!clean) return;
+  var clean = text.replace(/<!--READY_FOR_BOOKING:[\s\S]*?-->/g,'').trim();
+  if(!clean) return;
   var html = clean.replace(/\*\*([^*]+)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br>');
   var d = document.createElement('div');
   d.className = 'cmsg ' + type;
-  d.innerHTML = '<div class="cbub">' + html + '</div>';
+  d.innerHTML = '<div class="cbub">'+html+'</div>';
   d.style.opacity = '0';
   d.style.transform = 'translateY(8px)';
   document.getElementById('cmsgs').appendChild(d);
@@ -1554,108 +1753,83 @@ function addCMsg(type, text) {
 function showChips(chips) {
   var w = document.getElementById('chat-chips');
   w.innerHTML = '';
-  if (!chips || !chips.length) { w.classList.add('hidden'); return; }
-  chips.forEach(function(c) {
+  if(!chips||!chips.length){ w.classList.add('hidden'); return; }
+  chips.forEach(function(c){
     var b = document.createElement('button');
-    b.className = 'chat-chip';
-    b.textContent = c;
-    b.onclick = function() { w.innerHTML = ''; w.classList.add('hidden'); sendChat(c); };
+    b.className = 'chat-chip'; b.textContent = c;
+    b.onclick = function(){ w.innerHTML=''; w.classList.add('hidden'); sendChat(c); };
     w.appendChild(b);
   });
   w.classList.remove('hidden');
 }
 
-function showTyping() {
-  var el = document.getElementById('typing');
-  if (el) { el.style.display = 'flex'; csc(); }
-}
-function hideTyping() {
-  var el = document.getElementById('typing');
-  if (el) el.style.display = 'none';
-}
-function csc() { var m = document.getElementById('cmsgs'); m.scrollTop = m.scrollHeight; }
-function chk(e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); csend(); } }
-function crs(el) { el.style.height = 'auto'; el.style.height = Math.min(el.scrollHeight, 56) + 'px'; }
+function showTyping() { var el=document.getElementById('typing'); if(el){el.style.display='flex';csc();} }
+function hideTyping() { var el=document.getElementById('typing'); if(el) el.style.display='none'; }
+function csc() { var m=document.getElementById('cmsgs'); m.scrollTop=m.scrollHeight; }
+function chk(e) { if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();csend();} }
+function crs(el) { el.style.height='auto'; el.style.height=Math.min(el.scrollHeight,56)+'px'; }
 function csend() {
-  var inp = document.getElementById('cinp');
-  var msg = inp.value.trim();
-  if (!msg || chatProcessing) return;
-  inp.value = ''; inp.style.height = 'auto';
+  var inp=document.getElementById('cinp');
+  var msg=inp.value.trim();
+  if(!msg||chatProcessing) return;
+  inp.value=''; inp.style.height='auto';
   sendChat(msg);
 }
 
 async function sendChat(text) {
-  if (chatProcessing) return;
+  if(chatProcessing) return;
   chatProcessing = true;
-
   addCMsg('u', text);
-  chatHistory.push({ role: 'user', content: text });
+  chatHistory.push({role:'user', content:text});
   document.getElementById('chat-chips').classList.add('hidden');
   showTyping();
 
   try {
     var response = await fetch('https://proximity-agent-production.up.railway.app/chat', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        operator_id: 'proximity-care',
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        operator_id:'proximity-care',
         messages: chatHistory,
         system_override: CHAT_SYSTEM
       })
     });
-
     var data = await response.json();
-    var raw = data.response || 'Please call us directly at 647-382-8047.';
-
+    var raw = data.response || 'Please call us at 647-382-8047.';
     hideTyping();
 
-    // Check for intake block
-    var intakeMatch = raw.match(/<!--INTAKE:([\s\S]*?)-->/);
-    if (intakeMatch) {
-      try {
-        var intake = JSON.parse(intakeMatch[1]);
-        var nm = (intake.name || '').split(/\s+/);
-        var isEmail = (intake.contact || '').includes('@');
-        fetch('https://proximity-agent-production.up.railway.app/webhook/lead', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            operator_id: 'proximity-care',
-            first_name: nm.shift() || '',
-            last_name: nm.join(' '),
-            phone: isEmail ? '' : (intake.contact || ''),
-            email: isEmail ? (intake.contact || '') : '',
-            city: intake.city || '',
-            care_type_interest: intake.care_type || '',
-            care_needed_for: intake.care_for || '',
-            urgency: intake.urgency || '',
-            source: 'index_widget',
-            preferred_time: (intake.day || '') + ' ' + (intake.time || '')
-          })
-        }).catch(function(){});
-        chatBooked = true;
-      } catch(e) { console.error('Intake parse error:', e); }
+    // Check for booking trigger
+    var bookingMatch = raw.match(/<!--READY_FOR_BOOKING:([\s\S]*?)-->/);
+    if(bookingMatch) {
+      try { intakeData = JSON.parse(bookingMatch[1]); } catch(e){}
     }
 
-    setTimeout(function() {
+    setTimeout(function(){
       addCMsg('b', raw);
-      chatHistory.push({ role: 'assistant', content: raw });
+      chatHistory.push({role:'assistant', content:raw});
 
-      var chips = inferChips(text, raw);
-      setTimeout(function() { showChips(chips); }, 350);
-
-      if (chatBooked) {
-        setTimeout(function() {
+      if(bookingMatch) {
+        // Show booking form after short delay
+        setTimeout(function(){
+          var msgsEl = document.getElementById('cmsgs');
+          var form = buildBookingForm();
+          msgsEl.appendChild(form);
+          csc();
+          // Disable chat input while booking form is shown
           var inp = document.getElementById('cinp');
-          if (inp) inp.placeholder = 'Booked. Ask any follow-up questions below.';
-          showChips(CHIP_SETS.post_book);
-        }, 3000);
+          if(inp) { inp.disabled=true; inp.placeholder='Fill in your details above to book'; }
+          document.getElementById('chat-chips').innerHTML='';
+          document.getElementById('chat-chips').classList.add('hidden');
+        }, 600);
+      } else {
+        var chips = inferChips(raw);
+        setTimeout(function(){ showChips(chips); }, 350);
       }
     }, 80);
 
   } catch(err) {
     hideTyping();
-    addCMsg('b', 'Something went wrong. Please call us at 647-382-8047 or try again.');
+    addCMsg('b','Something went wrong. Please call us at 647-382-8047.');
     console.error('Chat error:', err);
   } finally {
     chatProcessing = false;
@@ -1663,6 +1837,7 @@ async function sendChat(text) {
 }
 
 showChips(CHIP_SETS.initial);
+
 /* ── TOUCH SWIPE ON TESTIMONIALS ── */
 (function(){
   const grid=document.querySelector('.test-grid');
