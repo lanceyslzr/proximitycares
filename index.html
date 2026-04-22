@@ -468,6 +468,14 @@ footer{background:var(--navy);padding:60px 48px 32px;border-top:1px solid rgba(2
 #chat-overlay{position:fixed;bottom:92px;right:28px;z-index:1000;width:min(340px,calc(100vw - 32px));background:var(--navy2);border:1px solid rgba(255,255,255,.08);border-top:2px solid var(--blue);border-radius:12px;box-shadow:0 24px 80px rgba(0,0,0,.4);display:none;flex-direction:column;max-height:min(460px,80vh);overflow:hidden;}
 #chat-overlay.open{display:flex;}
 .chat-head{padding:14px 18px;border-bottom:1px solid rgba(255,255,255,.06);display:flex;align-items:center;gap:10px;border-radius:12px 12px 0 0;}
+.chat-close{margin-left:auto;background:none;border:none;color:rgba(255,255,255,.35);font-size:16px;cursor:pointer;padding:4px 6px;line-height:1;transition:color .2s;flex-shrink:0;}
+.chat-close:hover{color:rgba(255,255,255,.7);}
+.chat-status-dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:#22c55e;margin-right:5px;vertical-align:middle;}
+.typing-indicator{display:none;align-self:flex-start;padding:10px 14px;gap:5px;flex-direction:row;align-items:center;}
+#typing{display:none;align-self:flex-start;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.07);border-radius:2px 10px 10px 10px;padding:10px 14px;margin:0 14px 0;flex-shrink:0;}
+#typing span{display:inline-block;width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,.4);margin:0 2px;animation:tyb 1.2s infinite;}
+#typing span:nth-child(2){animation-delay:.2s;}
+#typing span:nth-child(3){animation-delay:.4s;}
 .chat-av{width:32px;height:32px;border-radius:50%;background:rgba(46,125,209,.15);border:1px solid rgba(46,125,209,.3);display:flex;align-items:center;justify-content:center;font-family:var(--serif);font-style:italic;font-size:13px;color:var(--blue2);}
 .chat-info h4{font-size:12px;color:var(--white);font-weight:400;}
 .chat-info p{font-size:10px;color:rgba(255,255,255,.35);}
@@ -1162,11 +1170,22 @@ footer{background:var(--navy);padding:60px 48px 32px;border-top:1px solid rgba(2
   <div id="chat-bubble" onclick="toggleChat()"><svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg></div>
 </div>
 <div id="chat-overlay">
-  <div class="chat-head"><div class="chat-av">P</div><div class="chat-info"><h4>Proximity Care</h4><p>Ask me anything about care options</p></div></div>
-  <div class="chat-msgs" id="cmsgs"><div class="cmsg b"><div class="cbub">Hi there. Who are you looking for care for?</div></div></div>
-  <div class="typing-indicator" id="ctyp" style="display:none"><span></span><span></span><span></span></div>
+  <div class="chat-head">
+    <div class="chat-av">P</div>
+    <div class="chat-info"><h4>Proximity Care</h4><p><span class="chat-status-dot"></span>Online — here to help</p></div>
+    <button class="chat-close" onclick="toggleChat()" aria-label="Close">✕</button>
+  </div>
+  <div class="chat-msgs" id="cmsgs">
+    <div class="cmsg b"><div class="cbub">Hi there. I'm here to help you find the right care. Who are you looking for care for?</div></div>
+  </div>
+  <div class="typing-indicator" id="typing" style="display:none"><span></span><span></span><span></span></div>
   <div class="chat-chips" id="chat-chips"></div>
-  <div class="chat-inp-wrap"><textarea class="chat-inp" id="cinp" placeholder="Ask anything..." rows="1" onkeydown="chk(event)" oninput="crs(this)"></textarea><button class="chat-send" onclick="csend()">→</button></div>
+  <div class="chat-inp-wrap">
+    <textarea class="chat-inp" id="cinp" placeholder="Type a message..." rows="1" onkeydown="chk(event)" oninput="crs(this)"></textarea>
+    <button class="chat-send" onclick="csend()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+    </button>
+  </div>
 </div>
 
 <!-- STICKY MOBILE CTA — hidden on desktop -->
@@ -1422,139 +1441,264 @@ function updatePlanCard(final=false){
 })();
 
 /* ── CHATBOT ── */
-var chatStage=0;
-var intake={who:'',careType:'',city:'',urgency:'',name:'',contact:'',day:'',time:''};
-var chatHistory=[{role:'assistant',content:'Hi there. Who are you looking for care for?'}];
-var openChat=false;
-var STAGE_CHIPS=[['A parent','My spouse','Myself','Someone else'],['Personal care','Companionship','Overnight care','Dementia care'],['Mississauga','Brampton','Caledon','Other'],['As soon as possible','Within a month','Just exploring'],null,null,['Monday','Tuesday','Wednesday','Thursday','Friday'],['Morning 9-12','Afternoon 12-4','Evening 4-7']];
-var STAGE_EXPECTED=[['a parent','my spouse','myself','someone else'],['personal care','companionship','overnight care','dementia care'],['mississauga','brampton','caledon','other'],['as soon as possible','within a month','just exploring'],null,null,['monday','tuesday','wednesday','thursday','friday'],['morning 9-12','afternoon 12-4','evening 4-7']];
-var AI_SYSTEM=`You are the AI assistant for Proximity Care Services, a premium in-home senior care agency founded and run by Lance Salazar in Peel Region, Ontario. Lance is a working PSW himself — he started this agency because he saw firsthand how unreliable and impersonal other agencies were. He personally handles every initial assessment and is reachable directly by clients and families.
+/* ════════════════════════════════════════
+   CHATBOT — AI-DRIVEN WITH BOOKING FLOW
+   Claude handles the conversation.
+   We collect data via INTAKE_DATA block.
+   Chips respond intelligently to answers.
+════════════════════════════════════════ */
+
+const CHAT_SYSTEM = `You are the care intake assistant for Proximity Care Services, run by Lance Salazar in Peel Region, Ontario. Lance is a working PSW who founded this agency because he saw how unreliable other agencies were. He personally visits every new client's home for free before care begins.
 
 WHAT MAKES PROXIMITY CARE DIFFERENT:
-- Same PSW every single visit, no strangers, no rotating staff
-- Lance personally matches the caregiver to the client's personality and needs
-- Lance personally visits every new client's home before care begins — free
+- Same PSW every single visit — no rotating strangers
+- Lance personally matches the caregiver to the client's personality
+- Lance visits every new client's home for free before care starts
 - Families get updates after every visit
 - Direct line to Lance — not a call center
 - 100% five-star reviews from every family served
-- First 6 hours completely free, no contracts, no commitment required
-- Locally owned and operated in Peel Region — not a franchise
+- First 6 hours completely free, no contracts, no commitment
 
 SERVICE AREA: Mississauga, Brampton, Caledon (Peel Region, Ontario)
 
-SERVICES PROVIDED:
-- Personal hygiene and grooming (bathing, dressing, oral care)
-- Meal preparation tailored to dietary and medical needs
-- Medication reminders and prompting
-- Mobility assistance, safe transfers, fall prevention
-- Companionship and social engagement
-- Accompany to medical appointments
-- Light housekeeping
-- Dementia and memory care (specialized routines, patient engagement)
-- Post-hospital recovery support
-- Overnight and intensive care
+SERVICES: Personal hygiene and grooming, meal preparation, medication reminders, mobility assistance and fall prevention, companionship, accompany to medical appointments, light housekeeping, dementia and memory care, post-hospital recovery support, overnight and intensive care.
 
-PRICING — always quote monthly, never hourly:
-- Essential Support: $800–$1,600/month for 4–20 hours/week (a few visits per week, light daily help)
-- Standard Care: $1,600–$3,000/month for 20–40 hours/week (daily routines, consistent visits)
-- Full-Time Care: $3,000–$5,000/month for 40–80 hours/week (intensive daily support, overnight available)
-- First 6 hours are completely free — no risk, no obligation
-- No contracts — month to month, cancel anytime
-- Exact pricing is confirmed at the free in-home assessment
+PRICING — always monthly, never hourly:
+- Essential: $800–$1,600/month for 4–20 hours/week (light daily help)
+- Standard: $1,600–$3,000/month for 20–40 hours/week (daily routines)
+- Full-Time: $3,000–$5,000/month for 40–80 hours/week (intensive, overnight available)
+- First 6 hours completely free — no risk, no obligation, no contracts
 
 HOW IT WORKS:
-1. Family reaches out (form, call, or this chat)
-2. Lance personally calls back within 2 hours
-3. Lance visits the home — free — meets the senior, learns their routine and personality
-4. Lance matches the right PSW to the client
-5. Care begins — same PSW every visit, family updated after each one
+1. Family reaches out — Lance calls back within 2 hours
+2. Lance visits the home free — meets the senior, learns their routine
+3. Lance matches the right PSW to the client's personality and needs
+4. Care begins — same PSW every visit, family updated after each one
 
-TONE AND RULES:
-- Sound like a warm, knowledgeable neighbor who has seen a lot of home care situations — not a script
-- Keep responses to 2–3 sentences unless they ask something detailed
-- Use what you know about them from the conversation — their name, who they care for, their city, what kind of care they mentioned
-- When someone mentions pricing, give the right tier based on what they told you about hours or intensity
-- Never mention Calendly, Google Forms, or any external booking tool — booking happens through this chat or the assessment form
-- Never say "hourly rate" — always monthly plans
-- If asked something you cannot answer specifically (like exact scheduling availability), say Lance will cover it on the call — do not guess
-- Never be robotic. Never use bullet points in your replies. Write like you are talking to someone face to face.
-- If someone sounds worried or stressed about their parent, acknowledge that first before giving information
-- The phone number is 647-382-8047. The email is lancesalazar56@gmail.com. The website is proximitycares.ca`;
+TONE:
+- Warm, knowledgeable, like a trusted neighbor — never robotic
+- If someone sounds stressed or worried about a parent, acknowledge that first
+- Keep replies 2–3 sentences unless they ask something detailed
+- Never use bullet points — write like a face-to-face conversation
+- Never mention Calendly or any external booking tool
+- Always quote monthly pricing, never hourly rates
+- Use their name and what they told you — make it personal
+- If you cannot answer something specifically, say Lance will cover it on the call
+- Phone: 647-382-8047 | Email: lancesalazar56@gmail.com | Site: proximitycares.ca
 
+BOOKING FLOW — collect naturally through conversation:
+You need to collect: (1) who needs care + relationship, (2) care type, (3) city, (4) urgency, (5) their name, (6) phone or email, (7) preferred call day, (8) preferred call time.
 
-function toggleChat(){document.getElementById('chat-overlay').classList.toggle('open');}
-function addCMsg(t,txt){const d=document.createElement('div');d.className='cmsg '+t;d.innerHTML='<div class="cbub">'+txt.replace(/\n/g,'<br>')+'</div>';document.getElementById('cmsgs').appendChild(d);csc();}
-function renderChips(chips){const w=document.getElementById('chat-chips');w.innerHTML='';if(!chips||!chips.length){w.classList.add('hidden');return;}chips.forEach(c=>{const b=document.createElement('button');b.className='chat-chip';b.textContent=c;b.onclick=()=>handleInput(c);w.appendChild(b);});w.classList.remove('hidden');}
-function showTyping(){const el=document.createElement('div');el.className='typing-indicator';el.id='typing';el.innerHTML='<span></span><span></span><span></span>';document.getElementById('cmsgs').appendChild(el);csc();}
-function hideTyping(){const el=document.getElementById('typing');if(el)el.remove();}
+Collect these one at a time through natural conversation. Do NOT ask multiple questions at once. After getting urgency, ask for their name. After name, ask for contact. After contact, ask what day works for Lance to call. After day, ask what time. Once you have ALL fields, immediately output the INTAKE block below and then give the closing message.
 
-function advanceStage(answer){
-  if(chatStage===0)intake.who=answer;
-  else if(chatStage===1)intake.careType=answer;
-  else if(chatStage===2)intake.city=answer;
-  else if(chatStage===3)intake.urgency=answer;
-  else if(chatStage===4)intake.name=answer;
-  else if(chatStage===5)intake.contact=answer;
-  else if(chatStage===6)intake.day=answer;
-  else if(chatStage===7)intake.time=answer;
-  chatStage++;
-  var msg='';
-  if(chatStage===1)msg='Got it — care for '+intake.who.toLowerCase()+'. What kind of support are they looking for?';
-  else if(chatStage===2)msg='That helps a lot. Which city are they in?';
-  else if(chatStage===3)msg='Good to know. How soon are you hoping to get something in place?';
-  else if(chatStage===4)msg='We can absolutely help with that. What\'s your name so I can make this a bit more personal?';
-  else if(chatStage===5)msg='Great to meet you, '+intake.name+'. What\'s the best number or email to reach you at?';
-  else if(chatStage===6)msg='Perfect. Lance will call you to set up the free home visit — what day works best for a quick call?';
-  else if(chatStage===7)msg='Almost there. What time of day works best for you?';
-  if(chatStage<=7){
-    chatHistory.push({role:'user',content:answer});
-    setTimeout(()=>{addCMsg('b',msg);chatHistory.push({role:'assistant',content:msg});renderChips(STAGE_CHIPS[chatStage-1]);},500);
-  }else{
-    chatHistory.push({role:'user',content:answer});
-    var confirm='You\'re all set, '+intake.name+'. Lance will call you '+intake.day+' '+intake.time+' at '+intake.contact+'. He does every initial call personally — expect a real conversation, not a sales pitch.';
-    setTimeout(()=>{
-      addCMsg('b',confirm);chatHistory.push({role:'assistant',content:confirm});renderChips(null);
-      var nm=intake.name.split(/\s+/);
-      fetch('https://proximity-agent-production.up.railway.app/webhook/lead',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({operator_id:'proximity-care',first_name:nm.shift()||'',last_name:nm.join(' '),phone:intake.contact.includes('@')?'':intake.contact,email:intake.contact.includes('@')?intake.contact:'',city:intake.city,care_type_interest:intake.careType,care_needed_for:intake.who,urgency:intake.urgency,source:'chatbot_booking',preferred_time:intake.day+' '+intake.time})}).catch(()=>{});
-      setTimeout(()=>{addCMsg('b','In the meantime, feel free to ask me anything — pricing, what to expect from the first visit, how we match caregivers, anything at all.');chatHistory.push({role:'assistant',content:'In the meantime, feel free to ask me anything — pricing, what to expect from the first visit, how we match caregivers, anything at all.'});openChat=true;},3000);
-    },500);
+If they ask questions about services, pricing, or anything else BEFORE booking is complete — answer them naturally and warmly, then gently guide back to the next intake question.
+
+Once you have all 8 fields, output this EXACTLY on its own line — no text before or after it on that line:
+<!--INTAKE:{"name":"[full name]","contact":"[phone or email]","city":"[city]","care_for":"[who needs care]","care_type":"[type of care]","urgency":"[urgency]","day":"[preferred day]","time":"[preferred time]"}-->
+
+Then say: "You're all set, [name]. Lance will call you [day] [time] at [contact]. He does every initial call personally — expect a real conversation, not a sales pitch."
+
+CRITICAL: Output the INTAKE block only when you have all 8 fields. Never output it partially. After the closing message, the conversation is open for any follow-up questions.`;
+
+var chatHistory = [{role:'assistant', content:"Hi there. I'm here to help you find the right care. Who are you looking for care for?"}];
+var chatProcessing = false;
+var chatBooked = false;
+
+/* ── CHIP SETS ── */
+var CHIP_SETS = {
+  initial:   ['A parent','My spouse','Myself','Someone else'],
+  care_type: ['Personal care & hygiene','Dementia care','Post-hospital recovery','Companionship','Overnight care'],
+  city:      ['Mississauga','Brampton','Caledon','Other area'],
+  urgency:   ['This week','Within a month','Just exploring'],
+  day:       ['Monday','Tuesday','Wednesday','Thursday','Friday'],
+  time:      ['Morning 9–12','Afternoon 12–4','Evening 4–7'],
+  post_book: ['What does care actually look like?','How do you match the PSW?','What does the first visit involve?']
+};
+
+/* ── CHIP INFERENCE — reads what was just said ── */
+function inferChips(userText, botText) {
+  var u = userText.toLowerCase();
+  var b = botText.toLowerCase();
+
+  // After booking confirmed
+  if (chatBooked) return CHIP_SETS.post_book;
+
+  // Bot asked about time
+  if (b.includes('time') && (b.includes('morning') || b.includes('afternoon') || b.includes('evening') || b.includes('what time'))) return CHIP_SETS.time;
+  // Bot asked about day
+  if (b.includes('what day') || b.includes('which day') || b.includes('day works')) return CHIP_SETS.day;
+  // Bot asked about urgency / how soon
+  if (b.includes('how soon') || b.includes('urgently') || b.includes('timeline') || b.includes('when are you')) return CHIP_SETS.urgency;
+  // Bot asked about city
+  if (b.includes('which city') || b.includes('what city') || b.includes('where are') || b.includes('located')) return CHIP_SETS.city;
+  // Bot asked about care type
+  if (b.includes('kind of support') || b.includes('kind of care') || b.includes('type of care') || b.includes('what support') || b.includes('what kind')) return CHIP_SETS.care_type;
+  // First message — who needs care
+  if (chatHistory.length <= 3) return CHIP_SETS.initial;
+
+  return null; // no chips — let them type freely
+}
+
+/* ── UI HELPERS ── */
+function toggleChat() {
+  var el = document.getElementById('chat-overlay');
+  el.classList.toggle('open');
+  if (el.classList.contains('open')) setTimeout(function(){ csc(); }, 50);
+}
+
+function addCMsg(type, text) {
+  // Strip INTAKE block before rendering
+  var clean = text.replace(/<!--INTAKE:[\s\S]*?-->/g, '').trim();
+  if (!clean) return;
+  var html = clean.replace(/\*\*([^*]+)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br>');
+  var d = document.createElement('div');
+  d.className = 'cmsg ' + type;
+  d.innerHTML = '<div class="cbub">' + html + '</div>';
+  // Animate in
+  d.style.opacity = '0';
+  d.style.transform = 'translateY(8px)';
+  document.getElementById('cmsgs').appendChild(d);
+  requestAnimationFrame(function(){
+    d.style.transition = 'opacity .3s ease, transform .3s ease';
+    d.style.opacity = '1';
+    d.style.transform = 'none';
+  });
+  csc();
+}
+
+function showChips(chips) {
+  var w = document.getElementById('chat-chips');
+  w.innerHTML = '';
+  if (!chips || !chips.length) { w.classList.add('hidden'); return; }
+  chips.forEach(function(c) {
+    var b = document.createElement('button');
+    b.className = 'chat-chip';
+    b.textContent = c;
+    b.onclick = function() {
+      w.innerHTML = '';
+      w.classList.add('hidden');
+      sendChat(c);
+    };
+    w.appendChild(b);
+  });
+  w.classList.remove('hidden');
+}
+
+function showTyping() {
+  var el = document.getElementById('typing');
+  if (el) el.style.display = 'flex';
+  csc();
+}
+function hideTyping() {
+  var el = document.getElementById('typing');
+  if (el) el.style.display = 'none';
+}
+function csc() {
+  var m = document.getElementById('cmsgs');
+  m.scrollTop = m.scrollHeight;
+}
+function chk(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); csend(); }
+}
+function crs(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 56) + 'px';
+}
+function csend() {
+  var inp = document.getElementById('cinp');
+  var msg = inp.value.trim();
+  if (!msg || chatProcessing) return;
+  inp.value = '';
+  inp.style.height = 'auto';
+  sendChat(msg);
+}
+
+/* ── MAIN SEND FUNCTION ── */
+async function sendChat(text) {
+  if (chatProcessing) return;
+  chatProcessing = true;
+
+  addCMsg('u', text);
+  chatHistory.push({ role: 'user', content: text });
+  document.getElementById('chat-chips').classList.add('hidden');
+  showTyping();
+
+  try {
+    var response = await fetch('https://proximity-agent-production.up.railway.app/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        operator_id: 'proximity-care',
+        messages: chatHistory,
+        system_override: CHAT_SYSTEM
+      })
+    });
+
+    var data = await response.json();
+    var raw = data.response || 'Please call us directly at 647-382-8047.';
+
+    hideTyping();
+
+    /* ── CHECK FOR INTAKE BLOCK ── */
+    var intakeMatch = raw.match(/<!--INTAKE:([\s\S]*?)-->/);
+    if (intakeMatch) {
+      try {
+        var intake = JSON.parse(intakeMatch[1]);
+        var nm = (intake.name || '').split(/\s+/);
+        var isEmail = (intake.contact || '').includes('@');
+        fetch('https://proximity-agent-production.up.railway.app/webhook/lead', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            operator_id: 'proximity-care',
+            first_name: nm.shift() || '',
+            last_name: nm.join(' '),
+            phone: isEmail ? '' : (intake.contact || ''),
+            email: isEmail ? (intake.contact || '') : '',
+            city: intake.city || '',
+            care_type_interest: intake.care_type || '',
+            care_needed_for: intake.care_for || '',
+            urgency: intake.urgency || '',
+            source: 'index_widget',
+            preferred_time: (intake.day || '') + ' ' + (intake.time || '')
+          })
+        }).catch(function(){});
+        chatBooked = true;
+      } catch(e) { console.error('Intake parse error:', e); }
+    }
+
+    /* ── RENDER BOT REPLY ── */
+    // Small delay so typing indicator disappears first
+    setTimeout(function() {
+      addCMsg('b', raw);
+      chatHistory.push({ role: 'assistant', content: raw });
+
+      // Infer chips from this exchange
+      var chips = inferChips(text, raw);
+      setTimeout(function() { showChips(chips); }, 300);
+
+      // If booked — disable input after 3s
+      if (chatBooked) {
+        setTimeout(function() {
+          var inp = document.getElementById('cinp');
+          var sendBtn = document.querySelector('.chat-send');
+          if (inp) { inp.placeholder = 'Booked. Lance will call you personally.'; }
+          showChips(CHIP_SETS.post_book);
+        }, 3500);
+      }
+    }, 80);
+
+  } catch(err) {
+    hideTyping();
+    addCMsg('b', 'Something went wrong. Please call us at 647-382-8047 or try again.');
+    console.error('Chat error:', err);
+  } finally {
+    chatProcessing = false;
   }
 }
 
-async function handleInput(text){
-  // After booking is complete — open AI mode
-  if(openChat){
-    addCMsg('u',text);chatHistory.push({role:'user',content:text});
-    document.getElementById('chat-chips').classList.add('hidden');showTyping();
-    try{const r=await fetch('https://proximity-agent-production.up.railway.app/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({operator_id:'proximity-care',messages:chatHistory,system_override:AI_SYSTEM})});hideTyping();const d=await r.json();const rep=d.response||'Please call us at 647-382-8047.';chatHistory.push({role:'assistant',content:rep});addCMsg('b',rep);}
-    catch(e){hideTyping();addCMsg('b','Please call us directly at 647-382-8047.');}
-    return;
-  }
-  var expected=STAGE_EXPECTED[chatStage];
-  var normalised=text.toLowerCase().trim();
-  // Strict match: if this stage has expected values, only advance if the answer is one of them
-  var isExpectedAnswer=(expected!==null && expected.includes(normalised));
-  // Freeform: stage has no chips (name/contact stages) OR user typed something not on the chip list
-  var isFreeformStage=(expected===null);
-  var isQuestion=(text.includes('?'));
-  if(isExpectedAnswer||isFreeformStage){
-    // Valid stage advance
-    addCMsg('u',text);advanceStage(text);
-  } else {
-    // Answer doesn't match current stage chips — treat as freeform question for AI
-    addCMsg('u',text);chatHistory.push({role:'user',content:text});
-    document.getElementById('chat-chips').classList.add('hidden');showTyping();
-    try{const r=await fetch('https://proximity-agent-production.up.railway.app/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({operator_id:'proximity-care',messages:chatHistory,system_override:AI_SYSTEM})});hideTyping();const d=await r.json();const rep=d.response||'Please call us at 647-382-8047.';chatHistory.push({role:'assistant',content:rep});addCMsg('b',rep);}
-    catch(e){hideTyping();addCMsg('b','Please call us directly at 647-382-8047.');}
-    // Re-render chips for current stage so user can still select the right answer
-    renderChips(STAGE_CHIPS[chatStage]||null);
-  }
-}
-function csend(){const inp=document.getElementById('cinp');const msg=inp.value.trim();if(!msg)return;inp.value='';inp.style.height='auto';handleInput(msg);}
-function csc(){const m=document.getElementById('cmsgs');m.scrollTop=m.scrollHeight;}
-function chk(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();csend();}}
-function crs(el){el.style.height='auto';el.style.height=Math.min(el.scrollHeight,56)+'px';}
-renderChips(['A parent','My spouse','Myself','Someone else']);
+/* ── INIT: show first chips ── */
+showChips(CHIP_SETS.initial);
 /* ── TOUCH SWIPE ON TESTIMONIALS ── */
 (function(){
   const grid=document.querySelector('.test-grid');
