@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Proximity Care Services — In-Home Senior Care in Mississauga & Brampton</title>
 <meta name="description" content="Premium in-home senior care for families in Mississauga, Brampton, and Caledon. Same PSW every visit. First 6 hours free. Book a free in-home assessment today.">
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400;1,500&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -11,477 +11,488 @@
 <link rel="shortcut icon" href="/favicon.ico">
 <link rel="apple-touch-icon" href="/icon-192.png">
 <meta name="theme-color" content="#1a3a5c">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <style>
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+/* ══════════════════════════════════════
+   RESET & ROOT
+══════════════════════════════════════ */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 :root{
-  --navy:#1a3a5c;--navy2:#1e4068;--cream:#f0f6ff;--cream2:#f7faff;--white:#ffffff;
-  --gold:#2e7dd1;--gold2:#4a9de8;--teal:#1d6fa8;--text:#1a2e3d;--muted:#5a6a7a;
-  --border:#d0e4f5;--border2:rgba(46,125,209,0.2);
+  --navy:#0e2038;--navy2:#142844;--navy3:#1a3254;
+  --blue:#3d8fd6;--blue2:#5aaaea;--blue3:#2980b9;
+  --cream:#f0f6ff;--cream2:#f7faff;--white:#ffffff;
+  --text:#1a2e3d;--muted:#5a6a7a;--border:#d0e4f5;
   --serif:'Cormorant Garamond',serif;--sans:'Jost',sans-serif;
+  --ease:cubic-bezier(.16,1,.3,1);
 }
-html{scroll-behavior:smooth}
-body{font-family:var(--sans);background:var(--cream2);color:var(--text);overflow-x:hidden}
+html{scroll-behavior:smooth;}
+body{font-family:var(--sans);background:var(--cream2);color:var(--text);overflow-x:hidden;-webkit-text-size-adjust:100%;}
+a{text-decoration:none;color:inherit;}
+button{font-family:var(--sans);cursor:pointer;border:none;background:none;}
+input,select,textarea{font-family:var(--sans);}
 
-/* ── NAV ── */
-nav{position:fixed;top:0;left:0;right:0;z-index:500;padding:0 48px;height:70px;display:flex;align-items:center;justify-content:space-between;transition:all .4s}
-nav.scrolled{background:rgba(10,22,40,0.96);backdrop-filter:blur(20px)}
-.nav-logo{font-family:var(--serif);font-size:20px;color:var(--white);letter-spacing:2px;text-decoration:none;font-weight:400}
-.nav-logo em{color:var(--gold2);font-style:italic}
-.nav-links{display:flex;align-items:center;gap:32px;list-style:none}
-.nav-links a{color:rgba(255,255,255,0.7);font-size:12px;letter-spacing:2px;text-transform:uppercase;text-decoration:none;transition:color .2s}
-.nav-links a:hover{color:var(--gold2)}
-.nav-cta{background:var(--gold);color:var(--navy)!important;padding:10px 24px;font-size:11px!important;letter-spacing:2px;text-transform:uppercase;font-weight:600;transition:all .2s!important}
-.nav-cta:hover{background:var(--gold2)!important;transform:translateY(-1px)}
+/* ══════════════════════════════════════
+   SCROLL PROGRESS
+══════════════════════════════════════ */
+#prog{position:fixed;top:0;left:0;height:2px;background:linear-gradient(90deg,var(--blue),var(--blue2));width:0%;z-index:1001;pointer-events:none;}
 
-/* ── HERO ── */
-.hero{min-height:100vh;background:var(--navy);position:relative;display:flex;align-items:center;overflow:hidden}
-.hero-bg{position:absolute;inset:0;background:radial-gradient(ellipse at 70% 50%,rgba(46,125,209,0.15) 0%,transparent 60%),radial-gradient(ellipse at 20% 80%,rgba(46,125,209,0.08) 0%,transparent 50%);pointer-events:none}
-.hero-grain{position:absolute;inset:0;opacity:.03;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");pointer-events:none}
-.hero-content{position:relative;z-index:2;padding:0 48px;max-width:1200px;margin:0 auto;width:100%;padding-top:70px}
-.hero-location{display:inline-flex;align-items:center;gap:8px;background:rgba(46,125,209,0.12);border:1px solid rgba(46,125,209,0.25);padding:8px 18px;margin-bottom:32px;opacity:0;animation:fadeUp .8s ease forwards .2s}
-.hero-location-dot{width:8px;height:8px;border-radius:50%;background:var(--gold2);animation:pulse2 2s infinite}
-@keyframes pulse2{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(74,157,232,0.4)}50%{opacity:.7;box-shadow:0 0 0 8px rgba(74,157,232,0)}}
-.hero-location-text{font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--gold2)}
-.hero-h1{font-family:var(--serif);font-size:clamp(48px,6vw,88px);font-weight:300;line-height:1.0;color:var(--white);margin-bottom:24px;opacity:0;animation:fadeUp .8s ease forwards .4s}
-.hero-h1 em{font-style:italic;color:var(--gold2)}
-.hero-sub{font-size:16px;line-height:1.8;color:rgba(255,255,255,0.6);max-width:520px;margin-bottom:40px;font-weight:300;opacity:0;animation:fadeUp .8s ease forwards .6s}
-.hero-sub strong{color:rgba(255,255,255,0.9);font-weight:400}
-.hero-btns{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:64px;opacity:0;animation:fadeUp .8s ease forwards .8s}
-.btn-primary{background:var(--gold);color:var(--navy);padding:16px 36px;font-size:12px;letter-spacing:2px;text-transform:uppercase;font-weight:600;text-decoration:none;display:inline-block;transition:all .3s;border:none;cursor:pointer;font-family:var(--sans)}
-.btn-primary:hover{background:var(--gold2);transform:translateY(-2px);box-shadow:0 12px 40px rgba(46,125,209,0.3)}
-.btn-outline{background:transparent;color:var(--white);padding:16px 36px;font-size:12px;letter-spacing:2px;text-transform:uppercase;font-weight:400;text-decoration:none;display:inline-block;border:1px solid rgba(255,255,255,0.3);transition:all .3s;cursor:pointer;font-family:var(--sans)}
-.btn-outline:hover{border-color:var(--gold2);color:var(--gold2)}
-.hero-trust{display:flex;gap:40px;opacity:0;animation:fadeUp .8s ease forwards 1s}
-.trust-item{display:flex;align-items:center;gap:10px;font-size:12px;color:rgba(255,255,255,0.45);letter-spacing:1px}
-.trust-icon{font-size:18px}
-.hero-right{position:absolute;right:48px;top:50%;transform:translateY(-50%);width:400px;opacity:0;animation:fadeRight .8s ease forwards 1s}
-.card-3d-wrap{position:relative;width:340px;height:460px;margin:0 auto}
-.card-3d{width:340px;height:460px;background:linear-gradient(145deg,#1e3a5c,#162d4a);border:1px solid rgba(46,125,209,0.25);border-radius:14px;box-shadow:0 40px 80px rgba(0,0,0,0.4),0 0 0 1px rgba(46,125,209,0.08);transform-style:preserve-3d;transition:transform 0.15s ease;padding:32px;display:flex;flex-direction:column;justify-content:center}
-.hero-card-label{font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--gold2);margin-bottom:20px}
-.hero-card-divider{height:1px;background:rgba(46,125,209,0.2);margin-bottom:20px}
-.hero-stat{display:flex;align-items:baseline;gap:8px;margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid rgba(255,255,255,0.06)}
-.hero-stat:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0}
-.hero-stat-val{font-family:var(--serif);font-size:32px;color:var(--white);font-weight:300}
-.hero-stat-lbl{font-size:12px;color:rgba(255,255,255,0.45)}
-.hero-card-footer{margin-top:24px;display:flex;align-items:center;gap:8px;font-size:10px;color:rgba(255,255,255,0.3);letter-spacing:1px}
-.hero-card-footer-dot{width:6px;height:6px;border-radius:50%;background:var(--gold2)}
-.float-badge{position:absolute;background:rgba(10,22,40,0.92);border:1px solid rgba(46,125,209,0.3);padding:8px 14px;border-radius:8px;display:flex;align-items:center;gap:8px;font-size:11px;color:rgba(255,255,255,0.75);font-family:var(--sans);box-shadow:0 8px 24px rgba(0,0,0,0.3);white-space:nowrap;z-index:3}
-.float-badge .fb-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
-.fb-1{top:-18px;right:-20px;animation:floatBadge 4s ease-in-out infinite}
-.fb-2{left:-20px;top:45%;animation:floatBadge 5s ease-in-out infinite}
-.fb-3{bottom:-18px;right:-20px;animation:floatBadge 4.5s ease-in-out infinite}
-@keyframes floatBadge{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
-@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
-@keyframes fadeRight{from{opacity:0;transform:translate(20px,-50%)}to{opacity:1;transform:translate(0,-50%)}}
+/* ══════════════════════════════════════
+   KEYFRAMES — declared first so all animations can use them
+══════════════════════════════════════ */
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:none;}}
+@keyframes fadeRight{from{opacity:0;transform:translate(20px,-50%);}to{opacity:1;transform:translate(0,-50%);}}
+@keyframes navIn{from{opacity:0;transform:translateY(-100%);}to{opacity:1;transform:none;}}
+@keyframes pulse2{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(90,170,234,.4);}50%{opacity:.7;box-shadow:0 0 0 8px rgba(90,170,234,0);}}
+@keyframes floatBadge{0%,100%{transform:translateY(0);}50%{transform:translateY(-10px);}}
+@keyframes meshFloat1{0%,100%{transform:translate(0,0) scale(1);}33%{transform:translate(40px,-30px) scale(1.1);}66%{transform:translate(-30px,20px) scale(.92);}}
+@keyframes meshFloat2{0%,100%{transform:translate(0,0) scale(1);}33%{transform:translate(-35px,25px) scale(1.08);}66%{transform:translate(20px,-35px) scale(1.12);}}
+@keyframes meshFloat3{0%,100%{transform:translate(0,0) scale(1);}50%{transform:translate(25px,40px) scale(.9);}}
+@keyframes pulseRing{0%,100%{box-shadow:0 2px 4px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.4),0 0 0 0 rgba(255,255,255,.3);}50%{box-shadow:0 2px 4px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.4),0 0 0 10px rgba(255,255,255,0);}}
+@keyframes dotPulse{0%,100%{opacity:1;}50%{opacity:.4;}}
+@keyframes tyb{0%,60%,100%{transform:translateY(0);}30%{transform:translateY(-4px);}}
+@keyframes ringPulse1{0%{r:10;opacity:.6;}100%{r:28;opacity:0;}}
+@keyframes ringPulse2{0%{r:8;opacity:.5;}100%{r:24;opacity:0;}}
+@keyframes ringPulse3{0%{r:7;opacity:.4;}100%{r:20;opacity:0;}}
+@keyframes drawLine{to{stroke-dashoffset:0;}}
+@keyframes pinDrop{0%{opacity:0;transform:translateY(-16px);}100%{opacity:1;transform:translateY(0);}}
 
-/* ── SECTION BASE ── */
-.section{padding:100px 48px}
-.section-inner{max-width:1200px;margin:0 auto}
-.section-eyebrow{display:flex;align-items:center;gap:16px;margin-bottom:20px}
-.ey-line{width:40px;height:1px;background:var(--gold)}
-.ey-tag{font-size:10px;letter-spacing:4px;text-transform:uppercase;color:var(--gold)}
-.section-title{font-family:var(--serif);font-size:clamp(36px,5vw,64px);font-weight:300;line-height:1.05;color:var(--navy);margin-bottom:20px}
-.section-title em{font-style:italic;color:var(--teal)}
-.section-sub{font-size:16px;line-height:1.8;color:var(--muted);max-width:600px;font-weight:300}
+/* ══════════════════════════════════════
+   NAV
+══════════════════════════════════════ */
+@keyframes navIn{from{opacity:0;transform:translateY(-100%);}to{opacity:1;transform:none;}}
+nav{position:fixed;top:0;left:0;right:0;z-index:500;padding:0 48px;height:70px;display:flex;align-items:center;justify-content:space-between;transition:background .4s,backdrop-filter .4s;animation:navIn .6s var(--ease) both;}
+.nav-logo{font-family:var(--serif);font-size:20px;color:var(--white);letter-spacing:2px;text-decoration:none;font-weight:400;opacity:0;animation:fadeUp .6s .5s var(--ease) both;}
+.nav-logo em{color:var(--blue2);font-style:italic;}
+.nav-links{display:flex;align-items:center;gap:32px;list-style:none;opacity:0;animation:fadeUp .6s .65s var(--ease) both;}
+.nav-links a{color:rgba(255,255,255,.7);font-size:12px;letter-spacing:2px;text-transform:uppercase;text-decoration:none;transition:color .2s;}
+.nav-links a:hover{color:var(--blue2);}
+.nav-cta{background:var(--blue);color:var(--white)!important;padding:10px 24px;font-size:11px!important;letter-spacing:2px;text-transform:uppercase;font-weight:600;transition:all .2s!important;opacity:0;animation:fadeUp .6s .8s var(--ease) both;border-radius:100px;}
+.nav-cta:hover{background:var(--blue2)!important;transform:translateY(-1px);}
+nav.scrolled{background:rgba(10,22,40,.96);backdrop-filter:blur(20px);}
+.hamburger{display:none;background:none;border:none;cursor:pointer;padding:8px;z-index:600;}
+.hamburger span{display:block;width:22px;height:2px;background:#fff;margin:5px 0;transition:all .3s;}
+.hamburger.open span:nth-child(1){transform:rotate(45deg) translate(5px,5px);}
+.hamburger.open span:nth-child(2){opacity:0;}
+.hamburger.open span:nth-child(3){transform:rotate(-45deg) translate(5px,-5px);}
+.mobile-menu{display:none;position:fixed;top:70px;left:0;right:0;bottom:0;background:var(--navy);z-index:499;flex-direction:column;align-items:center;justify-content:center;gap:0;}
+.mobile-menu.open{display:flex;}
+.mobile-menu a{color:#fff;font-family:var(--sans);font-size:18px;letter-spacing:3px;text-transform:uppercase;text-decoration:none;padding:20px 0;width:100%;text-align:center;border-bottom:1px solid rgba(255,255,255,.06);transition:background .2s;}
+.mobile-menu a:last-child{margin-top:8px;background:var(--blue);color:var(--white);font-weight:600;font-size:14px;padding:18px 0;border:none;border-radius:0;opacity:1;animation:none;}
+/* Override nav-cta animation for mobile menu instance */
+.mobile-menu .nav-cta{opacity:1!important;animation:none!important;border-radius:0;}
 
-/* ── CARE BUILDER ── */
-.builder-section{background:var(--navy);padding:100px 48px;position:relative;overflow:hidden}
-.builder-section::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 30% 50%,rgba(46,125,209,0.12),transparent 60%);pointer-events:none}
-.builder-inner{max-width:1100px;margin:0 auto;position:relative;z-index:1}
-.builder-eyebrow{display:flex;align-items:center;gap:16px;margin-bottom:20px}
-.builder-title{font-family:var(--serif);font-size:clamp(32px,4.5vw,58px);font-weight:300;color:var(--white);line-height:1.05;margin-bottom:12px}
-.builder-title em{font-style:italic;color:var(--gold2)}
-.builder-sub{font-size:15px;color:rgba(255,255,255,0.5);margin-bottom:48px;font-weight:300;max-width:560px}
+/* ══════════════════════════════════════
+   HERO
+══════════════════════════════════════ */
 
-/* BUILDER LAYOUT */
-.builder-grid{display:grid;grid-template-columns:1fr 360px;gap:32px;align-items:start}
-.builder-steps{display:flex;flex-direction:column;gap:4px}
+.hero{min-height:100vh;background:var(--navy);position:relative;display:flex;align-items:center;overflow:hidden;}
 
-/* STEP */
-.step{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:2px;overflow:hidden;transition:all .3s}
-.step.active{background:rgba(255,255,255,0.06);border-color:rgba(46,125,209,0.25)}
-.step-header{padding:18px 22px;display:flex;align-items:center;gap:14px;cursor:pointer}
-.step-num{width:28px;height:28px;border-radius:50%;border:1px solid rgba(46,125,209,0.3);display:flex;align-items:center;justify-content:center;font-family:'DM Mono',monospace;font-size:11px;color:rgba(46,125,209,0.6);flex-shrink:0;transition:all .3s}
-.step.active .step-num{background:var(--gold);color:var(--navy);border-color:var(--gold);font-weight:600}
-.step.done .step-num{background:rgba(46,125,209,0.15);color:var(--gold2)}
-.step-title{font-size:13px;color:rgba(255,255,255,0.6);letter-spacing:1px;text-transform:uppercase;font-weight:400;transition:color .3s}
-.step.active .step-title{color:var(--white)}
-.step-check{margin-left:auto;color:var(--gold2);font-size:14px;opacity:0;transition:opacity .3s}
-.step.done .step-check{opacity:1}
-.step-body{padding:0 22px 20px;display:none}
-.step.active .step-body{display:block}
+/* Animated gradient mesh background */
+.hero-mesh{position:absolute;inset:0;pointer-events:none;z-index:0;}
+.hero-mesh-blob{position:absolute;border-radius:50%;filter:blur(60px);}
+.hm1{width:600px;height:600px;background:radial-gradient(circle,rgba(46,125,209,.18) 0%,transparent 70%);top:-100px;right:-100px;animation:meshFloat1 18s ease-in-out infinite;}
+.hm2{width:500px;height:500px;background:radial-gradient(circle,rgba(29,111,168,.14) 0%,transparent 70%);bottom:-120px;left:-80px;animation:meshFloat2 22s ease-in-out infinite;}
+.hm3{width:350px;height:350px;background:radial-gradient(circle,rgba(74,157,232,.1) 0%,transparent 70%);top:40%;left:30%;animation:meshFloat3 16s ease-in-out infinite;}
 
-/* CARE TYPE SELECT */
-.care-types{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
-.care-type{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);padding:14px 16px;cursor:pointer;transition:all .2s;text-align:left}
-.care-type:hover{border-color:rgba(46,125,209,0.3);background:rgba(46,125,209,0.05)}
-.care-type.selected{border-color:var(--gold);background:rgba(46,125,209,0.1)}
-.care-type-icon{font-size:20px;margin-bottom:6px;display:block}
-.care-type-name{font-size:12px;color:rgba(255,255,255,0.8);font-weight:500;display:block;margin-bottom:2px}
-.care-type-desc{font-size:10px;color:rgba(255,255,255,0.35);line-height:1.4}
+.hero-grain{position:absolute;inset:0;opacity:.03;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");pointer-events:none;z-index:0;}
+#hero-canvas{position:absolute;inset:0;pointer-events:none;z-index:1;opacity:.9;}
 
-/* HOURS SLIDER */
-.hours-wrap{margin-top:12px}
-.hours-display{display:flex;align-items:baseline;gap:8px;margin-bottom:16px}
-.hours-val{font-family:var(--serif);font-size:48px;color:var(--gold2);font-weight:300;line-height:1}
-.hours-unit{font-size:14px;color:rgba(255,255,255,0.4)}
-.hours-range{font-size:11px;color:rgba(255,255,255,0.3);letter-spacing:1px;margin-top:4px}
-input[type=range]{width:100%;-webkit-appearance:none;height:2px;background:rgba(255,255,255,0.1);outline:none;margin:12px 0}
-input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:var(--gold);cursor:pointer;border:2px solid var(--navy)}
-input[type=range]::-webkit-slider-runnable-track{height:2px}
-.hours-markers{display:flex;justify-content:space-between;font-size:9px;color:rgba(255,255,255,0.25);letter-spacing:1px;margin-top:4px}
-.care-tier-display{margin:10px 0 4px;padding:12px 16px;background:rgba(46,125,209,0.08);border-left:2px solid var(--gold2)}
-.care-tier-name{font-family:var(--serif);font-size:22px;color:var(--white);font-weight:300;line-height:1.1;margin-bottom:3px}
-.care-tier-desc{font-size:10px;color:rgba(255,255,255,0.4);letter-spacing:1px}
-.plan-compare{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;margin-top:16px}
-.pc-card{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);padding:12px 10px;transition:all .3s}
-.pc-card.active{background:rgba(46,125,209,0.12);border-color:rgba(46,125,209,0.35);border-top:2px solid var(--gold2)}
-.pc-label{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.35);margin-bottom:5px;transition:color .3s}
-.pc-card.active .pc-label{color:var(--gold2)}
-.pc-hrs{font-size:9px;color:rgba(255,255,255,0.25);margin-bottom:8px;letter-spacing:.5px}
-.pc-price{font-family:var(--serif);font-size:15px;color:rgba(255,255,255,0.45);font-weight:300;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid rgba(255,255,255,0.06);transition:color .3s;line-height:1.2}
-.pc-price span{font-size:10px;color:rgba(255,255,255,0.25)}
-.pc-card.active .pc-price{color:var(--white)}
-.pc-feat{font-size:9px;color:rgba(255,255,255,0.25);padding:2px 0;display:flex;align-items:flex-start;gap:5px;line-height:1.3;transition:color .3s}
-.pc-feat::before{content:'✓';color:rgba(255,255,255,0.12);flex-shrink:0;transition:color .3s}
-.pc-card.active .pc-feat{color:rgba(255,255,255,0.65)}
-.pc-card.active .pc-feat::before{color:var(--gold2)}
+.hero-content{position:relative;z-index:2;padding:0 48px;max-width:1200px;margin:0 auto;width:100%;padding-top:70px;}
+.hero-location{display:inline-flex;align-items:center;gap:8px;background:rgba(46,125,209,.12);border:1px solid rgba(46,125,209,.25);padding:8px 18px;margin-bottom:32px;opacity:0;animation:fadeUp .8s ease forwards .2s;}
+.hero-location-dot{width:8px;height:8px;border-radius:50%;background:var(--blue2);animation:pulse2 2s infinite;}
+.hero-location-text{font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--blue2);}
+.hero-h1{font-family:var(--serif);font-size:clamp(48px,6vw,88px);font-weight:300;line-height:1.0;color:var(--white);margin-bottom:24px;opacity:0;animation:fadeUp .8s ease forwards .4s;}
+.hero-h1 em{font-style:italic;color:var(--blue2);}
+.hero-sub{font-size:16px;line-height:1.8;color:rgba(255,255,255,.6);max-width:520px;margin-bottom:40px;font-weight:300;opacity:0;animation:fadeUp .8s ease forwards .6s;}
+.hero-sub strong{color:rgba(255,255,255,.9);font-weight:400;}
+.hero-btns{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:64px;opacity:0;animation:fadeUp .8s ease forwards .8s;}
+.btn-primary{background:var(--blue);color:var(--white);padding:16px 36px;font-size:12px;letter-spacing:2px;text-transform:uppercase;font-weight:600;text-decoration:none;display:inline-block;transition:all .3s;border:none;cursor:pointer;border-radius:100px;}
+.btn-primary:hover{background:var(--blue2);transform:translateY(-2px);box-shadow:0 12px 40px rgba(61,143,214,.3);}
+.btn-outline{background:transparent;color:var(--white);padding:16px 36px;font-size:12px;letter-spacing:2px;text-transform:uppercase;font-weight:400;text-decoration:none;display:inline-block;border:1px solid rgba(255,255,255,.3);transition:all .3s;border-radius:100px;}
+.btn-outline:hover{border-color:var(--blue2);color:var(--blue2);}
+.hero-trust{display:flex;gap:40px;opacity:0;animation:fadeUp .8s ease forwards 1s;}
+.trust-item{display:flex;align-items:center;gap:10px;font-size:12px;color:rgba(255,255,255,.45);letter-spacing:1px;}
+.trust-icon{display:flex;align-items:center;justify-content:center;width:20px;}
 
-/* SERVICES TOGGLES */
-.services-grid{display:flex;flex-direction:column;gap:6px;margin-top:12px}
-.service-toggle{display:flex;align-items:center;justify-content:space-between;padding:11px 14px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.06);cursor:pointer;transition:all .2s}
-.service-toggle:hover{background:rgba(255,255,255,0.04)}
-.service-toggle.active{border-color:rgba(46,125,209,0.25);background:rgba(46,125,209,0.06)}
-.service-toggle-left{display:flex;align-items:center;gap:10px}
-.service-icon{font-size:14px;width:24px;text-align:center}
-.service-name{font-size:12px;color:rgba(255,255,255,0.65);transition:color .2s}
-.service-toggle.active .service-name{color:rgba(255,255,255,0.9)}
-.service-badge{font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--gold2);background:rgba(46,125,209,0.12);padding:2px 7px;border-radius:20px}
-.toggle-switch{width:32px;height:18px;border-radius:20px;background:rgba(255,255,255,0.1);position:relative;transition:background .2s;flex-shrink:0}
-.service-toggle.active .toggle-switch{background:var(--gold)}
-.toggle-knob{position:absolute;width:12px;height:12px;border-radius:50%;background:#fff;top:3px;left:3px;transition:transform .2s}
-.service-toggle.active .toggle-knob{transform:translateX(14px)}
+/* 3D Hero Card */
+.hero-right{position:absolute;right:48px;top:50%;transform:translate(0,-50%);width:400px;opacity:0;animation:fadeRight .8s ease forwards 1s;}
+.card-3d-wrap{position:relative;width:340px;height:480px;margin:0 auto;}
+.card-3d{width:340px;height:480px;background:linear-gradient(145deg,#1e3a5c,#162d4a);border:1px solid rgba(46,125,209,.25);box-shadow:0 40px 80px rgba(0,0,0,.4),0 0 0 1px rgba(46,125,209,.08),0 0 60px rgba(46,125,209,.08);transform-style:preserve-3d;transition:transform .08s ease;padding:32px;display:flex;flex-direction:column;justify-content:center;will-change:transform;}
+.hero-card-label{font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--blue2);margin-bottom:20px;}
+.hero-card-divider{height:1px;background:rgba(46,125,209,.2);margin-bottom:20px;}
+.hero-stat{display:flex;align-items:baseline;gap:8px;margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid rgba(255,255,255,.06);}
+.hero-stat:last-of-type{border-bottom:none;margin-bottom:0;padding-bottom:0;}
+.hero-stat-val{font-family:var(--serif);font-size:32px;color:var(--white);font-weight:300;}
+.hero-stat-lbl{font-size:12px;color:rgba(255,255,255,.45);}
+.hero-card-footer{margin-top:24px;display:flex;align-items:center;gap:8px;font-size:10px;color:rgba(255,255,255,.3);letter-spacing:1px;}
+.hero-card-footer-dot{width:6px;height:6px;border-radius:50%;background:var(--blue2);}
+/* Card glow that follows tilt */
+.card-3d::before{content:'';position:absolute;inset:-1px;background:linear-gradient(135deg,rgba(74,157,232,.15),transparent,rgba(46,125,209,.1));opacity:0;transition:opacity .3s;pointer-events:none;}
+.card-3d:hover::before{opacity:1;}
+/* Float badges */
+.float-badge{position:absolute;background:rgba(10,22,40,.92);border:1px solid rgba(46,125,209,.3);padding:8px 14px;display:flex;align-items:center;gap:8px;font-size:11px;color:rgba(255,255,255,.75);font-family:var(--sans);box-shadow:0 8px 24px rgba(0,0,0,.3);white-space:nowrap;z-index:3;}
+.float-badge .fb-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.fb-1{top:-18px;right:-20px;animation:floatBadge 4s ease-in-out infinite;}
+.fb-2{left:-20px;top:45%;animation:floatBadge 5s ease-in-out infinite;}
+.fb-3{bottom:-18px;right:-20px;animation:floatBadge 4.5s ease-in-out infinite;}
 
-/* PLAN SUMMARY CARD */
-.plan-card{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-top:2px solid var(--gold);padding:28px;position:sticky;top:90px}
-.plan-card-label{font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--gold2);margin-bottom:20px;display:flex;align-items:center;gap:8px}
-.plan-card-label::before{content:'';width:20px;height:1px;background:var(--gold)}
-.plan-care-type{font-family:var(--serif);font-size:22px;color:var(--white);font-weight:300;margin-bottom:4px}
-.plan-hours{font-size:13px;color:rgba(255,255,255,0.4);margin-bottom:20px;letter-spacing:1px}
-.plan-divider{height:1px;background:rgba(255,255,255,0.06);margin:16px 0}
-.plan-services-lbl{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.3);margin-bottom:10px}
-.plan-service-item{display:flex;align-items:center;gap:8px;padding:4px 0;font-size:11px;color:rgba(255,255,255,0.55)}
-.plan-service-item::before{content:'✓';color:var(--gold2);font-size:10px;flex-shrink:0}
-.plan-price-wrap{margin-top:20px;background:rgba(46,125,209,0.08);border:1px solid rgba(46,125,209,0.15);padding:16px}
-.plan-price-lbl{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.35);margin-bottom:4px}
-.plan-price-val{font-family:var(--serif);font-size:36px;color:var(--gold2);font-weight:300;line-height:1}
-.plan-price-note{font-size:10px;color:rgba(255,255,255,0.3);margin-top:4px}
-.plan-cta{display:block;width:100%;background:var(--gold);color:var(--navy);text-align:center;padding:14px;font-size:11px;letter-spacing:2px;text-transform:uppercase;font-weight:600;text-decoration:none;margin-top:16px;border:none;cursor:pointer;font-family:var(--sans);transition:all .3s}
-.plan-cta:hover{background:var(--gold2);transform:translateY(-1px)}
-.plan-free{font-size:10px;color:rgba(255,255,255,0.3);text-align:center;margin-top:10px;letter-spacing:1px}
-.plan-empty{text-align:center;padding:32px 0;color:rgba(255,255,255,0.2);font-size:13px;line-height:1.6}
+/* ══════════════════════════════════════
+   SECTION BASE
+══════════════════════════════════════ */
+.section{padding:100px 48px;}
+.section-inner{max-width:1200px;margin:0 auto;}
+.section-eyebrow{display:flex;align-items:center;gap:16px;margin-bottom:20px;}
+.ey-line{width:40px;height:1px;background:var(--blue);}
+.ey-tag{font-size:10px;letter-spacing:4px;text-transform:uppercase;color:var(--blue);}
+.section-title{font-family:var(--serif);font-size:clamp(36px,5vw,64px);font-weight:300;line-height:1.05;color:var(--navy);margin-bottom:20px;}
+.section-title em{font-style:italic;color:var(--blue3);}
+.section-sub{font-size:16px;line-height:1.8;color:var(--muted);max-width:600px;font-weight:300;}
 
-/* NEXT STEP BTN */
-.step-next{display:inline-block;background:transparent;border:1px solid rgba(46,125,209,0.35);color:var(--gold2);padding:10px 22px;font-size:10px;letter-spacing:2px;text-transform:uppercase;cursor:pointer;margin-top:14px;font-family:var(--sans);transition:all .2s}
-.step-next:hover{background:rgba(46,125,209,0.1)}
+/* REVEAL */
+.reveal{opacity:0;transform:translateY(24px);transition:opacity .7s ease,transform .7s ease;}
+.reveal.visible{opacity:1;transform:none;}
 
-/* ── HOW IT WORKS ── */
-.how-section{background:var(--white);padding:100px 48px}
-.steps-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:32px;margin-top:60px;position:relative}
-.steps-grid::before{content:'';position:absolute;top:50%;left:10%;right:10%;height:0;border-top:1px dashed rgba(26,58,92,0.12);z-index:0}
-.how-step{background:#ffffff;padding:2.5rem 2rem;border:none;border-top:3px solid #2e7dd1;border-radius:14px;position:relative;transition:all .3s;z-index:1;box-shadow:0 4px 24px rgba(26,58,92,0.08),0 1px 4px rgba(26,58,92,0.06)}
-.how-step:hover{transform:translateY(-4px);box-shadow:0 12px 40px rgba(26,58,92,0.14)}
-.how-step-num{font-family:var(--serif);font-size:5rem;color:#1a3a5c;opacity:0.06;line-height:1;position:absolute;top:20px;right:24px;font-weight:300}
-.how-step-pill{display:inline-block;background:rgba(46,125,209,0.08);color:#2e7dd1;font-size:0.7rem;letter-spacing:0.1em;border-radius:20px;padding:0.2rem 0.7rem;margin-bottom:0.5rem;font-family:var(--sans);font-weight:500;text-transform:uppercase}
-.how-step-icon{width:52px;height:52px;background:rgba(46,125,209,0.08);border:1px solid rgba(46,125,209,0.15);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:1.2rem}
-.how-step-title{font-family:var(--serif);font-size:1.25rem;font-weight:600;color:#1a3a5c;margin-bottom:12px}
-.how-step-desc{font-size:0.9rem;line-height:1.75;color:#4a5568;font-family:var(--sans);font-weight:300}
-
-/* ── TESTIMONIALS ── */
-.test-section{background:var(--navy);padding:100px 48px}
-.test-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;margin-top:60px}
-.test-card{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);padding:36px 32px;transition:all .3s}
-.test-card:hover{background:rgba(255,255,255,0.05);transform:translateY(-2px)}
-.test-stars{color:var(--gold2);font-size:14px;letter-spacing:4px;margin-bottom:20px}
-.test-quote{font-family:var(--serif);font-size:17px;line-height:1.65;color:rgba(255,255,255,0.75);font-weight:300;font-style:italic;margin-bottom:24px}
-.test-author{font-size:12px;color:rgba(255,255,255,0.35);letter-spacing:1px;text-transform:uppercase}
-.test-author strong{color:rgba(255,255,255,0.6);display:block;font-weight:500;font-size:13px;letter-spacing:.5px;text-transform:none;margin-bottom:2px}
-
-/* ── SERVICES ── */
-.services-section{background:var(--white);padding:100px 48px}
-.services-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:2px;margin-top:48px}
-.service-card{background:var(--cream2);border:1px solid var(--border);border-left:3px solid transparent;padding:32px 28px;transition:all .3s}
-.service-card:hover{border-left:3px solid #2e7dd1;transform:translateY(-2px);box-shadow:0 12px 40px rgba(46,125,209,0.08);background:var(--white)}
-.service-card-icon{font-size:28px;margin-bottom:16px}
-.service-card-title{font-family:var(--serif);font-size:18px;color:var(--navy);margin-bottom:8px}
-.service-card-desc{font-size:13px;line-height:1.7;color:var(--muted);font-weight:300}
-
-/* ── ABOUT ── */
-.about-section{background:var(--navy2);padding:100px 48px}
-.about-grid{display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:center;max-width:1100px;margin:0 auto}
-.about-tag{display:inline-flex;align-items:center;gap:8px;background:rgba(46,125,209,0.1);border:1px solid rgba(46,125,209,0.2);padding:6px 14px;margin-bottom:24px}
-.about-tag-text{font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--gold2)}
-.about-title{font-family:var(--serif);font-size:clamp(28px,4vw,48px);font-weight:300;color:var(--white);line-height:1.1;margin-bottom:20px}
-.about-title em{font-style:italic;color:var(--gold2)}
-.about-body{font-size:15px;line-height:1.9;color:rgba(255,255,255,0.55);font-weight:300;margin-bottom:28px}
-.about-quote{border-left:2px solid var(--gold);padding:16px 24px;margin-bottom:28px}
-.about-quote p{font-family:var(--serif);font-size:18px;font-style:italic;color:rgba(255,255,255,0.65);line-height:1.6}
-.about-quote cite{font-size:11px;color:rgba(255,255,255,0.3);letter-spacing:1px;text-transform:uppercase;margin-top:8px;display:block}
-.about-stats{display:grid;grid-template-columns:repeat(2,1fr);gap:2px}
-.about-stat{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);padding:20px;text-align:center}
-.about-stat-val{font-family:var(--serif);font-size:36px;color:var(--gold2);font-weight:300;margin-bottom:4px}
-.about-stat-lbl{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.3)}
-.about-img-wrap{position:relative}
-.about-img-frame{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);padding:32px;text-align:center}
-.about-img-inner{background:rgba(46,125,209,0.08);border:1px solid rgba(46,125,209,0.15);padding:48px 32px}
-.about-img-icon{font-size:64px;margin-bottom:16px}
-.about-img-name{font-family:var(--serif);font-size:22px;color:var(--white);margin-bottom:4px}
-.about-img-role{font-size:11px;color:rgba(255,255,255,0.3);letter-spacing:2px;text-transform:uppercase}
-.about-badge{position:absolute;bottom:-16px;right:-16px;background:var(--gold);color:var(--navy);padding:14px 18px;text-align:center}
-.about-badge-num{font-family:var(--serif);font-size:28px;font-weight:300;line-height:1;display:block}
-.about-badge-lbl{font-size:9px;letter-spacing:2px;text-transform:uppercase;font-weight:600;display:block;margin-top:2px}
-
-/* ── CTA SECTION ── */
-.cta-section{background:var(--white);padding:100px 48px;border-top:1px solid var(--border)}
-.cta-inner{max-width:800px;margin:0 auto;text-align:center}
-.cta-title{font-family:var(--serif);font-size:clamp(32px,5vw,60px);font-weight:300;color:var(--navy);line-height:1.05;margin-bottom:16px}
-.cta-title em{font-style:italic;color:var(--teal)}
-.cta-sub{font-size:16px;color:var(--muted);margin-bottom:40px;font-weight:300;line-height:1.7}
-.cta-badges{display:flex;justify-content:center;gap:32px;flex-wrap:wrap;margin-top:32px}
-.cta-badge{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);letter-spacing:1px}
-.cta-badge-icon{font-size:16px}
-
-/* ── FOOTER ── */
-footer{background:var(--navy);padding:60px 48px 32px;border-top:1px solid rgba(255,255,255,0.06)}
-.footer-inner{max-width:1200px;margin:0 auto}
-.footer-top{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:60px;margin-bottom:48px}
-.footer-logo{font-family:var(--serif);font-size:22px;color:var(--white);margin-bottom:12px;font-weight:300}
-.footer-logo em{color:var(--gold2);font-style:italic}
-.footer-desc{font-size:13px;color:rgba(255,255,255,0.35);line-height:1.7;margin-bottom:20px;max-width:280px;font-weight:300}
-.footer-contact a{display:flex;align-items:center;gap:8px;font-size:13px;color:rgba(255,255,255,0.45);text-decoration:none;margin-bottom:6px;transition:color .2s}
-.footer-contact a:hover{color:var(--gold2)}
-.footer-col-title{font-size:9px;letter-spacing:3px;text-transform:uppercase;color:rgba(255,255,255,0.25);margin-bottom:16px}
-.footer-links{list-style:none}
-.footer-links li{margin-bottom:8px}
-.footer-links a{font-size:13px;color:rgba(255,255,255,0.4);text-decoration:none;transition:color .2s;font-weight:300}
-.footer-links a:hover{color:var(--gold2)}
-.footer-bottom{border-top:1px solid rgba(255,255,255,0.06);padding-top:24px;display:flex;justify-content:space-between;align-items:center}
-.footer-copy{font-size:12px;color:rgba(255,255,255,0.2);letter-spacing:1px}
-.footer-areas{font-size:12px;color:rgba(255,255,255,0.2);letter-spacing:1px}
-
-/* ── CHATBOT ── */
-@keyframes pulseRing{0%{box-shadow:0 2px 4px rgba(0,0,0,0.3),0 8px 24px rgba(0,0,0,0.4),0 0 0 0 rgba(255,255,255,0.4)}70%{box-shadow:0 2px 4px rgba(0,0,0,0.3),0 8px 24px rgba(0,0,0,0.4),0 0 0 18px rgba(255,255,255,0)}100%{box-shadow:0 2px 4px rgba(0,0,0,0.3),0 8px 24px rgba(0,0,0,0.4),0 0 0 0 rgba(255,255,255,0)}}
-@keyframes dotPulse{0%,100%{opacity:1}50%{opacity:0.4}}
-#chat-widget{position:fixed;bottom:28px;right:28px;z-index:1000;display:flex;align-items:center;gap:10px}
-#chat-label{background:#ffffff;color:#1a3a5c;font-family:'DM Mono',monospace;font-size:11px;font-weight:600;letter-spacing:1px;padding:8px 16px;border-radius:20px;white-space:nowrap;box-shadow:0 4px 16px rgba(0,0,0,0.12);pointer-events:none;display:flex;align-items:center;gap:8px}
-#chat-label .dot{width:8px;height:8px;border-radius:50%;background:#22c55e;flex-shrink:0;animation:dotPulse 1.5s ease-in-out infinite}
-#chat-bubble{width:52px;height:52px;border-radius:50%;background:#ffffff;border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:transform .3s;box-shadow:0 2px 4px rgba(0,0,0,0.3),0 8px 24px rgba(0,0,0,0.4),0 0 0 0 rgba(255,255,255,0.4);animation:pulseRing 2.5s ease infinite}
-#chat-bubble:hover{transform:scale(1.08);box-shadow:0 4px 8px rgba(0,0,0,0.35),0 12px 32px rgba(0,0,0,0.5),0 0 0 0 rgba(255,255,255,0.4)}
-#chat-bubble svg{width:22px;height:22px;fill:#1a3a5c}
-#chat-overlay{position:fixed;bottom:92px;right:28px;z-index:1000;width:340px;background:var(--navy2);border:1px solid rgba(255,255,255,0.08);border-top:2px solid var(--gold);box-shadow:0 24px 80px rgba(0,0,0,0.4);display:none;flex-direction:column;height:460px}
-#chat-overlay.open{display:flex}
-.chat-head{padding:14px 18px;border-bottom:1px solid rgba(255,255,255,0.06);display:flex;align-items:center;gap:10px}
-.chat-av{width:32px;height:32px;border-radius:50%;background:rgba(46,125,209,0.15);border:1px solid rgba(46,125,209,0.3);display:flex;align-items:center;justify-content:center;font-family:var(--serif);font-style:italic;font-size:13px;color:var(--gold2)}
-.chat-info h4{font-size:12px;color:var(--white);font-weight:400}
-.chat-info p{font-size:10px;color:rgba(255,255,255,0.35)}
-.chat-msgs{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px}
-.chat-msgs::-webkit-scrollbar{width:3px}
-.chat-msgs::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.08)}
-.cmsg{max-width:86%;display:flex;flex-direction:column}
-.cmsg.b{align-self:flex-start}
-.cmsg.u{align-self:flex-end}
-.cmsg .cbub{padding:9px 12px;font-size:12px;line-height:1.5}
-.cmsg.b .cbub{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.07);border-radius:2px 10px 10px 10px;color:rgba(255,255,255,0.75)}
-.cmsg.u .cbub{background:rgba(46,125,209,0.18);border:1px solid rgba(46,125,209,0.25);color:rgba(255,255,255,0.88);border-radius:10px 2px 10px 10px}
-.ctyping{display:none;align-self:flex-start;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.07);padding:9px 12px;border-radius:2px 10px 10px 10px}
-.ctyping.show{display:flex;gap:4px;align-items:center}
-.ctyd{width:5px;height:5px;background:rgba(255,255,255,0.3);border-radius:50%;animation:tyb 1.2s infinite}
-.ctyd:nth-child(2){animation-delay:.2s}.ctyd:nth-child(3){animation-delay:.4s}
-@keyframes tyb{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-4px)}}
-.chat-chips{display:flex;flex-wrap:wrap;gap:6px;padding:8px 14px}
-.chat-chip{background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);color:rgba(255,255,255,0.85);font-family:var(--sans);font-size:12px;padding:6px 12px;border-radius:20px;cursor:pointer;transition:background .2s;line-height:1.3}
-.chat-chip:hover{background:rgba(255,255,255,0.15)}
-.typing-indicator{display:flex;gap:4px;align-items:center;align-self:flex-start;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.07);padding:9px 14px;border-radius:2px 10px 10px 10px;margin:4px 0}
-.typing-indicator span{width:5px;height:5px;background:rgba(255,255,255,0.3);border-radius:50%;animation:tyb 1.2s infinite}
-.typing-indicator span:nth-child(2){animation-delay:.2s}
-.typing-indicator span:nth-child(3){animation-delay:.4s}
-.chat-chips.hidden{display:none}
-
-/* ── CHAT SCHEDULER ── */
-.sched-widget{background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:2px 10px 10px 10px;padding:16px;font-family:var(--sans);animation:schedIn .3s ease}
-@keyframes schedIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
-.sched-step{display:none}.sched-step.active{display:block}
-.sched-label{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--gold2);margin-bottom:12px}
-.sched-input{width:100%;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.12);padding:10px 12px;font-size:13px;font-family:var(--sans);color:var(--white);outline:none;margin-bottom:8px;transition:border-color .2s;border-radius:2px}
-.sched-input:focus{border-color:#2e7dd1}
-.sched-input::placeholder{color:rgba(255,255,255,0.25)}
-.sched-btn{background:#2e7dd1;color:#fff;border:none;padding:10px 20px;font-size:12px;font-family:var(--sans);font-weight:500;border-radius:20px;cursor:pointer;transition:background .2s;margin-top:4px;letter-spacing:1px}
-.sched-btn:hover{background:var(--gold2)}
-.sched-btn:disabled{opacity:0.4;cursor:not-allowed}
-.sched-cal{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:12px}
-.sched-cal-hdr{font-size:9px;color:rgba(255,255,255,0.3);text-align:center;padding:4px 0;letter-spacing:1px;text-transform:uppercase}
-.sched-cal-day{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);color:rgba(255,255,255,0.6);font-size:12px;text-align:center;padding:8px 0;cursor:pointer;border-radius:2px;transition:all .2s}
-.sched-cal-day:hover{border-color:#2e7dd1;color:#fff}
-.sched-cal-day.selected{background:#2e7dd1;border-color:#2e7dd1;color:#fff;font-weight:600}
-.sched-cal-day.empty{background:transparent;border:none;cursor:default}
-.sched-cal-day.empty:hover{border:none;color:transparent}
-.sched-times{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
-.sched-time{background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.7);font-size:12px;padding:8px 14px;border-radius:20px;cursor:pointer;transition:all .2s;font-family:var(--sans)}
-.sched-time:hover{border-color:#2e7dd1;color:#fff}
-.sched-time.selected{background:#2e7dd1;border-color:#2e7dd1;color:#fff;font-weight:500}
-.sched-confirm{text-align:center;padding:8px 0}
-.sched-check{font-size:32px;margin-bottom:8px}
-.sched-confirm-title{font-family:var(--serif);font-size:20px;color:var(--white);font-weight:300;margin-bottom:12px}
-.sched-detail{font-size:12px;color:rgba(255,255,255,0.5);margin-bottom:4px;letter-spacing:.5px}
-.sched-detail strong{color:rgba(255,255,255,0.85);font-weight:500}
-.sched-month{font-size:13px;color:var(--white);font-weight:500;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between}
-.chat-inp-wrap{padding:10px 14px;border-top:1px solid rgba(255,255,255,0.06);display:flex;gap:8px}
-.chat-inp{flex:1;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);padding:8px 12px;font-size:12px;font-family:var(--sans);color:var(--white);outline:none;resize:none;max-height:56px;transition:border-color .2s}
-.chat-inp:focus{border-color:rgba(46,125,209,0.35)}
-.chat-inp::placeholder{color:rgba(255,255,255,0.2)}
-.chat-send{width:32px;height:32px;background:var(--gold);border:none;color:var(--navy);font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .2s;flex-shrink:0;align-self:flex-end}
-.chat-send:hover{background:var(--gold2)}
-
-/* ── SCROLL REVEAL ── */
-.reveal{opacity:0;transform:translateY(24px);transition:opacity .7s ease,transform .7s ease}
-.reveal.visible{opacity:1;transform:translateY(0)}
-
-/* ── BUILDER PROGRESS ── */
-.builder-progress{width:100%;height:3px;background:rgba(255,255,255,0.1);margin-bottom:32px;overflow:hidden}
-.builder-progress-fill{height:100%;background:#2e7dd1;width:0;transition:width 0.4s ease}
-
-/* ── TESTIMONIAL CAROUSEL ── */
-.test-dots{display:flex;justify-content:center;gap:8px;margin-top:24px}
-.test-dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,0.2);cursor:pointer;border:none;padding:0;transition:background 0.2s}
-.test-dot.active{background:var(--gold2)}
-
-/* ── BUTTON MICRO-INTERACTIONS ── */
-.btn-outline:hover,.step-next:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,0.12)}
-.btn-primary:active,.btn-outline:active,.plan-cta:active,.step-next:active,.nav-cta:active{transform:translateY(0)!important;box-shadow:none!important}
-
-/* ── HAMBURGER NAV ── */
-.hamburger{display:none;background:none;border:none;cursor:pointer;padding:8px;z-index:600}
-.hamburger span{display:block;width:22px;height:2px;background:#fff;margin:5px 0;transition:all .3s}
-.hamburger.open span:nth-child(1){transform:rotate(45deg) translate(5px,5px)}
-.hamburger.open span:nth-child(2){opacity:0}
-.hamburger.open span:nth-child(3){transform:rotate(-45deg) translate(5px,-5px)}
-.mobile-menu{display:none;position:fixed;top:70px;left:0;right:0;bottom:0;background:#1a3a5c;z-index:499;flex-direction:column;align-items:center;justify-content:center;gap:0}
-.mobile-menu.open{display:flex}
-.mobile-menu a{color:#fff;font-family:var(--sans);font-size:18px;letter-spacing:3px;text-transform:uppercase;text-decoration:none;padding:20px 0;width:100%;text-align:center;border-bottom:1px solid rgba(255,255,255,0.06);transition:background .2s}
-.mobile-menu a:hover{background:rgba(255,255,255,0.05)}
-.mobile-menu a:last-child{border-bottom:none;margin-top:8px;background:var(--gold);color:var(--navy);font-weight:600;font-size:14px;padding:18px 0}
-
-/* ── RESPONSIVE ── */
-@media(max-width:768px){
-  .nav-links{display:none!important}
-  .hamburger{display:block}
-  .hero-btns{flex-direction:column;gap:10px}
-  .hero-btns .btn-primary,.hero-btns .btn-outline{width:100%;text-align:center;padding:14px 24px}
-}
-@media(max-width:900px){
-  .hero-right{display:none}
-  .builder-grid{grid-template-columns:1fr}
-  .care-types{grid-template-columns:1fr 1fr}
-  .test-grid,.services-grid,.steps-grid{grid-template-columns:1fr}
-  .steps-grid::before{display:none}
-  .about-grid{grid-template-columns:1fr}
-  .footer-top{grid-template-columns:1fr}
-  .section{padding:60px 24px}
-  nav{padding:0 24px}
-  .hero-content{padding:0 24px;padding-top:70px}
-  .price-grid{grid-template-columns:1fr}
-  .test-grid{position:relative;min-height:280px}
-  .test-card{transition:opacity 0.5s ease}
-  .test-card:not(.t-active){opacity:0;position:absolute;top:0;left:0;right:0;pointer-events:none}
-  .test-card.t-active{opacity:1;position:relative}
-}
-@media(min-width:901px){.test-dots{display:none}}
-
-/* CURSOR */
-.cur{position:fixed;width:8px;height:8px;background:#2e7dd1;border-radius:50%;pointer-events:none;z-index:9999;transform:translate(-50%,-50%);transition:transform .08s;mix-blend-mode:multiply;}
-
-/* HERO CANVAS */
-#hero-canvas{position:absolute;inset:0;pointer-events:none;z-index:1;opacity:0.5;}
-
-/* COUNT UP */
-.count-stat{transition:all .3s;}
-
-/* HOW STEP STAGGER */
-.how-step{opacity:0;transform:translateY(24px);transition:opacity .6s ease,transform .6s ease;}
-.how-step.how-lit{opacity:1;transform:translateY(0);}
-
-/* HOW STEP HOVER */
-.how-step:hover{transform:translateY(-6px)!important;transition:transform .3s ease;}
-
-/* SERVICES HOVER SLIDE */
-.service-toggle:hover{background:rgba(46,125,209,0.08)!important;border-color:rgba(46,125,209,0.25)!important;transform:translateX(4px);transition:all .2s ease;}
-
-/* SERVICE ICON BOUNCE */
-.service-icon{display:inline-block;transition:transform .2s ease;}
+/* ══════════════════════════════════════
+   CARE BUILDER
+══════════════════════════════════════ */
+.builder-section{background:var(--navy);padding:100px 48px;position:relative;overflow:hidden;}
+.builder-section::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 30% 50%,rgba(46,125,209,.12),transparent 60%);pointer-events:none;}
+.builder-inner{max-width:1100px;margin:0 auto;position:relative;z-index:1;}
+.builder-eyebrow{display:flex;align-items:center;gap:16px;margin-bottom:20px;}
+.builder-title{font-family:var(--serif);font-size:clamp(32px,4.5vw,58px);font-weight:300;color:var(--white);line-height:1.05;margin-bottom:12px;}
+.builder-title em{font-style:italic;color:var(--blue2);}
+.builder-sub{font-size:15px;color:rgba(255,255,255,.5);margin-bottom:48px;font-weight:300;max-width:560px;}
+.builder-progress{width:100%;height:3px;background:rgba(255,255,255,.1);margin-bottom:32px;overflow:hidden;}
+.builder-progress-fill{height:100%;background:var(--blue);width:0;transition:width .4s ease;}
+.builder-grid{display:grid;grid-template-columns:1fr 360px;gap:32px;align-items:start;}
+.builder-steps{display:flex;flex-direction:column;gap:4px;}
+.step{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);overflow:hidden;transition:all .3s;}
+.step.active{background:rgba(255,255,255,.06);border-color:rgba(46,125,209,.25);}
+.step-header{padding:18px 22px;display:flex;align-items:center;gap:14px;cursor:pointer;}
+.step-num{width:28px;height:28px;border-radius:50%;border:1px solid rgba(46,125,209,.3);display:flex;align-items:center;justify-content:center;font-size:11px;color:rgba(46,125,209,.6);flex-shrink:0;transition:all .3s;}
+.step.active .step-num{background:var(--blue);color:var(--white);border-color:var(--blue);font-weight:600;}
+.step.done .step-num{background:rgba(46,125,209,.15);color:var(--blue2);}
+.step-title{font-size:13px;color:rgba(255,255,255,.6);letter-spacing:1px;text-transform:uppercase;font-weight:400;transition:color .3s;}
+.step.active .step-title{color:var(--white);}
+.step-check{margin-left:auto;color:var(--blue2);font-size:14px;opacity:0;transition:opacity .3s;}
+.step.done .step-check{opacity:1;}
+.step-body{padding:0 22px 20px;display:none;}
+.step.active .step-body{display:block;}
+.care-types{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px;}
+.care-type{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);padding:14px 16px;cursor:pointer;transition:all .2s;text-align:left;min-height:44px;}
+.care-type:hover{border-color:rgba(46,125,209,.3);background:rgba(46,125,209,.05);}
+.care-type.selected{border-color:var(--blue);background:rgba(46,125,209,.1);}
+.care-type-icon{display:flex;align-items:center;justify-content:center;width:28px;height:28px;margin-bottom:8px;}
+.care-type-name{font-size:12px;color:rgba(255,255,255,.8);font-weight:500;display:block;margin-bottom:2px;}
+.care-type-desc{font-size:10px;color:rgba(255,255,255,.35);line-height:1.4;}
+.hours-wrap{margin-top:12px;}
+.hours-display{display:flex;align-items:baseline;gap:8px;margin-bottom:16px;}
+.hours-val{font-family:var(--serif);font-size:48px;color:var(--blue2);font-weight:300;line-height:1;}
+.hours-unit{font-size:14px;color:rgba(255,255,255,.4);}
+input[type=range]{width:100%;-webkit-appearance:none;height:2px;background:rgba(255,255,255,.1);outline:none;margin:12px 0;}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:var(--blue);cursor:pointer;border:2px solid var(--navy);}
+.hours-markers{display:flex;justify-content:space-between;font-size:9px;color:rgba(255,255,255,.25);letter-spacing:1px;margin-top:4px;}
+.care-tier-display{margin:10px 0 4px;padding:12px 16px;background:rgba(46,125,209,.08);border-left:2px solid var(--blue2);}
+.care-tier-name{font-family:var(--serif);font-size:22px;color:var(--white);font-weight:300;line-height:1.1;margin-bottom:3px;}
+.care-tier-desc{font-size:10px;color:rgba(255,255,255,.4);letter-spacing:1px;}
+.plan-compare{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;margin-top:16px;}
+.pc-card{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);padding:12px 10px;transition:all .3s;}
+.pc-card.active{background:rgba(46,125,209,.12);border-color:rgba(46,125,209,.35);border-top:2px solid var(--blue2);}
+.pc-label{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.35);margin-bottom:5px;transition:color .3s;}
+.pc-card.active .pc-label{color:var(--blue2);}
+.pc-hrs{font-size:9px;color:rgba(255,255,255,.25);margin-bottom:8px;}
+.pc-price{font-family:var(--serif);font-size:15px;color:rgba(255,255,255,.45);font-weight:300;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid rgba(255,255,255,.06);transition:color .3s;line-height:1.2;}
+.pc-price span{font-size:10px;color:rgba(255,255,255,.25);}
+.pc-card.active .pc-price{color:var(--white);}
+.pc-feat{font-size:9px;color:rgba(255,255,255,.25);padding:2px 0;display:flex;align-items:flex-start;gap:5px;line-height:1.3;transition:color .3s;}
+.pc-feat::before{content:'✓';color:rgba(255,255,255,.12);flex-shrink:0;transition:color .3s;}
+.pc-card.active .pc-feat{color:rgba(255,255,255,.65);}
+.pc-card.active .pc-feat::before{color:var(--blue2);}
+.services-grid-build{display:flex;flex-direction:column;gap:6px;margin-top:12px;}
+.service-toggle{display:flex;align-items:center;justify-content:space-between;padding:11px 14px;background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.06);cursor:pointer;transition:all .2s;}
+.service-toggle:hover{background:rgba(46,125,209,.08);border-color:rgba(46,125,209,.25);transform:translateX(4px);}
+.service-toggle.active{border-color:rgba(46,125,209,.25);background:rgba(46,125,209,.06);}
+.service-toggle-left{display:flex;align-items:center;gap:10px;}
+.service-icon{display:flex;align-items:center;justify-content:center;width:20px;transition:transform .2s;}
 .service-toggle:hover .service-icon{transform:scale(1.2);}
+.service-name{font-size:12px;color:rgba(255,255,255,.65);transition:color .2s;}
+.service-toggle.active .service-name{color:rgba(255,255,255,.9);}
+.service-badge{font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--blue2);background:rgba(46,125,209,.12);padding:2px 7px;}
+.toggle-switch{width:32px;height:18px;border-radius:20px;background:rgba(255,255,255,.1);position:relative;transition:background .2s;flex-shrink:0;}
+.service-toggle.active .toggle-switch{background:var(--blue);}
+.toggle-knob{position:absolute;width:12px;height:12px;border-radius:50%;background:#fff;top:3px;left:3px;transition:transform .2s;}
+.service-toggle.active .toggle-knob{transform:translateX(14px);}
+.plan-card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-top:2px solid var(--blue);padding:28px;position:sticky;top:90px;}
+.plan-card-label{font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--blue2);margin-bottom:20px;display:flex;align-items:center;gap:8px;}
+.plan-card-label::before{content:'';width:20px;height:1px;background:var(--blue);}
+.plan-care-type{font-family:var(--serif);font-size:22px;color:var(--white);font-weight:300;margin-bottom:4px;}
+.plan-hours{font-size:13px;color:rgba(255,255,255,.4);margin-bottom:20px;letter-spacing:1px;}
+.plan-divider{height:1px;background:rgba(255,255,255,.06);margin:16px 0;}
+.plan-services-lbl{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.3);margin-bottom:10px;}
+.plan-service-item{display:flex;align-items:center;gap:8px;padding:4px 0;font-size:11px;color:rgba(255,255,255,.55);}
+.plan-service-item::before{content:'✓';color:var(--blue2);font-size:10px;flex-shrink:0;}
+.plan-price-wrap{margin-top:20px;background:rgba(46,125,209,.08);border:1px solid rgba(46,125,209,.15);padding:16px;}
+.plan-price-lbl{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.35);margin-bottom:4px;}
+.plan-price-val{font-family:var(--serif);font-size:36px;color:var(--blue2);font-weight:300;line-height:1;}
+.plan-price-note{font-size:10px;color:rgba(255,255,255,.3);margin-top:4px;}
+.plan-cta{width:100%;background:var(--blue);color:var(--white);text-align:center;padding:14px;font-size:11px;letter-spacing:2px;text-transform:uppercase;font-weight:600;text-decoration:none;margin-top:16px;border:none;cursor:pointer;font-family:var(--sans);transition:all .3s;min-height:48px;display:flex;align-items:center;justify-content:center;border-radius:24px;}
+.plan-cta:hover{background:var(--blue2);transform:translateY(-1px);}
+.plan-free{font-size:10px;color:rgba(255,255,255,.3);text-align:center;margin-top:10px;letter-spacing:1px;}
+.plan-empty{text-align:center;padding:32px 0;color:rgba(255,255,255,.2);font-size:13px;line-height:1.6;}
+.step-next{display:inline-block;background:transparent;border:1px solid rgba(61,143,214,.35);color:var(--blue2);padding:10px 22px;font-size:10px;letter-spacing:2px;text-transform:uppercase;cursor:pointer;margin-top:14px;font-family:var(--sans);transition:all .2s;min-height:44px;border-radius:100px;}
+.step-next:hover{background:rgba(61,143,214,.1);transform:translateY(-2px);}
 
-/* LIVE FEED */
-.live-feed-section{background:#0a1520;padding:60px 48px;border-top:1px solid rgba(46,125,209,0.1);border-bottom:3px solid rgba(46,125,209,0.25);}
+/* ══════════════════════════════════════
+   HOW IT WORKS
+══════════════════════════════════════ */
+.how-section{background:var(--white);padding:100px 48px;}
+.steps-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:32px;margin-top:60px;position:relative;}
+.steps-grid::before{content:'';position:absolute;top:50%;left:10%;right:10%;height:0;border-top:1px dashed rgba(26,58,92,.12);z-index:0;}
+.how-step{background:#fff;padding:2.5rem 2rem;border-top:3px solid var(--blue);position:relative;transition:all .3s;z-index:1;box-shadow:0 4px 24px rgba(26,58,92,.08);opacity:0;transform:translateY(24px);}
+.how-step.how-lit{opacity:1;transform:translateY(0);}
+.how-step:hover{transform:translateY(-4px);box-shadow:0 12px 40px rgba(26,58,92,.14);}
+.how-step-num{font-family:var(--serif);font-size:5rem;color:var(--navy);opacity:.06;line-height:1;position:absolute;top:20px;right:24px;font-weight:300;}
+.how-step-pill{display:inline-block;background:rgba(46,125,209,.08);color:var(--blue);font-size:.7rem;letter-spacing:.1em;padding:.2rem .7rem;margin-bottom:.5rem;font-weight:500;text-transform:uppercase;}
+.how-step-icon{width:52px;height:52px;background:rgba(46,125,209,.08);border:1px solid rgba(46,125,209,.15);display:flex;align-items:center;justify-content:center;margin-bottom:1.2rem;}
+.how-step-title{font-family:var(--serif);font-size:1.25rem;font-weight:600;color:var(--navy);margin-bottom:12px;}
+.how-step-desc{font-size:.9rem;line-height:1.75;color:#4a5568;font-weight:300;}
+
+/* ══════════════════════════════════════
+   LIVE FEED
+══════════════════════════════════════ */
+.live-feed-section{background:#0a1520;padding:60px 48px;border-top:1px solid rgba(46,125,209,.1);border-bottom:3px solid rgba(46,125,209,.25);}
 .live-feed-inner{max-width:1200px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:64px;align-items:center;}
-.live-feed-label{font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--gold2);margin-bottom:12px;display:flex;align-items:center;gap:8px;}
-.live-feed-dot{width:6px;height:6px;border-radius:50%;background:var(--gold2);animation:pulse2 1.5s infinite;}
+.live-feed-label{font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--blue2);margin-bottom:12px;display:flex;align-items:center;gap:8px;}
+.live-feed-dot{width:6px;height:6px;border-radius:50%;background:var(--blue2);animation:pulse2 1.5s infinite;}
 .live-feed-title{font-family:var(--serif);font-size:clamp(28px,3.5vw,44px);font-weight:300;color:var(--white);line-height:1.1;margin-bottom:8px;}
-.live-feed-title em{font-style:italic;color:var(--gold2);}
-.live-feed-sub{font-size:14px;color:rgba(255,255,255,0.45);font-weight:300;}
+.live-feed-title em{font-style:italic;color:var(--blue2);}
+.live-feed-sub{font-size:14px;color:rgba(255,255,255,.45);font-weight:300;}
 .feed-card-wrap{position:relative;height:110px;}
-.feed-card{position:absolute;inset:0;background:rgba(46,125,209,0.1);border:1px solid rgba(46,125,209,0.35);border-left:3px solid var(--gold);padding:18px 22px;display:flex;align-items:center;gap:16px;transition:opacity .6s ease;opacity:0;}
+.feed-card{position:absolute;inset:0;background:rgba(46,125,209,.1);border:1px solid rgba(46,125,209,.35);border-left:3px solid var(--blue);padding:18px 22px;display:flex;align-items:center;gap:16px;transition:opacity .6s ease;opacity:0;}
 .feed-card.feed-active{opacity:1;}
-.feed-card-icon{width:38px;height:38px;border-radius:6px;background:rgba(46,125,209,0.12);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
+.feed-card-icon{width:38px;height:38px;background:rgba(46,125,209,.12);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
 .feed-card-text{flex:1;}
 .feed-card-title{font-size:13px;font-weight:500;color:var(--white);margin-bottom:3px;}
-.feed-card-meta{font-size:11px;color:rgba(255,255,255,0.4);}
-.feed-card-time{font-size:10px;color:var(--gold2);letter-spacing:1px;flex-shrink:0;}
+.feed-card-meta{font-size:11px;color:rgba(255,255,255,.4);}
+.feed-card-time{font-size:10px;color:var(--blue2);letter-spacing:1px;flex-shrink:0;}
 .feed-dots{display:flex;gap:8px;margin-top:20px;}
-.feed-dot-btn{width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,0.2);border:none;padding:0;cursor:pointer;transition:background .3s;}
-.feed-dot-btn.active{background:var(--gold2);}
+.feed-dot-btn{width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,.2);border:none;padding:0;cursor:pointer;transition:background .3s;}
+.feed-dot-btn.active{background:var(--blue2);}
 
-/* COVERAGE MAP */
-.map-section{background:var(--navy);padding:80px 48px;border-top:1px solid rgba(46,125,209,0.1);}
+/* ══════════════════════════════════════
+   TESTIMONIALS
+══════════════════════════════════════ */
+.test-section{background:var(--navy2);padding:100px 48px;}
+.test-grid{position:relative;min-height:300px;margin-top:60px;}
+.test-card{position:absolute;inset:0;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);padding:40px;opacity:0;transform:translateY(16px);transition:opacity .7s ease,transform .7s ease;pointer-events:none;}
+.test-card.t-active{opacity:1;transform:translateY(0);pointer-events:auto;}
+.test-stars{color:var(--blue2);font-size:14px;letter-spacing:4px;margin-bottom:20px;}
+.test-quote{font-family:var(--serif);font-size:18px;line-height:1.7;color:rgba(255,255,255,.78);font-weight:300;font-style:italic;margin-bottom:28px;}
+.test-rule{width:24px;height:1px;background:var(--blue);margin-bottom:16px;}
+.test-author{font-size:12px;color:rgba(255,255,255,.35);letter-spacing:1px;text-transform:uppercase;}
+.test-author strong{color:rgba(255,255,255,.65);display:block;font-weight:500;font-size:13px;letter-spacing:.5px;text-transform:none;margin-bottom:2px;}
+.test-dots{display:flex;justify-content:center;gap:10px;margin-top:24px;}
+.test-dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.2);border:none;cursor:pointer;padding:0;transition:background .3s,transform .3s;}
+.test-dot.active{background:var(--blue2);transform:scale(1.3);}
+
+/* ══════════════════════════════════════
+   SERVICES SECTION
+══════════════════════════════════════ */
+.services-section{background:var(--white);padding:100px 48px;}
+.services-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:2px;margin-top:48px;background:var(--border);}
+.service-card{background:var(--cream2);border-left:3px solid transparent;padding:32px 28px;transition:all .3s;opacity:0;transform:translateY(20px);}
+.service-card.visible{opacity:1;transform:none;}
+.service-card:nth-child(1){transition-delay:.05s;}
+.service-card:nth-child(2){transition-delay:.1s;}
+.service-card:nth-child(3){transition-delay:.15s;}
+.service-card:nth-child(4){transition-delay:.2s;}
+.service-card:nth-child(5){transition-delay:.25s;}
+.service-card:nth-child(6){transition-delay:.3s;}
+.service-card:nth-child(7){transition-delay:.35s;}
+.service-card:nth-child(8){transition-delay:.4s;}
+.service-card:hover{border-left:3px solid var(--blue);transform:translateY(-2px);box-shadow:0 12px 40px rgba(46,125,209,.08);background:var(--white);}
+.service-card-icon{width:40px;height:40px;margin-bottom:16px;display:flex;align-items:center;}
+.service-card-title{font-family:var(--serif);font-size:18px;color:var(--navy);margin-bottom:8px;}
+.service-card-desc{font-size:13px;line-height:1.7;color:var(--muted);font-weight:300;}
+
+/* ══════════════════════════════════════
+   ABOUT
+══════════════════════════════════════ */
+.about-section{background:var(--navy2);padding:100px 48px;}
+.about-grid{display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:center;max-width:1100px;margin:0 auto;}
+.about-tag{display:inline-flex;align-items:center;gap:8px;background:rgba(46,125,209,.1);border:1px solid rgba(46,125,209,.2);padding:6px 14px;margin-bottom:24px;}
+.about-tag-text{font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--blue2);}
+.about-title{font-family:var(--serif);font-size:clamp(28px,4vw,48px);font-weight:300;color:var(--white);line-height:1.1;margin-bottom:20px;}
+.about-title em{font-style:italic;color:var(--blue2);}
+.about-body{font-size:15px;line-height:1.9;color:rgba(255,255,255,.55);font-weight:300;margin-bottom:28px;}
+.about-quote{border-left:2px solid var(--blue);padding:16px 24px;margin-bottom:28px;}
+.about-quote p{font-family:var(--serif);font-size:18px;font-style:italic;color:rgba(255,255,255,.65);line-height:1.6;}
+.about-quote cite{font-size:11px;color:rgba(255,255,255,.3);letter-spacing:1px;text-transform:uppercase;margin-top:8px;display:block;}
+.about-img-wrap{position:relative;}
+.about-img-frame{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);padding:32px;}
+.about-img-inner{background:rgba(46,125,209,.08);border:1px solid rgba(46,125,209,.15);padding:48px 32px;text-align:center;}
+.about-img-name{font-family:var(--serif);font-size:22px;color:var(--white);margin-bottom:4px;margin-top:16px;}
+.about-img-role{font-size:11px;color:rgba(255,255,255,.35);letter-spacing:2px;text-transform:uppercase;}
+.about-stats{display:grid;grid-template-columns:repeat(2,1fr);gap:2px;margin-top:2px;}
+.about-stat{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);padding:20px;text-align:center;}
+.about-stat-val{font-family:var(--serif);font-size:36px;color:var(--blue2);font-weight:300;margin-bottom:4px;}
+.about-stat-lbl{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.3);}
+.about-badge{position:absolute;bottom:-16px;right:-16px;background:var(--blue);color:var(--white);padding:14px 18px;text-align:center;}
+.about-badge-num{font-family:var(--serif);font-size:28px;font-weight:300;line-height:1;display:block;}
+.about-badge-lbl{font-size:9px;letter-spacing:2px;text-transform:uppercase;font-weight:600;display:block;margin-top:2px;}
+
+/* ══════════════════════════════════════
+   CTA
+══════════════════════════════════════ */
+.cta-section{background:var(--white);padding:100px 48px;border-top:1px solid var(--border);}
+.cta-inner{max-width:840px;margin:0 auto;text-align:center;}
+.cta-title{font-family:var(--serif);font-size:clamp(32px,5vw,60px);font-weight:300;color:var(--navy);line-height:1.05;margin-bottom:16px;}
+.cta-title em{font-style:italic;color:var(--blue3);}
+.cta-sub{font-size:16px;color:var(--muted);margin-bottom:40px;font-weight:300;line-height:1.7;}
+.cta-badges{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:48px;}
+.cta-badge{display:flex;flex-direction:column;align-items:center;gap:10px;padding:24px 16px;background:var(--cream2);border:1px solid var(--border);text-align:center;transition:all .3s;}
+.cta-badge:hover{border-color:var(--blue);transform:translateY(-2px);box-shadow:0 8px 24px rgba(46,125,209,.1);}
+.cta-badge-icon{width:40px;height:40px;background:rgba(46,125,209,.1);border:1px solid rgba(46,125,209,.2);border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--blue);font-size:16px;font-weight:700;}
+.cta-badge-label{font-size:12px;font-weight:600;color:var(--navy);}
+.cta-badge-sub{font-size:11px;color:var(--muted);}
+
+/* ══════════════════════════════════════
+   COVERAGE MAP
+══════════════════════════════════════ */
+.map-section{background:var(--navy);padding:80px 48px;border-top:1px solid rgba(46,125,209,.1);}
 .map-inner{max-width:1200px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:64px;align-items:center;}
-.map-svg-wrap{position:relative;}
-.map-svg-wrap svg{width:100%;height:auto;display:block;border-radius:8px;}
-.pulse-ring-1{animation:ringPulse1 2.4s ease-out infinite;}
-.pulse-ring-2{animation:ringPulse1 2.4s ease-out infinite 0.8s;}
-.pulse-ring-3{animation:ringPulse2 2.6s ease-out infinite;}
-.pulse-ring-4{animation:ringPulse2 2.6s ease-out infinite 0.9s;}
-.pulse-ring-5{animation:ringPulse3 2.2s ease-out infinite;}
-.pulse-ring-6{animation:ringPulse3 2.2s ease-out infinite 0.7s;}
-@keyframes ringPulse1{0%{r:10;opacity:0.6;}100%{r:28;opacity:0;}}
-@keyframes ringPulse2{0%{r:8;opacity:0.5;}100%{r:24;opacity:0;}}
-@keyframes ringPulse3{0%{r:7;opacity:0.4;}100%{r:20;opacity:0;}}
-.connect-line{stroke-dasharray:300;stroke-dashoffset:300;animation:drawLine 1.8s ease forwards;}
-.connect-line-2{animation-delay:0.3s;}
-.connect-line-3{animation-delay:0.6s;}
-@keyframes drawLine{to{stroke-dashoffset:0;}}
-.pin-drop{animation:pinDrop .6s cubic-bezier(.34,1.56,.64,1) forwards;opacity:0;}
-.pin-drop-1{animation-delay:0.2s;}
-.pin-drop-2{animation-delay:0.5s;}
-.pin-drop-3{animation-delay:0.8s;}
-@keyframes pinDrop{0%{opacity:0;transform:translateY(-16px);}100%{opacity:1;transform:translateY(0);}}
-.map-city-labels{position:absolute;inset:0;pointer-events:none;}
-.map-label{position:absolute;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--gold2);font-family:var(--sans);}
 .map-info{display:flex;flex-direction:column;gap:24px;}
-.map-city-item{display:flex;align-items:center;gap:16px;padding:18px 20px;background:rgba(255,255,255,0.03);border:1px solid rgba(46,125,209,0.12);transition:border-color .3s;}
-.map-city-item:hover{border-color:rgba(46,125,209,0.35);}
+.map-city-item{display:flex;align-items:center;gap:16px;padding:18px 20px;background:rgba(255,255,255,.03);border:1px solid rgba(46,125,209,.12);transition:border-color .3s;}
+.map-city-item:hover{border-color:rgba(46,125,209,.35);}
 .map-city-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
 .map-city-name{font-size:14px;font-weight:500;color:var(--white);}
-.map-city-desc{font-size:12px;color:rgba(255,255,255,0.4);margin-top:2px;}
+.map-city-desc{font-size:12px;color:rgba(255,255,255,.4);margin-top:2px;}
+.map-svg-wrap svg{width:100%;height:auto;display:block;}
+.pulse-ring-1{animation:ringPulse1 2.4s ease-out infinite;}
+.pulse-ring-2{animation:ringPulse1 2.4s ease-out infinite .8s;}
+.pulse-ring-3{animation:ringPulse2 2.6s ease-out infinite;}
+.pulse-ring-4{animation:ringPulse2 2.6s ease-out infinite .9s;}
+.pulse-ring-5{animation:ringPulse3 2.2s ease-out infinite;}
+.pulse-ring-6{animation:ringPulse3 2.2s ease-out infinite .7s;}
+.connect-line{stroke-dasharray:300;stroke-dashoffset:300;animation:drawLine 1.8s ease forwards;}
+.connect-line-2{animation-delay:.3s;}
+.connect-line-3{animation-delay:.6s;}
+.pin-drop{animation:pinDrop .6s cubic-bezier(.34,1.56,.64,1) forwards;opacity:0;}
+.pin-drop-1{animation-delay:.2s;}
+.pin-drop-2{animation-delay:.5s;}
+.pin-drop-3{animation-delay:.8s;}
 
+/* ══════════════════════════════════════
+   FOOTER
+══════════════════════════════════════ */
+footer{background:var(--navy);padding:60px 48px 32px;border-top:1px solid rgba(255,255,255,.06);}
+.footer-inner{max-width:1200px;margin:0 auto;}
+.footer-top{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:60px;margin-bottom:48px;}
+.footer-logo{font-family:var(--serif);font-size:22px;color:var(--white);margin-bottom:12px;font-weight:300;}
+.footer-logo em{color:var(--blue2);font-style:italic;}
+.footer-desc{font-size:13px;color:rgba(255,255,255,.35);line-height:1.7;margin-bottom:20px;max-width:280px;font-weight:300;}
+.footer-contact a{display:flex;align-items:center;gap:8px;font-size:13px;color:rgba(255,255,255,.45);text-decoration:none;margin-bottom:6px;transition:color .2s,transform .2s;}
+.footer-contact a:hover{color:var(--blue2);transform:translateX(3px);}
+.footer-col-title{font-size:9px;letter-spacing:3px;text-transform:uppercase;color:rgba(255,255,255,.25);margin-bottom:16px;}
+.footer-links{list-style:none;}
+.footer-links li{margin-bottom:8px;}
+.footer-links a{font-size:13px;color:rgba(255,255,255,.4);text-decoration:none;transition:color .2s;font-weight:300;}
+.footer-links a:hover{color:var(--blue2);}
+.footer-bottom{border-top:1px solid rgba(255,255,255,.06);padding-top:24px;display:flex;justify-content:space-between;align-items:center;}
+.footer-copy{font-size:12px;color:rgba(255,255,255,.2);letter-spacing:1px;}
+.footer-areas{font-size:12px;color:rgba(255,255,255,.2);letter-spacing:1px;}
+
+/* ══════════════════════════════════════
+   CHATBOT
+══════════════════════════════════════ */
+#chat-widget{position:fixed;bottom:28px;right:28px;z-index:1000;display:flex;align-items:center;gap:10px;}
+#chat-label{background:#fff;color:var(--navy);font-size:11px;font-weight:600;letter-spacing:1px;padding:8px 16px;white-space:nowrap;box-shadow:0 4px 16px rgba(0,0,0,.12);display:flex;align-items:center;gap:8px;border-radius:20px;}
+#chat-label .dot{width:8px;height:8px;border-radius:50%;background:#22c55e;flex-shrink:0;animation:dotPulse 1.5s ease-in-out infinite;}
+#chat-bubble{width:52px;height:52px;border-radius:50%;background:#fff;border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:transform .3s;box-shadow:0 2px 4px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.4);animation:pulseRing 2.5s ease infinite;}
+#chat-bubble:hover{transform:scale(1.08);}
+#chat-bubble svg{width:22px;height:22px;fill:var(--navy);}
+#chat-overlay{position:fixed;bottom:92px;right:28px;z-index:1000;width:min(340px,calc(100vw - 32px));background:var(--navy2);border:1px solid rgba(255,255,255,.08);border-top:2px solid var(--blue);border-radius:12px;box-shadow:0 24px 80px rgba(0,0,0,.4);display:none;flex-direction:column;max-height:min(460px,80vh);overflow:hidden;}
+#chat-overlay.open{display:flex;}
+.chat-head{padding:14px 18px;border-bottom:1px solid rgba(255,255,255,.06);display:flex;align-items:center;gap:10px;border-radius:12px 12px 0 0;}
+.chat-av{width:32px;height:32px;border-radius:50%;background:rgba(46,125,209,.15);border:1px solid rgba(46,125,209,.3);display:flex;align-items:center;justify-content:center;font-family:var(--serif);font-style:italic;font-size:13px;color:var(--blue2);}
+.chat-info h4{font-size:12px;color:var(--white);font-weight:400;}
+.chat-info p{font-size:10px;color:rgba(255,255,255,.35);}
+.chat-msgs{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px;}
+.chat-msgs::-webkit-scrollbar{width:3px;}
+.chat-msgs::-webkit-scrollbar-thumb{background:rgba(255,255,255,.08);}
+.cmsg{max-width:86%;display:flex;flex-direction:column;}
+.cmsg.b{align-self:flex-start;}
+.cmsg.u{align-self:flex-end;}
+.cmsg .cbub{padding:9px 12px;font-size:12px;line-height:1.5;}
+.cmsg.b .cbub{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.07);border-radius:2px 10px 10px 10px;color:rgba(255,255,255,.75);}
+.cmsg.u .cbub{background:rgba(46,125,209,.18);border:1px solid rgba(46,125,209,.25);color:rgba(255,255,255,.88);border-radius:10px 2px 10px 10px;}
+.typing-indicator{display:flex;gap:4px;align-items:center;align-self:flex-start;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.07);padding:9px 14px;border-radius:2px 10px 10px 10px;margin:4px 0;}
+.typing-indicator span{width:5px;height:5px;background:rgba(255,255,255,.3);border-radius:50%;animation:tyb 1.2s infinite;}
+.typing-indicator span:nth-child(2){animation-delay:.2s;}
+.typing-indicator span:nth-child(3){animation-delay:.4s;}
+.chat-chips{display:flex;flex-wrap:wrap;gap:6px;padding:8px 14px;}
+.chat-chip{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.85);font-family:var(--sans);font-size:12px;padding:6px 12px;border-radius:20px;cursor:pointer;transition:background .2s;line-height:1.3;}
+.chat-chip:hover{background:rgba(255,255,255,.15);}
+.chat-chips.hidden{display:none;}
+.chat-inp-wrap{padding:10px 14px;border-top:1px solid rgba(255,255,255,.06);display:flex;gap:8px;}
+.chat-inp{flex:1;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);padding:8px 12px;font-size:16px;font-family:var(--sans);color:var(--white);outline:none;resize:none;max-height:56px;transition:border-color .2s;-webkit-appearance:none;}
+.chat-inp:focus{border-color:rgba(46,125,209,.35);}
+.chat-inp::placeholder{color:rgba(255,255,255,.2);}
+.chat-send{background:var(--blue);border:none;color:var(--white);font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .2s;flex-shrink:0;align-self:flex-end;width:44px;height:44px;min-width:44px;border-radius:50%;
+.chat-send:hover{background:var(--blue2);}
+
+/* ══════════════════════════════════════
+   RESPONSIVE
+══════════════════════════════════════ */
+@media(max-width:768px){
+  .nav-links{display:none!important;}
+  .hamburger{display:block;}
+  .hero-btns{flex-direction:column;gap:10px;}
+  .hero-btns .btn-primary,.hero-btns .btn-outline{width:100%;text-align:center;padding:14px 24px;}
+  .hero-content{padding:0 20px;padding-top:70px;}
+  .hero-btns{margin-bottom:32px;}
+}
 @media(max-width:900px){
+  .hero-right{display:none;}
+  .builder-grid{grid-template-columns:1fr;}
+  .plan-card{position:static;margin-top:24px;display:none;}
+  .plan-card.mobile-show{display:block;}
+  .test-grid{min-height:420px;}
+  .services-grid{grid-template-columns:1fr 1fr;}
+  .steps-grid{grid-template-columns:1fr;}
+  .steps-grid::before{display:none;}
+  .about-grid{grid-template-columns:1fr;}
+  .about-badge{bottom:-12px;right:0;}
+  .footer-top{grid-template-columns:1fr;}
+  .section{padding:60px 20px;}
+  nav{padding:0 20px;}
+  .hero-content{padding:0 20px;padding-top:70px;}
   .live-feed-inner,.map-inner{grid-template-columns:1fr;}
-  .live-feed-section,.map-section{padding:48px 24px;}
+  .live-feed-section,.map-section{padding:48px 20px;}
+  .cta-badges{grid-template-columns:1fr 1fr;}
+  #chat-widget{bottom:16px;right:16px;}
+  #chat-overlay{bottom:80px;right:16px;max-height:72vh;height:auto;}
+  .builder-section,.how-section,.services-section,.about-section,.cta-section{padding:60px 20px;}
+}
+@media(max-width:480px){
+  .services-grid{grid-template-columns:1fr;}
+  .cta-badges{grid-template-columns:1fr;}
+  .hero-trust{flex-direction:column;gap:16px;}
+  .care-types{grid-template-columns:1fr;}
+  .plan-compare{grid-template-columns:1fr;}
+  .test-grid{min-height:480px;}
+  .about-img-wrap{padding-bottom:16px;}
+  .about-badge{position:static;display:inline-block;margin-top:12px;}
+  #chat-label{display:none;}
+}
+@media(min-width:901px){
+  .nav-links{display:flex!important;}
+  .hamburger{display:none!important;}
 }
 </style>
 </head>
 <body>
 
-<div class="cur" id="cur"></div>
+<div id="prog"></div>
 
 <!-- NAV -->
 <nav id="nav">
@@ -503,9 +514,13 @@ footer{background:var(--navy);padding:60px 48px 32px;border-top:1px solid rgba(2
 
 <!-- HERO -->
 <section class="hero">
-  <canvas id="hero-canvas"></canvas>
-  <div class="hero-bg"></div>
+  <div class="hero-mesh">
+    <div class="hero-mesh-blob hm1"></div>
+    <div class="hero-mesh-blob hm2"></div>
+    <div class="hero-mesh-blob hm3"></div>
+  </div>
   <div class="hero-grain"></div>
+  <canvas id="hero-canvas"></canvas>
   <div class="hero-content">
     <div class="hero-location">
       <div class="hero-location-dot"></div>
@@ -518,35 +533,23 @@ footer{background:var(--navy);padding:60px 48px 32px;border-top:1px solid rgba(2
       <a href="lead-form.html" class="btn-outline">Book Free Assessment</a>
     </div>
     <div class="hero-trust">
-      <div class="trust-item"><span class="trust-icon">⭐</span>100% five-star reviews</div>
-      <div class="trust-item"><span class="trust-icon">🛡️</span>First 6 hours free</div>
-      <div class="trust-item"><span class="trust-icon">📍</span>Locally owned & operated</div>
+      <div class="trust-item"><span class="trust-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="var(--blue2)"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></span>100% five-star reviews</div>
+      <div class="trust-item"><span class="trust-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--blue2)" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span>First 6 hours free</div>
+      <div class="trust-item"><span class="trust-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--blue2)" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></span>Locally owned &amp; operated</div>
     </div>
   </div>
   <div class="hero-right">
     <div class="card-3d-wrap">
       <div class="float-badge fb-1"><span class="fb-dot" style="background:#22c55e"></span>New Inquiry Received</div>
-      <div class="float-badge fb-2"><span class="fb-dot" style="background:#2e7dd1"></span>Visit Confirmed</div>
-      <div class="float-badge fb-3"><span class="fb-dot" style="background:var(--gold2)"></span>Same PSW Every Visit</div>
-      <div class="card-3d">
+      <div class="float-badge fb-2"><span class="fb-dot" style="background:var(--blue)"></span>Visit Confirmed</div>
+      <div class="float-badge fb-3"><span class="fb-dot" style="background:var(--blue2)"></span>Same PSW Every Visit</div>
+      <div class="card-3d" id="heroCard">
         <div class="hero-card-label">Live Agency Numbers</div>
         <div class="hero-card-divider"></div>
-        <div class="hero-stat">
-          <span class="hero-stat-val">100%</span>
-          <span class="hero-stat-lbl">five-star reviews from every family</span>
-        </div>
-        <div class="hero-stat">
-          <span class="hero-stat-val">Same</span>
-          <span class="hero-stat-lbl">PSW every single visit, no strangers</span>
-        </div>
-        <div class="hero-stat">
-          <span class="hero-stat-val">2hrs</span>
-          <span class="hero-stat-lbl">call-back guarantee after you reach out</span>
-        </div>
-        <div class="hero-stat">
-          <span class="hero-stat-val">6hrs</span>
-          <span class="hero-stat-lbl">free to start — no obligation, no contracts</span>
-        </div>
+        <div class="hero-stat"><span class="hero-stat-val">100%</span><span class="hero-stat-lbl">five-star reviews from every family</span></div>
+        <div class="hero-stat"><span class="hero-stat-val">Same</span><span class="hero-stat-lbl">PSW every single visit, no strangers</span></div>
+        <div class="hero-stat"><span class="hero-stat-val">2hrs</span><span class="hero-stat-lbl">call-back guarantee after you reach out</span></div>
+        <div class="hero-stat"><span class="hero-stat-val">6hrs</span><span class="hero-stat-lbl">free to start — no obligation, no contracts</span></div>
         <div class="hero-card-footer"><span class="hero-card-footer-dot"></span>Peel Region, Ontario</div>
       </div>
     </div>
@@ -556,17 +559,12 @@ footer{background:var(--navy);padding:60px 48px 32px;border-top:1px solid rgba(2
 <!-- CARE BUILDER -->
 <section class="builder-section" id="builder">
   <div class="builder-inner">
-    <div class="builder-eyebrow reveal">
-      <div class="ey-line"></div>
-      <span class="ey-tag" style="color:var(--gold2)">Interactive Care Builder</span>
-    </div>
+    <div class="builder-eyebrow reveal"><div class="ey-line"></div><span class="ey-tag" style="color:var(--blue2)">Interactive Care Builder</span></div>
     <h2 class="builder-title reveal">Build your parent's<br><em>care plan in minutes.</em></h2>
     <p class="builder-sub reveal">Tell us what your loved one needs. We'll show you exactly what to expect — hours, services, and estimated cost — before you ever speak to anyone.</p>
     <div class="builder-progress"><div class="builder-progress-fill" id="builder-progress-fill"></div></div>
-
     <div class="builder-grid">
       <div class="builder-steps">
-
         <!-- STEP 1 -->
         <div class="step active" id="step1">
           <div class="step-header" onclick="toggleStep(1)">
@@ -577,30 +575,29 @@ footer{background:var(--navy);padding:60px 48px 32px;border-top:1px solid rgba(2
           <div class="step-body">
             <div class="care-types">
               <div class="care-type selected" onclick="selectCare(this,'Daily Living Support')">
-                <span class="care-type-icon">🤲</span>
+                <div class="care-type-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--blue2)" stroke-width="1.5"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg></div>
                 <span class="care-type-name">Daily Living Support</span>
                 <span class="care-type-desc">Meals, hygiene, companionship, medication reminders</span>
               </div>
               <div class="care-type" onclick="selectCare(this,'Dementia & Memory Care')">
-                <span class="care-type-icon">🧠</span>
-                <span class="care-type-name">Dementia & Memory Care</span>
+                <div class="care-type-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--blue2)" stroke-width="1.5"><path d="M9.5 2a4.5 4.5 0 0 1 4.5 4.5v1a4.5 4.5 0 0 1-9 0v-1A4.5 4.5 0 0 1 9.5 2z"/><path d="M14 6.5a4 4 0 0 1 4 4v.5a4 4 0 0 1-4 4"/><path d="M5.5 14c-1.5.5-3 2-3 4v1h14v-1c0-2-1.5-3.5-3-4"/></svg></div>
+                <span class="care-type-name">Dementia &amp; Memory Care</span>
                 <span class="care-type-desc">Specialized routines for cognitive conditions</span>
               </div>
               <div class="care-type" onclick="selectCare(this,'Post-Hospital Recovery')">
-                <span class="care-type-icon">🏥</span>
+                <div class="care-type-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--blue2)" stroke-width="1.5"><rect x="3" y="2" width="18" height="20" rx="2"/><path d="M12 6v4M10 8h4"/><path d="M7 14h10M7 18h6"/></svg></div>
                 <span class="care-type-name">Post-Hospital Recovery</span>
                 <span class="care-type-desc">Support after surgery or hospital discharge</span>
               </div>
               <div class="care-type" onclick="selectCare(this,'Overnight & Intensive Care')">
-                <span class="care-type-icon">🌙</span>
-                <span class="care-type-name">Overnight & Intensive</span>
+                <div class="care-type-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--blue2)" stroke-width="1.5"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></div>
+                <span class="care-type-name">Overnight &amp; Intensive</span>
                 <span class="care-type-desc">Round-the-clock support and monitoring</span>
               </div>
             </div>
             <button class="step-next" onclick="nextStep(2)">Continue →</button>
           </div>
         </div>
-
         <!-- STEP 2 -->
         <div class="step" id="step2">
           <div class="step-header" onclick="toggleStep(2)">
@@ -610,10 +607,7 @@ footer{background:var(--navy);padding:60px 48px 32px;border-top:1px solid rgba(2
           </div>
           <div class="step-body">
             <div class="hours-wrap">
-              <div class="hours-display">
-                <span class="hours-val" id="hours-display">20</span>
-                <span class="hours-unit">hrs / week</span>
-              </div>
+              <div class="hours-display"><span class="hours-val" id="hours-display">20</span><span class="hours-unit">hrs / week</span></div>
               <div class="care-tier-display" id="care-tier-display">
                 <div class="care-tier-name" id="care-tier-name">Standard Care</div>
                 <div class="care-tier-desc" id="care-tier-desc">Daily support and routines, a few visits per week</div>
@@ -621,45 +615,14 @@ footer{background:var(--navy);padding:60px 48px 32px;border-top:1px solid rgba(2
               <input type="range" min="4" max="80" value="20" step="2" id="hours-slider" oninput="updateHours(this.value)">
               <div class="hours-markers"><span>4hrs</span><span>20hrs</span><span>40hrs</span><span>60hrs</span><span>80hrs</span></div>
               <div class="plan-compare" id="plan-compare">
-                <div class="pc-card" id="pc-essential">
-                  <div class="pc-label">Essential Support</div>
-                  <div class="pc-hrs">4–20 hrs/week</div>
-                  <div class="pc-price">~$800–$1,600<span>/mo</span></div>
-                  <div class="pc-feats">
-                    <div class="pc-feat">Personal hygiene & grooming</div>
-                    <div class="pc-feat">Meal preparation</div>
-                    <div class="pc-feat">Medication reminders</div>
-                    <div class="pc-feat">Companionship</div>
-                  </div>
-                </div>
-                <div class="pc-card" id="pc-standard">
-                  <div class="pc-label">Standard Care</div>
-                  <div class="pc-hrs">20–40 hrs/week</div>
-                  <div class="pc-price">~$1,600–$3,000<span>/mo</span></div>
-                  <div class="pc-feats">
-                    <div class="pc-feat">Everything in Essential</div>
-                    <div class="pc-feat">Daily morning/evening routines</div>
-                    <div class="pc-feat">Accompany to appointments</div>
-                    <div class="pc-feat">Weekly family updates</div>
-                  </div>
-                </div>
-                <div class="pc-card" id="pc-fulltime">
-                  <div class="pc-label">Full-Time Care</div>
-                  <div class="pc-hrs">40–80 hrs/week</div>
-                  <div class="pc-price">~$3,000–$5,000<span>/mo</span></div>
-                  <div class="pc-feats">
-                    <div class="pc-feat">Everything in Standard</div>
-                    <div class="pc-feat">Dementia & memory support</div>
-                    <div class="pc-feat">Overnight care available</div>
-                    <div class="pc-feat">Priority scheduling 24/7</div>
-                  </div>
-                </div>
+                <div class="pc-card" id="pc-essential"><div class="pc-label">Essential</div><div class="pc-hrs">4–20 hrs/week</div><div class="pc-price">~$800–$1,600<span>/mo</span></div><div class="pc-feat">Personal hygiene</div><div class="pc-feat">Meal prep</div><div class="pc-feat">Medication reminders</div><div class="pc-feat">Companionship</div></div>
+                <div class="pc-card active" id="pc-standard"><div class="pc-label">Standard</div><div class="pc-hrs">20–40 hrs/week</div><div class="pc-price">~$1,600–$3,000<span>/mo</span></div><div class="pc-feat">Everything in Essential</div><div class="pc-feat">Daily routines</div><div class="pc-feat">Appointment accompany</div><div class="pc-feat">Weekly family updates</div></div>
+                <div class="pc-card" id="pc-fulltime"><div class="pc-label">Full-Time</div><div class="pc-hrs">40–80 hrs/week</div><div class="pc-price">~$3,000–$5,000<span>/mo</span></div><div class="pc-feat">Everything in Standard</div><div class="pc-feat">Dementia support</div><div class="pc-feat">Overnight care</div><div class="pc-feat">Priority 24/7</div></div>
               </div>
             </div>
             <button class="step-next" onclick="nextStep(3)">Continue →</button>
           </div>
         </div>
-
         <!-- STEP 3 -->
         <div class="step" id="step3">
           <div class="step-header" onclick="toggleStep(3)">
@@ -668,44 +631,19 @@ footer{background:var(--navy);padding:60px 48px 32px;border-top:1px solid rgba(2
             <span class="step-check">✓</span>
           </div>
           <div class="step-body">
-            <div class="services-grid" id="services-list">
-              <div class="service-toggle active" onclick="toggleService(this,'Personal Hygiene & Grooming')">
-                <div class="service-toggle-left"><span class="service-icon">🚿</span><span class="service-name">Personal Hygiene & Grooming</span></div>
-                <div class="toggle-switch"><div class="toggle-knob"></div></div>
-              </div>
-              <div class="service-toggle active" onclick="toggleService(this,'Meal Preparation')">
-                <div class="service-toggle-left"><span class="service-icon">🍽️</span><span class="service-name">Meal Preparation</span></div>
-                <div class="toggle-switch"><div class="toggle-knob"></div></div>
-              </div>
-              <div class="service-toggle active" onclick="toggleService(this,'Medication Reminders')">
-                <div class="service-toggle-left"><span class="service-icon">💊</span><span class="service-name">Medication Reminders</span></div>
-                <div class="toggle-switch"><div class="toggle-knob"></div></div>
-              </div>
-              <div class="service-toggle active" onclick="toggleService(this,'Companionship & Social Support')">
-                <div class="service-toggle-left"><span class="service-icon">🤝</span><span class="service-name">Companionship & Social Support</span></div>
-                <div class="toggle-switch"><div class="toggle-knob"></div></div>
-              </div>
-              <div class="service-toggle" onclick="toggleService(this,'Mobility Assistance')">
-                <div class="service-toggle-left"><span class="service-icon">🦽</span><span class="service-name">Mobility Assistance</span></div>
-                <div class="toggle-switch"><div class="toggle-knob"></div></div>
-              </div>
-              <div class="service-toggle" onclick="toggleService(this,'Accompany to Appointments')">
-                <div class="service-toggle-left"><span class="service-icon">🚗</span><span class="service-name">Accompany to Appointments</span></div>
-                <div class="toggle-switch"><div class="toggle-knob"></div></div>
-              </div>
-              <div class="service-toggle" onclick="toggleService(this,'Light Housekeeping')">
-                <div class="service-toggle-left"><span class="service-icon">🏠</span><span class="service-name">Light Housekeeping</span></div>
-                <div class="toggle-switch"><div class="toggle-knob"></div></div>
-              </div>
-              <div class="service-toggle" onclick="toggleService(this,'Indoor Camera Setup')">
-                <div class="service-toggle-left"><span class="service-icon">📷</span><span class="service-name">Indoor Camera Setup</span><span class="service-badge">Standard+</span></div>
-                <div class="toggle-switch"><div class="toggle-knob"></div></div>
-              </div>
+            <div class="services-grid-build" id="services-list">
+              <div class="service-toggle active" onclick="toggleService(this,'Personal Hygiene & Grooming')"><div class="service-toggle-left"><span class="service-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 7H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/><path d="M12 11v2M8 11v2M16 11v2"/></svg></span><span class="service-name">Personal Hygiene &amp; Grooming</span></div><div class="toggle-switch"><div class="toggle-knob"></div></div></div>
+              <div class="service-toggle active" onclick="toggleService(this,'Meal Preparation')"><div class="service-toggle-left"><span class="service-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3zm0 0v7"/></svg></span><span class="service-name">Meal Preparation</span></div><div class="toggle-switch"><div class="toggle-knob"></div></div></div>
+              <div class="service-toggle active" onclick="toggleService(this,'Medication Reminders')"><div class="service-toggle-left"><span class="service-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg></span><span class="service-name">Medication Reminders</span></div><div class="toggle-switch"><div class="toggle-knob"></div></div></div>
+              <div class="service-toggle active" onclick="toggleService(this,'Companionship & Social Support')"><div class="service-toggle-left"><span class="service-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span><span class="service-name">Companionship &amp; Social Support</span></div><div class="toggle-switch"><div class="toggle-knob"></div></div></div>
+              <div class="service-toggle" onclick="toggleService(this,'Mobility Assistance')"><div class="service-toggle-left"><span class="service-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="4" r="2"/><path d="M19 13c0 4-3.13 7-7 7s-7-3-7-7c0-2.5 1.5-4.5 3-6l2-3h4l2 3c1.5 1.5 3 3.5 3 6z"/></svg></span><span class="service-name">Mobility Assistance</span></div><div class="toggle-switch"><div class="toggle-knob"></div></div></div>
+              <div class="service-toggle" onclick="toggleService(this,'Accompany to Appointments')"><div class="service-toggle-left"><span class="service-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="M16 8h4l3 3v5h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg></span><span class="service-name">Accompany to Appointments</span></div><div class="toggle-switch"><div class="toggle-knob"></div></div></div>
+              <div class="service-toggle" onclick="toggleService(this,'Light Housekeeping')"><div class="service-toggle-left"><span class="service-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></span><span class="service-name">Light Housekeeping</span></div><div class="toggle-switch"><div class="toggle-knob"></div></div></div>
+              <div class="service-toggle" onclick="toggleService(this,'Indoor Camera Setup')"><div class="service-toggle-left"><span class="service-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg></span><span class="service-name">Indoor Camera Setup</span><span class="service-badge">Standard+</span></div><div class="toggle-switch"><div class="toggle-knob"></div></div></div>
             </div>
             <button class="step-next" onclick="nextStep(4)">See My Plan →</button>
           </div>
         </div>
-
         <!-- STEP 4 -->
         <div class="step" id="step4">
           <div class="step-header" onclick="toggleStep(4)">
@@ -715,38 +653,24 @@ footer{background:var(--navy);padding:60px 48px 32px;border-top:1px solid rgba(2
           </div>
           <div class="step-body">
             <div class="care-types" style="grid-template-columns:repeat(3,1fr)">
-              <div class="care-type" onclick="selectCity(this,'Mississauga')">
-                <span class="care-type-icon">📍</span>
-                <span class="care-type-name">Mississauga</span>
-              </div>
-              <div class="care-type" onclick="selectCity(this,'Brampton')">
-                <span class="care-type-icon">📍</span>
-                <span class="care-type-name">Brampton</span>
-              </div>
-              <div class="care-type" onclick="selectCity(this,'Caledon')">
-                <span class="care-type-icon">📍</span>
-                <span class="care-type-name">Caledon</span>
-              </div>
+              <div class="care-type" onclick="selectCity(this,'Mississauga')"><div class="care-type-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--blue2)" stroke-width="1.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></div><span class="care-type-name">Mississauga</span></div>
+              <div class="care-type" onclick="selectCity(this,'Brampton')"><div class="care-type-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--blue2)" stroke-width="1.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></div><span class="care-type-name">Brampton</span></div>
+              <div class="care-type" onclick="selectCity(this,'Caledon')"><div class="care-type-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--blue2)" stroke-width="1.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></div><span class="care-type-name">Caledon</span></div>
             </div>
             <button class="step-next" onclick="finalizePlan()">Book Free Assessment →</button>
           </div>
         </div>
-
-      </div><!-- builder-steps -->
-
-      <!-- PLAN SUMMARY CARD -->
-      <div class="plan-card">
+      </div>
+      <!-- PLAN CARD -->
+      <div class="plan-card" id="planCard">
         <div class="plan-card-label">Your Care Plan</div>
-        <div id="plan-summary">
-          <div class="plan-empty">Complete the steps on the left to build your loved one's personalized care plan.</div>
-        </div>
+        <div id="plan-summary"><div class="plan-empty">Complete the steps on the left to build your loved one's personalized care plan.</div></div>
         <div id="plan-cta-wrap" style="display:none">
           <a href="lead-form.html" class="plan-cta" id="plan-cta-btn">Book Free In-Home Assessment</a>
           <div class="plan-free">✓ First 6 hours completely free · No obligation · No contracts</div>
         </div>
       </div>
-
-    </div><!-- builder-grid -->
+    </div>
   </div>
 </section>
 
@@ -756,23 +680,23 @@ footer{background:var(--navy);padding:60px 48px 32px;border-top:1px solid rgba(2
     <div class="section-eyebrow reveal"><div class="ey-line"></div><span class="ey-tag">How It Works</span></div>
     <h2 class="section-title reveal">Care starts in<br><em>3 simple steps.</em></h2>
     <div class="steps-grid">
-      <div class="how-step reveal">
+      <div class="how-step">
         <div class="how-step-num">1</div>
-        <div class="how-step-icon">📋</div>
+        <div class="how-step-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="1.5"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 12h6M9 16h4"/></svg></div>
         <span class="how-step-pill">Step 01</span>
         <h3 class="how-step-title">Tell Us About Your Loved One</h3>
         <p class="how-step-desc">Fill out our short form or call us directly. We learn about your parent's needs, daily routine, and what matters most to your family.</p>
       </div>
-      <div class="how-step reveal">
+      <div class="how-step">
         <div class="how-step-num">2</div>
-        <div class="how-step-icon">🏠</div>
+        <div class="how-step-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="1.5"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div>
         <span class="how-step-pill">Step 02</span>
         <h3 class="how-step-title">Lance Comes to You — Free</h3>
         <p class="how-step-desc">Lance personally visits your home, meets your loved one, and builds a customized care plan. We match the right PSW to your parent's personality and specific needs.</p>
       </div>
-      <div class="how-step reveal">
+      <div class="how-step">
         <div class="how-step-num">3</div>
-        <div class="how-step-icon">❤️</div>
+        <div class="how-step-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="1.5"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></div>
         <span class="how-step-pill">Step 03</span>
         <h3 class="how-step-title">Care Begins. You Finally Breathe.</h3>
         <p class="how-step-desc">The same PSW shows up on schedule. You get updates after every visit. You have a direct line to Lance. No more guessing. No more worry.</p>
@@ -781,48 +705,45 @@ footer{background:var(--navy);padding:60px 48px 32px;border-top:1px solid rgba(2
   </div>
 </section>
 
+<!-- LIVE FEED -->
 <section class="live-feed-section">
   <div class="live-feed-inner">
     <div>
-      <div class="live-feed-label">
-        <span class="live-feed-dot"></span>
-        Happening Right Now
-      </div>
-      <h2 class="live-feed-title">
-        Care that <em>never stops</em><br>working.
-      </h2>
+      <div class="live-feed-label"><span class="live-feed-dot"></span>Happening Right Now</div>
+      <h2 class="live-feed-title">Care that <em>never stops</em><br>working.</h2>
       <p class="live-feed-sub">Every visit confirmed. Every family updated. Every inquiry answered — automatically.</p>
       <div class="feed-dots" id="feedDots"></div>
     </div>
-    <div>
-      <div class="feed-card-wrap" id="feedWrap"></div>
-    </div>
+    <div><div class="feed-card-wrap" id="feedWrap"></div></div>
   </div>
 </section>
 
 <!-- TESTIMONIALS -->
 <section class="test-section">
   <div class="section-inner">
-    <div class="section-eyebrow reveal"><div class="ey-line"></div><span class="ey-tag" style="color:var(--gold2)">What Families Say</span></div>
-    <h2 class="section-title reveal" style="color:var(--white)">Real families.<br><em style="color:var(--gold2)">Real results.</em></h2>
+    <div class="section-eyebrow reveal"><div class="ey-line"></div><span class="ey-tag" style="color:var(--blue2)">What Families Say</span></div>
+    <h2 class="section-title reveal" style="color:var(--white)">Real families.<br><em style="color:var(--blue2)">Real results.</em></h2>
     <div class="test-grid">
-      <div class="test-card reveal">
+      <div class="test-card">
         <div class="test-stars">★★★★★</div>
         <p class="test-quote">"Proximity Care has been a life saver. Meeting with Lance, he made my mom comfortable. He is dependable and goes above and beyond. He understands my needs and tailors it accordingly. When other agencies fall through, his PSWs are there. He has relieved my stress completely."</p>
+        <div class="test-rule"></div>
         <div class="test-author"><strong>Jennifer Nguyen</strong>Verified Client · Dementia Care · Mississauga</div>
       </div>
-      <div class="test-card reveal">
+      <div class="test-card">
         <div class="test-stars">★★★★★</div>
         <p class="test-quote">"Lance has been a great help for my dad. He goes out of his way to help on what he needs. When my dad was in the hospital, he was the only PSW who stayed in touch. Always on time. A true professional."</p>
+        <div class="test-rule"></div>
         <div class="test-author"><strong>Harbinger Bhangu</strong>Verified Client · Brampton</div>
       </div>
-      <div class="test-card reveal">
+      <div class="test-card">
         <div class="test-stars">★★★★★</div>
         <p class="test-quote">"Helpful PSWs at a reasonable price. Our experience was a good one for my dad. The consistency of having the same person every visit made a real difference to his comfort and routine."</p>
+        <div class="test-rule"></div>
         <div class="test-author"><strong>Rick Vardzel</strong>Verified Client · Mississauga</div>
       </div>
     </div>
-    <div class="test-dots" id="test-dots">
+    <div class="test-dots">
       <button class="test-dot active" onclick="showTest(0)"></button>
       <button class="test-dot" onclick="showTest(1)"></button>
       <button class="test-dot" onclick="showTest(2)"></button>
@@ -835,15 +756,15 @@ footer{background:var(--navy);padding:60px 48px 32px;border-top:1px solid rgba(2
   <div class="section-inner">
     <div class="section-eyebrow reveal"><div class="ey-line"></div><span class="ey-tag">What's Included</span></div>
     <h2 class="section-title reveal">Everything your loved one<br><em>needs, right at home.</em></h2>
-    <div class="services-grid">
-      <div class="service-card reveal"><div class="service-card-icon">🚿</div><h3 class="service-card-title">Personal Hygiene</h3><p class="service-card-desc">Bathing, dressing, oral care — delivered with dignity and patience every visit.</p></div>
-      <div class="service-card reveal"><div class="service-card-icon">🍽️</div><h3 class="service-card-title">Meal Preparation</h3><p class="service-card-desc">Nutritious home-cooked meals tailored to dietary needs and medical requirements.</p></div>
-      <div class="service-card reveal"><div class="service-card-icon">💊</div><h3 class="service-card-title">Medication Reminders</h3><p class="service-card-desc">Consistent prompts to ensure medications are taken correctly and on schedule.</p></div>
-      <div class="service-card reveal"><div class="service-card-icon">🦽</div><h3 class="service-card-title">Mobility Assistance</h3><p class="service-card-desc">Safe transfers, walking support, and fall prevention so your parent stays active.</p></div>
-      <div class="service-card reveal"><div class="service-card-icon">🤝</div><h3 class="service-card-title">Companionship</h3><p class="service-card-desc">Conversation, activities, genuine connection — because isolation is its own health risk.</p></div>
-      <div class="service-card reveal"><div class="service-card-icon">🚗</div><h3 class="service-card-title">Accompany to Appointments</h3><p class="service-card-desc">We go with your loved one to medical appointments so they never navigate it alone.</p></div>
-      <div class="service-card reveal"><div class="service-card-icon">🏠</div><h3 class="service-card-title">Light Housekeeping</h3><p class="service-card-desc">A clean, safe home environment maintained during each visit.</p></div>
-      <div class="service-card reveal"><div class="service-card-icon">🧠</div><h3 class="service-card-title">Dementia Support</h3><p class="service-card-desc">Specialized routines and patient engagement for clients with memory conditions.</p></div>
+    <div class="services-grid" id="servicesGrid">
+      <div class="service-card"><div class="service-card-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="1.5"><path d="M20 7H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/><path d="M12 11v2M8 11v2M16 11v2"/></svg></div><h3 class="service-card-title">Personal Hygiene</h3><p class="service-card-desc">Bathing, dressing, oral care — delivered with dignity and patience every visit.</p></div>
+      <div class="service-card"><div class="service-card-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="1.5"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3zm0 0v7"/></svg></div><h3 class="service-card-title">Meal Preparation</h3><p class="service-card-desc">Nutritious home-cooked meals tailored to dietary needs and medical requirements.</p></div>
+      <div class="service-card"><div class="service-card-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="1.5"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg></div><h3 class="service-card-title">Medication Reminders</h3><p class="service-card-desc">Consistent prompts to ensure medications are taken correctly and on schedule.</p></div>
+      <div class="service-card"><div class="service-card-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="1.5"><circle cx="12" cy="5" r="2"/><path d="M12 7v8M8 19h8M10 13l-2 6M14 13l2 6"/></svg></div><h3 class="service-card-title">Mobility Assistance</h3><p class="service-card-desc">Safe transfers, walking support, and fall prevention so your parent stays active.</p></div>
+      <div class="service-card"><div class="service-card-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="1.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div><h3 class="service-card-title">Companionship</h3><p class="service-card-desc">Conversation, activities, genuine connection — because isolation is its own health risk.</p></div>
+      <div class="service-card"><div class="service-card-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="1.5"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="M16 8h4l3 3v5h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg></div><h3 class="service-card-title">Accompany to Appointments</h3><p class="service-card-desc">We go with your loved one to medical appointments so they never navigate it alone.</p></div>
+      <div class="service-card"><div class="service-card-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="1.5"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div><h3 class="service-card-title">Light Housekeeping</h3><p class="service-card-desc">A clean, safe home environment maintained during each visit.</p></div>
+      <div class="service-card"><div class="service-card-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="1.5"><path d="M9.5 2a4.5 4.5 0 0 1 4.5 4.5v1a4.5 4.5 0 0 1-9 0v-1A4.5 4.5 0 0 1 9.5 2z"/><path d="M14 6.5a4 4 0 0 1 4 4v.5a4 4 0 0 1-4 4"/><path d="M5.5 14c-1.5.5-3 2-3 4v1h14v-1c0-2-1.5-3.5-3-4"/></svg></div><h3 class="service-card-title">Dementia Support</h3><p class="service-card-desc">Specialized routines and patient engagement for clients with memory conditions.</p></div>
     </div>
   </div>
 </section>
@@ -864,21 +785,18 @@ footer{background:var(--navy);padding:60px 48px 32px;border-top:1px solid rgba(2
     <div class="about-img-wrap reveal">
       <div class="about-img-frame">
         <div class="about-img-inner">
-          <div class="about-img-icon">👨‍⚕️</div>
-          <div class="about-img-name" style="font-family:var(--serif);font-size:22px;color:var(--white);margin-bottom:4px">Lance Salazar</div>
-          <div class="about-img-role" style="font-size:11px;color:rgba(255,255,255,0.35);letter-spacing:2px;text-transform:uppercase">Founder & PSW · Proximity Care Services</div>
+          <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="rgba(74,157,232,0.6)" stroke-width="1"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/><path d="M16 6a4 4 0 0 1 0 6"/><path d="M20 19c0-2.5-1.5-4.5-4-5.5"/></svg>
+          <div class="about-img-name">Lance Salazar</div>
+          <div class="about-img-role">Founder &amp; PSW · Proximity Care Services</div>
         </div>
-        <div class="about-stats" style="margin-top:2px">
+        <div class="about-stats">
           <div class="about-stat"><div class="about-stat-val">100%</div><div class="about-stat-lbl">5-star reviews</div></div>
           <div class="about-stat"><div class="about-stat-val">6hrs</div><div class="about-stat-lbl">Free to start</div></div>
           <div class="about-stat"><div class="about-stat-val">Same</div><div class="about-stat-lbl">PSW every visit</div></div>
           <div class="about-stat"><div class="about-stat-val">24/7</div><div class="about-stat-lbl">Direct access</div></div>
         </div>
       </div>
-      <div class="about-badge">
-        <span class="about-badge-num">5★</span>
-        <span class="about-badge-lbl">Every Review</span>
-      </div>
+      <div class="about-badge"><span class="about-badge-num">5★</span><span class="about-badge-lbl">Every Review</span></div>
     </div>
   </div>
 </section>
@@ -887,138 +805,30 @@ footer{background:var(--navy);padding:60px 48px 32px;border-top:1px solid rgba(2
 <section class="cta-section">
   <div class="cta-inner">
     <div class="section-eyebrow reveal" style="justify-content:center"><div class="ey-line"></div><span class="ey-tag">Get Started Today</span></div>
-    <h2 class="cta-title reveal">Stop worrying. Start knowing<br>your parent is <em>okay.</em></h2>
+    <h2 class="cta-title reveal">Are you ready to give your loved ones<br>the care they <em>deserve?</em></h2>
     <p class="cta-sub reveal">Book a free in-home assessment. Lance comes to you, meets your loved one, and builds a real care plan. First 6 hours are free — no risk, no commitment.</p>
-    <div class="reveal">
-      <a href="lead-form.html" class="btn-primary" style="font-size:13px;padding:18px 48px">Book Your Free Assessment</a>
-    </div>
+    <div class="reveal"><a href="lead-form.html" class="btn-primary" style="font-size:13px;padding:18px 48px">Book Your Free Assessment</a></div>
     <div class="cta-badges reveal">
-      <div class="cta-badge"><span class="cta-badge-icon">✓</span>First 6 hours free</div>
-      <div class="cta-badge"><span class="cta-badge-icon">✓</span>No contracts</div>
-      <div class="cta-badge"><span class="cta-badge-icon">✓</span>We call within 2 hours</div>
-      <div class="cta-badge"><span class="cta-badge-icon">✓</span>Same PSW every visit</div>
+      <div class="cta-badge"><div class="cta-badge-icon">✓</div><span class="cta-badge-label">First 6 Hours Free</span><span class="cta-badge-sub">No obligation, no commitment</span></div>
+      <div class="cta-badge"><div class="cta-badge-icon">✓</div><span class="cta-badge-label">No Contracts</span><span class="cta-badge-sub">Month to month, cancel anytime</span></div>
+      <div class="cta-badge"><div class="cta-badge-icon">✓</div><span class="cta-badge-label">2-Hour Callback</span><span class="cta-badge-sub">We respond fast, every time</span></div>
+      <div class="cta-badge"><div class="cta-badge-icon">✓</div><span class="cta-badge-label">Same PSW Every Visit</span><span class="cta-badge-sub">No strangers, no surprises</span></div>
     </div>
   </div>
 </section>
 
+<!-- COVERAGE MAP -->
 <section class="map-section" id="coverage">
   <div class="map-inner">
     <div class="map-info">
-      <div>
-        <div class="live-feed-label">
-          <span class="live-feed-dot"></span>
-          Where We Serve
-        </div>
-        <h2 class="live-feed-title">
-          Right here in <em>Peel Region.</em>
-        </h2>
-        <p class="live-feed-sub" style="margin-bottom:32px;">
-          Same-day response. Local caregivers. Families in Mississauga, Brampton, and Caledon trust Proximity Care.
-        </p>
-      </div>
-      <div class="map-city-item">
-        <div class="map-city-dot" style="background:#2e7dd1;box-shadow:0 0 8px #2e7dd1;"></div>
-        <div>
-          <div class="map-city-name">Mississauga</div>
-          <div class="map-city-desc">Port Credit · Streetsville · Meadowvale · Erin Mills</div>
-        </div>
-      </div>
-      <div class="map-city-item">
-        <div class="map-city-dot" style="background:#e8b84b;box-shadow:0 0 8px #e8b84b;"></div>
-        <div>
-          <div class="map-city-name">Brampton</div>
-          <div class="map-city-desc">Churchville · Heart Lake · Bramalea · Springdale</div>
-        </div>
-      </div>
-      <div class="map-city-item">
-        <div class="map-city-dot" style="background:#4a9de8;box-shadow:0 0 8px #4a9de8;"></div>
-        <div>
-          <div class="map-city-name">Caledon</div>
-          <div class="map-city-desc">Bolton · Caledon East · Inglewood · Palgrave</div>
-        </div>
-      </div>
+      <div><div class="live-feed-label"><span class="live-feed-dot"></span>Where We Serve</div><h2 class="live-feed-title">Right here in <em>Peel Region.</em></h2><p class="live-feed-sub" style="margin-bottom:32px">Same-day response. Local caregivers. Families in Mississauga, Brampton, and Caledon trust Proximity Care.</p></div>
+      <div class="map-city-item"><div class="map-city-dot" style="background:#2e7dd1;box-shadow:0 0 8px #2e7dd1"></div><div><div class="map-city-name">Mississauga</div><div class="map-city-desc">Port Credit · Streetsville · Meadowvale · Erin Mills</div></div></div>
+      <div class="map-city-item"><div class="map-city-dot" style="background:#e8b84b;box-shadow:0 0 8px #e8b84b"></div><div><div class="map-city-name">Brampton</div><div class="map-city-desc">Churchville · Heart Lake · Bramalea · Springdale</div></div></div>
+      <div class="map-city-item"><div class="map-city-dot" style="background:#4a9de8;box-shadow:0 0 8px #4a9de8"></div><div><div class="map-city-name">Caledon</div><div class="map-city-desc">Bolton · Caledon East · Inglewood · Palgrave</div></div></div>
     </div>
     <div class="map-svg-wrap">
-<svg viewBox="0 0 420 460" xmlns="http://www.w3.org/2000/svg">
-<rect width="420" height="460" fill="#0d1928" rx="8"/>
-<g stroke="#1a3a5c" stroke-width="0.5" opacity="0.4">
-<line x1="0" y1="80" x2="420" y2="80"/><line x1="0" y1="160" x2="420" y2="160"/><line x1="0" y1="240" x2="420" y2="240"/><line x1="0" y1="320" x2="420" y2="320"/><line x1="0" y1="400" x2="420" y2="400"/><line x1="84" y1="0" x2="84" y2="460"/><line x1="168" y1="0" x2="168" y2="460"/><line x1="252" y1="0" x2="252" y2="460"/><line x1="336" y1="0" x2="336" y2="460"/>
-</g>
-<path d="M 0 400 Q 80 380 160 395 Q 240 410 320 390 Q 380 378 420 392 L 420 460 L 0 460 Z" fill="#0a1e38" opacity="0.8"/>
-<text x="160" y="438" font-family="'Jost',sans-serif" font-size="9" fill="rgba(74,157,232,0.35)" letter-spacing="3" text-anchor="middle">LAKE ONTARIO</text>
-<path d="M 60 60 L 340 60 L 360 120 L 370 200 L 340 280 L 300 340 L 240 370 L 180 372 L 120 340 L 80 280 L 60 200 Z" fill="rgba(26,58,92,0.35)" stroke="#2e7dd1" stroke-width="1.5" stroke-dasharray="6 4" opacity="0.6"/>
-<text x="210" y="86" font-family="'Jost',sans-serif" font-size="8" fill="rgba(46,125,209,0.4)" letter-spacing="3" text-anchor="middle">PEEL REGION</text>
-<path d="M 80 280 L 120 340 L 180 372 L 240 370 L 280 340 L 300 280 L 240 260 L 180 258 L 120 270 Z" fill="rgba(46,125,209,0.07)" stroke="none"/>
-<path d="M 120 270 L 180 258 L 240 260 L 300 280 L 340 240 L 340 180 L 280 160 L 200 158 L 140 170 L 100 210 Z" fill="rgba(232,184,75,0.05)" stroke="none"/>
-<path d="M 60 60 L 340 60 L 360 120 L 370 200 L 340 180 L 280 160 L 200 158 L 140 170 L 100 210 L 60 200 Z" fill="rgba(74,157,232,0.05)" stroke="none"/>
-<g stroke="#1e3d5c" stroke-width="1.2" fill="none" opacity="0.6">
-<path d="M 40 310 L 380 310"/>
-<path d="M 80 270 Q 210 260 360 265"/>
-<path d="M 220 140 L 220 380"/>
-<path d="M 100 140 L 90 380"/>
-<path d="M 320 80 L 325 280"/>
-</g>
-<text x="60" y="308" font-family="'Jost',sans-serif" font-size="7" fill="rgba(255,255,255,0.2)" letter-spacing="1">401</text>
-<text x="100" y="258" font-family="'Jost',sans-serif" font-size="7" fill="rgba(255,255,255,0.2)" letter-spacing="1">407</text>
-<text x="224" y="155" font-family="'Jost',sans-serif" font-size="7" fill="rgba(255,255,255,0.2)" letter-spacing="1">410</text>
-<g fill="none">
-<path class="connect-line" d="M 165 305 Q 195 270 210 230" stroke="#2e7dd1" stroke-width="1" stroke-dasharray="4 3" opacity="0.45"/>
-<path class="connect-line connect-line-2" d="M 210 230 Q 230 185 255 148" stroke="#e8b84b" stroke-width="1" stroke-dasharray="4 3" opacity="0.45"/>
-<path class="connect-line connect-line-3" d="M 165 305 Q 215 240 255 148" stroke="#4a9de8" stroke-width="0.7" stroke-dasharray="3 5" opacity="0.25"/>
-</g>
-<g class="pin-drop pin-drop-1" style="transform-box:fill-box;transform-origin:center;">
-<circle cx="165" cy="308" r="10" fill="none" stroke="#2e7dd1" stroke-width="1.5" class="pulse-ring-1"/>
-<circle cx="165" cy="308" r="10" fill="none" stroke="#2e7dd1" stroke-width="1" class="pulse-ring-2"/>
-<circle cx="165" cy="308" r="22" fill="rgba(46,125,209,0.08)"/>
-<circle cx="165" cy="308" r="8" fill="#2e7dd1" opacity="0.9"/>
-<circle cx="165" cy="308" r="4" fill="white" opacity="0.9"/>
-<line x1="165" y1="300" x2="165" y2="284" stroke="#2e7dd1" stroke-width="1.5" opacity="0.7"/>
-<polygon points="165,278 161,287 169,287" fill="#2e7dd1" opacity="0.8"/>
-</g>
-<g class="pin-drop pin-drop-1">
-<rect x="118" y="328" width="96" height="20" rx="3" fill="rgba(46,125,209,0.15)" stroke="rgba(46,125,209,0.3)" stroke-width="0.8"/>
-<text x="166" y="342" font-family="'Jost',sans-serif" font-size="9" fill="rgba(255,255,255,0.85)" letter-spacing="1.5" text-anchor="middle" font-weight="500">MISSISSAUGA</text>
-</g>
-<g class="pin-drop pin-drop-2" style="transform-box:fill-box;transform-origin:center;">
-<circle cx="210" cy="232" r="8" fill="none" stroke="#e8b84b" stroke-width="1.5" class="pulse-ring-3"/>
-<circle cx="210" cy="232" r="8" fill="none" stroke="#e8b84b" stroke-width="1" class="pulse-ring-4"/>
-<circle cx="210" cy="232" r="18" fill="rgba(232,184,75,0.07)"/>
-<circle cx="210" cy="232" r="7" fill="#e8b84b" opacity="0.9"/>
-<circle cx="210" cy="232" r="3.5" fill="white" opacity="0.9"/>
-<line x1="210" y1="225" x2="210" y2="210" stroke="#e8b84b" stroke-width="1.5" opacity="0.7"/>
-<polygon points="210,204 206,213 214,213" fill="#e8b84b" opacity="0.8"/>
-</g>
-<g class="pin-drop pin-drop-2">
-<rect x="172" y="250" width="76" height="20" rx="3" fill="rgba(232,184,75,0.12)" stroke="rgba(232,184,75,0.3)" stroke-width="0.8"/>
-<text x="210" y="264" font-family="'Jost',sans-serif" font-size="9" fill="rgba(255,255,255,0.85)" letter-spacing="1.5" text-anchor="middle" font-weight="500">BRAMPTON</text>
-</g>
-<g class="pin-drop pin-drop-3" style="transform-box:fill-box;transform-origin:center;">
-<circle cx="255" cy="150" r="7" fill="none" stroke="#4a9de8" stroke-width="1.5" class="pulse-ring-5"/>
-<circle cx="255" cy="150" r="7" fill="none" stroke="#4a9de8" stroke-width="1" class="pulse-ring-6"/>
-<circle cx="255" cy="150" r="15" fill="rgba(74,157,232,0.07)"/>
-<circle cx="255" cy="150" r="6" fill="#4a9de8" opacity="0.9"/>
-<circle cx="255" cy="150" r="3" fill="white" opacity="0.9"/>
-<line x1="255" y1="144" x2="255" y2="130" stroke="#4a9de8" stroke-width="1.5" opacity="0.7"/>
-<polygon points="255,124 251,133 259,133" fill="#4a9de8" opacity="0.8"/>
-</g>
-<g class="pin-drop pin-drop-3">
-<rect x="221" y="168" width="68" height="20" rx="3" fill="rgba(74,157,232,0.12)" stroke="rgba(74,157,232,0.3)" stroke-width="0.8"/>
-<text x="255" y="182" font-family="'Jost',sans-serif" font-size="9" fill="rgba(255,255,255,0.85)" letter-spacing="1.5" text-anchor="middle" font-weight="500">CALEDON</text>
-</g>
-<g transform="translate(378,418)" opacity="0.35">
-<circle cx="0" cy="0" r="14" fill="none" stroke="#2e7dd1" stroke-width="0.8"/>
-<line x1="0" y1="-11" x2="0" y2="11" stroke="#4a9de8" stroke-width="1"/>
-<line x1="-11" y1="0" x2="11" y2="0" stroke="#4a9de8" stroke-width="1"/>
-<text x="0" y="-14" font-family="'Jost',sans-serif" font-size="7" fill="#4a9de8" text-anchor="middle">N</text>
-</g>
-<g transform="translate(24,440)" opacity="0.35">
-<line x1="0" y1="0" x2="40" y2="0" stroke="#4a9de8" stroke-width="1"/>
-<line x1="0" y1="-3" x2="0" y2="3" stroke="#4a9de8" stroke-width="1"/>
-<line x1="40" y1="-3" x2="40" y2="3" stroke="#4a9de8" stroke-width="1"/>
-<text x="20" y="-6" font-family="'Jost',sans-serif" font-size="7" fill="#4a9de8" text-anchor="middle">20 km</text>
-</g>
-</svg>
-</div>
+      <svg viewBox="0 0 420 460" xmlns="http://www.w3.org/2000/svg"><rect width="420" height="460" fill="#0d1928" rx="8"/><g stroke="#1a3a5c" stroke-width="0.5" opacity="0.4"><line x1="0" y1="80" x2="420" y2="80"/><line x1="0" y1="160" x2="420" y2="160"/><line x1="0" y1="240" x2="420" y2="240"/><line x1="0" y1="320" x2="420" y2="320"/><line x1="0" y1="400" x2="420" y2="400"/><line x1="84" y1="0" x2="84" y2="460"/><line x1="168" y1="0" x2="168" y2="460"/><line x1="252" y1="0" x2="252" y2="460"/><line x1="336" y1="0" x2="336" y2="460"/></g><path d="M 0 400 Q 80 380 160 395 Q 240 410 320 390 Q 380 378 420 392 L 420 460 L 0 460 Z" fill="#0a1e38" opacity="0.8"/><text x="160" y="438" font-family="'Jost',sans-serif" font-size="9" fill="rgba(74,157,232,0.35)" letter-spacing="3" text-anchor="middle">LAKE ONTARIO</text><path d="M 60 60 L 340 60 L 360 120 L 370 200 L 340 280 L 300 340 L 240 370 L 180 372 L 120 340 L 80 280 L 60 200 Z" fill="rgba(26,58,92,0.35)" stroke="#2e7dd1" stroke-width="1.5" stroke-dasharray="6 4" opacity="0.6"/><text x="210" y="86" font-family="'Jost',sans-serif" font-size="8" fill="rgba(46,125,209,0.4)" letter-spacing="3" text-anchor="middle">PEEL REGION</text><g fill="none"><path class="connect-line" d="M 165 305 Q 195 270 210 230" stroke="#2e7dd1" stroke-width="1" stroke-dasharray="4 3" opacity="0.45"/><path class="connect-line connect-line-2" d="M 210 230 Q 230 185 255 148" stroke="#e8b84b" stroke-width="1" stroke-dasharray="4 3" opacity="0.45"/><path class="connect-line connect-line-3" d="M 165 305 Q 215 240 255 148" stroke="#4a9de8" stroke-width="0.7" stroke-dasharray="3 5" opacity="0.25"/></g><g class="pin-drop pin-drop-1"><circle cx="165" cy="308" r="10" fill="none" stroke="#2e7dd1" stroke-width="1.5" class="pulse-ring-1"/><circle cx="165" cy="308" r="10" fill="none" stroke="#2e7dd1" stroke-width="1" class="pulse-ring-2"/><circle cx="165" cy="308" r="22" fill="rgba(46,125,209,0.08)"/><circle cx="165" cy="308" r="8" fill="#2e7dd1" opacity="0.9"/><circle cx="165" cy="308" r="4" fill="white" opacity="0.9"/><line x1="165" y1="300" x2="165" y2="284" stroke="#2e7dd1" stroke-width="1.5" opacity="0.7"/><polygon points="165,278 161,287 169,287" fill="#2e7dd1" opacity="0.8"/></g><g class="pin-drop pin-drop-1"><rect x="118" y="328" width="96" height="20" rx="3" fill="rgba(46,125,209,0.15)" stroke="rgba(46,125,209,0.3)" stroke-width="0.8"/><text x="166" y="342" font-family="'Jost',sans-serif" font-size="9" fill="rgba(255,255,255,0.85)" letter-spacing="1.5" text-anchor="middle" font-weight="500">MISSISSAUGA</text></g><g class="pin-drop pin-drop-2"><circle cx="210" cy="232" r="8" fill="none" stroke="#e8b84b" stroke-width="1.5" class="pulse-ring-3"/><circle cx="210" cy="232" r="8" fill="none" stroke="#e8b84b" stroke-width="1" class="pulse-ring-4"/><circle cx="210" cy="232" r="18" fill="rgba(232,184,75,0.07)"/><circle cx="210" cy="232" r="7" fill="#e8b84b" opacity="0.9"/><circle cx="210" cy="232" r="3.5" fill="white" opacity="0.9"/><line x1="210" y1="225" x2="210" y2="210" stroke="#e8b84b" stroke-width="1.5" opacity="0.7"/><polygon points="210,204 206,213 214,213" fill="#e8b84b" opacity="0.8"/></g><g class="pin-drop pin-drop-2"><rect x="172" y="250" width="76" height="20" rx="3" fill="rgba(232,184,75,0.12)" stroke="rgba(232,184,75,0.3)" stroke-width="0.8"/><text x="210" y="264" font-family="'Jost',sans-serif" font-size="9" fill="rgba(255,255,255,0.85)" letter-spacing="1.5" text-anchor="middle" font-weight="500">BRAMPTON</text></g><g class="pin-drop pin-drop-3"><circle cx="255" cy="150" r="7" fill="none" stroke="#4a9de8" stroke-width="1.5" class="pulse-ring-5"/><circle cx="255" cy="150" r="7" fill="none" stroke="#4a9de8" stroke-width="1" class="pulse-ring-6"/><circle cx="255" cy="150" r="15" fill="rgba(74,157,232,0.07)"/><circle cx="255" cy="150" r="6" fill="#4a9de8" opacity="0.9"/><circle cx="255" cy="150" r="3" fill="white" opacity="0.9"/><line x1="255" y1="144" x2="255" y2="130" stroke="#4a9de8" stroke-width="1.5" opacity="0.7"/><polygon points="255,124 251,133 259,133" fill="#4a9de8" opacity="0.8"/></g><g class="pin-drop pin-drop-3"><rect x="221" y="168" width="68" height="20" rx="3" fill="rgba(74,157,232,0.12)" stroke="rgba(74,157,232,0.3)" stroke-width="0.8"/><text x="255" y="182" font-family="'Jost',sans-serif" font-size="9" fill="rgba(255,255,255,0.85)" letter-spacing="1.5" text-anchor="middle" font-weight="500">CALEDON</text></g></svg>
+    </div>
   </div>
 </section>
 
@@ -1030,9 +840,9 @@ footer{background:var(--navy);padding:60px 48px 32px;border-top:1px solid rgba(2
         <div class="footer-logo">Proximity <em>Care Services</em></div>
         <p class="footer-desc">In-home senior care for families in Mississauga, Brampton, and Caledon. Consistent PSWs. Real communication. Care that actually works.</p>
         <div class="footer-contact">
-          <a href="tel:6473828047">📞 647-382-8047</a>
-          <a href="mailto:lancesalazar56@gmail.com">✉ lancesalazar56@gmail.com</a>
-          <a href="#">📍 Mississauga, Ontario</a>
+          <a href="tel:6473828047"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.47 2 2 0 0 1 3.6 1.27h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L7.91 9a16 16 0 0 0 6 6l.92-.92a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg> 647-382-8047</a>
+          <a href="mailto:lancesalazar56@gmail.com"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg> lancesalazar56@gmail.com</a>
+          <a href="#"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg> Mississauga, Ontario</a>
         </div>
       </div>
       <div>
@@ -1067,569 +877,302 @@ footer{background:var(--navy);padding:60px 48px 32px;border-top:1px solid rgba(2
 <!-- CHATBOT -->
 <div id="chat-widget">
   <span id="chat-label"><span class="dot"></span>We're online</span>
-  <div id="chat-bubble" onclick="toggleChat()">
-    <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>
-  </div>
+  <div id="chat-bubble" onclick="toggleChat()"><svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg></div>
 </div>
 <div id="chat-overlay">
-  <div class="chat-head">
-    <div class="chat-av">P</div>
-    <div class="chat-info"><h4>Proximity Care</h4><p>Ask me anything about care options</p></div>
-  </div>
-  <div class="chat-msgs" id="cmsgs">
-    <div class="cmsg b"><div class="cbub">Hi there. Who are you looking for care for?</div></div>
-  </div>
-  <div class="ctyping" id="ctyp"><div class="ctyd"></div><div class="ctyd"></div><div class="ctyd"></div></div>
+  <div class="chat-head"><div class="chat-av">P</div><div class="chat-info"><h4>Proximity Care</h4><p>Ask me anything about care options</p></div></div>
+  <div class="chat-msgs" id="cmsgs"><div class="cmsg b"><div class="cbub">Hi there. Who are you looking for care for?</div></div></div>
+  <div class="typing-indicator" id="ctyp" style="display:none"><span></span><span></span><span></span></div>
   <div class="chat-chips" id="chat-chips"></div>
-  <div class="chat-inp-wrap">
-    <textarea class="chat-inp" id="cinp" placeholder="Ask anything..." rows="1" onkeydown="chk(event)" oninput="crs(this)"></textarea>
-    <button class="chat-send" onclick="csend()">→</button>
-  </div>
+  <div class="chat-inp-wrap"><textarea class="chat-inp" id="cinp" placeholder="Ask anything..." rows="1" onkeydown="chk(event)" oninput="crs(this)"></textarea><button class="chat-send" onclick="csend()">→</button></div>
 </div>
 
 <script>
-// CURSOR
-const cur=document.getElementById('cur');
-if(window.matchMedia('(pointer: fine)').matches){
-  document.addEventListener('mousemove',e=>{
-    cur.style.left=e.clientX+'px';
-    cur.style.top=e.clientY+'px';
-  });
-  document.querySelectorAll('a,button,.care-type,.service-toggle,.step-next,.btn-primary,.btn-outline').forEach(el=>{
-  });
-}
-
-// HERO PARTICLE CANVAS
-const heroCanvas=document.getElementById('hero-canvas');
-if(heroCanvas){
-  const hctx=heroCanvas.getContext('2d');
-  let hW,hH;
-  function resizeHero(){hW=heroCanvas.width=heroCanvas.offsetWidth;hH=heroCanvas.height=heroCanvas.offsetHeight;}
-  resizeHero();
-  window.addEventListener('resize',resizeHero);
-  const particles=Array.from({length:55},()=>({
-    x:Math.random()*hW,y:Math.random()*hH,
-    vx:(Math.random()-.5)*.25,vy:(Math.random()-.5)*.25,
-    r:Math.random()*1.8+.4,
-    a:Math.random()*.4+.1,
-    life:0,max:200+Math.random()*200
-  }));
-  function drawParticles(){
-    hctx.clearRect(0,0,hW,hH);
-    particles.forEach(p=>{
-      p.x+=p.vx;p.y+=p.vy;p.life++;
-      if(p.life>p.max||p.x<0||p.x>hW||p.y<0||p.y>hH){
-        p.x=Math.random()*hW;p.y=Math.random()*hH;
-        p.life=0;p.max=200+Math.random()*200;
-      }
-      const fade=Math.sin((p.life/p.max)*Math.PI);
-      hctx.beginPath();
-      hctx.arc(p.x,p.y,p.r,0,Math.PI*2);
-      hctx.fillStyle=`rgba(46,125,209,${p.a*fade})`;
-      hctx.fill();
-    });
-    requestAnimationFrame(drawParticles);
-  }
-  drawParticles();
-}
-
-// COUNT UP ON SCROLL
-function countUp(el){
-  const target=parseInt(el.dataset.target);
-  const suffix=el.dataset.suffix||'';
-  const prefix=el.dataset.prefix||'';
-  let count=0;
-  const step=Math.ceil(target/60);
-  const timer=setInterval(()=>{
-    count=Math.min(count+step,target);
-    el.textContent=prefix+count+suffix;
-    if(count>=target)clearInterval(timer);
-  },24);
-}
-const countObserver=new IntersectionObserver(entries=>{
-  entries.forEach(e=>{
-    if(e.isIntersecting){
-      e.target.querySelectorAll('[data-target]').forEach(countUp);
-      countObserver.unobserve(e.target);
-    }
-  });
-},{threshold:.5});
-document.querySelectorAll('.hero-stat-val,[data-target]').forEach(el=>{
-  if(el.dataset.target)countObserver.observe(el.parentElement||el);
-});
-
-// ── NAV SCROLL ──
+/* ── SCROLL PROGRESS + NAV ── */
+const prog=document.getElementById('prog');
 window.addEventListener('scroll',()=>{
+  const h=document.documentElement.scrollHeight-window.innerHeight;
+  if(prog&&h>0)prog.style.width=(window.scrollY/h*100)+'%';
   document.getElementById('nav').classList.toggle('scrolled',window.scrollY>60);
-});
+},{passive:true});
 
-// ── HAMBURGER NAV ──
+/* ── HAMBURGER ── */
 var burger=document.getElementById('hamburger');
 var mobileMenu=document.getElementById('mobile-menu');
-burger.addEventListener('click',function(){
-  burger.classList.toggle('open');
-  mobileMenu.classList.toggle('open');
-});
-function closeMenu(){
-  burger.classList.remove('open');
-  mobileMenu.classList.remove('open');
-}
+burger.addEventListener('click',function(){burger.classList.toggle('open');mobileMenu.classList.toggle('open');});
+function closeMenu(){burger.classList.remove('open');mobileMenu.classList.remove('open');}
 
-// ── SCROLL REVEAL ──
+/* ── HERO PARTICLE CANVAS ── */
+window.addEventListener('load',function(){
+  const c=document.getElementById('hero-canvas');
+  if(!c)return;
+  const ctx=c.getContext('2d');
+  let w,h,particles=[];
+  function resize(){
+    w=c.width=c.offsetWidth;
+    h=c.height=c.offsetHeight;
+    particles=Array.from({length:70},()=>({
+      x:Math.random()*w,y:Math.random()*h,
+      vx:(Math.random()-.5)*.3,vy:(Math.random()-.5)*.3,
+      r:Math.random()*1.8+.5,a:Math.random()*.5+.15,
+      life:Math.random()*200,max:200+Math.random()*200
+    }));
+  }
+  resize();
+  window.addEventListener('resize',resize);
+  function draw(){
+    ctx.clearRect(0,0,w,h);
+    particles.forEach(p=>{
+      p.x+=p.vx;p.y+=p.vy;p.life++;
+      if(p.life>p.max||p.x<0||p.x>w||p.y<0||p.y>h){
+        p.x=Math.random()*w;p.y=Math.random()*h;p.life=0;
+      }
+      const fade=Math.sin((p.life/p.max)*Math.PI);
+      // draw connection lines
+      particles.forEach(q=>{
+        const dx=p.x-q.x,dy=p.y-q.y,d=Math.sqrt(dx*dx+dy*dy);
+        if(d<80){
+          ctx.beginPath();ctx.moveTo(p.x,p.y);ctx.lineTo(q.x,q.y);
+          ctx.strokeStyle=`rgba(46,125,209,${(.04*(1-d/80)).toFixed(3)})`;
+          ctx.lineWidth=.5;ctx.stroke();
+        }
+      });
+      ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(74,157,232,${(p.a*fade).toFixed(3)})`;ctx.fill();
+    });
+    requestAnimationFrame(draw);
+  }
+  draw();
+});
+
+/* ── HERO CARD 3D TILT ── */
+(function(){
+  const card=document.getElementById('heroCard');
+  if(!card)return;
+  const wrap=card.parentElement;
+  wrap.addEventListener('mousemove',e=>{
+    const r=card.getBoundingClientRect();
+    const x=(e.clientX-r.left)/r.width-.5;
+    const y=(e.clientY-r.top)/r.height-.5;
+    card.style.transition='transform .08s ease';
+    card.style.transform=`perspective(900px) rotateY(${x*22}deg) rotateX(${-y*22}deg) scale(1.02)`;
+    card.style.boxShadow=`${-x*30}px ${-y*30}px 80px rgba(46,125,209,.2), 0 40px 80px rgba(0,0,0,.4)`;
+  });
+  wrap.addEventListener('mouseleave',()=>{
+    card.style.transition='transform .6s cubic-bezier(.16,1,.3,1),box-shadow .6s cubic-bezier(.16,1,.3,1)';
+    card.style.transform='';
+    card.style.boxShadow='';
+  });
+})();
+
+/* ── SCROLL REVEAL ── */
 const obs=new IntersectionObserver(entries=>{
   entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('visible');obs.unobserve(e.target);}});
 },{threshold:.1,rootMargin:'0px 0px -40px 0px'});
 document.querySelectorAll('.reveal').forEach(el=>obs.observe(el));
 
-// ── CARE BUILDER STATE ──
+/* ── SERVICE CARDS STAGGER ── */
+const svcObs=new IntersectionObserver(entries=>{
+  if(entries[0].isIntersecting){
+    document.querySelectorAll('.service-card').forEach((c,i)=>{
+      setTimeout(()=>c.classList.add('visible'),i*60);
+    });
+    svcObs.disconnect();
+  }
+},{threshold:.1});
+const sg=document.getElementById('servicesGrid');
+if(sg)svcObs.observe(sg);
+
+/* ── HOW IT WORKS STAGGER ── */
+const howObs=new IntersectionObserver(entries=>{
+  if(entries[0].isIntersecting){
+    document.querySelectorAll('.how-step').forEach((s,i)=>setTimeout(()=>s.classList.add('how-lit'),i*220));
+    howObs.disconnect();
+  }
+},{threshold:.2});
+const howSec=document.querySelector('#how');
+if(howSec)howObs.observe(howSec);
+
+/* ── TESTIMONIALS AUTO-ROTATE ── */
+(function(){
+  const cards=document.querySelectorAll('.test-card');
+  const dots=document.querySelectorAll('.test-dot');
+  if(!cards.length)return;
+  let idx=0,timer;
+  function show(i){
+    idx=i;
+    cards.forEach((c,j)=>c.classList.toggle('t-active',j===i));
+    dots.forEach((d,j)=>d.classList.toggle('active',j===i));
+  }
+  function start(){timer=setInterval(()=>show((idx+1)%cards.length),5000);}
+  window.showTest=function(i){clearInterval(timer);show(i);start();};
+  show(0);start();
+  const grid=document.querySelector('.test-grid');
+  if(grid){
+    grid.addEventListener('mouseenter',()=>clearInterval(timer));
+    grid.addEventListener('mouseleave',start);
+  }
+})();
+
+/* ── CARE BUILDER ── */
 const plan={careType:'Daily Living Support',hours:20,services:['Personal Hygiene & Grooming','Meal Preparation','Medication Reminders','Companionship & Social Support'],city:''};
 
 function selectCare(el,type){
   document.querySelectorAll('.care-type').forEach(c=>c.classList.remove('selected'));
-  el.classList.add('selected');
-  plan.careType=type;
-  updatePlanCard();
+  el.classList.add('selected');plan.careType=type;updatePlanCard();
 }
-
 function updateHours(val){
   plan.hours=parseInt(val);
   document.getElementById('hours-display').textContent=val;
-  let tierName,tierDesc,monthly,activeCard;
-  if(val<=20){
-    tierName='Essential Support';
-    tierDesc='A few visits per week — light daily assistance';
-    monthly=800+Math.round(((val-4)/(20-4))*(1600-800));
-    activeCard='pc-essential';
-  } else if(val<=40){
-    tierName='Standard Care';
-    tierDesc='Daily support and routines, consistent visits every week';
-    monthly=1600+Math.round(((val-20)/(40-20))*(3000-1600));
-    activeCard='pc-standard';
-  } else {
-    tierName='Full-Time Care';
-    tierDesc='Intensive daily support — around-the-clock care';
-    monthly=3000+Math.round(((val-40)/(80-40))*(5000-3000));
-    activeCard='pc-fulltime';
-  }
-  document.getElementById('care-tier-name').textContent=tierName;
-  document.getElementById('care-tier-desc').textContent=tierDesc;
-  ['pc-essential','pc-standard','pc-fulltime'].forEach(id=>{
-    document.getElementById(id).classList.toggle('active',id===activeCard);
-  });
-  plan.monthly=monthly;
-  updatePlanCard();
+  let name,desc,monthly,active;
+  if(val<=20){name='Essential Support';desc='A few visits per week — light daily assistance';monthly=800+Math.round(((val-4)/16)*(1600-800));active='pc-essential';}
+  else if(val<=40){name='Standard Care';desc='Daily support and routines, consistent visits';monthly=1600+Math.round(((val-20)/20)*(3000-1600));active='pc-standard';}
+  else{name='Full-Time Care';desc='Intensive daily support — around-the-clock care';monthly=3000+Math.round(((val-40)/40)*(5000-3000));active='pc-fulltime';}
+  document.getElementById('care-tier-name').textContent=name;
+  document.getElementById('care-tier-desc').textContent=desc;
+  ['pc-essential','pc-standard','pc-fulltime'].forEach(id=>document.getElementById(id).classList.toggle('active',id===active));
+  plan.monthly=monthly;updatePlanCard();
 }
-
 function toggleService(el,name){
   el.classList.toggle('active');
-  if(el.classList.contains('active')){
-    if(!plan.services.includes(name))plan.services.push(name);
-  } else {
-    plan.services=plan.services.filter(s=>s!==name);
-  }
+  if(el.classList.contains('active')){if(!plan.services.includes(name))plan.services.push(name);}
+  else{plan.services=plan.services.filter(s=>s!==name);}
   updatePlanCard();
 }
-
 function selectCity(el,city){
   document.querySelectorAll('#step4 .care-type').forEach(c=>c.classList.remove('selected'));
-  el.classList.add('selected');
-  plan.city=city;
-  updatePlanCard();
+  el.classList.add('selected');plan.city=city;updatePlanCard();
 }
-
-function toggleStep(n){
-  const step=document.getElementById('step'+n);
-  step.classList.toggle('active');
-}
-
+function toggleStep(n){document.getElementById('step'+n).classList.toggle('active');}
 function nextStep(n){
   const prev=document.getElementById('step'+(n-1));
   if(prev){prev.classList.remove('active');prev.classList.add('done');}
   const next=document.getElementById('step'+n);
   if(next){next.classList.add('active');next.scrollIntoView({behavior:'smooth',block:'nearest'});}
+  document.getElementById('builder-progress-fill').style.width=((n-1)*25)+'%';
   updatePlanCard();
 }
-
 function finalizePlan(){
   updatePlanCard(true);
   document.getElementById('plan-cta-wrap').style.display='block';
-  const btn=document.getElementById('plan-cta-btn');
-  btn.href=`lead-form.html?type=${encodeURIComponent(plan.careType)}&hours=${plan.hours}&city=${encodeURIComponent(plan.city)}`;
+  document.getElementById('plan-cta-btn').href=`lead-form.html?type=${encodeURIComponent(plan.careType)}&hours=${plan.hours}&city=${encodeURIComponent(plan.city)}`;
+  document.getElementById('builder-progress-fill').style.width='100%';
+  const pc=document.getElementById('planCard');
+  if(pc){pc.classList.add('mobile-show');if(window.innerWidth<=900)pc.scrollIntoView({behavior:'smooth',block:'start'});}
 }
-
 function updatePlanCard(final=false){
   let monthly=plan.monthly||800;
   if(!plan.monthly){
-    if(plan.hours<=20) monthly=800+Math.round(((plan.hours-4)/(20-4))*(1600-800));
-    else if(plan.hours<=40) monthly=1600+Math.round(((plan.hours-20)/(40-20))*(3000-1600));
-    else monthly=3000+Math.round(((plan.hours-40)/(80-40))*(5000-3000));
+    if(plan.hours<=20)monthly=800+Math.round(((plan.hours-4)/16)*(1600-800));
+    else if(plan.hours<=40)monthly=1600+Math.round(((plan.hours-20)/20)*(3000-1600));
+    else monthly=3000+Math.round(((plan.hours-40)/40)*(5000-3000));
   }
-  const servicesHTML=plan.services.map(s=>`<div class="plan-service-item">${s}</div>`).join('');
-  const cityText=plan.city?` · ${plan.city}`:'';
+  const svcs=plan.services.map(s=>`<div class="plan-service-item">${s}</div>`).join('');
+  const city=plan.city?` · ${plan.city}`:'';
   document.getElementById('plan-summary').innerHTML=`
     <div class="plan-care-type">${plan.careType}</div>
-    <div class="plan-hours">${plan.hours} hrs/week${cityText}</div>
-    ${plan.services.length?`<div class="plan-divider"></div><div class="plan-services-lbl">Services Included</div>${servicesHTML}`:''}
+    <div class="plan-hours">${plan.hours} hrs/week${city}</div>
+    ${plan.services.length?`<div class="plan-divider"></div><div class="plan-services-lbl">Services Included</div>${svcs}`:''}
     <div class="plan-price-wrap">
       <div class="plan-price-lbl">Estimated Monthly</div>
       <div class="plan-price-val">~$${monthly.toLocaleString()}</div>
       <div class="plan-price-note">Based on ${plan.hours}hrs/week · Exact quote at assessment</div>
     </div>`;
-  if(final){document.getElementById('plan-cta-wrap').style.display='block';}
+  if(final)document.getElementById('plan-cta-wrap').style.display='block';
 }
 
-// ── CHATBOT — PURE INTAKE STATE MACHINE ──
+/* ── LIVE FEED ── */
+(function(){
+  const items=[
+    {icon:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#4a9de8" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>',title:'Visit Confirmed',meta:'Luz P. · Mississauga · 8hrs today',time:'just now'},
+    {icon:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#4a9de8" stroke-width="2"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg>',title:'New Inquiry Received',meta:'Chen Family · Brampton · Standard Care',time:'2 min ago'},
+    {icon:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#4a9de8" stroke-width="2"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 12h6M9 16h4"/></svg>',title:'Care Plan Updated',meta:'Margaret T. · Caledon · Dementia Support',time:'8 min ago'},
+    {icon:'<svg width="14" height="14" viewBox="0 0 24 24" fill="#4a9de8"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>',title:'5-Star Review Left',meta:'Jennifer N. · Mississauga · Verified Client',time:'14 min ago'},
+    {icon:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#4a9de8" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>',title:'Assessment Booked',meta:'Nguyen Family · Brampton · Wednesday 10am',time:'22 min ago'},
+    {icon:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#4a9de8" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.47 2 2 0 0 1 3.6 1.27h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L7.91 9a16 16 0 0 0 6 6l.92-.92a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>',title:'Family Update Sent',meta:'Vardzel Family · Mississauga · Weekly summary',time:'1 hr ago'},
+  ];
+  let fi=0;
+  const fw=document.getElementById('feedWrap');
+  const fd=document.getElementById('feedDots');
+  if(!fw||!fd)return;
+  items.forEach((_,i)=>{const d=document.createElement('button');d.className='feed-dot-btn'+(i===0?' active':'');d.onclick=()=>sf(i);fd.appendChild(d);});
+  items.forEach((item,i)=>{const c=document.createElement('div');c.className='feed-card'+(i===0?' feed-active':'');c.id='fc'+i;c.innerHTML=`<div class="feed-card-icon">${item.icon}</div><div class="feed-card-text"><div class="feed-card-title">${item.title}</div><div class="feed-card-meta">${item.meta}</div></div><div class="feed-card-time">${item.time}</div>`;fw.appendChild(c);});
+  function sf(i){document.querySelectorAll('.feed-card').forEach(c=>c.classList.remove('feed-active'));document.querySelectorAll('.feed-dot-btn').forEach(d=>d.classList.remove('active'));document.getElementById('fc'+i).classList.add('feed-active');fd.children[i].classList.add('active');fi=i;}
+  setInterval(()=>sf((fi+1)%items.length),3500);
+})();
+
+/* ── CHATBOT ── */
 var chatStage=0;
 var intake={who:'',careType:'',city:'',urgency:'',name:'',contact:'',day:'',time:''};
 var chatHistory=[{role:'assistant',content:'Hi there. Who are you looking for care for?'}];
 var openChat=false;
-
-var STAGE_EXPECTED=[
-  ['a parent','my spouse','myself','someone else'],
-  ['personal care','companionship','overnight care','dementia care'],
-  ['mississauga','brampton','caledon','other'],
-  ['as soon as possible','within a month','just exploring'],
-  null,
-  null,
-  ['monday','tuesday','wednesday','thursday','friday'],
-  ['morning 9-12','afternoon 12-4','evening 4-7']
-];
-
-var STAGE_CHIPS=[
-  ['Personal care','Companionship','Overnight care','Dementia care'],
-  ['Mississauga','Brampton','Caledon','Other'],
-  ['As soon as possible','Within a month','Just exploring'],
-  null,
-  null,
-  ['Monday','Tuesday','Wednesday','Thursday','Friday'],
-  ['Morning 9-12','Afternoon 12-4','Evening 4-7']
-];
-
-var AI_SYSTEM='You are a warm, knowledgeable assistant for Proximity Care Services, a premium in-home senior care agency serving Mississauga, Brampton, and Caledon. You already know details from this conversation \u2014 use them naturally. Sound like a caring neighbor who knows home care inside out, not a script.\n\nPRICING \u2014 monthly plans only, never hourly:\n- Essential: $800 to $1,600 per month, 4 to 20 hours per week\n- Standard: $1,600 to $3,000 per month, 20 to 40 hours per week\n- Full-Time: $3,000 to $5,000 per month, 40 to 80 hours per week\n- First 6 hours completely free, no contracts, no obligation\n- Same PSW every single visit\n\nRULES:\n- Never mention Calendly or any booking link \u2014 booking is already done\n- Never say hourly \u2014 always monthly plans\n- Under 3 sentences per reply\n- Reference what you know about them \u2014 their name, who they care for, their city, care type\n- If they ask pricing, give the relevant tier based on what they said\n- If you cannot answer, say Lance will cover it on the call\n- Be warm, specific, and human \u2014 never robotic';
+var STAGE_CHIPS=[['A parent','My spouse','Myself','Someone else'],['Personal care','Companionship','Overnight care','Dementia care'],['Mississauga','Brampton','Caledon','Other'],['As soon as possible','Within a month','Just exploring'],null,null,['Monday','Tuesday','Wednesday','Thursday','Friday'],['Morning 9-12','Afternoon 12-4','Evening 4-7']];
+var STAGE_EXPECTED=[['a parent','my spouse','myself','someone else'],['personal care','companionship','overnight care','dementia care'],['mississauga','brampton','caledon','other'],['as soon as possible','within a month','just exploring'],null,null,['monday','tuesday','wednesday','thursday','friday'],['morning 9-12','afternoon 12-4','evening 4-7']];
+var AI_SYSTEM='You are a warm, knowledgeable assistant for Proximity Care Services. Pricing: Essential $800-$1,600/mo (4-20hrs/week), Standard $1,600-$3,000/mo (20-40hrs), Full-Time $3,000-$5,000/mo. First 6 hours free. Same PSW every visit. Under 3 sentences. Be warm and human.';
 
 function toggleChat(){document.getElementById('chat-overlay').classList.toggle('open');}
-
-function addCMsg(type,text){
-  var html=text.replace(/\*\*([^*]+)\*\*/g,'$1').replace(/\n/g,'<br>');
-  var d=document.createElement('div');d.className='cmsg '+type;
-  d.innerHTML='<div class="cbub">'+html+'</div>';
-  document.getElementById('cmsgs').appendChild(d);csc();
-}
-
-function renderChips(chips){
-  var wrap=document.getElementById('chat-chips');
-  wrap.innerHTML='';
-  if(!chips||!chips.length){wrap.classList.add('hidden');return;}
-  chips.forEach(function(c){
-    var btn=document.createElement('button');
-    btn.className='chat-chip';btn.textContent=c;
-    btn.onclick=function(){handleInput(c);};
-    wrap.appendChild(btn);
-  });
-  wrap.classList.remove('hidden');
-}
-
-function showTyping(){
-  var el=document.createElement('div');el.className='typing-indicator';el.id='typing';
-  el.innerHTML='<span></span><span></span><span></span>';
-  document.getElementById('cmsgs').appendChild(el);csc();
-}
-function hideTyping(){var el=document.getElementById('typing');if(el)el.remove();}
+function addCMsg(t,txt){const d=document.createElement('div');d.className='cmsg '+t;d.innerHTML='<div class="cbub">'+txt.replace(/\n/g,'<br>')+'</div>';document.getElementById('cmsgs').appendChild(d);csc();}
+function renderChips(chips){const w=document.getElementById('chat-chips');w.innerHTML='';if(!chips||!chips.length){w.classList.add('hidden');return;}chips.forEach(c=>{const b=document.createElement('button');b.className='chat-chip';b.textContent=c;b.onclick=()=>handleInput(c);w.appendChild(b);});w.classList.remove('hidden');}
+function showTyping(){const el=document.createElement('div');el.className='typing-indicator';el.id='typing';el.innerHTML='<span></span><span></span><span></span>';document.getElementById('cmsgs').appendChild(el);csc();}
+function hideTyping(){const el=document.getElementById('typing');if(el)el.remove();}
 
 function advanceStage(answer){
-  if(chatStage===0) intake.who=answer;
-  else if(chatStage===1) intake.careType=answer;
-  else if(chatStage===2) intake.city=answer;
-  else if(chatStage===3) intake.urgency=answer;
-  else if(chatStage===4) intake.name=answer;
-  else if(chatStage===5) intake.contact=answer;
-  else if(chatStage===6) intake.day=answer;
-  else if(chatStage===7) intake.time=answer;
-
+  if(chatStage===0)intake.who=answer;
+  else if(chatStage===1)intake.careType=answer;
+  else if(chatStage===2)intake.city=answer;
+  else if(chatStage===3)intake.urgency=answer;
+  else if(chatStage===4)intake.name=answer;
+  else if(chatStage===5)intake.contact=answer;
+  else if(chatStage===6)intake.day=answer;
+  else if(chatStage===7)intake.time=answer;
   chatStage++;
   var msg='';
-
-  if(chatStage===1) msg='Got it \u2014 care for '+intake.who.toLowerCase()+'. What kind of support are they needing?';
-  else if(chatStage===2) msg='Understood. What city are they in?';
-  else if(chatStage===3) msg='Perfect. How soon are you looking to get started?';
-  else if(chatStage===4) msg='We can definitely help with that. What\u2019s your name?';
-  else if(chatStage===5) msg='Nice to meet you '+intake.name+'. Best number or email to reach you?';
-  else if(chatStage===6) msg='Great. What day works for a free assessment call?';
-  else if(chatStage===7) msg='And what time works best?';
-
+  if(chatStage===1)msg='Got it — care for '+intake.who.toLowerCase()+'. What kind of support are they needing?';
+  else if(chatStage===2)msg='Understood. What city are they in?';
+  else if(chatStage===3)msg='Perfect. How soon are you looking to get started?';
+  else if(chatStage===4)msg='We can definitely help with that. What\'s your name?';
+  else if(chatStage===5)msg='Nice to meet you '+intake.name+'. Best number or email to reach you?';
+  else if(chatStage===6)msg='Great. What day works for a free assessment call?';
+  else if(chatStage===7)msg='And what time works best?';
   if(chatStage<=7){
     chatHistory.push({role:'user',content:answer});
-    setTimeout(function(){
-      addCMsg('b',msg);
-      chatHistory.push({role:'assistant',content:msg});
-      renderChips(STAGE_CHIPS[chatStage-1]);csc();
-    },500);
+    setTimeout(()=>{addCMsg('b',msg);chatHistory.push({role:'assistant',content:msg});renderChips(STAGE_CHIPS[chatStage-1]);},500);
   }else{
     chatHistory.push({role:'user',content:answer});
-    var isEmail=intake.contact.includes('@');
-    var phone=isEmail?'':intake.contact;
-    var email=isEmail?intake.contact:'';
-    var confirm='You\u2019re all set, '+intake.name+'. We\u2019ll call you '+intake.day+' '+intake.time+' at '+intake.contact+'. Looking forward to it.';
-    setTimeout(function(){
-      addCMsg('b',confirm);
-      chatHistory.push({role:'assistant',content:confirm});
-      renderChips(null);
+    var confirm='You\'re all set, '+intake.name+'. We\'ll call you '+intake.day+' '+intake.time+' at '+intake.contact+'. Looking forward to it.';
+    setTimeout(()=>{
+      addCMsg('b',confirm);chatHistory.push({role:'assistant',content:confirm});renderChips(null);
       var nm=intake.name.split(/\s+/);
-      fetch('https://proximity-agent-production.up.railway.app/webhook/lead',{
-        method:'POST',headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({
-          operator_id:'proximity-care',
-          first_name:nm.shift()||'',
-          last_name:nm.join(' '),
-          phone:phone,
-          email:email,
-          city:intake.city,
-          care_type_interest:intake.careType,
-          care_needed_for:intake.who,
-          urgency:intake.urgency,
-          source:'chatbot_booking',
-          preferred_time:intake.day+' '+intake.time
-        })
-      }).catch(function(e){console.error('Booking webhook error:',e);});
-      setTimeout(function(){
-        var followUp='In the meantime, feel free to ask me anything about our services or what to expect from your first visit.';
-        addCMsg('b',followUp);
-        chatHistory.push({role:'assistant',content:followUp});
-        openChat=true;
-      },3000);
+      fetch('https://proximity-agent-production.up.railway.app/webhook/lead',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({operator_id:'proximity-care',first_name:nm.shift()||'',last_name:nm.join(' '),phone:intake.contact.includes('@')?'':intake.contact,email:intake.contact.includes('@')?intake.contact:'',city:intake.city,care_type_interest:intake.careType,care_needed_for:intake.who,urgency:intake.urgency,source:'chatbot_booking',preferred_time:intake.day+' '+intake.time})}).catch(()=>{});
+      setTimeout(()=>{addCMsg('b','In the meantime, feel free to ask me anything about our services.');chatHistory.push({role:'assistant',content:'In the meantime, feel free to ask me anything.'});openChat=true;},3000);
     },500);
   }
 }
 
 async function handleInput(text){
   if(openChat){
-    addCMsg('u',text);
-    chatHistory.push({role:'user',content:text});
-    document.getElementById('chat-chips').classList.add('hidden');
-    showTyping();
-    try{
-      var r=await fetch('https://proximity-agent-production.up.railway.app/chat',{
-        method:'POST',headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({operator_id:'proximity-care',messages:chatHistory,system_override:AI_SYSTEM})
-      });
-      hideTyping();
-      var d=await r.json();
-      var reply=(d.response||'').replace(/\*\*(.+?)\*\*/g,'$1');
-      if(!reply) throw new Error('empty');
-      chatHistory.push({role:'assistant',content:reply});
-      addCMsg('b',reply);
-    }catch(e){
-      hideTyping();
-      addCMsg('b','Sorry, I had trouble connecting. Lance will reach out at your confirmed time.');
-    }
+    addCMsg('u',text);chatHistory.push({role:'user',content:text});
+    document.getElementById('chat-chips').classList.add('hidden');showTyping();
+    try{const r=await fetch('https://proximity-agent-production.up.railway.app/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({operator_id:'proximity-care',messages:chatHistory,system_override:AI_SYSTEM})});hideTyping();const d=await r.json();const rep=d.response||'Please call us at 647-382-8047.';chatHistory.push({role:'assistant',content:rep});addCMsg('b',rep);}
+    catch(e){hideTyping();addCMsg('b','Please call us directly at 647-382-8047.');}
     return;
   }
-
   var expected=STAGE_EXPECTED[chatStage];
-  var isExpected=expected===null||expected.includes(text.toLowerCase().trim());
-  var isFreeform=!isExpected&&(text.includes('?')||text.split(' ').length>5);
-
+  var isFreeform=expected===null||(text.includes('?')||text.split(' ').length>5)&&!expected.includes(text.toLowerCase().trim());
   if(isFreeform){
-    addCMsg('u',text);
-    chatHistory.push({role:'user',content:text});
-    document.getElementById('chat-chips').classList.add('hidden');
-    showTyping();
-    try{
-      var r=await fetch('https://proximity-agent-production.up.railway.app/chat',{
-        method:'POST',headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({operator_id:'proximity-care',messages:chatHistory,system_override:AI_SYSTEM})
-      });
-      hideTyping();
-      var d=await r.json();
-      var reply=(d.response||'').replace(/\*\*(.+?)\*\*/g,'$1');
-      if(!reply) throw new Error('empty');
-      chatHistory.push({role:'assistant',content:reply});
-      addCMsg('b',reply);
-    }catch(e){
-      hideTyping();
-      addCMsg('b','Sorry, I had trouble connecting. Lance will reach out at your confirmed time.');
-    }
-    renderChips(STAGE_EXPECTED[chatStage]?STAGE_CHIPS[chatStage>0?chatStage-1:0]:null);
+    addCMsg('u',text);chatHistory.push({role:'user',content:text});
+    document.getElementById('chat-chips').classList.add('hidden');showTyping();
+    try{const r=await fetch('https://proximity-agent-production.up.railway.app/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({operator_id:'proximity-care',messages:chatHistory,system_override:AI_SYSTEM})});hideTyping();const d=await r.json();const rep=d.response||'Please call us at 647-382-8047.';chatHistory.push({role:'assistant',content:rep});addCMsg('b',rep);}
+    catch(e){hideTyping();addCMsg('b','Please call us directly at 647-382-8047.');}
     return;
   }
-
-  addCMsg('u',text);
-  advanceStage(text);
+  addCMsg('u',text);advanceStage(text);
 }
-
-function csend(){
-  var inp=document.getElementById('cinp');
-  var msg=inp.value.trim();if(!msg)return;
-  inp.value='';inp.style.height='auto';
-  handleInput(msg);
-}
-
-function csc(){var m=document.getElementById('cmsgs');m.scrollTop=m.scrollHeight;}
+function csend(){const inp=document.getElementById('cinp');const msg=inp.value.trim();if(!msg)return;inp.value='';inp.style.height='auto';handleInput(msg);}
+function csc(){const m=document.getElementById('cmsgs');m.scrollTop=m.scrollHeight;}
 function chk(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();csend();}}
 function crs(el){el.style.height='auto';el.style.height=Math.min(el.scrollHeight,56)+'px';}
-
 renderChips(['A parent','My spouse','Myself','Someone else']);
-
-// ── HERO STAT COUNTERS ──
-(function(){
-  function countUp(el,target,suffix){
-    var start=performance.now(),dur=1500;
-    (function tick(now){
-      var p=Math.min((now-start)/dur,1),ease=1-Math.pow(1-p,3);
-      el.textContent=Math.round(ease*target)+suffix;
-      if(p<1)requestAnimationFrame(tick);
-    })(start);
-  }
-  var card=document.querySelector('.card-3d');
-  if(!card)return;
-  var sObs=new IntersectionObserver(function(entries){
-    entries.forEach(function(e){
-      if(e.isIntersecting){
-        card.querySelectorAll('.hero-stat-val').forEach(function(v){
-          var t=v.textContent.trim();
-          if(t==='100%')countUp(v,100,'%');
-          else if(t==='2hrs')countUp(v,2,'hrs');
-          else if(t==='6hrs')countUp(v,6,'hrs');
-        });
-        sObs.disconnect();
-      }
-    });
-  },{threshold:0.3});
-  sObs.observe(card);
-})();
-
-// ── BUILDER PROGRESS BAR ──
-(function(){
-  var fill=document.getElementById('builder-progress-fill');
-  if(!fill)return;
-  var _next=window.nextStep,_final=window.finalizePlan;
-  window.nextStep=function(n){_next(n);fill.style.width=((n-1)*25)+'%';};
-  window.finalizePlan=function(){_final();fill.style.width='100%';};
-})();
-
-// ── TESTIMONIAL CAROUSEL (MOBILE) ──
-(function(){
-  var cards=document.querySelectorAll('.test-card');
-  var dots=document.querySelectorAll('.test-dot');
-  if(!cards.length)return;
-  var idx=0,timer;
-  function show(i){
-    idx=i;
-    cards.forEach(function(c,j){c.classList.toggle('t-active',j===i);});
-    dots.forEach(function(d,j){d.classList.toggle('active',j===i);});
-  }
-  function startAuto(){timer=setInterval(function(){show((idx+1)%cards.length);},5000);}
-  window.showTest=function(i){clearInterval(timer);show(i);startAuto();};
-  var mq=window.matchMedia('(max-width:900px)');
-  function handle(e){
-    clearInterval(timer);
-    if(e.matches){show(0);startAuto();}
-    else{cards.forEach(function(c){c.classList.add('t-active');});}
-  }
-  handle(mq);
-  mq.addEventListener('change',handle);
-})();
-
-// ── PARALLAX HERO (DESKTOP ONLY) ──
-if(window.matchMedia('(min-width:768px)').matches){
-  var heroBg=document.querySelector('.hero-bg');
-  if(heroBg){
-    window.addEventListener('scroll',function(){
-      heroBg.style.transform='translateY('+Math.min(window.scrollY*0.05,20)+'px)';
-    },{passive:true});
-  }
-}
-</script>
-<script>
-document.addEventListener('DOMContentLoaded',function(){
-  var cards=document.querySelectorAll('[class*="card"]');
-  console.log('Found cards:',cards.length,[].map.call(cards,function(c){return c.className;}));
-
-  var card=document.querySelector('.hero-card-3d')||document.querySelector('.card-3d')||document.querySelector('.stats-card');
-
-  if(!card){console.log('No card found');return;}
-
-  card.style.transformStyle='preserve-3d';
-  card.style.willChange='transform';
-
-  card.addEventListener('mousemove',function(e){
-    var r=card.getBoundingClientRect();
-    var x=(e.clientX-r.left)/r.width-0.5;
-    var y=(e.clientY-r.top)/r.height-0.5;
-    card.style.transition='transform 0.08s ease';
-    card.style.transform='perspective(900px) rotateY('+(x*22)+'deg) rotateX('+(-y*22)+'deg) scale(1.02)';
-  });
-
-  card.addEventListener('mouseleave',function(){
-    card.style.transition='transform 0.6s ease';
-    card.style.transform='perspective(900px) rotateY(0deg) rotateX(0deg) scale(1)';
-  });
-});
-
-// HOW IT WORKS — stagger reveal on scroll
-const howSection=document.querySelector('#how');
-if(howSection){
-  const howSteps=howSection.querySelectorAll('.how-step');
-  const howObs=new IntersectionObserver(entries=>{
-    if(entries[0].isIntersecting){
-      howSteps.forEach((step,i)=>{
-        setTimeout(()=>step.classList.add('how-lit'),i*220);
-      });
-      howObs.unobserve(howSection);
-    }
-  },{threshold:.2});
-  howObs.observe(howSection);
-}
-
-// CARE TYPE SELECTION
-document.querySelectorAll('.care-type').forEach(ct=>{
-  ct.addEventListener('click',function(){
-    document.querySelectorAll('.care-type').forEach(c=>c.classList.remove('selected'));
-    this.classList.add('selected');
-  });
-});
-
-// ── LIVE VISIT FEED ──
-const feedItems=[
-  {icon:'✅',title:'Visit Confirmed',meta:'Luz P. · Mississauga · 8hrs',time:'just now'},
-  {icon:'🔔',title:'New Inquiry Received',meta:'Chen Family · Brampton · Standard Care',time:'2 min ago'},
-  {icon:'📋',title:'Care Plan Updated',meta:'Margaret T. · Caledon · Dementia Support',time:'8 min ago'},
-  {icon:'⭐',title:'5-Star Review Left',meta:'Jennifer N. · Mississauga · Verified Client',time:'14 min ago'},
-  {icon:'🏠',title:'Assessment Booked',meta:'Nguyen Family · Brampton · Wednesday 10am',time:'22 min ago'},
-  {icon:'💊',title:'Medication Reminder Sent',meta:'Robert K. · Mississauga · Auto-delivered',time:'31 min ago'},
-  {icon:'✅',title:'Same PSW Confirmed',meta:'Dorine B. · Caledon · 6th visit this month',time:'45 min ago'},
-  {icon:'📞',title:'Family Update Sent',meta:'Vardzel Family · Mississauga · Weekly summary',time:'1 hr ago'},
-];
-let feedIdx=0;
-const feedWrap=document.getElementById('feedWrap');
-const feedDotsEl=document.getElementById('feedDots');
-if(feedWrap&&feedDotsEl){
-  feedItems.forEach((_,i)=>{
-    const d=document.createElement('button');
-    d.className='feed-dot-btn'+(i===0?' active':'');
-    d.onclick=()=>showFeed(i);
-    feedDotsEl.appendChild(d);
-  });
-  feedItems.forEach((item,i)=>{
-    const card=document.createElement('div');
-    card.className='feed-card'+(i===0?' feed-active':'');
-    card.id='feed-card-'+i;
-    card.innerHTML=`<div class="feed-card-icon">${item.icon}</div><div class="feed-card-text"><div class="feed-card-title">${item.title}</div><div class="feed-card-meta">${item.meta}</div></div><div class="feed-card-time">${item.time}</div>`;
-    feedWrap.appendChild(card);
-  });
-  function showFeed(idx){
-    document.querySelectorAll('.feed-card').forEach(c=>c.classList.remove('feed-active'));
-    document.querySelectorAll('.feed-dot-btn').forEach(d=>d.classList.remove('active'));
-    document.getElementById('feed-card-'+idx).classList.add('feed-active');
-    feedDotsEl.children[idx].classList.add('active');
-    feedIdx=idx;
-  }
-  setInterval(()=>{
-    feedIdx=(feedIdx+1)%feedItems.length;
-    showFeed(feedIdx);
-  },3500);
-}
-
 </script>
 </body>
 </html>
