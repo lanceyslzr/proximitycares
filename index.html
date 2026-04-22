@@ -468,12 +468,11 @@ footer{background:var(--navy);padding:60px 48px 32px;border-top:1px solid rgba(2
 #chat-overlay{position:fixed;bottom:92px;right:28px;z-index:1000;width:min(340px,calc(100vw - 32px));background:var(--navy2);border:1px solid rgba(255,255,255,.08);border-top:2px solid var(--blue);border-radius:12px;box-shadow:0 24px 80px rgba(0,0,0,.4);display:none;flex-direction:column;max-height:min(460px,80vh);overflow:hidden;}
 #chat-overlay.open{display:flex;}
 .chat-head{padding:14px 18px;border-bottom:1px solid rgba(255,255,255,.06);display:flex;align-items:center;gap:10px;border-radius:12px 12px 0 0;}
-.chat-close{margin-left:auto;background:none;border:none;color:rgba(255,255,255,.35);font-size:16px;cursor:pointer;padding:4px 6px;line-height:1;transition:color .2s;flex-shrink:0;}
-.chat-close:hover{color:rgba(255,255,255,.7);}
-.chat-status-dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:#22c55e;margin-right:5px;vertical-align:middle;}
-.typing-indicator{display:none;align-self:flex-start;padding:10px 14px;gap:5px;flex-direction:row;align-items:center;}
-#typing{display:none;align-self:flex-start;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.07);border-radius:2px 10px 10px 10px;padding:10px 14px;margin:0 14px 0;flex-shrink:0;}
-#typing span{display:inline-block;width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,.4);margin:0 2px;animation:tyb 1.2s infinite;}
+.chat-close-btn{margin-left:auto;background:none;border:none;color:rgba(255,255,255,.3);font-size:15px;cursor:pointer;padding:4px 6px;line-height:1;transition:color .2s;flex-shrink:0;}
+.chat-close-btn:hover{color:rgba(255,255,255,.7);}
+.chat-online-dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:#22c55e;margin-right:5px;vertical-align:middle;animation:pulse2 2s infinite;}
+#typing{display:none;flex-direction:row;align-items:center;gap:4px;align-self:flex-start;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.07);border-radius:2px 10px 10px 10px;padding:10px 14px;margin:0 14px 4px;flex-shrink:0;}
+#typing span{width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,.35);animation:tyb 1.2s infinite;}
 #typing span:nth-child(2){animation-delay:.2s;}
 #typing span:nth-child(3){animation-delay:.4s;}
 .chat-av{width:32px;height:32px;border-radius:50%;background:rgba(46,125,209,.15);border:1px solid rgba(46,125,209,.3);display:flex;align-items:center;justify-content:center;font-family:var(--serif);font-style:italic;font-size:13px;color:var(--blue2);}
@@ -1172,19 +1171,17 @@ footer{background:var(--navy);padding:60px 48px 32px;border-top:1px solid rgba(2
 <div id="chat-overlay">
   <div class="chat-head">
     <div class="chat-av">P</div>
-    <div class="chat-info"><h4>Proximity Care</h4><p><span class="chat-status-dot"></span>Online — here to help</p></div>
-    <button class="chat-close" onclick="toggleChat()" aria-label="Close">✕</button>
+    <div class="chat-info"><h4>Proximity Care</h4><p><span class="chat-online-dot"></span>Online — here to help</p></div>
+    <button class="chat-close-btn" onclick="toggleChat()">✕</button>
   </div>
   <div class="chat-msgs" id="cmsgs">
     <div class="cmsg b"><div class="cbub">Hi there. I'm here to help you find the right care. Who are you looking for care for?</div></div>
   </div>
-  <div class="typing-indicator" id="typing" style="display:none"><span></span><span></span><span></span></div>
+  <div id="typing" style="display:none"><span></span><span></span><span></span></div>
   <div class="chat-chips" id="chat-chips"></div>
   <div class="chat-inp-wrap">
     <textarea class="chat-inp" id="cinp" placeholder="Type a message..." rows="1" onkeydown="chk(event)" oninput="crs(this)"></textarea>
-    <button class="chat-send" onclick="csend()">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
-    </button>
+    <button class="chat-send" onclick="csend()"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg></button>
   </div>
 </div>
 
@@ -1443,12 +1440,9 @@ function updatePlanCard(final=false){
 /* ── CHATBOT ── */
 /* ════════════════════════════════════════
    CHATBOT — AI-DRIVEN WITH BOOKING FLOW
-   Claude handles the conversation.
-   We collect data via INTAKE_DATA block.
-   Chips respond intelligently to answers.
 ════════════════════════════════════════ */
 
-const CHAT_SYSTEM = `You are the care intake assistant for Proximity Care Services, run by Lance Salazar in Peel Region, Ontario. Lance is a working PSW who founded this agency because he saw how unreliable other agencies were. He personally visits every new client's home for free before care begins.
+const CHAT_SYSTEM = `You are the care intake assistant for Proximity Care Services, run by Lance Salazar in Peel Region, Ontario. Lance is a working PSW who founded this agency because he saw how unreliable and impersonal other agencies were. He personally visits every new client's home for free before care begins and is reachable directly by families.
 
 WHAT MAKES PROXIMITY CARE DIFFERENT:
 - Same PSW every single visit — no rotating strangers
@@ -1464,47 +1458,53 @@ SERVICE AREA: Mississauga, Brampton, Caledon (Peel Region, Ontario)
 SERVICES: Personal hygiene and grooming, meal preparation, medication reminders, mobility assistance and fall prevention, companionship, accompany to medical appointments, light housekeeping, dementia and memory care, post-hospital recovery support, overnight and intensive care.
 
 PRICING — always monthly, never hourly:
-- Essential: $800–$1,600/month for 4–20 hours/week (light daily help)
-- Standard: $1,600–$3,000/month for 20–40 hours/week (daily routines)
-- Full-Time: $3,000–$5,000/month for 40–80 hours/week (intensive, overnight available)
+- Essential: $800–$1,600/month for 4–20 hours/week (light daily help, a few visits per week)
+- Standard: $1,600–$3,000/month for 20–40 hours/week (daily routines, consistent visits)
+- Full-Time: $3,000–$5,000/month for 40–80 hours/week (intensive daily support, overnight available)
 - First 6 hours completely free — no risk, no obligation, no contracts
 
 HOW IT WORKS:
 1. Family reaches out — Lance calls back within 2 hours
-2. Lance visits the home free — meets the senior, learns their routine
-3. Lance matches the right PSW to the client's personality and needs
+2. Lance visits the home free — meets the senior, learns their routine and personality
+3. Lance matches the right PSW to the client's needs
 4. Care begins — same PSW every visit, family updated after each one
 
 TONE:
-- Warm, knowledgeable, like a trusted neighbor — never robotic
-- If someone sounds stressed or worried about a parent, acknowledge that first
-- Keep replies 2–3 sentences unless they ask something detailed
+- Warm and knowledgeable — like a trusted neighbor who has seen a lot of home care situations
+- If someone sounds stressed or worried, acknowledge that first before asking anything
+- Keep replies 2–3 sentences unless they ask for detail
 - Never use bullet points — write like a face-to-face conversation
 - Never mention Calendly or any external booking tool
-- Always quote monthly pricing, never hourly rates
+- Always quote monthly pricing, never hourly
 - Use their name and what they told you — make it personal
 - If you cannot answer something specifically, say Lance will cover it on the call
-- Phone: 647-382-8047 | Email: lancesalazar56@gmail.com | Site: proximitycares.ca
+- If they ask any question about services, pricing, or how it works — answer it fully and warmly, then guide back to the next intake question naturally
+- Phone: 647-382-8047 | Email: lancesalazar56@gmail.com
 
-BOOKING FLOW — collect naturally through conversation:
-You need to collect: (1) who needs care + relationship, (2) care type, (3) city, (4) urgency, (5) their name, (6) phone or email, (7) preferred call day, (8) preferred call time.
+BOOKING — collect naturally one question at a time:
+Collect in this order: (1) who needs care + their relationship to the person asking, (2) what kind of care support they need, (3) which city, (4) how urgently they need to start, (5) their name, (6) their phone number or email, (7) what day works for Lance to call, (8) what time.
 
-Collect these one at a time through natural conversation. Do NOT ask multiple questions at once. After getting urgency, ask for their name. After name, ask for contact. After contact, ask what day works for Lance to call. After day, ask what time. Once you have ALL fields, immediately output the INTAKE block below and then give the closing message.
+IMPORTANT RULES FOR BOOKING:
+- Ask ONE question at a time — never combine two questions
+- If they ask a question mid-flow, answer it fully then come back to where you were
+- Do NOT ask for confirmation after getting the time slot — go straight to the INTAKE block
+- After getting the preferred time, output the INTAKE block immediately, then give the closing message
 
-If they ask questions about services, pricing, or anything else BEFORE booking is complete — answer them naturally and warmly, then gently guide back to the next intake question.
+CLOSING MESSAGE after INTAKE block:
+Say: "You're all set. Lance will call you [day] [time] at [contact]. He does every initial call personally — expect a real conversation, not a sales pitch."
+Do NOT include their name in "You're all set" — just say "You're all set."
 
-Once you have all 8 fields, output this EXACTLY on its own line — no text before or after it on that line:
-<!--INTAKE:{"name":"[full name]","contact":"[phone or email]","city":"[city]","care_for":"[who needs care]","care_type":"[type of care]","urgency":"[urgency]","day":"[preferred day]","time":"[preferred time]"}-->
+Once you have all 8 fields, output this EXACTLY on its own line:
+<!--INTAKE:{"name":"[full name]","contact":"[phone or email]","city":"[city]","care_for":"[who needs care]","care_type":"[type of care]","urgency":"[urgency]","day":"[day]","time":"[time]"}-->
 
-Then say: "You're all set, [name]. Lance will call you [day] [time] at [contact]. He does every initial call personally — expect a real conversation, not a sales pitch."
+Then immediately give the closing message. After that the conversation stays open for any follow-up questions.
 
-CRITICAL: Output the INTAKE block only when you have all 8 fields. Never output it partially. After the closing message, the conversation is open for any follow-up questions.`;
+CRITICAL: Output the INTAKE block ONLY when all 8 fields are collected. Output it immediately after getting the time — do not ask for confirmation. Never output it partially.`;
 
 var chatHistory = [{role:'assistant', content:"Hi there. I'm here to help you find the right care. Who are you looking for care for?"}];
 var chatProcessing = false;
 var chatBooked = false;
 
-/* ── CHIP SETS ── */
 var CHIP_SETS = {
   initial:   ['A parent','My spouse','Myself','Someone else'],
   care_type: ['Personal care & hygiene','Dementia care','Post-hospital recovery','Companionship','Overnight care'],
@@ -1512,34 +1512,21 @@ var CHIP_SETS = {
   urgency:   ['This week','Within a month','Just exploring'],
   day:       ['Monday','Tuesday','Wednesday','Thursday','Friday'],
   time:      ['Morning 9–12','Afternoon 12–4','Evening 4–7'],
-  post_book: ['What does care actually look like?','How do you match the PSW?','What does the first visit involve?']
+  post_book: ['What does care actually look like?','How do you match the PSW?','What does the first visit involve?','How much does it cost?']
 };
 
-/* ── CHIP INFERENCE — reads what was just said ── */
 function inferChips(userText, botText) {
-  var u = userText.toLowerCase();
-  var b = botText.toLowerCase();
-
-  // After booking confirmed
   if (chatBooked) return CHIP_SETS.post_book;
-
-  // Bot asked about time
-  if (b.includes('time') && (b.includes('morning') || b.includes('afternoon') || b.includes('evening') || b.includes('what time'))) return CHIP_SETS.time;
-  // Bot asked about day
-  if (b.includes('what day') || b.includes('which day') || b.includes('day works')) return CHIP_SETS.day;
-  // Bot asked about urgency / how soon
-  if (b.includes('how soon') || b.includes('urgently') || b.includes('timeline') || b.includes('when are you')) return CHIP_SETS.urgency;
-  // Bot asked about city
-  if (b.includes('which city') || b.includes('what city') || b.includes('where are') || b.includes('located')) return CHIP_SETS.city;
-  // Bot asked about care type
-  if (b.includes('kind of support') || b.includes('kind of care') || b.includes('type of care') || b.includes('what support') || b.includes('what kind')) return CHIP_SETS.care_type;
-  // First message — who needs care
+  var b = botText.toLowerCase();
+  if (b.includes('what time') || b.includes('time on') || b.includes('morning') || b.includes('afternoon') || (b.includes('time') && b.includes('best'))) return CHIP_SETS.time;
+  if (b.includes('what day') || b.includes('which day') || b.includes('day works') || b.includes('day this week')) return CHIP_SETS.day;
+  if (b.includes('how soon') || b.includes('how urgent') || b.includes('timeline') || b.includes('when are you') || b.includes('looking to start') || b.includes('get started')) return CHIP_SETS.urgency;
+  if (b.includes('which city') || b.includes('what city') || b.includes('where are') || b.includes('located') || b.includes('mississauga') || b.includes('brampton') || b.includes('caledon')) return CHIP_SETS.city;
+  if (b.includes('kind of support') || b.includes('kind of care') || b.includes('type of care') || b.includes('what support') || b.includes('what kind') || b.includes('what help') || b.includes('what care')) return CHIP_SETS.care_type;
   if (chatHistory.length <= 3) return CHIP_SETS.initial;
-
-  return null; // no chips — let them type freely
+  return null;
 }
 
-/* ── UI HELPERS ── */
 function toggleChat() {
   var el = document.getElementById('chat-overlay');
   el.classList.toggle('open');
@@ -1547,14 +1534,12 @@ function toggleChat() {
 }
 
 function addCMsg(type, text) {
-  // Strip INTAKE block before rendering
   var clean = text.replace(/<!--INTAKE:[\s\S]*?-->/g, '').trim();
   if (!clean) return;
   var html = clean.replace(/\*\*([^*]+)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br>');
   var d = document.createElement('div');
   d.className = 'cmsg ' + type;
   d.innerHTML = '<div class="cbub">' + html + '</div>';
-  // Animate in
   d.style.opacity = '0';
   d.style.transform = 'translateY(8px)';
   document.getElementById('cmsgs').appendChild(d);
@@ -1574,11 +1559,7 @@ function showChips(chips) {
     var b = document.createElement('button');
     b.className = 'chat-chip';
     b.textContent = c;
-    b.onclick = function() {
-      w.innerHTML = '';
-      w.classList.add('hidden');
-      sendChat(c);
-    };
+    b.onclick = function() { w.innerHTML = ''; w.classList.add('hidden'); sendChat(c); };
     w.appendChild(b);
   });
   w.classList.remove('hidden');
@@ -1586,34 +1567,23 @@ function showChips(chips) {
 
 function showTyping() {
   var el = document.getElementById('typing');
-  if (el) el.style.display = 'flex';
-  csc();
+  if (el) { el.style.display = 'flex'; csc(); }
 }
 function hideTyping() {
   var el = document.getElementById('typing');
   if (el) el.style.display = 'none';
 }
-function csc() {
-  var m = document.getElementById('cmsgs');
-  m.scrollTop = m.scrollHeight;
-}
-function chk(e) {
-  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); csend(); }
-}
-function crs(el) {
-  el.style.height = 'auto';
-  el.style.height = Math.min(el.scrollHeight, 56) + 'px';
-}
+function csc() { var m = document.getElementById('cmsgs'); m.scrollTop = m.scrollHeight; }
+function chk(e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); csend(); } }
+function crs(el) { el.style.height = 'auto'; el.style.height = Math.min(el.scrollHeight, 56) + 'px'; }
 function csend() {
   var inp = document.getElementById('cinp');
   var msg = inp.value.trim();
   if (!msg || chatProcessing) return;
-  inp.value = '';
-  inp.style.height = 'auto';
+  inp.value = ''; inp.style.height = 'auto';
   sendChat(msg);
 }
 
-/* ── MAIN SEND FUNCTION ── */
 async function sendChat(text) {
   if (chatProcessing) return;
   chatProcessing = true;
@@ -1639,7 +1609,7 @@ async function sendChat(text) {
 
     hideTyping();
 
-    /* ── CHECK FOR INTAKE BLOCK ── */
+    // Check for intake block
     var intakeMatch = raw.match(/<!--INTAKE:([\s\S]*?)-->/);
     if (intakeMatch) {
       try {
@@ -1667,24 +1637,19 @@ async function sendChat(text) {
       } catch(e) { console.error('Intake parse error:', e); }
     }
 
-    /* ── RENDER BOT REPLY ── */
-    // Small delay so typing indicator disappears first
     setTimeout(function() {
       addCMsg('b', raw);
       chatHistory.push({ role: 'assistant', content: raw });
 
-      // Infer chips from this exchange
       var chips = inferChips(text, raw);
-      setTimeout(function() { showChips(chips); }, 300);
+      setTimeout(function() { showChips(chips); }, 350);
 
-      // If booked — disable input after 3s
       if (chatBooked) {
         setTimeout(function() {
           var inp = document.getElementById('cinp');
-          var sendBtn = document.querySelector('.chat-send');
-          if (inp) { inp.placeholder = 'Booked. Lance will call you personally.'; }
+          if (inp) inp.placeholder = 'Booked. Ask any follow-up questions below.';
           showChips(CHIP_SETS.post_book);
-        }, 3500);
+        }, 3000);
       }
     }, 80);
 
@@ -1697,7 +1662,6 @@ async function sendChat(text) {
   }
 }
 
-/* ── INIT: show first chips ── */
 showChips(CHIP_SETS.initial);
 /* ── TOUCH SWIPE ON TESTIMONIALS ── */
 (function(){
