@@ -13,6 +13,50 @@
 <link rel="shortcut icon" href="/favicon.ico">
 <link rel="apple-touch-icon" href="/icon-192.png">
 <meta name="theme-color" content="#1a3a5c">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "HomeAndConstructionBusiness",
+  "name": "Proximity Care Services",
+  "description": "Premium in-home senior care for families in Mississauga, Brampton, and Caledon. Same PSW every visit. First 6 hours free.",
+  "url": "https://proximitycares.ca",
+  "telephone": "+16473828047",
+  "email": "lancesalazar56@gmail.com",
+  "founder": {"@type":"Person","name":"Lance Salazar"},
+  "areaServed": [
+    {"@type":"City","name":"Mississauga"},
+    {"@type":"City","name":"Brampton"},
+    {"@type":"City","name":"Caledon"}
+  ],
+  "address": {
+    "@type": "PostalAddress",
+    "addressRegion": "Ontario",
+    "addressCountry": "CA",
+    "addressLocality": "Mississauga"
+  },
+  "priceRange": "$800–$5,000/month",
+  "openingHours": "Mo-Su 00:00-23:59",
+  "aggregateRating": {
+    "@type": "AggregateRating",
+    "ratingValue": "5",
+    "bestRating": "5",
+    "worstRating": "1",
+    "reviewCount": "3"
+  },
+  "hasOfferCatalog": {
+    "@type": "OfferCatalog",
+    "name": "Home Care Services",
+    "itemListElement": [
+      {"@type":"Offer","itemOffered":{"@type":"Service","name":"Personal Hygiene Care"}},
+      {"@type":"Offer","itemOffered":{"@type":"Service","name":"Meal Preparation"}},
+      {"@type":"Offer","itemOffered":{"@type":"Service","name":"Medication Reminders"}},
+      {"@type":"Offer","itemOffered":{"@type":"Service","name":"Dementia Care"}},
+      {"@type":"Offer","itemOffered":{"@type":"Service","name":"Companionship"}},
+      {"@type":"Offer","itemOffered":{"@type":"Service","name":"Post-Hospital Recovery"}}
+    ]
+  }
+}
+</script>
 <style>
 /* ══════════════════════════════════════
    RESET & ROOT
@@ -90,7 +134,7 @@ nav.scrolled{background:rgba(10,22,40,.96);backdrop-filter:blur(20px);}
 
 /* Animated gradient mesh background */
 .hero-mesh{position:absolute;inset:0;pointer-events:none;z-index:0;}
-.hero-mesh-blob{position:absolute;border-radius:50%;filter:blur(60px);}
+.hero-mesh-blob{position:absolute;border-radius:50%;filter:blur(60px);will-change:transform;}
 .hm1{width:600px;height:600px;background:radial-gradient(circle,rgba(46,125,209,.18) 0%,transparent 70%);top:-100px;right:-100px;animation:meshFloat1 18s ease-in-out infinite;}
 .hm2{width:500px;height:500px;background:radial-gradient(circle,rgba(29,111,168,.14) 0%,transparent 70%);bottom:-120px;left:-80px;animation:meshFloat2 22s ease-in-out infinite;}
 .hm3{width:350px;height:350px;background:radial-gradient(circle,rgba(74,157,232,.1) 0%,transparent 70%);top:40%;left:30%;animation:meshFloat3 16s ease-in-out infinite;}
@@ -131,7 +175,7 @@ nav.scrolled{background:rgba(10,22,40,.96);backdrop-filter:blur(20px);}
 .card-3d::before{content:'';position:absolute;inset:-1px;background:linear-gradient(135deg,rgba(74,157,232,.15),transparent,rgba(46,125,209,.1));opacity:0;transition:opacity .3s;pointer-events:none;}
 .card-3d:hover::before{opacity:1;}
 /* Float badges */
-.float-badge{position:absolute;background:rgba(10,22,40,.92);border:1px solid rgba(46,125,209,.3);padding:8px 14px;display:flex;align-items:center;gap:8px;font-size:11px;color:rgba(255,255,255,.75);font-family:var(--sans);box-shadow:0 8px 24px rgba(0,0,0,.3);white-space:nowrap;z-index:3;}
+.float-badge{position:absolute;background:rgba(10,22,40,.92);border:1px solid rgba(46,125,209,.3);padding:8px 14px;display:flex;align-items:center;gap:8px;font-size:11px;color:rgba(255,255,255,.75);font-family:var(--sans);box-shadow:0 8px 24px rgba(0,0,0,.3);white-space:nowrap;z-index:3;will-change:transform;}
 .float-badge .fb-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
 .fb-1{top:-18px;right:-20px;animation:floatBadge 4s ease-in-out infinite;}
 .fb-2{left:-20px;top:45%;animation:floatBadge 5s ease-in-out infinite;}
@@ -239,6 +283,10 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
 .plan-cta{width:100%;background:var(--blue);color:var(--white);text-align:center;padding:14px;font-size:11px;letter-spacing:2px;text-transform:uppercase;font-weight:600;text-decoration:none;margin-top:16px;border:none;cursor:pointer;font-family:var(--sans);transition:all .3s;min-height:48px;display:flex;align-items:center;justify-content:center;border-radius:24px;}
 .plan-cta:hover{background:var(--blue2);transform:translateY(-1px);}
 .plan-free{font-size:10px;color:rgba(255,255,255,.3);text-align:center;margin-top:10px;letter-spacing:1px;}
+.plan-email-btn{width:100%;background:transparent;border:1px solid rgba(61,143,214,.35);color:var(--blue2);text-align:center;padding:12px;font-size:10px;letter-spacing:2px;text-transform:uppercase;font-weight:600;cursor:pointer;font-family:var(--sans);transition:all .25s;border-radius:24px;margin-top:10px;display:flex;align-items:center;justify-content:center;gap:8px;}
+.plan-email-btn:hover{background:rgba(61,143,214,.1);border-color:var(--blue2);}
+.plan-email-btn svg{flex-shrink:0;}
+.plan-email-confirm{font-size:10px;color:#22c55e;text-align:center;margin-top:6px;height:14px;transition:opacity .3s;}
 .plan-empty{text-align:center;padding:32px 0;color:rgba(255,255,255,.2);font-size:13px;line-height:1.6;}
 .step-next{display:inline-block;background:transparent;border:1px solid rgba(61,143,214,.35);color:var(--blue2);padding:10px 22px;font-size:10px;letter-spacing:2px;text-transform:uppercase;cursor:pointer;margin-top:14px;font-family:var(--sans);transition:all .2s;min-height:44px;border-radius:100px;}
 .step-next:hover{background:rgba(61,143,214,.1);transform:translateY(-2px);}
@@ -313,7 +361,12 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
 .service-card:nth-child(8){transition-delay:.4s;}
 .service-card:hover{border-left:3px solid var(--blue);transform:translateY(-2px);box-shadow:0 12px 40px rgba(46,125,209,.08);background:var(--white);}
 .service-card-icon{width:40px;height:40px;margin-bottom:16px;display:flex;align-items:center;}
-.service-card-title{font-family:var(--serif);font-size:18px;color:var(--navy);margin-bottom:8px;}
+.service-card-icon svg{transition:transform .3s var(--ease),filter .3s ease;}
+.service-card:hover .service-card-icon svg{transform:scale(1.15);filter:drop-shadow(0 0 6px rgba(61,143,214,.5));}
+.service-card-icon svg path,.service-card-icon svg circle,.service-card-icon svg rect,.service-card-icon svg polyline,.service-card-icon svg line{transition:stroke .3s ease,fill .3s ease;}
+.service-card:hover .service-card-icon svg [stroke]{stroke:var(--blue2);}
+.service-card-title{font-family:var(--serif);font-size:18px;color:var(--navy);margin-bottom:8px;transition:color .3s;}
+.service-card:hover .service-card-title{color:var(--blue3);}
 .service-card-desc{font-size:13px;line-height:1.7;color:var(--muted);font-weight:300;}
 
 /* ══════════════════════════════════════
@@ -891,6 +944,11 @@ footer{background:var(--navy);padding:60px 48px 32px;border-top:1px solid rgba(2
         <div id="plan-summary"><div class="plan-empty">Complete the steps on the left to build your loved one's personalized care plan.</div></div>
         <div id="plan-cta-wrap" style="display:none">
           <a href="lead-form.html" class="plan-cta" id="plan-cta-btn">Book Free In-Home Assessment</a>
+          <button class="plan-email-btn" onclick="emailPlan()">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+            Email This Plan to Myself
+          </button>
+          <div class="plan-email-confirm" id="plan-email-confirm"></div>
           <div class="plan-free">✓ First 6 hours completely free · No obligation · No contracts</div>
         </div>
       </div>
@@ -1293,6 +1351,35 @@ function finalizePlan(){
   const pc=document.getElementById('planCard');
   if(pc){pc.classList.add('mobile-show');if(window.innerWidth<=900)pc.scrollIntoView({behavior:'smooth',block:'start'});}
 }
+
+function emailPlan(){
+  let monthly=plan.monthly||800;
+  if(!plan.monthly){
+    if(plan.hours<=20)monthly=800+Math.round(((plan.hours-4)/16)*(1600-800));
+    else if(plan.hours<=40)monthly=1600+Math.round(((plan.hours-20)/20)*(3000-1600));
+    else monthly=3000+Math.round(((plan.hours-40)/40)*(5000-3000));
+  }
+  const city=plan.city||'Peel Region';
+  const services=plan.services.length?plan.services.join(', '):'Not specified';
+  const subject=encodeURIComponent('My Proximity Care Plan — '+plan.careType);
+  const body=encodeURIComponent(
+    'Hi,\n\n'+
+    'Here is the care plan I built on the Proximity Care Services website:\n\n'+
+    'Care Type: '+plan.careType+'\n'+
+    'Hours: '+plan.hours+' hrs/week\n'+
+    'Location: '+city+'\n'+
+    'Services: '+services+'\n'+
+    'Estimated Monthly Cost: ~$'+monthly.toLocaleString()+'\n\n'+
+    'To book a free in-home assessment and get an exact quote, visit:\n'+
+    'https://proximitycares.ca/lead-form.html\n\n'+
+    'Or call Lance directly at 647-382-8047.\n\n'+
+    '— Sent from proximitycares.ca'
+  );
+  window.location.href='mailto:?subject='+subject+'&body='+body;
+  // Show confirmation
+  const confirm=document.getElementById('plan-email-confirm');
+  if(confirm){confirm.textContent='✓ Email client opened';setTimeout(()=>{confirm.textContent='';},4000);}
+}
 function updatePlanCard(final=false){
   let monthly=plan.monthly||800;
   if(!plan.monthly){
@@ -1341,7 +1428,59 @@ var chatHistory=[{role:'assistant',content:'Hi there. Who are you looking for ca
 var openChat=false;
 var STAGE_CHIPS=[['A parent','My spouse','Myself','Someone else'],['Personal care','Companionship','Overnight care','Dementia care'],['Mississauga','Brampton','Caledon','Other'],['As soon as possible','Within a month','Just exploring'],null,null,['Monday','Tuesday','Wednesday','Thursday','Friday'],['Morning 9-12','Afternoon 12-4','Evening 4-7']];
 var STAGE_EXPECTED=[['a parent','my spouse','myself','someone else'],['personal care','companionship','overnight care','dementia care'],['mississauga','brampton','caledon','other'],['as soon as possible','within a month','just exploring'],null,null,['monday','tuesday','wednesday','thursday','friday'],['morning 9-12','afternoon 12-4','evening 4-7']];
-var AI_SYSTEM='You are a warm, knowledgeable assistant for Proximity Care Services. Pricing: Essential $800-$1,600/mo (4-20hrs/week), Standard $1,600-$3,000/mo (20-40hrs), Full-Time $3,000-$5,000/mo. First 6 hours free. Same PSW every visit. Under 3 sentences. Be warm and human.';
+var AI_SYSTEM=`You are the AI assistant for Proximity Care Services, a premium in-home senior care agency founded and run by Lance Salazar in Peel Region, Ontario. Lance is a working PSW himself — he started this agency because he saw firsthand how unreliable and impersonal other agencies were. He personally handles every initial assessment and is reachable directly by clients and families.
+
+WHAT MAKES PROXIMITY CARE DIFFERENT:
+- Same PSW every single visit, no strangers, no rotating staff
+- Lance personally matches the caregiver to the client's personality and needs
+- Lance personally visits every new client's home before care begins — free
+- Families get updates after every visit
+- Direct line to Lance — not a call center
+- 100% five-star reviews from every family served
+- First 6 hours completely free, no contracts, no commitment required
+- Locally owned and operated in Peel Region — not a franchise
+
+SERVICE AREA: Mississauga, Brampton, Caledon (Peel Region, Ontario)
+
+SERVICES PROVIDED:
+- Personal hygiene and grooming (bathing, dressing, oral care)
+- Meal preparation tailored to dietary and medical needs
+- Medication reminders and prompting
+- Mobility assistance, safe transfers, fall prevention
+- Companionship and social engagement
+- Accompany to medical appointments
+- Light housekeeping
+- Dementia and memory care (specialized routines, patient engagement)
+- Post-hospital recovery support
+- Overnight and intensive care
+
+PRICING — always quote monthly, never hourly:
+- Essential Support: $800–$1,600/month for 4–20 hours/week (a few visits per week, light daily help)
+- Standard Care: $1,600–$3,000/month for 20–40 hours/week (daily routines, consistent visits)
+- Full-Time Care: $3,000–$5,000/month for 40–80 hours/week (intensive daily support, overnight available)
+- First 6 hours are completely free — no risk, no obligation
+- No contracts — month to month, cancel anytime
+- Exact pricing is confirmed at the free in-home assessment
+
+HOW IT WORKS:
+1. Family reaches out (form, call, or this chat)
+2. Lance personally calls back within 2 hours
+3. Lance visits the home — free — meets the senior, learns their routine and personality
+4. Lance matches the right PSW to the client
+5. Care begins — same PSW every visit, family updated after each one
+
+TONE AND RULES:
+- Sound like a warm, knowledgeable neighbor who has seen a lot of home care situations — not a script
+- Keep responses to 2–3 sentences unless they ask something detailed
+- Use what you know about them from the conversation — their name, who they care for, their city, what kind of care they mentioned
+- When someone mentions pricing, give the right tier based on what they told you about hours or intensity
+- Never mention Calendly, Google Forms, or any external booking tool — booking happens through this chat or the assessment form
+- Never say "hourly rate" — always monthly plans
+- If asked something you cannot answer specifically (like exact scheduling availability), say Lance will cover it on the call — do not guess
+- Never be robotic. Never use bullet points in your replies. Write like you are talking to someone face to face.
+- If someone sounds worried or stressed about their parent, acknowledge that first before giving information
+- The phone number is 647-382-8047. The email is lancesalazar56@gmail.com. The website is proximitycares.ca`;
+
 
 function toggleChat(){document.getElementById('chat-overlay').classList.toggle('open');}
 function addCMsg(t,txt){const d=document.createElement('div');d.className='cmsg '+t;d.innerHTML='<div class="cbub">'+txt.replace(/\n/g,'<br>')+'</div>';document.getElementById('cmsgs').appendChild(d);csc();}
@@ -1360,29 +1499,30 @@ function advanceStage(answer){
   else if(chatStage===7)intake.time=answer;
   chatStage++;
   var msg='';
-  if(chatStage===1)msg='Got it — care for '+intake.who.toLowerCase()+'. What kind of support are they needing?';
-  else if(chatStage===2)msg='Understood. What city are they in?';
-  else if(chatStage===3)msg='Perfect. How soon are you looking to get started?';
-  else if(chatStage===4)msg='We can definitely help with that. What\'s your name?';
-  else if(chatStage===5)msg='Nice to meet you '+intake.name+'. Best number or email to reach you?';
-  else if(chatStage===6)msg='Great. What day works for a free assessment call?';
-  else if(chatStage===7)msg='And what time works best?';
+  if(chatStage===1)msg='Got it — care for '+intake.who.toLowerCase()+'. What kind of support are they looking for?';
+  else if(chatStage===2)msg='That helps a lot. Which city are they in?';
+  else if(chatStage===3)msg='Good to know. How soon are you hoping to get something in place?';
+  else if(chatStage===4)msg='We can absolutely help with that. What\'s your name so I can make this a bit more personal?';
+  else if(chatStage===5)msg='Great to meet you, '+intake.name+'. What\'s the best number or email to reach you at?';
+  else if(chatStage===6)msg='Perfect. Lance will call you to set up the free home visit — what day works best for a quick call?';
+  else if(chatStage===7)msg='Almost there. What time of day works best for you?';
   if(chatStage<=7){
     chatHistory.push({role:'user',content:answer});
     setTimeout(()=>{addCMsg('b',msg);chatHistory.push({role:'assistant',content:msg});renderChips(STAGE_CHIPS[chatStage-1]);},500);
   }else{
     chatHistory.push({role:'user',content:answer});
-    var confirm='You\'re all set, '+intake.name+'. We\'ll call you '+intake.day+' '+intake.time+' at '+intake.contact+'. Looking forward to it.';
+    var confirm='You\'re all set, '+intake.name+'. Lance will call you '+intake.day+' '+intake.time+' at '+intake.contact+'. He does every initial call personally — expect a real conversation, not a sales pitch.';
     setTimeout(()=>{
       addCMsg('b',confirm);chatHistory.push({role:'assistant',content:confirm});renderChips(null);
       var nm=intake.name.split(/\s+/);
       fetch('https://proximity-agent-production.up.railway.app/webhook/lead',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({operator_id:'proximity-care',first_name:nm.shift()||'',last_name:nm.join(' '),phone:intake.contact.includes('@')?'':intake.contact,email:intake.contact.includes('@')?intake.contact:'',city:intake.city,care_type_interest:intake.careType,care_needed_for:intake.who,urgency:intake.urgency,source:'chatbot_booking',preferred_time:intake.day+' '+intake.time})}).catch(()=>{});
-      setTimeout(()=>{addCMsg('b','In the meantime, feel free to ask me anything about our services.');chatHistory.push({role:'assistant',content:'In the meantime, feel free to ask me anything.'});openChat=true;},3000);
+      setTimeout(()=>{addCMsg('b','In the meantime, feel free to ask me anything — pricing, what to expect from the first visit, how we match caregivers, anything at all.');chatHistory.push({role:'assistant',content:'In the meantime, feel free to ask me anything — pricing, what to expect from the first visit, how we match caregivers, anything at all.'});openChat=true;},3000);
     },500);
   }
 }
 
 async function handleInput(text){
+  // After booking is complete — open AI mode
   if(openChat){
     addCMsg('u',text);chatHistory.push({role:'user',content:text});
     document.getElementById('chat-chips').classList.add('hidden');showTyping();
@@ -1391,15 +1531,24 @@ async function handleInput(text){
     return;
   }
   var expected=STAGE_EXPECTED[chatStage];
-  var isFreeform=expected===null||(text.includes('?')||text.split(' ').length>5)&&!expected.includes(text.toLowerCase().trim());
-  if(isFreeform){
+  var normalised=text.toLowerCase().trim();
+  // Strict match: if this stage has expected values, only advance if the answer is one of them
+  var isExpectedAnswer=(expected!==null && expected.includes(normalised));
+  // Freeform: stage has no chips (name/contact stages) OR user typed something not on the chip list
+  var isFreeformStage=(expected===null);
+  var isQuestion=(text.includes('?'));
+  if(isExpectedAnswer||isFreeformStage){
+    // Valid stage advance
+    addCMsg('u',text);advanceStage(text);
+  } else {
+    // Answer doesn't match current stage chips — treat as freeform question for AI
     addCMsg('u',text);chatHistory.push({role:'user',content:text});
     document.getElementById('chat-chips').classList.add('hidden');showTyping();
     try{const r=await fetch('https://proximity-agent-production.up.railway.app/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({operator_id:'proximity-care',messages:chatHistory,system_override:AI_SYSTEM})});hideTyping();const d=await r.json();const rep=d.response||'Please call us at 647-382-8047.';chatHistory.push({role:'assistant',content:rep});addCMsg('b',rep);}
     catch(e){hideTyping();addCMsg('b','Please call us directly at 647-382-8047.');}
-    return;
+    // Re-render chips for current stage so user can still select the right answer
+    renderChips(STAGE_CHIPS[chatStage]||null);
   }
-  addCMsg('u',text);advanceStage(text);
 }
 function csend(){const inp=document.getElementById('cinp');const msg=inp.value.trim();if(!msg)return;inp.value='';inp.style.height='auto';handleInput(msg);}
 function csc(){const m=document.getElementById('cmsgs');m.scrollTop=m.scrollHeight;}
@@ -1439,6 +1588,75 @@ renderChips(['A parent','My spouse','Myself','Someone else']);
   },{threshold:0.5});
   obs.observe(heroBtns);
 })();
+/* ── COUNT-UP ON HERO CARD NUMBERS ── */
+(function(){
+  function countUp(el,target,suffix,prefix){
+    prefix=prefix||'';suffix=suffix||'';
+    var start=performance.now(),dur=1400;
+    (function tick(now){
+      var p=Math.min((now-start)/dur,1);
+      var ease=1-Math.pow(1-p,3); // cubic ease out
+      el.textContent=prefix+Math.round(ease*target)+suffix;
+      if(p<1)requestAnimationFrame(tick);
+    })(start);
+  }
+  // Hero card — triggers when card enters viewport
+  var heroCard=document.querySelector('.card-3d');
+  if(heroCard){
+    var heroObs=new IntersectionObserver(function(entries){
+      if(!entries[0].isIntersecting)return;
+      heroCard.querySelectorAll('.hero-stat-val').forEach(function(el){
+        var t=el.textContent.trim();
+        if(t==='100%')countUp(el,100,'%');
+        else if(t==='2hrs')countUp(el,2,'hrs');
+        else if(t==='6hrs')countUp(el,6,'hrs');
+        // "Same" stays as text — no count
+      });
+      heroObs.disconnect();
+    },{threshold:0.4});
+    heroObs.observe(heroCard);
+  }
+  // About stats — triggers when about section enters viewport
+  var aboutStats=document.querySelector('.about-stats');
+  if(aboutStats){
+    var aboutObs=new IntersectionObserver(function(entries){
+      if(!entries[0].isIntersecting)return;
+      aboutStats.querySelectorAll('.about-stat-val').forEach(function(el){
+        var t=el.textContent.trim();
+        if(t==='100%')countUp(el,100,'%');
+        else if(t==='6hrs')countUp(el,6,'hrs');
+        else if(t==='24/7'){
+          // animate 24 then /7
+          el.textContent='0/7';
+          var s=performance.now(),d=1400;
+          (function tick(now){
+            var p=Math.min((now-s)/d,1),ease=1-Math.pow(1-p,3);
+            el.textContent=Math.round(ease*24)+'/7';
+            if(p<1)requestAnimationFrame(tick);
+          })(s);
+        }
+        // "Same" stays as text
+      });
+      aboutObs.disconnect();
+    },{threshold:0.4});
+    aboutObs.observe(aboutStats);
+  }
+})();
+
+/* ── PARALLAX ON HERO MESH BLOBS ── */
+(function(){
+  if(window.matchMedia('(prefers-reduced-motion:reduce)').matches)return;
+  var blobs=document.querySelectorAll('.hero-mesh-blob');
+  if(!blobs.length)return;
+  var speeds=[0.04,0.06,0.03]; // different depth per blob
+  window.addEventListener('scroll',function(){
+    var y=window.scrollY;
+    blobs.forEach(function(b,i){
+      b.style.transform='translateY('+y*speeds[i]+'px)';
+    });
+  },{passive:true});
+})();
+
 </script>
 </body>
 </html>
