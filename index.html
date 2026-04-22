@@ -1475,7 +1475,7 @@ function updatePlanCard(final=false){
    Phase 2: Inline booking form with calendar
 ════════════════════════════════════════ */
 
-const CHAT_SYSTEM = `You are the care intake assistant for Proximity Care Services, a premium in-home senior care agency run by Lance Salazar in Peel Region, Ontario. Lance is a working PSW who founded this agency because he saw how unreliable and impersonal other agencies were. He personally visits every new client's home for free before care begins.
+var CHAT_SYSTEM = `You are the care intake assistant for Proximity Care Services, a premium in-home senior care agency run by Lance Salazar in Peel Region, Ontario. Lance is a working PSW who founded this agency because he saw how unreliable and impersonal other agencies were. He personally visits every new client's home for free before care begins.
 
 WHAT MAKES PROXIMITY CARE DIFFERENT:
 - Same PSW every single visit — no rotating strangers
@@ -1510,14 +1510,21 @@ You collect 3 pieces of information through natural conversation — one questio
 2. What kind of care or support they need
 3. How urgently they need to get started
 
-After you have these 3 answers, output EXACTLY this on its own line and nothing else after it:
+RULES — read carefully:
+- Ask ONE question at a time
+- When you have all 3 answers, output the READY_FOR_BOOKING block IMMEDIATELY
+- Do NOT summarize what you collected — no "Just to confirm..." or "Let me make sure I have this right..." or "So you're looking for X, correct?"
+- Do NOT ask the user to confirm or verify anything
+- As soon as you have answer 3 (urgency), output the block and the follow-up line — nothing else
+- If they ask questions about pricing or services mid-flow, answer fully then ask the next intake question
+- Do NOT ask for name, phone, email, or scheduling — the booking form handles that
+
+After you have all 3 answers, output EXACTLY this on its own line:
 <!--READY_FOR_BOOKING:{"care_for":"[who needs care]","care_type":"[type of care]","urgency":"[urgency]"}-->
 
 Then say: "Great. Let me pull up the next available spots so you can book directly with Lance."
 
-If they ask questions about pricing, services, or anything else — answer fully and warmly, then guide back to collecting the 3 fields.
-Do NOT ask for name, phone, email, or scheduling — the booking form handles that.
-CRITICAL: Output the READY_FOR_BOOKING block only when you have all 3 fields. Output it immediately — do not ask for confirmation.`;
+CRITICAL: Output the block the moment you have the 3rd answer. Never ask for confirmation. Never summarize first.`;
 
 var chatHistory = [{role:'assistant', content:"Hi there. I'm here to help you find the right care. Who are you looking for care for?"}];
 var chatProcessing = false;
@@ -1715,14 +1722,28 @@ async function submitBooking(selectedDate, selectedTime) {
   var card = document.getElementById('chat-booking-card');
   if(card) card.remove();
 
-  // Show confirmation message
-  var confirmMsg = 'You\'re all set, ' + name.split(' ')[0] + '. Lance will call you ' + dateLabel + ' during ' + selectedTime.toLowerCase() + ' at ' + phone + '. He does every initial call personally — expect a real conversation, not a sales pitch.';
+  // Format phone nicely — strip leading 1 if present
+  var displayPhone = phone.replace(/\D/g,'');
+  if(displayPhone.length === 11 && displayPhone[0] === '1') displayPhone = displayPhone.slice(1);
+  if(displayPhone.length === 10) displayPhone = displayPhone.slice(0,3)+'-'+displayPhone.slice(3,6)+'-'+displayPhone.slice(6);
+  else displayPhone = phone; // fallback to what they typed
+
+  // Show confirmation message — no name to avoid "Lance. Lance will call..."
+  var confirmMsg = 'You\'re all set. Lance will call you ' + dateLabel + ' during ' + selectedTime.toLowerCase() + ' at ' + displayPhone + '. He does every initial call personally — expect a real conversation, not a sales pitch.';
   addCMsg('b', confirmMsg);
   chatHistory.push({role:'assistant', content: confirmMsg});
 
+  // Re-enable input so they can keep asking questions
   var inp = document.getElementById('cinp');
-  if(inp) inp.placeholder = 'Booked. Ask any follow-up questions below.';
+  if(inp) {
+    inp.disabled = false;
+    inp.placeholder = 'Ask any follow-up questions...';
+    inp.focus();
+  }
   showChips(CHIP_SETS.post_book);
+
+  // Switch system prompt to full knowledge mode — no more intake flow
+  window.CHAT_SYSTEM = 'You are the care assistant for Proximity Care Services, run by Lance Salazar in Peel Region, Ontario. This person has already booked their assessment. Your job is to answer any follow-up questions they have — about services, pricing, what to expect, how caregivers are matched, what the first visit looks like, anything. Be warm, specific, and conversational. Never use bullet points. Pricing: Essential $800–$1,600/month (4–20hrs/week), Standard $1,600–$3,000/month (20–40hrs/week), Full-Time $3,000–$5,000/month (40–80hrs/week). First 6 hours free. Same PSW every visit. Service area: Mississauga, Brampton, Caledon. Phone: 647-382-8047.';
 }
 
 /* ── UI HELPERS ── */
