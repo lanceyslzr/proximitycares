@@ -1533,6 +1533,7 @@ var chatHistory = [{role:'assistant', content:"Hi there. I'm here to help you fi
 var chatProcessing = false;
 var intakeData = {};
 var chatConfig = { system: null }; // use object so reassignment works inside closures
+var bookingComplete = false; // set true after submitBooking so inferChips returns post_book
 
 var CHIP_SETS = {
   initial:   ['A parent','My spouse','Myself','Someone else'],
@@ -1542,6 +1543,7 @@ var CHIP_SETS = {
 };
 
 function inferChips(botText) {
+  if (bookingComplete) return CHIP_SETS.post_book;
   var b = botText.toLowerCase();
   if (b.includes('how soon') || b.includes('how urgent') || b.includes('timeline') || b.includes('get started') || b.includes('looking to start')) return CHIP_SETS.urgency;
   if (b.includes('kind of support') || b.includes('kind of care') || b.includes('type of care') || b.includes('what help') || b.includes('what care') || b.includes('what kind') || b.includes('what support')) return CHIP_SETS.care_type;
@@ -1739,6 +1741,7 @@ async function submitBooking(selectedDate, selectedTime) {
 
   // Re-enable input so they can keep asking questions
   chatProcessing = false; // make sure not stuck
+  bookingComplete = true; // switch inferChips to always return post_book chips
   var inp = document.getElementById('cinp');
   if(inp) {
     inp.disabled = false;
@@ -1748,7 +1751,7 @@ async function submitBooking(selectedDate, selectedTime) {
   showChips(CHIP_SETS.post_book);
 
   // Switch to open Q&A mode — no more intake flow
-  chatConfig.system = 'You are the care assistant for Proximity Care Services, run by Lance Salazar in Peel Region, Ontario. This person has already booked their free assessment with Lance. Your job is to answer any follow-up questions warmly and helpfully — about services, pricing, what to expect, how caregivers are matched, what the first visit looks like, dementia care, overnight care, anything. Be warm, specific, and conversational. Never use bullet points. Pricing: Essential $800–$1,600/month (4–20hrs/week), Standard $1,600–$3,000/month (20–40hrs/week), Full-Time $3,000–$5,000/month (40–80hrs/week). First 6 hours free. Same PSW every visit. Service area: Mississauga, Brampton, Caledon. Phone: 647-382-8047.';
+  chatConfig.system = 'You are the care assistant for Proximity Care Services, run by Lance Salazar in Peel Region, Ontario. This person has already booked their free assessment with Lance. Your job is to answer follow-up questions about services, pricing, what to expect, how caregivers are matched, what the first visit looks like, dementia care, overnight care, or anything else they ask. STRICT RULES: Keep every reply to 2-3 sentences maximum. Never use bullet points. Write conversationally like a trusted neighbor, not a brochure. End every reply naturally — never ask a follow-up question. Pricing: Essential $800–$1,600/month (4–20hrs/week), Standard $1,600–$3,000/month (20–40hrs/week), Full-Time $3,000–$5,000/month (40–80hrs/week). First 6 hours free. Same PSW every visit. Service area: Mississauga, Brampton, Caledon. Phone: 647-382-8047.';
 }
 
 /* ── UI HELPERS ── */
