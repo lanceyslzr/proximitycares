@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#3d7a8a">
+<link rel="manifest" href="/manifest.json">
+<title>Proximity Care — PSW Portal</title>
+<link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #f6f3ee;
+    --accent: #3d7a8a;
+    --accent-light: #5a9aaa;
+    --dark: #1c1c1c;
+    --muted: #7a7a72;
+    --white: #ffffff;
+    --border: #e2ddd4;
+  }
+  html, body {
+    height: 100%;
+    font-family: 'Poppins', sans-serif;
+    background: var(--bg);
+    color: var(--dark);
+    -webkit-font-smoothing: antialiased;
+  }
+  .app {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    min-height: 100dvh;
+    padding: 0 24px;
+  }
+
+  /* HEADER */
+  .header {
+    padding: 24px 0;
+    flex-shrink: 0;
+  }
+  .header-brand {
+    font-family: 'Lora', serif;
+    font-size: 18px;
+    font-weight: 500;
+    color: var(--dark);
+    letter-spacing: 0.5px;
+  }
+  .header-brand em {
+    color: var(--accent);
+    font-style: italic;
+  }
+
+  /* CENTER CARD */
+  .card-wrap {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .card {
+    width: 100%;
+    max-width: 400px;
+    background: var(--white);
+    border-radius: 16px;
+    padding: 40px 28px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.06);
+    text-align: center;
+  }
+  .card-heading {
+    font-family: 'Lora', serif;
+    font-size: 28px;
+    font-weight: 500;
+    color: var(--dark);
+    margin-bottom: 8px;
+  }
+  .card-sub {
+    font-size: 15px;
+    color: var(--muted);
+    font-weight: 400;
+    margin-bottom: 32px;
+  }
+  .card-btn {
+    display: block;
+    width: 100%;
+    padding: 16px;
+    background: var(--accent);
+    color: var(--white);
+    font-family: 'Poppins', sans-serif;
+    font-size: 16px;
+    font-weight: 500;
+    text-align: center;
+    text-decoration: none;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .card-btn:hover { background: var(--accent-light); }
+  .card-btn:active { transform: scale(0.98); }
+  .card-help {
+    display: inline-block;
+    margin-top: 20px;
+    font-size: 13px;
+    color: var(--muted);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+  .card-help:hover { color: var(--accent); }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <div class="header">
+    <div class="header-brand">Proximity <em>Care</em></div>
+  </div>
+  <div class="card-wrap">
+    <div class="card">
+      <h1 class="card-heading">Good to see you.</h1>
+      <p class="card-sub">Ready to log your visit?</p>
+      <a href="https://proximitycares.ca/psw-form.html" class="card-btn">Log a Visit</a>
+      <a href="tel:6473828047" class="card-help">Need help? Call Lance</a>
+    </div>
+  </div>
+</div>
+
+<script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/service-worker.js');
+  }
+</script>
+</body>
+</html>
