@@ -727,7 +727,7 @@ async function loadSchedule() {
   try {
     const res = await fetch(`${API}/hq/visits?operator_id=proximity-care`);
     const d = await res.json();
-    const allVisits = (d.visits || []).filter(v => v.psw_name === pswName);
+    const allVisits = (d.visits || []).filter(v => v.psw_name && v.psw_name.trim().toLowerCase() === pswName.trim().toLowerCase());
     allVisits.sort((a,b) => (b.visit_date||'').localeCompare(a.visit_date||''));
 
     const totalHours = allVisits.reduce((sum, v) => sum + parseFloat(v.hours_worked || 0), 0);
