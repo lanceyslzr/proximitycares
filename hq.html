@@ -853,7 +853,7 @@ async function renderVisits() {
   try {
     const res = await fetch(`${API}/hq/visits?operator_id=${currentOp}&limit=50`);
     const d = await res.json();
-    if (!d.success) throw new Error('Failed');
+    if (!d.visits) throw new Error('Failed');
     const visits = d.visits || [];
     const s = d.summary || {};
 
