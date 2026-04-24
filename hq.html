@@ -880,26 +880,34 @@ async function renderVisits() {
         </div>
       </div>`;
 
-    const visitsHtml = visits.map(v => {
+    const visitsHtml = visits.map((v, i) => {
       const tasks = Array.isArray(v.tasks_completed) ? v.tasks_completed.join(', ') : (v.tasks_completed || '');
       const mood = v.client_mood || '';
       const moodEmoji = {Great:'😊',Good:'🙂',Neutral:'😐',Low:'😔',Agitated:'😟'}[mood] || '';
+      const vid = 'v'+i;
       return `
       <div class="card">
-        <div class="card-header">
+        <div class="card-header" onclick="toggleVisit('${vid}')" style="cursor:pointer;">
           <div style="flex:1;min-width:0;">
             <div class="card-name">${v.psw_name||'—'}</div>
-            <div class="card-sub">${v.client_name||'—'}</div>
+            <div class="card-sub">${v.client_name||'—'} · ${v.time_in||''} ${v.time_out?'→ '+v.time_out:''}</div>
             <div class="card-meta">${tasks ? tasks.slice(0,60)+(tasks.length>60?'…':'') : 'No tasks logged'}</div>
-            ${v.incidents?`<div style="font-size:11px;color:var(--red);margin-top:4px;">⚠ ${v.incidents}</div>`:''}
+            ${v.incident_reported?`<div style="font-size:11px;color:var(--red);margin-top:4px;">⚠ Incident reported</div>`:''}
           </div>
           <div class="card-right">
             <div style="font-family:var(--mono);font-size:11px;color:var(--teal2);">${fmtd(v.visit_date)}</div>
             <div style="font-family:var(--mono);font-size:11px;color:var(--gold);">${v.hours_worked||0}h</div>
             ${moodEmoji?`<div style="font-size:16px;">${moodEmoji}</div>`:''}
+            <div style="font-size:10px;color:var(--muted);" id="chev-${vid}">▼</div>
           </div>
         </div>
-        ${v.notes?`<div style="padding:0 14px 12px;font-size:12px;color:var(--muted2);line-height:1.5;border-top:1px solid var(--border);padding-top:10px;">${v.notes}</div>`:''}
+        <div id="${vid}" style="display:none;padding:14px 16px;border-top:1px solid var(--border);font-size:12px;line-height:1.8;">
+          ${tasks?`<div style="margin-bottom:10px;"><div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:4px;">Tasks Completed</div><div style="color:var(--muted2);">${tasks}</div></div>`:''}
+          ${mood?`<div style="margin-bottom:10px;"><div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:4px;">Client Mood</div><div style="color:var(--text);">${moodEmoji} ${mood}</div></div>`:''}
+          ${v.visit_summary?`<div style="margin-bottom:10px;"><div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:4px;">Care Summary</div><div style="color:var(--muted2);">${v.visit_summary}</div></div>`:''}
+          ${v.incident_notes?`<div style="margin-bottom:10px;"><div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--red);margin-bottom:4px;">⚠ Incident Notes</div><div style="color:var(--text);">${v.incident_notes}</div></div>`:''}
+          ${v.notes?`<div style="margin-bottom:10px;"><div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:4px;">Notes</div><div style="color:var(--muted2);">${v.notes}</div></div>`:''}
+        </div>
       </div>`;
     }).join('');
 
@@ -907,6 +915,15 @@ async function renderVisits() {
   } catch (err) {
     el.innerHTML = '<div class="empty-state">Could not load visits</div>';
   }
+}
+
+function toggleVisit(id) {
+  const el = document.getElementById(id);
+  const chev = document.getElementById('chev-'+id);
+  if (!el) return;
+  const open = el.style.display !== 'none';
+  el.style.display = open ? 'none' : 'block';
+  if (chev) chev.textContent = open ? '▼' : '▲';
 }
 
 // ── ACTIVITY ──
