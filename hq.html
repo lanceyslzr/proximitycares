@@ -849,10 +849,64 @@ function renderMessages() {
 // ── VISITS ──
 async function renderVisits() {
   const el = document.getElementById('visits-list');
+  el.innerHTML = '<div class="empty-state">Loading visits...</div>';
   try {
-    const r = await fetch(`${API}/hq/overview?operator_id=${currentOp}`);
-    el.innerHTML='<div class="empty-state">Visit log — add /visits endpoint to Railway to display here. Visits are stored in Supabase visits table.</div>';
-  } catch { el.innerHTML='<div class="empty-state">Could not load visits</div>'; }
+    const res = await fetch(`${API}/hq/visits?operator_id=${currentOp}&limit=50`);
+    const d = await res.json();
+    if (!d.success) throw new Error('Failed');
+    const visits = d.visits || [];
+    const s = d.summary || {};
+
+    if (!visits.length) { el.innerHTML = '<div class="empty-state">No visits logged yet</div>'; return; }
+
+    // Summary strip
+    const summaryHtml = `
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);margin-bottom:8px;">
+        <div style="background:var(--bg2);padding:12px 8px;text-align:center;">
+          <div style="font-family:var(--mono);font-size:18px;font-weight:500;color:var(--teal2);">${s.today||0}</div>
+          <div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-top:3px;">Today</div>
+        </div>
+        <div style="background:var(--bg2);padding:12px 8px;text-align:center;">
+          <div style="font-family:var(--mono);font-size:18px;font-weight:500;color:var(--text);">${s.hours_today||0}h</div>
+          <div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-top:3px;">Hours</div>
+        </div>
+        <div style="background:var(--bg2);padding:12px 8px;text-align:center;">
+          <div style="font-family:var(--mono);font-size:18px;font-weight:500;color:var(--text);">${s.psws_active_today||0}</div>
+          <div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-top:3px;">PSWs Active</div>
+        </div>
+        <div style="background:var(--bg2);padding:12px 8px;text-align:center;">
+          <div style="font-family:var(--mono);font-size:18px;font-weight:500;color:var(--text);">${s.total||0}</div>
+          <div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-top:3px;">Total</div>
+        </div>
+      </div>`;
+
+    const visitsHtml = visits.map(v => {
+      const tasks = Array.isArray(v.tasks_completed) ? v.tasks_completed.join(', ') : (v.tasks_completed || '');
+      const mood = v.client_mood || '';
+      const moodEmoji = {Great:'😊',Good:'🙂',Neutral:'😐',Low:'😔',Agitated:'😟'}[mood] || '';
+      return `
+      <div class="card">
+        <div class="card-header">
+          <div style="flex:1;min-width:0;">
+            <div class="card-name">${v.psw_name||'—'}</div>
+            <div class="card-sub">${v.client_name||'—'}</div>
+            <div class="card-meta">${tasks ? tasks.slice(0,60)+(tasks.length>60?'…':'') : 'No tasks logged'}</div>
+            ${v.incidents?`<div style="font-size:11px;color:var(--red);margin-top:4px;">⚠ ${v.incidents}</div>`:''}
+          </div>
+          <div class="card-right">
+            <div style="font-family:var(--mono);font-size:11px;color:var(--teal2);">${fmtd(v.visit_date)}</div>
+            <div style="font-family:var(--mono);font-size:11px;color:var(--gold);">${v.hours_worked||0}h</div>
+            ${moodEmoji?`<div style="font-size:16px;">${moodEmoji}</div>`:''}
+          </div>
+        </div>
+        ${v.notes?`<div style="padding:0 14px 12px;font-size:12px;color:var(--muted2);line-height:1.5;border-top:1px solid var(--border);padding-top:10px;">${v.notes}</div>`:''}
+      </div>`;
+    }).join('');
+
+    el.innerHTML = summaryHtml + visitsHtml;
+  } catch (err) {
+    el.innerHTML = '<div class="empty-state">Could not load visits</div>';
+  }
 }
 
 // ── ACTIVITY ──
