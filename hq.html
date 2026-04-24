@@ -711,7 +711,7 @@ async function openPSWMsg(name) {
   document.getElementById('psw-msg-body').innerHTML = '<div class="empty-state" style="padding:16px;">Loading...</div>';
   openSheet('psw-msg-sheet');
   try {
-    const r = await fetch(`${API}/psw/notes/${encodeURIComponent(name)}?pin=lance`);
+    const r = await fetch(`${API}/psw/notes/${encodeURIComponent(name)}?pin=hq-operator-bypass-2026`);
     const d = await r.json();
     const notes = d.notes||[];
     if(!notes.length) { document.getElementById('psw-msg-body').innerHTML='<div class="empty-state" style="padding:16px;">No messages yet</div>'; return; }
