@@ -1,5 +1,5 @@
 // Proximity HQ Service Worker
-const CACHE = 'proximity-hq-v1';
+const CACHE = 'proximity-hq-v3';
 const STATIC = [
   '/hq.html',
   '/hq-manifest.json',
