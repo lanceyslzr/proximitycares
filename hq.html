@@ -665,7 +665,7 @@ function renderClients() {
       <div class="card-header" onclick="openClientDetail('${c.id}')">
         <div style="display:flex;align-items:center;gap:11px;flex:1;">
           <div class="avatar">${ini}</div>
-          <div><div class="card-name">${name}</div><div class="card-sub">${c.email||c.slug||'—'}</div><div class="card-meta">Since ${fmtd(c.created_at)}</div></div>
+          <div><div class="card-name">${name}</div><div class="card-sub">${c.email||c.portal_slug||'—'}</div><div class="card-meta">Since ${fmtd(c.created_at)}</div></div>
         </div>
         <span class="badge b-active">Active</span>
       </div>
@@ -681,7 +681,7 @@ function renderClients() {
 function openClientDetail(id) {
   const c = (D.clients||[]).find(x=>x.id===id); if(!c) return;
   const name = `${c.first_name||''} ${c.last_name||''}`.trim();
-  const slug = c.portal_slug || c.slug || '';
+  const slug = c.portal_slug || '';
   document.getElementById('client-sheet-title').textContent = name;
   document.getElementById('client-sheet-body').innerHTML = `
     <div class="cpf"><div class="cpf-lbl">Email</div><div class="cpf-val">${c.email?`<a href="mailto:${c.email}">${c.email}</a>`:'—'}</div></div>
