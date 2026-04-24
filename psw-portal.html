@@ -831,14 +831,107 @@ async function uploadDoc(input) {
 }
 
 // ── CLIENTS (static for now, pulls from Supabase when /psw/clients endpoint ready) ──
-function renderClients() {
-  document.getElementById('psw-clients-list').innerHTML = `
-    <div class="empty-state">Client assignments pull from Supabase once the /psw/clients endpoint is added to Railway.</div>`;
+async function renderClients() {
+  const el = document.getElementById('psw-clients-list');
+  el.innerHTML = '<div class="empty-state">Loading clients...</div>';
+  try {
+    const res = await fetch(`${API}/psw/clients/${encodeURIComponent(pswName)}?pin=${pswPin}`);
+    const d = await res.json();
+    if (!d.success) throw new Error('Failed');
+    const clients = d.clients || [];
+    if (!clients.length) { el.innerHTML = '<div class="empty-state">No clients assigned yet</div>'; return; }
+    el.innerHTML = clients.map(c => {
+      const ini = (c.full_name||c.client_name||'?').split(' ').map(w=>w[0]||'').join('').toUpperCase().slice(0,2);
+      return `
+      <div class="card">
+        <div class="card-header">
+          <div style="display:flex;align-items:center;gap:11px;flex:1;">
+            <div style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,var(--green),var(--green3));display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:12px;color:#fff;flex-shrink:0;">${ini}</div>
+            <div>
+              <div class="card-name">${c.full_name||c.client_name}</div>
+              <div class="card-sub">${c.hours_per_week||'?'}h/week · Since ${c.start_date||'—'}</div>
+              <div class="card-meta">${c.summary||''}</div>
+            </div>
+          </div>
+          <span class="badge b-active">Active</span>
+        </div>
+        ${c.preferences||c.daily_routine?`
+        <div style="padding:0 14px 12px;border-top:1px solid var(--border);padding-top:10px;">
+          ${c.daily_routine?`<div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:5px;">Daily Routine</div><div style="font-size:12px;color:var(--muted2);line-height:1.5;margin-bottom:8px;">${c.daily_routine}</div>`:''}
+          ${c.preferences?`<div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:5px;">Preferences</div><div style="font-size:12px;color:var(--muted2);line-height:1.5;">${c.preferences}</div>`:''}
+        </div>`:''}
+        ${c.emergency_contact_name?`
+        <div style="padding:10px 14px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
+          <div>
+            <div style="font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);">Emergency Contact</div>
+            <div style="font-size:12px;color:var(--text);margin-top:2px;">${c.emergency_contact_name}</div>
+          </div>
+          ${c.emergency_contact_phone?`<a href="tel:${c.emergency_contact_phone}" style="font-family:var(--mono);font-size:10px;color:var(--green3);letter-spacing:1px;">📞 Call</a>`:''}
+        </div>`:''}
+      </div>`;
+    }).join('');
+  } catch {
+    el.innerHTML = '<div class="empty-state">Could not load clients</div>';
+  }
 }
 
-function renderSchedule() {
-  document.getElementById('psw-schedule-list').innerHTML = `
-    <div class="empty-state">Schedule pulls from the bookings table once assigned_to filtering is added to Railway.</div>`;
+async function renderSchedule() {
+  const el = document.getElementById('psw-schedule-list');
+  el.innerHTML = '<div class="empty-state">Loading schedule...</div>';
+  try {
+    const res = await fetch(`${API}/psw/schedule/${encodeURIComponent(pswName)}?pin=${pswPin}`);
+    const d = await res.json();
+    if (!d.success) throw new Error('Failed');
+    const upcoming = d.upcoming || [];
+    const todayVisits = d.today_visits || [];
+    const today = d.today_date || '';
+
+    let html = '';
+
+    // Today's logged visits
+    if (todayVisits.length) {
+      html += `<div style="padding:10px 14px 6px;font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--green3);">Logged Today</div>`;
+      html += todayVisits.map(v => `
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-name">${v.client_name}</div>
+              <div class="card-sub">${v.time_in||''} ${v.time_out?'→ '+v.time_out:''}</div>
+            </div>
+            <span class="badge b-done">${v.hours_worked||0}h ✓</span>
+          </div>
+        </div>`).join('');
+    }
+
+    // Upcoming bookings
+    if (!upcoming.length) {
+      html += '<div class="empty-state">No upcoming visits scheduled</div>';
+    } else {
+      html += `<div style="padding:10px 14px 6px;font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted2);">Upcoming</div>`;
+      html += upcoming.map(b => {
+        const isToday = b.scheduled_date === today;
+        return `
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-name">${b.client_name}</div>
+              <div class="card-sub">${b.booking_type} · ${b.scheduled_time||''}</div>
+              <div class="card-meta">${b.location||''}</div>
+            </div>
+            <div class="card-right">
+              <span class="badge ${isToday?'b-active':'b-upcoming'}">${isToday?'Today':fmtd(b.scheduled_date)}</span>
+              <span class="badge b-${b.status||'scheduled'}">${b.status||'scheduled'}</span>
+            </div>
+          </div>
+          ${b.client_phone?`<div class="card-actions"><div class="card-act" onclick="window.location.href='tel:${b.client_phone}'">📞 Call Client</div></div>`:''}
+        </div>`;
+      }).join('');
+    }
+
+    el.innerHTML = html;
+  } catch {
+    el.innerHTML = '<div class="empty-state">Could not load schedule</div>';
+  }
 }
 
 // ── NAV ──
@@ -855,6 +948,8 @@ function showSect(name) {
   const bnavs = document.querySelectorAll('.bnav-item');
   if(bi>=0&&bnavs[bi]) bnavs[bi].classList.add('active');
   if(name === 'messages') loadMessages();
+  if(name === 'clients') renderClients();
+  if(name === 'schedule') renderSchedule();
   window.scrollTo(0,0);
 }
 
@@ -864,6 +959,11 @@ function closeAllSheets() {
 }
 
 // ── HELPERS ──
+function fmtd(str) {
+  if(!str) return '—';
+  const d=new Date(str.includes('T')?str:str+'T12:00:00');
+  return d.toLocaleDateString('en-CA',{month:'short',day:'numeric'});
+}
 function ago(str) {
   if(!str) return '—';
   const d = (Date.now()-new Date(str))/1000;
