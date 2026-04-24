@@ -865,6 +865,7 @@ function showSect(name) {
   if(name==='clients') loadClients();
   if(name==='schedule') loadSchedule();
   window.scrollTo(0,0);
+  history.pushState({section: name}, '', window.location.href);
 }
 
 // ── HELPERS ──
@@ -886,6 +887,19 @@ function showToast(msg, type='ok') {
   t.textContent=msg; t.className='toast show '+type;
   setTimeout(()=>t.classList.remove('show'),3000);
 }
+
+// Handle Android back button — navigate between tabs instead of exiting
+window.addEventListener('popstate', function(e) {
+  const sections = ['home','visit','checklist','clients','schedule','messages','documents'];
+  const current = sections.find(s => document.getElementById('sect-'+s)?.classList.contains('active'));
+  if (current && current !== 'home') {
+    history.pushState(null, '', window.location.href);
+    showSect('home');
+  }
+});
+
+// Push initial state so back button has somewhere to go
+history.pushState(null, '', window.location.href);
 
 </script>
 </body>
