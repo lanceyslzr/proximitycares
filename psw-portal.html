@@ -264,7 +264,7 @@ a{color:inherit;text-decoration:none;}
   <div class="nav-tab" onclick="showSect('visit')">Log Visit</div>
   <div class="nav-tab" onclick="showSect('checklist')">Checklist</div>
   <div class="nav-tab" onclick="showSect('clients')">Clients</div>
-  <div class="nav-tab" onclick="showSect('schedule')">Schedule</div>
+  <div class="nav-tab" onclick="showSect('schedule')">My Visits</div>
   <div class="nav-tab" onclick="showSect('messages')">Messages</div>
   <div class="nav-tab" onclick="showSect('documents')">Documents</div>
 </div>
@@ -469,8 +469,8 @@ a{color:inherit;text-decoration:none;}
 
 <!-- SCHEDULE -->
 <div class="section" id="sect-schedule">
-  <div class="section-header"><span class="section-title">My Schedule</span></div>
-  <div id="schedule-list"><div class="empty-state">Loading schedule...</div></div>
+  <div class="section-header"><span class="section-title">My Visits</span></div>
+  <div id="schedule-list"><div class="empty-state">Loading visits...</div></div>
 </div>
 
 <!-- MESSAGES -->
@@ -725,37 +725,70 @@ async function loadClients() {
 async function loadSchedule() {
   const el = document.getElementById('schedule-list');
   try {
-    const res = await fetch(`${API}/psw/schedule/${encodeURIComponent(pswName)}?pin=${pswPin}`);
+    const res = await fetch(`${API}/hq/visits?operator_id=proximity-care`);
     const d = await res.json();
-    const upcoming = d.upcoming || [];
-    const todayVisits = d.today_visits || [];
-    const today = d.today_date || '';
-    let html = '';
-    if (todayVisits.length) {
-      html += `<div style="padding:10px 14px 6px;font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--green3);">Logged Today</div>`;
-      html += todayVisits.map(v => `
-        <div class="card"><div class="card-header">
-          <div><div class="card-name">${v.client_name}</div><div class="card-sub">${v.time_in||''} ${v.time_out?'to '+v.time_out:''}</div></div>
-          <span class="badge b-done">${v.hours_worked||0}h</span>
-        </div></div>`).join('');
-    }
-    if (!upcoming.length) {
-      html += '<div class="empty-state">No upcoming visits scheduled</div>';
+    const allVisits = (d.visits || []).filter(v => v.psw_name === pswName);
+    allVisits.sort((a,b) => (b.visit_date||'').localeCompare(a.visit_date||''));
+
+    const totalHours = allVisits.reduce((sum, v) => sum + parseFloat(v.hours_worked || 0), 0);
+
+    let html = `<div style="display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border);margin:0 12px 12px;border-radius:8px;overflow:hidden;">
+      <div style="background:var(--bg2);padding:14px;text-align:center;">
+        <div style="font-family:var(--mono);font-size:20px;font-weight:500;color:var(--teal2);">${allVisits.length}</div>
+        <div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-top:4px;">Total Visits</div>
+      </div>
+      <div style="background:var(--bg2);padding:14px;text-align:center;">
+        <div style="font-family:var(--mono);font-size:20px;font-weight:500;color:var(--gold);">${totalHours.toFixed(1)}</div>
+        <div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-top:4px;">Total Hours</div>
+      </div>
+    </div>`;
+
+    if (!allVisits.length) {
+      html += '<div class="empty-state">No visits logged yet</div>';
     } else {
-      html += `<div style="padding:10px 14px 6px;font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted2);">Upcoming</div>`;
-      html += upcoming.map(b => {
-        const isToday = b.scheduled_date === today;
-        return `<div class="card"><div class="card-header">
-          <div><div class="card-name">${b.client_name}</div><div class="card-sub">${b.booking_type} · ${b.scheduled_time||''}</div><div class="card-meta">${b.location||''}</div></div>
-          <div class="card-right">
-            <span class="badge ${isToday?'b-active':'b-upcoming'}">${isToday?'Today':fmtd(b.scheduled_date)}</span>
+      html += allVisits.map((v, i) => {
+        const tasks = Array.isArray(v.tasks_completed) ? v.tasks_completed.join(', ') : (v.tasks_completed || '');
+        const mood = v.client_mood || '';
+        const moodMap = {'Great':'😊','Good':'🙂','Neutral':'😐','Low':'😔','Agitated':'😟'};
+        const moodEmoji = Object.entries(moodMap).find(([k]) => mood.toLowerCase().includes(k.toLowerCase()))?.[1] || '';
+        const vid = 'pv'+i;
+        return `<div class="card">
+          <div class="card-header" onclick="togglePSWVisit('${vid}')" style="cursor:pointer;">
+            <div style="flex:1;min-width:0;">
+              <div class="card-name">${v.client_name || '—'}</div>
+              <div class="card-sub">${v.time_in||''} ${v.time_out?'to '+v.time_out:''}</div>
+              <div class="card-meta">${tasks ? tasks.slice(0,60)+(tasks.length>60?'...':'') : 'No tasks logged'}</div>
+              ${v.incident_reported?'<div style="font-size:11px;color:var(--red);margin-top:4px;">Incident reported</div>':''}
+            </div>
+            <div class="card-right">
+              <div style="font-family:var(--mono);font-size:11px;color:var(--teal2);">${fmtd(v.visit_date)}</div>
+              <div style="font-family:var(--mono);font-size:11px;color:var(--gold);">${v.hours_worked||0}h</div>
+              ${moodEmoji?'<div style="font-size:16px;">'+moodEmoji+'</div>':''}
+              <div style="font-size:10px;color:var(--muted);" id="chev-${vid}">▼</div>
+            </div>
           </div>
-        </div></div>`;
+          <div id="${vid}" style="display:none;padding:14px 16px;border-top:1px solid var(--border);font-size:12px;line-height:1.8;">
+            ${tasks?'<div style="margin-bottom:10px;"><div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:4px;">Tasks Completed</div><div style="color:var(--muted2);">'+tasks+'</div></div>':''}
+            ${mood?'<div style="margin-bottom:10px;"><div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:4px;">Client Mood</div><div style="color:var(--text);">'+moodEmoji+' '+mood+'</div></div>':''}
+            ${v.visit_summary?'<div style="margin-bottom:10px;"><div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:4px;">Care Summary</div><div style="color:var(--muted2);">'+v.visit_summary+'</div></div>':''}
+            ${v.incident_notes?'<div style="margin-bottom:10px;"><div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--red);margin-bottom:4px;">Incident Notes</div><div style="color:var(--text);">'+v.incident_notes+'</div></div>':''}
+          </div>
+        </div>`;
       }).join('');
     }
+
     el.innerHTML = html;
-    document.getElementById('s-month').textContent = todayVisits.length + upcoming.length;
-  } catch { el.innerHTML = '<div class="empty-state">Could not load schedule</div>'; }
+    document.getElementById('s-month').textContent = allVisits.length;
+  } catch(e) { console.error(e); el.innerHTML = '<div class="empty-state">Could not load visits</div>'; }
+}
+
+function togglePSWVisit(id) {
+  const el = document.getElementById(id);
+  const chev = document.getElementById('chev-'+id);
+  if (!el) return;
+  const open = el.style.display !== 'none';
+  el.style.display = open ? 'none' : 'block';
+  if (chev) chev.textContent = open ? '▼' : '▲';
 }
 
 // ── MESSAGES ──
