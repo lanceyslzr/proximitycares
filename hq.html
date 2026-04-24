@@ -7,6 +7,9 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#07090c">
+<link rel="manifest" href="/hq-manifest.json">
+<link rel="icon" type="image/png" href="/favicon-32.png">
+<link rel="apple-touch-icon" href="/icon-192.png">
 <title>Proximity HQ</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -208,7 +211,7 @@ a{color:inherit;text-decoration:none;}
 .bottom-nav{position:fixed;bottom:0;left:0;right:0;z-index:200;background:rgba(13,17,23,.97);border-top:1px solid var(--border);display:flex;padding-bottom:var(--safe-bottom);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);}
 .bnav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:7px 4px;cursor:pointer;min-height:54px;gap:3px;color:var(--muted2);transition:color .2s;position:relative;}
 .bnav-item.active{color:var(--teal2);}
-.bnav-icon{font-size:19px;line-height:1;}
+.bnav-icon{font-family:var(--mono);font-size:8px;letter-spacing:2px;text-transform:uppercase;line-height:1;padding:3px 5px;border:1px solid currentColor;border-radius:3px;margin-bottom:1px;}
 .bnav-lbl{font-family:var(--mono);font-size:8px;letter-spacing:1px;text-transform:uppercase;}
 
 /* TOAST */
@@ -280,6 +283,11 @@ a{color:inherit;text-decoration:none;}
     <span class="section-title">All Leads</span>
     <div class="sect-action" onclick="triggerFollowUp()">↻ Follow-up</div>
   </div>
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);margin:0 12px 10px;border-radius:6px;overflow:hidden;">
+    <div style="background:var(--bg2);padding:10px 6px;text-align:center;"><div style="font-family:var(--mono);font-size:16px;font-weight:500;color:var(--teal2);" id="lmt-month">—</div><div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-top:3px;">This Month</div></div>
+    <div style="background:var(--bg2);padding:10px 6px;text-align:center;"><div style="font-family:var(--mono);font-size:16px;font-weight:500;color:var(--green2);" id="lmt-converted">—</div><div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-top:3px;">Converted</div></div>
+    <div style="background:var(--bg2);padding:10px 6px;text-align:center;"><div style="font-family:var(--mono);font-size:16px;font-weight:500;color:var(--text);" id="lmt-pending">—</div><div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-top:3px;">Pending</div></div>
+  </div>
   <div id="leads-list"><div class="empty-state">Loading...</div></div>
 </div>
 
@@ -326,6 +334,16 @@ a{color:inherit;text-decoration:none;}
 <!-- VISITS -->
 <div class="section" id="sect-visits">
   <div class="section-header"><span class="section-title">Visit Log</span></div>
+  <div style="display:flex;gap:6px;padding:0 12px 10px;">
+    <div id="mv-prev" onclick="setVisitMonth(-1)" style="flex:1;padding:8px 4px;text-align:center;font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;border:1px solid var(--border);border-radius:6px;cursor:pointer;color:var(--muted2);min-height:34px;display:flex;align-items:center;justify-content:center;">Last Month</div>
+    <div id="mv-curr" onclick="setVisitMonth(0)" style="flex:1;padding:8px 4px;text-align:center;font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;border:1px solid var(--teal2);border-radius:6px;cursor:pointer;color:var(--teal2);min-height:34px;display:flex;align-items:center;justify-content:center;">This Month</div>
+    <div id="mv-next" onclick="setVisitMonth(1)" style="flex:1;padding:8px 4px;text-align:center;font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;border:1px solid var(--border);border-radius:6px;cursor:pointer;color:var(--muted2);min-height:34px;display:flex;align-items:center;justify-content:center;">Next Month</div>
+  </div>
+  <div id="visit-month-totals" style="display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);margin:0 12px 10px;border-radius:6px;overflow:hidden;">
+    <div style="background:var(--bg2);padding:10px 6px;text-align:center;"><div style="font-family:var(--mono);font-size:16px;font-weight:500;color:var(--teal2);" id="vmt-count">—</div><div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-top:3px;">Visits</div></div>
+    <div style="background:var(--bg2);padding:10px 6px;text-align:center;"><div style="font-family:var(--mono);font-size:16px;font-weight:500;color:var(--text);" id="vmt-hours">—</div><div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-top:3px;">Hours</div></div>
+    <div style="background:var(--bg2);padding:10px 6px;text-align:center;"><div style="font-family:var(--mono);font-size:16px;font-weight:500;color:var(--text);" id="vmt-psws">—</div><div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-top:3px;">PSWs</div></div>
+  </div>
   <div id="visits-list"><div class="empty-state">Loading visits...</div></div>
 </div>
 
@@ -340,11 +358,11 @@ a{color:inherit;text-decoration:none;}
 
 <!-- BOTTOM NAV -->
 <div class="bottom-nav">
-  <div class="bnav-item active" onclick="showSect('leads')" id="bn-leads"><div class="bnav-icon">👥</div><div class="bnav-lbl">Leads</div></div>
-  <div class="bnav-item" onclick="showSect('clients')" id="bn-clients"><div class="bnav-icon">🏠</div><div class="bnav-lbl">Clients</div></div>
-  <div class="bnav-item" onclick="showSect('bookings')" id="bn-bookings"><div class="bnav-icon">📅</div><div class="bnav-lbl">Book</div></div>
-  <div class="bnav-item" onclick="showSect('purchases')" id="bn-purchases"><div class="bnav-icon">💳</div><div class="bnav-lbl">Sales</div></div>
-  <div class="bnav-item" onclick="showSect('activity')" id="bn-activity"><div class="bnav-icon">⚡</div><div class="bnav-lbl">Activity</div></div>
+  <div class="bnav-item active" onclick="showSect('leads')" id="bn-leads"><div class="bnav-icon">LDS</div><div class="bnav-lbl">Leads</div></div>
+  <div class="bnav-item" onclick="showSect('clients')" id="bn-clients"><div class="bnav-icon">CLI</div><div class="bnav-lbl">Clients</div></div>
+  <div class="bnav-item" onclick="showSect('bookings')" id="bn-bookings"><div class="bnav-icon">BKG</div><div class="bnav-lbl">Book</div></div>
+  <div class="bnav-item" onclick="showSect('purchases')" id="bn-purchases"><div class="bnav-icon">SAL</div><div class="bnav-lbl">Sales</div></div>
+  <div class="bnav-item" onclick="showSect('activity')" id="bn-activity"><div class="bnav-icon">ACT</div><div class="bnav-lbl">Activity</div></div>
 </div>
 
 </div><!-- /app -->
@@ -534,6 +552,25 @@ function renderStats() {
   document.getElementById('s-bookings').textContent = c.bookings_upcoming||0;
   document.getElementById('s-purchases').textContent = c.purchases_total||0;
   document.getElementById('leads-badge').textContent = c.leads||0;
+
+  // Lead monthly totals
+  const now = new Date();
+  const thisMonth = now.getMonth();
+  const thisYear = now.getFullYear();
+  const leads = D.leads || [];
+  const monthLeads = leads.filter(l => {
+    if (!l.created_at) return false;
+    const d = new Date(l.created_at);
+    return d.getMonth() === thisMonth && d.getFullYear() === thisYear;
+  });
+  const converted = monthLeads.filter(l => l.status === 'converted').length;
+  const pending = monthLeads.filter(l => !['converted','dead'].includes(l.status)).length;
+  const lmtMonth = document.getElementById('lmt-month');
+  const lmtConverted = document.getElementById('lmt-converted');
+  const lmtPending = document.getElementById('lmt-pending');
+  if(lmtMonth) lmtMonth.textContent = monthLeads.length;
+  if(lmtConverted) lmtConverted.textContent = converted;
+  if(lmtPending) lmtPending.textContent = pending;
 }
 
 // ── LEADS ──
@@ -564,8 +601,8 @@ function renderLeads() {
         </div>
       </div>
       <div class="card-actions">
-        ${l.phone?`<div class="card-act call" onclick="window.location.href='tel:${l.phone}'">📞 Call</div>`:''}
-        ${l.phone?`<div class="card-act" onclick="window.location.href='sms:${l.phone}'">💬 Text</div>`:''}
+        ${l.phone?`<div class="card-act call" onclick="window.location.href='tel:${l.phone}'">Call</div>`:''}
+        ${l.phone?`<div class="card-act" onclick="window.location.href='sms:${l.phone}'">Text</div>`:''}
         <div class="card-act warn" onclick="openStatusSheet('${l.id}')">🏷 Status</div>
         <div class="card-act ok" onclick="convertLead('${l.id}','${l.email||''}')">✓ Convert</div>
       </div>
@@ -633,9 +670,9 @@ function renderClients() {
         <span class="badge b-active">Active</span>
       </div>
       <div class="card-actions">
-        <div class="card-act warn" onclick="genInvoice('${name}','${c.email||''}')">🧾 Invoice</div>
-        <div class="card-act" onclick="openClientDetail('${c.id}')">📋 Plan</div>
-        <div class="card-act ok" onclick="triggerOnboardClient('${c.slug||''}')">📧 Welcome</div>
+        <div class="card-act warn" onclick="genInvoice('${name}','${c.email||''}')">Invoice</div>
+        <div class="card-act" onclick="openClientDetail('${c.id}')">Care Plan</div>
+        <div class="card-act ok" onclick="triggerOnboardClient('${c.portal_slug||''}')">Welcome</div>
       </div>
     </div>`;
   }).join('');
@@ -644,15 +681,55 @@ function renderClients() {
 function openClientDetail(id) {
   const c = (D.clients||[]).find(x=>x.id===id); if(!c) return;
   const name = `${c.first_name||''} ${c.last_name||''}`.trim();
+  const slug = c.portal_slug || c.slug || '';
   document.getElementById('client-sheet-title').textContent = name;
   document.getElementById('client-sheet-body').innerHTML = `
     <div class="cpf"><div class="cpf-lbl">Email</div><div class="cpf-val">${c.email?`<a href="mailto:${c.email}">${c.email}</a>`:'—'}</div></div>
-    <div class="cpf"><div class="cpf-lbl">Portal Slug</div><div class="cpf-val">${c.slug||'—'}</div></div>
+    <div class="cpf"><div class="cpf-lbl">Portal</div><div class="cpf-val">${slug||'—'} · PIN ${c.portal_pin||'—'}</div></div>
     <div class="cpf"><div class="cpf-lbl">Status</div><div class="cpf-val"><span class="badge b-active">Active</span></div></div>
     <div class="cpf"><div class="cpf-lbl">Started</div><div class="cpf-val">${fmtd(c.created_at)}</div></div>
-    <button class="sbtn" style="margin-top:12px;" onclick="genInvoice('${name}','${c.email||''}');closeSheet('client-sheet');">Generate This Month's Invoice</button>
-    <button class="sbtn ghost" style="margin-top:8px;" onclick="triggerOnboardClient('${c.slug||''}');closeSheet('client-sheet');">Resend Welcome Email</button>`;
+    <div style="margin-top:16px;font-family:var(--mono);font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--teal2);margin-bottom:10px;">Care Plan</div>
+    <div class="sheet-row"><div class="slbl">Summary</div><textarea class="sinput" id="cp-summary" rows="3" style="min-height:80px;resize:none;" placeholder="Overview of care needs..."></textarea></div>
+    <div class="sheet-row"><div class="slbl">Goals</div><textarea class="sinput" id="cp-goals" rows="2" style="min-height:60px;resize:none;" placeholder="Client goals and priorities..."></textarea></div>
+    <div class="sheet-row"><div class="slbl">Daily Routine</div><textarea class="sinput" id="cp-routine" rows="3" style="min-height:80px;resize:none;" placeholder="Morning routine, meal times, sleep schedule..."></textarea></div>
+    <div class="sheet-row"><div class="slbl">Preferences and Notes</div><textarea class="sinput" id="cp-prefs" rows="2" style="min-height:60px;resize:none;" placeholder="Likes, dislikes, communication preferences..."></textarea></div>
+    <button class="sbtn" style="margin-top:4px;" onclick="saveCarePlan('${id}','${slug}','${name}')">Save Care Plan</button>
+    <button class="sbtn" style="margin-top:8px;" onclick="genInvoice('${name}','${c.email||''}');closeSheet('client-sheet');">Generate This Month's Invoice</button>
+    <button class="sbtn ghost" style="margin-top:8px;" onclick="triggerOnboardClient('${slug}');closeSheet('client-sheet');">Resend Welcome Email</button>`;
+  loadCarePlan(slug);
   openSheet('client-sheet');
+}
+
+async function loadCarePlan(slug) {
+  if (!slug) return;
+  try {
+    const res = await fetch(`${API}/family/portal/${slug}`);
+    const d = await res.json();
+    if (d.care_plan) {
+      const cp = d.care_plan;
+      const setSafe = (id, val) => { const el = document.getElementById(id); if(el) el.value = val||''; };
+      setSafe('cp-summary', cp.summary);
+      setSafe('cp-goals', cp.goals);
+      setSafe('cp-routine', cp.daily_routine);
+      setSafe('cp-prefs', cp.preferences);
+    }
+  } catch { /* care plan may not exist yet */ }
+}
+
+async function saveCarePlan(clientId, slug, clientName) {
+  const summary = (document.getElementById('cp-summary')||{}).value || '';
+  const goals = (document.getElementById('cp-goals')||{}).value || '';
+  const daily_routine = (document.getElementById('cp-routine')||{}).value || '';
+  const preferences = (document.getElementById('cp-prefs')||{}).value || '';
+  try {
+    const res = await fetch(`${API}/client/care-plan`, {
+      method:'PATCH', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ operator_id: currentOp, client_slug: slug, client_name: clientName, summary, goals, daily_routine, preferences })
+    });
+    const d = await res.json();
+    if (!d.success) throw new Error(d.error);
+    showToast('Care plan saved','ok');
+  } catch(err) { showToast(err.message||'Save failed','err'); }
 }
 
 async function genInvoice(clientName, clientEmail) {
@@ -698,8 +775,8 @@ function renderPSWs() {
         <span class="badge b-active">Active</span>
       </div>
       <div class="card-actions">
-        ${email?`<div class="card-act call" onclick="window.location.href='mailto:${email}'">📧 Email</div>`:''}
-        <div class="card-act" onclick="openPSWMsg('${name}')">💬 Message</div>
+        ${email?`<div class="card-act call" onclick="window.location.href='mailto:${email}'">Email</div>`:''}
+        <div class="card-act" onclick="openPSWMsg('${name}')">Message</div>
       </div>
     </div>`;
   }).join('');
@@ -755,7 +832,7 @@ function renderBookings() {
           <div style="font-family:var(--mono);font-size:11px;color:var(--muted);">${b.scheduled_time||''}</div>
         </div>
       </div>
-      ${b.client_phone?`<div class="card-actions"><div class="card-act call" onclick="window.location.href='tel:${b.client_phone}'">📞 Call</div><div class="card-act" onclick="window.location.href='sms:${b.client_phone}'">💬 Text</div></div>`:''}
+      ${b.client_phone?`<div class="card-actions"><div class="card-act call" onclick="window.location.href='tel:${b.client_phone}'">Call</div><div class="card-act" onclick="window.location.href='sms:${b.client_phone}'">Text</div></div>`:''}
     </div>`).join('');
 }
 
@@ -841,77 +918,83 @@ function renderMessages() {
         </div>
         <div class="card-age">${ago(m.created_at)}</div>
       </div>
-      ${m.contact_email?`<div class="card-actions"><div class="card-act call" onclick="window.location.href='mailto:${m.contact_email}'">📧 Reply</div></div>`:''}
+      ${m.contact_email?`<div class="card-actions"><div class="card-act call" onclick="window.location.href='mailto:${m.contact_email}'">Reply</div></div>`:''}
     </div>`;
   }).join('');
 }
 
 // ── VISITS ──
+let visitMonthOffset = 0;
+
+function setVisitMonth(offset) {
+  visitMonthOffset = offset;
+  ['prev','curr','next'].forEach((k,i) => {
+    const el = document.getElementById('mv-'+k);
+    const isActive = (i-1) === offset;
+    el.style.borderColor = isActive ? 'var(--teal2)' : 'var(--border)';
+    el.style.color = isActive ? 'var(--teal2)' : 'var(--muted2)';
+  });
+  renderVisits();
+}
+
 async function renderVisits() {
   const el = document.getElementById('visits-list');
   el.innerHTML = '<div class="empty-state">Loading visits...</div>';
   try {
-    const res = await fetch(`${API}/hq/visits?operator_id=${currentOp}&limit=50`);
+    const now = new Date();
+    const target = new Date(now.getFullYear(), now.getMonth() + visitMonthOffset, 1);
+    const year = target.getFullYear();
+    const month = target.getMonth() + 1;
+    const res = await fetch(`${API}/hq/visits?operator_id=${currentOp}&limit=100`);
     const d = await res.json();
     if (!d.visits) throw new Error('Failed');
-    const visits = d.visits || [];
-    const s = d.summary || {};
 
-    if (!visits.length) { el.innerHTML = '<div class="empty-state">No visits logged yet</div>'; return; }
+    // Filter by selected month
+    const allVisits = d.visits || [];
+    const visits = allVisits.filter(v => {
+      if (!v.visit_date) return false;
+      const vd = new Date(v.visit_date + 'T12:00:00');
+      return vd.getFullYear() === year && (vd.getMonth()+1) === month;
+    });
 
-    // Summary strip
-    const summaryHtml = `
-      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);margin-bottom:8px;">
-        <div style="background:var(--bg2);padding:12px 8px;text-align:center;">
-          <div style="font-family:var(--mono);font-size:18px;font-weight:500;color:var(--teal2);">${s.today||0}</div>
-          <div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-top:3px;">Today</div>
-        </div>
-        <div style="background:var(--bg2);padding:12px 8px;text-align:center;">
-          <div style="font-family:var(--mono);font-size:18px;font-weight:500;color:var(--text);">${s.hours_today||0}h</div>
-          <div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-top:3px;">Hours</div>
-        </div>
-        <div style="background:var(--bg2);padding:12px 8px;text-align:center;">
-          <div style="font-family:var(--mono);font-size:18px;font-weight:500;color:var(--text);">${s.psws_active_today||0}</div>
-          <div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-top:3px;">PSWs Active</div>
-        </div>
-        <div style="background:var(--bg2);padding:12px 8px;text-align:center;">
-          <div style="font-family:var(--mono);font-size:18px;font-weight:500;color:var(--text);">${s.total||0}</div>
-          <div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-top:3px;">Total</div>
-        </div>
-      </div>`;
+    // Monthly totals
+    const totalHours = visits.reduce((sum,v) => sum + parseFloat(v.hours_worked||0), 0);
+    const uniquePSWs = [...new Set(visits.map(v=>v.psw_name))].length;
+    document.getElementById('vmt-count').textContent = visits.length;
+    document.getElementById('vmt-hours').textContent = totalHours.toFixed(1)+'h';
+    document.getElementById('vmt-psws').textContent = uniquePSWs;
 
-    const visitsHtml = visits.map((v, i) => {
+    if (!visits.length) { el.innerHTML = '<div class="empty-state">No visits this period</div>'; return; }
+
+    el.innerHTML = visits.map((v, i) => {
       const tasks = Array.isArray(v.tasks_completed) ? v.tasks_completed.join(', ') : (v.tasks_completed || '');
       const mood = v.client_mood || '';
-      const moodEmoji = {Great:'😊',Good:'🙂',Neutral:'😐',Low:'😔',Agitated:'😟'}[mood] || '';
       const vid = 'v'+i;
       return `
       <div class="card">
         <div class="card-header" onclick="toggleVisit('${vid}')" style="cursor:pointer;">
           <div style="flex:1;min-width:0;">
             <div class="card-name">${v.psw_name||'—'}</div>
-            <div class="card-sub">${v.client_name||'—'} · ${v.time_in||''} ${v.time_out?'→ '+v.time_out:''}</div>
-            <div class="card-meta">${tasks ? tasks.slice(0,60)+(tasks.length>60?'…':'') : 'No tasks logged'}</div>
-            ${v.incident_reported?`<div style="font-size:11px;color:var(--red);margin-top:4px;">⚠ Incident reported</div>`:''}
+            <div class="card-sub">${v.client_name||'—'} · ${v.time_in||''} ${v.time_out?'to '+v.time_out:''}</div>
+            <div class="card-meta">${tasks ? tasks.slice(0,60)+(tasks.length>60?'...':'') : 'No tasks logged'}</div>
+            ${v.incident_reported?`<div style="font-size:11px;color:var(--red);margin-top:4px;">Incident reported</div>`:''}
           </div>
           <div class="card-right">
             <div style="font-family:var(--mono);font-size:11px;color:var(--teal2);">${fmtd(v.visit_date)}</div>
             <div style="font-family:var(--mono);font-size:11px;color:var(--gold);">${v.hours_worked||0}h</div>
-            ${moodEmoji?`<div style="font-size:16px;">${moodEmoji}</div>`:''}
-            <div style="font-size:10px;color:var(--muted);" id="chev-${vid}">▼</div>
+            ${mood?`<div style="font-family:var(--mono);font-size:10px;color:var(--muted2);">${mood}</div>`:''}
+            <div style="font-size:10px;color:var(--muted);" id="chev-${vid}">+</div>
           </div>
         </div>
         <div id="${vid}" style="display:none;padding:14px 16px;border-top:1px solid var(--border);font-size:12px;line-height:1.8;">
           ${tasks?`<div style="margin-bottom:10px;"><div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:4px;">Tasks Completed</div><div style="color:var(--muted2);">${tasks}</div></div>`:''}
-          ${mood?`<div style="margin-bottom:10px;"><div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:4px;">Client Mood</div><div style="color:var(--text);">${moodEmoji} ${mood}</div></div>`:''}
+          ${mood?`<div style="margin-bottom:10px;"><div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:4px;">Client Mood</div><div style="color:var(--text);">${mood}</div></div>`:''}
           ${v.visit_summary?`<div style="margin-bottom:10px;"><div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:4px;">Care Summary</div><div style="color:var(--muted2);">${v.visit_summary}</div></div>`:''}
-          ${v.incident_notes?`<div style="margin-bottom:10px;"><div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--red);margin-bottom:4px;">⚠ Incident Notes</div><div style="color:var(--text);">${v.incident_notes}</div></div>`:''}
+          ${v.incident_notes?`<div style="margin-bottom:10px;"><div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--red);margin-bottom:4px;">Incident Notes</div><div style="color:var(--text);">${v.incident_notes}</div></div>`:''}
           ${v.notes?`<div style="margin-bottom:10px;"><div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:4px;">Notes</div><div style="color:var(--muted2);">${v.notes}</div></div>`:''}
         </div>
       </div>`;
     }).join('');
-
-    el.innerHTML = summaryHtml + visitsHtml;
   } catch (err) {
     el.innerHTML = '<div class="empty-state">Could not load visits</div>';
   }
@@ -923,7 +1006,7 @@ function toggleVisit(id) {
   if (!el) return;
   const open = el.style.display !== 'none';
   el.style.display = open ? 'none' : 'block';
-  if (chev) chev.textContent = open ? '▼' : '▲';
+  if (chev) chev.textContent = open ? '+' : '−';
 }
 
 // ── ACTIVITY ──
@@ -931,9 +1014,9 @@ function renderActivity() {
   const logs=D.recent_activity||[];
   const el=document.getElementById('activity-list');
   if(!logs.length) { el.innerHTML='<div class="empty-state">No activity yet</div>'; return; }
-  const icons={email_sent:'📧',webhook_received:'🔔',booking_created:'📅',purchase:'💳',psw_message:'💬',family_message:'👨‍👩‍👧',visit_log:'✅'};
+  const icons={email_sent:'EML',webhook_received:'WBH',booking_created:'BKG',purchase:'SAL',psw_message:'MSG',family_message:'FAM',visit_log:'VIS'};
   el.innerHTML=logs.map(l=>{
-    const icon=icons[l.event_type]||'⚡';
+    const icon=icons[l.event_type]||'ACT';
     const cls=l.status==='error'?'li-err':l.status==='skipped'?'li-info':'li-ok';
     return `<div class="log-row">
       <div class="log-icon ${cls}">${icon}</div>

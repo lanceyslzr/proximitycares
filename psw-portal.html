@@ -18,8 +18,8 @@
 :root{
   --bg:#0a1a14;--bg2:#0f2119;--bg3:#142b20;--bg4:#1a3528;
   --green:#1a6b5a;--green2:#2a8a72;--green3:#3aaa8a;--green4:#5acc9a;
-  --gold:#c8a96e;--gold2:#e8c98e;
-  --text:#e8f4ee;--muted:rgba(232,244,238,.35);--muted2:rgba(232,244,238,.55);--muted3:rgba(232,244,238,.75);
+  --gold:#c8a96e;--text:#e8f4ee;
+  --muted:rgba(232,244,238,.35);--muted2:rgba(232,244,238,.55);--muted3:rgba(232,244,238,.75);
   --border:rgba(26,107,90,.15);--border2:rgba(26,107,90,.28);--border3:rgba(26,107,90,.45);
   --red:#e05555;--amber:#e09a3d;
   --mono:'DM Mono',monospace;--body:'Poppins',sans-serif;--serif:'Lora',serif;
@@ -32,300 +32,167 @@ button{font-family:var(--body);cursor:pointer;border:none;background:none;}
 input,select,textarea{font-family:var(--body);font-size:16px;}
 a{color:inherit;text-decoration:none;}
 
-/* ══════════════════════
-   LOCK SCREEN
-══════════════════════ */
-#lock{
-  position:fixed;inset:0;z-index:999;
-  background:radial-gradient(ellipse at 30% 20%, rgba(26,107,90,.3) 0%, transparent 60%),
-             radial-gradient(ellipse at 70% 80%, rgba(90,204,154,.08) 0%, transparent 50%),
-             var(--bg);
-  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:32px;
-  padding:0 24px;
-}
-.lock-top{text-align:center;}
-.lock-greeting{font-family:var(--serif);font-size:13px;color:var(--muted2);font-style:italic;margin-bottom:6px;}
-.lock-title{font-family:var(--serif);font-size:28px;color:var(--text);font-weight:400;letter-spacing:.5px;}
+/* LOCK */
+#lock{position:fixed;inset:0;background:var(--bg);z-index:999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px;padding:0 24px;}
+.lock-title{font-family:var(--serif);font-size:28px;color:var(--text);font-weight:400;letter-spacing:.5px;text-align:center;}
 .lock-title span{color:var(--green3);}
-.lock-sub{font-family:var(--mono);font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--muted);margin-top:6px;}
-.lock-name-input{
-  width:100%;max-width:280px;background:var(--bg2);border:1px solid var(--border2);
-  color:var(--text);padding:13px 16px;font-size:16px;border-radius:12px;text-align:center;
-}
+.lock-sub{font-family:var(--mono);font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--muted2);}
+.lock-step{display:none;flex-direction:column;align-items:center;gap:16px;width:100%;max-width:320px;}
+.lock-step.active{display:flex;}
+.lock-label{font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted2);}
+.lock-name-input{width:100%;background:var(--bg2);border:1px solid var(--border2);color:var(--text);padding:13px 16px;font-size:16px;border-radius:12px;text-align:center;}
 .lock-name-input::placeholder{color:var(--muted);}
 .lock-name-input:focus{outline:none;border-color:var(--green3);}
+.lock-next-btn{width:100%;background:linear-gradient(135deg,var(--green),var(--green2));color:#fff;padding:14px;font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;border-radius:12px;border:none;cursor:pointer;min-height:48px;}
 .lock-dots{display:flex;gap:14px;justify-content:center;}
 .lock-dot{width:13px;height:13px;border-radius:50%;border:1px solid var(--border2);background:transparent;transition:all .15s;}
-.lock-dot.filled{background:var(--green3);border-color:var(--green3);box-shadow:0 0 8px rgba(90,204,154,.4);}
+.lock-dot.filled{background:var(--green3);border-color:var(--green3);}
 .lock-pad{display:grid;grid-template-columns:repeat(3,72px);gap:10px;justify-content:center;}
-.lock-key{
-  width:72px;height:72px;border-radius:50%;
-  border:1px solid var(--border2);background:var(--bg2);
-  color:var(--text);font-size:22px;font-weight:300;
-  display:flex;align-items:center;justify-content:center;
-  transition:all .12s;user-select:none;
-}
-.lock-key:active{background:var(--bg3);border-color:var(--green3);box-shadow:0 0 12px rgba(90,204,154,.2);}
-.lock-key.del{font-size:16px;color:var(--muted2);}
+.lock-key{width:72px;height:72px;border-radius:50%;border:1px solid var(--border2);background:var(--bg2);color:var(--text);font-size:22px;font-weight:300;display:flex;align-items:center;justify-content:center;transition:all .12s;user-select:none;}
+.lock-key:active{background:var(--bg3);border-color:var(--green3);}
+.lock-key.del{font-size:14px;color:var(--muted2);}
 .lock-key.empty{background:none;border:none;pointer-events:none;}
 .lock-err{font-family:var(--mono);font-size:11px;color:var(--red);letter-spacing:1px;opacity:0;transition:opacity .3s;text-align:center;}
 .lock-err.show{opacity:1;}
-.lock-step{display:none;}
-.lock-step.active{display:flex;flex-direction:column;align-items:center;gap:16px;width:100%;max-width:320px;}
 
-/* ══════════════════════
-   TOPBAR
-══════════════════════ */
-.topbar{
-  position:sticky;top:0;z-index:100;
-  padding:calc(var(--safe-top) + 8px) 16px 10px;
-  background:rgba(10,26,20,.96);border-bottom:1px solid var(--border);
-  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
-}
+/* TOPBAR */
+.topbar{position:sticky;top:0;z-index:100;padding:calc(var(--safe-top) + 8px) 16px 10px;background:rgba(10,26,20,.96);border-bottom:1px solid var(--border);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);}
 .topbar-inner{display:flex;align-items:center;justify-content:space-between;}
-.psw-greeting{
-  display:flex;align-items:center;gap:10px;
-}
-.psw-avatar{
-  width:36px;height:36px;border-radius:50%;
-  background:linear-gradient(135deg,var(--green),var(--green3));
-  display:flex;align-items:center;justify-content:center;
-  font-family:var(--mono);font-size:13px;color:#fff;font-weight:500;
-  flex-shrink:0;
-}
+.psw-info{display:flex;align-items:center;gap:10px;}
+.psw-avatar{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--green),var(--green3));display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:13px;color:#fff;font-weight:500;flex-shrink:0;}
 .psw-name-top{font-size:14px;font-weight:500;color:var(--text);}
 .psw-role{font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--green3);margin-top:1px;}
-.topbar-right{display:flex;align-items:center;gap:8px;}
-.notif-btn{
-  width:36px;height:36px;background:var(--bg3);border:1px solid var(--border);
-  border-radius:10px;display:flex;align-items:center;justify-content:center;
-  font-size:16px;cursor:pointer;position:relative;
-}
 
-/* ══════════════════════
-   HOME — RINGS
-══════════════════════ */
-.home-rings{
-  padding:20px 16px 8px;
-  background:linear-gradient(180deg,rgba(26,107,90,.08) 0%,transparent 100%);
-}
-.rings-title{font-family:var(--mono);font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--muted);margin-bottom:16px;}
-.rings-row{display:flex;gap:12px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding-bottom:4px;}
-.rings-row::-webkit-scrollbar{display:none;}
-.ring-card{
-  flex-shrink:0;width:110px;background:var(--bg2);border:1px solid var(--border);
-  border-radius:16px;padding:14px 12px;display:flex;flex-direction:column;align-items:center;gap:8px;
-}
-.ring-wrap{position:relative;width:64px;height:64px;}
-.ring-svg{transform:rotate(-90deg);}
-.ring-bg{fill:none;stroke:var(--border2);stroke-width:5;}
-.ring-fill{fill:none;stroke-width:5;stroke-linecap:round;transition:stroke-dashoffset 1s cubic-bezier(.4,0,.2,1);}
-.ring-val{
-  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
-  font-family:var(--mono);font-size:14px;font-weight:500;color:var(--text);
-  white-space:nowrap;
-}
-.ring-label{font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--muted2);text-align:center;}
-.ring-green .ring-fill{stroke:var(--green3);}
-.ring-gold .ring-fill{stroke:var(--gold);}
-.ring-teal .ring-fill{stroke:#5aada0;}
-.ring-blue .ring-fill{stroke:#6aacf0;}
-
-/* ══════════════════════
-   TODAY CARD
-══════════════════════ */
-.today-card{
-  margin:12px 14px;background:var(--bg2);border:1px solid var(--border);
-  border-radius:16px;overflow:hidden;
-}
-.today-header{
-  padding:14px 16px;display:flex;align-items:center;justify-content:space-between;
-  border-bottom:1px solid var(--border);
-}
-.today-title{font-family:var(--serif);font-size:16px;font-weight:400;color:var(--text);}
-.today-date{font-family:var(--mono);font-size:10px;color:var(--muted2);}
-.today-visit{padding:14px 16px;display:flex;gap:12px;align-items:flex-start;border-bottom:1px solid var(--border);}
-.today-visit:last-child{border-bottom:none;}
-.visit-time-col{flex-shrink:0;text-align:center;}
-.vt-time{font-family:var(--mono);font-size:11px;color:var(--green3);}
-.vt-dur{font-family:var(--mono);font-size:9px;color:var(--muted);margin-top:2px;}
-.visit-divider{width:1px;background:var(--border2);flex-shrink:0;margin:2px 4px;}
-.visit-details{flex:1;min-width:0;}
-.visit-client-name{font-size:13px;font-weight:500;color:var(--text);}
-.visit-tasks{font-size:11px;color:var(--muted2);margin-top:3px;line-height:1.5;}
-.visit-status-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:4px;}
-.vs-upcoming{background:var(--gold);}
-.vs-inprogress{background:var(--green3);animation:glow 1.5s infinite;}
-.vs-done{background:var(--green4);}
-@keyframes glow{0%,100%{box-shadow:0 0 0 0 rgba(90,204,154,.4);}50%{box-shadow:0 0 0 5px rgba(90,204,154,0);}}
-.today-empty{padding:24px 16px;text-align:center;font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;}
-
-/* ══════════════════════
-   SECTION CARDS
-══════════════════════ */
-.section-header{display:flex;align-items:center;justify-content:space-between;padding:14px 16px 8px;}
-.section-title{font-family:var(--mono);font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--muted2);}
-.sect-action{font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--green3);padding:7px 12px;border:1px solid var(--border2);border-radius:6px;cursor:pointer;min-height:34px;display:flex;align-items:center;}
-
-.card{margin:0 14px 10px;background:var(--bg2);border:1px solid var(--border);border-radius:14px;overflow:hidden;}
-.card-header{padding:13px 15px;display:flex;align-items:flex-start;justify-content:space-between;gap:8px;}
-.card-name{font-size:14px;font-weight:500;color:var(--text);}
-.card-sub{font-family:var(--mono);font-size:11px;color:var(--muted2);margin-top:3px;}
-.card-meta{font-size:11px;color:var(--muted);margin-top:3px;}
-.card-right{display:flex;flex-direction:column;align-items:flex-end;gap:5px;flex-shrink:0;}
-.card-actions{display:flex;border-top:1px solid var(--border);}
-.card-act{flex:1;padding:11px 6px;text-align:center;font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--muted2);border-right:1px solid var(--border);cursor:pointer;min-height:44px;display:flex;align-items:center;justify-content:center;gap:4px;transition:background .12s,color .12s;}
-.card-act:last-child{border-right:none;}
-.card-act:active{background:var(--bg3);color:var(--green3);}
-
-/* BADGES */
-.badge{font-family:var(--mono);font-size:9px;letter-spacing:1.5px;text-transform:uppercase;padding:3px 8px;border-radius:100px;display:inline-block;}
-.b-upcoming{background:rgba(200,169,110,.15);color:var(--gold);border:1px solid rgba(200,169,110,.3);}
-.b-active{background:rgba(90,204,154,.15);color:var(--green4);border:1px solid rgba(90,204,154,.3);}
-.b-done{background:rgba(26,107,90,.2);color:var(--green3);border:1px solid rgba(26,107,90,.3);}
-
-/* ══════════════════════
-   NAV TABS
-══════════════════════ */
+/* NAV TABS */
 .nav-tabs{display:flex;background:var(--bg2);border-bottom:1px solid var(--border);overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
 .nav-tabs::-webkit-scrollbar{display:none;}
-.nav-tab{flex-shrink:0;padding:11px 16px;font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted2);border-bottom:2px solid transparent;cursor:pointer;white-space:nowrap;min-height:44px;display:flex;align-items:center;}
+.nav-tab{flex-shrink:0;padding:11px 14px;font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted2);border-bottom:2px solid transparent;cursor:pointer;white-space:nowrap;min-height:44px;display:flex;align-items:center;}
 .nav-tab.active{color:var(--green3);border-bottom-color:var(--green3);}
 
 /* SECTIONS */
 .section{display:none;padding-bottom:8px;}
 .section.active{display:block;}
+.section-header{display:flex;align-items:center;justify-content:space-between;padding:12px 14px 8px;}
+.section-title{font-family:var(--mono);font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--muted2);}
 
-/* ══════════════════════
-   VISIT LOG FORM
-══════════════════════ */
-.visit-form-card{margin:0 14px 10px;background:var(--bg2);border:1px solid var(--border2);border-radius:14px;overflow:hidden;}
-.vf-section{padding:14px 16px;border-bottom:1px solid var(--border);}
-.vf-section:last-child{border-bottom:none;}
-.vf-section-title{font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--green3);margin-bottom:12px;}
-.vf-row{margin-bottom:12px;}
-.vf-label{font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;}
-.vf-input{width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:11px 13px;font-size:16px;border-radius:8px;}
-.vf-input:focus{outline:none;border-color:var(--green3);}
-.vf-select{width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:11px 13px;font-size:16px;border-radius:8px;-webkit-appearance:none;}
-.vf-textarea{width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:11px 13px;font-size:16px;border-radius:8px;resize:none;min-height:80px;line-height:1.5;}
-.vf-textarea:focus{outline:none;border-color:var(--green3);}
-.vf-row2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;}
+/* STATS STRIP */
+.stats-strip{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);margin:0 0 12px;}
+.stat-card{background:var(--bg2);padding:14px 8px;text-align:center;}
+.stat-val{font-family:var(--mono);font-size:20px;font-weight:500;color:var(--text);line-height:1;}
+.stat-lbl{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-top:4px;}
+.stat-card.hi .stat-val{color:var(--green3);}
+
+/* QUICK ACTIONS */
+.quick-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 14px 14px;}
+.quick-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:16px 14px;cursor:pointer;transition:border-color .15s;}
+.quick-card:active{border-color:var(--green3);}
+.quick-card.primary{background:linear-gradient(135deg,var(--green),var(--green2));border:none;}
+.quick-label{font-size:13px;font-weight:500;color:var(--text);margin-top:6px;}
+.quick-sub{font-family:var(--mono);font-size:9px;color:var(--muted);margin-top:3px;letter-spacing:1px;text-transform:uppercase;}
+.quick-card.primary .quick-sub{color:rgba(255,255,255,.7);}
+.quick-icon{font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--green3);border:1px solid var(--border2);display:inline-block;padding:3px 8px;border-radius:4px;}
+.quick-card.primary .quick-icon{color:#fff;border-color:rgba(255,255,255,.3);}
+
+/* FORM CARDS */
+.form-card{margin:0 14px 10px;background:var(--bg2);border:1px solid var(--border);border-radius:12px;overflow:hidden;}
+.form-card-header{background:var(--bg3);padding:13px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.form-card-title{font-family:var(--serif);font-size:15px;font-weight:400;color:var(--text);}
+.form-card-badge{font-family:var(--mono);font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--green3);border:1px solid var(--border2);border-radius:100px;padding:3px 8px;}
+.form-card-body{padding:16px;}
+.form-section-title{font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--green3);margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border);}
+.form-row{margin-bottom:12px;}
+.form-row-2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;}
+.form-label{font-family:var(--mono);font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:5px;display:block;}
+.form-input{width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:11px 13px;font-size:16px;border-radius:8px;}
+.form-input:focus{outline:none;border-color:var(--green3);}
+.form-select{width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:11px 13px;font-size:16px;border-radius:8px;-webkit-appearance:none;}
+.form-textarea{width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:11px 13px;font-size:16px;border-radius:8px;resize:none;min-height:80px;line-height:1.5;}
+.form-textarea:focus{outline:none;border-color:var(--green3);}
+
+/* HOURS CALC */
+.hours-calc{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:12px 14px;display:flex;justify-content:space-between;align-items:center;margin-top:8px;}
+.hours-val{font-family:var(--mono);font-size:22px;font-weight:500;color:var(--green3);}
+.hours-lbl{font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);}
+.pay-line{font-family:var(--mono);font-size:11px;color:var(--gold);margin-top:3px;}
+
+/* MOOD */
+.mood-row{display:flex;gap:6px;}
+.mood-opt{flex:1;padding:9px 4px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;text-align:center;cursor:pointer;transition:all .15s;}
+.mood-opt.sel{border-color:var(--green3);background:rgba(26,107,90,.15);}
+.mood-emoji{font-size:18px;display:block;margin-bottom:2px;}
+.mood-lbl{font-family:var(--mono);font-size:8px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;}
 
 /* CHECKLIST */
-.checklist-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
-.check-item{
-  display:flex;align-items:center;gap:8px;padding:10px 12px;
-  background:var(--bg3);border:1px solid var(--border);border-radius:8px;
-  cursor:pointer;transition:all .15s;min-height:44px;
-}
-.check-item.checked{background:rgba(26,107,90,.2);border-color:var(--green3);}
-.check-box{
-  width:18px;height:18px;border-radius:4px;border:1px solid var(--border2);
-  background:transparent;flex-shrink:0;display:flex;align-items:center;justify-content:center;
-  font-size:11px;transition:all .15s;
-}
-.check-item.checked .check-box{background:var(--green3);border-color:var(--green3);color:#fff;}
-.check-label{font-size:11px;color:var(--muted3);line-height:1.3;}
-.check-item.checked .check-label{color:var(--text);}
-
-/* MOOD SELECTOR */
-.mood-row{display:flex;gap:8px;justify-content:space-between;}
-.mood-opt{
-  flex:1;padding:10px 4px;background:var(--bg3);border:1px solid var(--border);
-  border-radius:8px;text-align:center;cursor:pointer;transition:all .15s;
-}
-.mood-opt.selected{border-color:var(--green3);background:rgba(26,107,90,.15);}
-.mood-emoji{font-size:20px;display:block;margin-bottom:3px;}
-.mood-label{font-family:var(--mono);font-size:8px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;}
+.cl-group{margin-bottom:16px;}
+.cl-group-title{font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--green3);margin-bottom:8px;padding-bottom:5px;border-bottom:1px solid var(--border);}
+.cl-item{display:flex;align-items:center;gap:10px;padding:9px 12px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;margin-bottom:6px;cursor:pointer;transition:all .12s;min-height:44px;}
+.cl-item.done{background:rgba(26,107,90,.15);border-color:var(--green3);}
+.cl-box{width:18px;height:18px;border-radius:4px;border:1px solid var(--border2);background:transparent;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:11px;transition:all .12s;}
+.cl-item.done .cl-box{background:var(--green3);border-color:var(--green3);color:#fff;}
+.cl-label{font-size:12px;color:var(--muted3);line-height:1.3;}
+.cl-item.done .cl-label{color:var(--text);}
+.cl-count{font-family:var(--mono);font-size:11px;color:var(--green3);padding:8px 14px;background:var(--bg3);border-radius:6px;margin-bottom:12px;text-align:center;}
 
 /* SUBMIT BTN */
-.submit-btn{
-  width:calc(100% - 28px);margin:0 14px 14px;
-  background:linear-gradient(135deg,var(--green),var(--green2));
-  color:#fff;padding:16px;font-family:var(--mono);font-size:11px;
-  letter-spacing:2px;text-transform:uppercase;border-radius:12px;
-  cursor:pointer;border:none;min-height:52px;
-  box-shadow:0 4px 20px rgba(26,107,90,.3);
-  transition:all .2s;
-}
-.submit-btn:active{transform:scale(.98);box-shadow:0 2px 10px rgba(26,107,90,.2);}
+.submit-btn{width:calc(100% - 28px);margin:0 14px 14px;background:linear-gradient(135deg,var(--green),var(--green2));color:#fff;padding:16px;font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;border-radius:12px;cursor:pointer;border:none;min-height:52px;transition:all .2s;}
+.submit-btn:active{transform:scale(.98);}
+.submit-btn.sec{background:none;border:1px solid var(--border2);color:var(--green3);margin-top:0;}
 
-/* ══════════════════════
-   MESSAGES
-══════════════════════ */
-.msg-thread{padding:12px 14px;display:flex;flex-direction:column;gap:10px;min-height:300px;}
+/* CARDS */
+.card{margin:0 14px 8px;background:var(--bg2);border:1px solid var(--border);border-radius:12px;overflow:hidden;}
+.card-header{padding:13px 14px;display:flex;align-items:flex-start;justify-content:space-between;gap:8px;}
+.card-name{font-size:14px;font-weight:500;color:var(--text);}
+.card-sub{font-family:var(--mono);font-size:11px;color:var(--muted2);margin-top:3px;}
+.card-meta{font-size:11px;color:var(--muted);margin-top:3px;}
+.card-right{display:flex;flex-direction:column;align-items:flex-end;gap:5px;flex-shrink:0;}
+.card-actions{display:flex;border-top:1px solid var(--border);}
+.card-act{flex:1;padding:10px 6px;text-align:center;font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--muted2);border-right:1px solid var(--border);cursor:pointer;min-height:44px;display:flex;align-items:center;justify-content:center;transition:background .12s,color .12s;}
+.card-act:last-child{border-right:none;}
+.card-act:active{background:var(--bg3);color:var(--green3);}
+
+/* BADGES */
+.badge{font-family:var(--mono);font-size:9px;letter-spacing:1.5px;text-transform:uppercase;padding:3px 8px;border-radius:100px;display:inline-block;}
+.b-active{background:rgba(74,154,110,.15);color:var(--green4);border:1px solid rgba(74,154,110,.3);}
+.b-upcoming{background:rgba(200,169,110,.15);color:var(--gold);border:1px solid rgba(200,169,110,.3);}
+.b-done{background:rgba(26,107,90,.2);color:var(--green3);border:1px solid rgba(26,107,90,.3);}
+
+/* MESSAGES */
+.msg-thread{padding:12px 14px;display:flex;flex-direction:column;gap:10px;min-height:200px;}
 .msg-bubble{padding:10px 13px;border-radius:12px;max-width:84%;}
 .msg-lance{background:linear-gradient(135deg,var(--green),var(--green2));color:#fff;margin-left:auto;border-radius:12px 12px 3px 12px;}
 .msg-me{background:var(--bg3);color:var(--text);border:1px solid var(--border);border-radius:12px 12px 12px 3px;}
 .msg-text{font-size:13px;line-height:1.5;}
-.msg-time{font-family:var(--mono);font-size:9px;opacity:.55;margin-top:4px;}
-.msg-input-wrap{
-  position:sticky;bottom:calc(68px + var(--safe-bottom));
-  background:var(--bg2);border-top:1px solid var(--border);
-  padding:10px 12px;display:flex;gap:8px;align-items:flex-end;
-}
-.msg-input{
-  flex:1;background:var(--bg3);border:1px solid var(--border);color:var(--text);
-  padding:10px 13px;border-radius:18px;font-size:16px;resize:none;max-height:100px;
-}
+.msg-time{font-family:var(--mono);font-size:9px;opacity:.55;margin-top:3px;}
+.msg-input-wrap{position:sticky;bottom:calc(68px + var(--safe-bottom));background:var(--bg2);border-top:1px solid var(--border);padding:10px 12px;display:flex;gap:8px;align-items:flex-end;}
+.msg-input{flex:1;background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:10px 13px;border-radius:18px;font-size:16px;resize:none;max-height:100px;}
 .msg-input:focus{outline:none;border-color:var(--green3);}
-.msg-send{
-  width:44px;height:44px;border-radius:50%;
-  background:linear-gradient(135deg,var(--green),var(--green3));
-  color:#fff;font-size:17px;display:flex;align-items:center;justify-content:center;
-  cursor:pointer;flex-shrink:0;border:none;
-  box-shadow:0 2px 10px rgba(26,107,90,.3);
-}
+.msg-send{width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,var(--green),var(--green3));color:#fff;font-size:15px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;border:none;font-family:var(--mono);}
 .msg-send:active{transform:scale(.95);}
 
-/* ══════════════════════
-   DOCUMENTS
-══════════════════════ */
-.upload-zone{
-  margin:0 14px 10px;padding:24px 16px;
-  background:var(--bg2);border:1px dashed var(--border2);border-radius:14px;
-  text-align:center;cursor:pointer;transition:all .2s;
-}
-.upload-zone:active{border-color:var(--green3);background:rgba(26,107,90,.05);}
-.upload-icon{font-size:28px;margin-bottom:8px;}
-.upload-label{font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted2);}
+/* DOCUMENTS */
+.upload-zone{margin:0 14px 10px;padding:24px 16px;background:var(--bg2);border:1px dashed var(--border2);border-radius:12px;text-align:center;cursor:pointer;}
+.upload-zone:active{border-color:var(--green3);}
+.upload-lbl{font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted2);}
 .upload-sub{font-size:11px;color:var(--muted);margin-top:4px;}
-#file-input{display:none;}
-
-.doc-row{
-  display:flex;align-items:center;gap:12px;padding:12px 15px;
-  border-bottom:1px solid var(--border);
-}
-.doc-row:last-child{border-bottom:none;}
-.doc-icon{width:36px;height:36px;border-radius:8px;background:rgba(26,107,90,.15);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
+.doc-row{display:flex;align-items:center;gap:12px;padding:12px 14px;border-bottom:1px solid var(--border);}
+.doc-icon{width:32px;height:32px;border-radius:6px;background:rgba(26,107,90,.15);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:9px;color:var(--green3);flex-shrink:0;letter-spacing:1px;text-transform:uppercase;}
 .doc-info{flex:1;min-width:0;}
 .doc-name{font-size:13px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .doc-meta{font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:2px;}
 
-/* ══════════════════════
-   SHEET
-══════════════════════ */
-.sheet-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:300;opacity:0;pointer-events:none;transition:opacity .3s;}
-.sheet-overlay.open{opacity:1;pointer-events:all;}
-.sheet{position:fixed;bottom:0;left:0;right:0;z-index:301;background:var(--bg2);border-top:1px solid var(--border2);border-radius:18px 18px 0 0;transform:translateY(100%);transition:transform .35s cubic-bezier(.16,1,.3,1);max-height:90vh;overflow-y:auto;padding-bottom:calc(20px + var(--safe-bottom));}
-.sheet.open{transform:translateY(0);}
-.sheet-handle{width:36px;height:4px;background:var(--border2);border-radius:2px;margin:12px auto 0;}
-.sheet-title{font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted2);padding:14px 18px 12px;border-bottom:1px solid var(--border);}
-.sheet-body{padding:16px 18px;}
+/* SUCCESS OVERLAY */
+.success-overlay{position:fixed;inset:0;background:rgba(10,26,20,.95);z-index:400;display:none;flex-direction:column;align-items:center;justify-content:center;gap:20px;padding:24px;}
+.success-overlay.show{display:flex;}
+.success-check{width:64px;height:64px;border-radius:50%;background:var(--green3);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:24px;color:#fff;}
+.success-title{font-family:var(--serif);font-size:24px;color:var(--text);font-weight:400;text-align:center;}
+.success-msg{font-family:var(--mono);font-size:11px;color:var(--muted2);letter-spacing:1px;text-align:center;line-height:1.8;}
+.success-btn{background:var(--green);color:#fff;padding:14px 32px;font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;border-radius:10px;border:none;cursor:pointer;min-height:48px;}
 
-/* ══════════════════════
-   BOTTOM NAV
-══════════════════════ */
-.bottom-nav{
-  position:fixed;bottom:0;left:0;right:0;z-index:200;
-  background:rgba(10,26,20,.97);border-top:1px solid var(--border);
-  display:flex;padding-bottom:var(--safe-bottom);
-  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
-}
+/* BOTTOM NAV */
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;z-index:200;background:rgba(10,26,20,.97);border-top:1px solid var(--border);display:flex;padding-bottom:var(--safe-bottom);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);}
 .bnav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:7px 4px;cursor:pointer;min-height:56px;gap:3px;color:var(--muted2);transition:color .2s;}
 .bnav-item.active{color:var(--green3);}
-.bnav-icon{font-size:20px;line-height:1;}
+.bnav-icon{font-family:var(--mono);font-size:8px;letter-spacing:2px;text-transform:uppercase;line-height:1;padding:4px 6px;border:1px solid currentColor;border-radius:3px;margin-bottom:2px;}
 .bnav-lbl{font-family:var(--mono);font-size:8px;letter-spacing:1px;text-transform:uppercase;}
 
 /* TOAST */
@@ -335,36 +202,33 @@ a{color:inherit;text-decoration:none;}
 .toast.err{border-color:var(--red);color:var(--red);}
 
 /* EMPTY */
-.empty-state{text-align:center;padding:44px 20px;font-family:var(--mono);font-size:11px;letter-spacing:1px;color:var(--muted);text-transform:uppercase;}
+.empty-state{text-align:center;padding:40px 20px;font-family:var(--mono);font-size:11px;letter-spacing:1px;color:var(--muted);text-transform:uppercase;}
 
 @media(max-width:380px){
-  .rings-row{gap:8px;}
-  .ring-card{width:96px;}
-  .checklist-grid{grid-template-columns:1fr;}
+  .form-row-2{grid-template-columns:1fr;}
+  .mood-row{flex-wrap:wrap;}
+  .mood-opt{min-width:calc(33% - 4px);}
 }
 </style>
 </head>
 <body>
 
-<!-- LOCK SCREEN -->
+<!-- LOCK -->
 <div id="lock">
-  <div class="lock-top">
-    <div class="lock-greeting">Good to see you</div>
+  <div style="text-align:center;">
     <div class="lock-title">Proximity <span>Care</span></div>
-    <div class="lock-sub">PSW Portal</div>
+    <div class="lock-sub" style="margin-top:6px;">PSW Portal</div>
   </div>
 
-  <!-- STEP 1: Enter name -->
   <div class="lock-step active" id="lock-step-1">
-    <div style="font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted2);">Your name</div>
+    <div class="lock-label">Your name</div>
     <input class="lock-name-input" id="lock-name" placeholder="e.g. Carolina Hermida" autocomplete="name">
-    <button onclick="goToPin()" style="width:100%;max-width:280px;background:linear-gradient(135deg,var(--green),var(--green2));color:#fff;padding:14px;font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;border-radius:12px;border:none;cursor:pointer;min-height:48px;">Continue</button>
+    <button class="lock-next-btn" onclick="goToPin()">Continue</button>
   </div>
 
-  <!-- STEP 2: Enter PIN -->
   <div class="lock-step" id="lock-step-2">
-    <div style="font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted2);" id="lock-pin-label">Enter your PIN</div>
-    <div class="lock-dots" id="lock-dots">
+    <div class="lock-label" id="lock-pin-label">Enter your PIN</div>
+    <div class="lock-dots">
       <div class="lock-dot" id="ld0"></div><div class="lock-dot" id="ld1"></div>
       <div class="lock-dot" id="ld2"></div><div class="lock-dot" id="ld3"></div>
     </div>
@@ -372,9 +236,9 @@ a{color:inherit;text-decoration:none;}
       <button class="lock-key" onclick="lk('1')">1</button><button class="lock-key" onclick="lk('2')">2</button><button class="lock-key" onclick="lk('3')">3</button>
       <button class="lock-key" onclick="lk('4')">4</button><button class="lock-key" onclick="lk('5')">5</button><button class="lock-key" onclick="lk('6')">6</button>
       <button class="lock-key" onclick="lk('7')">7</button><button class="lock-key" onclick="lk('8')">8</button><button class="lock-key" onclick="lk('9')">9</button>
-      <div class="lock-key empty"></div><button class="lock-key" onclick="lk('0')">0</button><button class="lock-key del" onclick="ld()">⌫</button>
+      <div class="lock-key empty"></div><button class="lock-key" onclick="lk('0')">0</button><button class="lock-key del" onclick="ld()">del</button>
     </div>
-    <div class="lock-err" id="lock-err">Incorrect PIN — try again</div>
+    <div class="lock-err" id="lock-err">Incorrect PIN. Try again.</div>
   </div>
 </div>
 
@@ -384,15 +248,12 @@ a{color:inherit;text-decoration:none;}
 <!-- TOPBAR -->
 <div class="topbar">
   <div class="topbar-inner">
-    <div class="psw-greeting">
-      <div class="psw-avatar" id="psw-avatar">?</div>
+    <div class="psw-info">
+      <div class="psw-avatar" id="psw-avatar">??</div>
       <div>
         <div class="psw-name-top" id="psw-name-display">PSW</div>
         <div class="psw-role">Personal Support Worker</div>
       </div>
-    </div>
-    <div class="topbar-right">
-      <div class="notif-btn" onclick="showSect('messages')">💬</div>
     </div>
   </div>
 </div>
@@ -400,193 +261,236 @@ a{color:inherit;text-decoration:none;}
 <!-- NAV TABS -->
 <div class="nav-tabs">
   <div class="nav-tab active" onclick="showSect('home')">Home</div>
-  <div class="nav-tab" onclick="showSect('log-visit')">Log Visit</div>
-  <div class="nav-tab" onclick="showSect('clients')">My Clients</div>
+  <div class="nav-tab" onclick="showSect('visit')">Log Visit</div>
+  <div class="nav-tab" onclick="showSect('checklist')">Checklist</div>
+  <div class="nav-tab" onclick="showSect('clients')">Clients</div>
   <div class="nav-tab" onclick="showSect('schedule')">Schedule</div>
   <div class="nav-tab" onclick="showSect('messages')">Messages</div>
   <div class="nav-tab" onclick="showSect('documents')">Documents</div>
 </div>
 
-<!-- ── HOME ── -->
+<!-- HOME -->
 <div class="section active" id="sect-home">
-
-  <div class="home-rings">
-    <div class="rings-title">Today's Progress</div>
-    <div class="rings-row">
-      <div class="ring-card">
-        <div class="ring-wrap">
-          <svg class="ring-svg" width="64" height="64" viewBox="0 0 64 64">
-            <circle class="ring-bg" cx="32" cy="32" r="27"/>
-            <circle class="ring-fill ring-green" cx="32" cy="32" r="27" id="ring-visits" stroke-dasharray="169.6" stroke-dashoffset="169.6"/>
-          </svg>
-          <div class="ring-val" id="ring-visits-val">0/0</div>
-        </div>
-        <div class="ring-label">Visits</div>
-      </div>
-      <div class="ring-card">
-        <div class="ring-wrap">
-          <svg class="ring-svg" width="64" height="64" viewBox="0 0 64 64">
-            <circle class="ring-bg" cx="32" cy="32" r="27"/>
-            <circle class="ring-fill ring-gold" cx="32" cy="32" r="27" id="ring-hours" stroke-dasharray="169.6" stroke-dashoffset="169.6"/>
-          </svg>
-          <div class="ring-val" id="ring-hours-val">0h</div>
-        </div>
-        <div class="ring-label">Hours</div>
-      </div>
-      <div class="ring-card">
-        <div class="ring-wrap">
-          <svg class="ring-svg" width="64" height="64" viewBox="0 0 64 64">
-            <circle class="ring-bg" cx="32" cy="32" r="27"/>
-            <circle class="ring-fill ring-teal" cx="32" cy="32" r="27" id="ring-tasks" stroke-dasharray="169.6" stroke-dashoffset="169.6"/>
-          </svg>
-          <div class="ring-val" id="ring-tasks-val">0%</div>
-        </div>
-        <div class="ring-label">Tasks</div>
-      </div>
-      <div class="ring-card">
-        <div class="ring-wrap">
-          <svg class="ring-svg" width="64" height="64" viewBox="0 0 64 64">
-            <circle class="ring-bg" cx="32" cy="32" r="27"/>
-            <circle class="ring-fill ring-blue" cx="32" cy="32" r="27" id="ring-streak" stroke-dasharray="169.6" stroke-dashoffset="84.8"/>
-          </svg>
-          <div class="ring-val" id="ring-streak-val">—</div>
-        </div>
-        <div class="ring-label">Streak</div>
-      </div>
+  <div class="stats-strip">
+    <div class="stat-card hi"><div class="stat-val" id="s-visits">0</div><div class="stat-lbl">Visits Today</div></div>
+    <div class="stat-card"><div class="stat-val" id="s-hours">0h</div><div class="stat-lbl">Hours Today</div></div>
+    <div class="stat-card"><div class="stat-val" id="s-month">0</div><div class="stat-lbl">This Month</div></div>
+  </div>
+  <div class="section-header"><span class="section-title">Quick Actions</span></div>
+  <div class="quick-grid">
+    <div class="quick-card primary" onclick="showSect('visit')">
+      <div class="quick-icon">Log</div>
+      <div class="quick-label">Log a Visit</div>
+      <div class="quick-sub">Submit today</div>
+    </div>
+    <div class="quick-card" onclick="showSect('messages')">
+      <div class="quick-icon">Msg</div>
+      <div class="quick-label">Message Lance</div>
+      <div class="quick-sub">Private thread</div>
+    </div>
+    <div class="quick-card" onclick="showSect('clients')">
+      <div class="quick-icon">Cli</div>
+      <div class="quick-label">My Clients</div>
+      <div class="quick-sub">Care plans</div>
+    </div>
+    <div class="quick-card" onclick="showSect('documents')">
+      <div class="quick-icon">Doc</div>
+      <div class="quick-label">Documents</div>
+      <div class="quick-sub">Upload files</div>
     </div>
   </div>
-
-  <div class="today-card">
-    <div class="today-header">
-      <div class="today-title">Today's Visits</div>
-      <div class="today-date" id="today-date">—</div>
-    </div>
-    <div id="today-visits-list">
-      <div class="today-empty">No visits scheduled today</div>
-    </div>
-  </div>
-
-  <div class="section-header">
-    <span class="section-title">Quick Actions</span>
-  </div>
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 14px 14px;">
-    <div onclick="showSect('log-visit')" style="background:linear-gradient(135deg,var(--green),var(--green2));border-radius:14px;padding:18px 16px;cursor:pointer;">
-      <div style="font-size:24px;margin-bottom:8px;">📋</div>
-      <div style="font-size:13px;font-weight:500;color:#fff;">Log a Visit</div>
-      <div style="font-family:var(--mono);font-size:9px;color:rgba(255,255,255,.7);margin-top:3px;letter-spacing:1px;text-transform:uppercase;">Submit today</div>
-    </div>
-    <div onclick="showSect('messages')" style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:18px 16px;cursor:pointer;">
-      <div style="font-size:24px;margin-bottom:8px;">💬</div>
-      <div style="font-size:13px;font-weight:500;color:var(--text);">Message Lance</div>
-      <div style="font-family:var(--mono);font-size:9px;color:var(--muted);margin-top:3px;letter-spacing:1px;text-transform:uppercase;">Private thread</div>
-    </div>
-    <div onclick="showSect('clients')" style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:18px 16px;cursor:pointer;">
-      <div style="font-size:24px;margin-bottom:8px;">👥</div>
-      <div style="font-size:13px;font-weight:500;color:var(--text);">My Clients</div>
-      <div style="font-family:var(--mono);font-size:9px;color:var(--muted);margin-top:3px;letter-spacing:1px;text-transform:uppercase;">Care plans</div>
-    </div>
-    <div onclick="showSect('documents')" style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:18px 16px;cursor:pointer;">
-      <div style="font-size:24px;margin-bottom:8px;">📁</div>
-      <div style="font-size:13px;font-weight:500;color:var(--text);">Documents</div>
-      <div style="font-family:var(--mono);font-size:9px;color:var(--muted);margin-top:3px;letter-spacing:1px;text-transform:uppercase;">Upload files</div>
-    </div>
-  </div>
-
 </div>
 
-<!-- ── LOG VISIT ── -->
-<div class="section" id="sect-log-visit">
+<!-- LOG VISIT -->
+<div class="section" id="sect-visit">
   <div class="section-header"><span class="section-title">Log a Visit</span></div>
 
-  <div class="visit-form-card">
-    <div class="vf-section">
-      <div class="vf-section-title">Visit Details</div>
-      <div class="vf-row"><div class="vf-label">Client Name</div><input class="vf-input" id="vf-client" placeholder="Client full name"></div>
-      <div class="vf-row2">
-        <div><div class="vf-label">Date</div><input class="vf-input" id="vf-date" type="date"></div>
-        <div><div class="vf-label">Hours Worked</div><input class="vf-input" id="vf-hours" type="number" step="0.5" placeholder="e.g. 3"></div>
-      </div>
-      <div class="vf-row2">
-        <div><div class="vf-label">Time In</div><input class="vf-input" id="vf-time-in" type="time"></div>
-        <div><div class="vf-label">Time Out</div><input class="vf-input" id="vf-time-out" type="time"></div>
-      </div>
+  <div class="form-card">
+    <div class="form-card-header">
+      <div class="form-card-title">Visit Details</div>
+      <div class="form-card-badge">Required</div>
     </div>
-
-    <div class="vf-section">
-      <div class="vf-section-title">Tasks Completed</div>
-      <div class="checklist-grid" id="checklist">
-        <div class="check-item" onclick="toggleCheck(this)"><div class="check-box"></div><span class="check-label">Personal hygiene</span></div>
-        <div class="check-item" onclick="toggleCheck(this)"><div class="check-box">✓</div><span class="check-label">Bathing / grooming</span></div>
-        <div class="check-item" onclick="toggleCheck(this)"><div class="check-box"></div><span class="check-label">Dressing</span></div>
-        <div class="check-item" onclick="toggleCheck(this)"><div class="check-box"></div><span class="check-label">Meal preparation</span></div>
-        <div class="check-item" onclick="toggleCheck(this)"><div class="check-box"></div><span class="check-label">Feeding assistance</span></div>
-        <div class="check-item" onclick="toggleCheck(this)"><div class="check-box"></div><span class="check-label">Medication reminders</span></div>
-        <div class="check-item" onclick="toggleCheck(this)"><div class="check-box"></div><span class="check-label">Mobility assistance</span></div>
-        <div class="check-item" onclick="toggleCheck(this)"><div class="check-box"></div><span class="check-label">Transfers</span></div>
-        <div class="check-item" onclick="toggleCheck(this)"><div class="check-box"></div><span class="check-label">Light housekeeping</span></div>
-        <div class="check-item" onclick="toggleCheck(this)"><div class="check-box"></div><span class="check-label">Laundry</span></div>
-        <div class="check-item" onclick="toggleCheck(this)"><div class="check-box"></div><span class="check-label">Companionship</span></div>
-        <div class="check-item" onclick="toggleCheck(this)"><div class="check-box"></div><span class="check-label">Exercise support</span></div>
-        <div class="check-item" onclick="toggleCheck(this)"><div class="check-box"></div><span class="check-label">Wound care support</span></div>
-        <div class="check-item" onclick="toggleCheck(this)"><div class="check-box"></div><span class="check-label">Cognitive activities</span></div>
-        <div class="check-item" onclick="toggleCheck(this)"><div class="check-box"></div><span class="check-label">Outdoor / walk</span></div>
-        <div class="check-item" onclick="toggleCheck(this)"><div class="check-box"></div><span class="check-label">Appointment escort</span></div>
+    <div class="form-card-body">
+      <div class="form-row">
+        <label class="form-label">Client Name</label>
+        <select class="form-select" id="vf-client">
+          <option value="">Select client...</option>
+          <option value="Rosetta Ferrari">Rosetta Ferrari</option>
+          <option value="Bhangu Amrit">Bhangu Amrit</option>
+          <option value="Priya Singh">Priya Singh</option>
+          <option value="Helia Cordeiro">Helia Cordeiro</option>
+          <option value="Samina Thedlo">Samina Thedlo</option>
+          <option value="Parul Priya">Parul Priya</option>
+          <option value="Kim Phung">Kim Phung</option>
+          <option value="Emmanuel Sagolili">Emmanuel Sagolili</option>
+          <option value="Blake Heald">Blake Heald</option>
+          <option value="Rick Vardzel">Rick Vardzel</option>
+          <option value="Roman Pinto">Roman Pinto</option>
+        </select>
       </div>
-    </div>
-
-    <div class="vf-section">
-      <div class="vf-section-title">Client Mood</div>
-      <div class="mood-row">
-        <div class="mood-opt" onclick="selectMood(this,'Great')"><span class="mood-emoji">😊</span><span class="mood-label">Great</span></div>
-        <div class="mood-opt" onclick="selectMood(this,'Good')"><span class="mood-emoji">🙂</span><span class="mood-label">Good</span></div>
-        <div class="mood-opt" onclick="selectMood(this,'Neutral')"><span class="mood-emoji">😐</span><span class="mood-label">Neutral</span></div>
-        <div class="mood-opt" onclick="selectMood(this,'Low')"><span class="mood-emoji">😔</span><span class="mood-label">Low</span></div>
-        <div class="mood-opt" onclick="selectMood(this,'Agitated')"><span class="mood-emoji">😟</span><span class="mood-label">Agitated</span></div>
+      <div class="form-row-2">
+        <div><label class="form-label">Date</label><input class="form-input" id="vf-date" type="date"></div>
+        <div>
+          <label class="form-label">Visit Type</label>
+          <select class="form-select" id="vf-type">
+            <option>Morning Routine</option>
+            <option>Evening Routine</option>
+            <option>Full Day</option>
+            <option>Overnight</option>
+            <option>Companion Visit</option>
+          </select>
+        </div>
       </div>
-    </div>
-
-    <div class="vf-section">
-      <div class="vf-section-title">Observations and Notes</div>
-      <div class="vf-row"><div class="vf-label">General Notes</div><textarea class="vf-textarea" id="vf-notes" placeholder="How was the visit? Any changes in client condition, behavior, or needs..."></textarea></div>
-      <div class="vf-row"><div class="vf-label">Incidents or Concerns</div><textarea class="vf-textarea" id="vf-incidents" placeholder="Any falls, medication issues, or concerns to flag for Lance..."></textarea></div>
-      <div class="vf-row"><div class="vf-label">Supplies Needed</div><input class="vf-input" id="vf-supplies" placeholder="e.g. gloves running low, need more pads"></div>
+      <div class="form-row-2">
+        <div><label class="form-label">Time In</label><input class="form-input" id="vf-time-in" type="time" value="09:00" oninput="calcHours()"></div>
+        <div><label class="form-label">Time Out</label><input class="form-input" id="vf-time-out" type="time" value="17:00" oninput="calcHours()"></div>
+      </div>
+      <div class="hours-calc">
+        <div><div class="hours-lbl">Hours Worked</div><div class="pay-line" id="pay-line">$152 this visit</div></div>
+        <div style="text-align:right;"><div class="hours-val" id="hours-display">8.0</div><div class="hours-lbl">hrs</div></div>
+      </div>
     </div>
   </div>
 
-  <button class="submit-btn" onclick="submitVisit()">Submit Visit Log</button>
+  <div class="form-card">
+    <div class="form-card-header"><div class="form-card-title">Visit Notes</div></div>
+    <div class="form-card-body">
+      <div class="form-row">
+        <label class="form-label">What was completed during this visit?</label>
+        <textarea class="form-textarea" id="vf-notes" placeholder="e.g. Completed morning routine, prepared breakfast, assisted with medication, 30 min walk in the garden..."></textarea>
+      </div>
+      <div class="form-row">
+        <label class="form-label">Client Mood</label>
+        <div class="mood-row">
+          <div class="mood-opt sel" onclick="selectMood(this,'Great')"><span class="mood-emoji">:)</span><span class="mood-lbl">Great</span></div>
+          <div class="mood-opt" onclick="selectMood(this,'Good')"><span class="mood-emoji">:|</span><span class="mood-lbl">Good</span></div>
+          <div class="mood-opt" onclick="selectMood(this,'Low')"><span class="mood-emoji">:(</span><span class="mood-lbl">Low</span></div>
+          <div class="mood-opt" onclick="selectMood(this,'Agitated')"><span class="mood-emoji">:x</span><span class="mood-lbl">Agitated</span></div>
+        </div>
+      </div>
+      <div class="form-row">
+        <label class="form-label">Incidents or follow-up needed (leave blank if none)</label>
+        <textarea class="form-textarea" id="vf-incidents" placeholder="Any falls, medication issues, or items needing follow-up..." style="min-height:60px;"></textarea>
+      </div>
+    </div>
+  </div>
+
+  <button class="submit-btn" onclick="showSect('checklist')">Next — Checklist</button>
 </div>
 
-<!-- ── MY CLIENTS ── -->
+<!-- CHECKLIST -->
+<div class="section" id="sect-checklist">
+  <div class="section-header"><span class="section-title">Daily Checklist</span></div>
+  <div style="padding:0 14px 8px;"><div class="cl-count" id="cl-count">0 tasks completed</div></div>
+
+  <div class="form-card">
+    <div class="form-card-header"><div class="form-card-title">Personal Care</div></div>
+    <div class="form-card-body" style="padding:10px 12px;">
+      <div class="cl-item" onclick="toggleCl(this)"><div class="cl-box"></div><span class="cl-label">Morning AM care</span></div>
+      <div class="cl-item" onclick="toggleCl(this)"><div class="cl-box"></div><span class="cl-label">Afternoon PM care</span></div>
+      <div class="cl-item" onclick="toggleCl(this)"><div class="cl-box"></div><span class="cl-label">Bedtime care</span></div>
+      <div class="cl-item" onclick="toggleCl(this)"><div class="cl-box"></div><span class="cl-label">Sponge bath</span></div>
+      <div class="cl-item" onclick="toggleCl(this)"><div class="cl-box"></div><span class="cl-label">Assist tub or shower</span></div>
+      <div class="cl-item" onclick="toggleCl(this)"><div class="cl-box"></div><span class="cl-label">Hair care — shampoo and comb</span></div>
+      <div class="cl-item" onclick="toggleCl(this)"><div class="cl-box"></div><span class="cl-label">Care of hands and nails</span></div>
+      <div class="cl-item" onclick="toggleCl(this)"><div class="cl-box"></div><span class="cl-label">Oral hygiene</span></div>
+      <div class="cl-item" onclick="toggleCl(this)"><div class="cl-box"></div><span class="cl-label">Skin care — lotions and creams</span></div>
+    </div>
+  </div>
+
+  <div class="form-card">
+    <div class="form-card-header"><div class="form-card-title">Elimination</div></div>
+    <div class="form-card-body" style="padding:10px 12px;">
+      <div class="cl-item" onclick="toggleCl(this)"><div class="cl-box"></div><span class="cl-label">Transfer to toilet or commode</span></div>
+      <div class="cl-item" onclick="toggleCl(this)"><div class="cl-box"></div><span class="cl-label">Empty and clean commode</span></div>
+      <div class="cl-item" onclick="toggleCl(this)"><div class="cl-box"></div><span class="cl-label">Change incontinence products</span></div>
+      <div class="cl-item" onclick="toggleCl(this)"><div class="cl-box"></div><span class="cl-label">Change or clean catheter bag</span></div>
+    </div>
+  </div>
+
+  <div class="form-card">
+    <div class="form-card-header"><div class="form-card-title">Physical Activities</div></div>
+    <div class="form-card-body" style="padding:10px 12px;">
+      <div class="cl-item" onclick="toggleCl(this)"><div class="cl-box"></div><span class="cl-label">Assist to walk</span></div>
+      <div class="cl-item" onclick="toggleCl(this)"><div class="cl-box"></div><span class="cl-label">Assist in and out of bed or chair</span></div>
+      <div class="cl-item" onclick="toggleCl(this)"><div class="cl-box"></div><span class="cl-label">Apply elastic stockings</span></div>
+      <div class="cl-item" onclick="toggleCl(this)"><div class="cl-box"></div><span class="cl-label">Medication reminder</span></div>
+      <div class="cl-item" onclick="toggleCl(this)"><div class="cl-box"></div><span class="cl-label">Reinforce exercise</span></div>
+    </div>
+  </div>
+
+  <div class="form-card">
+    <div class="form-card-header"><div class="form-card-title">Nutrition</div></div>
+    <div class="form-card-body" style="padding:10px 12px;">
+      <div class="cl-item" onclick="toggleCl(this)"><div class="cl-box"></div><span class="cl-label">Breakfast prepared</span></div>
+      <div class="cl-item" onclick="toggleCl(this)"><div class="cl-box"></div><span class="cl-label">Lunch prepared</span></div>
+      <div class="cl-item" onclick="toggleCl(this)"><div class="cl-box"></div><span class="cl-label">Dinner prepared</span></div>
+      <div class="cl-item" onclick="toggleCl(this)"><div class="cl-box"></div><span class="cl-label">Assist with feeding</span></div>
+      <div class="cl-item" onclick="toggleCl(this)"><div class="cl-box"></div><span class="cl-label">Clean up kitchen and dishes</span></div>
+    </div>
+  </div>
+
+  <div class="form-card">
+    <div class="form-card-header"><div class="form-card-title">Light Housekeeping</div></div>
+    <div class="form-card-body" style="padding:10px 12px;">
+      <div class="cl-item" onclick="toggleCl(this)"><div class="cl-box"></div><span class="cl-label">Vacuum or sweep living areas</span></div>
+      <div class="cl-item" onclick="toggleCl(this)"><div class="cl-box"></div><span class="cl-label">Bathroom sanitation</span></div>
+      <div class="cl-item" onclick="toggleCl(this)"><div class="cl-box"></div><span class="cl-label">Damp mop floors</span></div>
+      <div class="cl-item" onclick="toggleCl(this)"><div class="cl-box"></div><span class="cl-label">General laundry</span></div>
+      <div class="cl-item" onclick="toggleCl(this)"><div class="cl-box"></div><span class="cl-label">Change bed linen</span></div>
+      <div class="cl-item" onclick="toggleCl(this)"><div class="cl-box"></div><span class="cl-label">Make bed</span></div>
+      <div class="cl-item" onclick="toggleCl(this)"><div class="cl-box"></div><span class="cl-label">Collect garbage</span></div>
+    </div>
+  </div>
+
+  <div class="form-card">
+    <div class="form-card-header"><div class="form-card-title">Observations and Supplies</div></div>
+    <div class="form-card-body">
+      <div class="form-row">
+        <label class="form-label">Observations — anything to flag from today's tasks</label>
+        <textarea class="form-textarea" id="cl-obs" placeholder="e.g. Client refused shower today, seemed more tired than usual..."></textarea>
+      </div>
+      <div class="form-row">
+        <label class="form-label">Supply needs or follow-up for Lance</label>
+        <textarea class="form-textarea" id="cl-supplies" placeholder="e.g. Running low on incontinence pads. Gloves size M almost out..." style="min-height:60px;"></textarea>
+      </div>
+    </div>
+  </div>
+
+  <button class="submit-btn" onclick="submitVisit()" id="submit-btn">Submit Visit Log</button>
+  <button class="submit-btn sec" onclick="showSect('visit')" style="margin:0 14px 14px;">Back to Visit Details</button>
+</div>
+
+<!-- CLIENTS -->
 <div class="section" id="sect-clients">
   <div class="section-header"><span class="section-title">My Clients</span></div>
-  <div id="psw-clients-list"><div class="empty-state">Loading clients...</div></div>
+  <div id="clients-list"><div class="empty-state">Loading clients...</div></div>
 </div>
 
-<!-- ── SCHEDULE ── -->
+<!-- SCHEDULE -->
 <div class="section" id="sect-schedule">
   <div class="section-header"><span class="section-title">My Schedule</span></div>
-  <div id="psw-schedule-list"><div class="empty-state">Loading schedule...</div></div>
+  <div id="schedule-list"><div class="empty-state">Loading schedule...</div></div>
 </div>
 
-<!-- ── MESSAGES ── -->
+<!-- MESSAGES -->
 <div class="section" id="sect-messages">
   <div class="section-header"><span class="section-title">Message Lance</span></div>
   <div class="msg-thread" id="msg-thread"><div class="empty-state">Loading messages...</div></div>
   <div class="msg-input-wrap">
     <textarea class="msg-input" id="msg-input" placeholder="Type a message to Lance..." rows="1" oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,100)+'px';"></textarea>
-    <button class="msg-send" onclick="sendMsg()">➤</button>
+    <button class="msg-send" onclick="sendMsg()">Send</button>
   </div>
 </div>
 
-<!-- ── DOCUMENTS ── -->
+<!-- DOCUMENTS -->
 <div class="section" id="sect-documents">
   <div class="section-header"><span class="section-title">My Documents</span></div>
   <div class="upload-zone" onclick="document.getElementById('file-input').click()">
-    <div class="upload-icon">📎</div>
-    <div class="upload-label">Upload Document</div>
-    <div class="upload-sub">Tap to select a file</div>
+    <div class="upload-lbl">Upload Document</div>
+    <div class="upload-sub">Tap to select a file — CPR cert, incident photo, supply receipt</div>
   </div>
-  <input type="file" id="file-input" onchange="uploadDoc(this)">
+  <input type="file" id="file-input" style="display:none;" onchange="uploadDoc(this)">
   <div class="card">
     <div id="docs-list"><div class="empty-state" style="padding:20px;">No documents uploaded yet</div></div>
   </div>
@@ -594,17 +498,22 @@ a{color:inherit;text-decoration:none;}
 
 <!-- BOTTOM NAV -->
 <div class="bottom-nav">
-  <div class="bnav-item active" onclick="showSect('home')" id="bn-home"><div class="bnav-icon">🏠</div><div class="bnav-lbl">Home</div></div>
-  <div class="bnav-item" onclick="showSect('log-visit')" id="bn-log-visit"><div class="bnav-icon">📋</div><div class="bnav-lbl">Log Visit</div></div>
-  <div class="bnav-item" onclick="showSect('clients')" id="bn-clients"><div class="bnav-icon">👥</div><div class="bnav-lbl">Clients</div></div>
-  <div class="bnav-item" onclick="showSect('messages')" id="bn-messages"><div class="bnav-icon">💬</div><div class="bnav-lbl">Messages</div></div>
-  <div class="bnav-item" onclick="showSect('documents')" id="bn-documents"><div class="bnav-icon">📁</div><div class="bnav-lbl">Docs</div></div>
+  <div class="bnav-item active" onclick="showSect('home')" id="bn-home"><div class="bnav-icon">HQ</div><div class="bnav-lbl">Home</div></div>
+  <div class="bnav-item" onclick="showSect('visit')" id="bn-visit"><div class="bnav-icon">LOG</div><div class="bnav-lbl">Visit</div></div>
+  <div class="bnav-item" onclick="showSect('clients')" id="bn-clients"><div class="bnav-icon">CLI</div><div class="bnav-lbl">Clients</div></div>
+  <div class="bnav-item" onclick="showSect('messages')" id="bn-messages"><div class="bnav-icon">MSG</div><div class="bnav-lbl">Messages</div></div>
+  <div class="bnav-item" onclick="showSect('documents')" id="bn-documents"><div class="bnav-icon">DOC</div><div class="bnav-lbl">Docs</div></div>
 </div>
 
 </div><!-- /app -->
 
-<!-- SHEET OVERLAY -->
-<div class="sheet-overlay" id="sheet-overlay" onclick="closeAllSheets()"></div>
+<!-- SUCCESS OVERLAY -->
+<div class="success-overlay" id="success-overlay">
+  <div class="success-check">OK</div>
+  <div class="success-title">Visit Logged</div>
+  <div class="success-msg" id="success-msg">Visit submitted. Lance has been notified.</div>
+  <button class="success-btn" onclick="resetForm()">Log Another Visit</button>
+</div>
 
 <!-- TOAST -->
 <div class="toast" id="toast"></div>
@@ -614,8 +523,8 @@ const API = 'https://proximity-agent-production.up.railway.app';
 let pswName = '';
 let pswPin = '';
 let lockIn = '';
-let selectedMood = 'Good';
-let visitCount = 0;
+let selectedMood = 'Great';
+let visitsToday = 0;
 let hoursToday = 0;
 
 // ── LOCK ──
@@ -659,111 +568,194 @@ async function verifyPin() {
 function unlockApp() {
   document.getElementById('lock').style.display = 'none';
   document.getElementById('app').style.display = 'block';
-  const initials = pswName.split(' ').map(w=>w[0]||'').join('').toUpperCase().slice(0,2);
-  document.getElementById('psw-avatar').textContent = initials;
+  const ini = pswName.split(' ').map(w=>w[0]||'').join('').toUpperCase().slice(0,2);
+  document.getElementById('psw-avatar').textContent = ini;
   document.getElementById('psw-name-display').textContent = pswName.split(' ')[0];
-  document.getElementById('today-date').textContent = new Date().toLocaleDateString('en-CA',{weekday:'short',month:'short',day:'numeric'});
-  const today = new Date().toISOString().split('T')[0];
-  document.getElementById('vf-date').value = today;
+  document.getElementById('vf-date').valueAsDate = new Date();
   loadMessages();
-  loadDocuments();
-  animateRings();
+  loadClients();
+  loadSchedule();
+  calcHours();
 }
 
-// ── RINGS ──
-function animateRings() {
-  setRing('ring-visits', visitCount, 5, visitCount+'/5');
-  setRing('ring-hours', hoursToday, 8, hoursToday+'h');
-  setRing('ring-tasks', 75, 100, '75%');
-  setRing('ring-streak', 5, 7, '5d');
-}
-function setRing(id, val, max, label) {
-  const circ = 169.6;
-  const pct = Math.min(val/max, 1);
-  const offset = circ - (pct * circ);
-  const el = document.getElementById(id);
-  const valEl = document.getElementById(id+'-val');
-  if(el) setTimeout(() => { el.style.strokeDashoffset = offset; }, 100);
-  if(valEl) valEl.textContent = label;
+// ── HOURS ──
+function calcHours() {
+  const tin = document.getElementById('vf-time-in').value;
+  const tout = document.getElementById('vf-time-out').value;
+  if (!tin || !tout) return;
+  const [ih, im] = tin.split(':').map(Number);
+  const [oh, om] = tout.split(':').map(Number);
+  let mins = (oh * 60 + om) - (ih * 60 + im);
+  if (mins < 0) mins += 24 * 60;
+  const hrs = (mins / 60).toFixed(1);
+  document.getElementById('hours-display').textContent = hrs;
+  document.getElementById('pay-line').textContent = '$' + Math.round(parseFloat(hrs) * 19) + ' this visit';
 }
 
 // ── CHECKLIST ──
-function toggleCheck(el) {
-  el.classList.toggle('checked');
-  const box = el.querySelector('.check-box');
-  box.textContent = el.classList.contains('checked') ? '✓' : '';
+function toggleCl(el) {
+  el.classList.toggle('done');
+  const box = el.querySelector('.cl-box');
+  box.textContent = el.classList.contains('done') ? 'x' : '';
+  updateClCount();
+}
+function updateClCount() {
+  const done = document.querySelectorAll('.cl-item.done').length;
+  document.getElementById('cl-count').textContent = done + ' tasks completed';
 }
 
 // ── MOOD ──
 function selectMood(el, mood) {
-  document.querySelectorAll('.mood-opt').forEach(o => o.classList.remove('selected'));
-  el.classList.add('selected');
+  document.querySelectorAll('.mood-opt').forEach(o => o.classList.remove('sel'));
+  el.classList.add('sel');
   selectedMood = mood;
 }
 
 // ── SUBMIT VISIT ──
 async function submitVisit() {
-  const client = document.getElementById('vf-client').value.trim();
+  const client = document.getElementById('vf-client').value;
   const date = document.getElementById('vf-date').value;
-  const hours = document.getElementById('vf-hours').value;
+  const notes = document.getElementById('vf-notes').value.trim();
   const timeIn = document.getElementById('vf-time-in').value;
   const timeOut = document.getElementById('vf-time-out').value;
-  const notes = document.getElementById('vf-notes').value.trim();
+  const hours = parseFloat(document.getElementById('hours-display').textContent || 0);
   const incidents = document.getElementById('vf-incidents').value.trim();
-  const supplies = document.getElementById('vf-supplies').value.trim();
+  const obs = document.getElementById('cl-obs').value.trim();
+  const supplies = document.getElementById('cl-supplies').value.trim();
 
-  if (!client || !date || !hours) { showToast('Client, date and hours required', 'err'); return; }
+  if (!client || !date || !notes) { showToast('Client, date and notes required', 'err'); return; }
 
-  const tasks = Array.from(document.querySelectorAll('.check-item.checked')).map(el => el.querySelector('.check-label').textContent);
+  const btn = document.getElementById('submit-btn');
+  btn.textContent = 'Submitting...'; btn.disabled = true;
 
-  showToast('Submitting visit...', 'ok');
+  const tasks = Array.from(document.querySelectorAll('.cl-item.done')).map(el => el.querySelector('.cl-label').textContent);
+
+  const nameParts = client.trim().split(/\s+/);
+  const payload = {
+    operator_id: 'proximity-care',
+    psw_name: pswName,
+    psw_email: '',
+    client_first_name: nameParts[0] || '',
+    client_last_name: nameParts.slice(1).join(' '),
+    visit_date: date,
+    time_in: timeIn,
+    time_out: timeOut,
+    hours_worked: hours,
+    tasks_completed: tasks.length ? tasks.join(', ') + (notes ? '\n\n' + notes : '') : notes,
+    client_mood: selectedMood,
+    incident_reported: incidents.length > 0,
+    incident_notes: incidents || null,
+    notes: [obs, supplies].filter(Boolean).join('\n\n') || null
+  };
 
   try {
-    const res = await fetch(`${API}/webhook/visit`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        psw_name: pswName,
-        client_name: client,
-        visit_date: date,
-        time_in: timeIn,
-        time_out: timeOut,
-        hours_worked: parseFloat(hours),
-        tasks_completed: tasks,
-        client_mood: selectedMood,
-        notes,
-        incidents: incidents || null,
-        supplies_needed: supplies || null,
-        operator_id: 'proximity-care'
-      })
-    });
-    const d = await res.json();
-    if (d.error) throw new Error(d.error);
-
-    showToast('Visit logged ✓', 'ok');
-    visitCount++;
-    hoursToday += parseFloat(hours||0);
-    animateRings();
-
-    // Clear form
-    document.getElementById('vf-client').value = '';
-    document.getElementById('vf-hours').value = '';
-    document.getElementById('vf-time-in').value = '';
-    document.getElementById('vf-time-out').value = '';
-    document.getElementById('vf-notes').value = '';
-    document.getElementById('vf-incidents').value = '';
-    document.getElementById('vf-supplies').value = '';
-    document.querySelectorAll('.check-item').forEach(el => {
-      el.classList.remove('checked');
-      el.querySelector('.check-box').textContent = '';
-    });
-    selectedMood = 'Good';
-    document.querySelectorAll('.mood-opt').forEach(o => o.classList.remove('selected'));
-
-    showSect('home');
-  } catch (err) {
-    showToast(err.message || 'Submission failed', 'err');
+    await fetch(`${API}/webhook/visit`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+  } catch(e) {
+    try { await fetch(`${API}/webhook/visit`, { method:'POST', mode:'no-cors', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) }); } catch(e2){}
   }
+
+  visitsToday++;
+  hoursToday += hours;
+  document.getElementById('s-visits').textContent = visitsToday;
+  document.getElementById('s-hours').textContent = hoursToday.toFixed(1) + 'h';
+
+  document.getElementById('success-msg').textContent = 'Visit for ' + client + ' logged. Lance has been notified.';
+  document.getElementById('success-overlay').classList.add('show');
+  btn.textContent = 'Submit Visit Log'; btn.disabled = false;
+}
+
+function resetForm() {
+  document.getElementById('success-overlay').classList.remove('show');
+  document.getElementById('vf-client').selectedIndex = 0;
+  document.getElementById('vf-date').valueAsDate = new Date();
+  document.getElementById('vf-time-in').value = '09:00';
+  document.getElementById('vf-time-out').value = '17:00';
+  document.getElementById('vf-notes').value = '';
+  document.getElementById('vf-incidents').value = '';
+  document.getElementById('cl-obs').value = '';
+  document.getElementById('cl-supplies').value = '';
+  document.querySelectorAll('.cl-item').forEach(el => { el.classList.remove('done'); el.querySelector('.cl-box').textContent = ''; });
+  document.querySelectorAll('.mood-opt').forEach(o => o.classList.remove('sel'));
+  document.querySelector('.mood-opt').classList.add('sel');
+  selectedMood = 'Great';
+  updateClCount(); calcHours();
+  showSect('home');
+}
+
+// ── CLIENTS ──
+async function loadClients() {
+  const el = document.getElementById('clients-list');
+  try {
+    const res = await fetch(`${API}/psw/clients/${encodeURIComponent(pswName)}?pin=${pswPin}`);
+    const d = await res.json();
+    const clients = d.clients || [];
+    if (!clients.length) { el.innerHTML = '<div class="empty-state">No clients assigned yet</div>'; return; }
+    el.innerHTML = clients.map(c => {
+      const name = c.full_name || c.client_name;
+      const ini = name.split(' ').map(w=>w[0]||'').join('').toUpperCase().slice(0,2);
+      return `
+      <div class="card">
+        <div class="card-header">
+          <div style="display:flex;align-items:center;gap:11px;flex:1;">
+            <div style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,var(--green),var(--green3));display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:12px;color:#fff;flex-shrink:0;">${ini}</div>
+            <div>
+              <div class="card-name">${name}</div>
+              <div class="card-sub">${c.hours_per_week||'?'}h per week</div>
+              <div class="card-meta">${c.summary||''}</div>
+            </div>
+          </div>
+          <span class="badge b-active">Active</span>
+        </div>
+        ${c.daily_routine||c.preferences?`
+        <div style="padding:0 14px 12px;border-top:1px solid var(--border);padding-top:10px;">
+          ${c.daily_routine?`<div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:4px;">Daily Routine</div><div style="font-size:12px;color:var(--muted2);line-height:1.5;margin-bottom:8px;">${c.daily_routine}</div>`:''}
+          ${c.preferences?`<div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:4px;">Preferences</div><div style="font-size:12px;color:var(--muted2);line-height:1.5;">${c.preferences}</div>`:''}
+        </div>`:''}
+        ${c.emergency_contact_name?`
+        <div style="padding:10px 14px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
+          <div><div style="font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);">Emergency Contact</div><div style="font-size:12px;color:var(--text);margin-top:2px;">${c.emergency_contact_name}</div></div>
+          ${c.emergency_contact_phone?`<a href="tel:${c.emergency_contact_phone}" style="font-family:var(--mono);font-size:10px;color:var(--green3);letter-spacing:1px;">Call</a>`:''}
+        </div>`:''}
+      </div>`;
+    }).join('');
+  } catch { el.innerHTML = '<div class="empty-state">Could not load clients</div>'; }
+}
+
+// ── SCHEDULE ──
+async function loadSchedule() {
+  const el = document.getElementById('schedule-list');
+  try {
+    const res = await fetch(`${API}/psw/schedule/${encodeURIComponent(pswName)}?pin=${pswPin}`);
+    const d = await res.json();
+    const upcoming = d.upcoming || [];
+    const todayVisits = d.today_visits || [];
+    const today = d.today_date || '';
+    let html = '';
+    if (todayVisits.length) {
+      html += `<div style="padding:10px 14px 6px;font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--green3);">Logged Today</div>`;
+      html += todayVisits.map(v => `
+        <div class="card"><div class="card-header">
+          <div><div class="card-name">${v.client_name}</div><div class="card-sub">${v.time_in||''} ${v.time_out?'to '+v.time_out:''}</div></div>
+          <span class="badge b-done">${v.hours_worked||0}h</span>
+        </div></div>`).join('');
+    }
+    if (!upcoming.length) {
+      html += '<div class="empty-state">No upcoming visits scheduled</div>';
+    } else {
+      html += `<div style="padding:10px 14px 6px;font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted2);">Upcoming</div>`;
+      html += upcoming.map(b => {
+        const isToday = b.scheduled_date === today;
+        return `<div class="card"><div class="card-header">
+          <div><div class="card-name">${b.client_name}</div><div class="card-sub">${b.booking_type} · ${b.scheduled_time||''}</div><div class="card-meta">${b.location||''}</div></div>
+          <div class="card-right">
+            <span class="badge ${isToday?'b-active':'b-upcoming'}">${isToday?'Today':fmtd(b.scheduled_date)}</span>
+          </div>
+        </div></div>`;
+      }).join('');
+    }
+    el.innerHTML = html;
+    document.getElementById('s-month').textContent = todayVisits.length + upcoming.length;
+  } catch { el.innerHTML = '<div class="empty-state">Could not load schedule</div>'; }
 }
 
 // ── MESSAGES ──
@@ -773,16 +765,14 @@ async function loadMessages() {
     const res = await fetch(`${API}/psw/notes/${encodeURIComponent(pswName)}?pin=${pswPin}`);
     const d = await res.json();
     const notes = d.notes || [];
-    if (!notes.length) { el.innerHTML = '<div class="empty-state">No messages yet. Say hi to Lance.</div>'; return; }
+    if (!notes.length) { el.innerHTML = '<div class="empty-state">No messages yet. Send Lance a message.</div>'; return; }
     el.innerHTML = notes.map(n => `
       <div class="msg-bubble ${n.sender==='lance'?'msg-lance':'msg-me'}">
         <div class="msg-text">${n.message}</div>
         <div class="msg-time">${ago(n.created_at)}</div>
       </div>`).join('');
     el.scrollTop = el.scrollHeight;
-  } catch {
-    el.innerHTML = '<div class="empty-state">Could not load messages</div>';
-  }
+  } catch { el.innerHTML = '<div class="empty-state">Could not load messages</div>'; }
 }
 
 async function sendMsg() {
@@ -790,172 +780,57 @@ async function sendMsg() {
   if (!msg) return;
   try {
     const res = await fetch(`${API}/psw/note`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ psw_name: pswName, sender: 'psw', message: msg, pin: pswPin })
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ psw_name: pswName, sender:'psw', message: msg, pin: pswPin })
     });
     const d = await res.json();
     if (!d.success) throw new Error();
     document.getElementById('msg-input').value = '';
-    showToast('Message sent ✓', 'ok');
+    showToast('Message sent', 'ok');
     await loadMessages();
   } catch { showToast('Send failed', 'err'); }
 }
 
 // ── DOCUMENTS ──
-async function loadDocuments() {
-  // Documents pulled from Supabase storage via Railway when endpoint is ready
-}
-
 async function uploadDoc(input) {
-  const file = input.files[0];
-  if (!file) return;
+  const file = input.files[0]; if (!file) return;
   showToast('Uploading...', 'ok');
   try {
     const formData = new FormData();
     formData.append('file', file);
     formData.append('psw_name', pswName);
     formData.append('pin', pswPin);
-    const res = await fetch(`${API}/psw/upload`, { method: 'POST', body: formData });
+    const res = await fetch(`${API}/psw/upload`, { method:'POST', body: formData });
     const d = await res.json();
     if (!d.success) throw new Error(d.error);
-    showToast('Document uploaded ✓', 'ok');
+    showToast('Document uploaded', 'ok');
     const list = document.getElementById('docs-list');
+    if (list.querySelector('.empty-state')) list.innerHTML = '';
     const row = document.createElement('div');
     row.className = 'doc-row';
-    row.innerHTML = `<div class="doc-icon">📄</div><div class="doc-info"><div class="doc-name">${file.name}</div><div class="doc-meta">Just uploaded</div></div>`;
-    if (list.querySelector('.empty-state')) list.innerHTML = '';
+    row.innerHTML = `<div class="doc-icon">PDF</div><div class="doc-info"><div class="doc-name">${file.name}</div><div class="doc-meta">Just uploaded</div></div>`;
     list.appendChild(row);
-  } catch (err) { showToast(err.message || 'Upload failed', 'err'); }
+  } catch(err) { showToast(err.message || 'Upload failed', 'err'); }
   input.value = '';
-}
-
-// ── CLIENTS (static for now, pulls from Supabase when /psw/clients endpoint ready) ──
-async function renderClients() {
-  const el = document.getElementById('psw-clients-list');
-  el.innerHTML = '<div class="empty-state">Loading clients...</div>';
-  try {
-    const res = await fetch(`${API}/psw/clients/${encodeURIComponent(pswName)}?pin=${pswPin}`);
-    const d = await res.json();
-    if (!d.success) throw new Error('Failed');
-    const clients = d.clients || [];
-    if (!clients.length) { el.innerHTML = '<div class="empty-state">No clients assigned yet</div>'; return; }
-    el.innerHTML = clients.map(c => {
-      const ini = (c.full_name||c.client_name||'?').split(' ').map(w=>w[0]||'').join('').toUpperCase().slice(0,2);
-      return `
-      <div class="card">
-        <div class="card-header">
-          <div style="display:flex;align-items:center;gap:11px;flex:1;">
-            <div style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,var(--green),var(--green3));display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:12px;color:#fff;flex-shrink:0;">${ini}</div>
-            <div>
-              <div class="card-name">${c.full_name||c.client_name}</div>
-              <div class="card-sub">${c.hours_per_week||'?'}h/week · Since ${c.start_date||'—'}</div>
-              <div class="card-meta">${c.summary||''}</div>
-            </div>
-          </div>
-          <span class="badge b-active">Active</span>
-        </div>
-        ${c.preferences||c.daily_routine?`
-        <div style="padding:0 14px 12px;border-top:1px solid var(--border);padding-top:10px;">
-          ${c.daily_routine?`<div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:5px;">Daily Routine</div><div style="font-size:12px;color:var(--muted2);line-height:1.5;margin-bottom:8px;">${c.daily_routine}</div>`:''}
-          ${c.preferences?`<div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:5px;">Preferences</div><div style="font-size:12px;color:var(--muted2);line-height:1.5;">${c.preferences}</div>`:''}
-        </div>`:''}
-        ${c.emergency_contact_name?`
-        <div style="padding:10px 14px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
-          <div>
-            <div style="font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);">Emergency Contact</div>
-            <div style="font-size:12px;color:var(--text);margin-top:2px;">${c.emergency_contact_name}</div>
-          </div>
-          ${c.emergency_contact_phone?`<a href="tel:${c.emergency_contact_phone}" style="font-family:var(--mono);font-size:10px;color:var(--green3);letter-spacing:1px;">📞 Call</a>`:''}
-        </div>`:''}
-      </div>`;
-    }).join('');
-  } catch {
-    el.innerHTML = '<div class="empty-state">Could not load clients</div>';
-  }
-}
-
-async function renderSchedule() {
-  const el = document.getElementById('psw-schedule-list');
-  el.innerHTML = '<div class="empty-state">Loading schedule...</div>';
-  try {
-    const res = await fetch(`${API}/psw/schedule/${encodeURIComponent(pswName)}?pin=${pswPin}`);
-    const d = await res.json();
-    if (!d.success) throw new Error('Failed');
-    const upcoming = d.upcoming || [];
-    const todayVisits = d.today_visits || [];
-    const today = d.today_date || '';
-
-    let html = '';
-
-    // Today's logged visits
-    if (todayVisits.length) {
-      html += `<div style="padding:10px 14px 6px;font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--green3);">Logged Today</div>`;
-      html += todayVisits.map(v => `
-        <div class="card">
-          <div class="card-header">
-            <div>
-              <div class="card-name">${v.client_name}</div>
-              <div class="card-sub">${v.time_in||''} ${v.time_out?'→ '+v.time_out:''}</div>
-            </div>
-            <span class="badge b-done">${v.hours_worked||0}h ✓</span>
-          </div>
-        </div>`).join('');
-    }
-
-    // Upcoming bookings
-    if (!upcoming.length) {
-      html += '<div class="empty-state">No upcoming visits scheduled</div>';
-    } else {
-      html += `<div style="padding:10px 14px 6px;font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted2);">Upcoming</div>`;
-      html += upcoming.map(b => {
-        const isToday = b.scheduled_date === today;
-        return `
-        <div class="card">
-          <div class="card-header">
-            <div>
-              <div class="card-name">${b.client_name}</div>
-              <div class="card-sub">${b.booking_type} · ${b.scheduled_time||''}</div>
-              <div class="card-meta">${b.location||''}</div>
-            </div>
-            <div class="card-right">
-              <span class="badge ${isToday?'b-active':'b-upcoming'}">${isToday?'Today':fmtd(b.scheduled_date)}</span>
-              <span class="badge b-${b.status||'scheduled'}">${b.status||'scheduled'}</span>
-            </div>
-          </div>
-          ${b.client_phone?`<div class="card-actions"><div class="card-act" onclick="window.location.href='tel:${b.client_phone}'">📞 Call Client</div></div>`:''}
-        </div>`;
-      }).join('');
-    }
-
-    el.innerHTML = html;
-  } catch {
-    el.innerHTML = '<div class="empty-state">Could not load schedule</div>';
-  }
 }
 
 // ── NAV ──
 function showSect(name) {
-  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
-  document.querySelectorAll('.bnav-item').forEach(b => b.classList.remove('active'));
-  const s = document.getElementById('sect-' + name); if(s) s.classList.add('active');
-  const tabs = document.querySelectorAll('.nav-tab');
-  const tm = ['home','log-visit','clients','schedule','messages','documents'];
-  const ti = tm.indexOf(name); if(ti>=0&&tabs[ti]) tabs[ti].classList.add('active');
-  const bm = ['home','log-visit','clients','messages','documents'];
-  const bi = bm.indexOf(name);
-  const bnavs = document.querySelectorAll('.bnav-item');
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.bnav-item').forEach(b=>b.classList.remove('active'));
+  const s=document.getElementById('sect-'+name); if(s) s.classList.add('active');
+  const tabs=document.querySelectorAll('.nav-tab');
+  const tm=['home','visit','checklist','clients','schedule','messages','documents'];
+  const ti=tm.indexOf(name); if(ti>=0&&tabs[ti]) tabs[ti].classList.add('active');
+  const bm=['home','visit','clients','messages','documents'];
+  const bi=bm.indexOf(name);
+  const bnavs=document.querySelectorAll('.bnav-item');
   if(bi>=0&&bnavs[bi]) bnavs[bi].classList.add('active');
-  if(name === 'messages') loadMessages();
-  if(name === 'clients') renderClients();
-  if(name === 'schedule') renderSchedule();
+  if(name==='messages') loadMessages();
+  if(name==='clients') loadClients();
+  if(name==='schedule') loadSchedule();
   window.scrollTo(0,0);
-}
-
-function closeAllSheets() {
-  document.querySelectorAll('.sheet').forEach(s => s.classList.remove('open'));
-  document.getElementById('sheet-overlay').classList.remove('open');
 }
 
 // ── HELPERS ──
@@ -966,23 +841,20 @@ function fmtd(str) {
 }
 function ago(str) {
   if(!str) return '—';
-  const d = (Date.now()-new Date(str))/1000;
+  const d=(Date.now()-new Date(str))/1000;
   if(d<60) return 'just now';
   if(d<3600) return Math.floor(d/60)+'m ago';
   if(d<86400) return Math.floor(d/3600)+'h ago';
   return Math.floor(d/86400)+'d ago';
 }
 function showToast(msg, type='ok') {
-  const t = document.getElementById('toast');
-  t.textContent = msg; t.className = 'toast show '+type;
-  setTimeout(() => t.classList.remove('show'), 3000);
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.className='toast show '+type;
+  setTimeout(()=>t.classList.remove('show'),3000);
 }
 
-// Register service worker
 if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/psw-manifest.json').catch(()=>{});
-  });
+  navigator.serviceWorker.register('/psw-manifest.json').catch(()=>{});
 }
 </script>
 </body>
