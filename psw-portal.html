@@ -364,6 +364,7 @@ a{color:inherit;text-decoration:none;}
         <div class="mood-row">
           <div class="mood-opt sel" onclick="selectMood(this,'Great')"><span class="mood-emoji">:)</span><span class="mood-lbl">Great</span></div>
           <div class="mood-opt" onclick="selectMood(this,'Good')"><span class="mood-emoji">:|</span><span class="mood-lbl">Good</span></div>
+          <div class="mood-opt" onclick="selectMood(this,'Neutral')"><span class="mood-emoji">--</span><span class="mood-lbl">Neutral</span></div>
           <div class="mood-opt" onclick="selectMood(this,'Low')"><span class="mood-emoji">:(</span><span class="mood-lbl">Low</span></div>
           <div class="mood-opt" onclick="selectMood(this,'Agitated')"><span class="mood-emoji">:x</span><span class="mood-lbl">Agitated</span></div>
         </div>
@@ -522,7 +523,10 @@ a{color:inherit;text-decoration:none;}
 const API = 'https://proximity-agent-production.up.railway.app';
 let pswName = '';
 let pswPin = '';
+let pswEmail = '';
 let lockIn = '';
+window.addEventListener('online', () => showToast('Back online', 'ok'));
+window.addEventListener('offline', () => showToast('No internet — visit may not save', 'err'));
 let selectedMood = 'Great';
 let visitsToday = 0;
 let hoursToday = 0;
@@ -560,9 +564,15 @@ function updateDots() { for(let i=0;i<4;i++) document.getElementById('ld'+i).cla
 
 async function verifyPin() {
   try {
-    const res = await fetch(`${API}/psw/notes/${encodeURIComponent(pswName)}?pin=${pswPin}`);
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 10000);
+    const res = await fetch(`${API}/psw/notes/${encodeURIComponent(pswName)}?pin=${pswPin}`, { signal: controller.signal });
+    clearTimeout(timeout);
     return res.ok;
-  } catch { return false; }
+  } catch(e) {
+    if (e.name === 'AbortError') showToast('Connection timeout — check your internet', 'err');
+    return false;
+  }
 }
 
 function unlockApp() {
@@ -578,6 +588,45 @@ function unlockApp() {
   loadClients();
   loadSchedule();
   calcHours();
+  fetchPSWEmail();
+  restoreDraft();
+}
+
+async function fetchPSWEmail() {
+  try {
+    const res = await fetch(`${API}/psw/notes/${encodeURIComponent(pswName)}?pin=${pswPin}`);
+    const d = await res.json();
+    if (d.psw_email) pswEmail = d.psw_email;
+  } catch {}
+}
+
+function saveDraft() {
+  try {
+    const draft = {
+      client: document.getElementById('vf-client').value,
+      notes: document.getElementById('vf-notes').value,
+      incidents: document.getElementById('vf-incidents').value,
+      obs: document.getElementById('cl-obs').value,
+      supplies: document.getElementById('cl-supplies').value,
+      mood: selectedMood
+    };
+    sessionStorage.setItem('psw-draft', JSON.stringify(draft));
+  } catch {}
+}
+
+function restoreDraft() {
+  try {
+    const raw = sessionStorage.getItem('psw-draft');
+    if (!raw) return;
+    const draft = JSON.parse(raw);
+    if (draft.client) document.getElementById('vf-client').value = draft.client;
+    if (draft.notes) document.getElementById('vf-notes').value = draft.notes;
+    if (draft.incidents) document.getElementById('vf-incidents').value = draft.incidents;
+    if (draft.obs) document.getElementById('cl-obs').value = draft.obs;
+    if (draft.supplies) document.getElementById('cl-supplies').value = draft.supplies;
+    if (draft.mood) { selectedMood = draft.mood; }
+    if (raw) showToast('Draft restored', 'ok');
+  } catch {}
 }
 
 // ── HOURS ──
@@ -624,45 +673,59 @@ async function submitVisit() {
   const incidents = document.getElementById('vf-incidents').value.trim();
   const obs = document.getElementById('cl-obs').value.trim();
   const supplies = document.getElementById('cl-supplies').value.trim();
+  const tasks = Array.from(document.querySelectorAll('.cl-item.done')).map(el => el.querySelector('.cl-label').textContent);
 
-  if (!client || !date || !notes) { showToast('Client, date and notes required', 'err'); return; }
+  if (!client || !date) { showToast('Client and date required', 'err'); return; }
+  if (!notes && tasks.length === 0) { showToast('Add notes or complete checklist items', 'err'); return; }
 
   const btn = document.getElementById('submit-btn');
   btn.textContent = 'Submitting...'; btn.disabled = true;
-
-  const tasks = Array.from(document.querySelectorAll('.cl-item.done')).map(el => el.querySelector('.cl-label').textContent);
 
   const nameParts = client.trim().split(/\s+/);
   const payload = {
     operator_id: 'proximity-care',
     psw_name: pswName,
-    psw_email: '',
+    psw_email: pswEmail || '',
+    client_name: client,
     client_first_name: nameParts[0] || '',
     client_last_name: nameParts.slice(1).join(' '),
     visit_date: date,
     time_in: timeIn,
     time_out: timeOut,
     hours_worked: hours,
-    tasks_completed: tasks.length ? tasks.join(', ') + (notes ? '\n\n' + notes : '') : notes,
+    tasks_completed: tasks.length ? tasks : [],
     client_mood: selectedMood,
     incident_reported: incidents.length > 0,
     incident_notes: incidents || null,
-    notes: [obs, supplies].filter(Boolean).join('\n\n') || null
+    notes: [notes, obs, supplies].filter(Boolean).join('\n\n') || null
   };
 
   try {
-    await fetch(`${API}/webhook/visit`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+    const res = await fetch(`${API}/webhook/visit`, {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify(payload)
+    });
+    const d = await res.json().catch(() => ({}));
+    if (!res.ok && !d.success) throw new Error(d.error || 'Server error');
+
+    visitsToday++;
+    hoursToday += hours;
+    document.getElementById('s-visits').textContent = visitsToday;
+    document.getElementById('s-hours').textContent = hoursToday.toFixed(1) + 'h';
+    document.getElementById('success-msg').textContent = 'Visit for ' + client + ' logged. Lance has been notified.';
+    document.getElementById('success-overlay').classList.add('show');
+    sessionStorage.removeItem('psw-draft');
   } catch(e) {
-    try { await fetch(`${API}/webhook/visit`, { method:'POST', mode:'no-cors', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) }); } catch(e2){}
+    // Try no-cors fallback — visit may still have been logged
+    try {
+      await fetch(`${API}/webhook/visit`, { method:'POST', mode:'no-cors', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+      document.getElementById('success-msg').textContent = 'Visit submitted. Connection was slow — check with Lance to confirm.';
+      document.getElementById('success-overlay').classList.add('show');
+    } catch(e2) {
+      showToast('Submission failed — check internet connection', 'err');
+    }
   }
-
-  visitsToday++;
-  hoursToday += hours;
-  document.getElementById('s-visits').textContent = visitsToday;
-  document.getElementById('s-hours').textContent = hoursToday.toFixed(1) + 'h';
-
-  document.getElementById('success-msg').textContent = 'Visit for ' + client + ' logged. Lance has been notified.';
-  document.getElementById('success-overlay').classList.add('show');
   btn.textContent = 'Submit Visit Log'; btn.disabled = false;
 }
 
@@ -752,7 +815,7 @@ async function loadSchedule() {
       html += allVisits.map((v, i) => {
         const tasks = Array.isArray(v.tasks_completed) ? v.tasks_completed.join(', ') : (v.tasks_completed || '');
         const mood = v.client_mood || '';
-        const moodMap = {'Great':'😊','Good':'🙂','Neutral':'😐','Low':'😔','Agitated':'😟'};
+        const moodMap = {'Great':'GRT','Good':'GD','Neutral':'NTR','Low':'LOW','Agitated':'AGT'};
         const moodEmoji = Object.entries(moodMap).find(([k]) => mood.toLowerCase().includes(k.toLowerCase()))?.[1] || '';
         const vid = 'pv'+i;
         return `<div class="card">
@@ -766,13 +829,13 @@ async function loadSchedule() {
             <div class="card-right">
               <div style="font-family:var(--mono);font-size:11px;color:var(--teal2);">${fmtd(v.visit_date)}</div>
               <div style="font-family:var(--mono);font-size:11px;color:var(--gold);">${v.hours_worked||0}h</div>
-              ${moodEmoji?'<div style="font-size:16px;">'+moodEmoji+'</div>':''}
-              <div style="font-size:10px;color:var(--muted);" id="chev-${vid}">▼</div>
+              ${mood?'<div style="font-family:var(--mono);font-size:9px;color:var(--muted2);letter-spacing:1px;">'+mood+'</div>':''}
+              <div style="font-size:10px;color:var(--muted);" id="chev-${vid}">+</div>
             </div>
           </div>
           <div id="${vid}" style="display:none;padding:14px 16px;border-top:1px solid var(--border);font-size:12px;line-height:1.8;">
             ${tasks?'<div style="margin-bottom:10px;"><div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:4px;">Tasks Completed</div><div style="color:var(--muted2);">'+tasks+'</div></div>':''}
-            ${mood?'<div style="margin-bottom:10px;"><div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:4px;">Client Mood</div><div style="color:var(--text);">'+moodEmoji+' '+mood+'</div></div>':''}
+            ${mood?'<div style="margin-bottom:10px;"><div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:4px;">Client Mood</div><div style="color:var(--text);">'+mood+'</div></div>':''}
             ${v.visit_summary?'<div style="margin-bottom:10px;"><div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:4px;">Care Summary</div><div style="color:var(--muted2);">'+v.visit_summary+'</div></div>':''}
             ${v.incident_notes?'<div style="margin-bottom:10px;"><div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--red);margin-bottom:4px;">Incident Notes</div><div style="color:var(--text);">'+v.incident_notes+'</div></div>':''}
           </div>
@@ -791,7 +854,7 @@ function togglePSWVisit(id) {
   if (!el) return;
   const open = el.style.display !== 'none';
   el.style.display = open ? 'none' : 'block';
-  if (chev) chev.textContent = open ? '▼' : '▲';
+  if (chev) chev.textContent = open ? '+' : '−';
 }
 
 // ── MESSAGES ──
