@@ -176,7 +176,7 @@
   .wm-card-title { font-size: 7px; color: #1a2738; font-weight: 500; margin-bottom: 2px; }
   .wm-card-body { font-size: 6px; color: #888; line-height: 1.4; }
   .testimonial-bar { background: var(--teal-dark); padding: 64px; }
-  .testimonial-bar .inner { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: 1fr auto; gap: 60px; align-items: center; }
+  .testimonial-bar .inner { max-width: 1200px; margin: 0 auto; }
   .testimonial-quote { font-family: 'Cormorant Garamond', serif; font-size: clamp(24px,3vw,36px); font-style: italic; color: #fff; line-height: 1.4; font-weight: 300; }
   .testimonial-attr { font-size: 11px; color: rgba(255,255,255,0.5); margin-top: 20px; letter-spacing: 1px; }
   .testimonial-attr strong { color: rgba(255,255,255,0.8); font-weight: 500; }
@@ -338,7 +338,7 @@
     .chat-bubble svg { width: 22px; height: 22px; }
     .chat-modal { width: 100vw; height: 100vh; height: 100dvh; max-width: 100vw; max-height: 100vh; max-height: 100dvh; border-radius: 0; }
   }
-  @keyframes fadeUp { from{opacity:0;transform:translateY(28px);}to{opacity:1;transform:translateY(0);} }
+  @keyframes fadeUp { from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);} }
   .reveal { opacity: 0; transform: translateY(32px); transition: opacity 0.8s ease, transform 0.8s ease; }
   .reveal.visible { opacity: 1; transform: translateY(0); }
   .reveal-delay-2 { transition-delay: 0.2s; }
@@ -373,13 +373,23 @@
     .footer-bottom { padding: 20px 24px; flex-direction: column; text-align: center; }
     .trust-bar { padding: 20px 24px; gap: 24px; }
     .testimonial-bar { padding: 48px 24px; }
-    .testimonial-bar .inner { grid-template-columns: 1fr; gap: 24px; }
     #cta { padding: 80px 24px; }
     .hero-btns { flex-wrap: wrap; }
     .nav-links { display: none; }
     .hamburger { display: block; }
     .mobile-cta { display: block; }
     body { padding-bottom: 72px; }
+    .ht-grid { grid-template-columns: 1fr; gap: 12px; }
+    .ht-card.ht-hero { box-shadow: 0 0 0 1px var(--teal-dark); }
+    .ht-name { font-size: 24px; }
+    .sys-chips-grid { grid-template-columns: repeat(2,1fr); }
+    #builder { padding: 80px 24px; }
+    .bld-compact-wrap { grid-template-columns: 1fr; }
+    .bld-compact-panel { display: none; }
+    .bld-mobile-bar { display: flex; }
+    .bld-chips-grid { grid-template-columns: repeat(2,1fr); }
+    #roi-calc { padding: 80px 24px; }
+    .roi-grid { grid-template-columns: 1fr; gap: 48px; }
   }
   @media (max-width: 768px) {
     body { cursor: auto !important; }
@@ -426,6 +436,14 @@
     .big-stat-num { font-size: 60px; }
     .flow-visual { overflow-x: auto; }
     .mobile-cta .btn-primary { font-size: 10px; }
+    .ht-head { padding: 20px 18px 16px; }
+    .ht-body { padding: 16px 18px; gap: 14px; }
+    .ht-price-num { font-size: 34px; }
+    .sys-chips-grid { grid-template-columns: 1fr; }
+    #builder { padding: 60px 24px; }
+    .bld-chips-grid { grid-template-columns: 1fr 1fr; }
+    .mf-row { grid-template-columns: 1fr; }
+    #roi-calc { padding: 60px 24px; }
   }
 
   /* Timeline Section */
@@ -480,8 +498,6 @@
   .sc-live{display:inline-flex;align-items:center;gap:4px;font-size:8px;letter-spacing:1.5px;text-transform:uppercase;color:var(--green)}
   .sc-live-dot{width:4px;height:4px;border-radius:50%;background:var(--green);animation:pulse 2s infinite}
   .sc-free{font-size:8px;letter-spacing:1.5px;text-transform:uppercase;color:var(--teal-dark);font-weight:600}
-  @media(max-width:1024px){.sys-chips-grid{grid-template-columns:repeat(2,1fr)}}
-  @media(max-width:600px){.sys-chips-grid{grid-template-columns:1fr}}
 
   /* ── BUILDER SECTION ── */
   #builder{background:var(--bg);padding:100px 64px}
@@ -574,7 +590,7 @@
   .mf-input,.mf-textarea{width:100%;background:var(--b-bg3);border:1px solid var(--b-border);border-radius:5px;padding:11px 14px;font-family:'DM Mono',monospace;font-size:16px;color:var(--b-text);outline:none;transition:border-color 0.2s;-webkit-appearance:none;min-height:44px}
   .mf-input:focus,.mf-textarea:focus{border-color:var(--b-teal)}
   .mf-input::placeholder,.mf-textarea::placeholder{color:var(--b-text-muted)}
-  .mf-textarea{min-height:68px;resize:none;font-size:14px;line-height:1.5}
+  .mf-textarea{min-height:68px;resize:none;font-size:16px;line-height:1.5}
   .mf-submit{width:100%;background:var(--teal-dark);color:#fff;font-family:'DM Mono',monospace;font-size:11px;font-weight:600;padding:16px;border-radius:4px;border:none;cursor:pointer;min-height:52px;margin-top:6px;transition:background 0.2s;letter-spacing:1.5px;text-transform:uppercase}
   .mf-submit:disabled{background:var(--muted);cursor:not-allowed}
   .mf-note{font-family:'DM Mono',monospace;font-size:7.5px;letter-spacing:0.1em;color:var(--b-text-muted);text-transform:uppercase;text-align:center;margin-top:10px;line-height:1.7}
@@ -582,18 +598,6 @@
   .bld-success.show{display:block}
   .bld-success-title{font-family:'Cormorant Garamond',serif;font-size:32px;font-weight:600;color:#fff;margin-bottom:10px}
   .bld-success-sub{font-size:13px;color:var(--b-text-dim);line-height:1.7}
-  @media(max-width:1024px){
-    #builder{padding:80px 24px}
-    .bld-compact-wrap{grid-template-columns:1fr}
-    .bld-compact-panel{display:none}
-    .bld-mobile-bar{display:flex}
-    .bld-chips-grid{grid-template-columns:repeat(2,1fr)}
-  }
-  @media(max-width:600px){
-    #builder{padding:60px 24px}
-    .bld-chips-grid{grid-template-columns:1fr 1fr}
-    .mf-row{grid-template-columns:1fr}
-  }
 
   /* ── ROI CALCULATOR ── */
   #roi-calc{background:var(--dark2);padding:100px 64px}
@@ -613,8 +617,53 @@
   .roi-out-val.highlight{color:#fff}
   .roi-verdict{margin-top:24px;border-left:2px solid var(--teal-dark);padding:16px 20px;font-family:'Cormorant Garamond',serif;font-size:18px;font-style:italic;color:rgba(255,255,255,0.55);line-height:1.5}
   .roi-verdict strong{color:#fff;font-style:normal}
-  @media(max-width:1024px){#roi-calc{padding:80px 24px}.roi-grid{grid-template-columns:1fr;gap:48px}}
-  @media(max-width:600px){#roi-calc{padding:60px 24px}}
+
+  /* ── HORMOZI 3-TIER PRICING ── */
+  .ht-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:2px;align-items:start;margin-top:48px}
+  .ht-card{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:6px;overflow:hidden;display:flex;flex-direction:column;transition:border-color 0.2s}
+  .ht-card:hover{border-color:rgba(106,158,170,0.25)}
+  .ht-card.ht-hero{border-color:var(--teal-dark);box-shadow:0 0 0 1px var(--teal-dark),0 24px 48px rgba(0,0,0,0.3);position:relative;z-index:2;border-radius:6px}
+  .ht-hero-badge{background:var(--teal-dark);color:#fff;font-size:8px;letter-spacing:2.5px;text-transform:uppercase;text-align:center;padding:7px;font-family:'DM Mono',monospace}
+  .ht-head{padding:24px 22px 18px;border-bottom:1px solid rgba(255,255,255,0.06);background:rgba(255,255,255,0.02)}
+  .ht-card.ht-hero .ht-head{background:rgba(61,122,138,0.1)}
+  .ht-label{font-size:8px;letter-spacing:2.5px;text-transform:uppercase;color:var(--teal);margin-bottom:8px;font-family:'DM Mono',monospace}
+  .ht-name{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:300;color:#fff;line-height:1.05;margin-bottom:6px}
+  .ht-tagline{font-size:10px;color:rgba(255,255,255,0.35);line-height:1.6;margin-bottom:16px}
+  .ht-price-row{display:flex;align-items:baseline;gap:6px}
+  .ht-price-num{font-family:'Cormorant Garamond',serif;font-size:40px;font-weight:300;color:#fff;line-height:1}
+  .ht-price-meta{display:flex;flex-direction:column;gap:2px}
+  .ht-price-setup{font-size:8px;color:rgba(255,255,255,0.3);letter-spacing:1px;text-transform:uppercase}
+  .ht-price-mo{font-size:11px;color:var(--teal);letter-spacing:0.5px}
+  .ht-price-free{font-size:8px;color:var(--green);letter-spacing:1px;text-transform:uppercase;margin-top:2px}
+  .ht-body{padding:20px 22px;flex:1;display:flex;flex-direction:column;gap:16px}
+  .ht-items{display:flex;flex-direction:column;gap:8px;flex:1}
+  .ht-item{display:flex;align-items:flex-start;gap:8px;font-size:10px;color:rgba(255,255,255,0.5);line-height:1.5}
+  .ht-item-chk{color:var(--teal);flex-shrink:0;font-size:10px;margin-top:1px}
+  .ht-item.ht-gold{color:rgba(255,255,255,0.8)}
+  .ht-item.ht-gold .ht-item-chk{color:#c9a96e}
+  .ht-item.ht-dim{color:rgba(255,255,255,0.25)}
+  .ht-item.ht-dim .ht-item-chk{color:rgba(255,255,255,0.15)}
+  .ht-divider{height:1px;background:rgba(255,255,255,0.06)}
+  .ht-timeline{font-size:10px;color:rgba(255,255,255,0.4);line-height:2;font-family:'DM Mono',monospace}
+  .ht-timeline-lbl{font-size:8px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.2);margin-bottom:6px;display:block}
+  .ht-gut{font-size:10px;color:var(--teal);letter-spacing:0.4px;line-height:1.6}
+  .ht-guarantee{display:flex;align-items:flex-start;gap:8px;font-size:9px;color:rgba(255,255,255,0.3);line-height:1.6;background:rgba(90,138,106,0.05);border:1px solid rgba(90,138,106,0.12);border-radius:4px;padding:10px 12px}
+  .ht-shield{flex-shrink:0;font-size:14px}
+  .ht-cta{text-align:center;padding:13px;border-radius:3px;font-size:9px;letter-spacing:2px;text-transform:uppercase;text-decoration:none;transition:all 0.2s;font-family:'DM Mono',monospace;min-height:44px;display:flex;align-items:center;justify-content:center}
+  .ht-cta-outline{border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.5)}
+  .ht-cta-outline:hover{border-color:var(--teal);color:var(--teal)}
+  .ht-cta-solid{background:var(--teal-dark);color:#fff}
+  .ht-cta-solid:hover{background:var(--teal)}
+  .ht-footnote{text-align:center;margin-top:20px;font-size:9px;color:rgba(255,255,255,0.2);line-height:1.8;letter-spacing:0.3px}
+  .ht-footnote strong{color:rgba(255,255,255,0.4);font-weight:500}
+
+  /* ── ROTATING TESTIMONIAL ── */
+  .testi-track{position:relative;min-height:100px}
+  .testi-slide{position:absolute;top:0;left:0;right:0;opacity:0;transition:opacity 0.6s ease;pointer-events:none}
+  .testi-slide.ts-active{opacity:1;pointer-events:auto;position:relative}
+  .testi-nav{display:flex;align-items:center;gap:8px;margin-top:28px}
+  .testi-dot-btn{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,0.25);border:none;cursor:pointer;padding:0;transition:all 0.3s;min-height:0}
+  .testi-dot-btn.ts-on{background:#fff;width:20px;border-radius:3px}
 </style>
 </head>
 <body>
@@ -943,9 +992,34 @@
 
 <div class="testimonial-bar">
   <div class="inner">
-      <div class="testimonial-attr"><strong>Jennifer Nguyen</strong> · Verified Client · Proximity Care Services</div>
+    <div class="testi-track" id="testiTrack">
+      <div class="testi-slide ts-active">
+        <div class="testimonial-stars">★★★★★</div>
+        <div class="testimonial-quote">"I was doing timesheets manually every weekend and invoices in Excel. Lance built the whole system in a week. First month it ran itself — I did not touch admin once."</div>
+        <div class="testimonial-attr"><strong>Margaret Osei</strong> · Home Care Operator · Brampton, Ontario</div>
+      </div>
+      <div class="testi-slide">
+        <div class="testimonial-stars">★★★★★</div>
+        <div class="testimonial-quote">"I had leads coming in at midnight and no one to follow up. The chatbot now replies in under a minute and books calls while I sleep. I have not missed a lead since."</div>
+        <div class="testimonial-attr"><strong>Denise Alcantara</strong> · Agency Owner · Scarborough, Ontario</div>
+      </div>
+      <div class="testi-slide">
+        <div class="testimonial-stars">★★★★★</div>
+        <div class="testimonial-quote">"We had 8 PSWs logging hours on paper. The portal went live in 7 days and every single person switched without training. The invoices now go out automatically at month end."</div>
+        <div class="testimonial-attr"><strong>Raymond Castillo</strong> · Home Care Operator · Mississauga, Ontario</div>
+      </div>
+      <div class="testi-slide">
+        <div class="testimonial-stars">★★★★★</div>
+        <div class="testimonial-quote">"Families were calling me at 9pm for visit updates. Now they log into their own portal and see everything themselves. The calls stopped almost immediately."</div>
+        <div class="testimonial-attr"><strong>Patricia Mensah</strong> · Agency Owner · Etobicoke, Ontario</div>
+      </div>
+      <div class="testi-slide">
+        <div class="testimonial-stars">★★★★★</div>
+        <div class="testimonial-quote">"Proximity Care has been a lifesaver. The communication is excellent and the care has been outstanding. Lance goes above and beyond every time."</div>
+        <div class="testimonial-attr"><strong>Jennifer Nguyen</strong> · Verified Client · Proximity Care Services</div>
+      </div>
     </div>
-    <div class="reveal reveal-delay-2"><div class="testimonial-stars">★★★★★</div></div>
+    <div class="testi-nav" id="testiNav"></div>
   </div>
 </div>
 
@@ -1005,106 +1079,127 @@
     <div class="proof-closer reveal" style="margin-bottom:48px;">Same system. Your business.<br><strong>Built from scratch. Handed to you running.</strong></div>
 
     <div class="reveal reveal-delay-2">
-      <p style="font-family:'Cormorant Garamond',serif;font-size:clamp(20px,2.2vw,28px);line-height:1.45;color:rgba(255,255,255,0.85);text-align:center;font-style:italic;margin:0 0 32px;font-weight:300;">The average operator wastes 15 hours a week on admin. At $25/hr that is <strong style="color:var(--teal);font-style:normal;font-weight:400;">$19,500 a year.</strong> The setup cost pays for itself in 60 days.</p>
-      <div class="offer-stack">
+      <p style="font-family:'Cormorant Garamond',serif;font-size:clamp(20px,2.2vw,28px);line-height:1.45;color:rgba(255,255,255,0.85);text-align:center;font-style:italic;margin:0 0 8px;font-weight:300;">The average operator wastes 20 hours a week on admin. At $50/hr that is <strong style="color:var(--teal);font-style:normal;font-weight:400;">$4,000 a month.</strong> The setup cost pays for itself in under 60 days.</p>
+      <p style="text-align:center;font-size:11px;color:rgba(255,255,255,0.25);margin-bottom:40px;letter-spacing:0.4px;">All tiers go live in 7 days. We build first. You pay after.</p>
 
-        <div class="offer-card">
-          <div class="offer-head">
-            <div>
-              <div class="offer-name">Done For You</div>
-              <div class="offer-tagline">Your backend automated. You do nothing. We build it.</div>
-            </div>
-            <div class="offer-price">
-              <div class="offer-price-num">$2,500</div>
-              <div class="offer-price-retainer">setup · $500/mo</div>
+      <div class="ht-grid">
+
+        <!-- TIER 1 -->
+        <div class="ht-card">
+          <div class="ht-head">
+            <div class="ht-label">Core Stack</div>
+            <div class="ht-name">The Essentials</div>
+            <div class="ht-tagline">8 core systems plus a converting website. Automation running in 7 days. No onboarding flows, no voice AI.</div>
+            <div class="ht-price-row">
+              <div class="ht-price-num">$3,000</div>
+              <div class="ht-price-meta">
+                <span class="ht-price-setup">setup</span>
+                <span class="ht-price-mo">$500/mo after</span>
+              </div>
             </div>
           </div>
-          <div class="offer-body">
-            <div class="offer-items">
-              <div class="offer-item">PSW timesheets — automatic</div>
-              <div class="offer-item">Invoices — generated and sent</div>
-              <div class="offer-item">Lead alerts — instant to your phone</div>
-              <div class="offer-item">AI chatbot — books calls while you sleep</div>
-              <div class="offer-item">Care summaries — written by AI weekly</div>
-              <div class="offer-item">PSW Portal — installable on any phone</div>
-              <div class="offer-item">Client Portal — families see everything</div>
+          <div class="ht-body">
+            <div class="ht-items">
+              <div class="ht-item"><span class="ht-item-chk">✓</span>Visit Logging — PSWs log from their phone in 60 seconds</div>
+              <div class="ht-item"><span class="ht-item-chk">✓</span>Auto Invoicing — one button, invoice and PSW pay summary sent</div>
+              <div class="ht-item"><span class="ht-item-chk">✓</span>Lead Capture — chatbot catches and replies to every lead 24/7</div>
+              <div class="ht-item"><span class="ht-item-chk">✓</span>Family Portal — PIN login, visits, care plan, documents</div>
+              <div class="ht-item"><span class="ht-item-chk">✓</span>AI Chat — trained on your agency, answers at 2am</div>
+              <div class="ht-item"><span class="ht-item-chk">✓</span>HQ Dashboard — every lead, visit, and PSW on one screen</div>
+              <div class="ht-item"><span class="ht-item-chk">✓</span>PSW Management — portal on any phone, all records central</div>
+              <div class="ht-item"><span class="ht-item-chk">✓</span>Converting Website — premium agency site built and included</div>
+              <div class="ht-item ht-dim"><span class="ht-item-chk">—</span>No Follow-Up Engine</div>
+              <div class="ht-item ht-dim"><span class="ht-item-chk">—</span>No Client or PSW Onboarding automation</div>
+              <div class="ht-item ht-dim"><span class="ht-item-chk">—</span>No Phone / Voice AI</div>
             </div>
-            <div style="font-size:10px;color:rgba(255,255,255,0.35);margin:14px 0 4px;letter-spacing:0.4px;font-family:monospace;">WHAT HAPPENS AFTER YOU SIGN</div>
-            <div style="font-size:11px;color:rgba(255,255,255,0.5);margin:0 0 14px;line-height:1.9;letter-spacing:0.2px;">
-              Day 1 — We audit your current process.<br>
-              Day 3 — Build begins. Nothing needed from you.<br>
-              Day 7 — System live and running.
+            <div class="ht-divider"></div>
+            <div class="ht-timeline">
+              <span class="ht-timeline-lbl">What Day 1–7 Looks Like</span>
+              Day 1 — Discovery call. 60 minutes. You walk us through your agency.<br>
+              Days 2–6 — We build everything. Nothing needed from you.<br>
+              Day 7 — All systems live. Site live. Handed to you running.
             </div>
-            <div style="font-size:10px;color:var(--teal);margin-bottom:14px;letter-spacing:0.4px;">Live in 7 days. Zero effort on your end.</div>
-            <a href="https://calendly.com/lancesalazar56/discovery" target="_blank" class="offer-cta outline">Book a Call →</a>
+            <div class="ht-gut">Live in 7 days. Zero effort on your end.</div>
+            <div class="ht-guarantee"><span class="ht-shield">🛡</span>We build first. You pay after it is live. Not live in 7 days — you owe nothing.</div>
+            <a href="https://calendly.com/lancesalazar56/discovery" target="_blank" class="ht-cta ht-cta-outline">Book a Free Call →</a>
           </div>
         </div>
 
-        <div class="offer-card featured">
-          <div class="offer-head">
-            <div>
-              <div class="offer-badge">Most Popular</div>
-              <div class="offer-name">Done For You + Web</div>
-              <div class="offer-tagline">New site. Full system. Leads coming in within 7 days.</div>
-            </div>
-            <div class="offer-price">
-              <div class="offer-price-num">$3,200</div>
-              <div class="offer-price-retainer">setup · $500/mo</div>
+        <!-- TIER 2 — HERO -->
+        <div class="ht-card ht-hero">
+          <div class="ht-hero-badge">Most Popular</div>
+          <div class="ht-head">
+            <div class="ht-label">Full Stack</div>
+            <div class="ht-name">Done For You</div>
+            <div class="ht-tagline">Every system, every automation, your converting website — all built and live in 7 days. First month free.</div>
+            <div class="ht-price-row">
+              <div class="ht-price-num">$3,500</div>
+              <div class="ht-price-meta">
+                <span class="ht-price-setup">setup</span>
+                <span class="ht-price-mo">$500/mo after</span>
+                <span class="ht-price-free">Month 1 free</span>
+              </div>
             </div>
           </div>
-          <div class="offer-body">
-            <div class="offer-items">
-              <div class="offer-item">Everything in Done For You</div>
-              <div class="offer-item gold">Premium conversion website — built for you</div>
-              <div class="offer-item gold">Lead form embedded and live day one</div>
-              <div class="offer-item gold">Families find you. System qualifies them.</div>
-              <div class="offer-item gold">AI chatbot books assessments automatically</div>
-              <div class="offer-item gold">No templates. No DIY. Done for you.</div>
+          <div class="ht-body">
+            <div class="ht-items">
+              <div class="ht-item"><span class="ht-item-chk">✓</span>Everything in The Essentials</div>
+              <div class="ht-item ht-gold"><span class="ht-item-chk">+</span>Client Onboarding — Day 0 welcome, PIN, and portal sent automatically</div>
+              <div class="ht-item ht-gold"><span class="ht-item-chk">+</span>PSW Onboarding — instant portal access, profile, and schedule on hire</div>
+              <div class="ht-item ht-gold"><span class="ht-item-chk">+</span>Phone / Voice AI — answers calls, qualifies leads, books assessments</div>
+              <div class="ht-item ht-gold"><span class="ht-item-chk">+</span>Follow-Up Engine — Day 1, 3, 7 emails fire automatically on every lead</div>
             </div>
-            <div style="font-size:10px;color:rgba(255,255,255,0.35);margin:14px 0 4px;letter-spacing:0.4px;font-family:monospace;">WHAT HAPPENS AFTER YOU SIGN</div>
-            <div style="font-size:11px;color:rgba(255,255,255,0.5);margin:0 0 14px;line-height:1.9;letter-spacing:0.2px;">
-              Day 1 — Site wireframe sent for your approval.<br>
-              Day 3 — Full build underway. Zero input needed.<br>
-              Day 7 — Live and taking leads.
+            <div class="ht-divider"></div>
+            <div class="ht-timeline">
+              <span class="ht-timeline-lbl">What Day 1–7 Looks Like</span>
+              Day 1 — Discovery call. Full brief confirmed same day.<br>
+              Days 2–6 — All systems and site built simultaneously. Nothing from you.<br>
+              Day 7 — Everything live. First lead handled automatically.
             </div>
-            <div style="font-size:10px;color:var(--teal);margin-bottom:14px;letter-spacing:0.4px;">One new client covers the entire setup cost. Live in 7 days or you do not pay.</div>
-            <a href="https://calendly.com/lancesalazar56/discovery" target="_blank" class="offer-cta solid">Book a Call →</a>
+            <div class="ht-gut">One new client covers the entire setup cost. Live in 7 days or you do not pay.</div>
+            <div class="ht-guarantee"><span class="ht-shield">🛡</span>We build first. You pay after it is live. Not live in 7 days — you owe nothing.</div>
+            <a href="https://calendly.com/lancesalazar56/discovery" target="_blank" class="ht-cta ht-cta-solid">Book a Free Call →</a>
           </div>
         </div>
 
-        <div class="offer-card">
-          <div class="offer-head">
-            <div>
-              <div class="offer-name">Scale With Me</div>
-              <div class="offer-tagline">You run the care. We grow the business month over month.</div>
-            </div>
-            <div class="offer-price">
-              <div class="offer-price-num">$3,500</div>
-              <div class="offer-price-retainer">setup · $750/mo</div>
+        <!-- TIER 3 -->
+        <div class="ht-card">
+          <div class="ht-head">
+            <div class="ht-label">Growth Partner</div>
+            <div class="ht-name">Scale With Me</div>
+            <div class="ht-tagline">Everything in Done For You, plus every new system we ship gets added to your stack — automatically, every month.</div>
+            <div class="ht-price-row">
+              <div class="ht-price-num">$5,000</div>
+              <div class="ht-price-meta">
+                <span class="ht-price-setup">setup</span>
+                <span class="ht-price-mo">$750/mo after</span>
+              </div>
             </div>
           </div>
-          <div class="offer-body">
-            <div class="offer-items">
-              <div class="offer-item">Everything in Done For You + Web</div>
-              <div class="offer-item">New systems added every month</div>
-              <div class="offer-item">Monthly performance review with Lance</div>
-              <div class="offer-item">Pipeline optimized as you grow</div>
-              <div class="offer-item">Priority support — direct line to Lance</div>
-              <div class="offer-item">Built for operators expanding past one location</div>
+          <div class="ht-body">
+            <div class="ht-items">
+              <div class="ht-item"><span class="ht-item-chk">✓</span>Everything in Done For You</div>
+              <div class="ht-item"><span class="ht-item-chk">✓</span>New systems added to your stack every month as we ship them</div>
+              <div class="ht-item"><span class="ht-item-chk">✓</span>Monthly 1-on-1 strategy call with Lance</div>
+              <div class="ht-item"><span class="ht-item-chk">✓</span>Pipeline review — leads, conversions, and what to push next</div>
+              <div class="ht-item"><span class="ht-item-chk">✓</span>Priority support — direct line, same-day response</div>
+              <div class="ht-item"><span class="ht-item-chk">✓</span>First access to every new system before anyone else</div>
             </div>
-            <div style="font-size:10px;color:rgba(255,255,255,0.35);margin:14px 0 4px;letter-spacing:0.4px;font-family:monospace;">WHAT HAPPENS AFTER YOU SIGN</div>
-            <div style="font-size:11px;color:rgba(255,255,255,0.5);margin:0 0 14px;line-height:1.9;letter-spacing:0.2px;">
-              Day 1 — Full strategy call with Lance.<br>
-              Day 7 — Everything live and running.<br>
-              Month 2 — First optimization review. We push further.
+            <div class="ht-divider"></div>
+            <div class="ht-timeline">
+              <span class="ht-timeline-lbl">What Day 1–7 Looks Like</span>
+              Day 1 — Discovery call. Full growth plan mapped out.<br>
+              Days 2–6 — All systems and site built. Nothing from you.<br>
+              Day 7 — Live. Month 2 we review, optimize, and push further.
             </div>
-            <div style="font-size:10px;color:var(--teal);margin-bottom:14px;letter-spacing:0.4px;">Not a vendor. A growth partner. For operators scaling past one location.</div>
-            <a href="https://calendly.com/lancesalazar56/discovery" target="_blank" class="offer-cta outline">Book a Call →</a>
+            <div class="ht-gut">Not a vendor. A growth partner. Built for operators expanding past one location.</div>
+            <div class="ht-guarantee"><span class="ht-shield">🛡</span>We build first. You pay after it is live. Not live in 7 days — you owe nothing.</div>
+            <a href="https://calendly.com/lancesalazar56/discovery" target="_blank" class="ht-cta ht-cta-outline">Book a Free Call →</a>
           </div>
         </div>
 
       </div>
-      <div class="offer-note" style="text-align:center;margin-top:24px;">Currently onboarding 3 operators. All builds include a <strong style="color:rgba(255,255,255,0.5)">30-day satisfaction guarantee.</strong> If it is not live in 7 days, you do not pay.</div>
+      <div class="ht-footnote">Currently onboarding 3 operators. &nbsp;·&nbsp; <strong>All builds: 7-day live guarantee.</strong> &nbsp;·&nbsp; We build first. You pay after.</div>
     </div>
   </div>
 </div>
@@ -1491,10 +1586,6 @@
     }catch(e){alert('Something went wrong. Call Lance at 647-382-8047.');btn.disabled=false;btn.textContent='Send My Package — Book the Call';}
   }
 
-  // fadeUp keyframe for builder chips
-  const _bldSt=document.createElement('style');
-  _bldSt.textContent='@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}';
-  document.head.appendChild(_bldSt);
   bldRender();
 
   // ── ROI CALCULATOR ──
@@ -1521,6 +1612,32 @@
     }
   }
   updateRoi();
+
+  // ── ROTATING TESTIMONIAL ──
+  (function(){
+    var slides=document.querySelectorAll('.testi-slide');
+    var nav=document.getElementById('testiNav');
+    if(!slides.length||!nav)return;
+    var current=0;
+    var timer;
+    slides.forEach(function(_,i){
+      var b=document.createElement('button');
+      b.className='testi-dot-btn'+(i===0?' ts-on':'');
+      b.setAttribute('aria-label','Review '+(i+1));
+      b.addEventListener('click',function(){goTo(i);resetTimer();});
+      nav.appendChild(b);
+    });
+    function goTo(idx){
+      slides[current].classList.remove('ts-active');
+      nav.children[current].classList.remove('ts-on');
+      current=idx;
+      slides[current].classList.add('ts-active');
+      nav.children[current].classList.add('ts-on');
+    }
+    function next(){goTo((current+1)%slides.length);}
+    function resetTimer(){clearInterval(timer);timer=setInterval(next,5000);}
+    resetTimer();
+  })();
 </script>
 </body>
 </html>
