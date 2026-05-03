@@ -1846,7 +1846,7 @@ async function sendChat(text) {
 
     setTimeout(function(){
       addCMsg('b', raw);
-      chatHistory.push({role:'assistant', content:raw});
+      chatHistory.push({role:'assistant', content:raw.replace(/<!--READY_FOR_BOOKING:[\s\S]*?-->/g,'').trim()});
 
       if(bookingMatch) {
         // Show booking form after short delay
@@ -2045,6 +2045,7 @@ var pcBooked=false;
 
   setTimeout(function(){
     if(pcBooked) return;
+    if(scrollDepth < 10) return; // don't fire beacon if user never scrolled
     try{
       fetch(WEBHOOK_URL_BE,{
         method:'POST',
