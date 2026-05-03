@@ -548,6 +548,38 @@ footer{background:var(--navy);padding:60px 48px 32px;border-top:1px solid rgba(2
 ══════════════════════════════════════ */
 
 /* ── TABLET LANDSCAPE 1024px ── */
+
+
+input,select,textarea,.chat-field input,.chat-field select{font-size:16px!important;}
+
+/* ============================================================
+   LEVEL 20 CSS ADDITIONS — proximitycares
+   ============================================================ */
+
+/* LENIS */
+html.lenis{height:auto}
+.lenis.lenis-smooth{scroll-behavior:auto}
+.lenis.lenis-stopped{overflow:hidden}
+
+/* NOISE OVERLAY */
+body::after{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");pointer-events:none;z-index:999;opacity:0.25}
+
+/* CUSTOM CURSOR — warm blue to match navy site */
+.pc-cursor{position:fixed;width:5px;height:5px;background:var(--blue2);border-radius:50%;pointer-events:none;z-index:9999;transform:translate(-50%,-50%)}
+.pc-cursor-ring{position:fixed;width:30px;height:30px;border:1px solid rgba(90,170,234,0.3);border-radius:50%;pointer-events:none;z-index:9998;transform:translate(-50%,-50%);transition:width 0.25s ease,height 0.25s ease,border-color 0.25s ease}
+.pc-cursor-ring.hover{width:44px;height:44px;border-color:var(--blue2)}
+
+/* ASYMMETRIC CUT — clip-path on all CTAs */
+.btn-primary{clip-path:polygon(0 0,100% 0,100% calc(100% - 10px),calc(100% - 10px) 100%,0 100%);border-radius:0!important;transition:background 0.2s,clip-path 0.2s,transform 0.15s!important}
+.btn-primary:hover{clip-path:polygon(0 0,100% 0,100% calc(100% - 14px),calc(100% - 14px) 100%,0 100%);transform:translateY(-2px)}
+.btn-secondary{clip-path:polygon(0 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%);border-radius:0!important;transition:background 0.2s,clip-path 0.2s!important}
+.btn-secondary:hover{clip-path:polygon(0 0,100% 0,100% calc(100% - 11px),calc(100% - 11px) 100%,0 100%)}
+.plan-cta{clip-path:polygon(0 0,100% 0,100% calc(100% - 10px),calc(100% - 10px) 100%,0 100%);border-radius:0!important;transition:background 0.2s,clip-path 0.2s!important}
+.plan-cta:hover{clip-path:polygon(0 0,100% 0,100% calc(100% - 14px),calc(100% - 14px) 100%,0 100%)}
+.step-next{clip-path:polygon(0 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%);border-radius:0!important;transition:background 0.2s,clip-path 0.2s!important}
+.step-next:hover{clip-path:polygon(0 0,100% 0,100% calc(100% - 11px),calc(100% - 11px) 100%,0 100%)}
+#mobile-sticky-btn{clip-path:polygon(0 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%);border-radius:0!important}
+
 @media(max-width:1024px){
   nav{padding:0 32px;}
   .hero-content{padding:0 32px;padding-top:70px;}
@@ -564,7 +596,12 @@ footer{background:var(--navy);padding:60px 48px 32px;border-top:1px solid rgba(2
   .builder-grid{grid-template-columns:1fr 320px;}
 }
 
-/* ── TABLET PORTRAIT / LARGE PHONE 900px ── */
+@media(min-width:901px){
+  .nav-links{display:flex!important;}
+  .nav-cta{display:inline-flex!important;}
+  .hamburger{display:none!important;}
+}
+
 @media(max-width:900px){
   /* Nav */
   nav{padding:0 20px;}
@@ -634,9 +671,32 @@ footer{background:var(--navy);padding:60px 48px 32px;border-top:1px solid rgba(2
   /* Chat */
   #chat-widget{bottom:16px;right:16px;}
   #chat-overlay{bottom:80px;right:16px;width:calc(100vw - 32px);max-height:72vh;}
+  /* Mobile stat strip */
+  .hero-mobile-stats{display:flex;align-items:center;justify-content:space-between;margin-top:40px;padding:20px 0;border-top:1px solid rgba(255,255,255,.08);}
+  .hms-item{display:flex;flex-direction:column;align-items:center;gap:4px;flex:1;}
+  .hms-val{font-family:var(--serif);font-size:22px;color:var(--white);font-weight:300;line-height:1;}
+  .hms-lbl{font-size:9px;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,.4);text-align:center;}
+  .hms-div{width:1px;height:32px;background:rgba(255,255,255,.1);flex-shrink:0;}
+
+  /* Hide desktop trust items — stat strip replaces them */
+  .hero-trust{display:none;}
+
+  /* Sticky CTA — offset so it doesn't overlap chatbot */
+  #mobile-sticky-cta{display:block;padding-bottom:max(12px,env(safe-area-inset-bottom));}
+
+  /* Push chat widget above sticky bar */
+  #chat-widget{bottom:80px;}
+  #chat-overlay{bottom:144px;}
+
+  /* City selector — stays 3 col on tablet */
+  .care-types-city{grid-template-columns:repeat(3,1fr);}
+
+  /* Services grid — remove gap background so no grey lines on mobile */
+  .services-grid{background:transparent;gap:12px;}
+  .service-card{border:1px solid var(--border);border-left:3px solid transparent;}
+  .service-card:hover{border-left:3px solid var(--blue);}
 }
 
-/* ── PHONE PORTRAIT 768px ── */
 @media(max-width:768px){
   .hero-h1{font-size:clamp(34px,9vw,54px);}
   .hero-sub{font-size:15px;}
@@ -667,7 +727,6 @@ footer{background:var(--navy);padding:60px 48px 32px;border-top:1px solid rgba(2
   /* About stats — img-wrap hidden at 900px, mobile strip handles this */
 }
 
-/* ── SMALL PHONE 480px (Samsung, older iPhones) ── */
 @media(max-width:480px){
   /* Typography scale down */
   .hero-h1{font-size:clamp(30px,10vw,46px);line-height:1.05;}
@@ -708,70 +767,6 @@ footer{background:var(--navy);padding:60px 48px 32px;border-top:1px solid rgba(2
 
   /* CTA badge compact */
   .cta-badge{padding:16px 12px;}
-}
-
-/* ── TINY PHONE 390px (iPhone 14 Pro standard) ── */
-@media(max-width:390px){
-  .hero-h1{font-size:28px;}
-  nav{padding:0 14px;}
-  .hero-content{padding:0 14px;padding-top:74px;}
-  .section{padding:36px 14px;}
-  .builder-section,.how-section,.services-section,.about-section,.cta-section{padding:36px 14px;}
-  .care-types{grid-template-columns:1fr;}
-  .test-grid{min-height:480px;}
-  .cta-badges{gap:10px;}
-  footer{padding:36px 14px 20px;}
-  #chat-overlay{width:calc(100vw - 28px);right:14px;}
-  #chat-widget{right:14px;bottom:14px;}
-}
-
-/* ── DESKTOP ENFORCE ── */
-@media(min-width:901px){
-  .nav-links{display:flex!important;}
-  .nav-cta{display:inline-flex!important;}
-  .hamburger{display:none!important;}
-}
-/* ── CITY SELECTOR — 3 col desktop, overrideable on mobile ── */
-.care-types-city{grid-template-columns:repeat(3,1fr);}
-
-/* ── MOBILE STAT STRIP — hidden on desktop ── */
-.hero-mobile-stats{display:none;}
-
-/* ── STICKY MOBILE CTA — hidden on desktop ── */
-#mobile-sticky-cta{display:none;position:fixed;bottom:0;left:0;right:0;z-index:800;padding:12px 16px;background:rgba(14,32,56,.96);backdrop-filter:blur(12px);border-top:1px solid rgba(61,143,214,.2);}
-#mobile-sticky-btn{display:block;width:100%;background:var(--blue);color:var(--white);text-align:center;padding:14px;font-size:12px;letter-spacing:2px;text-transform:uppercase;font-weight:600;text-decoration:none;border-radius:100px;transition:background .2s;}
-#mobile-sticky-btn:hover{background:var(--blue2);}
-
-/* ── SHOW MOBILE ELEMENTS BELOW 900px ── */
-@media(max-width:900px){
-  /* Mobile stat strip */
-  .hero-mobile-stats{display:flex;align-items:center;justify-content:space-between;margin-top:40px;padding:20px 0;border-top:1px solid rgba(255,255,255,.08);}
-  .hms-item{display:flex;flex-direction:column;align-items:center;gap:4px;flex:1;}
-  .hms-val{font-family:var(--serif);font-size:22px;color:var(--white);font-weight:300;line-height:1;}
-  .hms-lbl{font-size:9px;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,.4);text-align:center;}
-  .hms-div{width:1px;height:32px;background:rgba(255,255,255,.1);flex-shrink:0;}
-
-  /* Hide desktop trust items — stat strip replaces them */
-  .hero-trust{display:none;}
-
-  /* Sticky CTA — offset so it doesn't overlap chatbot */
-  #mobile-sticky-cta{display:block;padding-bottom:max(12px,env(safe-area-inset-bottom));}
-
-  /* Push chat widget above sticky bar */
-  #chat-widget{bottom:80px;}
-  #chat-overlay{bottom:144px;}
-
-  /* City selector — stays 3 col on tablet */
-  .care-types-city{grid-template-columns:repeat(3,1fr);}
-
-  /* Services grid — remove gap background so no grey lines on mobile */
-  .services-grid{background:transparent;gap:12px;}
-  .service-card{border:1px solid var(--border);border-left:3px solid transparent;}
-  .service-card:hover{border-left:3px solid var(--blue);}
-}
-
-/* ── 480px SMALL PHONE ADDITIONS ── */
-@media(max-width:480px){
   /* City stays 3 col — names are short enough */
   .care-types-city{grid-template-columns:repeat(3,1fr);}
 
@@ -783,16 +778,32 @@ footer{background:var(--navy);padding:60px 48px 32px;border-top:1px solid rgba(2
   #mobile-sticky-cta{padding:10px 14px;}
 }
 
-/* ── 390px TINY PHONE ADDITIONS ── */
 @media(max-width:390px){
+  .pc-cursor,.pc-cursor-ring{display:none}
+  body{cursor:auto}
+  a,button{cursor:auto}
+  .hero-h1{font-size:28px;}
+  nav{padding:0 14px;}
+  .hero-content{padding:0 14px;padding-top:74px;}
+  .section{padding:36px 14px;}
+  .builder-section,.how-section,.services-section,.about-section,.cta-section{padding:36px 14px;}
+  .care-types{grid-template-columns:1fr;}
+  .test-grid{min-height:480px;}
+  .cta-badges{gap:10px;}
+  footer{padding:36px 14px 20px;}
+  #chat-overlay{width:calc(100vw - 28px);right:14px;}
+  #chat-widget{right:14px;bottom:14px;}
   .care-types-city{grid-template-columns:repeat(3,1fr);}
   .hms-item{gap:2px;}
   .hms-val{font-size:16px;}
   #mobile-sticky-btn{font-size:11px;padding:13px;}
 }
 </style>
+<script src="https://unpkg.com/lenis@1.1.14/dist/lenis.min.js"></script>
 </head>
 <body>
+<div class="pc-cursor" id="pcCursor"></div>
+<div class="pc-cursor-ring" id="pcCursorRing"></div>
 
 <div id="prog"></div>
 
@@ -1968,6 +1979,101 @@ showChips(CHIP_SETS.initial);
     });
   },{passive:true});
 })();
+
+
+
+/* ============================================================
+   LEVEL 20 JS — proximitycares.ca
+   Existing globals: prog, burger, mobileMenu, obs, svcObs, sg,
+   howObs, howSec, plan, CHAT_SYSTEM, chatHistory, chatProcessing,
+   intakeData, chatConfig, bookingComplete, CHIP_SETS
+   New globals: pcBooked (flag only)
+   ============================================================ */
+
+// LENIS SMOOTH SCROLL
+(function initLenis(){
+  if(typeof Lenis==='undefined') return;
+  document.documentElement.style.scrollBehavior='auto';
+  var lenis=new Lenis({duration:1.2,easing:function(t){return Math.min(1,1.001-Math.pow(2,-10*t))},smoothWheel:true});
+  function raf(time){lenis.raf(time);requestAnimationFrame(raf);}
+  requestAnimationFrame(raf);
+}());
+
+// CUSTOM CURSOR
+(function initCursor(){
+  if(!window.matchMedia('(pointer:fine)').matches) return;
+  var dot=document.getElementById('pcCursor');
+  var ring=document.getElementById('pcCursorRing');
+  if(!dot||!ring) return;
+  var mx=0,my=0,rx=0,ry=0;
+  document.addEventListener('mousemove',function(e){
+    mx=e.clientX;my=e.clientY;
+    dot.style.left=mx+'px';dot.style.top=my+'px';
+  });
+  (function animRing(){
+    rx+=(mx-rx)*0.1;ry+=(my-ry)*0.1;
+    ring.style.left=rx+'px';ring.style.top=ry+'px';
+    requestAnimationFrame(animRing);
+  })();
+  document.querySelectorAll('a,button,[data-hover]').forEach(function(el){
+    el.addEventListener('mouseenter',function(){ring.classList.add('hover');});
+    el.addEventListener('mouseleave',function(){ring.classList.remove('hover');});
+  });
+}());
+
+// BEHAVIOR ENGINE
+var pcBooked=false;
+
+(function initBehaviorEngine(){
+  var WEBHOOK_URL_BE='https://proximity-agent-production.up.railway.app/webhook/lead';
+  var params=new URLSearchParams(window.location.search);
+  var src=params.get('src')||params.get('utm_source')||'direct';
+  var utmMed=params.get('utm_medium')||'';
+  var utmCamp=params.get('utm_campaign')||'';
+
+  // Booking flag — track any CTA click
+  document.querySelectorAll('.btn-primary,.plan-cta,.step-next,#mobile-sticky-btn,a[href*="lead-form"]').forEach(function(el){
+    el.addEventListener('click',function(){pcBooked=true;});
+  });
+
+  // Dwell beacon at 90s
+  var scrollDepth=0;
+  window.addEventListener('scroll',function(){
+    var d=Math.round((window.scrollY/Math.max(1,document.body.scrollHeight-window.innerHeight))*100);
+    if(d>scrollDepth) scrollDepth=d;
+  },{passive:true});
+
+  setTimeout(function(){
+    if(pcBooked) return;
+    try{
+      fetch(WEBHOOK_URL_BE,{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({
+          type:'dwell_beacon',
+          site:'proximitycares.ca',
+          source:src,
+          utm_medium:utmMed,
+          utm_campaign:utmCamp,
+          scroll_depth:scrollDepth,
+          dwell_seconds:90,
+          page:window.location.href,
+          timestamp:new Date().toISOString()
+        })
+      }).catch(function(){});
+    }catch(e){}
+  },90000);
+
+  // Exit intent — scroll to builder
+  var exitFired=false;
+  document.addEventListener('mouseleave',function(e){
+    if(e.clientY<=0&&!exitFired&&!pcBooked&&scrollDepth>20){
+      exitFired=true;
+      var builderEl=document.getElementById('builder');
+      if(builderEl) window.scrollTo({top:builderEl.offsetTop-80,behavior:'smooth'});
+    }
+  });
+}());
 
 </script>
 </body>
