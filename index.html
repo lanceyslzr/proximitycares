@@ -1854,7 +1854,7 @@ async function sendChat(text) {
           var msgsEl = document.getElementById('cmsgs');
           var form = buildBookingForm();
           msgsEl.appendChild(form);
-          csc();
+          setTimeout(function(){ form.scrollIntoView({behavior:'smooth',block:'start'}); }, 80);
           // Disable chat input while booking form is shown
           var inp = document.getElementById('cinp');
           if(inp) { inp.disabled=true; inp.placeholder='Fill in your details above to book'; }
