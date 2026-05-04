@@ -1412,6 +1412,25 @@ function finalizePlan(){
   document.getElementById('builder-progress-fill').style.width='100%';
   const pc=document.getElementById('planCard');
   if(pc){pc.classList.add('mobile-show');if(window.innerWidth<=900)pc.scrollIntoView({behavior:'smooth',block:'start'});}
+  // Builder complete — fire intent beacon with real care data
+  try{
+    fetch('https://proximity-agent-production.up.railway.app/webhook/lead',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        operator_id:'proximity-care',
+        first_name:'[Builder]',
+        last_name:'Completed',
+        phone:'',
+        email:'',
+        care_type_interest:plan.careType||'',
+        care_needed_for:plan.services&&plan.services.length?plan.services.join(', '):'',
+        urgency:plan.hours>=40?'hot':plan.hours>=20?'warm':'new',
+        source:'care_builder_complete',
+        pain_point:'Hours: '+(plan.hours||0)+'/wk · City: '+(plan.city||'unknown')
+      })
+    }).catch(function(){});
+  }catch(e){}
 }
 
 function emailPlan(){
@@ -2025,45 +2044,20 @@ showChips(CHIP_SETS.initial);
 var pcBooked=false;
 
 (function initBehaviorEngine(){
-  var WEBHOOK_URL_BE='https://proximity-agent-production.up.railway.app/webhook/lead';
   var params=new URLSearchParams(window.location.search);
   var src=params.get('src')||params.get('utm_source')||'direct';
-  var utmMed=params.get('utm_medium')||'';
-  var utmCamp=params.get('utm_campaign')||'';
 
   // Booking flag — track any CTA click
   document.querySelectorAll('.btn-primary,.plan-cta,.step-next,#mobile-sticky-btn,a[href*="lead-form"]').forEach(function(el){
     el.addEventListener('click',function(){pcBooked=true;});
   });
 
-  // Dwell beacon at 90s
+  // Scroll depth tracker
   var scrollDepth=0;
   window.addEventListener('scroll',function(){
     var d=Math.round((window.scrollY/Math.max(1,document.body.scrollHeight-window.innerHeight))*100);
     if(d>scrollDepth) scrollDepth=d;
   },{passive:true});
-
-  setTimeout(function(){
-    if(pcBooked) return;
-    if(scrollDepth < 10) return; // don't fire beacon if user never scrolled
-    try{
-      fetch(WEBHOOK_URL_BE,{
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({
-          type:'dwell_beacon',
-          site:'proximitycares.ca',
-          source:src,
-          utm_medium:utmMed,
-          utm_campaign:utmCamp,
-          scroll_depth:scrollDepth,
-          dwell_seconds:90,
-          page:window.location.href,
-          timestamp:new Date().toISOString()
-        })
-      }).catch(function(){});
-    }catch(e){}
-  },90000);
 
   // Exit intent — scroll to builder
   var exitFired=false;
