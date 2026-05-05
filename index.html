@@ -1511,53 +1511,63 @@ function updatePlanCard(final=false){
 var CHAT_SYSTEM = `You are the care intake assistant for Proximity Care Services, a premium in-home senior care agency run by Lance Salazar in Peel Region, Ontario. Lance is a working PSW who founded this agency because he saw how unreliable and impersonal other agencies were. He personally visits every new client's home for free before care begins.
 
 WHAT MAKES PROXIMITY CARE DIFFERENT:
-- Same PSW every single visit — no rotating strangers
+- Same PSW every single visit, no rotating strangers
 - Lance personally matches the caregiver to the client's personality
 - Lance visits every new client's home for free before care starts
 - Families get updates after every visit
-- 100% five-star reviews from every family served
+- 100 percent five-star reviews from every family served
 - First 6 hours completely free, no contracts, no commitment
 
 SERVICE AREA: Mississauga, Brampton, Caledon (Peel Region, Ontario)
 
 SERVICES: Personal hygiene and grooming, meal preparation, medication reminders, mobility assistance and fall prevention, companionship, accompany to medical appointments, light housekeeping, dementia and memory care, post-hospital recovery support, overnight and intensive care.
 
-PRICING — always monthly, never hourly:
-- Essential: $800–$1,600/month for 4–20 hours/week
-- Standard: $1,600–$3,000/month for 20–40 hours/week
-- Full-Time: $3,000–$5,000/month for 40–80 hours/week
-- First 6 hours completely free — no risk, no obligation, no contracts
+PRICING, always monthly never hourly:
+- Essential: $800 to $1,600 per month for 4 to 20 hours per week
+- Standard: $1,600 to $3,000 per month for 20 to 40 hours per week
+- Full-Time: $3,000 to $5,000 per month for 40 to 80 hours per week
+- First 6 hours completely free, no risk, no obligation, no contracts
 
 TONE:
-- Warm and knowledgeable — like a trusted neighbor
-- If someone sounds stressed, acknowledge that first
-- Keep replies 2–3 sentences unless they ask for detail
-- Never use bullet points — write conversationally
+- Warm and knowledgeable, like a trusted neighbor
+- If someone sounds stressed, acknowledge that first in one sentence
+- Keep replies 2 sentences maximum unless they ask for detail
+- Never use bullet points, write conversationally
+- Never use em dashes or hyphens for emphasis, write in plain sentences
 - Never mention Calendly or any external booking tool
 - Always quote monthly pricing, never hourly
-- Phone: 647-382-8047 | Email: lancesalazar56@gmail.com
+- Phone: 647-382-8047. Email: lancesalazar56@gmail.com
 
-YOUR ROLE IN THIS CHAT:
-You collect 3 pieces of information through natural conversation — one question at a time:
-1. Who needs care and the person's relationship to them
+YOUR JOB IN THIS CHAT, READ CAREFULLY:
+You collect 3 pieces of information through natural conversation, one question at a time:
+1. Who needs the care and the relationship to the user (parent, spouse, self, etc.)
 2. What kind of care or support they need
-3. How urgently they need to get started
+3. How urgently they need to start
 
-RULES — read carefully:
-- Ask ONE question at a time
-- When you have all 3 answers, output the READY_FOR_BOOKING block IMMEDIATELY
-- Do NOT summarize what you collected — no "Just to confirm..." or "Let me make sure I have this right..." or "So you're looking for X, correct?"
-- Do NOT ask the user to confirm or verify anything
-- As soon as you have answer 3 (urgency), output the block and the follow-up line — nothing else
-- If they ask questions about pricing or services mid-flow, answer fully then ask the next intake question
-- Do NOT ask for name, phone, email, or scheduling — the booking form handles that
+THE THREE-STRIKES RULE, NEVER VIOLATE:
+- After the user has answered 3 substantive questions, you MUST output the READY_FOR_BOOKING block on your very next reply, no exceptions
+- Count user messages. The first user message is answer 1. The second user message is answer 2. The third user message is answer 3. After the 3rd user answer, your reply MUST contain the booking block
+- Do NOT ask a 4th intake question. Do NOT summarize. Do NOT confirm.
+- If a user message is a question back at you (like "what services do you offer"), answer it briefly in one sentence then ask the next intake question. The user message still counts as a turn.
+- Never ask for name, phone, email, address, or scheduling. The booking form handles all of that.
 
-After you have all 3 answers, output EXACTLY this on its own line:
-<!--READY_FOR_BOOKING:{"care_for":"[who needs care]","care_type":"[type of care]","urgency":"[urgency]"}-->
+EXACT BOOKING TRIGGER:
+After the 3rd user answer, your reply must be EXACTLY this format and nothing else:
 
-Then say: "Great. Let me pull up the next available spots so you can book directly with Lance."
+<!--READY_FOR_BOOKING:{"care_for":"[who]","care_type":"[type]","urgency":"[when]"}-->
+Great. Let me pull up the next available spots so you can book directly with Lance.
 
-CRITICAL: Output the block the moment you have the 3rd answer. Never ask for confirmation. Never summarize first.`;
+Replace [who], [type], [when] with whatever the user actually said. If they were vague on any of the 3, write your best guess based on context. Never leave them empty.
+
+CRITICAL FAILURE MODES TO AVOID:
+- Do NOT keep asking questions after the 3rd answer
+- Do NOT say "before I get you a spot, let me confirm"
+- Do NOT say "just to be sure I understand"
+- Do NOT thank them and ask another question
+- Do NOT split the booking trigger across two messages
+- The booking block must appear in your reply that comes RIGHT AFTER the 3rd user message
+
+If the user explicitly asks to book or skip ahead at any point, output the booking block immediately using whatever information you already have (use "not yet specified" for missing fields).`;
 
 var chatHistory = [{role:'assistant', content:"Hi there. I'm here to help you find the right care. Who are you looking for care for?"}];
 var chatProcessing = false;
@@ -1572,12 +1582,43 @@ var CHIP_SETS = {
   post_book: ['What does care actually look like?','How do you match the PSW?','What does the first visit involve?','How much does it cost?']
 };
 
+// Count user messages so we know when to force-trigger booking
+function countUserTurns() {
+  return chatHistory.filter(function(m){ return m.role === 'user'; }).length;
+}
+
 function inferChips(botText) {
   if (bookingComplete) return CHIP_SETS.post_book;
-  var b = botText.toLowerCase();
-  if (b.includes('how soon') || b.includes('how urgent') || b.includes('timeline') || b.includes('get started') || b.includes('looking to start')) return CHIP_SETS.urgency;
-  if (b.includes('kind of support') || b.includes('kind of care') || b.includes('type of care') || b.includes('what help') || b.includes('what care') || b.includes('what kind') || b.includes('what support')) return CHIP_SETS.care_type;
-  if (chatHistory.length <= 3) return CHIP_SETS.initial;
+  var b = (botText || '').toLowerCase();
+  var userTurns = countUserTurns();
+
+  // After 3 user turns, AI should have triggered booking via READY_FOR_BOOKING
+  // If we somehow get here, hide chips so user types freely
+  if (userTurns >= 3) return null;
+
+  // Turn 0 to 1 — initial chips for "who is the care for"
+  if (userTurns === 0 || (userTurns === 1 && b.includes('looking') === false && b.includes('who') === true)) {
+    return CHIP_SETS.initial;
+  }
+
+  // Care type keywords — broad
+  if (b.includes('kind of') || b.includes('type of') || b.includes('what help') ||
+      b.includes('what care') || b.includes('what support') || b.includes('looking for') ||
+      b.includes('hoping') || b.includes('needing') || b.includes('challenges') ||
+      b.includes('what services') || b.includes('what do they need')) {
+    return CHIP_SETS.care_type;
+  }
+
+  // Urgency keywords — broad
+  if (b.includes('how soon') || b.includes('how urgent') || b.includes('timeline') ||
+      b.includes('get started') || b.includes('looking to start') || b.includes('when would') ||
+      b.includes('right away') || b.includes('this week') || b.includes('start') ||
+      b.includes('time frame') || b.includes('how quickly')) {
+    return CHIP_SETS.urgency;
+  }
+
+  // First turn fallback
+  if (userTurns <= 1) return CHIP_SETS.initial;
   return null;
 }
 
@@ -1843,6 +1884,23 @@ async function sendChat(text) {
   document.getElementById('chat-chips').classList.add('hidden');
   showTyping();
 
+  // Hard failsafe: count user turns. After 3, force booking trigger if AI doesn't.
+  var userTurns = chatHistory.filter(function(m){ return m.role === 'user'; }).length;
+  var shouldForceBooking = userTurns >= 3 && !bookingComplete;
+
+  // Detect explicit skip-ahead intent from user — use word boundaries to avoid false positives
+  var lc = text.toLowerCase();
+  var userWantsToSkip = (
+    /\bbook (a|the|my|now|me|us|please|with)\b/.test(lc) ||
+    /\bskip\b/.test(lc) ||
+    /\btalk to lance\b/.test(lc) ||
+    /\bschedule (a|the|my|me|us|now)\b/.test(lc) ||
+    /\bnext step/.test(lc) ||
+    /\bavailable (spots|times|slots|dates)\b/.test(lc) ||
+    /\bjust (book|get) me\b/.test(lc) ||
+    /\bget me booked\b/.test(lc)
+  );
+
   try {
     var response = await fetch('https://proximity-agent-production.up.railway.app/chat', {
       method:'POST',
@@ -1857,20 +1915,34 @@ async function sendChat(text) {
     var raw = data.response || 'Please call us at 647-382-8047.';
     hideTyping();
 
-    // Check for booking trigger
+    // Check for booking trigger from AI
     var bookingMatch = raw.match(/<!--READY_FOR_BOOKING:([\s\S]*?)-->/);
     if(bookingMatch) {
       try { intakeData = JSON.parse(bookingMatch[1]); } catch(e){}
+    }
+
+    // FORCE BOOKING FAILSAFE
+    // If AI didn't trigger booking but we're past turn 3, OR user explicitly asked to skip,
+    // force the booking flow with a manual block.
+    if (!bookingMatch && (shouldForceBooking || userWantsToSkip) && !bookingComplete) {
+      // Pull intake data from full conversation context if AI didn't emit
+      // Use empty defaults — submitBooking handles missing fields gracefully
+      intakeData = intakeData || {};
+      bookingMatch = ['forced','{}']; // truthy sentinel to trigger form below
+      // Override the AI text with a clean handoff message
+      raw = "Got it. Let me pull up the next available spots so you can book directly with Lance.";
     }
 
     setTimeout(function(){
       addCMsg('b', raw);
       chatHistory.push({role:'assistant', content:raw.replace(/<!--READY_FOR_BOOKING:[\s\S]*?-->/g,'').trim()});
 
-      if(bookingMatch) {
+      if(bookingMatch && !bookingComplete) {
         // Show booking form after short delay
         setTimeout(function(){
           var msgsEl = document.getElementById('cmsgs');
+          // Guard against duplicate forms if user somehow triggers twice
+          if (document.getElementById('chat-booking-card')) return;
           var form = buildBookingForm();
           msgsEl.appendChild(form);
           setTimeout(function(){ form.scrollIntoView({behavior:'smooth',block:'start'}); }, 80);
@@ -1879,10 +1951,24 @@ async function sendChat(text) {
           if(inp) { inp.disabled=true; inp.placeholder='Fill in your details above to book'; }
           document.getElementById('chat-chips').innerHTML='';
           document.getElementById('chat-chips').classList.add('hidden');
+          // Now safe to release the processing lock — form is mounted, input is disabled
+          chatProcessing = false;
         }, 600);
-      } else {
+      } else if (!bookingComplete) {
         var chips = inferChips(raw);
-        setTimeout(function(){ showChips(chips); }, 350);
+        // Always include "Book directly with Lance" chip from turn 2 onward
+        // so users can skip ahead if they want
+        if (chips && countUserTurns() >= 1) {
+          chips = chips.concat(['Skip ahead and book']);
+        } else if (countUserTurns() >= 2 && !chips) {
+          chips = ['Skip ahead and book'];
+        }
+        setTimeout(function(){
+          showChips(chips);
+          chatProcessing = false; // release lock after chips render
+        }, 350);
+      } else {
+        chatProcessing = false; // post-book Q&A mode
       }
     }, 80);
 
@@ -1890,8 +1976,7 @@ async function sendChat(text) {
     hideTyping();
     addCMsg('b','Something went wrong. Please call us at 647-382-8047.');
     console.error('Chat error:', err);
-  } finally {
-    chatProcessing = false;
+    chatProcessing = false; // release lock on error
   }
 }
 
