@@ -1215,13 +1215,13 @@ body::after{content:'';position:fixed;inset:0;background-image:url("data:image/s
   <span id="chat-label"><span class="dot"></span>We're online</span>
   <div id="chat-bubble" onclick="toggleChat()"><svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg></div>
 </div>
-<div id="chat-overlay">
+<div id="chat-overlay" data-lenis-prevent>
   <div class="chat-head">
     <div class="chat-av">P</div>
     <div class="chat-info"><h4>Proximity Care</h4><p><span class="chat-online-dot"></span>Online — here to help</p></div>
     <button class="chat-close-btn" onclick="toggleChat()">✕</button>
   </div>
-  <div class="chat-msgs" id="cmsgs">
+  <div class="chat-msgs" id="cmsgs" data-lenis-prevent>
     <div class="cmsg b"><div class="cbub">Hi there. I'm here to help you find the right care. Who are you looking for care for?</div></div>
   </div>
   <div id="typing" style="display:none"><span></span><span></span><span></span></div>
@@ -2109,7 +2109,15 @@ showChips(CHIP_SETS.initial);
 (function initLenis(){
   if(typeof Lenis==='undefined') return;
   document.documentElement.style.scrollBehavior='auto';
-  var lenis=new Lenis({duration:1.2,easing:function(t){return Math.min(1,1.001-Math.pow(2,-10*t))},smoothWheel:true});
+  var lenis=new Lenis({
+    duration:1.2,
+    easing:function(t){return Math.min(1,1.001-Math.pow(2,-10*t))},
+    smoothWheel:true,
+    // Honor data-lenis-prevent on any element so chat overlay scrolls normally
+    prevent: function(node) {
+      return node.id === 'chat-overlay' || node.id === 'cmsgs' || node.closest('[data-lenis-prevent]') !== null;
+    }
+  });
   function raf(time){lenis.raf(time);requestAnimationFrame(raf);}
   requestAnimationFrame(raf);
 }());
