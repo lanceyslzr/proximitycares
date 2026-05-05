@@ -26,7 +26,8 @@ html,body{min-height:100vh;font-family:'Poppins',sans-serif;background:var(--bg)
 .gate-brand em{color:var(--green);font-style:italic;}
 .gate-sub{text-align:center;font-size:13px;color:var(--muted);margin-bottom:40px;}
 .gate-card{background:var(--white);border-radius:20px;padding:36px 28px;box-shadow:0 8px 40px var(--shadow);}
-.gate-icon{width:56px;height:56px;background:var(--green-l);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;font-size:24px;}
+.gate-icon{width:56px;height:56px;background:var(--green-l);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;color:var(--green);}
+.gate-icon svg{width:28px;height:28px;}
 .gate-title{font-family:'Lora',serif;font-size:22px;text-align:center;margin-bottom:6px;}
 .gate-hint{font-size:13px;color:var(--muted);text-align:center;margin-bottom:28px;line-height:1.6;}
 .pin-dots{display:flex;gap:14px;justify-content:center;margin-bottom:32px;}
@@ -101,7 +102,8 @@ html,body{min-height:100vh;font-family:'Poppins',sans-serif;background:var(--bg)
 /* DOCS */
 .doc-row{display:flex;align-items:center;padding:14px 18px;border-bottom:1px solid var(--border);gap:12px;text-decoration:none;color:inherit;}
 .doc-row:last-child{border:none;}
-.doc-icon{width:36px;height:36px;border-radius:10px;background:var(--green-l);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
+.doc-icon{width:36px;height:36px;border-radius:10px;background:var(--green-l);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--green);}
+.doc-icon svg{width:18px;height:18px;}
 .doc-info{flex:1;}
 .doc-name{font-size:14px;font-weight:500;}
 .doc-type{font-size:12px;color:var(--muted);margin-top:1px;}
@@ -138,11 +140,12 @@ html,body{min-height:100vh;font-family:'Poppins',sans-serif;background:var(--bg)
 
 /* NAV */
 .bottom-nav{position:fixed;bottom:0;left:0;right:0;background:var(--white);border-top:1px solid var(--border);display:flex;z-index:10;}
-.nav-btn{flex:1;padding:12px 4px 16px;background:none;border:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;font-family:'Poppins',sans-serif;transition:color 0.15s;}
-.nav-icon{font-size:20px;line-height:1;}
-.nav-label{font-size:10px;letter-spacing:0.02em;color:var(--muted);}
+.nav-btn{flex:1;padding:12px 4px 16px;background:none;border:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;font-family:'Poppins',sans-serif;transition:color 0.15s;color:var(--muted);}
+.nav-icon{display:flex;align-items:center;justify-content:center;color:var(--muted);transition:color 0.15s;}
+.nav-icon svg{width:22px;height:22px;}
+.nav-label{font-size:10px;letter-spacing:0.02em;color:var(--muted);transition:color 0.15s;}
 .nav-btn.on .nav-label{color:var(--green);}
-.nav-btn.on .nav-icon{filter:none;}
+.nav-btn.on .nav-icon{color:var(--green);}
 
 .tab{display:none;padding-bottom:80px;}
 .tab.on{display:block;}
@@ -156,7 +159,7 @@ html,body{min-height:100vh;font-family:'Poppins',sans-serif;background:var(--bg)
     <div class="gate-brand">Proximity <em>Care</em></div>
     <div class="gate-sub">Family Portal</div>
     <div class="gate-card">
-      <div class="gate-icon">🏠</div>
+      <div class="gate-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5L12 3l9 7.5"/><path d="M5 9.5V20a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V9.5"/><path d="M10 21v-6h4v6"/></svg></div>
       <div class="gate-title">Welcome back.</div>
       <div class="gate-hint">Enter your 4-digit access code to view your care portal.</div>
       <div class="pin-dots">
@@ -203,23 +206,23 @@ html,body{min-height:100vh;font-family:'Poppins',sans-serif;background:var(--bg)
 
   <nav class="bottom-nav">
     <button class="nav-btn on" id="nav-home" onclick="showTab('home')">
-      <span class="nav-icon">🏠</span>
+      <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5L12 3l9 7.5"/><path d="M5 9.5V20a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V9.5"/><path d="M10 21v-6h4v6"/></svg></span>
       <span class="nav-label">Home</span>
     </button>
     <button class="nav-btn" id="nav-visits" onclick="showTab('visits')">
-      <span class="nav-icon">📋</span>
+      <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="5" width="16" height="16" rx="2"/><path d="M8 3v4M16 3v4M4 11h16M9 15h2M9 18h6"/></svg></span>
       <span class="nav-label">Visits</span>
     </button>
     <button class="nav-btn" id="nav-care" onclick="showTab('care')">
-      <span class="nav-icon">💚</span>
+      <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78z"/></svg></span>
       <span class="nav-label">Care Plan</span>
     </button>
     <button class="nav-btn" id="nav-docs" onclick="showTab('docs')">
-      <span class="nav-icon">📄</span>
+      <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h6"/></svg></span>
       <span class="nav-label">Documents</span>
     </button>
     <button class="nav-btn" id="nav-billing" onclick="showTab('billing')">
-      <span class="nav-icon">💳</span>
+      <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18"/><path d="M7 15h3"/></svg></span>
       <span class="nav-label">Billing</span>
     </button>
   </nav>
@@ -372,7 +375,7 @@ function showTab(tab) {
   }
 
   else if (tab === 'care') {
-    const { client } = portalData;
+    const { client, psw } = portalData;
     c.innerHTML = `
       <div class="section">
         <div class="section-title">Care Plan</div>
@@ -385,7 +388,7 @@ function showTab(tab) {
         <div class="card">
           <div class="card-row"><span class="card-row-label">Days</span><span class="card-row-value">Monday to Friday</span></div>
           <div class="card-row"><span class="card-row-label">Hours</span><span class="card-row-value">9:00 AM to 5:00 PM</span></div>
-          <div class="card-row"><span class="card-row-label">Caregiver</span><span class="card-row-value green">Carolina Hermida</span></div>
+          <div class="card-row"><span class="card-row-label">Caregiver</span><span class="card-row-value green">${psw.name}</span></div>
           <div class="card-row"><span class="card-row-label">Since</span><span class="card-row-value">${client.start_date ? fmtDate(client.start_date) : 'On file'}</span></div>
         </div>
       </div>
@@ -459,13 +462,14 @@ function visitRow(v) {
   const hrs = parseFloat(v.hours_worked || 0).toFixed(1);
   const tin = v.time_in ? String(v.time_in).slice(0,5) : '';
   const tout = v.time_out ? String(v.time_out).slice(0,5) : '';
+  const fallbackPSW = (portalData && portalData.psw && portalData.psw.name) ? portalData.psw.name : 'PSW';
   return `<div class="visit-row">
     <div class="visit-date-box">
       <div class="visit-date-day">${day}</div>
       <div class="visit-date-num">${num}</div>
     </div>
     <div class="visit-info">
-      <div class="visit-psw">${v.psw_name || 'Carolina'}</div>
+      <div class="visit-psw">${v.psw_name || fallbackPSW}</div>
       <div class="visit-time">${tin}${tout ? ' – ' + tout : ''}</div>
     </div>
     <div class="visit-hours">${hrs} hrs</div>
@@ -474,10 +478,20 @@ function visitRow(v) {
 
 function docIcon(type) {
   const t = (type || '').toLowerCase();
-  if (t.includes('resume') || t.includes('cv')) return '📄';
-  if (t.includes('cpr') || t.includes('cert')) return '🏥';
-  if (t.includes('photo') || t.includes('id')) return '🪪';
-  return '📎';
+  // Resume / CV — document with lines
+  if (t.includes('resume') || t.includes('cv')) {
+    return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h4"/></svg>';
+  }
+  // CPR / certification — shield with check
+  if (t.includes('cpr') || t.includes('cert')) {
+    return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L4 6v6c0 5 3.5 9 8 10 4.5-1 8-5 8-10V6l-8-4z"/><path d="M9 12l2 2 4-4"/></svg>';
+  }
+  // Photo ID — person card
+  if (t.includes('photo') || t.includes('id')) {
+    return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="11" r="2"/><path d="M14 10h4M14 13h3M5 17c1-2 3-3 4-3s3 1 4 3"/></svg>';
+  }
+  // Generic — paperclip
+  return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11l-9 9a5 5 0 0 1-7-7l9-9a3.5 3.5 0 0 1 5 5l-8.5 8.5a2 2 0 0 1-3-3l7-7"/></svg>';
 }
 
 function fmtDate(d) {

@@ -347,6 +347,7 @@ a{color:inherit;text-decoration:none;}
       </div>
     </div>
     <div class="sheet-row"><div class="slbl">Family Email</div><input class="sinput" id="co-family-email" placeholder="family@email.com" type="email"></div>
+    <div class="sheet-row"><div class="slbl">Family Contact Name</div><input class="sinput" id="co-family-name" placeholder="e.g. Connie (used in welcome email greeting)"></div>
     <div class="srow2">
       <div><div class="slbl">Client Rate ($/hr)</div><input class="sinput" id="co-client-rate" placeholder="22" type="number" step="0.50"></div>
       <div><div class="slbl">PSW Rate ($/hr)</div><input class="sinput" id="co-psw-rate" placeholder="19" type="number" step="0.50"></div>
@@ -725,7 +726,7 @@ function renderClients() {
         <span class="badge b-active">Active</span>
       </div>
       <div class="card-actions">
-        <div class="card-act warn" onclick="genInvoice('${name}','${c.email||''}')">Invoice</div>
+        <div class="card-act warn" onclick="genInvoice('${name}','${c.email||''}','${c.assigned_psw||''}',${c.client_rate||22},${c.psw_rate||19})">Invoice</div>
         <div class="card-act" onclick="openClientDetail('${c.id}')">Care Plan</div>
         <div class="card-act ok" onclick="triggerOnboardClient('${c.portal_slug||''}')">Welcome</div>
       </div>
@@ -749,7 +750,7 @@ function openClientDetail(id) {
     <div class="sheet-row"><div class="slbl">Daily Routine</div><textarea class="sinput" id="cp-routine" rows="3" style="min-height:80px;resize:none;" placeholder="Morning routine, meal times, sleep schedule..."></textarea></div>
     <div class="sheet-row"><div class="slbl">Preferences and Notes</div><textarea class="sinput" id="cp-prefs" rows="2" style="min-height:60px;resize:none;" placeholder="Likes, dislikes, communication preferences..."></textarea></div>
     <button class="sbtn" style="margin-top:4px;" onclick="saveCarePlan('${id}','${slug}','${name}')">Save Care Plan</button>
-    <button class="sbtn" style="margin-top:8px;" onclick="genInvoice('${name}','${c.email||''}');closeSheet('client-sheet');">Generate This Month's Invoice</button>
+    <button class="sbtn" style="margin-top:8px;" onclick="genInvoice('${name}','${c.email||''}','${c.assigned_psw||''}',${c.client_rate||22},${c.psw_rate||19});closeSheet('client-sheet');">Generate This Month's Invoice</button>
     <button class="sbtn ghost" style="margin-top:8px;" onclick="triggerOnboardClient('${slug}');closeSheet('client-sheet');">Resend Welcome Email</button>`;
   loadCarePlan(slug);
   openSheet('client-sheet');
@@ -787,12 +788,13 @@ async function saveCarePlan(clientId, slug, clientName) {
   } catch(err) { showToast(err.message||'Save failed','err'); }
 }
 
-async function genInvoice(clientName, clientEmail) {
+async function genInvoice(clientName, clientEmail, pswName, clientRate, pswRate) {
   const months=['January','February','March','April','May','June','July','August','September','October','November','December'];
   const now=new Date();
+  if(!pswName) { showToast('No PSW assigned to this client','err'); return; }
   showToast('Generating invoice...','ok');
   try {
-    const r = await fetch(`${API}/invoice/generate`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({client_name:clientName,client_email:clientEmail,psw_name:'Carolina Hermida',month:months[now.getMonth()],year:now.getFullYear(),client_rate:22,psw_rate:19})});
+    const r = await fetch(`${API}/invoice/generate`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({client_name:clientName,client_email:clientEmail,psw_name:pswName,month:months[now.getMonth()],year:now.getFullYear(),client_rate:clientRate||22,psw_rate:pswRate||19})});
     const d = await r.json();
     if(d.error) throw new Error(d.error);
     showToast('Invoice sent ✓','ok');
@@ -897,6 +899,7 @@ async function onboardClientFull() {
   const name = document.getElementById('co-name').value.trim();
   const slug = document.getElementById('co-slug').value.trim();
   const familyEmail = document.getElementById('co-family-email').value.trim();
+  const familyContactName = document.getElementById('co-family-name').value.trim();
   const pin = document.getElementById('co-pin').textContent;
   const psw = document.getElementById('co-psw').value;
   const clientRate = parseFloat(document.getElementById('co-client-rate').value) || 22;
@@ -914,6 +917,7 @@ async function onboardClientFull() {
       body: JSON.stringify({
         operator_id: currentOp,
         client_name: name, slug: slug, portal_pin: pin, family_email: familyEmail,
+        family_contact_name: familyContactName || null,
         assigned_psw: psw, client_rate: clientRate, psw_rate: pswRate,
         start_date: startDate, care_notes: notes
       })
@@ -923,7 +927,7 @@ async function onboardClientFull() {
       throw new Error(e.error || 'Onboarding failed');
     }
     showToast(name+' onboarded ✓','ok');
-    ['co-name','co-slug','co-family-email','co-psw','co-client-rate','co-psw-rate','co-notes'].forEach(id => {
+    ['co-name','co-slug','co-family-email','co-family-name','co-psw','co-client-rate','co-psw-rate','co-notes'].forEach(id => {
       const el = document.getElementById(id);
       if(el) el.value = '';
     });
