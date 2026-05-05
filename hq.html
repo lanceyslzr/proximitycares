@@ -107,6 +107,7 @@ a{color:inherit;text-decoration:none;}
 .b-converted{background:rgba(74,154,110,.15);color:var(--green2);border:1px solid rgba(74,154,110,.3);}
 .b-dead{background:rgba(80,80,80,.1);color:#555;border:1px solid rgba(80,80,80,.2);}
 .b-active{background:rgba(74,154,110,.15);color:var(--green2);border:1px solid rgba(74,154,110,.3);}
+.b-pending{background:rgba(200,169,110,.1);color:var(--gold);border:1px solid rgba(200,169,110,.25);}
 .b-scheduled{background:rgba(61,138,122,.1);color:var(--teal2);}
 .b-confirmed{background:rgba(200,169,110,.1);color:var(--gold);}
 .b-completed{background:rgba(74,154,110,.1);color:var(--green2);}
@@ -318,6 +319,10 @@ a{color:inherit;text-decoration:none;}
       <select class="sselect" id="pa-name" onchange="onPSWSelect()">
         <option value="">Select PSW</option>
       </select>
+    </div>
+    <div class="sheet-row" id="pa-newname-row" style="display:none;">
+      <div class="slbl">New PSW Full Name</div>
+      <input class="sinput" id="pa-newname" placeholder="First Last" oninput="onNewPSWNameInput()">
     </div>
     <div class="sheet-row"><div class="slbl">Email</div><input class="sinput" id="pa-email" placeholder="psw@email.com" type="email"></div>
     <div class="sheet-row"><div class="slbl">Phone</div><input class="sinput" id="pa-phone" placeholder="647 000 0000" type="tel"></div>
@@ -834,38 +839,102 @@ function autoSlug() {
 function onPSWSelect() {
   const name = document.getElementById('pa-name').value;
   const emailField = document.getElementById('pa-email');
-  if(name && PSW_EMAILS[name]) emailField.value = PSW_EMAILS[name];
-  document.getElementById('pa-btn').disabled = !name;
+  const phoneField = document.getElementById('pa-phone');
+  const newNameRow = document.getElementById('pa-newname-row');
+  const newNameField = document.getElementById('pa-newname');
+  const btn = document.getElementById('pa-btn');
+
+  if(name === '__NEW__') {
+    // Show the new-PSW name input, clear email/phone, await user typing
+    newNameRow.style.display = '';
+    if(newNameField) newNameField.focus();
+    emailField.value = '';
+    phoneField.value = '';
+    btn.disabled = true;
+    return;
+  }
+
+  // Hide the new-PSW input (in case user changed back)
+  newNameRow.style.display = 'none';
+  if(newNameField) newNameField.value = '';
+
+  if(!name) { emailField.value = ''; phoneField.value = ''; btn.disabled = true; return; }
+
+  // Lookup live PSW data (preferred) or fall back to roster email map
+  const merged = getMergedPSWList();
+  const found = merged.find(p => p.name === name);
+  if(found) {
+    if(found.email) emailField.value = found.email;
+    else emailField.value = '';
+    if(found.phone) phoneField.value = found.phone;
+    else phoneField.value = '';
+  }
+  btn.disabled = false;
+}
+
+function onNewPSWNameInput() {
+  const newName = document.getElementById('pa-newname').value.trim();
+  document.getElementById('pa-btn').disabled = !newName;
+}
+
+function getMergedPSWList() {
+  // Live PSWs from Supabase have priority. Static PSWS roster is fallback for ones not yet activated.
+  const live = (D && D.psws) ? D.psws : [];
+  const liveNames = new Set(live.map(p => p.full_name));
+  const merged = [];
+  // Add live PSWs first (with their actual data)
+  live.forEach(p => merged.push({ name: p.full_name, email: p.email || '', phone: p.phone || '', source: 'live' }));
+  // Add roster PSWs that haven't been activated yet
+  PSWS.forEach(name => {
+    if(!liveNames.has(name)) {
+      merged.push({ name, email: PSW_EMAILS[name] || '', phone: '', source: 'roster' });
+    }
+  });
+  // Sort alphabetically
+  merged.sort((a, b) => a.name.localeCompare(b.name));
+  return merged;
 }
 
 function populateOnboardSelects() {
   const paSelect = document.getElementById('pa-name');
   const coSelect = document.getElementById('co-psw');
   if(!paSelect || !coSelect) return;
-  if(paSelect.options.length > 1) return;
-  PSWS.forEach(name => {
+
+  // Clear existing options each render so the list stays in sync with D.psws
+  paSelect.innerHTML = '<option value="">Select PSW</option><option value="__NEW__">+ Add New PSW</option>';
+  coSelect.innerHTML = '<option value="">Select PSW</option>';
+
+  const merged = getMergedPSWList();
+  merged.forEach(p => {
     const opt1 = document.createElement('option');
-    opt1.value = name; opt1.textContent = name;
+    opt1.value = p.name; opt1.textContent = p.name;
     paSelect.appendChild(opt1);
     const opt2 = document.createElement('option');
-    opt2.value = name; opt2.textContent = name;
+    opt2.value = p.name; opt2.textContent = p.name;
     coSelect.appendChild(opt2);
   });
-  regenPIN('pa-pin');
-  regenPIN('co-pin');
-  const today = new Date();
-  const yyyy = today.getFullYear();
-  const mm = String(today.getMonth()+1).padStart(2,'0');
-  const dd = String(today.getDate()).padStart(2,'0');
-  document.getElementById('co-start').value = yyyy+'-'+mm+'-'+dd;
+
+  if(document.getElementById('pa-pin').textContent === '0000') regenPIN('pa-pin');
+  if(document.getElementById('co-pin').textContent === '0000') regenPIN('co-pin');
+  const startField = document.getElementById('co-start');
+  if(startField && !startField.value) {
+    const today = new Date();
+    const yyyy = today.getFullYear();
+    const mm = String(today.getMonth()+1).padStart(2,'0');
+    const dd = String(today.getDate()).padStart(2,'0');
+    startField.value = yyyy+'-'+mm+'-'+dd;
+  }
 }
 
 async function activatePSW() {
-  const name = document.getElementById('pa-name').value;
+  const selectedValue = document.getElementById('pa-name').value;
+  const newName = document.getElementById('pa-newname').value.trim();
+  // Resolve actual PSW name — if "+ Add New PSW" picked, use the typed name
+  const name = (selectedValue === '__NEW__') ? newName : selectedValue;
   const email = document.getElementById('pa-email').value.trim();
   const phone = document.getElementById('pa-phone').value.trim();
   const pin = document.getElementById('pa-pin').textContent;
-  if(!name) { showToast('Select a PSW','err'); return; }
+  if(!name) { showToast(selectedValue === '__NEW__' ? 'Enter the new PSW full name' : 'Select a PSW','err'); return; }
   if(!email) { showToast('Enter PSW email','err'); return; }
   const btn = document.getElementById('pa-btn');
   btn.disabled = true; btn.textContent = 'Activating...';
@@ -883,10 +952,14 @@ async function activatePSW() {
     }
     showToast(name+' activated ✓','ok');
     document.getElementById('pa-name').value = '';
+    document.getElementById('pa-newname').value = '';
+    document.getElementById('pa-newname-row').style.display = 'none';
     document.getElementById('pa-email').value = '';
     document.getElementById('pa-phone').value = '';
     regenPIN('pa-pin');
     await loadAll(false);
+    // Repopulate dropdowns so the newly-activated PSW shows up immediately
+    populateOnboardSelects();
   } catch(e) {
     showToast(e.message || 'Failed','err');
   }
@@ -943,21 +1016,23 @@ async function onboardClientFull() {
 // ── PSWs ──
 function renderPSWs() {
   const el = document.getElementById('psws-list');
-  el.innerHTML = PSWS.map(name => {
-    const ini = name.split(' ').map(w=>w[0]).join('').toUpperCase();
-    const email = PSW_EMAILS[name]||null;
+  const merged = getMergedPSWList();
+  el.innerHTML = merged.map(p => {
+    const ini = p.name.split(' ').map(w=>w[0]).join('').toUpperCase();
+    const email = p.email || null;
+    const statusBadge = p.source === 'live' ? '<span class="badge b-active">Active</span>' : '<span class="badge b-pending">Not activated</span>';
     return `
     <div class="card">
       <div class="card-header">
         <div style="display:flex;align-items:center;gap:11px;flex:1;">
           <div class="avatar">${ini}</div>
-          <div><div class="card-name">${name}</div><div class="card-sub">${email||'No email on file'}</div></div>
+          <div><div class="card-name">${p.name}</div><div class="card-sub">${email||'No email on file'}</div></div>
         </div>
-        <span class="badge b-active">Active</span>
+        ${statusBadge}
       </div>
       <div class="card-actions">
         ${email?`<div class="card-act call" onclick="window.location.href='mailto:${email}'">Email</div>`:''}
-        <div class="card-act" onclick="openPSWMsg('${name}')">Message</div>
+        <div class="card-act" onclick="openPSWMsg('${p.name}')">Message</div>
       </div>
     </div>`;
   }).join('');
