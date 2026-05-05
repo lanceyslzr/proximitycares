@@ -1602,20 +1602,25 @@ function inferChips(botText) {
     return CHIP_SETS.initial;
   }
 
-  // Care type keywords — broad
-  if (b.includes('kind of') || b.includes('type of') || b.includes('what help') ||
-      b.includes('what care') || b.includes('what support') || b.includes('looking for') ||
-      b.includes('hoping') || b.includes('needing') || b.includes('challenges') ||
-      b.includes('what services') || b.includes('what do they need')) {
-    return CHIP_SETS.care_type;
-  }
-
-  // Urgency keywords — broad
+  // URGENCY keywords FIRST — these are highly specific phrases the AI only uses when asking about timing
+  // (Check before care_type because care_type keywords like "hoping" can appear in urgency questions)
   if (b.includes('how soon') || b.includes('how urgent') || b.includes('timeline') ||
       b.includes('get started') || b.includes('looking to start') || b.includes('when would') ||
-      b.includes('right away') || b.includes('this week') || b.includes('start') ||
-      b.includes('time frame') || b.includes('how quickly')) {
+      b.includes('when do you') || b.includes('when are you') || b.includes('right away') ||
+      b.includes('this week') || b.includes('time frame') || b.includes('how quickly') ||
+      b.includes('soon are you') || b.includes('start care')) {
     return CHIP_SETS.urgency;
+  }
+
+  // CARE TYPE keywords second — phrases that specifically ask about type of care/support
+  // "hoping" removed because it's too generic (appears in urgency questions too)
+  if (b.includes('kind of care') || b.includes('kind of support') || b.includes('kind of help') ||
+      b.includes('type of care') || b.includes('type of support') || b.includes('what help') ||
+      b.includes('what care') || b.includes('what support') || b.includes('looking for') ||
+      b.includes('what services') || b.includes('what do they need') ||
+      b.includes('challenges') || b.includes('needs help with') || b.includes('needs assistance') ||
+      b.includes('day-to-day')) {
+    return CHIP_SETS.care_type;
   }
 
   // First turn fallback
