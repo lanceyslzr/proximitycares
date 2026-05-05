@@ -270,6 +270,7 @@ a{color:inherit;text-decoration:none;}
   <div class="nav-tab active" onclick="showSect('leads')">Leads <span class="nbadge" id="leads-badge">0</span></div>
   <div class="nav-tab" onclick="showSect('clients')">Clients</div>
   <div class="nav-tab" onclick="showSect('psws')">PSWs</div>
+  <div class="nav-tab" onclick="showSect('onboard')">Onboard</div>
   <div class="nav-tab" onclick="showSect('bookings')">Bookings</div>
   <div class="nav-tab" onclick="showSect('purchases')">Purchased</div>
   <div class="nav-tab" onclick="showSect('messages')">Messages</div>
@@ -295,7 +296,7 @@ a{color:inherit;text-decoration:none;}
 <div class="section" id="sect-clients">
   <div class="section-header">
     <span class="section-title">Active Clients</span>
-    <div class="sect-action" onclick="openSheet('add-client-sheet')">+ Onboard</div>
+    <div class="sect-action" onclick="showSect('onboard')">+ Onboard</div>
   </div>
   <div id="clients-list"><div class="empty-state">Loading...</div></div>
 </div>
@@ -304,6 +305,71 @@ a{color:inherit;text-decoration:none;}
 <div class="section" id="sect-psws">
   <div class="section-header"><span class="section-title">PSW Staff</span></div>
   <div id="psws-list"><div class="empty-state">Loading...</div></div>
+</div>
+
+<!-- ONBOARD -->
+<div class="section" id="sect-onboard">
+  <div class="section-header"><span class="section-title">Activate Staff + Onboard Clients</span></div>
+
+  <!-- ACTIVATE PSW CARD -->
+  <div class="card" style="padding:18px 16px;">
+    <div style="font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--teal2);margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid var(--border);">Activate PSW</div>
+    <div class="sheet-row"><div class="slbl">PSW</div>
+      <select class="sselect" id="pa-name" onchange="onPSWSelect()">
+        <option value="">Select PSW</option>
+      </select>
+    </div>
+    <div class="sheet-row"><div class="slbl">Email</div><input class="sinput" id="pa-email" placeholder="psw@email.com" type="email"></div>
+    <div class="sheet-row"><div class="slbl">Phone</div><input class="sinput" id="pa-phone" placeholder="647 000 0000" type="tel"></div>
+    <div class="sheet-row">
+      <div class="slbl">Portal PIN</div>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span style="font-family:var(--mono);font-size:24px;letter-spacing:6px;color:var(--teal2);" id="pa-pin">0000</span>
+        <button onclick="regenPIN('pa-pin')" style="font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--muted2);padding:7px 11px;border:1px solid var(--border2);border-radius:4px;cursor:pointer;background:var(--bg3);min-height:34px;">Regenerate</button>
+      </div>
+    </div>
+    <p style="font-size:12px;color:var(--muted);line-height:1.6;margin:8px 0 14px;">PSW receives a branded welcome email with their PIN and direct link to psw.proximitycares.ca. They tap the link, enter the PIN, and they are in.</p>
+    <button class="sbtn" id="pa-btn" onclick="activatePSW()" disabled>Activate PSW + Send Welcome Email</button>
+  </div>
+
+  <!-- ONBOARD CLIENT CARD -->
+  <div class="card" style="padding:18px 16px;">
+    <div style="font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--teal2);margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid var(--border);">Onboard New Client</div>
+    <div class="sheet-row"><div class="slbl">Client Full Name</div><input class="sinput" id="co-name" placeholder="First Last" oninput="autoSlug()"></div>
+    <div class="srow2">
+      <div><div class="slbl">Slug</div><input class="sinput" id="co-slug" placeholder="auto"></div>
+      <div>
+        <div class="slbl">Portal PIN</div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span style="font-family:var(--mono);font-size:18px;letter-spacing:4px;color:var(--teal2);" id="co-pin">0000</span>
+          <button onclick="regenPIN('co-pin')" style="font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--muted2);padding:6px 9px;border:1px solid var(--border2);border-radius:4px;cursor:pointer;background:var(--bg3);min-height:34px;">New</button>
+        </div>
+      </div>
+    </div>
+    <div class="sheet-row"><div class="slbl">Family Email</div><input class="sinput" id="co-family-email" placeholder="family@email.com" type="email"></div>
+    <div class="srow2">
+      <div><div class="slbl">Client Rate ($/hr)</div><input class="sinput" id="co-client-rate" placeholder="22" type="number" step="0.50"></div>
+      <div><div class="slbl">PSW Rate ($/hr)</div><input class="sinput" id="co-psw-rate" placeholder="19" type="number" step="0.50"></div>
+    </div>
+    <div class="sheet-row"><div class="slbl">Assigned PSW</div>
+      <select class="sselect" id="co-psw">
+        <option value="">Select PSW</option>
+      </select>
+    </div>
+    <div class="sheet-row"><div class="slbl">Start Date</div><input class="sinput" id="co-start" type="date"></div>
+    <div class="sheet-row"><div class="slbl">Care Notes</div><textarea class="sinput" id="co-notes" placeholder="Initial care requirements, schedule preferences, special instructions" rows="3" style="resize:vertical;"></textarea></div>
+    <div style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:12px 14px;margin-bottom:14px;">
+      <div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:8px;">On Submit</div>
+      <div style="font-size:12px;color:var(--muted2);line-height:1.7;">
+        <span style="color:var(--green2);">✓</span> Client row created in Supabase<br>
+        <span style="color:var(--green2);">✓</span> Family welcome email with PIN sent<br>
+        <span style="color:var(--green2);">✓</span> Family portal link included<br>
+        <span style="color:var(--green2);">✓</span> Assigned PSW notified of new client<br>
+        <span style="color:var(--green2);">✓</span> Client appears in HQ Dashboard
+      </div>
+    </div>
+    <button class="sbtn" id="co-btn" onclick="onboardClientFull()">Onboard Client + Send Welcome Emails</button>
+  </div>
 </div>
 
 <!-- BOOKINGS -->
@@ -467,17 +533,6 @@ a{color:inherit;text-decoration:none;}
   <div class="msend-wrap">
     <textarea class="minput" id="psw-msg-input" placeholder="Type a message..." rows="1" oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,100)+'px';"></textarea>
     <button class="msend" onclick="sendPSWMsg()">Send</button>
-  </div>
-</div>
-
-<!-- ADD CLIENT SHEET -->
-<div class="sheet" id="add-client-sheet">
-  <div class="sheet-handle"></div>
-  <div class="sheet-title">Onboard New Client</div>
-  <div class="sheet-body">
-    <div class="sheet-row"><div class="slbl">Client Slug</div><input class="sinput" id="ac-slug" placeholder="e.g. jsmith — must match Supabase"></div>
-    <p style="font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:14px;">Add the client row to Supabase clients table first with their slug, PIN, and family_email. Then trigger the Day 0 welcome email here.</p>
-    <button class="sbtn" onclick="onboardClient()">Send Welcome Email + Portal Access</button>
   </div>
 </div>
 
@@ -754,9 +809,131 @@ async function triggerOnboardClient(slug) {
   } catch(err) { showToast(err.message||'Failed','err'); }
 }
 
-async function onboardClient() {
-  const slug = document.getElementById('ac-slug').value.trim();
-  closeAllSheets(); await triggerOnboardClient(slug);
+// ══════════════════════════════════════════════════════════════
+// ONBOARD TAB — PSW activation + Full client onboarding
+// ══════════════════════════════════════════════════════════════
+
+function genPIN() { return String(Math.floor(1000 + Math.random() * 9000)); }
+
+function regenPIN(id) {
+  const el = document.getElementById(id);
+  if(el) el.textContent = genPIN();
+}
+
+function autoSlug() {
+  const name = document.getElementById('co-name').value.trim();
+  const slugField = document.getElementById('co-slug');
+  if(!name) { slugField.value = ''; return; }
+  const parts = name.toLowerCase().split(/\s+/);
+  let slug = parts.length >= 2 ? parts[parts.length-1].charAt(0) + parts[0] : parts[0];
+  slugField.value = slug.replace(/[^a-z0-9]/g,'');
+}
+
+function onPSWSelect() {
+  const name = document.getElementById('pa-name').value;
+  const emailField = document.getElementById('pa-email');
+  if(name && PSW_EMAILS[name]) emailField.value = PSW_EMAILS[name];
+  document.getElementById('pa-btn').disabled = !name;
+}
+
+function populateOnboardSelects() {
+  const paSelect = document.getElementById('pa-name');
+  const coSelect = document.getElementById('co-psw');
+  if(!paSelect || !coSelect) return;
+  if(paSelect.options.length > 1) return;
+  PSWS.forEach(name => {
+    const opt1 = document.createElement('option');
+    opt1.value = name; opt1.textContent = name;
+    paSelect.appendChild(opt1);
+    const opt2 = document.createElement('option');
+    opt2.value = name; opt2.textContent = name;
+    coSelect.appendChild(opt2);
+  });
+  regenPIN('pa-pin');
+  regenPIN('co-pin');
+  const today = new Date();
+  const yyyy = today.getFullYear();
+  const mm = String(today.getMonth()+1).padStart(2,'0');
+  const dd = String(today.getDate()).padStart(2,'0');
+  document.getElementById('co-start').value = yyyy+'-'+mm+'-'+dd;
+}
+
+async function activatePSW() {
+  const name = document.getElementById('pa-name').value;
+  const email = document.getElementById('pa-email').value.trim();
+  const phone = document.getElementById('pa-phone').value.trim();
+  const pin = document.getElementById('pa-pin').textContent;
+  if(!name) { showToast('Select a PSW','err'); return; }
+  if(!email) { showToast('Enter PSW email','err'); return; }
+  const btn = document.getElementById('pa-btn');
+  btn.disabled = true; btn.textContent = 'Activating...';
+  try {
+    const r = await fetch(`${API}/psw/activate`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        operator_id: currentOp,
+        psw_name: name, psw_email: email, psw_phone: phone, psw_pin: pin
+      })
+    });
+    if(!r.ok) {
+      const e = await r.json().catch(()=>({}));
+      throw new Error(e.error || 'Activation failed');
+    }
+    showToast(name+' activated ✓','ok');
+    document.getElementById('pa-name').value = '';
+    document.getElementById('pa-email').value = '';
+    document.getElementById('pa-phone').value = '';
+    regenPIN('pa-pin');
+    await loadAll(false);
+  } catch(e) {
+    showToast(e.message || 'Failed','err');
+  }
+  btn.disabled = false;
+  btn.textContent = 'Activate PSW + Send Welcome Email';
+  onPSWSelect();
+}
+
+async function onboardClientFull() {
+  const name = document.getElementById('co-name').value.trim();
+  const slug = document.getElementById('co-slug').value.trim();
+  const familyEmail = document.getElementById('co-family-email').value.trim();
+  const pin = document.getElementById('co-pin').textContent;
+  const psw = document.getElementById('co-psw').value;
+  const clientRate = parseFloat(document.getElementById('co-client-rate').value) || 22;
+  const pswRate = parseFloat(document.getElementById('co-psw-rate').value) || 19;
+  const startDate = document.getElementById('co-start').value;
+  const notes = document.getElementById('co-notes').value.trim();
+  if(!name) { showToast('Enter client name','err'); return; }
+  if(!slug) { showToast('Slug is required','err'); return; }
+  if(!familyEmail) { showToast('Enter family email','err'); return; }
+  const btn = document.getElementById('co-btn');
+  btn.disabled = true; btn.textContent = 'Onboarding...';
+  try {
+    const r = await fetch(`${API}/client/onboard`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        operator_id: currentOp,
+        client_name: name, slug: slug, portal_pin: pin, family_email: familyEmail,
+        assigned_psw: psw, client_rate: clientRate, psw_rate: pswRate,
+        start_date: startDate, care_notes: notes
+      })
+    });
+    if(!r.ok) {
+      const e = await r.json().catch(()=>({}));
+      throw new Error(e.error || 'Onboarding failed');
+    }
+    showToast(name+' onboarded ✓','ok');
+    ['co-name','co-slug','co-family-email','co-psw','co-client-rate','co-psw-rate','co-notes'].forEach(id => {
+      const el = document.getElementById(id);
+      if(el) el.value = '';
+    });
+    regenPIN('co-pin');
+    await loadAll(false);
+  } catch(e) {
+    showToast(e.message || 'Failed','err');
+  }
+  btn.disabled = false;
+  btn.textContent = 'Onboard Client + Send Welcome Emails';
 }
 
 // ── PSWs ──
@@ -1059,12 +1236,13 @@ function showSect(name) {
   document.querySelectorAll('.bnav-item').forEach(b=>b.classList.remove('active'));
   const s=document.getElementById('sect-'+name); if(s) s.classList.add('active');
   const tabs=document.querySelectorAll('.nav-tab');
-  const tm=['leads','clients','psws','bookings','purchases','messages','visits','activity'];
+  const tm=['leads','clients','psws','onboard','bookings','purchases','messages','visits','activity'];
   const ti=tm.indexOf(name); if(ti>=0&&tabs[ti]) tabs[ti].classList.add('active');
   const bm=['leads','clients','bookings','purchases','activity'];
   const bi=bm.indexOf(name);
   const bnavs=document.querySelectorAll('.bnav-item');
   if(bi>=0&&bnavs[bi]) bnavs[bi].classList.add('active');
+  if(name==='onboard') populateOnboardSelects();
   window.scrollTo(0,0);
 }
 
