@@ -1796,7 +1796,11 @@ async function submitBooking(selectedDate, selectedTime) {
         care_needed_for: intakeData.care_for||'',
         urgency: intakeData.urgency||'',
         source: 'index_widget_calendar',
-        preferred_time: dateLabel + ' ' + selectedTime
+        preferred_time: dateLabel + ' ' + selectedTime,
+        appointment_at: (function() {
+          var hr = selectedTime.indexOf('Morning') !== -1 ? 10 : selectedTime.indexOf('Afternoon') !== -1 ? 13 : 17;
+          return new Date(selectedDate + 'T' + String(hr).padStart(2,'0') + ':00:00-05:00').toISOString();
+        })()
       })
     });
   } catch(e){ console.error('Webhook error:', e); }
