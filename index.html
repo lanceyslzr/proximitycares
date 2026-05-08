@@ -1945,7 +1945,16 @@ async function sendChat(text) {
     // Check for booking trigger from AI
     var bookingMatch = raw.match(/<!--READY_FOR_BOOKING:([\s\S]*?)-->/);
     if(bookingMatch) {
-      try { intakeData = JSON.parse(bookingMatch[1]); } catch(e){}
+      try {
+        var parsed = JSON.parse(bookingMatch[1]);
+        if(parsed.care_for && parsed.care_for !== 'not yet specified') intakeData.care_for = parsed.care_for;
+        if(parsed.care_type && parsed.care_type !== 'not yet specified') intakeData.care_type = parsed.care_type;
+        if(parsed.urgency && parsed.urgency !== 'not yet specified') intakeData.urgency = parsed.urgency;
+      } catch(e){
+        var allUserMsgs = chatHistory.filter(function(m){return m.role==='user';}).map(function(m){return m.content;}).join(' ');
+        if(!intakeData.care_for) intakeData.care_for = allUserMsgs.slice(0,120);
+        if(!intakeData.urgency) intakeData.urgency = 'not specified';
+      }
     }
 
     // FORCE BOOKING FAILSAFE
@@ -1955,6 +1964,10 @@ async function sendChat(text) {
       // Pull intake data from full conversation context if AI didn't emit
       // Use empty defaults — submitBooking handles missing fields gracefully
       intakeData = intakeData || {};
+      var fsMsgs = chatHistory.filter(function(m){return m.role==='user';}).map(function(m){return m.content;});
+      if(!intakeData.care_for && fsMsgs[0]) intakeData.care_for = fsMsgs[0].slice(0,80);
+      if(!intakeData.care_type && fsMsgs[1]) intakeData.care_type = fsMsgs[1].slice(0,80);
+      if(!intakeData.urgency && fsMsgs[2]) intakeData.urgency = fsMsgs[2].slice(0,80);
       bookingMatch = ['forced','{}']; // truthy sentinel to trigger form below
       // Override the AI text with a clean handoff message
       raw = "Got it. Let me pull up the next available spots so you can book directly with Lance.";
