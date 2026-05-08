@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Join Our Team — Proximity Care Services</title>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+:root{
+  --cream:#faf8f4;--cream2:#f4f1eb;--cream3:#ede8df;
+  --navy:#1B3A6B;--navy2:#243f73;--navy3:#2d4d82;
+  --text:#2c2c2c;--muted:#6b7280;--muted2:#9ca3af;
+  --border:#e2ddd4;--border2:#d1cac0;
+  --gold:#b87010;--green:#1a6b5a;
+  --serif:'Lora',Georgia,serif;--sans:'DM Sans',sans-serif;--mono:'DM Mono',monospace;
+  --safe-bottom:env(safe-area-inset-bottom,0px);
+}
+html{scroll-behavior:smooth;}
+body{background:var(--cream);color:var(--text);font-family:var(--sans);overflow-x:hidden;-webkit-text-size-adjust:100%;line-height:1.6;}
+button,a{touch-action:manipulation;}
+
+/* NOISE */
+body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");pointer-events:none;z-index:999;opacity:0.2;}
+
+/* NAV */
+nav{position:sticky;top:0;z-index:100;background:rgba(250,248,244,0.97);border-bottom:1px solid var(--border);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);height:60px;display:flex;align-items:center;justify-content:space-between;padding:0 40px;}
+.nav-logo{font-family:var(--serif);font-size:19px;color:var(--navy);text-decoration:none;font-weight:400;}
+.nav-logo em{color:var(--gold);font-style:italic;}
+.nav-links{display:flex;align-items:center;gap:28px;}
+.nav-link{font-size:13px;color:var(--muted);text-decoration:none;transition:color .2s;}
+.nav-link:hover{color:var(--navy);}
+.nav-cta{background:var(--navy);color:#fff;font-size:12px;font-weight:600;padding:9px 20px;text-decoration:none;min-height:38px;display:flex;align-items:center;letter-spacing:0.02em;}
+.nav-cta:hover{background:var(--navy2);}
+
+/* HERO */
+.hero{padding:100px 40px 72px;max-width:1100px;margin:0 auto;display:grid;grid-template-columns:1fr 420px;gap:80px;align-items:center;}
+.hero-eyebrow{font-family:var(--mono);font-size:9px;letter-spacing:4px;text-transform:uppercase;color:var(--gold);margin-bottom:20px;opacity:0;animation:fadeUp 0.6s ease forwards 0.1s;}
+.hero-h1{font-family:var(--serif);font-size:52px;line-height:1.05;color:var(--navy);font-weight:400;margin-bottom:20px;opacity:0;animation:fadeUp 0.7s ease forwards 0.2s;}
+.hero-h1 em{font-style:italic;color:var(--gold);}
+.hero-sub{font-size:15px;color:var(--muted);line-height:1.75;max-width:440px;margin-bottom:32px;opacity:0;animation:fadeUp 0.7s ease forwards 0.35s;}
+.hero-trust{display:flex;flex-direction:column;gap:10px;opacity:0;animation:fadeUp 0.7s ease forwards 0.5s;}
+.hero-trust-item{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--muted);}
+.hero-trust-dot{width:6px;height:6px;border-radius:50%;background:var(--green);flex-shrink:0;}
+
+.hero-card{background:#fff;border:1px solid var(--border);border-radius:3px;overflow:hidden;box-shadow:0 4px 32px rgba(27,58,107,0.08);opacity:0;animation:fadeUp 0.8s ease forwards 0.4s;}
+.hc-header{background:var(--navy);padding:20px 24px;display:flex;align-items:center;justify-content:space-between;}
+.hc-title{font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.6);}
+.hc-badge{background:rgba(26,107,90,0.3);color:#6ac98a;font-family:var(--mono);font-size:8px;letter-spacing:1.5px;text-transform:uppercase;padding:3px 10px;border:1px solid rgba(106,201,138,0.3);}
+.hc-body{padding:20px 24px;}
+.hc-stat-row{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);margin-bottom:16px;border-radius:2px;overflow:hidden;}
+.hc-stat{background:#fff;padding:12px 8px;text-align:center;}
+.hc-stat-val{font-family:var(--serif);font-size:22px;color:var(--navy);line-height:1;display:block;}
+.hc-stat-lbl{font-family:var(--mono);font-size:7.5px;letter-spacing:1px;text-transform:uppercase;color:var(--muted2);display:block;margin-top:3px;}
+.hc-items{display:flex;flex-direction:column;gap:8px;}
+.hc-item{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;background:var(--cream);border-radius:2px;}
+.hc-item-icon{font-size:14px;flex-shrink:0;margin-top:1px;}
+.hc-item-text{font-size:12px;color:var(--muted);line-height:1.5;}
+.hc-item-text strong{color:var(--text);font-weight:500;}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
+
+/* QUOTE STRIP */
+.quote-strip{background:var(--navy);padding:56px 40px;text-align:center;}
+.quote-text{font-family:var(--serif);font-size:26px;color:#fff;font-style:italic;line-height:1.5;max-width:700px;margin:0 auto 16px;font-weight:400;}
+.quote-attr{font-family:var(--mono);font-size:9px;letter-spacing:3px;text-transform:uppercase;color:rgba(255,255,255,0.4);}
+
+/* WHAT WE OFFER */
+.section{max-width:1100px;margin:0 auto;padding:80px 40px;}
+.sec-eyebrow{font-family:var(--mono);font-size:9px;letter-spacing:4px;text-transform:uppercase;color:var(--gold);margin-bottom:16px;}
+.sec-h2{font-family:var(--serif);font-size:40px;color:var(--navy);font-weight:400;line-height:1.1;margin-bottom:12px;}
+.sec-h2 em{font-style:italic;}
+.sec-sub{font-size:14px;color:var(--muted);line-height:1.75;max-width:520px;margin-bottom:48px;}
+.offer-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);}
+.offer-card{background:#fff;padding:28px 24px;}
+.offer-icon{font-size:22px;margin-bottom:14px;}
+.offer-title{font-family:var(--serif);font-size:18px;color:var(--navy);margin-bottom:8px;font-weight:400;}
+.offer-desc{font-size:13px;color:var(--muted);line-height:1.65;}
+
+/* STEPS */
+.steps{display:flex;flex-direction:column;gap:0;border:1px solid var(--border);}
+.step{display:grid;grid-template-columns:60px 1fr;align-items:start;padding:24px 0;border-bottom:1px solid var(--border);}
+.step:last-child{border-bottom:none;}
+.step-num{font-family:var(--serif);font-size:32px;color:var(--cream3);text-align:center;padding-top:4px;}
+.step-content{padding-right:24px;}
+.step-title{font-family:var(--serif);font-size:17px;color:var(--navy);margin-bottom:6px;font-weight:400;}
+.step-desc{font-size:13px;color:var(--muted);line-height:1.65;}
+
+/* APPLICATION FORM */
+.form-section{background:var(--cream2);border-top:1px solid var(--border);border-bottom:1px solid var(--border);}
+.form-wrap{max-width:700px;margin:0 auto;padding:80px 40px;}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;}
+.form-full{margin-bottom:12px;}
+.flabel{font-family:var(--mono);font-size:8px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:5px;display:block;}
+.finput,.fselect,.ftextarea{width:100%;background:#fff;border:1px solid var(--border2);color:var(--text);padding:11px 14px;font-family:var(--sans);font-size:16px;outline:none;border-radius:2px;transition:border-color .2s;}
+.finput:focus,.fselect:focus,.ftextarea:focus{border-color:var(--navy);}
+.ftextarea{resize:none;min-height:90px;}
+.fselect{appearance:none;background-image:url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%236b7280' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;padding-right:36px;}
+.fchecks{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px;}
+.fcheck{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);cursor:pointer;padding:8px 10px;background:#fff;border:1px solid var(--border2);border-radius:2px;transition:border-color .2s;}
+.fcheck:hover{border-color:var(--navy);}
+.fcheck input{width:14px;height:14px;accent-color:var(--navy);flex-shrink:0;}
+.fcheck.checked{border-color:var(--navy);background:rgba(27,58,107,0.04);}
+.submit-btn{width:100%;background:var(--navy);color:#fff;font-family:var(--sans);font-size:15px;font-weight:600;padding:16px;border:none;cursor:pointer;margin-top:16px;min-height:52px;transition:background .2s;letter-spacing:0.01em;}
+.submit-btn:hover{background:var(--navy2);}
+.submit-btn:disabled{background:var(--muted2);cursor:not-allowed;}
+.form-note{font-family:var(--mono);font-size:9px;letter-spacing:1px;color:var(--muted2);text-align:center;margin-top:10px;line-height:1.6;}
+.form-success{display:none;text-align:center;padding:40px 20px;}
+.fs-icon{font-size:36px;margin-bottom:16px;}
+.fs-title{font-family:var(--serif);font-size:28px;color:var(--navy);margin-bottom:12px;font-weight:400;}
+.fs-sub{font-size:14px;color:var(--muted);line-height:1.75;max-width:420px;margin:0 auto;}
+
+/* FOOTER */
+footer{background:var(--navy);padding:48px 40px;text-align:center;}
+.ft-logo{font-family:var(--serif);font-size:22px;color:#fff;font-weight:400;margin-bottom:8px;}
+.ft-logo em{color:var(--gold);font-style:italic;}
+.ft-sub{font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.35);margin-bottom:20px;}
+.ft-links{display:flex;justify-content:center;gap:24px;margin-bottom:20px;}
+.ft-link{font-size:12px;color:rgba(255,255,255,0.5);text-decoration:none;}
+.ft-link:hover{color:rgba(255,255,255,0.8);}
+.ft-copy{font-size:11px;color:rgba(255,255,255,0.25);}
+
+/* MOBILE */
+@media(max-width:1024px){
+  nav{padding:0 24px;}
+  .hero{padding:80px 24px 60px;gap:48px;}
+  .section{padding:64px 24px;}
+  .offer-grid{grid-template-columns:1fr 1fr;}
+}
+@media(max-width:768px){
+  nav{padding:0 18px;}
+  .nav-links{display:none;}
+  .hero{grid-template-columns:1fr;padding:80px 18px 48px;gap:40px;}
+  .hero-h1{font-size:38px;}
+  .hero-card{display:none;}
+  .section{padding:56px 18px;}
+  .offer-grid{grid-template-columns:1fr;background:none;gap:8px;}
+  .offer-card{border:1px solid var(--border);}
+  .sec-h2{font-size:30px;}
+  .form-wrap{padding:56px 18px;}
+  .form-grid{grid-template-columns:1fr;}
+  .quote-text{font-size:20px;}
+  .quote-strip{padding:40px 20px;}
+}
+@media(max-width:480px){
+  .hero-h1{font-size:32px;}
+  .fchecks{grid-template-columns:1fr;}
+  footer{padding:36px 18px;}
+}
+@media(max-width:390px){
+  .hero-h1{font-size:28px;}
+  .form-wrap{padding:40px 16px;}
+}
+@media(hover:none){
+  body{cursor:auto;}
+  a,button{cursor:auto;}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="/" class="nav-logo">Proximity <em>Care</em></a>
+  <div class="nav-links">
+    <a href="/" class="nav-link">For Families</a>
+    <a href="/#builder" class="nav-link">Care Plans</a>
+    <a href="lead-form.html" class="nav-cta">Book Assessment</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div style="max-width:1100px;margin:0 auto;">
+<div class="hero">
+  <div>
+    <div class="hero-eyebrow">Join Our Team · Peel Region, Ontario</div>
+    <h1 class="hero-h1">Care for people<br>who <em>deserve</em><br>it most.</h1>
+    <p class="hero-sub">We are looking for PSWs who take their work seriously. Same client every visit. Real relationships. A team that supports you. Mississauga, Brampton, and Caledon.</p>
+    <div class="hero-trust">
+      <div class="hero-trust-item"><div class="hero-trust-dot"></div>Same client every visit — no rotating strangers</div>
+      <div class="hero-trust-item"><div class="hero-trust-dot"></div>Competitive hourly rate, paid on time</div>
+      <div class="hero-trust-item"><div class="hero-trust-dot"></div>Founded by a PSW — we understand the work</div>
+      <div class="hero-trust-item"><div class="hero-trust-dot"></div>Flexible scheduling, Peel Region</div>
+    </div>
+  </div>
+  <div class="hero-card">
+    <div class="hc-header">
+      <span class="hc-title">Our Agency</span>
+      <span class="hc-badge">Hiring Now</span>
+    </div>
+    <div class="hc-body">
+      <div class="hc-stat-row">
+        <div class="hc-stat"><span class="hc-stat-val">12</span><span class="hc-stat-lbl">PSWs</span></div>
+        <div class="hc-stat"><span class="hc-stat-val">11</span><span class="hc-stat-lbl">Clients</span></div>
+        <div class="hc-stat"><span class="hc-stat-val">5★</span><span class="hc-stat-lbl">Reviews</span></div>
+      </div>
+      <div class="hc-items">
+        <div class="hc-item"><div class="hc-item-icon">📱</div><div class="hc-item-text"><strong>Log visits from your phone</strong> — no paper, no chasing</div></div>
+        <div class="hc-item"><div class="hc-item-icon">💰</div><div class="hc-item-text"><strong>Pay summary sent automatically</strong> — know what you earned</div></div>
+        <div class="hc-item"><div class="hc-item-icon">🤝</div><div class="hc-item-text"><strong>Lance started as a PSW</strong> — he knows the work</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- QUOTE -->
+<div class="quote-strip">
+  <p class="quote-text">"I started this agency as a PSW because I saw how agencies treated their staff. Same client every visit, pay on time, and someone who actually picks up the phone."</p>
+  <p class="quote-attr">Lance Salazar · Founder · Proximity Care Services</p>
+</div>
+
+<!-- WHAT WE OFFER -->
+<div class="section reveal">
+  <div class="sec-eyebrow">What You Get</div>
+  <h2 class="sec-h2">A place worth<br><em>staying.</em></h2>
+  <p class="sec-sub">We built this agency on one idea: if you take care of your PSWs, they take care of your clients.</p>
+  <div class="offer-grid">
+    <div class="offer-card">
+      <div class="offer-icon">📋</div>
+      <div class="offer-title">Clear expectations</div>
+      <div class="offer-desc">Your client, your schedule, your care plan. No surprises. No last-minute changes without a conversation.</div>
+    </div>
+    <div class="offer-card">
+      <div class="offer-icon">💳</div>
+      <div class="offer-title">Reliable pay</div>
+      <div class="offer-desc">Hours tracked automatically from your phone. Pay summary sent to you every period. No chasing, no guessing.</div>
+    </div>
+    <div class="offer-card">
+      <div class="offer-icon">📱</div>
+      <div class="offer-title">Tools that work</div>
+      <div class="offer-desc">Log your visit, your checklist, and your notes in under 2 minutes from your phone. No paper. No email chains.</div>
+    </div>
+    <div class="offer-card">
+      <div class="offer-icon">🤝</div>
+      <div class="offer-title">Same client every visit</div>
+      <div class="offer-desc">You build a real relationship with your client and their family. No rotating strangers. You are their person.</div>
+    </div>
+    <div class="offer-card">
+      <div class="offer-icon">📍</div>
+      <div class="offer-title">Peel Region only</div>
+      <div class="offer-desc">Mississauga, Brampton, and Caledon. We do not send you across the city for a 2-hour shift.</div>
+    </div>
+    <div class="offer-card">
+      <div class="offer-icon">🎓</div>
+      <div class="offer-title">Support from a PSW</div>
+      <div class="offer-desc">Lance started as a PSW. He understands what the work actually looks like. You will always have someone to call.</div>
+    </div>
+  </div>
+</div>
+
+<!-- HOW IT WORKS -->
+<div style="background:var(--cream2);border-top:1px solid var(--border);border-bottom:1px solid var(--border);">
+<div class="section reveal">
+  <div class="sec-eyebrow">How It Works</div>
+  <h2 class="sec-h2">From application<br>to <em>first shift.</em></h2>
+  <div class="steps">
+    <div class="step"><div class="step-num">01</div><div class="step-content"><div class="step-title">Apply below</div><div class="step-desc">Tell us about your experience and availability. Takes about 3 minutes. No resume required — we just need the basics.</div></div></div>
+    <div class="step"><div class="step-num">02</div><div class="step-content"><div class="step-title">We review and reach out</div><div class="step-desc">If your experience matches what we need we will reach out within 2 to 3 business days to schedule a short phone call.</div></div></div>
+    <div class="step"><div class="step-num">03</div><div class="step-content"><div class="step-title">Phone interview with Lance</div><div class="step-desc">15 minutes. He will ask about your background, availability, and what you are looking for. You will need your PSW certificate, police check, CPR, and two references ready.</div></div></div>
+    <div class="step"><div class="step-num">04</div><div class="step-content"><div class="step-title">Onboarding and first shift</div><div class="step-desc">We walk you through the visit logging app, introduce you to your client, and you start your first shift. Usually within a week of your interview.</div></div></div>
+  </div>
+</div>
+</div>
+
+<!-- APPLICATION FORM -->
+<div class="form-section" id="apply">
+<div class="form-wrap">
+  <div class="sec-eyebrow" style="margin-bottom:16px;">Apply Now</div>
+  <h2 class="sec-h2" style="margin-bottom:8px;">Tell us about<br><em>yourself.</em></h2>
+  <p style="font-size:14px;color:var(--muted);line-height:1.75;margin-bottom:36px;">Takes 3 minutes. We read every application personally.</p>
+
+  <div id="appForm">
+    <div class="form-grid">
+      <div><label class="flabel">First Name *</label><input class="finput" id="f-first" type="text" placeholder="First name" autocomplete="given-name"></div>
+      <div><label class="flabel">Last Name *</label><input class="finput" id="f-last" type="text" placeholder="Last name" autocomplete="family-name"></div>
+    </div>
+    <div class="form-grid">
+      <div><label class="flabel">Phone *</label><input class="finput" id="f-phone" type="tel" placeholder="647-000-0000" autocomplete="tel"></div>
+      <div><label class="flabel">Email</label><input class="finput" id="f-email" type="email" placeholder="your@email.com" autocomplete="email"></div>
+    </div>
+    <div class="form-grid">
+      <div><label class="flabel">City</label><input class="finput" id="f-city" type="text" placeholder="Mississauga, Brampton, etc."></div>
+      <div>
+        <label class="flabel">Years of PSW Experience</label>
+        <select class="fselect" id="f-exp">
+          <option value="">Select...</option>
+          <option>Less than 1 year</option>
+          <option>1 to 2 years</option>
+          <option>3 to 5 years</option>
+          <option>6 to 10 years</option>
+          <option>10 or more years</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-full">
+      <label class="flabel">Availability</label>
+      <select class="fselect" id="f-avail">
+        <option value="">Select...</option>
+        <option>Full time (30+ hours/week)</option>
+        <option>Part time (15 to 29 hours/week)</option>
+        <option>Casual (under 15 hours/week)</option>
+        <option>Weekends only</option>
+        <option>Evenings and weekends</option>
+      </select>
+    </div>
+    <div class="form-full">
+      <label class="flabel">Certifications (check all that apply)</label>
+      <div class="fchecks" id="f-certs">
+        <label class="fcheck"><input type="checkbox" value="PSW Certificate"> PSW Certificate</label>
+        <label class="fcheck"><input type="checkbox" value="Police Check"> Police Check (within 6 months)</label>
+        <label class="fcheck"><input type="checkbox" value="CPR"> CPR Certification</label>
+        <label class="fcheck"><input type="checkbox" value="First Aid"> First Aid Certification</label>
+        <label class="fcheck"><input type="checkbox" value="Valid ID"> Valid Government ID</label>
+        <label class="fcheck"><input type="checkbox" value="Driver License"> Driver License + Vehicle</label>
+      </div>
+    </div>
+    <div class="form-full">
+      <label class="flabel">How did you hear about us?</label>
+      <select class="fselect" id="f-heard">
+        <option value="">Select...</option>
+        <option>Indeed</option>
+        <option>Facebook / Instagram</option>
+        <option>Google search</option>
+        <option>Friend or colleague</option>
+        <option>Other</option>
+      </select>
+    </div>
+    <div class="form-full">
+      <label class="flabel">Anything else you want us to know?</label>
+      <textarea class="ftextarea" id="f-msg" placeholder="Optional — languages you speak, types of care you have experience with, anything else..."></textarea>
+    </div>
+    <button class="submit-btn" id="f-submit" onclick="submitApplication()">Submit Application</button>
+    <p class="form-note">We respond to every application within 2 to 3 business days · 647-382-8047</p>
+  </div>
+
+  <div class="form-success" id="appSuccess">
+    <div class="fs-icon">✓</div>
+    <h3 class="fs-title">Application received.</h3>
+    <p class="fs-sub">Thank you for applying. We will review your application and reach out within 2 to 3 business days. If you have questions in the meantime, call Lance at 647-382-8047.</p>
+  </div>
+</div>
+</div>
+
+<footer>
+  <div class="ft-logo">Proximity <em>Care</em></div>
+  <div class="ft-sub">In-home senior care · Peel Region, Ontario</div>
+  <div class="ft-links">
+    <a href="/" class="ft-link">For Families</a>
+    <a href="lead-form.html" class="ft-link">Book Assessment</a>
+    <a href="careers.html" class="ft-link">Join Our Team</a>
+  </div>
+  <div class="ft-copy">Proximity Care Services Inc. · Mississauga · 647-382-8047 · healthcareproximity@gmail.com</div>
+</footer>
+
+<script>
+const API = 'https://proximity-agent-production.up.railway.app';
+
+async function submitApplication() {
+  const first = document.getElementById('f-first').value.trim();
+  const last = document.getElementById('f-last').value.trim();
+  const phone = document.getElementById('f-phone').value.trim();
+  const email = document.getElementById('f-email').value.trim();
+  const city = document.getElementById('f-city').value.trim();
+  const exp = document.getElementById('f-exp').value;
+  const avail = document.getElementById('f-avail').value;
+  const heard = document.getElementById('f-heard').value;
+  const msg = document.getElementById('f-msg').value.trim();
+
+  if (!first || !last || !phone) {
+    document.getElementById('f-first').style.borderColor = !first ? '#e05555' : '';
+    document.getElementById('f-last').style.borderColor = !last ? '#e05555' : '';
+    document.getElementById('f-phone').style.borderColor = !phone ? '#e05555' : '';
+    return;
+  }
+
+  // Collect checked certifications
+  const certs = [];
+  document.querySelectorAll('#f-certs input[type=checkbox]:checked').forEach(cb => certs.push(cb.value));
+
+  const btn = document.getElementById('f-submit');
+  btn.disabled = true;
+  btn.textContent = 'Submitting...';
+
+  try {
+    const res = await fetch(API + '/psw/apply', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({
+        operator_id: 'proximity-care',
+        first_name: first,
+        last_name: last,
+        phone,
+        email,
+        city,
+        years_experience: exp,
+        availability: avail,
+        certifications: certs,
+        how_heard: heard,
+        message: msg
+      })
+    });
+    const data = await res.json();
+    if (!res.ok || !data.success) throw new Error(data.error || 'Failed');
+    document.getElementById('appForm').style.display = 'none';
+    document.getElementById('appSuccess').style.display = 'block';
+  } catch(e) {
+    alert('Something went wrong. Please call Lance at 647-382-8047 or try again.');
+    btn.disabled = false;
+    btn.textContent = 'Submit Application';
+  }
+}
+
+// Check styling for checkboxes
+document.querySelectorAll('.fcheck input').forEach(cb => {
+  cb.addEventListener('change', function() {
+    this.closest('.fcheck').classList.toggle('checked', this.checked);
+  });
+});
+
+// IntersectionObserver for reveal animations
+const obs = new IntersectionObserver(entries => {
+  entries.forEach(e => { if(e.isIntersecting) e.target.classList.add('visible'); });
+}, {threshold: 0.08});
+document.querySelectorAll('.reveal').forEach(el => {
+  el.style.opacity = '0';
+  el.style.transform = 'translateY(14px)';
+  el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+  obs.observe(el);
+});
+document.addEventListener('scroll', () => {
+  document.querySelectorAll('.reveal.visible').forEach(el => {
+    el.style.opacity = '1';
+    el.style.transform = 'translateY(0)';
+  });
+}, {passive: true});
+</script>
+</body>
+</html>

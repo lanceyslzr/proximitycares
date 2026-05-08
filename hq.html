@@ -314,6 +314,7 @@ a{color:inherit;text-decoration:none;}
   <div class="nav-tab" onclick="showSect('visits')">Visits</div>
   <div class="nav-tab" onclick="showSect('activity')">Activity</div>
   <div class="nav-tab" onclick="showSect('crm')">CRM <span class="nbadge" id="crm-badge">0</span></div>
+  <div class="nav-tab" onclick="showSect('applicants')">Applicants <span class="nbadge" id="app-badge">0</span></div>
   <div class="nav-tab" onclick="showSect('operator')">+ Agency</div>
 </div>
 
@@ -479,6 +480,15 @@ a{color:inherit;text-decoration:none;}
     <div class="crm-col"><div class="crm-col-head"><span class="crm-col-name">Call</span><span class="crm-col-count" id="crm-count-call">0</span></div><div class="crm-col-body" id="crm-call"></div></div>
     <div class="crm-col"><div class="crm-col-head"><span class="crm-col-name">Closed</span><span class="crm-col-count" id="crm-count-closed">0</span></div><div class="crm-col-body" id="crm-closed"></div></div>
   </div>
+</div>
+
+<!-- APPLICANTS — PSW Recruitment Pipeline -->
+<div class="section" id="sect-applicants">
+  <div class="section-header">
+    <span class="section-title">PSW Applicants</span>
+    <a href="https://proximitycares.ca/careers.html" target="_blank" class="sect-action">View Careers Page</a>
+  </div>
+  <div id="applicants-list"><div class="empty-state">Loading...</div></div>
 </div>
 
 <!-- CREATE OPERATOR — Tab 10 -->
@@ -1409,7 +1419,7 @@ function showSect(name) {
   document.querySelectorAll('.bnav-item').forEach(b=>b.classList.remove('active'));
   const s=document.getElementById('sect-'+name); if(s) s.classList.add('active');
   const tabs=document.querySelectorAll('.nav-tab');
-  const tm=['leads','clients','psws','onboard','bookings','purchases','messages','visits','activity','crm','operator'];
+  const tm=['leads','clients','psws','onboard','bookings','purchases','messages','visits','activity','crm','applicants','operator'];
   const ti=tm.indexOf(name); if(ti>=0&&tabs[ti]) tabs[ti].classList.add('active');
   const bm=['leads','clients','bookings','purchases','activity'];
   const bi=bm.indexOf(name);
@@ -1417,6 +1427,7 @@ function showSect(name) {
   if(bi>=0&&bnavs[bi]) bnavs[bi].classList.add('active');
   if(name==='onboard') populateOnboardSelects();
   if(name==='crm') renderCRM();
+  if(name==='applicants') loadApplicants();
   window.scrollTo(0,0);
 }
 
@@ -1610,6 +1621,84 @@ async function createOperator() {
   } finally {
     btn.disabled = false; btn.textContent = 'Create Agency + Send Welcome Email';
   }
+}
+
+// ── PSW APPLICANTS ──
+async function loadApplicants() {
+  const el = document.getElementById('applicants-list');
+  if(!el) return;
+  el.innerHTML = '<div class="empty-state">Loading...</div>';
+  try {
+    const res = await fetch(`${API}/psw/applicants?operator_id=${currentOp}`);
+    const data = await res.json();
+    const apps = data.applicants || [];
+    const badge = document.getElementById('app-badge');
+    if(badge) badge.textContent = apps.filter(a => a.status === 'applied').length;
+    if(!apps.length) { el.innerHTML = '<div class="empty-state">No applications yet · <a href="https://proximitycares.ca/careers.html" target="_blank" style="color:var(--teal2)">View careers page</a></div>'; return; }
+
+    const statusColor = {applied:'var(--amber)',qualified:'var(--teal2)',rejected:'var(--red)',hired:'var(--green2)'};
+    el.innerHTML = apps.map(a => {
+      const name = [a.first_name,a.last_name].filter(Boolean).join(' ');
+      const certs = a.certifications || '—';
+      const st = a.status || 'applied';
+      return `<div class="card">
+        <div class="card-header">
+          <div style="flex:1;min-width:0">
+            <div class="card-name">${name}</div>
+            <div class="card-sub">${a.phone?`<a href="tel:${a.phone}" onclick="event.stopPropagation()">${a.phone}</a>`:a.email||'—'}</div>
+            <div class="card-meta">${[a.city,a.availability,a.years_experience?a.years_experience+' yrs exp':''].filter(Boolean).join(' · ')}</div>
+            <div class="card-meta" style="margin-top:3px;">${certs}</div>
+          </div>
+          <div class="card-right">
+            <span class="badge" style="background:${statusColor[st]||'var(--muted)'};color:#fff;border:none;">${st}</span>
+            <div style="font-family:var(--mono);font-size:9px;color:var(--muted);margin-top:4px;">${ago(a.created_at)}</div>
+          </div>
+        </div>
+        ${a.message?`<div style="font-size:11px;color:var(--muted2);padding:0 0 8px;line-height:1.5;">"${a.message.slice(0,120)}${a.message.length>120?'...':''}"</div>`:''}
+        <div style="display:flex;gap:6px;flex-wrap:wrap;padding-top:4px;">
+          ${a.phone?`<a href="tel:${a.phone}" class="card-act ok">Call</a>`:''}
+          ${a.email?`<a href="mailto:${a.email}" class="card-act ok">Email</a>`:''}
+          ${st==='applied'?`<button class="card-act ok" onclick="qualifyApplicant('${a.id}')">Qualify →</button>`:''}
+          ${st==='qualified'?`<button class="card-act ok" onclick="activateApplicantAsStaff('${a.id}','${name}','${a.email||''}','${a.phone||''}')">Activate as PSW →</button>`:''}
+        </div>
+      </div>`;
+    }).join('');
+  } catch { el.innerHTML = '<div class="empty-state">Failed to load applicants</div>'; }
+}
+
+async function qualifyApplicant(id) {
+  try {
+    const res = await fetch(`${API}/psw/qualify`, {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({applicant_id: id, operator_id: currentOp})
+    });
+    if(!res.ok) throw new Error();
+    showToast('Qualified — interview email sent ✓','ok');
+    loadApplicants();
+  } catch { showToast('Failed to qualify','err'); }
+}
+
+async function activateApplicantAsStaff(id, name, email, phone) {
+  const nm = name.split(' ');
+  const first = nm.shift();
+  const last = nm.join(' ');
+  try {
+    const res = await fetch(`${API}/psw/activate`, {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        operator_id: currentOp,
+        full_name: name,
+        first_name: first,
+        last_name: last,
+        email, phone
+      })
+    });
+    if(!res.ok) throw new Error();
+    showToast(name+' activated as PSW ✓','ok');
+    loadApplicants();
+  } catch { showToast('Activation failed','err'); }
 }
 
 setInterval(()=>loadAll(false), 90000);
