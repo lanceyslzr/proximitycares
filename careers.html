@@ -3,343 +3,412 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="description" content="Join the Proximity Care Services team. PSW positions in Mississauga, Brampton, and Caledon. Same client every visit. Apply in 3 minutes.">
 <title>Join Our Team — Proximity Care Services</title>
-<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Jost:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lenis@1.1.14/dist/lenis.min.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 :root{
-  --cream:#faf8f4;--cream2:#f4f1eb;--cream3:#ede8df;
-  --navy:#1B3A6B;--navy2:#243f73;--navy3:#2d4d82;
-  --text:#2c2c2c;--muted:#6b7280;--muted2:#9ca3af;
-  --border:#e2ddd4;--border2:#d1cac0;
+  --navy:#0e2038;--navy2:#142844;--navy3:#1a3254;
+  --blue:#3d8fd6;--blue2:#5aaaea;--blue3:#2980b9;
+  --cream:#f0f6ff;--cream2:#f7faff;--cream3:#eaf2fc;
+  --white:#ffffff;--text:#1a2e3d;--muted:#5a6a7a;--muted2:#8a9aaa;
+  --border:#d0e4f5;--border2:#b8d4ee;
   --gold:#b87010;--green:#1a6b5a;
-  --serif:'Lora',Georgia,serif;--sans:'DM Sans',sans-serif;--mono:'DM Mono',monospace;
+  --serif:'Cormorant Garamond',serif;
+  --sans:'Jost',sans-serif;
+  --mono:'DM Mono',monospace;
+  --ease:cubic-bezier(.16,1,.3,1);
   --safe-bottom:env(safe-area-inset-bottom,0px);
 }
-html{scroll-behavior:smooth;}
-body{background:var(--cream);color:var(--text);font-family:var(--sans);overflow-x:hidden;-webkit-text-size-adjust:100%;line-height:1.6;}
+html{scroll-behavior:auto;}
+html.lenis{height:auto;}
+.lenis.lenis-smooth{scroll-behavior:auto;}
+body{font-family:var(--sans);background:var(--cream2);color:var(--text);overflow-x:hidden;-webkit-text-size-adjust:100%;line-height:1.6;}
+a{text-decoration:none;color:inherit;}
 button,a{touch-action:manipulation;}
-
-/* NOISE */
-body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");pointer-events:none;z-index:999;opacity:0.2;}
+input,select,textarea{font-family:var(--sans);font-size:16px;}
+body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");pointer-events:none;z-index:999;opacity:0.18;}
 
 /* NAV */
-nav{position:sticky;top:0;z-index:100;background:rgba(250,248,244,0.97);border-bottom:1px solid var(--border);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);height:60px;display:flex;align-items:center;justify-content:space-between;padding:0 40px;}
-.nav-logo{font-family:var(--serif);font-size:19px;color:var(--navy);text-decoration:none;font-weight:400;}
+nav{position:fixed;top:0;left:0;right:0;z-index:200;height:60px;display:flex;align-items:center;justify-content:space-between;padding:0 48px;background:rgba(240,246,255,0.95);border-bottom:1px solid var(--border);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);}
+.nav-logo{font-family:var(--serif);font-size:19px;color:var(--navy);font-weight:400;letter-spacing:0.5px;}
 .nav-logo em{color:var(--gold);font-style:italic;}
-.nav-links{display:flex;align-items:center;gap:28px;}
-.nav-link{font-size:13px;color:var(--muted);text-decoration:none;transition:color .2s;}
+.nav-links{display:flex;align-items:center;gap:32px;}
+.nav-link{font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);transition:color .2s;}
 .nav-link:hover{color:var(--navy);}
-.nav-cta{background:var(--navy);color:#fff;font-size:12px;font-weight:600;padding:9px 20px;text-decoration:none;min-height:38px;display:flex;align-items:center;letter-spacing:0.02em;}
+.nav-cta{background:var(--navy);color:#fff;font-size:11px;letter-spacing:2px;text-transform:uppercase;font-weight:600;padding:9px 22px;transition:background .2s;min-height:38px;display:flex;align-items:center;border-radius:100px;}
 .nav-cta:hover{background:var(--navy2);}
+.hamburger{display:none;background:none;border:none;cursor:pointer;padding:8px;flex-direction:column;gap:5px;}
+.hamburger span{display:block;width:22px;height:1.5px;background:var(--navy);}
+.mobile-menu{display:none;position:fixed;top:60px;left:0;right:0;background:rgba(247,250,255,0.98);border-bottom:1px solid var(--border);backdrop-filter:blur(16px);z-index:190;flex-direction:column;padding:12px 0;}
+.mobile-menu.open{display:flex;}
+.mobile-menu a{padding:13px 24px;font-size:13px;color:var(--muted);border-bottom:1px solid var(--border);}
+.mobile-menu a:last-child{border:none;color:var(--navy);font-weight:600;}
 
 /* HERO */
-.hero{padding:100px 40px 72px;max-width:1100px;margin:0 auto;display:grid;grid-template-columns:1fr 420px;gap:80px;align-items:center;}
-.hero-eyebrow{font-family:var(--mono);font-size:9px;letter-spacing:4px;text-transform:uppercase;color:var(--gold);margin-bottom:20px;opacity:0;animation:fadeUp 0.6s ease forwards 0.1s;}
-.hero-h1{font-family:var(--serif);font-size:52px;line-height:1.05;color:var(--navy);font-weight:400;margin-bottom:20px;opacity:0;animation:fadeUp 0.7s ease forwards 0.2s;}
-.hero-h1 em{font-style:italic;color:var(--gold);}
-.hero-sub{font-size:15px;color:var(--muted);line-height:1.75;max-width:440px;margin-bottom:32px;opacity:0;animation:fadeUp 0.7s ease forwards 0.35s;}
-.hero-trust{display:flex;flex-direction:column;gap:10px;opacity:0;animation:fadeUp 0.7s ease forwards 0.5s;}
-.hero-trust-item{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--muted);}
-.hero-trust-dot{width:6px;height:6px;border-radius:50%;background:var(--green);flex-shrink:0;}
+#hero{position:relative;min-height:100svh;display:flex;align-items:center;padding:100px 48px 72px;overflow:hidden;}
+#hero-canvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:0;opacity:.7;}
+.hero-inner{position:relative;z-index:1;max-width:1200px;margin:0 auto;width:100%;display:grid;grid-template-columns:1fr 400px;gap:80px;align-items:center;}
+.hero-tag{font-family:var(--mono);font-size:9px;letter-spacing:4px;text-transform:uppercase;color:var(--gold);margin-bottom:20px;display:flex;align-items:center;gap:12px;opacity:0;animation:fadeUp .6s var(--ease) forwards .1s;}
+.hero-tag::before{content:'';width:24px;height:1px;background:var(--gold);}
+.hero-h1{font-family:var(--serif);font-size:clamp(44px,5.5vw,76px);font-weight:300;line-height:1.0;color:var(--navy);margin-bottom:22px;opacity:0;animation:fadeUp .8s var(--ease) forwards .25s;}
+.hero-h1 em{font-style:italic;color:var(--blue);}
+.hero-sub{font-size:15px;line-height:1.8;color:var(--muted);max-width:480px;margin-bottom:36px;font-weight:300;opacity:0;animation:fadeUp .8s var(--ease) forwards .4s;}
+.hero-btns{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:48px;opacity:0;animation:fadeUp .8s var(--ease) forwards .55s;}
+.btn-primary{background:var(--navy);color:#fff;padding:15px 32px;font-size:11px;letter-spacing:2px;text-transform:uppercase;font-weight:600;border:none;cursor:pointer;transition:all .2s;min-height:50px;display:flex;align-items:center;border-radius:100px;}
+.btn-primary:hover{background:var(--navy2);}
+.btn-ghost{background:transparent;color:var(--navy);padding:14px 28px;font-size:11px;letter-spacing:2px;text-transform:uppercase;font-weight:500;border:1.5px solid var(--border2);cursor:pointer;transition:all .2s;min-height:50px;display:flex;align-items:center;border-radius:100px;}
+.btn-ghost:hover{border-color:var(--navy);}
+.hero-trust{display:flex;flex-direction:column;gap:10px;opacity:0;animation:fadeUp .8s var(--ease) forwards .7s;}
+.hero-trust-item{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--muted);font-weight:300;}
+.ht-dot{width:5px;height:5px;border-radius:50%;background:var(--green);box-shadow:0 0 6px rgba(26,107,90,.6);flex-shrink:0;}
 
-.hero-card{background:#fff;border:1px solid var(--border);border-radius:3px;overflow:hidden;box-shadow:0 4px 32px rgba(27,58,107,0.08);opacity:0;animation:fadeUp 0.8s ease forwards 0.4s;}
-.hc-header{background:var(--navy);padding:20px 24px;display:flex;align-items:center;justify-content:space-between;}
-.hc-title{font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.6);}
-.hc-badge{background:rgba(26,107,90,0.3);color:#6ac98a;font-family:var(--mono);font-size:8px;letter-spacing:1.5px;text-transform:uppercase;padding:3px 10px;border:1px solid rgba(106,201,138,0.3);}
-.hc-body{padding:20px 24px;}
-.hc-stat-row{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);margin-bottom:16px;border-radius:2px;overflow:hidden;}
-.hc-stat{background:#fff;padding:12px 8px;text-align:center;}
-.hc-stat-val{font-family:var(--serif);font-size:22px;color:var(--navy);line-height:1;display:block;}
-.hc-stat-lbl{font-family:var(--mono);font-size:7.5px;letter-spacing:1px;text-transform:uppercase;color:var(--muted2);display:block;margin-top:3px;}
-.hc-items{display:flex;flex-direction:column;gap:8px;}
-.hc-item{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;background:var(--cream);border-radius:2px;}
-.hc-item-icon{font-size:14px;flex-shrink:0;margin-top:1px;}
-.hc-item-text{font-size:12px;color:var(--muted);line-height:1.5;}
-.hc-item-text strong{color:var(--text);font-weight:500;}
+/* HERO CARD */
+.hero-card{background:#fff;border:1px solid var(--border);box-shadow:0 8px 48px rgba(14,32,56,.1);overflow:hidden;opacity:0;animation:fadeUp .9s var(--ease) forwards .5s;}
+.hc-top{background:var(--navy);padding:18px 22px;display:flex;align-items:center;justify-content:space-between;}
+.hc-logo{font-family:var(--serif);font-size:15px;color:#fff;font-weight:300;letter-spacing:1px;}
+.hc-badge{background:rgba(26,107,90,.3);color:#6ac98a;font-family:var(--mono);font-size:8px;letter-spacing:2px;text-transform:uppercase;padding:3px 10px;border:1px solid rgba(106,201,138,.3);}
+.hc-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);}
+.hc-stat{background:#fff;padding:14px 10px;text-align:center;}
+.hc-stat-n{font-family:var(--serif);font-size:28px;color:var(--navy);line-height:1;display:block;font-weight:300;}
+.hc-stat-l{font-family:var(--mono);font-size:7px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted2);display:block;margin-top:3px;}
+.hc-items{padding:14px;}
+.hc-item{display:flex;align-items:flex-start;gap:12px;padding:11px 13px;background:var(--cream3);margin-bottom:6px;border-left:2px solid var(--blue3);}
+.hc-item:last-child{margin-bottom:0;}
+.hc-icon{flex-shrink:0;margin-top:2px;color:var(--blue);}
+.hc-item-t{font-size:12px;color:var(--muted);line-height:1.5;}
+.hc-item-t strong{color:var(--text);font-weight:500;display:block;margin-bottom:1px;}
 
-@keyframes fadeUp{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:none;}}
 
-/* QUOTE STRIP */
-.quote-strip{background:var(--navy);padding:56px 40px;text-align:center;}
-.quote-text{font-family:var(--serif);font-size:26px;color:#fff;font-style:italic;line-height:1.5;max-width:700px;margin:0 auto 16px;font-weight:400;}
-.quote-attr{font-family:var(--mono);font-size:9px;letter-spacing:3px;text-transform:uppercase;color:rgba(255,255,255,0.4);}
+.divider{height:1px;background:linear-gradient(to right,transparent,var(--border),transparent);}
 
-/* WHAT WE OFFER */
-.section{max-width:1100px;margin:0 auto;padding:80px 40px;}
-.sec-eyebrow{font-family:var(--mono);font-size:9px;letter-spacing:4px;text-transform:uppercase;color:var(--gold);margin-bottom:16px;}
-.sec-h2{font-family:var(--serif);font-size:40px;color:var(--navy);font-weight:400;line-height:1.1;margin-bottom:12px;}
+/* SECTIONS */
+.section{padding:88px 48px;}
+.section-inner{max-width:1200px;margin:0 auto;}
+.sec-eyebrow{font-family:var(--mono);font-size:9px;letter-spacing:4px;text-transform:uppercase;color:var(--gold);margin-bottom:16px;display:flex;align-items:center;gap:12px;}
+.sec-eyebrow::before{content:'';width:20px;height:1px;background:var(--gold);}
+.sec-h2{font-family:var(--serif);font-size:clamp(34px,4vw,52px);color:var(--navy);font-weight:300;line-height:1.0;margin-bottom:14px;}
 .sec-h2 em{font-style:italic;}
-.sec-sub{font-size:14px;color:var(--muted);line-height:1.75;max-width:520px;margin-bottom:48px;}
+.sec-sub{font-size:14px;color:var(--muted);line-height:1.8;max-width:500px;margin-bottom:52px;font-weight:300;}
+
+/* OFFER GRID */
 .offer-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);}
-.offer-card{background:#fff;padding:28px 24px;}
-.offer-icon{font-size:22px;margin-bottom:14px;}
-.offer-title{font-family:var(--serif);font-size:18px;color:var(--navy);margin-bottom:8px;font-weight:400;}
-.offer-desc{font-size:13px;color:var(--muted);line-height:1.65;}
+.offer-card{background:#fff;padding:32px 28px;transition:background .2s;}
+.offer-card:hover{background:var(--cream3);}
+.offer-icon{width:44px;height:44px;border-radius:50%;background:var(--cream3);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;margin-bottom:18px;color:var(--blue);}
+.offer-title{font-family:var(--serif);font-size:19px;color:var(--navy);margin-bottom:8px;font-weight:400;}
+.offer-desc{font-size:13px;color:var(--muted);line-height:1.7;font-weight:300;}
+
+/* QUOTE */
+.quote-strip{background:var(--navy);padding:72px 48px;position:relative;overflow:hidden;}
+.quote-strip::before{content:'';position:absolute;top:-60px;right:-60px;width:300px;height:300px;background:radial-gradient(circle,rgba(61,143,214,.15),transparent 70%);pointer-events:none;}
+.quote-mark{font-family:var(--serif);font-size:80px;color:rgba(255,255,255,.06);line-height:1;margin-bottom:-16px;font-weight:300;}
+.quote-text{font-family:var(--serif);font-size:clamp(20px,2.5vw,28px);color:#fff;font-style:italic;line-height:1.55;max-width:780px;margin:0 auto 20px;font-weight:300;position:relative;z-index:1;}
+.quote-attr{font-family:var(--mono);font-size:9px;letter-spacing:3px;text-transform:uppercase;color:rgba(255,255,255,.35);}
 
 /* STEPS */
-.steps{display:flex;flex-direction:column;gap:0;border:1px solid var(--border);}
-.step{display:grid;grid-template-columns:60px 1fr;align-items:start;padding:24px 0;border-bottom:1px solid var(--border);}
-.step:last-child{border-bottom:none;}
-.step-num{font-family:var(--serif);font-size:32px;color:var(--cream3);text-align:center;padding-top:4px;}
-.step-content{padding-right:24px;}
-.step-title{font-family:var(--serif);font-size:17px;color:var(--navy);margin-bottom:6px;font-weight:400;}
-.step-desc{font-size:13px;color:var(--muted);line-height:1.65;}
+.steps-grid{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border);}
+.step-card{background:#fff;padding:32px 28px;display:flex;gap:20px;}
+.step-num{font-family:var(--serif);font-size:48px;color:rgba(14,32,56,.07);line-height:1;flex-shrink:0;width:52px;font-weight:300;}
+.step-title{font-family:var(--serif);font-size:19px;color:var(--navy);margin-bottom:6px;font-weight:400;}
+.step-desc{font-size:13px;color:var(--muted);line-height:1.7;font-weight:300;}
 
-/* APPLICATION FORM */
-.form-section{background:var(--cream2);border-top:1px solid var(--border);border-bottom:1px solid var(--border);}
-.form-wrap{max-width:700px;margin:0 auto;padding:80px 40px;}
-.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;}
-.form-full{margin-bottom:12px;}
-.flabel{font-family:var(--mono);font-size:8px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:5px;display:block;}
-.finput,.fselect,.ftextarea{width:100%;background:#fff;border:1px solid var(--border2);color:var(--text);padding:11px 14px;font-family:var(--sans);font-size:16px;outline:none;border-radius:2px;transition:border-color .2s;}
+/* FORM */
+.form-section{background:var(--cream3);border-top:1px solid var(--border);border-bottom:1px solid var(--border);}
+.form-wrap{max-width:680px;margin:0 auto;padding:88px 48px;}
+
+/* PROGRESS */
+.progress-track{display:flex;align-items:flex-start;margin-bottom:48px;position:relative;}
+.progress-track::before{content:'';position:absolute;top:14px;left:14px;right:14px;height:1px;background:var(--border);z-index:0;}
+.progress-step{flex:1;display:flex;flex-direction:column;align-items:center;position:relative;z-index:1;}
+.ps-dot{width:28px;height:28px;border-radius:50%;border:2px solid var(--border);background:var(--cream2);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:9px;color:var(--muted2);transition:all .3s;}
+.progress-step.done .ps-dot{background:var(--navy);border-color:var(--navy);color:#fff;}
+.progress-step.active .ps-dot{border-color:var(--blue);color:var(--blue);background:#fff;}
+.ps-label{font-family:var(--mono);font-size:7.5px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted2);margin-top:6px;text-align:center;}
+.progress-step.active .ps-label{color:var(--navy);}
+.progress-step.done .ps-label{color:var(--green);}
+
+/* STEPS */
+.form-step{display:none;}
+.form-step.active{display:block;}
+.step-heading{font-family:var(--serif);font-size:32px;color:var(--navy);font-weight:300;margin-bottom:6px;}
+.step-heading em{font-style:italic;}
+.step-sub{font-size:13px;color:var(--muted);margin-bottom:32px;line-height:1.7;font-weight:300;}
+.frow{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;}
+.fgroup{margin-bottom:14px;}
+.flabel{font-family:var(--mono);font-size:8px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;display:block;}
+.finput,.fselect,.ftextarea{width:100%;background:#fff;border:1px solid var(--border2);color:var(--text);padding:11px 14px;font-family:var(--sans);font-size:16px;outline:none;transition:border-color .2s;box-sizing:border-box;}
 .finput:focus,.fselect:focus,.ftextarea:focus{border-color:var(--navy);}
-.ftextarea{resize:none;min-height:90px;}
-.fselect{appearance:none;background-image:url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%236b7280' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;padding-right:36px;}
-.fchecks{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px;}
-.fcheck{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);cursor:pointer;padding:8px 10px;background:#fff;border:1px solid var(--border2);border-radius:2px;transition:border-color .2s;}
-.fcheck:hover{border-color:var(--navy);}
-.fcheck input{width:14px;height:14px;accent-color:var(--navy);flex-shrink:0;}
-.fcheck.checked{border-color:var(--navy);background:rgba(27,58,107,0.04);}
-.submit-btn{width:100%;background:var(--navy);color:#fff;font-family:var(--sans);font-size:15px;font-weight:600;padding:16px;border:none;cursor:pointer;margin-top:16px;min-height:52px;transition:background .2s;letter-spacing:0.01em;}
-.submit-btn:hover{background:var(--navy2);}
-.submit-btn:disabled{background:var(--muted2);cursor:not-allowed;}
-.form-note{font-family:var(--mono);font-size:9px;letter-spacing:1px;color:var(--muted2);text-align:center;margin-top:10px;line-height:1.6;}
-.form-success{display:none;text-align:center;padding:40px 20px;}
-.fs-icon{font-size:36px;margin-bottom:16px;}
-.fs-title{font-family:var(--serif);font-size:28px;color:var(--navy);margin-bottom:12px;font-weight:400;}
-.fs-sub{font-size:14px;color:var(--muted);line-height:1.75;max-width:420px;margin:0 auto;}
+.ftextarea{resize:none;min-height:80px;}
+.fselect{appearance:none;background-image:url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%235a6a7a' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;padding-right:36px;}
+.finput.err,.fselect.err{border-color:#e05555;}
+
+/* CHIPS */
+.chip-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:6px;}
+.chip-grid.two-col{grid-template-columns:1fr 1fr;}
+.chip-grid.four-col{grid-template-columns:repeat(4,1fr);}
+.sel-chip{background:#fff;border:1.5px solid var(--border2);color:var(--muted);font-size:12px;padding:10px 12px;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:8px;min-height:44px;font-family:var(--sans);text-align:left;width:100%;}
+.sel-chip svg{flex-shrink:0;color:var(--muted2);transition:color .2s;}
+.sel-chip:hover{border-color:var(--blue2);color:var(--text);}
+.sel-chip.selected{border-color:var(--navy);background:rgba(14,32,56,.05);color:var(--navy);}
+.sel-chip.selected svg{color:var(--navy);}
+
+/* FORM NAV */
+.form-nav{display:flex;gap:10px;margin-top:28px;}
+.btn-next{flex:1;background:var(--navy);color:#fff;font-family:var(--sans);font-size:12px;letter-spacing:2px;text-transform:uppercase;font-weight:600;padding:15px;border:none;cursor:pointer;min-height:50px;transition:background .2s;border-radius:100px;}
+.btn-next:hover{background:var(--navy2);}
+.btn-next:disabled{background:var(--muted2);cursor:not-allowed;}
+.btn-back{background:transparent;color:var(--muted);font-family:var(--sans);font-size:12px;letter-spacing:1.5px;text-transform:uppercase;padding:14px 20px;border:1.5px solid var(--border2);cursor:pointer;min-height:50px;transition:all .2s;border-radius:100px;}
+.btn-back:hover{border-color:var(--muted);}
+
+/* SUCCESS */
+.form-success{display:none;text-align:center;padding:48px 20px;}
+.success-check{width:60px;height:60px;border-radius:50%;background:rgba(26,107,90,.1);border:1px solid rgba(26,107,90,.3);display:flex;align-items:center;justify-content:center;margin:0 auto 24px;}
+.success-title{font-family:var(--serif);font-size:36px;color:var(--navy);margin-bottom:12px;font-weight:300;}
+.success-sub{font-size:14px;color:var(--muted);line-height:1.8;max-width:420px;margin:0 auto;font-weight:300;}
+
+/* MOBILE STICKY */
+.mobile-sticky{display:none;position:fixed;bottom:0;left:0;right:0;padding:12px 18px calc(12px + var(--safe-bottom));background:rgba(247,250,255,.97);border-top:1px solid var(--border);backdrop-filter:blur(12px);z-index:100;}
+.mobile-sticky a{display:block;background:var(--navy);color:#fff;text-align:center;padding:14px;font-size:11px;letter-spacing:2px;text-transform:uppercase;font-weight:600;border-radius:100px;}
 
 /* FOOTER */
-footer{background:var(--navy);padding:48px 40px;text-align:center;}
-.ft-logo{font-family:var(--serif);font-size:22px;color:#fff;font-weight:400;margin-bottom:8px;}
+footer{background:var(--navy);padding:52px 48px;text-align:center;}
+.ft-logo{font-family:var(--serif);font-size:22px;color:#fff;font-weight:300;margin-bottom:6px;letter-spacing:1px;}
 .ft-logo em{color:var(--gold);font-style:italic;}
-.ft-sub{font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.35);margin-bottom:20px;}
-.ft-links{display:flex;justify-content:center;gap:24px;margin-bottom:20px;}
-.ft-link{font-size:12px;color:rgba(255,255,255,0.5);text-decoration:none;}
-.ft-link:hover{color:rgba(255,255,255,0.8);}
-.ft-copy{font-size:11px;color:rgba(255,255,255,0.25);}
+.ft-sub{font-family:var(--mono);font-size:8.5px;letter-spacing:2.5px;text-transform:uppercase;color:rgba(255,255,255,.3);margin-bottom:20px;}
+.ft-links{display:flex;justify-content:center;gap:24px;margin-bottom:20px;flex-wrap:wrap;}
+.ft-link{font-size:12px;color:rgba(255,255,255,.4);transition:color .2s;}
+.ft-link:hover{color:rgba(255,255,255,.7);}
+.ft-copy{font-size:11px;color:rgba(255,255,255,.2);}
 
-/* MOBILE */
-@media(max-width:1024px){
-  nav{padding:0 24px;}
-  .hero{padding:80px 24px 60px;gap:48px;}
-  .section{padding:64px 24px;}
-  .offer-grid{grid-template-columns:1fr 1fr;}
-}
-@media(max-width:768px){
-  nav{padding:0 18px;}
-  .nav-links{display:none;}
-  .hero{grid-template-columns:1fr;padding:80px 18px 48px;gap:40px;}
-  .hero-h1{font-size:38px;}
-  .hero-card{display:none;}
-  .section{padding:56px 18px;}
-  .offer-grid{grid-template-columns:1fr;background:none;gap:8px;}
-  .offer-card{border:1px solid var(--border);}
-  .sec-h2{font-size:30px;}
-  .form-wrap{padding:56px 18px;}
-  .form-grid{grid-template-columns:1fr;}
-  .quote-text{font-size:20px;}
-  .quote-strip{padding:40px 20px;}
-}
-@media(max-width:480px){
-  .hero-h1{font-size:32px;}
-  .fchecks{grid-template-columns:1fr;}
-  footer{padding:36px 18px;}
-}
-@media(max-width:390px){
-  .hero-h1{font-size:28px;}
-  .form-wrap{padding:40px 16px;}
-}
-@media(hover:none){
-  body{cursor:auto;}
-  a,button{cursor:auto;}
-}
+/* REVEAL */
+.reveal{opacity:0;transform:translateY(16px);transition:opacity .7s var(--ease),transform .7s var(--ease);}
+.reveal.visible{opacity:1;transform:none;}
+
+/* BREAKPOINTS */
+@media(max-width:1024px){nav{padding:0 28px;}#hero{padding:88px 28px 64px;}.hero-inner{gap:48px;}.section{padding:72px 28px;}.form-wrap{padding:72px 28px;}.quote-strip{padding:56px 28px;}footer{padding:44px 28px;}}
+@media(max-width:900px){nav{padding:0 20px;}.nav-links{display:none;}.hamburger{display:flex;}.hero-inner{grid-template-columns:1fr;}.hero-card{display:none;}.offer-grid{grid-template-columns:1fr 1fr;}.steps-grid{grid-template-columns:1fr;}.chip-grid.four-col{grid-template-columns:1fr 1fr;}.mobile-sticky{display:block;}footer{padding:36px 20px;}}
+@media(max-width:768px){#hero{padding:80px 20px 56px;}.section{padding:56px 20px;}.form-wrap{padding:56px 20px;}.quote-strip{padding:48px 20px;}.offer-grid{grid-template-columns:1fr;}.frow{grid-template-columns:1fr;}.chip-grid{grid-template-columns:1fr 1fr;}.chip-grid.four-col{grid-template-columns:1fr 1fr;}}
+@media(max-width:480px){.hero-h1{font-size:34px;}.chip-grid,.chip-grid.four-col,.chip-grid.two-col{grid-template-columns:1fr 1fr;}.ps-label{display:none;}}
+@media(max-width:390px){#hero{padding:76px 16px 48px;}.section{padding:48px 16px;}.form-wrap{padding:48px 16px;}.hero-h1{font-size:30px;}}
+@media(hover:none){body{cursor:auto;}a,button{cursor:auto;}}
 </style>
 </head>
 <body>
 
-<nav>
+<nav id="nav">
   <a href="/" class="nav-logo">Proximity <em>Care</em></a>
   <div class="nav-links">
     <a href="/" class="nav-link">For Families</a>
     <a href="/#builder" class="nav-link">Care Plans</a>
     <a href="lead-form.html" class="nav-cta">Book Assessment</a>
   </div>
+  <button class="hamburger" id="hamburger" onclick="toggleMenu()"><span></span><span></span><span></span></button>
 </nav>
+<div class="mobile-menu" id="mobile-menu">
+  <a href="/" onclick="toggleMenu()">For Families</a>
+  <a href="/#builder" onclick="toggleMenu()">Care Plans</a>
+  <a href="lead-form.html" onclick="toggleMenu()">Book Free Assessment</a>
+</div>
 
-<!-- HERO -->
-<div style="max-width:1100px;margin:0 auto;">
-<div class="hero">
-  <div>
-    <div class="hero-eyebrow">Join Our Team · Peel Region, Ontario</div>
-    <h1 class="hero-h1">Care for people<br>who <em>deserve</em><br>it most.</h1>
-    <p class="hero-sub">We are looking for PSWs who take their work seriously. Same client every visit. Real relationships. A team that supports you. Mississauga, Brampton, and Caledon.</p>
-    <div class="hero-trust">
-      <div class="hero-trust-item"><div class="hero-trust-dot"></div>Same client every visit — no rotating strangers</div>
-      <div class="hero-trust-item"><div class="hero-trust-dot"></div>Competitive hourly rate, paid on time</div>
-      <div class="hero-trust-item"><div class="hero-trust-dot"></div>Founded by a PSW — we understand the work</div>
-      <div class="hero-trust-item"><div class="hero-trust-dot"></div>Flexible scheduling, Peel Region</div>
+<section id="hero">
+  <canvas id="hero-canvas"></canvas>
+  <div class="hero-inner">
+    <div>
+      <div class="hero-tag">Now Hiring · Peel Region, Ontario</div>
+      <h1 class="hero-h1">Do work that<br><em>actually matters.</em></h1>
+      <p class="hero-sub">We are looking for PSWs who take care seriously. Same client every visit. Real relationships. A team built by someone who started as a PSW.</p>
+      <div class="hero-btns">
+        <a href="#apply" class="btn-primary">Apply Now — 3 Minutes</a>
+        <a href="#what-we-offer" class="btn-ghost">What We Offer</a>
+      </div>
+      <div class="hero-trust">
+        <div class="hero-trust-item"><div class="ht-dot"></div>Same client every visit — no rotating strangers</div>
+        <div class="hero-trust-item"><div class="ht-dot"></div>Competitive pay, paid on time, every time</div>
+        <div class="hero-trust-item"><div class="ht-dot"></div>Founded by a PSW — we understand the work</div>
+        <div class="hero-trust-item"><div class="ht-dot"></div>Mississauga, Brampton, Caledon only</div>
+      </div>
     </div>
-  </div>
-  <div class="hero-card">
-    <div class="hc-header">
-      <span class="hc-title">Our Agency</span>
-      <span class="hc-badge">Hiring Now</span>
-    </div>
-    <div class="hc-body">
-      <div class="hc-stat-row">
-        <div class="hc-stat"><span class="hc-stat-val">12</span><span class="hc-stat-lbl">PSWs</span></div>
-        <div class="hc-stat"><span class="hc-stat-val">11</span><span class="hc-stat-lbl">Clients</span></div>
-        <div class="hc-stat"><span class="hc-stat-val">5★</span><span class="hc-stat-lbl">Reviews</span></div>
+    <div class="hero-card">
+      <div class="hc-top"><span class="hc-logo">Proximity Care</span><span class="hc-badge">Hiring Now</span></div>
+      <div class="hc-stats">
+        <div class="hc-stat"><span class="hc-stat-n">12</span><span class="hc-stat-l">PSWs</span></div>
+        <div class="hc-stat"><span class="hc-stat-n">11</span><span class="hc-stat-l">Clients</span></div>
+        <div class="hc-stat"><span class="hc-stat-n">5★</span><span class="hc-stat-l">Reviews</span></div>
       </div>
       <div class="hc-items">
-        <div class="hc-item"><div class="hc-item-icon">📱</div><div class="hc-item-text"><strong>Log visits from your phone</strong> — no paper, no chasing</div></div>
-        <div class="hc-item"><div class="hc-item-icon">💰</div><div class="hc-item-text"><strong>Pay summary sent automatically</strong> — know what you earned</div></div>
-        <div class="hc-item"><div class="hc-item-icon">🤝</div><div class="hc-item-text"><strong>Lance started as a PSW</strong> — he knows the work</div></div>
+        <div class="hc-item"><div class="hc-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="5" y="2" width="14" height="20" rx="2"/><path d="M12 18h.01"/></svg></div><div class="hc-item-t"><strong>Log from your phone</strong>Visit notes in under 2 minutes</div></div>
+        <div class="hc-item"><div class="hc-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg></div><div class="hc-item-t"><strong>Pay sent automatically</strong>Know exactly what you earned</div></div>
+        <div class="hc-item"><div class="hc-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 10.8a19.79 19.79 0 01-3.07-8.68A2 2 0 012 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 14.92z"/></svg></div><div class="hc-item-t"><strong>Lance started as a PSW</strong>He picks up the phone</div></div>
       </div>
     </div>
   </div>
-</div>
-</div>
+</section>
 
-<!-- QUOTE -->
+<div class="divider"></div>
+
+<section class="section" id="what-we-offer">
+  <div class="section-inner">
+    <div class="sec-eyebrow reveal">What You Get</div>
+    <h2 class="sec-h2 reveal">A place worth <em>staying.</em></h2>
+    <p class="sec-sub reveal">We built this agency on one idea: if you take care of your PSWs, they take care of your clients.</p>
+    <div class="offer-grid reveal">
+      <div class="offer-card"><div class="offer-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg></div><div class="offer-title">Same client every visit</div><div class="offer-desc">You build a real relationship with your client and family. No rotating strangers. You are their person.</div></div>
+      <div class="offer-card"><div class="offer-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg></div><div class="offer-title">Reliable pay</div><div class="offer-desc">Hours tracked automatically. Pay summary sent every period. No chasing, no guessing.</div></div>
+      <div class="offer-card"><div class="offer-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="5" y="2" width="14" height="20" rx="2"/><path d="M12 18h.01"/></svg></div><div class="offer-title">Tools that work</div><div class="offer-desc">Log your visit, checklist, and notes in under 2 minutes from your phone. No paper, no email.</div></div>
+      <div class="offer-card"><div class="offer-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg></div><div class="offer-title">Flexible scheduling</div><div class="offer-desc">We work around your availability. Morning, afternoon, evening, weekends. Peel Region only.</div></div>
+      <div class="offer-card"><div class="offer-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg></div><div class="offer-title">Peel Region only</div><div class="offer-desc">Mississauga, Brampton, and Caledon. We do not send you across the city for a 2-hour shift.</div></div>
+      <div class="offer-card"><div class="offer-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 10.8a19.79 19.79 0 01-3.07-8.68A2 2 0 012 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 14.92z"/></svg></div><div class="offer-title">Real support</div><div class="offer-desc">Lance started as a PSW. He knows what the work looks like. You will always have someone who answers.</div></div>
+    </div>
+  </div>
+</section>
+
 <div class="quote-strip">
-  <p class="quote-text">"I started this agency as a PSW because I saw how agencies treated their staff. Same client every visit, pay on time, and someone who actually picks up the phone."</p>
-  <p class="quote-attr">Lance Salazar · Founder · Proximity Care Services</p>
-</div>
-
-<!-- WHAT WE OFFER -->
-<div class="section reveal">
-  <div class="sec-eyebrow">What You Get</div>
-  <h2 class="sec-h2">A place worth<br><em>staying.</em></h2>
-  <p class="sec-sub">We built this agency on one idea: if you take care of your PSWs, they take care of your clients.</p>
-  <div class="offer-grid">
-    <div class="offer-card">
-      <div class="offer-icon">📋</div>
-      <div class="offer-title">Clear expectations</div>
-      <div class="offer-desc">Your client, your schedule, your care plan. No surprises. No last-minute changes without a conversation.</div>
-    </div>
-    <div class="offer-card">
-      <div class="offer-icon">💳</div>
-      <div class="offer-title">Reliable pay</div>
-      <div class="offer-desc">Hours tracked automatically from your phone. Pay summary sent to you every period. No chasing, no guessing.</div>
-    </div>
-    <div class="offer-card">
-      <div class="offer-icon">📱</div>
-      <div class="offer-title">Tools that work</div>
-      <div class="offer-desc">Log your visit, your checklist, and your notes in under 2 minutes from your phone. No paper. No email chains.</div>
-    </div>
-    <div class="offer-card">
-      <div class="offer-icon">🤝</div>
-      <div class="offer-title">Same client every visit</div>
-      <div class="offer-desc">You build a real relationship with your client and their family. No rotating strangers. You are their person.</div>
-    </div>
-    <div class="offer-card">
-      <div class="offer-icon">📍</div>
-      <div class="offer-title">Peel Region only</div>
-      <div class="offer-desc">Mississauga, Brampton, and Caledon. We do not send you across the city for a 2-hour shift.</div>
-    </div>
-    <div class="offer-card">
-      <div class="offer-icon">🎓</div>
-      <div class="offer-title">Support from a PSW</div>
-      <div class="offer-desc">Lance started as a PSW. He understands what the work actually looks like. You will always have someone to call.</div>
-    </div>
+  <div style="max-width:860px;margin:0 auto;text-align:center;">
+    <div class="quote-mark">"</div>
+    <p class="quote-text">I started this agency as a PSW because I saw how agencies treated their staff. You deserve consistency, tools that work, and a manager who actually understands the job.</p>
+    <p class="quote-attr">Lance Salazar · Founder · Proximity Care Services · PSW</p>
   </div>
 </div>
 
-<!-- HOW IT WORKS -->
-<div style="background:var(--cream2);border-top:1px solid var(--border);border-bottom:1px solid var(--border);">
-<div class="section reveal">
-  <div class="sec-eyebrow">How It Works</div>
-  <h2 class="sec-h2">From application<br>to <em>first shift.</em></h2>
-  <div class="steps">
-    <div class="step"><div class="step-num">01</div><div class="step-content"><div class="step-title">Apply below</div><div class="step-desc">Tell us about your experience and availability. Takes about 3 minutes. No resume required — we just need the basics.</div></div></div>
-    <div class="step"><div class="step-num">02</div><div class="step-content"><div class="step-title">We review and reach out</div><div class="step-desc">If your experience matches what we need we will reach out within 2 to 3 business days to schedule a short phone call.</div></div></div>
-    <div class="step"><div class="step-num">03</div><div class="step-content"><div class="step-title">Phone interview with Lance</div><div class="step-desc">15 minutes. He will ask about your background, availability, and what you are looking for. You will need your PSW certificate, police check, CPR, and two references ready.</div></div></div>
-    <div class="step"><div class="step-num">04</div><div class="step-content"><div class="step-title">Onboarding and first shift</div><div class="step-desc">We walk you through the visit logging app, introduce you to your client, and you start your first shift. Usually within a week of your interview.</div></div></div>
+<section class="section" style="background:#fff;">
+  <div class="section-inner">
+    <div class="sec-eyebrow reveal">The Process</div>
+    <h2 class="sec-h2 reveal">From application to <em>first shift.</em></h2>
+    <div class="steps-grid reveal">
+      <div class="step-card"><div class="step-num">01</div><div><div class="step-title">Apply in 3 minutes</div><div class="step-desc">Tell us about your experience and availability. No resume required.</div></div></div>
+      <div class="step-card"><div class="step-num">02</div><div><div class="step-title">We review and reach out</div><div class="step-desc">If your experience matches we reach out within 2 to 3 business days to schedule a call.</div></div></div>
+      <div class="step-card"><div class="step-num">03</div><div><div class="step-title">15-minute phone interview</div><div class="step-desc">With Lance personally. Have your PSW certificate, police check, CPR, and two references ready.</div></div></div>
+      <div class="step-card"><div class="step-num">04</div><div><div class="step-title">Onboarding and first shift</div><div class="step-desc">We walk you through the visit app and you are on your first shift — usually within a week.</div></div></div>
+    </div>
   </div>
-</div>
-</div>
+</section>
 
-<!-- APPLICATION FORM -->
+<div class="divider"></div>
+
 <div class="form-section" id="apply">
-<div class="form-wrap">
-  <div class="sec-eyebrow" style="margin-bottom:16px;">Apply Now</div>
-  <h2 class="sec-h2" style="margin-bottom:8px;">Tell us about<br><em>yourself.</em></h2>
-  <p style="font-size:14px;color:var(--muted);line-height:1.75;margin-bottom:36px;">Takes 3 minutes. We read every application personally.</p>
+  <div class="form-wrap">
+    <div class="sec-eyebrow">Apply Now</div>
+    <h2 class="sec-h2" style="margin-bottom:8px;">Tell us about <em>yourself.</em></h2>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:40px;font-weight:300;line-height:1.7;">4 quick steps. About 3 minutes. We read every application personally.</p>
 
-  <div id="appForm">
-    <div class="form-grid">
-      <div><label class="flabel">First Name *</label><input class="finput" id="f-first" type="text" placeholder="First name" autocomplete="given-name"></div>
-      <div><label class="flabel">Last Name *</label><input class="finput" id="f-last" type="text" placeholder="Last name" autocomplete="family-name"></div>
+    <div class="progress-track" id="progress-track">
+      <div class="progress-step active" id="ps-1"><div class="ps-dot">1</div><div class="ps-label">You</div></div>
+      <div class="progress-step" id="ps-2"><div class="ps-dot">2</div><div class="ps-label">Experience</div></div>
+      <div class="progress-step" id="ps-3"><div class="ps-dot">3</div><div class="ps-label">Availability</div></div>
+      <div class="progress-step" id="ps-4"><div class="ps-dot">4</div><div class="ps-label">Confirm</div></div>
     </div>
-    <div class="form-grid">
-      <div><label class="flabel">Phone *</label><input class="finput" id="f-phone" type="tel" placeholder="647-000-0000" autocomplete="tel"></div>
-      <div><label class="flabel">Email</label><input class="finput" id="f-email" type="email" placeholder="your@email.com" autocomplete="email"></div>
-    </div>
-    <div class="form-grid">
-      <div><label class="flabel">City</label><input class="finput" id="f-city" type="text" placeholder="Mississauga, Brampton, etc."></div>
-      <div>
-        <label class="flabel">Years of PSW Experience</label>
-        <select class="fselect" id="f-exp">
-          <option value="">Select...</option>
-          <option>Less than 1 year</option>
-          <option>1 to 2 years</option>
-          <option>3 to 5 years</option>
-          <option>6 to 10 years</option>
-          <option>10 or more years</option>
-        </select>
+
+    <div id="appForm">
+      <!-- STEP 1 -->
+      <div class="form-step active" id="step-1">
+        <h3 class="step-heading">About <em>you</em></h3>
+        <p class="step-sub">Just the basics to get started.</p>
+        <div class="frow">
+          <div><label class="flabel">First Name *</label><input class="finput" id="f-first" type="text" placeholder="First name" autocomplete="given-name"></div>
+          <div><label class="flabel">Last Name *</label><input class="finput" id="f-last" type="text" placeholder="Last name" autocomplete="family-name"></div>
+        </div>
+        <div class="frow">
+          <div><label class="flabel">Phone *</label><input class="finput" id="f-phone" type="tel" placeholder="647-000-0000" autocomplete="tel"></div>
+          <div><label class="flabel">Email</label><input class="finput" id="f-email" type="email" placeholder="your@email.com" autocomplete="email"></div>
+        </div>
+        <div class="frow">
+          <div><label class="flabel">City</label><input class="finput" id="f-city" type="text" placeholder="Mississauga, Brampton, etc."></div>
+          <div><label class="flabel">Do you have a vehicle?</label><select class="fselect" id="f-vehicle"><option value="">Select...</option><option value="yes">Yes — driver license and vehicle</option><option value="license">Driver license, no vehicle</option><option value="no">No — transit only</option></select></div>
+        </div>
+        <div class="fgroup"><label class="flabel">Languages you speak</label><input class="finput" id="f-languages" type="text" placeholder="English, Tagalog, Hindi, French, Punjabi, etc."></div>
+        <div class="form-nav"><button class="btn-next" onclick="nextStep(1)">Continue →</button></div>
+      </div>
+
+      <!-- STEP 2 -->
+      <div class="form-step" id="step-2">
+        <h3 class="step-heading">Your <em>experience</em></h3>
+        <p class="step-sub">Tell us about your background in care work.</p>
+        <div class="frow">
+          <div><label class="flabel">Years of PSW Experience *</label><select class="fselect" id="f-exp"><option value="">Select...</option><option>Less than 1 year</option><option>1 to 2 years</option><option>3 to 5 years</option><option>6 to 10 years</option><option>10 or more years</option></select></div>
+          <div><label class="flabel">Comfortable with transfers?</label><select class="fselect" id="f-transfers"><option value="">Select...</option><option value="yes">Yes — comfortable</option><option value="light">Light assistance only</option><option value="no">No</option></select></div>
+        </div>
+        <div class="fgroup">
+          <label class="flabel">Care experience (select all that apply)</label>
+          <div class="chip-grid two-col" id="f-care-types">
+            <button type="button" class="sel-chip" data-val="Personal hygiene and grooming" onclick="toggleChip(this)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>Personal hygiene</button>
+            <button type="button" class="sel-chip" data-val="Dementia and memory care" onclick="toggleChip(this)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3M12 17h.01"/><circle cx="12" cy="12" r="10"/></svg>Dementia care</button>
+            <button type="button" class="sel-chip" data-val="Post-hospital recovery" onclick="toggleChip(this)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><path d="M22 4L12 14.01l-3-3"/></svg>Post-hospital</button>
+            <button type="button" class="sel-chip" data-val="Palliative care" onclick="toggleChip(this)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>Palliative care</button>
+            <button type="button" class="sel-chip" data-val="Companion care" onclick="toggleChip(this)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>Companion care</button>
+            <button type="button" class="sel-chip" data-val="Complex and wound care" onclick="toggleChip(this)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>Complex care</button>
+          </div>
+        </div>
+        <div class="fgroup">
+          <label class="flabel">Certifications you have</label>
+          <div class="chip-grid two-col" id="f-certs">
+            <button type="button" class="sel-chip" data-val="PSW Certificate" onclick="toggleChip(this)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18M9 16l2 2 4-4"/></svg>PSW Certificate</button>
+            <button type="button" class="sel-chip" data-val="Police Check" onclick="toggleChip(this)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>Police Check</button>
+            <button type="button" class="sel-chip" data-val="CPR Certified" onclick="toggleChip(this)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>CPR Certified</button>
+            <button type="button" class="sel-chip" data-val="First Aid" onclick="toggleChip(this)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><path d="M22 4L12 14.01l-3-3"/></svg>First Aid</button>
+          </div>
+        </div>
+        <div class="form-nav"><button class="btn-back" onclick="prevStep(2)">← Back</button><button class="btn-next" onclick="nextStep(2)">Continue →</button></div>
+      </div>
+
+      <!-- STEP 3 -->
+      <div class="form-step" id="step-3">
+        <h3 class="step-heading">Your <em>availability</em></h3>
+        <p class="step-sub">Be specific — this helps us find the right match for you.</p>
+        <div class="fgroup"><label class="flabel">Hours per week *</label><select class="fselect" id="f-hours"><option value="">Select...</option><option>Full time — 30 or more hours/week</option><option>Part time — 15 to 29 hours/week</option><option>Casual — under 15 hours/week</option></select></div>
+        <div class="fgroup">
+          <label class="flabel">Preferred days</label>
+          <div class="chip-grid four-col" id="f-days">
+            <button type="button" class="sel-chip" data-val="Monday" onclick="toggleChip(this)">Mon</button>
+            <button type="button" class="sel-chip" data-val="Tuesday" onclick="toggleChip(this)">Tue</button>
+            <button type="button" class="sel-chip" data-val="Wednesday" onclick="toggleChip(this)">Wed</button>
+            <button type="button" class="sel-chip" data-val="Thursday" onclick="toggleChip(this)">Thu</button>
+            <button type="button" class="sel-chip" data-val="Friday" onclick="toggleChip(this)">Fri</button>
+            <button type="button" class="sel-chip" data-val="Saturday" onclick="toggleChip(this)">Sat</button>
+            <button type="button" class="sel-chip" data-val="Sunday" onclick="toggleChip(this)">Sun</button>
+          </div>
+        </div>
+        <div class="fgroup">
+          <label class="flabel">Preferred shift times</label>
+          <div class="chip-grid two-col" id="f-shifts">
+            <button type="button" class="sel-chip" data-val="Morning 7am to 12pm" onclick="toggleChip(this)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>Morning 7am–12pm</button>
+            <button type="button" class="sel-chip" data-val="Afternoon 12pm to 6pm" onclick="toggleChip(this)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>Afternoon 12–6pm</button>
+            <button type="button" class="sel-chip" data-val="Evening 6pm to 10pm" onclick="toggleChip(this)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>Evening 6–10pm</button>
+            <button type="button" class="sel-chip" data-val="Overnight 10pm to 7am" onclick="toggleChip(this)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M12 3a6 6 0 009 9 9 9 0 11-9-9z"/></svg>Overnight</button>
+          </div>
+        </div>
+        <div class="fgroup"><label class="flabel">How did you hear about us?</label><select class="fselect" id="f-heard"><option value="">Select...</option><option>Indeed</option><option>Facebook or Instagram</option><option>Google search</option><option>Friend or colleague</option><option>Other</option></select></div>
+        <div class="form-nav"><button class="btn-back" onclick="prevStep(3)">← Back</button><button class="btn-next" onclick="nextStep(3)">Continue →</button></div>
+      </div>
+
+      <!-- STEP 4 -->
+      <div class="form-step" id="step-4">
+        <h3 class="step-heading">Almost <em>done</em></h3>
+        <p class="step-sub">One last thing before we reach out.</p>
+        <div class="fgroup"><label class="flabel">Anything else you want us to know (optional)</label><textarea class="ftextarea" id="f-msg" placeholder="Other languages, specific experience, questions for us, anything..."></textarea></div>
+        <div id="f-summary" style="background:#fff;border:1px solid var(--border);padding:18px 20px;margin-bottom:8px;font-size:12px;color:var(--muted);line-height:1.9;"></div>
+        <div class="form-nav">
+          <button class="btn-back" onclick="prevStep(4)">← Back</button>
+          <button class="btn-next" id="f-submit" onclick="submitApplication()">Submit Application</button>
+        </div>
+        <p style="font-family:var(--mono);font-size:8.5px;letter-spacing:1px;color:var(--muted2);text-align:center;margin-top:12px;text-transform:uppercase;">We respond within 2 to 3 business days · 647-382-8047</p>
       </div>
     </div>
-    <div class="form-full">
-      <label class="flabel">Availability</label>
-      <select class="fselect" id="f-avail">
-        <option value="">Select...</option>
-        <option>Full time (30+ hours/week)</option>
-        <option>Part time (15 to 29 hours/week)</option>
-        <option>Casual (under 15 hours/week)</option>
-        <option>Weekends only</option>
-        <option>Evenings and weekends</option>
-      </select>
-    </div>
-    <div class="form-full">
-      <label class="flabel">Certifications (check all that apply)</label>
-      <div class="fchecks" id="f-certs">
-        <label class="fcheck"><input type="checkbox" value="PSW Certificate"> PSW Certificate</label>
-        <label class="fcheck"><input type="checkbox" value="Police Check"> Police Check (within 6 months)</label>
-        <label class="fcheck"><input type="checkbox" value="CPR"> CPR Certification</label>
-        <label class="fcheck"><input type="checkbox" value="First Aid"> First Aid Certification</label>
-        <label class="fcheck"><input type="checkbox" value="Valid ID"> Valid Government ID</label>
-        <label class="fcheck"><input type="checkbox" value="Driver License"> Driver License + Vehicle</label>
-      </div>
-    </div>
-    <div class="form-full">
-      <label class="flabel">How did you hear about us?</label>
-      <select class="fselect" id="f-heard">
-        <option value="">Select...</option>
-        <option>Indeed</option>
-        <option>Facebook / Instagram</option>
-        <option>Google search</option>
-        <option>Friend or colleague</option>
-        <option>Other</option>
-      </select>
-    </div>
-    <div class="form-full">
-      <label class="flabel">Anything else you want us to know?</label>
-      <textarea class="ftextarea" id="f-msg" placeholder="Optional — languages you speak, types of care you have experience with, anything else..."></textarea>
-    </div>
-    <button class="submit-btn" id="f-submit" onclick="submitApplication()">Submit Application</button>
-    <p class="form-note">We respond to every application within 2 to 3 business days · 647-382-8047</p>
-  </div>
 
-  <div class="form-success" id="appSuccess">
-    <div class="fs-icon">✓</div>
-    <h3 class="fs-title">Application received.</h3>
-    <p class="fs-sub">Thank you for applying. We will review your application and reach out within 2 to 3 business days. If you have questions in the meantime, call Lance at 647-382-8047.</p>
+    <div class="form-success" id="appSuccess">
+      <div class="success-check"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1a6b5a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></div>
+      <h3 class="success-title">Application received.</h3>
+      <p class="success-sub">Thank you for applying. We will review your application and reach out within 2 to 3 business days. Questions? Call Lance at 647-382-8047.</p>
+    </div>
   </div>
 </div>
-</div>
+
+<div class="mobile-sticky"><a href="#apply">Apply Now — 3 Minutes</a></div>
 
 <footer>
   <div class="ft-logo">Proximity <em>Care</em></div>
@@ -354,85 +423,122 @@ footer{background:var(--navy);padding:48px 40px;text-align:center;}
 
 <script>
 const API = 'https://proximity-agent-production.up.railway.app';
+let currentStep = 1;
 
-async function submitApplication() {
-  const first = document.getElementById('f-first').value.trim();
-  const last = document.getElementById('f-last').value.trim();
-  const phone = document.getElementById('f-phone').value.trim();
-  const email = document.getElementById('f-email').value.trim();
-  const city = document.getElementById('f-city').value.trim();
-  const exp = document.getElementById('f-exp').value;
-  const avail = document.getElementById('f-avail').value;
-  const heard = document.getElementById('f-heard').value;
-  const msg = document.getElementById('f-msg').value.trim();
-
-  if (!first || !last || !phone) {
-    document.getElementById('f-first').style.borderColor = !first ? '#e05555' : '';
-    document.getElementById('f-last').style.borderColor = !last ? '#e05555' : '';
-    document.getElementById('f-phone').style.borderColor = !phone ? '#e05555' : '';
-    return;
+// PARTICLE CANVAS
+(function(){
+  const c = document.getElementById('hero-canvas');
+  if(!c) return;
+  const ctx = c.getContext('2d');
+  let W, H, pts;
+  const N = 55, D = 130;
+  function resize(){ var p=c.parentElement||document.getElementById("hero"); W=c.width=p?p.offsetWidth:window.innerWidth; H=c.height=p?p.offsetHeight:window.innerHeight; }
+  function mk(){ return {x:Math.random()*W,y:Math.random()*H,vx:(Math.random()-.5)*.35,vy:(Math.random()-.5)*.35,r:Math.random()*1.5+.5}; }
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    for(let i=0;i<pts.length;i++){
+      const p=pts[i];
+      p.x+=p.vx; p.y+=p.vy;
+      if(p.x<0||p.x>W)p.vx*=-1;
+      if(p.y<0||p.y>H)p.vy*=-1;
+      ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle='rgba(61,143,214,0.35)';ctx.fill();
+      for(let j=i+1;j<pts.length;j++){
+        const q=pts[j],dx=p.x-q.x,dy=p.y-q.y,d=Math.sqrt(dx*dx+dy*dy);
+        if(d<D){ctx.beginPath();ctx.moveTo(p.x,p.y);ctx.lineTo(q.x,q.y);ctx.strokeStyle='rgba(61,143,214,'+(0.12*(1-d/D))+')';ctx.lineWidth=.7;ctx.stroke();}
+      }
+    }
+    requestAnimationFrame(draw);
   }
+  window.addEventListener('resize',resize);
+  resize(); pts=Array.from({length:N},mk); draw();
+})();
 
-  // Collect checked certifications
-  const certs = [];
-  document.querySelectorAll('#f-certs input[type=checkbox]:checked').forEach(cb => certs.push(cb.value));
+// LENIS
+const lenis = new Lenis({lerp:0.08,smoothWheel:true});
+function raf(t){lenis.raf(t);requestAnimationFrame(raf);}
+requestAnimationFrame(raf);
 
-  const btn = document.getElementById('f-submit');
-  btn.disabled = true;
-  btn.textContent = 'Submitting...';
+// REVEALS
+const obs = new IntersectionObserver(e=>{e.forEach(x=>{if(x.isIntersecting)x.target.classList.add('visible');});},{threshold:0.08});
+document.querySelectorAll('.reveal').forEach(el=>obs.observe(el));
 
-  try {
-    const res = await fetch(API + '/psw/apply', {
-      method: 'POST',
-      headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({
-        operator_id: 'proximity-care',
-        first_name: first,
-        last_name: last,
-        phone,
-        email,
-        city,
-        years_experience: exp,
-        availability: avail,
-        certifications: certs,
-        how_heard: heard,
-        message: msg
-      })
-    });
-    const data = await res.json();
-    if (!res.ok || !data.success) throw new Error(data.error || 'Failed');
-    document.getElementById('appForm').style.display = 'none';
-    document.getElementById('appSuccess').style.display = 'block';
-  } catch(e) {
-    alert('Something went wrong. Please call Lance at 647-382-8047 or try again.');
-    btn.disabled = false;
-    btn.textContent = 'Submit Application';
+// NAV scroll
+window.addEventListener('scroll',()=>{ const n=document.querySelector('nav'); if(n) n.style.borderBottomColor=window.scrollY>40?'var(--border2)':'var(--border)';},{passive:true});
+function toggleMenu(){document.getElementById('mobile-menu').classList.toggle('open');}
+
+// MULTI-STEP
+function setStep(n){
+  for(let i=1;i<=4;i++){
+    const s=document.getElementById('step-'+i),ps=document.getElementById('ps-'+i);
+    if(s)s.classList.remove('active');
+    if(ps){ps.classList.remove('active','done');if(i<n)ps.classList.add('done');if(i===n)ps.classList.add('active');}
   }
+  const s=document.getElementById('step-'+n); if(s)s.classList.add('active');
+  currentStep=n;
+  const apply=document.getElementById('apply');
+  if(apply) window.scrollTo({top:apply.offsetTop-80,behavior:'smooth'});
 }
 
-// Check styling for checkboxes
-document.querySelectorAll('.fcheck input').forEach(cb => {
-  cb.addEventListener('change', function() {
-    this.closest('.fcheck').classList.toggle('checked', this.checked);
-  });
-});
+function nextStep(from){
+  if(from===1){
+    const fi=document.getElementById('f-first').value.trim(),la=document.getElementById('f-last').value.trim(),ph=document.getElementById('f-phone').value.trim();
+    let ok=true;
+    if(!fi){document.getElementById('f-first').classList.add('err');ok=false;}else document.getElementById('f-first').classList.remove('err');
+    if(!la){document.getElementById('f-last').classList.add('err');ok=false;}else document.getElementById('f-last').classList.remove('err');
+    if(!ph){document.getElementById('f-phone').classList.add('err');ok=false;}else document.getElementById('f-phone').classList.remove('err');
+    if(!ok)return;
+  }
+  if(from===2){const e=document.getElementById('f-exp');if(!e.value){e.classList.add('err');return;}e.classList.remove('err');}
+  if(from===3){const h=document.getElementById('f-hours');if(!h.value){h.classList.add('err');return;}h.classList.remove('err');buildSummary();}
+  setStep(from+1);
+}
+function prevStep(from){setStep(from-1);}
+function toggleChip(el){el.classList.toggle('selected');}
+function getChips(id){return[...document.querySelectorAll('#'+id+' .sel-chip.selected')].map(c=>c.dataset.val);}
 
-// IntersectionObserver for reveal animations
-const obs = new IntersectionObserver(entries => {
-  entries.forEach(e => { if(e.isIntersecting) e.target.classList.add('visible'); });
-}, {threshold: 0.08});
-document.querySelectorAll('.reveal').forEach(el => {
-  el.style.opacity = '0';
-  el.style.transform = 'translateY(14px)';
-  el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
-  obs.observe(el);
-});
-document.addEventListener('scroll', () => {
-  document.querySelectorAll('.reveal.visible').forEach(el => {
-    el.style.opacity = '1';
-    el.style.transform = 'translateY(0)';
-  });
-}, {passive: true});
+function buildSummary(){
+  const first=document.getElementById('f-first').value.trim();
+  const phone=document.getElementById('f-phone').value.trim();
+  const city=document.getElementById('f-city').value.trim();
+  const exp=document.getElementById('f-exp').value;
+  const hours=document.getElementById('f-hours').value;
+  const days=getChips('f-days');
+  const shifts=getChips('f-shifts');
+  const certs=getChips('f-certs');
+  const el=document.getElementById('f-summary');
+  if(!el)return;
+  el.innerHTML='<div style="font-family:var(--mono);font-size:8.5px;letter-spacing:2px;text-transform:uppercase;color:var(--muted2);margin-bottom:10px;">Application summary</div>'+
+    '<div><strong style="color:var(--text)">'+first+'</strong> · '+phone+(city?' · '+city:'')+'</div>'+
+    '<div>'+exp+(hours?' · '+hours:'')+'</div>'+
+    (days.length?'<div>Days: '+days.join(', ')+'</div>':'')+
+    (shifts.length?'<div>Shifts: '+shifts.join(', ')+'</div>':'')+
+    (certs.length?'<div>Certs: '+certs.join(', ')+'</div>':'');
+}
+
+async function submitApplication(){
+  const btn=document.getElementById('f-submit');
+  btn.disabled=true; btn.textContent='Submitting...';
+  const careTypes=getChips('f-care-types');
+  const certs=getChips('f-certs');
+  const days=getChips('f-days');
+  const shifts=getChips('f-shifts');
+  const avail=[document.getElementById('f-hours').value,days.length?'Days: '+days.join(', '):'',shifts.length?'Shifts: '+shifts.join(', '):''].filter(Boolean).join(' | ');
+  const extras=[document.getElementById('f-msg').value.trim(),document.getElementById('f-vehicle').value?'Vehicle: '+document.getElementById('f-vehicle').value:'',document.getElementById('f-languages').value.trim()?'Languages: '+document.getElementById('f-languages').value.trim():'',document.getElementById('f-transfers').value?'Transfers: '+document.getElementById('f-transfers').value:''].filter(Boolean).join(' | ');
+  try{
+    const res=await fetch(API+'/psw/apply',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({operator_id:'proximity-care',first_name:document.getElementById('f-first').value.trim(),last_name:document.getElementById('f-last').value.trim(),phone:document.getElementById('f-phone').value.trim(),email:document.getElementById('f-email').value.trim(),city:document.getElementById('f-city').value.trim(),years_experience:document.getElementById('f-exp').value,availability:avail,certifications:[...certs,...careTypes],how_heard:document.getElementById('f-heard').value,message:extras})});
+    const data=await res.json();
+    if(!res.ok||!data.success)throw new Error(data.error||'Failed');
+    document.getElementById('appForm').style.display='none';
+    document.getElementById('appSuccess').style.display='block';
+    document.querySelector('.mobile-sticky').style.display='none';
+    const apply=document.getElementById('apply');
+    if(apply)window.scrollTo({top:apply.offsetTop-80,behavior:'smooth'});
+  }catch(e){
+    alert('Something went wrong. Please call Lance at 647-382-8047 or try again.');
+    btn.disabled=false; btn.textContent='Submit Application';
+  }
+}
 </script>
 </body>
 </html>
