@@ -783,6 +783,8 @@ body::after{content:'';position:fixed;inset:0;background-image:url("data:image/s
   .pc-cursor,.pc-cursor-ring{display:none}
   body{cursor:auto}
   a,button{cursor:auto}
+  .chat-booking-card{margin:4px 6px 8px;padding:12px;}
+  .plan-card{padding:20px 16px;}
   .hero-h1{font-size:28px;}
   nav{padding:0 14px;}
   .hero-content{padding:0 14px;padding-top:74px;}
@@ -798,6 +800,10 @@ body::after{content:'';position:fixed;inset:0;background-image:url("data:image/s
   .hms-item{gap:2px;}
   .hms-val{font-size:16px;}
   #mobile-sticky-btn{font-size:11px;padding:13px;}
+}
+@media(hover:none){
+  #cursor,#cursor-ring,.cursor,.cur,.cur-ring{display:none!important}
+  body{cursor:auto!important}
 }
 </style>
 <script src="https://unpkg.com/lenis@1.1.14/dist/lenis.min.js"></script>
@@ -990,7 +996,15 @@ body::after{content:'';position:fixed;inset:0;background-image:url("data:image/s
         <div class="plan-card-label">Your Care Plan</div>
         <div id="plan-summary"><div class="plan-empty">Complete the steps on the left to build your loved one's personalized care plan.</div></div>
         <div id="plan-cta-wrap" style="display:none">
-          <a href="lead-form.html" class="plan-cta" id="plan-cta-btn">Book Free In-Home Assessment</a>
+          <div id="plan-inline-form" style="display:none;margin-bottom:12px">
+            <div style="font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--blue2);font-family:var(--sans);margin-bottom:10px;font-weight:600">Your details — we call you within 2 hours</div>
+            <input type="text" id="pf-name" placeholder="Your name" style="display:block;width:100%;box-sizing:border-box;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.15);color:#fff;padding:10px 12px;font-size:16px;font-family:inherit;margin-bottom:8px;outline:none;border-radius:4px">
+            <input type="tel" id="pf-phone" placeholder="Phone number" style="display:block;width:100%;box-sizing:border-box;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.15);color:#fff;padding:10px 12px;font-size:16px;font-family:inherit;margin-bottom:8px;outline:none;border-radius:4px">
+            <input type="email" id="pf-email" placeholder="Email (optional)" style="display:block;width:100%;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.15);color:#fff;padding:10px 12px;font-size:16px;font-family:inherit;margin-bottom:12px;outline:none;border-radius:4px">
+            <button class="plan-cta" id="pf-submit" onclick="submitPlanForm()" style="margin-top:0;font-size:16px">Book My Free Assessment</button>
+            <div id="pf-confirm" style="display:none;text-align:center;padding:14px;color:#6ab4c8;font-size:13px;line-height:1.6"></div>
+          </div>
+          <button class="plan-cta" id="plan-cta-btn" onclick="showPlanForm()">Book Free In-Home Assessment</button>
           <button class="plan-email-btn" onclick="emailPlan()">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
             Email This Plan to Myself
@@ -1409,7 +1423,7 @@ function nextStep(n){
 function finalizePlan(){
   updatePlanCard(true);
   document.getElementById('plan-cta-wrap').style.display='block';
-  document.getElementById('plan-cta-btn').href=`lead-form.html?type=${encodeURIComponent(plan.careType)}&hours=${plan.hours}&city=${encodeURIComponent(plan.city)}`;
+  // CTA shows inline form — no external navigation needed
   document.getElementById('builder-progress-fill').style.width='100%';
   const pc=document.getElementById('planCard');
   if(pc){pc.classList.add('mobile-show');if(window.innerWidth<=900)pc.scrollIntoView({behavior:'smooth',block:'start'});}
@@ -2161,7 +2175,7 @@ var pcBooked=false;
   var src=params.get('src')||params.get('utm_source')||'direct';
 
   // Booking flag — track any CTA click
-  document.querySelectorAll('.btn-primary,.plan-cta,.step-next,#mobile-sticky-btn,a[href*="lead-form"]').forEach(function(el){
+  document.querySelectorAll('.btn-primary,.step-next,#mobile-sticky-btn,#plan-cta-btn,#pf-submit').forEach(function(el){
     el.addEventListener('click',function(){pcBooked=true;});
   });
 
@@ -2182,6 +2196,68 @@ var pcBooked=false;
     }
   });
 }());
+
+
+function showPlanForm() {
+  document.getElementById('plan-cta-btn').style.display = 'none';
+  document.getElementById('plan-inline-form').style.display = 'block';
+  var nameEl = document.getElementById('pf-name');
+  if (nameEl) setTimeout(function(){ nameEl.focus(); }, 100);
+}
+
+async function submitPlanForm() {
+  var name = (document.getElementById('pf-name').value || '').trim();
+  var phone = (document.getElementById('pf-phone').value || '').trim();
+  var email = (document.getElementById('pf-email').value || '').trim();
+
+  if (!name || !phone) {
+    document.getElementById('pf-name').style.borderColor = !name ? '#f85149' : 'rgba(255,255,255,0.15)';
+    document.getElementById('pf-phone').style.borderColor = !phone ? '#f85149' : 'rgba(255,255,255,0.15)';
+    return;
+  }
+
+  var btn = document.getElementById('pf-submit');
+  btn.disabled = true;
+  btn.textContent = 'Booking...';
+
+  var nm = name.split(/\s+/);
+  var monthly = plan.monthly || 800;
+  if (!plan.monthly) {
+    if (plan.hours <= 20) monthly = 800 + Math.round(((plan.hours - 4) / 16) * (1600 - 800));
+    else if (plan.hours <= 40) monthly = 1600 + Math.round(((plan.hours - 20) / 20) * (3000 - 1600));
+    else monthly = 3000 + Math.round(((plan.hours - 40) / 40) * (5000 - 3000));
+  }
+
+  try {
+    await fetch('https://proximity-agent-production.up.railway.app/webhook/lead', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        operator_id: 'proximity-care',
+        lead_type: 'family',
+        first_name: nm.shift() || '',
+        last_name: nm.join(' '),
+        phone: phone,
+        email: email,
+        city: plan.city || '',
+        care_type_interest: plan.careType || '',
+        care_needed_for: plan.services && plan.services.length ? plan.services.join(', ') : '',
+        urgency: plan.hours >= 40 ? 'hot' : plan.hours >= 20 ? 'warm' : 'new',
+        source: 'care_builder_cta',
+        notes: 'Built via care plan builder. Hours: ' + (plan.hours || 0) + '/wk. Est monthly: $' + monthly
+      })
+    });
+  } catch(e) { console.error('Plan form submit error:', e); }
+
+  // Show confirmation
+  document.getElementById('pf-submit').style.display = 'none';
+  var inputs = document.querySelectorAll('#plan-inline-form input');
+  inputs.forEach(function(el){ el.style.display = 'none'; });
+  document.querySelector('#plan-inline-form div:first-child').style.display = 'none';
+  var confirm = document.getElementById('pf-confirm');
+  confirm.style.display = 'block';
+  confirm.innerHTML = '<strong style="color:#fff;font-size:15px">You are all set, ' + (name.split(' ')[0]) + '.</strong><br><br>Lance will call you at ' + phone + ' within 2 hours. He does every first call personally — expect a real conversation, not a sales pitch.<br><br><span style="color:rgba(255,255,255,0.5);font-size:11px">First 6 hours are completely free. No obligation.</span>';
+}
 
 </script>
 </body>
