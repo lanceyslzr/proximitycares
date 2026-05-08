@@ -69,6 +69,42 @@ a{color:inherit;text-decoration:none;}
 .stat-lbl{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-top:4px;}
 .stat-card.hi .stat-val{color:var(--teal2);}
 
+/* CRM KANBAN */
+.crm-board{display:grid;grid-template-columns:repeat(5,1fr);gap:1px;background:var(--border);min-height:400px;}
+.crm-col{background:var(--bg2);display:flex;flex-direction:column;min-height:400px;}
+.crm-col-head{padding:10px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:sticky;top:54px;background:var(--bg2);z-index:2;}
+.crm-col-name{font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted2);}
+.crm-col-count{font-family:var(--mono);font-size:9px;color:var(--muted);background:var(--bg3);border:1px solid var(--border);border-radius:100px;padding:1px 6px;}
+.crm-col-body{padding:8px;display:flex;flex-direction:column;gap:6px;flex:1;}
+.crm-card{background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:10px 10px 8px;transition:border-color .2s;}
+.crm-card:hover{border-color:var(--border2);}
+.crm-card.closed{opacity:.5;}
+.crm-card-name{font-size:12px;font-weight:500;color:var(--text);margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.crm-card-agency{font-size:10px;color:var(--muted2);margin-bottom:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.crm-card-meta{font-family:var(--mono);font-size:9px;color:var(--muted);margin-bottom:8px;}
+.crm-card-acts{display:flex;gap:4px;flex-wrap:wrap;}
+.crm-card-btn{font-family:var(--mono);font-size:8px;letter-spacing:1px;padding:4px 7px;border:1px solid var(--border2);color:var(--muted2);background:none;border-radius:3px;cursor:pointer;white-space:nowrap;min-height:28px;display:inline-flex;align-items:center;}
+.crm-card-btn:hover,.crm-card-btn:active{border-color:var(--teal2);color:var(--teal2);}
+.crm-card-btn.call{color:var(--teal3);border-color:rgba(90,173,160,.3);}
+.crm-card-btn.demo{color:var(--blue2);border-color:rgba(106,172,240,.3);}
+.crm-empty{padding:16px 10px;font-size:10px;color:var(--muted);text-align:center;font-family:var(--mono);}
+@media(max-width:768px){
+  .crm-board{grid-template-columns:1fr;}
+  .crm-col{min-height:auto;}
+  .crm-col-head{position:static;}
+}
+
+/* CREATE OPERATOR */
+.op-form{padding:12px;}
+.op-form-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;}
+.op-form-full{margin-bottom:8px;}
+.op-flabel{font-family:var(--mono);font-size:8px;letter-spacing:2px;text-transform:uppercase;color:var(--muted2);margin-bottom:4px;display:block;}
+.op-finput,.op-fselect{width:100%;background:var(--bg3);border:1px solid var(--border2);color:var(--text);padding:9px 11px;font-family:var(--sans);font-size:16px;outline:none;border-radius:4px;box-sizing:border-box;}
+.op-finput:focus,.op-fselect:focus{border-color:var(--teal2);}
+.op-color-row{display:flex;align-items:center;gap:10px;}
+.op-color-preview{width:32px;height:32px;border-radius:4px;border:1px solid var(--border2);flex-shrink:0;}
+@media(max-width:600px){.op-form-grid{grid-template-columns:1fr;}}
+
 /* NAV TABS */
 .nav-tabs{display:flex;background:var(--bg2);border-bottom:1px solid var(--border);overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
 .nav-tabs::-webkit-scrollbar{display:none;}
@@ -277,6 +313,8 @@ a{color:inherit;text-decoration:none;}
   <div class="nav-tab" onclick="showSect('messages')">Messages</div>
   <div class="nav-tab" onclick="showSect('visits')">Visits</div>
   <div class="nav-tab" onclick="showSect('activity')">Activity</div>
+  <div class="nav-tab" onclick="showSect('crm')">CRM <span class="nbadge" id="crm-badge">0</span></div>
+  <div class="nav-tab" onclick="showSect('operator')">+ Agency</div>
 </div>
 
 <!-- LEADS -->
@@ -426,6 +464,61 @@ a{color:inherit;text-decoration:none;}
     <div class="sect-action" onclick="triggerSequences()">↻ Sequences</div>
   </div>
   <div id="activity-list"><div class="empty-state">Loading...</div></div>
+</div>
+
+<!-- CRM — Tab 9 -->
+<div class="section" id="sect-crm">
+  <div class="section-header">
+    <span class="section-title">Operator Pipeline</span>
+    <div class="sect-action" onclick="renderCRM()">↻ Refresh</div>
+  </div>
+  <div class="crm-board" id="crm-board">
+    <div class="crm-col"><div class="crm-col-head"><span class="crm-col-name">Cold</span><span class="crm-col-count" id="crm-count-cold">0</span></div><div class="crm-col-body" id="crm-cold"></div></div>
+    <div class="crm-col"><div class="crm-col-head"><span class="crm-col-name">Contacted</span><span class="crm-col-count" id="crm-count-contacted">0</span></div><div class="crm-col-body" id="crm-contacted"></div></div>
+    <div class="crm-col"><div class="crm-col-head"><span class="crm-col-name">Demo</span><span class="crm-col-count" id="crm-count-demo">0</span></div><div class="crm-col-body" id="crm-demo"></div></div>
+    <div class="crm-col"><div class="crm-col-head"><span class="crm-col-name">Call</span><span class="crm-col-count" id="crm-count-call">0</span></div><div class="crm-col-body" id="crm-call"></div></div>
+    <div class="crm-col"><div class="crm-col-head"><span class="crm-col-name">Closed</span><span class="crm-col-count" id="crm-count-closed">0</span></div><div class="crm-col-body" id="crm-closed"></div></div>
+  </div>
+</div>
+
+<!-- CREATE OPERATOR — Tab 10 -->
+<div class="section" id="sect-operator">
+  <div class="section-header">
+    <span class="section-title">Create New Agency</span>
+  </div>
+  <div class="op-form">
+    <div class="op-form-grid">
+      <div><label class="op-flabel">Agency Name *</label><input class="op-finput" id="op-agency" type="text" placeholder="ABC Home Care"></div>
+      <div><label class="op-flabel">Owner Name *</label><input class="op-finput" id="op-owner" type="text" placeholder="John Smith"></div>
+    </div>
+    <div class="op-form-grid">
+      <div><label class="op-flabel">Email *</label><input class="op-finput" id="op-email" type="email" placeholder="john@agency.com"></div>
+      <div><label class="op-flabel">Phone</label><input class="op-finput" id="op-phone" type="tel" placeholder="647-000-0000"></div>
+    </div>
+    <div class="op-form-grid">
+      <div><label class="op-flabel">City</label><input class="op-finput" id="op-city" type="text" placeholder="Toronto, ON"></div>
+      <div><label class="op-flabel">Tier</label>
+        <select class="op-fselect" id="op-tier">
+          <option value="tier1">Tier 1 — $3,000 setup</option>
+          <option value="tier2" selected>Tier 2 — $3,500 setup (Hero)</option>
+          <option value="tier3">Tier 3 — $5,000 setup</option>
+        </select>
+      </div>
+    </div>
+    <div class="op-form-grid">
+      <div><label class="op-flabel">Operator ID (slug)</label><input class="op-finput" id="op-id" type="text" placeholder="abc-home-care" style="font-family:var(--mono);font-size:13px;"></div>
+      <div>
+        <label class="op-flabel">Brand Color</label>
+        <div class="op-color-row">
+          <div class="op-color-preview" id="op-color-preview" style="background:#3d7a8a;"></div>
+          <input class="op-finput" id="op-color" type="text" placeholder="#3d7a8a" value="#3d7a8a" oninput="document.getElementById('op-color-preview').style.background=this.value">
+        </div>
+      </div>
+    </div>
+    <div class="op-form-full"><label class="op-flabel">Notes</label><textarea class="op-finput" id="op-notes" rows="2" style="resize:none;min-height:60px;" placeholder="Any context about this agency..."></textarea></div>
+    <button class="sbtn" id="op-create-btn" onclick="createOperator()" style="margin-top:4px">Create Agency + Send Welcome Email</button>
+    <div id="op-result" style="margin-top:10px;font-size:12px;color:var(--teal2);font-family:var(--mono);display:none;"></div>
+  </div>
 </div>
 
 <!-- BOTTOM NAV -->
@@ -603,6 +696,7 @@ async function loadAll(spin=false) {
 function renderAll() {
   renderStats(); renderLeads(); renderClients(); renderPSWs();
   renderBookings(); renderPurchases(); renderMessages(); renderActivity(); renderVisits();
+  renderCRM();
 }
 
 // ── STATS ──
@@ -1315,13 +1409,14 @@ function showSect(name) {
   document.querySelectorAll('.bnav-item').forEach(b=>b.classList.remove('active'));
   const s=document.getElementById('sect-'+name); if(s) s.classList.add('active');
   const tabs=document.querySelectorAll('.nav-tab');
-  const tm=['leads','clients','psws','onboard','bookings','purchases','messages','visits','activity'];
+  const tm=['leads','clients','psws','onboard','bookings','purchases','messages','visits','activity','crm','operator'];
   const ti=tm.indexOf(name); if(ti>=0&&tabs[ti]) tabs[ti].classList.add('active');
   const bm=['leads','clients','bookings','purchases','activity'];
   const bi=bm.indexOf(name);
   const bnavs=document.querySelectorAll('.bnav-item');
   if(bi>=0&&bnavs[bi]) bnavs[bi].classList.add('active');
   if(name==='onboard') populateOnboardSelects();
+  if(name==='crm') renderCRM();
   window.scrollTo(0,0);
 }
 
@@ -1363,6 +1458,158 @@ function showToast(msg,type='ok') {
   const t=document.getElementById('toast');
   t.textContent=msg; t.className='toast show '+type;
   setTimeout(()=>t.classList.remove('show'),3000);
+}
+
+// ── CRM ──
+const CRM_STAGES = ['cold','contacted','demo','call','closed'];
+const CRM_STATUS_MAP = {
+  'new':'cold','cold':'cold','contacted':'contacted',
+  'demo':'demo','call':'call','closed':'closed','converted':'closed','dead':'closed'
+};
+const CRM_STAGE_LABELS = {cold:'Cold',contacted:'Contacted',demo:'Demo',call:'Call',closed:'Closed'};
+
+// Known pipeline — pre-seed if not in Supabase leads yet
+const CRM_SEED = [
+  {id:'holger-seed',first_name:'Holger',last_name:'Fischer',care_needed_for:'Always Best Care KW',city:'Kitchener',phone:'519-900-3303',email:'hfischer@abc-seniors.com',status:'contacted',source:'outreach',created_at:new Date(Date.now()-3*86400000).toISOString(),notes:'Called May 5, said no to $3K. Sent $0/mo until first client offer May 6. Awaiting reply.'},
+  {id:'jennifer-seed',first_name:'Jennifer',last_name:'Crowley',care_needed_for:'LCM Experts',city:'Remote',phone:'(406) 212-0620',email:'jennifer@thelifecareexperts.com',status:'call',source:'outreach',created_at:new Date(Date.now()-14*86400000).toISOString(),notes:'Said stand by. Do not chase. Hormozi rule.'},
+  {id:'sajid-seed',first_name:'Sajid',last_name:'Virani',care_needed_for:'NND Richmond South',city:'Richmond BC',phone:'',email:'',status:'cold',source:'outreach',created_at:new Date(Date.now()-7*86400000).toISOString(),notes:'Actuary. Franchise angle 400+ NND. Lead with care — grandfather has brain cancer.'},
+  {id:'douglas-seed',first_name:'Douglas',last_name:'Brown',care_needed_for:'Manage2Retain',city:'Waterloo ON',phone:'',email:'',status:'cold',source:'outreach',created_at:new Date(Date.now()-10*86400000).toISOString(),notes:'Waiting.'},
+  {id:'nancy-seed',first_name:'Nancy',last_name:'Dahdah',care_needed_for:'Ideal Caregivers 4U',city:'Ottawa / Mississauga',phone:'',email:'',status:'cold',source:'outreach',created_at:new Date(Date.now()-5*86400000).toISOString(),notes:'DM not sent yet.'},
+  {id:'matt-seed',first_name:'Matt',last_name:'Field',care_needed_for:'Right at Home Chicago',city:'Chicago IL',phone:'',email:'',status:'cold',source:'outreach',created_at:new Date(Date.now()-2*86400000).toISOString(),notes:'Multi-location. Former rabbi. Mission-led. Not yet contacted.'},
+];
+
+function renderCRM() {
+  // Merge Supabase operator leads with seed pipeline
+  const supaLeads = (D.leads||[]).filter(l => l.lead_type === 'operator' || l.operator_id === 'proximity-systems');
+  const supaIds = new Set(supaLeads.map(l => l.id));
+  const seeds = CRM_SEED.filter(s => !supaLeads.some(l =>
+    l.email && s.email && l.email.toLowerCase() === s.email.toLowerCase()
+  ));
+  const all = [...supaLeads, ...seeds];
+
+  // Group by stage
+  const cols = {cold:[],contacted:[],demo:[],call:[],closed:[]};
+  all.forEach(l => {
+    const stage = CRM_STATUS_MAP[l.status||'new'] || 'cold';
+    cols[stage].push(l);
+  });
+
+  // Update badge count
+  const total = all.length;
+  const badge = document.getElementById('crm-badge');
+  if(badge) badge.textContent = total;
+
+  // Render each column
+  CRM_STAGES.forEach(stage => {
+    const el = document.getElementById('crm-'+stage);
+    const countEl = document.getElementById('crm-count-'+stage);
+    if(!el) return;
+    const items = cols[stage];
+    if(countEl) countEl.textContent = items.length;
+    if(!items.length) { el.innerHTML = '<div class="crm-empty">Empty</div>'; return; }
+    el.innerHTML = items.map(l => {
+      const name = [l.first_name,l.last_name].filter(Boolean).join(' ') || 'Unknown';
+      const agency = l.care_needed_for || l.agency_name || '—';
+      const city = l.city || '';
+      const date = ago(l.created_at);
+      const isSeed = (l.id||'').includes('-seed');
+      const stages = CRM_STAGES;
+      const si = stages.indexOf(stage);
+      const canBack = si > 0;
+      const canFwd = si < stages.length - 1;
+      const demoSlug = (agency.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,''));
+      return `<div class="crm-card${stage==='closed'?' closed':''}">
+        <div class="crm-card-name">${name}</div>
+        <div class="crm-card-agency">${agency}${city?' · '+city:''}</div>
+        <div class="crm-card-meta">${date}${l.source?' · '+l.source:''}</div>
+        ${l.notes?`<div style="font-size:9px;color:var(--muted);margin-bottom:6px;line-height:1.4;">${l.notes.slice(0,80)}${l.notes.length>80?'...':''}</div>`:''}
+        <div class="crm-card-acts">
+          ${l.phone?`<a href="tel:${l.phone}" class="crm-card-btn call" onclick="event.stopPropagation()">📞 Call</a>`:''}
+          ${l.email?`<a href="mailto:${l.email}" class="crm-card-btn demo" onclick="event.stopPropagation()">✉ Email</a>`:''}
+          <a href="https://proximitysystems.ca/${demoSlug}-premium.html" target="_blank" class="crm-card-btn demo" onclick="event.stopPropagation()">Demo</a>
+          ${canFwd?`<button class="crm-card-btn move" onclick="crmMove('${l.id}','${isSeed?'seed':'db'}','${stages[si+1]}',event)">→ ${CRM_STAGE_LABELS[stages[si+1]]}</button>`:''}
+          ${canBack?`<button class="crm-card-btn" onclick="crmMove('${l.id}','${isSeed?'seed':'db'}','${stages[si-1]}',event)" style="font-size:8px;opacity:.5;">← Back</button>`:''}
+        </div>
+      </div>`;
+    }).join('');
+  });
+}
+
+async function crmMove(id, type, newStage, e) {
+  if(e) e.stopPropagation();
+  if(type === 'seed') {
+    // Update seed in memory
+    const seed = CRM_SEED.find(s => s.id === id);
+    if(seed) seed.status = newStage;
+    renderCRM();
+    showToast('Moved to '+CRM_STAGE_LABELS[newStage],'ok');
+    return;
+  }
+  // Update Supabase via Railway
+  try {
+    const res = await fetch(`${API}/hq/lead-status`, {
+      method: 'PATCH',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({id, status: newStage, operator_id: currentOp})
+    });
+    if(!res.ok) throw new Error();
+    const lead = (D.leads||[]).find(l => l.id === id);
+    if(lead) lead.status = newStage;
+    renderCRM();
+    showToast('Moved to '+CRM_STAGE_LABELS[newStage],'ok');
+  } catch { showToast('Update failed','err'); }
+}
+
+// ── CREATE OPERATOR ──
+async function createOperator() {
+  const agency = document.getElementById('op-agency').value.trim();
+  const owner = document.getElementById('op-owner').value.trim();
+  const email = document.getElementById('op-email').value.trim();
+  const phone = document.getElementById('op-phone').value.trim();
+  const city = document.getElementById('op-city').value.trim();
+  const tier = document.getElementById('op-tier').value;
+  const opId = document.getElementById('op-id').value.trim();
+  const color = document.getElementById('op-color').value.trim();
+  const notes = document.getElementById('op-notes').value.trim();
+
+  if(!agency||!owner||!email) { showToast('Name, owner, and email required','err'); return; }
+
+  const btn = document.getElementById('op-create-btn');
+  btn.disabled = true; btn.textContent = 'Creating...';
+
+  try {
+    const res = await fetch(`${API}/operator/create`, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({
+        operator_id: opId || agency.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,''),
+        agency_name: agency,
+        owner_name: owner,
+        owner_email: email,
+        owner_phone: phone,
+        territory: city,
+        brand_primary: color || '#3d7a8a',
+        tier: tier,
+        notes: notes,
+        created_by: 'hq'
+      })
+    });
+    const data = await res.json();
+    if(!res.ok || !data.success) throw new Error(data.error||'Failed');
+    document.getElementById('op-result').style.display = 'block';
+    document.getElementById('op-result').textContent = 'Agency created. Welcome email sent to '+email+'. operator_id: '+(data.operator_id||opId);
+    showToast('Agency created ✓','ok');
+    // Clear form
+    ['op-agency','op-owner','op-email','op-phone','op-city','op-id','op-notes'].forEach(id => {
+      const el = document.getElementById(id); if(el) el.value='';
+    });
+    document.getElementById('op-color').value='#3d7a8a';
+    document.getElementById('op-color-preview').style.background='#3d7a8a';
+  } catch(err) {
+    showToast('Create failed: '+err.message,'err');
+  } finally {
+    btn.disabled = false; btn.textContent = 'Create Agency + Send Welcome Email';
+  }
 }
 
 setInterval(()=>loadAll(false), 90000);
