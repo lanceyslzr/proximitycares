@@ -1659,11 +1659,28 @@ async function loadApplicants() {
           ${a.phone?`<a href="tel:${a.phone}" class="card-act ok">Call</a>`:''}
           ${a.email?`<a href="mailto:${a.email}" class="card-act ok">Email</a>`:''}
           ${st==='applied'?`<button class="card-act ok" onclick="qualifyApplicant('${a.id}')">Qualify →</button>`:''}
-          ${st==='qualified'?`<button class="card-act ok" onclick="activateApplicantAsStaff('${a.id}','${name}','${a.email||''}','${a.phone||''}')">Activate as PSW →</button>`:''}
+          ${st==='qualified'?`<button class="card-act ok" onclick="initiateOnboarding('${a.id}','${a.email||''}')">Send Onboarding Link →</button>`:''}
+          ${st==='documents_complete'?`<button class="card-act ok" onclick="activateApplicantAsStaff('${a.id}','${name}','${a.email||''}','${a.phone||''}')">Activate as PSW →</button>`:''}
+          ${st==='onboarding'?`<button class="card-act ok" onclick="initiateOnboarding('${a.id}','${a.email||''}')">Resend Link</button>`:''}
+          <a href="https://proximitycares.ca/psw-onboard.html" target="_blank" class="card-act" style="font-size:8px">Preview Portal</a>
         </div>
       </div>`;
     }).join('');
   } catch { el.innerHTML = '<div class="empty-state">Failed to load applicants</div>'; }
+}
+
+async function initiateOnboarding(applicantId, email) {
+  if(!email) { showToast('No email on file for this applicant','err'); return; }
+  try {
+    const res = await fetch(`${API}/psw/onboard/init`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({applicant_id: applicantId, operator_id: currentOp})
+    });
+    const data = await res.json();
+    if(!res.ok || !data.success) throw new Error(data.error||'Failed');
+    showToast('Onboarding link sent to '+email+' ✓','ok');
+    loadApplicants();
+  } catch(e) { showToast('Failed: '+e.message,'err'); }
 }
 
 async function qualifyApplicant(id) {

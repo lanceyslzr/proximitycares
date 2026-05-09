@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Complete Your Onboarding — Proximity Care</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,400&family=Jost:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+:root{
+  --navy:#0e2038;--navy2:#142844;--blue:#3d8fd6;
+  --cream:#f7faff;--cream2:#eaf2fc;--white:#fff;
+  --text:#1a2e3d;--muted:#5a6a7a;--muted2:#8a9aaa;
+  --border:#d0e4f5;--border2:#b8d4ee;
+  --gold:#b87010;--green:#1a6b5a;--red:#e05555;--amber:#d97706;
+  --serif:'Cormorant Garamond',serif;--sans:'Jost',sans-serif;--mono:'DM Mono',monospace;
+  --safe-bottom:env(safe-area-inset-bottom,0px);
+}
+body{font-family:var(--sans);background:var(--cream);color:var(--text);min-height:100svh;overflow-x:hidden;-webkit-text-size-adjust:100%;}
+a,button{touch-action:manipulation;}
+input,select{font-family:var(--sans);font-size:16px;}
+
+/* NAV */
+nav{background:rgba(247,250,255,0.97);border-bottom:1px solid var(--border);height:56px;display:flex;align-items:center;padding:0 24px;position:sticky;top:0;z-index:100;backdrop-filter:blur(12px);}
+.nav-logo{font-family:var(--serif);font-size:18px;color:var(--navy);font-weight:400;}
+.nav-logo em{color:var(--gold);font-style:italic;}
+
+/* STATES */
+#loading-state,#error-state,#success-state{display:none;text-align:center;padding:80px 24px;}
+#loading-state.show,#error-state.show,#success-state.show{display:block;}
+#portal-content{display:none;}
+#portal-content.show{display:block;}
+.state-icon{font-size:40px;margin-bottom:16px;}
+.state-title{font-family:var(--serif);font-size:28px;color:var(--navy);margin-bottom:10px;font-weight:300;}
+.state-sub{font-size:14px;color:var(--muted);line-height:1.75;max-width:380px;margin:0 auto;font-weight:300;}
+
+/* HERO */
+.portal-hero{background:var(--navy);padding:36px 24px;text-align:center;}
+.ph-eyebrow{font-family:var(--mono);font-size:8.5px;letter-spacing:3px;text-transform:uppercase;color:rgba(255,255,255,0.35);margin-bottom:8px;}
+.ph-name{font-family:var(--serif);font-size:28px;color:#fff;font-weight:300;margin-bottom:4px;}
+.ph-sub{font-size:13px;color:rgba(255,255,255,0.45);font-weight:300;}
+
+/* PROGRESS */
+.progress-wrap{max-width:480px;margin:0 auto;padding:28px 24px 0;}
+.doc-progress{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;}
+.dp-item{background:#fff;border:1px solid var(--border);padding:10px 8px;text-align:center;border-radius:3px;transition:all .3s;}
+.dp-item.done{border-color:var(--green);background:rgba(26,107,90,0.05);}
+.dp-item.active{border-color:var(--blue);background:rgba(61,143,214,0.05);}
+.dp-check{font-size:16px;margin-bottom:4px;display:block;}
+.dp-label{font-family:var(--mono);font-size:7.5px;letter-spacing:1px;text-transform:uppercase;color:var(--muted2);line-height:1.3;}
+.dp-item.done .dp-label{color:var(--green);}
+.dp-item.active .dp-label{color:var(--blue);}
+
+/* DOC CARDS */
+.docs-wrap{max-width:480px;margin:0 auto;padding:20px 24px 80px;}
+.doc-card{background:#fff;border:1px solid var(--border);margin-bottom:10px;overflow:hidden;}
+.doc-card.done{border-color:var(--green);}
+.doc-card-head{padding:14px 18px;display:flex;align-items:center;gap:12px;cursor:pointer;}
+.doc-status-dot{width:10px;height:10px;border-radius:50%;background:var(--border2);flex-shrink:0;transition:background .3s;}
+.doc-card.done .doc-status-dot{background:var(--green);}
+.doc-card.uploading .doc-status-dot{background:var(--amber);}
+.doc-card-title{font-size:14px;font-weight:500;color:var(--text);flex:1;}
+.doc-card-status{font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--muted2);}
+.doc-card.done .doc-card-status{color:var(--green);}
+.doc-card-body{display:none;padding:0 18px 18px;border-top:1px solid var(--border);}
+.doc-card.open .doc-card-body{display:block;}
+.doc-req{font-size:12px;color:var(--muted);line-height:1.65;margin:12px 0 14px;font-weight:300;}
+.flabel{font-family:var(--mono);font-size:8px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:5px;display:block;margin-top:12px;}
+.finput{width:100%;background:var(--cream);border:1px solid var(--border2);color:var(--text);padding:10px 12px;font-family:var(--sans);font-size:16px;outline:none;transition:border-color .2s;}
+.finput:focus{border-color:var(--navy);}
+.upload-zone{border:1.5px dashed var(--border2);padding:20px;text-align:center;cursor:pointer;transition:all .2s;margin-top:12px;background:var(--cream);}
+.upload-zone:hover,.upload-zone.drag{border-color:var(--blue);background:rgba(61,143,214,0.04);}
+.upload-zone input{display:none;}
+.uz-icon{font-size:24px;margin-bottom:6px;display:block;}
+.uz-text{font-size:12px;color:var(--muted);line-height:1.5;}
+.uz-text strong{color:var(--navy);display:block;margin-bottom:2px;}
+.upload-btn{width:100%;background:var(--navy);color:#fff;font-family:var(--sans);font-size:12px;letter-spacing:2px;text-transform:uppercase;font-weight:600;padding:12px;border:none;cursor:pointer;margin-top:12px;min-height:44px;transition:background .2s;border-radius:100px;}
+.upload-btn:hover{background:var(--navy2);}
+.upload-btn:disabled{background:var(--muted2);cursor:not-allowed;}
+.upload-progress{margin-top:8px;height:3px;background:var(--border);overflow:hidden;display:none;}
+.upload-progress-bar{height:100%;background:var(--blue);width:0%;transition:width .3s;}
+.upload-done-msg{margin-top:8px;font-size:12px;color:var(--green);font-family:var(--mono);display:none;}
+
+/* SUBMIT */
+.submit-wrap{max-width:480px;margin:0 auto;padding:0 24px 40px;}
+.all-done-card{background:#fff;border:1px solid var(--green);padding:20px;text-align:center;display:none;}
+.all-done-card.show{display:block;}
+.adc-check{width:48px;height:48px;border-radius:50%;background:rgba(26,107,90,0.1);border:1px solid rgba(26,107,90,0.3);display:flex;align-items:center;justify-content:center;margin:0 auto 14px;}
+.adc-title{font-family:var(--serif);font-size:22px;color:var(--navy);margin-bottom:8px;font-weight:300;}
+.adc-sub{font-size:13px;color:var(--muted);line-height:1.7;font-weight:300;}
+
+@media(max-width:480px){
+  .doc-progress{grid-template-columns:repeat(2,1fr);}
+  .dp-label{font-size:7px;}
+}
+@media(hover:none){body{cursor:auto;}a,button{cursor:auto;}}
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="nav-logo">Proximity <em>Care</em></span>
+</nav>
+
+<!-- LOADING -->
+<div id="loading-state" class="show">
+  <div class="state-icon">⏳</div>
+  <h2 class="state-title">Loading your portal...</h2>
+</div>
+
+<!-- ERROR -->
+<div id="error-state">
+  <div class="state-icon">❌</div>
+  <h2 class="state-title">Link expired or invalid</h2>
+  <p class="state-sub">This onboarding link has expired or already been used. Contact Lance at 647-382-8047 to get a new link.</p>
+</div>
+
+<!-- SUCCESS -->
+<div id="success-state">
+  <div class="adc-check" style="width:56px;height:56px;margin:0 auto 16px;">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1a6b5a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+  </div>
+  <h2 class="state-title">All documents received.</h2>
+  <p class="state-sub">Lance will review everything and reach out within 24 hours to confirm your start date. Questions? Call 647-382-8047.</p>
+</div>
+
+<!-- MAIN PORTAL -->
+<div id="portal-content">
+  <div class="portal-hero">
+    <div class="ph-eyebrow">PSW Onboarding Portal</div>
+    <div class="ph-name" id="ph-name">Welcome</div>
+    <div class="ph-sub">Upload your documents to complete onboarding</div>
+  </div>
+
+  <div class="progress-wrap">
+    <div class="doc-progress">
+      <div class="dp-item active" id="dp-psw_cert">
+        <span class="dp-check" id="dc-psw_cert">○</span>
+        <div class="dp-label">PSW Cert</div>
+      </div>
+      <div class="dp-item" id="dp-police_check">
+        <span class="dp-check" id="dc-police_check">○</span>
+        <div class="dp-label">Police Check</div>
+      </div>
+      <div class="dp-item" id="dp-cpr_cert">
+        <span class="dp-check" id="dc-cpr_cert">○</span>
+        <div class="dp-label">CPR Cert</div>
+      </div>
+      <div class="dp-item" id="dp-first_aid">
+        <span class="dp-check" id="dc-first_aid">○</span>
+        <div class="dp-label">First Aid</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="docs-wrap">
+    <!-- PSW CERT -->
+    <div class="doc-card open" id="card-psw_cert">
+      <div class="doc-card-head" onclick="toggleCard('psw_cert')">
+        <div class="doc-status-dot"></div>
+        <div class="doc-card-title">PSW Certificate</div>
+        <div class="doc-card-status" id="status-psw_cert">Missing</div>
+      </div>
+      <div class="doc-card-body">
+        <p class="doc-req">Upload a clear photo or scan of your PSW certificate from an accredited Ontario college or program.</p>
+        <label class="flabel">Expiry Date (if applicable)</label>
+        <input type="date" class="finput" id="expiry-psw_cert">
+        <div class="upload-zone" id="zone-psw_cert" onclick="document.getElementById('file-psw_cert').click()" ondragover="dragOver(event,'psw_cert')" ondragleave="dragLeave('psw_cert')" ondrop="dropFile(event,'psw_cert')">
+          <input type="file" id="file-psw_cert" accept=".pdf,.jpg,.jpeg,.png" onchange="fileSelected('psw_cert')">
+          <span class="uz-icon">📄</span>
+          <div class="uz-text"><strong>Tap to upload or drag here</strong>PDF, JPG, or PNG · Max 10MB</div>
+        </div>
+        <div id="filename-psw_cert" style="font-size:11px;color:var(--muted);margin-top:6px;display:none;"></div>
+        <div class="upload-progress" id="prog-psw_cert"><div class="upload-progress-bar" id="progbar-psw_cert"></div></div>
+        <div class="upload-done-msg" id="done-psw_cert">✓ Uploaded successfully</div>
+        <button class="upload-btn" id="btn-psw_cert" onclick="uploadDoc('psw_cert')" disabled>Upload PSW Certificate</button>
+      </div>
+    </div>
+
+    <!-- POLICE CHECK -->
+    <div class="doc-card" id="card-police_check">
+      <div class="doc-card-head" onclick="toggleCard('police_check')">
+        <div class="doc-status-dot"></div>
+        <div class="doc-card-title">Police Check</div>
+        <div class="doc-card-status" id="status-police_check">Missing</div>
+      </div>
+      <div class="doc-card-body">
+        <p class="doc-req">Must be dated within the last 6 months. Upload the full clearance letter from the police service.</p>
+        <label class="flabel">Date of Issue *</label>
+        <input type="date" class="finput" id="expiry-police_check">
+        <div class="upload-zone" id="zone-police_check" onclick="document.getElementById('file-police_check').click()" ondragover="dragOver(event,'police_check')" ondragleave="dragLeave('police_check')" ondrop="dropFile(event,'police_check')">
+          <input type="file" id="file-police_check" accept=".pdf,.jpg,.jpeg,.png" onchange="fileSelected('police_check')">
+          <span class="uz-icon">🛡</span>
+          <div class="uz-text"><strong>Tap to upload or drag here</strong>PDF, JPG, or PNG · Max 10MB</div>
+        </div>
+        <div id="filename-police_check" style="font-size:11px;color:var(--muted);margin-top:6px;display:none;"></div>
+        <div class="upload-progress" id="prog-police_check"><div class="upload-progress-bar" id="progbar-police_check"></div></div>
+        <div class="upload-done-msg" id="done-police_check">✓ Uploaded successfully</div>
+        <button class="upload-btn" id="btn-police_check" onclick="uploadDoc('police_check')" disabled>Upload Police Check</button>
+      </div>
+    </div>
+
+    <!-- CPR CERT -->
+    <div class="doc-card" id="card-cpr_cert">
+      <div class="doc-card-head" onclick="toggleCard('cpr_cert')">
+        <div class="doc-status-dot"></div>
+        <div class="doc-card-title">CPR Certification</div>
+        <div class="doc-card-status" id="status-cpr_cert">Missing</div>
+      </div>
+      <div class="doc-card-body">
+        <p class="doc-req">Upload your current CPR certification card or certificate. Must be from a recognized provider (Heart and Stroke, St. John Ambulance, etc.).</p>
+        <label class="flabel">Expiry Date *</label>
+        <input type="date" class="finput" id="expiry-cpr_cert">
+        <div class="upload-zone" id="zone-cpr_cert" onclick="document.getElementById('file-cpr_cert').click()" ondragover="dragOver(event,'cpr_cert')" ondragleave="dragLeave('cpr_cert')" ondrop="dropFile(event,'cpr_cert')">
+          <input type="file" id="file-cpr_cert" accept=".pdf,.jpg,.jpeg,.png" onchange="fileSelected('cpr_cert')">
+          <span class="uz-icon">❤️</span>
+          <div class="uz-text"><strong>Tap to upload or drag here</strong>PDF, JPG, or PNG · Max 10MB</div>
+        </div>
+        <div id="filename-cpr_cert" style="font-size:11px;color:var(--muted);margin-top:6px;display:none;"></div>
+        <div class="upload-progress" id="prog-cpr_cert"><div class="upload-progress-bar" id="progbar-cpr_cert"></div></div>
+        <div class="upload-done-msg" id="done-cpr_cert">✓ Uploaded successfully</div>
+        <button class="upload-btn" id="btn-cpr_cert" onclick="uploadDoc('cpr_cert')" disabled>Upload CPR Certificate</button>
+      </div>
+    </div>
+
+    <!-- FIRST AID -->
+    <div class="doc-card" id="card-first_aid">
+      <div class="doc-card-head" onclick="toggleCard('first_aid')">
+        <div class="doc-status-dot"></div>
+        <div class="doc-card-title">First Aid Certification</div>
+        <div class="doc-card-status" id="status-first_aid">Missing</div>
+      </div>
+      <div class="doc-card-body">
+        <p class="doc-req">Upload your current first aid certification. Standard or Emergency First Aid from a recognized provider.</p>
+        <label class="flabel">Expiry Date *</label>
+        <input type="date" class="finput" id="expiry-first_aid">
+        <div class="upload-zone" id="zone-first_aid" onclick="document.getElementById('file-first_aid').click()" ondragover="dragOver(event,'first_aid')" ondragleave="dragLeave('first_aid')" ondrop="dropFile(event,'first_aid')">
+          <input type="file" id="file-first_aid" accept=".pdf,.jpg,.jpeg,.png" onchange="fileSelected('first_aid')">
+          <span class="uz-icon">🩹</span>
+          <div class="uz-text"><strong>Tap to upload or drag here</strong>PDF, JPG, or PNG · Max 10MB</div>
+        </div>
+        <div id="filename-first_aid" style="font-size:11px;color:var(--muted);margin-top:6px;display:none;"></div>
+        <div class="upload-progress" id="prog-first_aid"><div class="upload-progress-bar" id="progbar-first_aid"></div></div>
+        <div class="upload-done-msg" id="done-first_aid">✓ Uploaded successfully</div>
+        <button class="upload-btn" id="btn-first_aid" onclick="uploadDoc('first_aid')" disabled>Upload First Aid Certificate</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="submit-wrap">
+    <div class="all-done-card" id="all-done-card">
+      <div class="adc-check">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1a6b5a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+      </div>
+      <div class="adc-title">All documents received.</div>
+      <div class="adc-sub">Lance will review and confirm your start date within 24 hours. Call 647-382-8047 if you have questions.</div>
+    </div>
+  </div>
+</div>
+
+<script>
+const API = 'https://proximity-agent-production.up.railway.app';
+const token = new URLSearchParams(window.location.search).get('token');
+let applicantId = null;
+let operatorId = 'proximity-care';
+const uploaded = { psw_cert: false, police_check: false, cpr_cert: false, first_aid: false };
+const selectedFiles = {};
+
+// Load portal on init
+async function init() {
+  if(!token) { showState('error'); return; }
+  try {
+    const res = await fetch(`${API}/psw/onboard/${token}`);
+    const data = await res.json();
+    if(!res.ok || !data.success) { showState('error'); return; }
+    applicantId = data.applicant_id;
+    operatorId = data.operator_id;
+    document.getElementById('ph-name').textContent = 'Hi ' + data.first_name + ', welcome.';
+    // Restore already-uploaded docs
+    Object.entries(data.documents).forEach(([key, doc]) => {
+      if(doc.status === 'uploaded') markDone(key);
+    });
+    showState('portal');
+  } catch(e) { showState('error'); }
+}
+
+function showState(state) {
+  document.getElementById('loading-state').className = '';
+  document.getElementById('error-state').className = '';
+  document.getElementById('success-state').className = '';
+  document.getElementById('portal-content').className = '';
+  if(state === 'loading') document.getElementById('loading-state').className = 'show';
+  else if(state === 'error') document.getElementById('error-state').className = 'show';
+  else if(state === 'success') document.getElementById('success-state').className = 'show';
+  else if(state === 'portal') document.getElementById('portal-content').className = 'show';
+}
+
+function toggleCard(docType) {
+  const card = document.getElementById('card-' + docType);
+  card.classList.toggle('open');
+}
+
+function fileSelected(docType) {
+  const file = document.getElementById('file-' + docType).files[0];
+  if(!file) return;
+  selectedFiles[docType] = file;
+  const fn = document.getElementById('filename-' + docType);
+  fn.textContent = file.name + ' (' + (file.size / 1024 / 1024).toFixed(1) + 'MB)';
+  fn.style.display = 'block';
+  document.getElementById('btn-' + docType).disabled = false;
+}
+
+function dragOver(e, docType) { e.preventDefault(); document.getElementById('zone-' + docType).classList.add('drag'); }
+function dragLeave(docType) { document.getElementById('zone-' + docType).classList.remove('drag'); }
+function dropFile(e, docType) {
+  e.preventDefault();
+  dragLeave(docType);
+  const file = e.dataTransfer.files[0];
+  if(!file) return;
+  // Create a fake file input event
+  const dt = new DataTransfer();
+  dt.items.add(file);
+  document.getElementById('file-' + docType).files = dt.files;
+  fileSelected(docType);
+}
+
+async function uploadDoc(docType) {
+  const file = selectedFiles[docType];
+  if(!file || !applicantId) return;
+  const btn = document.getElementById('btn-' + docType);
+  const prog = document.getElementById('prog-' + docType);
+  const progBar = document.getElementById('progbar-' + docType);
+  const doneMsg = document.getElementById('done-' + docType);
+  const card = document.getElementById('card-' + docType);
+  const expiry = document.getElementById('expiry-' + docType).value;
+
+  btn.disabled = true; btn.textContent = 'Uploading...';
+  prog.style.display = 'block';
+
+  // Animate progress bar
+  let pct = 0;
+  const interval = setInterval(() => { pct = Math.min(pct + 10, 85); progBar.style.width = pct + '%'; }, 150);
+
+  try {
+    const fd = new FormData();
+    fd.append('file', file);
+    fd.append('token', token);
+    fd.append('doc_type', docType);
+    fd.append('applicant_id', applicantId);
+    fd.append('operator_id', operatorId);
+    if(expiry) fd.append('expiry_date', expiry);
+
+    const res = await fetch(`${API}/psw/onboard/upload`, { method: 'POST', body: fd });
+    const data = await res.json();
+
+    clearInterval(interval);
+    progBar.style.width = '100%';
+
+    if(!res.ok || !data.success) throw new Error(data.error || 'Upload failed');
+
+    setTimeout(() => {
+      prog.style.display = 'none';
+      doneMsg.style.display = 'block';
+      markDone(docType);
+      card.classList.remove('open');
+      if(data.documents_complete) {
+        document.getElementById('all-done-card').classList.add('show');
+        setTimeout(() => showState('success'), 2000);
+      }
+    }, 400);
+  } catch(e) {
+    clearInterval(interval);
+    prog.style.display = 'none';
+    btn.disabled = false;
+    btn.textContent = 'Retry Upload';
+    alert('Upload failed: ' + e.message + '. Please try again or call 647-382-8047.');
+  }
+}
+
+function markDone(docType) {
+  uploaded[docType] = true;
+  document.getElementById('card-' + docType).classList.add('done');
+  document.getElementById('card-' + docType).classList.remove('uploading');
+  document.getElementById('status-' + docType).textContent = 'Uploaded ✓';
+  document.getElementById('dp-' + docType).classList.add('done');
+  document.getElementById('dp-' + docType).classList.remove('active');
+  document.getElementById('dc-' + docType).textContent = '✓';
+
+  // Activate next card
+  const order = ['psw_cert', 'police_check', 'cpr_cert', 'first_aid'];
+  const next = order[order.indexOf(docType) + 1];
+  if(next && !uploaded[next]) {
+    document.getElementById('dp-' + next).classList.add('active');
+    document.getElementById('card-' + next).classList.add('open');
+  }
+  // Check all done
+  if(Object.values(uploaded).every(Boolean)) {
+    document.getElementById('all-done-card').classList.add('show');
+  }
+}
+
+init();
+</script>
+</body>
+</html>
