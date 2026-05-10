@@ -391,6 +391,31 @@ a{color:inherit;text-decoration:none;}
     </div>
   </div>
 
+  <!-- Manual Sign In card — always visible -->
+  <div id="manual-signin-card" style="margin:0 14px 12px;background:var(--bg2);border:1px solid var(--border);border-radius:12px;overflow:hidden;">
+    <div style="background:var(--bg3);padding:13px 16px;border-bottom:1px solid var(--border);font-family:var(--serif);font-size:15px;color:var(--text);">Sign In to a Visit</div>
+    <div style="padding:14px 16px;">
+      <div style="margin-bottom:10px;">
+        <label style="font-family:var(--mono);font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:5px;">Client</label>
+        <select id="signin-client" style="width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:11px 13px;font-size:16px;border-radius:8px;-webkit-appearance:none;">
+          <option value="">Select client...</option>
+          <option value="Rosetta Ferrari">Rosetta Ferrari</option>
+          <option value="Bhangu Amrit">Bhangu Amrit</option>
+          <option value="Priya Singh">Priya Singh</option>
+          <option value="Helia Cordeiro">Helia Cordeiro</option>
+          <option value="Samina Thedlo">Samina Thedlo</option>
+          <option value="Parul Priya">Parul Priya</option>
+          <option value="Kim Phung">Kim Phung</option>
+          <option value="Emmanuel Sagolili">Emmanuel Sagolili</option>
+          <option value="Blake Heald">Blake Heald</option>
+          <option value="Rick Vardzel">Rick Vardzel</option>
+          <option value="Roman Pinto">Roman Pinto</option>
+        </select>
+      </div>
+      <button onclick="checkInManual()" style="width:100%;background:linear-gradient(135deg,var(--green),var(--green2));color:#fff;padding:13px;font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;border-radius:10px;border:none;cursor:pointer;min-height:48px;touch-action:manipulation;">Sign In Now</button>
+    </div>
+  </div>
+
   <!-- Week navigation -->
   <div class="schedule-grid">
     <div class="schedule-week-nav">
@@ -786,8 +811,10 @@ async function loadSchedule() {
 function renderActiveBanner() {
   const banner = document.getElementById('active-banner');
   const coPanel = document.getElementById('checkout-panel');
+  const manualCard = document.getElementById('manual-signin-card');
   if (activeVisit) {
     banner.classList.add('show');
+    if (manualCard) manualCard.style.display = 'none';
     document.getElementById('active-client-name').textContent = activeVisit.client_name || '—';
     const tin = activeVisit.time_in || activeVisit.checkin_time?.slice(11,16) || '—';
     document.getElementById('active-time-display').textContent = 'Started at ' + tin;
@@ -800,6 +827,7 @@ function renderActiveBanner() {
     banner.classList.remove('show');
     coPanel.style.display = 'none';
     stopElapsedTimer();
+    if (manualCard) manualCard.style.display = 'block';
   }
 }
 
@@ -906,6 +934,13 @@ function renderWeek() {
       ${shiftsHtml}
     </div>`;
   }).join('');
+}
+
+function checkInManual() {
+  const sel = document.getElementById('signin-client');
+  const clientName = sel ? sel.value : '';
+  if (!clientName) { showToast('Select a client first', 'err'); return; }
+  checkIn(clientName, '');
 }
 
 function shiftWeek(dir) { weekOffset += dir; renderWeek(); }
@@ -1307,7 +1342,7 @@ function showSect(name) {
   document.querySelectorAll('.bnav-item').forEach(b => b.classList.remove('active'));
   const s = document.getElementById('sect-'+name); if (s) s.classList.add('active');
   const tabs = document.querySelectorAll('.nav-tab');
-  const tm = ['home','schedule','visit','checklist','clients','pay','messages','documents'];
+  const tm = ['home','schedule','visit','clients','pay','messages','documents'];
   const ti = tm.indexOf(name); if (ti >= 0 && tabs[ti]) tabs[ti].classList.add('active');
   const bm = ['home','schedule','clients','messages','pay'];
   const bi = bm.indexOf(name);
