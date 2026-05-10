@@ -687,6 +687,16 @@ a{color:inherit;text-decoration:none;}
       <option value="720">12 hours</option>
     </select>
   </div>
+  <div class="sheet-row"><div class="slbl">Repeat</div>
+    <select class="sselect" id="ss-recurring">
+      <option value="none">No repeat</option>
+      <option value="weekdays">Weekdays (Mon–Fri)</option>
+      <option value="daily">Daily</option>
+      <option value="4w">Weekly × 4 weeks</option>
+      <option value="8w">Weekly × 8 weeks</option>
+      <option value="12w">Weekly × 12 weeks</option>
+    </select>
+  </div>
   <button class="sbtn" onclick="saveShift()">Save Shift</button>
 </div>
 
@@ -1920,6 +1930,8 @@ async function firePostClose() {
 // ── SCHEDULE VIEW ──
 // ── SCHEDULING BOARD ──
 let schedWeekOffset = 0;
+let schedView = 'client'; // 'client' or 'psw'
+let schedFilter = '';
 let dragBookingId = null;
 let dragData = null;
 
@@ -1929,8 +1941,6 @@ function renderSchedule() {
   const psws = D.psws || [];
   const clients = D.clients || [];
   const bookings = D.bookings || [];
-
-  if (!psws.length) { el.innerHTML = '<div class="empty-state">No active PSWs</div>'; return; }
 
   // Week dates
   const today = new Date(); today.setHours(12,0,0,0);
@@ -1942,129 +1952,248 @@ function renderSchedule() {
   const startStr = days[0].toISOString().slice(0,10);
   const endStr = days[6].toISOString().slice(0,10);
 
-  // Unassigned clients
-  const assignedClients = new Set(bookings.filter(b => b.assigned_to).map(b => b.client_name));
-  const unassigned = clients.filter(c => {
-    const name = `${c.first_name||''} ${c.last_name||''}`.trim();
-    return !c.assigned_psw && !assignedClients.has(name);
+  // Filter
+  const filterLower = schedFilter.toLowerCase();
+
+  // Conflict detection
+  const conflicts = new Set();
+  bookings.forEach((b1,i) => {
+    bookings.forEach((b2,j) => {
+      if(i>=j) return;
+      if(b1.assigned_to!==b2.assigned_to||b1.scheduled_date!==b2.scheduled_date||!b1.assigned_to) return;
+      const t1s=toMins(b1.scheduled_time),t1e=t1s+(b1.duration_minutes||60);
+      const t2s=toMins(b2.scheduled_time),t2e=t2s+(b2.duration_minutes||60);
+      if(t1s<t2e&&t2s<t1e){conflicts.add(b1.id);conflicts.add(b2.id);}
+    });
+  });
+
+  // Open shifts — clients with no booking on any day this week
+  const openShifts = [];
+  clients.forEach(c => {
+    const cname = `${c.first_name||''} ${c.last_name||''}`.trim();
+    days.forEach(d => {
+      const ds = d.toISOString().slice(0,10);
+      const hasCoverage = bookings.some(b => b.client_name===cname && b.scheduled_date===ds && b.status!=='cancelled');
+      if (!hasCoverage) openShifts.push({client:cname, date:ds, assigned_psw: c.assigned_psw||''});
+    });
   });
 
   // PSW weekly hours
   const pswHours = {};
   psws.forEach(p => { pswHours[p.full_name] = 0; });
-  bookings.filter(b => b.scheduled_date >= startStr && b.scheduled_date <= endStr).forEach(b => {
-    if (b.assigned_to && pswHours[b.assigned_to] !== undefined) {
-      pswHours[b.assigned_to] += (b.duration_minutes || 60) / 60;
-    }
-  });
-
-  // Conflict detection — same PSW, same date, overlapping
-  const conflicts = new Set();
-  bookings.forEach((b1, i) => {
-    bookings.forEach((b2, j) => {
-      if (i >= j) return;
-      if (b1.assigned_to !== b2.assigned_to || b1.scheduled_date !== b2.scheduled_date || !b1.assigned_to) return;
-      const t1s = toMins(b1.scheduled_time), t1e = t1s + (b1.duration_minutes||60);
-      const t2s = toMins(b2.scheduled_time), t2e = t2s + (b2.duration_minutes||60);
-      if (t1s < t2e && t2s < t1e) { conflicts.add(b1.id); conflicts.add(b2.id); }
-    });
+  bookings.filter(b=>b.scheduled_date>=startStr&&b.scheduled_date<=endStr&&b.status!=='cancelled').forEach(b=>{
+    if(b.assigned_to&&pswHours[b.assigned_to]!==undefined) pswHours[b.assigned_to]+=(b.duration_minutes||60)/60;
   });
 
   let html = '';
 
-  // Unassigned banner
-  if (unassigned.length) {
-    html += `<div style="margin:0 12px 10px;padding:10px 14px;background:rgba(224,85,85,.06);border:1px solid rgba(224,85,85,.25);border-radius:8px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
-      <span style="font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--red);">Unassigned</span>
-      ${unassigned.map(c => `<span style="font-size:11px;color:var(--muted2);background:var(--bg3);border:1px solid var(--border);border-radius:100px;padding:2px 8px;">${c.first_name||''} ${c.last_name||''}</span>`).join('')}
+  // ── CONTROLS BAR ──
+  html += `<div style="display:flex;align-items:center;gap:8px;padding:10px 12px;flex-wrap:wrap;">
+    <button onclick="shiftSchedWeek(-1)" style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted2);background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:6px 12px;cursor:pointer;min-height:34px;">← Prev</button>
+    <div style="font-family:var(--mono);font-size:10px;letter-spacing:1px;color:var(--muted2);flex:1;text-align:center;">${fmtd(startStr)} – ${fmtd(endStr)}</div>
+    <button onclick="shiftSchedWeek(1)" style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted2);background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:6px 12px;cursor:pointer;min-height:34px;">Next →</button>
+  </div>
+  <div style="display:flex;align-items:center;gap:8px;padding:0 12px 10px;flex-wrap:wrap;">
+    <button onclick="setSchedView('client')" style="font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;padding:5px 12px;border-radius:6px;cursor:pointer;min-height:30px;border:1px solid var(--border);background:${schedView==='client'?'var(--teal2)':'var(--bg2)'};color:${schedView==='client'?'#fff':'var(--muted2)'};">By Client</button>
+    <button onclick="setSchedView('psw')" style="font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;padding:5px 12px;border-radius:6px;cursor:pointer;min-height:30px;border:1px solid var(--border);background:${schedView==='psw'?'var(--teal2)':'var(--bg2)'};color:${schedView==='psw'?'#fff':'var(--muted2)'};">By PSW</button>
+    <input type="text" placeholder="Filter by name..." value="${schedFilter}" oninput="schedFilter=this.value;renderSchedule()" style="font-family:var(--mono);font-size:11px;background:var(--bg2);border:1px solid var(--border);color:var(--text);padding:5px 10px;border-radius:6px;min-height:30px;width:160px;">
+    <div style="font-family:var(--mono);font-size:9px;color:var(--muted);margin-left:auto;">${openShifts.length} open ${openShifts.length===1?'slot':'slots'} this week</div>
+  </div>`;
+
+  // ── OPEN SHIFTS BANNER ──
+  const todayOpen = openShifts.filter(o=>o.date===todayStr);
+  if(todayOpen.length) {
+    html += `<div style="margin:0 12px 10px;padding:10px 14px;background:rgba(224,85,85,.06);border:1px solid rgba(224,85,85,.25);border-radius:8px;">
+      <div style="font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--red);margin-bottom:6px;">No Coverage Today</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;">
+        ${todayOpen.map(o=>`<span style="font-size:11px;color:var(--muted2);background:var(--bg3);border:1px solid rgba(224,85,85,.3);border-radius:100px;padding:3px 10px;cursor:pointer;" onclick="openAddShift('${o.assigned_psw}','${o.date}')">${o.client} +</span>`).join('')}
+      </div>
     </div>`;
   }
 
-  // Week nav
-  html += `<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px 10px;">
-    <button onclick="shiftSchedWeek(-1)" style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted2);background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:6px 12px;cursor:pointer;min-height:32px;">← Prev</button>
-    <div style="font-family:var(--mono);font-size:10px;letter-spacing:1px;color:var(--muted2);">${fmtd(startStr)} – ${fmtd(endStr)}</div>
-    <button onclick="shiftSchedWeek(1)" style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted2);background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:6px 12px;cursor:pointer;min-height:32px;">Next →</button>
-  </div>`;
+  if(schedView === 'client') {
+    // ── CLIENT VIEW — rows = clients, cols = days ──
+    let filteredClients = clients.filter(c => {
+      if(!filterLower) return true;
+      const cname = `${c.first_name||''} ${c.last_name||''}`.trim().toLowerCase();
+      return cname.includes(filterLower) || (c.assigned_psw||'').toLowerCase().includes(filterLower);
+    });
 
-  // Grid — scrollable horizontally
-  html += `<div style="overflow-x:auto;padding:0 12px 12px;">
-  <table style="border-collapse:collapse;width:100%;min-width:700px;font-size:11px;">
-  <thead><tr>
-    <th style="background:var(--bg3);padding:8px 12px;text-align:left;font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--muted2);border:1px solid var(--border);min-width:130px;position:sticky;left:0;z-index:2;">PSW</th>
-    ${days.map(d => {
-      const ds = d.toISOString().slice(0,10);
-      const isToday = ds === todayStr;
-      const label = d.toLocaleDateString('en-CA',{weekday:'short',month:'short',day:'numeric'});
-      return `<th style="background:${isToday?'rgba(61,122,138,.12)':'var(--bg3)'};padding:7px 10px;text-align:center;font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:${isToday?'var(--teal2)':'var(--muted2)'};border:1px solid var(--border);min-width:110px;">${label}</th>`;
-    }).join('')}
-  </tr></thead><tbody>`;
+    if(!filteredClients.length) { html += '<div class="empty-state">No clients match filter</div>'; el.innerHTML=html; return; }
 
-  psws.forEach((psw, ri) => {
-    const hrs = Math.round((pswHours[psw.full_name]||0) * 10) / 10;
-    const maxHrs = 40;
-    const pct = Math.min(100, Math.round(hrs / maxHrs * 100));
-    const capColor = pct > 90 ? 'var(--red)' : pct > 70 ? 'var(--amber)' : 'var(--teal2)';
-    const bg = ri%2===0 ? 'var(--bg2)' : 'var(--bg3)';
+    html += `<div style="overflow-x:auto;padding:0 12px 12px;">
+    <table style="border-collapse:collapse;width:100%;min-width:700px;font-size:11px;">
+    <thead><tr>
+      <th style="background:var(--bg3);padding:8px 12px;text-align:left;font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--muted2);border:1px solid var(--border);min-width:150px;position:sticky;left:0;z-index:2;">Client</th>
+      ${days.map(d=>{
+        const ds=d.toISOString().slice(0,10);
+        const isToday=ds===todayStr;
+        const label=d.toLocaleDateString('en-CA',{weekday:'short',month:'short',day:'numeric'});
+        return `<th style="background:${isToday?'rgba(61,122,138,.12)':'var(--bg3)'};padding:7px 10px;text-align:center;font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:${isToday?'var(--teal2)':'var(--muted2)'};border:1px solid var(--border);min-width:120px;">${label}</th>`;
+      }).join('')}
+    </tr></thead><tbody>`;
 
-    html += `<tr>
-      <td style="padding:8px 12px;border:1px solid var(--border);background:${bg};vertical-align:top;position:sticky;left:0;z-index:1;background:var(--bg2);">
-        <div style="font-size:12px;font-weight:500;color:var(--text);">${psw.full_name}</div>
-        ${psw.psw_code?`<div style="font-family:var(--mono);font-size:8px;color:var(--muted);margin-top:1px;">${psw.psw_code}</div>`:''}
-        <div style="margin-top:6px;display:flex;align-items:center;gap:5px;">
-          <div style="flex:1;height:3px;background:var(--border);border-radius:100px;"><div style="width:${pct}%;height:100%;background:${capColor};border-radius:100px;transition:width .3s;"></div></div>
-          <div style="font-family:var(--mono);font-size:9px;color:${capColor};">${hrs}h</div>
-        </div>
-      </td>`;
+    filteredClients.forEach((c,ri) => {
+      const cname = `${c.first_name||''} ${c.last_name||''}`.trim();
+      const bg = ri%2===0 ? 'var(--bg2)' : 'var(--bg3)';
+      html += `<tr>
+        <td style="padding:8px 12px;border:1px solid var(--border);background:var(--bg2);vertical-align:top;position:sticky;left:0;z-index:1;">
+          <div style="font-size:12px;font-weight:500;color:var(--text);">${cname}</div>
+          <div style="font-family:var(--mono);font-size:9px;color:var(--muted);margin-top:2px;">${c.assigned_psw||'Unassigned'}</div>
+        </td>`;
+      days.forEach(d => {
+        const ds = d.toISOString().slice(0,10);
+        const isToday = ds===todayStr;
+        const dayBookings = bookings.filter(b=>b.scheduled_date===ds&&b.client_name===cname);
+        const activeB = dayBookings.filter(b=>b.status!=='cancelled');
+        const cancelledB = dayBookings.filter(b=>b.status==='cancelled');
+        const hasConflict = activeB.some(b=>conflicts.has(b.id));
 
-    days.forEach(d => {
-      const ds = d.toISOString().slice(0,10);
-      const isToday = ds === todayStr;
-      const dayBookings = bookings.filter(b => b.scheduled_date === ds && b.assigned_to === psw.full_name);
-      const hasConflict = dayBookings.some(b => conflicts.has(b.id));
+        html += `<td style="padding:4px;border:1px solid var(--border);background:${hasConflict?'rgba(224,85,85,.06)':isToday?'rgba(61,122,138,.04)':bg};vertical-align:top;"
+          ondragover="event.preventDefault();this.style.background='rgba(61,122,138,.12)'"
+          ondragleave="this.style.background='${isToday?'rgba(61,122,138,.04)':bg}'"
+          ondrop="dropShift(event,'${c.assigned_psw||''}','${ds}',this,'${cname}')">`;
 
-      html += `<td style="padding:6px;border:1px solid var(--border);background:${hasConflict?'rgba(224,85,85,.06)':isToday?'rgba(61,122,138,.04)':bg};vertical-align:top;min-height:60px;"
-        ondragover="event.preventDefault();this.style.outline='2px solid var(--teal2)'"
-        ondragleave="this.style.outline=''"
-        ondrop="dropShift(event,'${psw.full_name}','${ds}',this)">`;
-
-      if (dayBookings.length) {
-        dayBookings.forEach(b => {
+        activeB.forEach(b => {
           const isConflict = conflicts.has(b.id);
           html += `<div draggable="true"
             ondragstart="dragShift(event,'${b.id}','${b.client_name}','${b.scheduled_time||''}','${b.duration_minutes||60}')"
             ondragend="this.style.opacity='1'"
-            style="background:${isConflict?'rgba(224,85,85,.15)':'rgba(61,122,138,.15)'};border:1px solid ${isConflict?'rgba(224,85,85,.4)':'rgba(61,122,138,.3)'};border-radius:6px;padding:5px 7px;margin-bottom:4px;cursor:grab;font-size:10px;">
-            <div style="font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${b.client_name}</div>
+            style="background:${isConflict?'rgba(224,85,85,.2)':'rgba(61,122,138,.18)'};border:1px solid ${isConflict?'rgba(224,85,85,.5)':'rgba(61,122,138,.4)'};border-radius:6px;padding:5px 7px;margin-bottom:3px;cursor:grab;">
+            <div style="font-size:10px;font-weight:500;color:var(--text);">${b.assigned_to||'Unassigned'}</div>
             <div style="font-family:var(--mono);font-size:9px;color:var(--muted2);">${b.scheduled_time||'—'} · ${Math.round((b.duration_minutes||60)/60*10)/10}h</div>
-            ${isConflict?`<div style="font-family:var(--mono);font-size:8px;color:var(--red);">CONFLICT</div>`:''}
-            <div style="display:flex;gap:4px;margin-top:4px;">
-              <button onclick="openEditShift('${b.id}','${b.client_name}','${psw.full_name}','${ds}','${b.scheduled_time||''}','${b.duration_minutes||60}')" style="flex:1;font-family:var(--mono);font-size:8px;letter-spacing:1px;text-transform:uppercase;color:var(--teal2);background:transparent;border:1px solid var(--border);border-radius:4px;padding:3px;cursor:pointer;min-height:22px;">Edit</button>
-              <button onclick="deleteShift('${b.id}')" style="font-family:var(--mono);font-size:8px;letter-spacing:1px;text-transform:uppercase;color:var(--red);background:transparent;border:1px solid rgba(224,85,85,.3);border-radius:4px;padding:3px 5px;cursor:pointer;min-height:22px;">✕</button>
+            ${isConflict?'<div style="font-family:var(--mono);font-size:8px;color:var(--red);">CONFLICT</div>':''}
+            <div style="display:flex;gap:3px;margin-top:4px;">
+              <button onclick="toggleShiftStatus('${b.id}','cancelled')" style="flex:1;font-family:var(--mono);font-size:8px;color:var(--amber);background:transparent;border:1px solid rgba(224,154,61,.3);border-radius:4px;padding:2px;cursor:pointer;min-height:20px;">Off</button>
+              <button onclick="openEditShift('${b.id}','${b.client_name}','${b.assigned_to||''}','${ds}','${b.scheduled_time||''}','${b.duration_minutes||60}')" style="flex:1;font-family:var(--mono);font-size:8px;color:var(--teal2);background:transparent;border:1px solid var(--border);border-radius:4px;padding:2px;cursor:pointer;min-height:20px;">Edit</button>
+              <button onclick="deleteShift('${b.id}')" style="font-family:var(--mono);font-size:8px;color:var(--red);background:transparent;border:1px solid rgba(224,85,85,.3);border-radius:4px;padding:2px 4px;cursor:pointer;min-height:20px;">✕</button>
             </div>
           </div>`;
         });
-      }
 
-      // Add shift button
-      html += `<button onclick="openAddShift('${psw.full_name}','${ds}')" style="width:100%;font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);background:transparent;border:1px dashed var(--border);border-radius:6px;padding:5px;cursor:pointer;min-height:28px;display:block;margin-top:${dayBookings.length?'2px':'0'};">+ Add</button>`;
+        cancelledB.forEach(b => {
+          html += `<div style="background:rgba(255,255,255,.03);border:1px dashed rgba(255,255,255,.1);border-radius:6px;padding:4px 7px;margin-bottom:3px;opacity:.5;">
+            <div style="font-size:9px;color:var(--muted);text-decoration:line-through;">${b.assigned_to||'—'}</div>
+            <div style="display:flex;gap:3px;margin-top:3px;">
+              <button onclick="toggleShiftStatus('${b.id}','scheduled')" style="width:100%;font-family:var(--mono);font-size:8px;color:var(--green2);background:transparent;border:1px solid rgba(42,138,114,.3);border-radius:4px;padding:2px;cursor:pointer;min-height:20px;">On</button>
+            </div>
+          </div>`;
+        });
 
-      html += '</td>';
+        html += `<button onclick="openAddShift('${c.assigned_psw||''}','${ds}','${cname}')" style="width:100%;font-family:var(--mono);font-size:9px;color:var(--muted);background:transparent;border:1px dashed var(--border);border-radius:5px;padding:4px;cursor:pointer;min-height:26px;display:block;margin-top:${dayBookings.length?'2px':'0'};">+ Add</button>`;
+        html += '</td>';
+      });
+      html += '</tr>';
+    });
+    html += '</tbody></table></div>';
+
+  } else {
+    // ── PSW VIEW — rows = PSWs, cols = days ──
+    let filteredPSWs = psws.filter(p => {
+      if(!filterLower) return true;
+      return p.full_name.toLowerCase().includes(filterLower);
     });
 
-    html += '</tr>';
-  });
+    if(!filteredPSWs.length) { html += '<div class="empty-state">No PSWs match filter</div>'; el.innerHTML=html; return; }
 
-  html += '</tbody></table></div>';
+    html += `<div style="overflow-x:auto;padding:0 12px 12px;">
+    <table style="border-collapse:collapse;width:100%;min-width:700px;font-size:11px;">
+    <thead><tr>
+      <th style="background:var(--bg3);padding:8px 12px;text-align:left;font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--muted2);border:1px solid var(--border);min-width:140px;position:sticky;left:0;z-index:2;">PSW</th>
+      ${days.map(d=>{
+        const ds=d.toISOString().slice(0,10);
+        const isToday=ds===todayStr;
+        const label=d.toLocaleDateString('en-CA',{weekday:'short',month:'short',day:'numeric'});
+        return `<th style="background:${isToday?'rgba(61,122,138,.12)':'var(--bg3)'};padding:7px 10px;text-align:center;font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:${isToday?'var(--teal2)':'var(--muted2)'};border:1px solid var(--border);min-width:120px;">${label}</th>`;
+      }).join('')}
+    </tr></thead><tbody>`;
+
+    filteredPSWs.forEach((psw,ri) => {
+      const hrs = Math.round((pswHours[psw.full_name]||0)*10)/10;
+      const pct = Math.min(100,Math.round(hrs/40*100));
+      const capColor = pct>90?'var(--red)':pct>70?'var(--amber)':'var(--teal2)';
+      const bg = ri%2===0?'var(--bg2)':'var(--bg3)';
+
+      html += `<tr>
+        <td style="padding:8px 12px;border:1px solid var(--border);background:var(--bg2);vertical-align:top;position:sticky;left:0;z-index:1;">
+          <div style="font-size:12px;font-weight:500;color:var(--text);">${psw.full_name}</div>
+          ${psw.psw_code?`<div style="font-family:var(--mono);font-size:8px;color:var(--muted);">${psw.psw_code}</div>`:''}
+          <div style="margin-top:5px;display:flex;align-items:center;gap:5px;">
+            <div style="flex:1;height:3px;background:var(--border);border-radius:100px;"><div style="width:${pct}%;height:100%;background:${capColor};border-radius:100px;"></div></div>
+            <div style="font-family:var(--mono);font-size:9px;color:${capColor};">${hrs}h</div>
+          </div>
+        </td>`;
+
+      days.forEach(d => {
+        const ds = d.toISOString().slice(0,10);
+        const isToday = ds===todayStr;
+        const dayBookings = bookings.filter(b=>b.scheduled_date===ds&&b.assigned_to===psw.full_name);
+        const activeB = dayBookings.filter(b=>b.status!=='cancelled');
+        const cancelledB = dayBookings.filter(b=>b.status==='cancelled');
+        const hasConflict = activeB.some(b=>conflicts.has(b.id));
+
+        html += `<td style="padding:4px;border:1px solid var(--border);background:${hasConflict?'rgba(224,85,85,.06)':isToday?'rgba(61,122,138,.04)':bg};vertical-align:top;"
+          ondragover="event.preventDefault();this.style.background='rgba(61,122,138,.12)'"
+          ondragleave="this.style.background='${isToday?'rgba(61,122,138,.04)':bg}'"
+          ondrop="dropShift(event,'${psw.full_name}','${ds}',this)">`;
+
+        activeB.forEach(b => {
+          const isConflict = conflicts.has(b.id);
+          html += `<div draggable="true"
+            ondragstart="dragShift(event,'${b.id}','${b.client_name}','${b.scheduled_time||''}','${b.duration_minutes||60}')"
+            ondragend="this.style.opacity='1'"
+            style="background:${isConflict?'rgba(224,85,85,.2)':'rgba(61,122,138,.18)'};border:1px solid ${isConflict?'rgba(224,85,85,.5)':'rgba(61,122,138,.4)'};border-radius:6px;padding:5px 7px;margin-bottom:3px;cursor:grab;">
+            <div style="font-size:10px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${b.client_name}</div>
+            <div style="font-family:var(--mono);font-size:9px;color:var(--muted2);">${b.scheduled_time||'—'} · ${Math.round((b.duration_minutes||60)/60*10)/10}h</div>
+            ${isConflict?'<div style="font-family:var(--mono);font-size:8px;color:var(--red);">CONFLICT</div>':''}
+            <div style="display:flex;gap:3px;margin-top:4px;">
+              <button onclick="toggleShiftStatus('${b.id}','cancelled')" style="flex:1;font-family:var(--mono);font-size:8px;color:var(--amber);background:transparent;border:1px solid rgba(224,154,61,.3);border-radius:4px;padding:2px;cursor:pointer;min-height:20px;">Off</button>
+              <button onclick="openEditShift('${b.id}','${b.client_name}','${psw.full_name}','${ds}','${b.scheduled_time||''}','${b.duration_minutes||60}')" style="flex:1;font-family:var(--mono);font-size:8px;color:var(--teal2);background:transparent;border:1px solid var(--border);border-radius:4px;padding:2px;cursor:pointer;min-height:20px;">Edit</button>
+              <button onclick="deleteShift('${b.id}')" style="font-family:var(--mono);font-size:8px;color:var(--red);background:transparent;border:1px solid rgba(224,85,85,.3);border-radius:4px;padding:2px 4px;cursor:pointer;min-height:20px;">✕</button>
+            </div>
+          </div>`;
+        });
+
+        cancelledB.forEach(b => {
+          html += `<div style="background:rgba(255,255,255,.03);border:1px dashed rgba(255,255,255,.1);border-radius:6px;padding:4px 7px;margin-bottom:3px;opacity:.5;">
+            <div style="font-size:9px;color:var(--muted);text-decoration:line-through;">${b.client_name}</div>
+            <button onclick="toggleShiftStatus('${b.id}','scheduled')" style="width:100%;font-family:var(--mono);font-size:8px;color:var(--green2);background:transparent;border:1px solid rgba(42,138,114,.3);border-radius:4px;padding:2px;cursor:pointer;min-height:20px;margin-top:3px;">On</button>
+          </div>`;
+        });
+
+        html += `<button onclick="openAddShift('${psw.full_name}','${ds}','')" style="width:100%;font-family:var(--mono);font-size:9px;color:var(--muted);background:transparent;border:1px dashed var(--border);border-radius:5px;padding:4px;cursor:pointer;min-height:26px;display:block;margin-top:${dayBookings.length?'2px':'0'};">+ Add</button>`;
+        html += '</td>';
+      });
+      html += '</tr>';
+    });
+    html += '</tbody></table></div>';
+  }
+
   el.innerHTML = html;
 }
 
+function setSchedView(v) { schedView = v; renderSchedule(); }
 function shiftSchedWeek(dir) { schedWeekOffset += dir; renderSchedule(); }
 
 function toMins(t) {
-  if (!t) return 0;
+  if(!t) return 0;
   const [h,m] = t.split(':').map(Number);
   return (h||0)*60+(m||0);
+}
+
+// ── STATUS TOGGLE ──
+async function toggleShiftStatus(id, newStatus) {
+  try {
+    const res = await fetch(`${API}/hq/booking/${id}`, {
+      method: 'PATCH',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ operator_id: currentOp, status: newStatus })
+    });
+    const d = await res.json();
+    if(!d.success) throw new Error(d.error);
+    showToast(newStatus==='cancelled'?'Shift marked off':'Shift back on','ok');
+    await loadAll(false);
+  } catch(e) { showToast(e.message,'err'); }
 }
 
 // ── DRAG AND DROP ──
@@ -2075,39 +2204,44 @@ function dragShift(event, bookingId, clientName, time, duration) {
   event.dataTransfer.effectAllowed = 'move';
 }
 
-async function dropShift(event, pswName, date, cell) {
+async function dropShift(event, pswName, date, cell, clientName) {
   event.preventDefault();
-  cell.style.outline = '';
-  if (!dragBookingId) return;
+  cell.style.background = '';
+  if(!dragBookingId) return;
   try {
+    const body = { operator_id: currentOp, assigned_to: pswName, scheduled_date: date };
     const res = await fetch(`${API}/hq/booking/${dragBookingId}`, {
       method: 'PATCH',
       headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({ operator_id: currentOp, assigned_to: pswName, scheduled_date: date })
+      body: JSON.stringify(body)
     });
     const d = await res.json();
-    if (!d.success) throw new Error(d.error);
-    showToast(`Moved to ${pswName} · ${date}`, 'ok');
+    if(!d.success) throw new Error(d.error);
+    showToast(`Moved → ${pswName||clientName} · ${date}`,'ok');
     await loadAll(false);
-  } catch(e) { showToast(e.message, 'err'); }
+  } catch(e) { showToast(e.message,'err'); }
   dragBookingId = null; dragData = null;
 }
 
 // ── ADD / EDIT SHIFT SHEET ──
 let editingBookingId = null;
 
-function openAddShift(pswName, date) {
+function openAddShift(pswName, date, clientName) {
   editingBookingId = null;
   document.getElementById('ss-title').textContent = 'Add Shift';
-  document.getElementById('ss-psw').value = pswName;
-  document.getElementById('ss-date').value = date;
+  document.getElementById('ss-psw').value = pswName || '';
+  document.getElementById('ss-date').value = date || '';
   document.getElementById('ss-time').value = '09:00';
   document.getElementById('ss-duration').value = '480';
-  // Populate client select
   const sel = document.getElementById('ss-client');
   const clients = D.clients || [];
   sel.innerHTML = '<option value="">Select client...</option>' +
-    clients.map(c => `<option value="${c.first_name||''} ${c.last_name||''}">${c.first_name||''} ${c.last_name||''}</option>`).join('');
+    clients.map(c => {
+      const n = `${c.first_name||''} ${c.last_name||''}`.trim();
+      return `<option value="${n}" ${n===(clientName||'')?'selected':''}>${n}</option>`;
+    }).join('');
+  const rec = document.getElementById('ss-recurring');
+  if(rec) rec.value = 'none';
   openSheet('shift-sheet');
 }
 
@@ -2134,31 +2268,51 @@ async function saveShift() {
   const date = document.getElementById('ss-date').value;
   const time = document.getElementById('ss-time').value;
   const duration = parseInt(document.getElementById('ss-duration').value) || 480;
-  if (!client || !date || !time) { showToast('Client, date and time required', 'err'); return; }
+  const recurring = document.getElementById('ss-recurring')?.value || 'none';
+  if(!client||!date||!time){showToast('Client, date and time required','err');return;}
 
   try {
-    if (editingBookingId) {
-      const res = await fetch(`${API}/hq/booking/${editingBookingId}`, {
-        method: 'PATCH',
-        headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({ operator_id: currentOp, assigned_to: psw, scheduled_date: date, scheduled_time: time, duration_minutes: duration })
-      });
-      const d = await res.json();
-      if (!d.success) throw new Error(d.error);
-      showToast('Shift updated', 'ok');
+    if(editingBookingId) {
+      const res = await fetch(`${API}/hq/booking/${editingBookingId}`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({operator_id:currentOp,assigned_to:psw,scheduled_date:date,scheduled_time:time,duration_minutes:duration})});
+      const d = await res.json(); if(!d.success) throw new Error(d.error);
+      showToast('Shift updated','ok');
     } else {
-      const res = await fetch(`${API}/hq/booking`, {
-        method: 'POST',
-        headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({ operator_id: currentOp, client_name: client, booking_type: 'visit', scheduled_date: date, scheduled_time: time, assigned_to: psw, duration_minutes: duration })
-      });
-      const d = await res.json();
-      if (!d.success) throw new Error(d.error);
-      showToast('Shift added', 'ok');
+      // Build list of dates to create
+      const dates = [date];
+      if(recurring !== 'none') {
+        const start = new Date(date+'T12:00:00');
+        const weeks = recurring==='4w'?4:recurring==='8w'?8:12;
+        for(let w=1;w<=weeks;w++) {
+          if(recurring==='daily') {
+            for(let d=1;d<=7*weeks;d++) {
+              const nd = new Date(start); nd.setDate(start.getDate()+d);
+              dates.push(nd.toISOString().slice(0,10));
+            }
+            break;
+          } else if(recurring==='weekdays') {
+            for(let d=1;d<=7*weeks;d++) {
+              const nd = new Date(start); nd.setDate(start.getDate()+d);
+              if(nd.getDay()>0&&nd.getDay()<6) dates.push(nd.toISOString().slice(0,10));
+            }
+            break;
+          } else {
+            const nd = new Date(start); nd.setDate(start.getDate()+7*w);
+            dates.push(nd.toISOString().slice(0,10));
+          }
+        }
+      }
+      // Deduplicate
+      const uniqueDates = [...new Set(dates)].slice(0,60);
+      let created = 0;
+      for(const d of uniqueDates) {
+        const res = await fetch(`${API}/hq/booking`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({operator_id:currentOp,client_name:client,booking_type:'visit',scheduled_date:d,scheduled_time:time,assigned_to:psw,duration_minutes:duration})});
+        const rd = await res.json(); if(rd.success) created++;
+      }
+      showToast(`${created} shift${created>1?'s':''} created`,'ok');
     }
     closeAllSheets();
     await loadAll(false);
-  } catch(e) { showToast(e.message, 'err'); }
+  } catch(e) { showToast(e.message,'err'); }
 }
 
 async function deleteShift(id) {
