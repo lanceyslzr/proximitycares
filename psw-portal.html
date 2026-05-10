@@ -236,6 +236,26 @@ a{color:inherit;text-decoration:none;}
 /* ── EMPTY ── */
 .empty-state{text-align:center;padding:40px 20px;font-family:var(--mono);font-size:11px;letter-spacing:1px;color:var(--muted);text-transform:uppercase;}
 
+/* ── AVAIL GRID ── */
+.avail-day{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:8px 4px;cursor:pointer;transition:all .15s;touch-action:manipulation;}
+.avail-day.sel{background:rgba(26,107,90,.2);border-color:var(--green3);}
+.avail-day.sel div{color:var(--green3)!important;}
+.avail-shift{background:var(--bg3);border:1px solid var(--border);border-radius:8px;cursor:pointer;transition:all .15s;touch-action:manipulation;}
+.avail-shift.sel{background:rgba(26,107,90,.2);border-color:var(--green3);}
+.avail-shift.sel div{color:var(--green3)!important;}
+
+/* ── PAY CARD ── */
+.pay-period-card{margin:0 14px 10px;background:var(--bg2);border:1px solid var(--border);border-radius:12px;overflow:hidden;}
+.pay-period-hdr{background:var(--bg3);padding:13px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.pay-period-label{font-family:var(--mono);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted2);}
+.pay-period-label.current{color:var(--green3);}
+.pay-period-body{padding:14px 16px;}
+.pay-row{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--border);}
+.pay-row:last-child{border-bottom:none;}
+.pay-row-lbl{font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);}
+.pay-row-val{font-family:var(--mono);font-size:14px;color:var(--text);}
+.pay-row-val.total{color:var(--gold);font-size:18px;}
+
 /* ── QUICK GRID ── */
 .quick-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 14px 14px;}
 .quick-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:16px 14px;cursor:pointer;touch-action:manipulation;}
@@ -308,6 +328,7 @@ a{color:inherit;text-decoration:none;}
   <div class="nav-tab" onclick="showSect('clients')">Clients</div>
   <div class="nav-tab" onclick="showSect('messages')">Messages <span class="nav-badge" id="msg-badge">0</span></div>
   <div class="nav-tab" onclick="showSect('documents')">Documents</div>
+  <div class="nav-tab" onclick="showSect('pay')">Pay</div>
 </div>
 
 <!-- ── HOME ── -->
@@ -503,6 +524,34 @@ a{color:inherit;text-decoration:none;}
   <div class="section-header"><span class="section-title">My Documents</span></div>
   <div class="card">
     <div id="docs-list"><div class="empty-state" style="padding:20px;">Loading documents...</div></div>
+  </div>
+</div>
+
+<!-- ── PAY + AVAILABILITY ── -->
+<div class="section" id="sect-pay">
+  <div class="section-header"><span class="section-title">My Pay</span></div>
+  <div id="pay-content"><div class="empty-state">Loading pay summary...</div></div>
+
+  <div class="section-header" style="margin-top:8px;"><span class="section-title">My Availability</span></div>
+  <div class="form-card">
+    <div class="form-card-header"><div class="form-card-title">Available Days</div></div>
+    <div class="form-card-body">
+      <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-bottom:16px;" id="avail-days">
+        <div class="avail-day" data-day="Mon" onclick="toggleAvailDay(this)"><div style="font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--muted2);text-align:center;">Mon</div></div>
+        <div class="avail-day" data-day="Tue" onclick="toggleAvailDay(this)"><div style="font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--muted2);text-align:center;">Tue</div></div>
+        <div class="avail-day" data-day="Wed" onclick="toggleAvailDay(this)"><div style="font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--muted2);text-align:center;">Wed</div></div>
+        <div class="avail-day" data-day="Thu" onclick="toggleAvailDay(this)"><div style="font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--muted2);text-align:center;">Thu</div></div>
+        <div class="avail-day" data-day="Fri" onclick="toggleAvailDay(this)"><div style="font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--muted2);text-align:center;">Fri</div></div>
+        <div class="avail-day" data-day="Sat" onclick="toggleAvailDay(this)"><div style="font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--muted2);text-align:center;">Sat</div></div>
+        <div class="avail-day" data-day="Sun" onclick="toggleAvailDay(this)"><div style="font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--muted2);text-align:center;">Sun</div></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px;" id="avail-shifts">
+        <div class="avail-shift" data-shift="Morning" onclick="toggleAvailShift(this)"><div style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted2);text-align:center;padding:10px 6px;">Morning<br><span style="font-size:9px;color:var(--muted);">7am–2pm</span></div></div>
+        <div class="avail-shift" data-shift="Afternoon" onclick="toggleAvailShift(this)"><div style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted2);text-align:center;padding:10px 6px;">Afternoon<br><span style="font-size:9px;color:var(--muted);">2pm–9pm</span></div></div>
+        <div class="avail-shift" data-shift="Overnight" onclick="toggleAvailShift(this)"><div style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted2);text-align:center;padding:10px 6px;">Overnight<br><span style="font-size:9px;color:var(--muted);">9pm–7am</span></div></div>
+      </div>
+      <button class="submit-btn" onclick="saveAvailability()" style="margin:0;">Save Availability</button>
+    </div>
   </div>
 </div>
 
@@ -1025,6 +1074,83 @@ async function loadDocuments() {
   } catch { el.innerHTML = '<div class="empty-state" style="padding:20px;">Could not load documents</div>'; }
 }
 
+// ── PAY SUMMARY ──
+async function loadPaySummary() {
+  const el = document.getElementById('pay-content');
+  if (!el) return;
+  try {
+    const res = await fetch(`${API}/psw/pay-summary?psw_name=${encodeURIComponent(pswName)}&pin=${pswPin}&operator_id=proximity-care`);
+    const d = await res.json();
+    if (!d.success) throw new Error(d.error);
+    const cur = d.current_period;
+    let html = `<div class="pay-period-card">
+      <div class="pay-period-hdr">
+        <div class="pay-period-label current">Current Period</div>
+        <div style="font-family:var(--mono);font-size:10px;color:var(--muted);">${cur.label||'—'}</div>
+      </div>
+      <div class="pay-period-body">
+        <div class="pay-row"><div class="pay-row-lbl">Hours</div><div class="pay-row-val">${cur.total_hours}</div></div>
+        <div class="pay-row"><div class="pay-row-lbl">Rate</div><div class="pay-row-val">$${d.rate}/hr</div></div>
+        <div class="pay-row"><div class="pay-row-lbl">Visits</div><div class="pay-row-val">${cur.visit_count}</div></div>
+        <div class="pay-row"><div class="pay-row-lbl">Total</div><div class="pay-row-val total">$${cur.total_pay.toFixed(2)}</div></div>
+      </div>
+    </div>`;
+    if (d.all_time) {
+      html += `<div class="pay-period-card">
+        <div class="pay-period-hdr"><div class="pay-period-label">All Time</div></div>
+        <div class="pay-period-body">
+          <div class="pay-row"><div class="pay-row-lbl">Total Visits</div><div class="pay-row-val">${d.all_time.total_visits}</div></div>
+          <div class="pay-row"><div class="pay-row-lbl">Total Hours</div><div class="pay-row-val">${d.all_time.total_hours}</div></div>
+        </div>
+      </div>`;
+    }
+    const past = (d.periods||[]).slice(1,4);
+    past.forEach(p => {
+      html += `<div class="pay-period-card">
+        <div class="pay-period-hdr">
+          <div class="pay-period-label">${p.label}</div>
+          <div style="font-family:var(--mono);font-size:12px;color:var(--gold);">$${p.total_pay.toFixed(2)}</div>
+        </div>
+        <div class="pay-period-body">
+          <div class="pay-row"><div class="pay-row-lbl">Hours</div><div class="pay-row-val">${p.total_hours}</div></div>
+          <div class="pay-row"><div class="pay-row-lbl">Visits</div><div class="pay-row-val">${p.visits.length}</div></div>
+        </div>
+      </div>`;
+    });
+    el.innerHTML = html;
+    loadAvailability();
+  } catch { el.innerHTML = '<div class="empty-state">Could not load pay summary</div>'; }
+}
+
+// ── AVAILABILITY ──
+async function loadAvailability() {
+  try {
+    const res = await fetch(`${API}/psw/notes/${encodeURIComponent(pswName)}?pin=${pswPin}`);
+    const d = await res.json();
+    if (d.psw_record) {
+      const days = (d.psw_record.availability_days||'').split(',').map(s=>s.trim()).filter(Boolean);
+      const shifts = (d.psw_record.availability_shifts||'').split(',').map(s=>s.trim()).filter(Boolean);
+      document.querySelectorAll('.avail-day').forEach(el => { if (days.includes(el.dataset.day)) el.classList.add('sel'); });
+      document.querySelectorAll('.avail-shift').forEach(el => { if (shifts.includes(el.dataset.shift)) el.classList.add('sel'); });
+    }
+  } catch {}
+}
+function toggleAvailDay(el) { el.classList.toggle('sel'); }
+function toggleAvailShift(el) { el.classList.toggle('sel'); }
+async function saveAvailability() {
+  const days = Array.from(document.querySelectorAll('.avail-day.sel')).map(el=>el.dataset.day).join(',');
+  const shifts = Array.from(document.querySelectorAll('.avail-shift.sel')).map(el=>el.dataset.shift).join(',');
+  try {
+    const res = await fetch(`${API}/psw/availability`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({psw_name:pswName, pin:pswPin, operator_id:'proximity-care', availability_days:days, availability_shifts:shifts})
+    });
+    const d = await res.json();
+    if (!res.ok) throw new Error(d.error);
+    showToast('Availability saved', 'ok');
+  } catch { showToast('Save failed', 'err'); }
+}
+
 // ── NAV ──
 function showSect(name) {
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
@@ -1032,13 +1158,14 @@ function showSect(name) {
   document.querySelectorAll('.bnav-item').forEach(b => b.classList.remove('active'));
   const s = document.getElementById('sect-'+name); if (s) s.classList.add('active');
   const tabs = document.querySelectorAll('.nav-tab');
-  const tm = ['home','schedule','checklist','clients','messages','documents'];
+  const tm = ['home','schedule','checklist','clients','messages','documents','pay'];
   const ti = tm.indexOf(name); if (ti >= 0 && tabs[ti]) tabs[ti].classList.add('active');
   const bnavs = document.querySelectorAll('.bnav-item');
   const bm = ['home','schedule','checklist','messages','clients'];
   const bi = bm.indexOf(name); if (bi >= 0 && bnavs[bi]) bnavs[bi].classList.add('active');
   if (name === 'messages') loadMessages();
   if (name === 'schedule') loadSchedule();
+  if (name === 'pay') loadPaySummary();
   if (name === 'checklist') {
     updateClCount();
     const noShift = document.getElementById('cl-no-shift');
