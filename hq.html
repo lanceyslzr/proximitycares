@@ -1753,16 +1753,19 @@ async function activateApplicantAsStaff(id, name, email, phone) {
       headers:{'Content-Type':'application/json'},
       body: JSON.stringify({
         operator_id: currentOp,
-        full_name: name,
+        psw_name: name,
+        psw_email: email,
+        psw_phone: phone || null,
         first_name: first,
-        last_name: last,
-        email, phone
+        last_name: last
       })
     });
-    if(!res.ok) throw new Error();
+    const data = await res.json().catch(() => ({}));
+    if(!res.ok) throw new Error(data.error || 'Activation failed');
     showToast(name+' activated as PSW ✓','ok');
     loadApplicants();
-  } catch { showToast('Activation failed','err'); }
+    await loadAll(false);
+  } catch(e) { showToast(e.message || 'Activation failed','err'); }
 }
 
 // ── CSV BULK IMPORT ──
