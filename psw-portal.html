@@ -21,7 +21,7 @@
   --gold:#c8a96e;--text:#e8f4ee;
   --muted:rgba(232,244,238,.35);--muted2:rgba(232,244,238,.55);--muted3:rgba(232,244,238,.75);
   --border:rgba(26,107,90,.15);--border2:rgba(26,107,90,.28);--border3:rgba(26,107,90,.45);
-  --red:#e05555;--amber:#e09a3d;--navy:#1B3A6B;
+  --red:#e05555;--amber:#e09a3d;
   --mono:'DM Mono',monospace;--body:'Poppins',sans-serif;--serif:'Lora',serif;
   --safe-bottom:env(safe-area-inset-bottom,0px);--safe-top:env(safe-area-inset-top,0px);
 }
@@ -33,7 +33,7 @@ a{color:inherit;text-decoration:none;}
 
 /* ── LOCK ── */
 #lock{position:fixed;inset:0;background:var(--bg);z-index:999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px;padding:0 24px;}
-.lock-title{font-family:var(--serif);font-size:28px;color:var(--text);font-weight:400;letter-spacing:.5px;text-align:center;}
+.lock-title{font-family:var(--serif);font-size:28px;color:var(--text);font-weight:400;text-align:center;}
 .lock-title span{color:var(--green3);}
 .lock-sub{font-family:var(--mono);font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--muted2);}
 .lock-step{display:none;flex-direction:column;align-items:center;gap:16px;width:100%;max-width:320px;}
@@ -65,7 +65,7 @@ a{color:inherit;text-decoration:none;}
 /* ── NAV TABS ── */
 .nav-tabs{display:flex;background:var(--bg2);border-bottom:1px solid var(--border);overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
 .nav-tabs::-webkit-scrollbar{display:none;}
-.nav-tab{flex-shrink:0;padding:11px 14px;font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted2);border-bottom:2px solid transparent;cursor:pointer;white-space:nowrap;min-height:44px;display:flex;align-items:center;gap:5px;touch-action:manipulation;}
+.nav-tab{flex-shrink:0;padding:11px 16px;font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted2);border-bottom:2px solid transparent;cursor:pointer;white-space:nowrap;min-height:44px;display:flex;align-items:center;gap:5px;touch-action:manipulation;}
 .nav-tab.active{color:var(--green3);border-bottom-color:var(--green3);}
 .nav-badge{background:var(--red);color:#fff;border-radius:100px;font-size:9px;padding:1px 5px;min-width:16px;text-align:center;display:none;}
 .nav-badge.show{display:inline-block;}
@@ -88,68 +88,9 @@ a{color:inherit;text-decoration:none;}
 .active-banner{margin:0 14px 12px;background:linear-gradient(135deg,var(--green),var(--green2));border-radius:12px;padding:16px;display:none;}
 .active-banner.show{display:block;}
 .active-banner-label{font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.7);margin-bottom:6px;}
-.active-banner-name{font-size:15px;font-weight:600;color:#fff;margin-bottom:2px;}
+.active-banner-name{font-size:16px;font-weight:600;color:#fff;margin-bottom:2px;}
 .active-banner-time{font-family:var(--mono);font-size:12px;color:rgba(255,255,255,.8);}
-.active-banner-btn{margin-top:12px;width:100%;background:rgba(0,0,0,.2);color:#fff;padding:12px;font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;border-radius:8px;border:1px solid rgba(255,255,255,.2);cursor:pointer;min-height:44px;touch-action:manipulation;}
-
-/* ── SIGN IN CARD ── */
-.signin-card{margin:0 14px 12px;background:var(--bg2);border:1px solid var(--border);border-radius:12px;overflow:hidden;}
-.signin-card-header{background:var(--bg3);padding:13px 16px;border-bottom:1px solid var(--border);font-family:var(--serif);font-size:15px;color:var(--text);}
-.signin-card-body{padding:16px;}
-
-/* ── QUICK ACTIONS ── */
-.quick-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 14px 14px;}
-.quick-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:16px 14px;cursor:pointer;transition:border-color .15s;touch-action:manipulation;}
-.quick-card:active{border-color:var(--green3);}
-.quick-card.primary{background:linear-gradient(135deg,var(--green),var(--green2));border:none;}
-.quick-label{font-size:13px;font-weight:500;color:var(--text);margin-top:6px;}
-.quick-sub{font-family:var(--mono);font-size:9px;color:var(--muted);margin-top:3px;letter-spacing:1px;text-transform:uppercase;}
-.quick-card.primary .quick-sub{color:rgba(255,255,255,.7);}
-.quick-icon{font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--green3);border:1px solid var(--border2);display:inline-block;padding:3px 8px;border-radius:4px;}
-.quick-card.primary .quick-icon{color:#fff;border-color:rgba(255,255,255,.3);}
-
-/* ── FORM CARDS ── */
-.form-card{margin:0 14px 10px;background:var(--bg2);border:1px solid var(--border);border-radius:12px;overflow:hidden;}
-.form-card-header{background:var(--bg3);padding:13px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
-.form-card-title{font-family:var(--serif);font-size:15px;font-weight:400;color:var(--text);}
-.form-card-badge{font-family:var(--mono);font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--green3);border:1px solid var(--border2);border-radius:100px;padding:3px 8px;}
-.form-card-body{padding:16px;}
-.form-row{margin-bottom:12px;}
-.form-row-2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;}
-.form-label{font-family:var(--mono);font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:5px;display:block;}
-.form-input{width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:11px 13px;font-size:16px;border-radius:8px;}
-.form-input:focus{outline:none;border-color:var(--green3);}
-.form-select{width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:11px 13px;font-size:16px;border-radius:8px;-webkit-appearance:none;}
-.form-textarea{width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:11px 13px;font-size:16px;border-radius:8px;resize:none;min-height:80px;line-height:1.5;}
-.form-textarea:focus{outline:none;border-color:var(--green3);}
-
-/* ── HOURS CALC ── */
-.hours-calc{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:12px 14px;display:flex;justify-content:space-between;align-items:center;margin-top:8px;}
-.hours-val{font-family:var(--mono);font-size:22px;font-weight:500;color:var(--green3);}
-.hours-lbl{font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);}
-.pay-line{font-family:var(--mono);font-size:11px;color:var(--gold);margin-top:3px;}
-
-/* ── MOOD ── */
-.mood-row{display:flex;gap:6px;}
-.mood-opt{flex:1;padding:9px 4px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;text-align:center;cursor:pointer;transition:all .15s;touch-action:manipulation;}
-.mood-opt.sel{border-color:var(--green3);background:rgba(26,107,90,.15);}
-.mood-emoji{font-size:18px;display:block;margin-bottom:2px;}
-.mood-lbl{font-family:var(--mono);font-size:8px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;}
-
-/* ── CHECKLIST ── */
-.cl-count{font-family:var(--mono);font-size:11px;color:var(--green3);padding:8px 14px;background:var(--bg3);border-radius:6px;margin-bottom:12px;text-align:center;}
-.cl-item{display:flex;align-items:center;gap:10px;padding:9px 12px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;margin-bottom:6px;cursor:pointer;transition:all .12s;min-height:44px;touch-action:manipulation;}
-.cl-item.done{background:rgba(26,107,90,.15);border-color:var(--green3);}
-.cl-box{width:18px;height:18px;border-radius:4px;border:1px solid var(--border2);background:transparent;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:11px;transition:all .12s;}
-.cl-item.done .cl-box{background:var(--green3);border-color:var(--green3);color:#fff;}
-.cl-label{font-size:12px;color:var(--muted3);line-height:1.3;}
-.cl-item.done .cl-label{color:var(--text);}
-
-/* ── SUBMIT BTN ── */
-.submit-btn{width:calc(100% - 28px);margin:0 14px 14px;background:linear-gradient(135deg,var(--green),var(--green2));color:#fff;padding:16px;font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;border-radius:12px;cursor:pointer;border:none;min-height:52px;transition:all .2s;touch-action:manipulation;}
-.submit-btn:active{transform:scale(.98);}
-.submit-btn.sec{background:none;border:1px solid var(--border2);color:var(--green3);margin-top:0;}
-.submit-btn.danger{background:linear-gradient(135deg,#b03030,#c84040);}
+.active-banner-elapsed{font-family:var(--mono);font-size:13px;color:#fff;font-weight:500;margin-top:4px;}
 
 /* ── CARDS ── */
 .card{margin:0 14px 8px;background:var(--bg2);border:1px solid var(--border);border-radius:12px;overflow:hidden;}
@@ -162,6 +103,7 @@ a{color:inherit;text-decoration:none;}
 .card-act{flex:1;padding:10px 6px;text-align:center;font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--muted2);border-right:1px solid var(--border);cursor:pointer;min-height:44px;display:flex;align-items:center;justify-content:center;transition:background .12s,color .12s;touch-action:manipulation;}
 .card-act:last-child{border-right:none;}
 .card-act:active{background:var(--bg3);color:var(--green3);}
+.card-act.primary{color:var(--green3);}
 .card-act.danger{color:var(--red);}
 
 /* ── BADGES ── */
@@ -170,51 +112,79 @@ a{color:inherit;text-decoration:none;}
 .b-upcoming{background:rgba(200,169,110,.15);color:var(--gold);border:1px solid rgba(200,169,110,.3);}
 .b-done{background:rgba(26,107,90,.2);color:var(--green3);border:1px solid rgba(26,107,90,.3);}
 .b-inprogress{background:rgba(224,154,61,.15);color:var(--amber);border:1px solid rgba(224,154,61,.3);}
-.b-incident{background:rgba(224,85,85,.15);color:var(--red);border:1px solid rgba(224,85,85,.3);}
 
-/* ── SCHEDULE GRID ── */
-.schedule-grid{margin:0 14px 12px;}
-.schedule-week-nav{display:flex;align-items:center;justify-content:space-between;padding:10px 0 12px;}
-.week-nav-btn{background:var(--bg2);border:1px solid var(--border);color:var(--text);padding:8px 14px;border-radius:8px;font-family:var(--mono);font-size:11px;letter-spacing:1px;cursor:pointer;min-height:36px;touch-action:manipulation;}
+/* ── SIGN IN CARD ── */
+.signin-card{margin:0 14px 12px;background:var(--bg2);border:1px solid var(--border3);border-radius:12px;overflow:hidden;}
+.signin-card-hdr{background:linear-gradient(135deg,rgba(26,107,90,.3),rgba(42,138,114,.2));padding:14px 16px;border-bottom:1px solid var(--border2);}
+.signin-card-title{font-family:var(--serif);font-size:16px;color:var(--text);}
+.signin-card-sub{font-family:var(--mono);font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--green3);margin-top:3px;}
+.signin-card-body{padding:16px;}
+
+/* ── ACTIVE VISIT SCHEDULE CARD ── */
+.active-visit-card{margin:0 14px 12px;background:rgba(224,154,61,.08);border:1px solid rgba(224,154,61,.35);border-radius:12px;padding:16px;}
+.active-visit-label{font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--amber);margin-bottom:8px;}
+.active-visit-client{font-size:16px;font-weight:600;color:var(--text);margin-bottom:4px;}
+.active-visit-time{font-family:var(--mono);font-size:12px;color:var(--muted2);}
+.active-visit-elapsed{font-family:var(--mono);font-size:14px;color:var(--amber);margin-top:6px;font-weight:500;}
+
+/* ── SCHEDULE WEEK GRID ── */
+.schedule-week-nav{display:flex;align-items:center;justify-content:space-between;padding:10px 14px 12px;}
+.week-nav-btn{background:var(--bg2);border:1px solid var(--border);color:var(--text);padding:8px 14px;border-radius:8px;font-family:var(--mono);font-size:11px;cursor:pointer;min-height:36px;touch-action:manipulation;}
 .week-label{font-family:var(--mono);font-size:11px;color:var(--muted2);letter-spacing:1px;}
-.schedule-day{margin-bottom:8px;background:var(--bg2);border:1px solid var(--border);border-radius:10px;overflow:hidden;}
-.schedule-day-header{padding:10px 14px;background:var(--bg3);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
-.schedule-day-label{font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted2);}
-.schedule-day-label.today{color:var(--green3);}
-.schedule-day-empty{padding:12px 14px;font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px;}
-.schedule-shift{padding:12px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:12px;}
+.schedule-day{margin:0 14px 8px;background:var(--bg2);border:1px solid var(--border);border-radius:10px;overflow:hidden;}
+.schedule-day-hdr{padding:10px 14px;background:var(--bg3);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.schedule-day-lbl{font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted2);}
+.schedule-day-lbl.today{color:var(--green3);}
+.schedule-shift{padding:12px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:10px;}
 .schedule-shift:last-child{border-bottom:none;}
 .shift-client{font-size:13px;font-weight:500;color:var(--text);}
 .shift-time{font-family:var(--mono);font-size:11px;color:var(--muted2);margin-top:3px;}
-.shift-status{font-family:var(--mono);font-size:9px;letter-spacing:1.5px;text-transform:uppercase;}
-.shift-status.complete{color:var(--green3);}
-.shift-status.upcoming{color:var(--gold);}
-.shift-status.inprogress{color:var(--amber);}
+.shift-badge{font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;}
+.shift-badge.done{color:var(--green3);}
+.shift-badge.upcoming{color:var(--gold);}
+.shift-badge.active{color:var(--amber);}
+.schedule-empty{padding:14px;font-family:var(--mono);font-size:10px;color:var(--muted);text-align:center;letter-spacing:1px;}
 
-/* ── PAY SUMMARY ── */
-.pay-period-card{margin:0 14px 10px;background:var(--bg2);border:1px solid var(--border);border-radius:12px;overflow:hidden;}
-.pay-period-header{background:var(--bg3);padding:13px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
-.pay-period-label{font-family:var(--mono);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted2);}
-.pay-period-current{color:var(--green3);}
-.pay-period-body{padding:16px;}
-.pay-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);}
-.pay-row:last-child{border-bottom:none;}
-.pay-row-label{font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);}
-.pay-row-value{font-family:var(--mono);font-size:14px;color:var(--text);}
-.pay-row-value.total{color:var(--gold);font-size:18px;}
+/* ── FORM CARDS ── */
+.form-card{margin:0 14px 10px;background:var(--bg2);border:1px solid var(--border);border-radius:12px;overflow:hidden;}
+.form-card-header{background:var(--bg3);padding:13px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.form-card-title{font-family:var(--serif);font-size:15px;font-weight:400;color:var(--text);}
+.form-card-body{padding:16px;}
+.form-row{margin-bottom:12px;}
+.form-row-2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;}
+.form-label{font-family:var(--mono);font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:5px;display:block;}
+.form-input{width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:11px 13px;font-size:16px;border-radius:8px;}
+.form-input:focus{outline:none;border-color:var(--green3);}
+.form-select{width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:11px 13px;font-size:16px;border-radius:8px;-webkit-appearance:none;}
+.form-select:focus{outline:none;border-color:var(--green3);}
+.form-textarea{width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:11px 13px;font-size:16px;border-radius:8px;resize:none;min-height:80px;line-height:1.5;}
+.form-textarea:focus{outline:none;border-color:var(--green3);}
 
-/* ── AVAILABILITY GRID ── */
-.avail-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-bottom:16px;}
-.avail-day{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:8px 4px;text-align:center;cursor:pointer;transition:all .15s;touch-action:manipulation;}
-.avail-day.sel{background:rgba(26,107,90,.2);border-color:var(--green3);}
-.avail-day-label{font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--muted2);}
-.avail-day.sel .avail-day-label{color:var(--green3);}
-.avail-shifts{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:16px;}
-.avail-shift{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:12px 8px;text-align:center;cursor:pointer;transition:all .15s;touch-action:manipulation;}
-.avail-shift.sel{background:rgba(26,107,90,.2);border-color:var(--green3);}
-.avail-shift-label{font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted2);}
-.avail-shift.sel .avail-shift-label{color:var(--green3);}
-.avail-shift-time{font-size:11px;color:var(--muted);margin-top:3px;}
+/* ── CHECKLIST ── */
+.cl-progress{margin:0 14px 10px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:12px 14px;display:flex;align-items:center;justify-content:space-between;}
+.cl-progress-label{font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);}
+.cl-progress-count{font-family:var(--mono);font-size:16px;font-weight:500;color:var(--green3);}
+.cl-item{display:flex;align-items:center;gap:10px;padding:9px 12px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;margin-bottom:6px;cursor:pointer;transition:all .12s;min-height:44px;touch-action:manipulation;}
+.cl-item.done{background:rgba(26,107,90,.15);border-color:var(--green3);}
+.cl-box{width:18px;height:18px;border-radius:4px;border:1px solid var(--border2);background:transparent;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:11px;transition:all .12s;}
+.cl-item.done .cl-box{background:var(--green3);border-color:var(--green3);color:#fff;}
+.cl-label{font-size:12px;color:var(--muted3);line-height:1.3;}
+.cl-item.done .cl-label{color:var(--text);}
+.cl-section-title{font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--green3);margin:14px 0 8px;padding-bottom:5px;border-bottom:1px solid var(--border);}
+
+/* ── MOOD ── */
+.mood-row{display:flex;gap:6px;}
+.mood-opt{flex:1;padding:9px 4px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;text-align:center;cursor:pointer;transition:all .15s;touch-action:manipulation;}
+.mood-opt.sel{border-color:var(--green3);background:rgba(26,107,90,.15);}
+.mood-emoji{font-size:18px;display:block;margin-bottom:2px;}
+.mood-lbl{font-family:var(--mono);font-size:8px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;}
+
+/* ── SUBMIT BTN ── */
+.submit-btn{width:calc(100% - 28px);margin:0 14px 14px;background:linear-gradient(135deg,var(--green),var(--green2));color:#fff;padding:16px;font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;border-radius:12px;cursor:pointer;border:none;min-height:52px;transition:all .2s;touch-action:manipulation;}
+.submit-btn:active{transform:scale(.98);}
+.submit-btn.danger{background:linear-gradient(135deg,#b03030,#c84040);}
+.submit-btn.sec{background:none;border:1px solid var(--border2);color:var(--green3);}
+.submit-btn:disabled{opacity:.5;pointer-events:none;}
 
 /* ── MESSAGES ── */
 .msg-thread{padding:12px 14px;display:flex;flex-direction:column;gap:10px;min-height:200px;}
@@ -226,25 +196,26 @@ a{color:inherit;text-decoration:none;}
 .msg-input-wrap{position:sticky;bottom:calc(68px + var(--safe-bottom));background:var(--bg2);border-top:1px solid var(--border);padding:10px 12px;display:flex;gap:8px;align-items:flex-end;}
 .msg-input{flex:1;background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:10px 13px;border-radius:18px;font-size:16px;resize:none;max-height:100px;}
 .msg-input:focus{outline:none;border-color:var(--green3);}
-.msg-send{width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,var(--green),var(--green3));color:#fff;font-size:15px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;border:none;touch-action:manipulation;}
+.msg-send{width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,var(--green),var(--green3));color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;border:none;touch-action:manipulation;}
 
 /* ── DOCUMENTS ── */
 .doc-row{display:flex;align-items:center;gap:12px;padding:12px 14px;border-bottom:1px solid var(--border);}
+.doc-row:last-child{border-bottom:none;}
 .doc-icon{width:32px;height:32px;border-radius:6px;background:rgba(26,107,90,.15);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:9px;color:var(--green3);flex-shrink:0;letter-spacing:1px;text-transform:uppercase;}
 .doc-info{flex:1;min-width:0;}
-.doc-name{font-size:13px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.doc-name{font-size:13px;color:var(--text);}
 .doc-meta{font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:2px;}
-.doc-status{font-family:var(--mono);font-size:9px;padding:2px 7px;border-radius:100px;}
-.doc-status.valid{color:var(--green3);border:1px solid rgba(58,170,138,.3);}
-.doc-status.missing{color:var(--red);border:1px solid rgba(224,85,85,.3);}
-.doc-status.expiring{color:var(--amber);border:1px solid rgba(224,154,61,.3);}
+.doc-status{font-family:var(--mono);font-size:9px;padding:2px 7px;border-radius:100px;border:1px solid;}
+.doc-status.valid{color:var(--green3);border-color:rgba(58,170,138,.3);}
+.doc-status.missing{color:var(--red);border-color:rgba(224,85,85,.3);}
+.doc-status.expiring{color:var(--amber);border-color:rgba(224,154,61,.3);}
 
 /* ── SUCCESS OVERLAY ── */
 .success-overlay{position:fixed;inset:0;background:rgba(10,26,20,.95);z-index:400;display:none;flex-direction:column;align-items:center;justify-content:center;gap:20px;padding:24px;}
 .success-overlay.show{display:flex;}
 .success-check{width:64px;height:64px;border-radius:50%;background:var(--green3);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:24px;color:#fff;}
 .success-title{font-family:var(--serif);font-size:24px;color:var(--text);font-weight:400;text-align:center;}
-.success-msg{font-family:var(--mono);font-size:11px;color:var(--muted2);letter-spacing:1px;text-align:center;line-height:1.8;}
+.success-msg{font-family:var(--mono);font-size:11px;color:var(--muted2);letter-spacing:1px;text-align:center;line-height:1.8;max-width:280px;}
 .success-btn{background:var(--green);color:#fff;padding:14px 32px;font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;border-radius:10px;border:none;cursor:pointer;min-height:48px;touch-action:manipulation;}
 
 /* ── BOTTOM NAV ── */
@@ -265,11 +236,21 @@ a{color:inherit;text-decoration:none;}
 /* ── EMPTY ── */
 .empty-state{text-align:center;padding:40px 20px;font-family:var(--mono);font-size:11px;letter-spacing:1px;color:var(--muted);text-transform:uppercase;}
 
+/* ── QUICK GRID ── */
+.quick-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 14px 14px;}
+.quick-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:16px 14px;cursor:pointer;touch-action:manipulation;}
+.quick-card:active{border-color:var(--green3);}
+.quick-card.primary{background:linear-gradient(135deg,var(--green),var(--green2));border:none;}
+.quick-label{font-size:13px;font-weight:500;color:var(--text);margin-top:6px;}
+.quick-sub{font-family:var(--mono);font-size:9px;color:var(--muted);margin-top:3px;letter-spacing:1px;text-transform:uppercase;}
+.quick-card.primary .quick-sub{color:rgba(255,255,255,.7);}
+.quick-icon{font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--green3);border:1px solid var(--border2);display:inline-block;padding:3px 8px;border-radius:4px;}
+.quick-card.primary .quick-icon{color:#fff;border-color:rgba(255,255,255,.3);}
+
 @media(max-width:380px){
   .form-row-2{grid-template-columns:1fr;}
   .mood-row{flex-wrap:wrap;}
   .mood-opt{min-width:calc(33% - 4px);}
-  .avail-grid{grid-template-columns:repeat(4,1fr);}
 }
 </style>
 </head>
@@ -315,16 +296,16 @@ a{color:inherit;text-decoration:none;}
         <div class="psw-role">Personal Support Worker</div>
       </div>
     </div>
+    <div id="shift-status-pill" style="display:none;font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;padding:5px 10px;border-radius:100px;background:rgba(224,154,61,.15);color:var(--amber);border:1px solid rgba(224,154,61,.3);">On Shift</div>
   </div>
 </div>
 
-<!-- NAV TABS -->
+<!-- NAV TABS — 6 tabs, no Pay, no Log Visit -->
 <div class="nav-tabs">
   <div class="nav-tab active" onclick="showSect('home')">Home</div>
   <div class="nav-tab" onclick="showSect('schedule')">Schedule</div>
-  <div class="nav-tab" onclick="showSect('visit')">Log Visit</div>
+  <div class="nav-tab" onclick="showSect('checklist')">Checklist</div>
   <div class="nav-tab" onclick="showSect('clients')">Clients</div>
-  <div class="nav-tab" onclick="showSect('pay')">Pay</div>
   <div class="nav-tab" onclick="showSect('messages')">Messages <span class="nav-badge" id="msg-badge">0</span></div>
   <div class="nav-tab" onclick="showSect('documents')">Documents</div>
 </div>
@@ -332,72 +313,66 @@ a{color:inherit;text-decoration:none;}
 <!-- ── HOME ── -->
 <div class="section active" id="sect-home">
   <div class="stats-strip">
-    <div class="stat-card hi"><div class="stat-val" id="s-visits">0</div><div class="stat-lbl">Today</div></div>
+    <div class="stat-card hi"><div class="stat-val" id="s-today">0</div><div class="stat-lbl">Today</div></div>
     <div class="stat-card"><div class="stat-val" id="s-month">0</div><div class="stat-lbl">This Month</div></div>
-    <div class="stat-card pay"><div class="stat-val" id="s-pay">$0</div><div class="stat-lbl">Period Pay</div></div>
+    <div class="stat-card"><div class="stat-val" id="s-hours">0h</div><div class="stat-lbl">Month Hrs</div></div>
   </div>
 
-  <!-- Active visit banner -->
-  <div class="active-banner" id="active-banner">
+  <!-- Active visit banner shown when on shift -->
+  <div class="active-banner" id="home-active-banner">
     <div class="active-banner-label">Visit in progress</div>
-    <div class="active-banner-name" id="active-client-name">—</div>
-    <div class="active-banner-time" id="active-time-display">Started at —</div>
-    <button class="active-banner-btn" onclick="showSect('schedule')">Check Out →</button>
+    <div class="active-banner-name" id="home-active-client">—</div>
+    <div class="active-banner-time" id="home-active-timein">Started at —</div>
+    <div class="active-banner-elapsed" id="home-elapsed">—</div>
+    <div style="display:flex;gap:8px;margin-top:12px;">
+      <button onclick="showSect('checklist')" style="flex:1;background:rgba(255,255,255,.15);color:#fff;padding:10px;font-family:var(--mono);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;border-radius:8px;border:1px solid rgba(255,255,255,.2);cursor:pointer;min-height:40px;touch-action:manipulation;">Checklist</button>
+      <button onclick="showSect('schedule')" style="flex:1;background:rgba(255,255,255,.15);color:#fff;padding:10px;font-family:var(--mono);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;border-radius:8px;border:1px solid rgba(255,255,255,.2);cursor:pointer;min-height:40px;touch-action:manipulation;">Check Out</button>
+    </div>
   </div>
 
   <div class="section-header"><span class="section-title">Quick Actions</span></div>
   <div class="quick-grid">
     <div class="quick-card primary" onclick="showSect('schedule')">
-      <div class="quick-icon">SCH</div>
-      <div class="quick-label">My Schedule</div>
-      <div class="quick-sub">Sign in or out</div>
+      <div class="quick-icon" id="home-quick-icon">SCH</div>
+      <div class="quick-label" id="home-quick-label">My Schedule</div>
+      <div class="quick-sub" id="home-quick-sub">Sign in or check out</div>
     </div>
-    <div class="quick-card" onclick="showSect('messages')">
-      <div class="quick-icon">MSG</div>
-      <div class="quick-label">Message Lance</div>
-      <div class="quick-sub">Private thread</div>
+    <div class="quick-card" onclick="showSect('checklist')">
+      <div class="quick-icon">CKL</div>
+      <div class="quick-label">Checklist</div>
+      <div class="quick-sub">Log tasks done</div>
     </div>
     <div class="quick-card" onclick="showSect('clients')">
       <div class="quick-icon">CLI</div>
       <div class="quick-label">My Clients</div>
       <div class="quick-sub">Care plans</div>
     </div>
-    <div class="quick-card" onclick="showSect('pay')">
-      <div class="quick-icon">PAY</div>
-      <div class="quick-label">My Pay</div>
-      <div class="quick-sub">Hours + earnings</div>
+    <div class="quick-card" onclick="showSect('messages')">
+      <div class="quick-icon">MSG</div>
+      <div class="quick-label">Message Lance</div>
+      <div class="quick-sub">Private thread</div>
     </div>
   </div>
 
-  <!-- Next shift card -->
-  <div class="section-header"><span class="section-title">Next Shift</span></div>
-  <div id="next-shift-wrap"><div class="empty-state">Loading schedule...</div></div>
+  <!-- Recent visits -->
+  <div class="section-header"><span class="section-title">Recent Visits</span></div>
+  <div id="recent-visits-list"><div class="empty-state">Loading...</div></div>
 </div>
 
 <!-- ── SCHEDULE ── -->
 <div class="section" id="sect-schedule">
-  <div class="section-header">
-    <span class="section-title">My Schedule</span>
-    <div style="font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);">Swipe to see more</div>
-  </div>
+  <div class="section-header"><span class="section-title">My Schedule</span></div>
 
-  <!-- Active visit checkout panel -->
-  <div id="checkout-panel" style="display:none;margin:0 14px 12px;">
-    <div style="background:rgba(224,154,61,.1);border:1px solid rgba(224,154,61,.3);border-radius:12px;padding:16px;">
-      <div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--amber);margin-bottom:8px;">Visit in progress</div>
-      <div style="font-size:15px;font-weight:600;color:var(--text);margin-bottom:4px;" id="co-client-name">—</div>
-      <div style="font-family:var(--mono);font-size:12px;color:var(--muted2);">Started: <span id="co-start-time">—</span></div>
-      <div style="font-family:var(--mono);font-size:12px;color:var(--amber);margin-top:2px;">Running: <span id="co-elapsed">—</span></div>
+  <!-- IDLE STATE: Sign In card -->
+  <div id="signin-card" class="signin-card">
+    <div class="signin-card-hdr">
+      <div class="signin-card-title">Sign In to a Visit</div>
+      <div class="signin-card-sub">Tap Sign In when you arrive</div>
     </div>
-  </div>
-
-  <!-- Manual Sign In card — always visible -->
-  <div id="manual-signin-card" style="margin:0 14px 12px;background:var(--bg2);border:1px solid var(--border);border-radius:12px;overflow:hidden;">
-    <div style="background:var(--bg3);padding:13px 16px;border-bottom:1px solid var(--border);font-family:var(--serif);font-size:15px;color:var(--text);">Sign In to a Visit</div>
-    <div style="padding:14px 16px;">
-      <div style="margin-bottom:10px;">
-        <label style="font-family:var(--mono);font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:5px;">Client</label>
-        <select id="signin-client" style="width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:11px 13px;font-size:16px;border-radius:8px;-webkit-appearance:none;">
+    <div class="signin-card-body">
+      <div class="form-row">
+        <label class="form-label">Client</label>
+        <select class="form-select" id="signin-client">
           <option value="">Select client...</option>
           <option value="Rosetta Ferrari">Rosetta Ferrari</option>
           <option value="Bhangu Amrit">Bhangu Amrit</option>
@@ -412,265 +387,105 @@ a{color:inherit;text-decoration:none;}
           <option value="Roman Pinto">Roman Pinto</option>
         </select>
       </div>
-      <button onclick="checkInManual()" style="width:100%;background:linear-gradient(135deg,var(--green),var(--green2));color:#fff;padding:13px;font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;border-radius:10px;border:none;cursor:pointer;min-height:48px;touch-action:manipulation;">Sign In Now</button>
+      <button class="submit-btn" onclick="doCheckIn()" id="signin-btn" style="margin:4px 0 0;">Sign In Now</button>
     </div>
   </div>
 
-  <!-- Week navigation -->
-  <div class="schedule-grid">
-    <div class="schedule-week-nav">
-      <button class="week-nav-btn" onclick="shiftWeek(-1)">← Prev</button>
-      <div class="week-label" id="week-label">This Week</div>
-      <button class="week-nav-btn" onclick="shiftWeek(1)">Next →</button>
+  <!-- ACTIVE STATE: shown when visit in progress -->
+  <div id="active-visit-card" class="active-visit-card" style="display:none;">
+    <div class="active-visit-label">Visit in progress</div>
+    <div class="active-visit-client" id="av-client">—</div>
+    <div class="active-visit-time">Started: <span id="av-timein">—</span></div>
+    <div class="active-visit-elapsed" id="av-elapsed">—</div>
+    <div style="display:flex;gap:8px;margin-top:14px;">
+      <button onclick="showSect('checklist')" style="flex:1;background:rgba(26,107,90,.2);color:var(--green3);padding:11px;font-family:var(--mono);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;border-radius:8px;border:1px solid var(--border2);cursor:pointer;min-height:44px;touch-action:manipulation;">Open Checklist</button>
+      <button onclick="openCheckout()" style="flex:1;background:rgba(224,154,61,.15);color:var(--amber);padding:11px;font-family:var(--mono);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;border-radius:8px;border:1px solid rgba(224,154,61,.3);cursor:pointer;min-height:44px;touch-action:manipulation;">Check Out</button>
     </div>
-    <div id="schedule-days"></div>
   </div>
+
+  <!-- Week grid -->
+  <div class="schedule-week-nav">
+    <button class="week-nav-btn" onclick="shiftWeek(-1)">← Prev</button>
+    <div class="week-label" id="week-label">This Week</div>
+    <button class="week-nav-btn" onclick="shiftWeek(1)">Next →</button>
+  </div>
+  <div id="schedule-days"></div>
 </div>
 
-<!-- ── CHECKOUT SHEET (slides up) ── -->
-<div id="checkout-sheet" style="display:none;position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.7);" onclick="if(event.target===this)closeCheckout()">
-  <div style="position:absolute;bottom:0;left:0;right:0;background:var(--bg2);border-radius:20px 20px 0 0;padding:20px 14px calc(20px + var(--safe-bottom));max-height:90vh;overflow-y:auto;">
-    <div style="width:40px;height:4px;background:var(--border2);border-radius:100px;margin:0 auto 20px;"></div>
-    <div style="font-family:var(--serif);font-size:18px;color:var(--text);margin-bottom:16px;">Complete Visit — <span id="cs-client-name">—</span></div>
-
-    <div style="padding:0 14px 8px;"><div class="cl-count" id="cs-cl-count">0 tasks completed</div></div>
-    <div class="form-card">
-      <div class="form-card-header"><div class="form-card-title">Personal Care</div></div>
-      <div class="form-card-body" style="padding:10px 12px;">
-        <div class="cl-item" onclick="toggleCl(this,'cs')"><div class="cl-box"></div><span class="cl-label">Morning AM care</span></div>
-        <div class="cl-item" onclick="toggleCl(this,'cs')"><div class="cl-box"></div><span class="cl-label">Afternoon PM care</span></div>
-        <div class="cl-item" onclick="toggleCl(this,'cs')"><div class="cl-box"></div><span class="cl-label">Bedtime care</span></div>
-        <div class="cl-item" onclick="toggleCl(this,'cs')"><div class="cl-box"></div><span class="cl-label">Sponge bath</span></div>
-        <div class="cl-item" onclick="toggleCl(this,'cs')"><div class="cl-box"></div><span class="cl-label">Assist tub or shower</span></div>
-        <div class="cl-item" onclick="toggleCl(this,'cs')"><div class="cl-box"></div><span class="cl-label">Hair care</span></div>
-        <div class="cl-item" onclick="toggleCl(this,'cs')"><div class="cl-box"></div><span class="cl-label">Oral hygiene</span></div>
-        <div class="cl-item" onclick="toggleCl(this,'cs')"><div class="cl-box"></div><span class="cl-label">Skin care</span></div>
-      </div>
-    </div>
-    <div class="form-card">
-      <div class="form-card-header"><div class="form-card-title">Nutrition & Mobility</div></div>
-      <div class="form-card-body" style="padding:10px 12px;">
-        <div class="cl-item" onclick="toggleCl(this,'cs')"><div class="cl-box"></div><span class="cl-label">Breakfast prepared</span></div>
-        <div class="cl-item" onclick="toggleCl(this,'cs')"><div class="cl-box"></div><span class="cl-label">Lunch prepared</span></div>
-        <div class="cl-item" onclick="toggleCl(this,'cs')"><div class="cl-box"></div><span class="cl-label">Dinner prepared</span></div>
-        <div class="cl-item" onclick="toggleCl(this,'cs')"><div class="cl-box"></div><span class="cl-label">Assist to walk</span></div>
-        <div class="cl-item" onclick="toggleCl(this,'cs')"><div class="cl-box"></div><span class="cl-label">Medication reminder</span></div>
-        <div class="cl-item" onclick="toggleCl(this,'cs')"><div class="cl-box"></div><span class="cl-label">Transfer to toilet or commode</span></div>
-      </div>
-    </div>
-    <div class="form-card">
-      <div class="form-card-header"><div class="form-card-title">Housekeeping</div></div>
-      <div class="form-card-body" style="padding:10px 12px;">
-        <div class="cl-item" onclick="toggleCl(this,'cs')"><div class="cl-box"></div><span class="cl-label">Vacuum or sweep</span></div>
-        <div class="cl-item" onclick="toggleCl(this,'cs')"><div class="cl-box"></div><span class="cl-label">Bathroom sanitation</span></div>
-        <div class="cl-item" onclick="toggleCl(this,'cs')"><div class="cl-box"></div><span class="cl-label">General laundry</span></div>
-        <div class="cl-item" onclick="toggleCl(this,'cs')"><div class="cl-box"></div><span class="cl-label">Change bed linen</span></div>
-        <div class="cl-item" onclick="toggleCl(this,'cs')"><div class="cl-box"></div><span class="cl-label">Clean up kitchen</span></div>
-      </div>
-    </div>
-
-    <div class="form-card">
-      <div class="form-card-header"><div class="form-card-title">Visit Notes</div></div>
-      <div class="form-card-body">
-        <div class="form-row">
-          <label class="form-label">Client Mood</label>
-          <div class="mood-row" id="cs-mood-row">
-            <div class="mood-opt sel" onclick="selectMood(this,'Great','cs')"><span class="mood-emoji">:)</span><span class="mood-lbl">Great</span></div>
-            <div class="mood-opt" onclick="selectMood(this,'Good','cs')"><span class="mood-emoji">:|</span><span class="mood-lbl">Good</span></div>
-            <div class="mood-opt" onclick="selectMood(this,'Neutral','cs')"><span class="mood-emoji">--</span><span class="mood-lbl">Neutral</span></div>
-            <div class="mood-opt" onclick="selectMood(this,'Low','cs')"><span class="mood-emoji">:(</span><span class="mood-lbl">Low</span></div>
-            <div class="mood-opt" onclick="selectMood(this,'Agitated','cs')"><span class="mood-emoji">:x</span><span class="mood-lbl">Agitated</span></div>
-          </div>
-        </div>
-        <div class="form-row">
-          <label class="form-label">Observations or follow-up needed</label>
-          <textarea class="form-textarea" id="cs-obs" placeholder="Anything to flag from today's visit..."></textarea>
-        </div>
-        <div class="form-row">
-          <label class="form-label" style="color:var(--red);">Incident? (Leave blank if none)</label>
-          <textarea class="form-textarea" id="cs-incident" placeholder="Describe any falls, medication issues, or safety concerns..." style="border-color:rgba(224,85,85,.2);min-height:60px;"></textarea>
-        </div>
-      </div>
-    </div>
-
-    <button class="submit-btn danger" onclick="submitCheckout()" id="cs-submit-btn" style="margin-bottom:8px;">Check Out + Submit</button>
-    <button class="submit-btn sec" onclick="closeCheckout()" style="margin-bottom:0;">Cancel</button>
-  </div>
-</div>
-
-<!-- ── LOG VISIT (manual/retrospective) ── -->
-<div class="section" id="sect-visit">
-  <div class="section-header"><span class="section-title">Log a Visit</span></div>
-  <div style="margin:0 14px 12px;padding:12px 14px;background:rgba(200,169,110,.08);border:1px solid rgba(200,169,110,.2);border-radius:8px;font-family:var(--mono);font-size:10px;color:var(--gold);letter-spacing:1px;line-height:1.6;">Use this tab to log a past visit. For today's shift, use the Schedule tab to sign in and out.</div>
-
-  <div class="form-card">
-    <div class="form-card-header"><div class="form-card-title">Visit Details</div><div class="form-card-badge">Manual Log</div></div>
-    <div class="form-card-body">
-      <div class="form-row">
-        <label class="form-label">Client Name</label>
-        <select class="form-select" id="vf-client">
-          <option value="">Select client...</option>
-        </select>
-      </div>
-      <div class="form-row-2">
-        <div><label class="form-label">Date</label><input class="form-input" id="vf-date" type="date"></div>
-        <div>
-          <label class="form-label">Visit Type</label>
-          <select class="form-select" id="vf-type">
-            <option>Morning Routine</option>
-            <option>Evening Routine</option>
-            <option>Full Day</option>
-            <option>Overnight</option>
-            <option>Companion Visit</option>
-          </select>
-        </div>
-      </div>
-      <div class="form-row-2">
-        <div><label class="form-label">Time In</label><input class="form-input" id="vf-time-in" type="time" value="09:00" oninput="calcHours()"></div>
-        <div><label class="form-label">Time Out</label><input class="form-input" id="vf-time-out" type="time" value="17:00" oninput="calcHours()"></div>
-      </div>
-      <div class="hours-calc">
-        <div><div class="hours-lbl">Hours Worked</div><div class="pay-line" id="pay-line">$152 this visit</div></div>
-        <div style="text-align:right;"><div class="hours-val" id="hours-display">8.0</div><div class="hours-lbl">hrs</div></div>
-      </div>
-    </div>
-  </div>
-
-  <div class="form-card">
-    <div class="form-card-header"><div class="form-card-title">Visit Notes</div></div>
-    <div class="form-card-body">
-      <div class="form-row">
-        <label class="form-label">What was completed?</label>
-        <textarea class="form-textarea" id="vf-notes" placeholder="e.g. Completed morning routine, prepared breakfast, assisted with medication..."></textarea>
-      </div>
-      <div class="form-row">
-        <label class="form-label">Client Mood</label>
-        <div class="mood-row">
-          <div class="mood-opt sel" onclick="selectMood(this,'Great','vf')"><span class="mood-emoji">:)</span><span class="mood-lbl">Great</span></div>
-          <div class="mood-opt" onclick="selectMood(this,'Good','vf')"><span class="mood-emoji">:|</span><span class="mood-lbl">Good</span></div>
-          <div class="mood-opt" onclick="selectMood(this,'Neutral','vf')"><span class="mood-emoji">--</span><span class="mood-lbl">Neutral</span></div>
-          <div class="mood-opt" onclick="selectMood(this,'Low','vf')"><span class="mood-emoji">:(</span><span class="mood-lbl">Low</span></div>
-          <div class="mood-opt" onclick="selectMood(this,'Agitated','vf')"><span class="mood-emoji">:x</span><span class="mood-lbl">Agitated</span></div>
-        </div>
-      </div>
-      <div class="form-row">
-        <label class="form-label">Incidents (leave blank if none)</label>
-        <textarea class="form-textarea" id="vf-incidents" placeholder="Falls, medication issues, items needing follow-up..." style="min-height:60px;"></textarea>
-      </div>
-    </div>
-  </div>
-
-  <button class="submit-btn" onclick="showSect('checklist')">Next — Checklist</button>
-</div>
-
-<!-- ── CHECKLIST (manual log flow) ── -->
+<!-- ── CHECKLIST ── -->
 <div class="section" id="sect-checklist">
-  <div class="section-header"><span class="section-title">Daily Checklist</span></div>
-  <div style="padding:0 14px 8px;"><div class="cl-count" id="cl-count">0 tasks completed</div></div>
-  <div class="form-card">
-    <div class="form-card-header"><div class="form-card-title">Personal Care</div></div>
-    <div class="form-card-body" style="padding:10px 12px;">
-      <div class="cl-item" onclick="toggleCl(this,'vf')"><div class="cl-box"></div><span class="cl-label">Morning AM care</span></div>
-      <div class="cl-item" onclick="toggleCl(this,'vf')"><div class="cl-box"></div><span class="cl-label">Afternoon PM care</span></div>
-      <div class="cl-item" onclick="toggleCl(this,'vf')"><div class="cl-box"></div><span class="cl-label">Bedtime care</span></div>
-      <div class="cl-item" onclick="toggleCl(this,'vf')"><div class="cl-box"></div><span class="cl-label">Sponge bath</span></div>
-      <div class="cl-item" onclick="toggleCl(this,'vf')"><div class="cl-box"></div><span class="cl-label">Assist tub or shower</span></div>
-      <div class="cl-item" onclick="toggleCl(this,'vf')"><div class="cl-box"></div><span class="cl-label">Hair care — shampoo and comb</span></div>
-      <div class="cl-item" onclick="toggleCl(this,'vf')"><div class="cl-box"></div><span class="cl-label">Care of hands and nails</span></div>
-      <div class="cl-item" onclick="toggleCl(this,'vf')"><div class="cl-box"></div><span class="cl-label">Oral hygiene</span></div>
-      <div class="cl-item" onclick="toggleCl(this,'vf')"><div class="cl-box"></div><span class="cl-label">Skin care — lotions and creams</span></div>
-    </div>
+  <div class="section-header">
+    <span class="section-title">Daily Checklist</span>
+    <div id="cl-visit-name" style="font-family:var(--mono);font-size:9px;color:var(--green3);letter-spacing:1px;"></div>
   </div>
-  <div class="form-card">
-    <div class="form-card-header"><div class="form-card-title">Elimination</div></div>
-    <div class="form-card-body" style="padding:10px 12px;">
-      <div class="cl-item" onclick="toggleCl(this,'vf')"><div class="cl-box"></div><span class="cl-label">Transfer to toilet or commode</span></div>
-      <div class="cl-item" onclick="toggleCl(this,'vf')"><div class="cl-box"></div><span class="cl-label">Empty and clean commode</span></div>
-      <div class="cl-item" onclick="toggleCl(this,'vf')"><div class="cl-box"></div><span class="cl-label">Change incontinence products</span></div>
-    </div>
+
+  <!-- Not on shift warning -->
+  <div id="cl-no-shift" style="margin:0 14px 12px;padding:12px 14px;background:rgba(200,169,110,.08);border:1px solid rgba(200,169,110,.2);border-radius:8px;font-family:var(--mono);font-size:10px;color:var(--gold);letter-spacing:1px;line-height:1.6;display:none;">Sign in to a visit first — Schedule tab → Sign In Now</div>
+
+  <div class="cl-progress">
+    <div class="cl-progress-label">Tasks completed</div>
+    <div class="cl-progress-count" id="cl-count">0 / 0</div>
   </div>
-  <div class="form-card">
-    <div class="form-card-header"><div class="form-card-title">Nutrition</div></div>
-    <div class="form-card-body" style="padding:10px 12px;">
-      <div class="cl-item" onclick="toggleCl(this,'vf')"><div class="cl-box"></div><span class="cl-label">Breakfast prepared</span></div>
-      <div class="cl-item" onclick="toggleCl(this,'vf')"><div class="cl-box"></div><span class="cl-label">Lunch prepared</span></div>
-      <div class="cl-item" onclick="toggleCl(this,'vf')"><div class="cl-box"></div><span class="cl-label">Dinner prepared</span></div>
-      <div class="cl-item" onclick="toggleCl(this,'vf')"><div class="cl-box"></div><span class="cl-label">Assist with feeding</span></div>
-      <div class="cl-item" onclick="toggleCl(this,'vf')"><div class="cl-box"></div><span class="cl-label">Clean up kitchen and dishes</span></div>
+
+  <div style="padding:0 14px;">
+
+    <div class="cl-section-title">Personal Care</div>
+    <div class="cl-item" onclick="toggleCl(this)"><div class="cl-box"></div><span class="cl-label">Morning AM care</span></div>
+    <div class="cl-item" onclick="toggleCl(this)"><div class="cl-box"></div><span class="cl-label">Afternoon PM care</span></div>
+    <div class="cl-item" onclick="toggleCl(this)"><div class="cl-box"></div><span class="cl-label">Bedtime care</span></div>
+    <div class="cl-item" onclick="toggleCl(this)"><div class="cl-box"></div><span class="cl-label">Sponge bath</span></div>
+    <div class="cl-item" onclick="toggleCl(this)"><div class="cl-box"></div><span class="cl-label">Assist tub or shower</span></div>
+    <div class="cl-item" onclick="toggleCl(this)"><div class="cl-box"></div><span class="cl-label">Hair care — shampoo and comb</span></div>
+    <div class="cl-item" onclick="toggleCl(this)"><div class="cl-box"></div><span class="cl-label">Care of hands and nails</span></div>
+    <div class="cl-item" onclick="toggleCl(this)"><div class="cl-box"></div><span class="cl-label">Oral hygiene</span></div>
+    <div class="cl-item" onclick="toggleCl(this)"><div class="cl-box"></div><span class="cl-label">Skin care — lotions and creams</span></div>
+
+    <div class="cl-section-title">Elimination</div>
+    <div class="cl-item" onclick="toggleCl(this)"><div class="cl-box"></div><span class="cl-label">Transfer to toilet or commode</span></div>
+    <div class="cl-item" onclick="toggleCl(this)"><div class="cl-box"></div><span class="cl-label">Empty and clean commode</span></div>
+    <div class="cl-item" onclick="toggleCl(this)"><div class="cl-box"></div><span class="cl-label">Change incontinence products</span></div>
+    <div class="cl-item" onclick="toggleCl(this)"><div class="cl-box"></div><span class="cl-label">Change or clean catheter bag</span></div>
+
+    <div class="cl-section-title">Physical Activities</div>
+    <div class="cl-item" onclick="toggleCl(this)"><div class="cl-box"></div><span class="cl-label">Assist to walk</span></div>
+    <div class="cl-item" onclick="toggleCl(this)"><div class="cl-box"></div><span class="cl-label">Assist in and out of bed or chair</span></div>
+    <div class="cl-item" onclick="toggleCl(this)"><div class="cl-box"></div><span class="cl-label">Apply elastic stockings</span></div>
+    <div class="cl-item" onclick="toggleCl(this)"><div class="cl-box"></div><span class="cl-label">Medication reminder</span></div>
+    <div class="cl-item" onclick="toggleCl(this)"><div class="cl-box"></div><span class="cl-label">Reinforce exercise</span></div>
+
+    <div class="cl-section-title">Nutrition</div>
+    <div class="cl-item" onclick="toggleCl(this)"><div class="cl-box"></div><span class="cl-label">Breakfast prepared</span></div>
+    <div class="cl-item" onclick="toggleCl(this)"><div class="cl-box"></div><span class="cl-label">Lunch prepared</span></div>
+    <div class="cl-item" onclick="toggleCl(this)"><div class="cl-box"></div><span class="cl-label">Dinner prepared</span></div>
+    <div class="cl-item" onclick="toggleCl(this)"><div class="cl-box"></div><span class="cl-label">Assist with feeding</span></div>
+    <div class="cl-item" onclick="toggleCl(this)"><div class="cl-box"></div><span class="cl-label">Clean up kitchen and dishes</span></div>
+
+    <div class="cl-section-title">Light Housekeeping</div>
+    <div class="cl-item" onclick="toggleCl(this)"><div class="cl-box"></div><span class="cl-label">Vacuum or sweep living areas</span></div>
+    <div class="cl-item" onclick="toggleCl(this)"><div class="cl-box"></div><span class="cl-label">Bathroom sanitation</span></div>
+    <div class="cl-item" onclick="toggleCl(this)"><div class="cl-box"></div><span class="cl-label">Damp mop floors</span></div>
+    <div class="cl-item" onclick="toggleCl(this)"><div class="cl-box"></div><span class="cl-label">General laundry</span></div>
+    <div class="cl-item" onclick="toggleCl(this)"><div class="cl-box"></div><span class="cl-label">Change bed linen</span></div>
+    <div class="cl-item" onclick="toggleCl(this)"><div class="cl-box"></div><span class="cl-label">Make bed</span></div>
+    <div class="cl-item" onclick="toggleCl(this)"><div class="cl-box"></div><span class="cl-label">Collect garbage</span></div>
+
+    <div class="cl-section-title">Observations &amp; Supplies</div>
+    <div style="margin-bottom:10px;">
+      <label class="form-label">Observations — anything to flag from today</label>
+      <textarea class="form-textarea" id="cl-obs" placeholder="e.g. Client seemed more tired than usual, refused shower..."></textarea>
     </div>
-  </div>
-  <div class="form-card">
-    <div class="form-card-header"><div class="form-card-title">Physical Activities</div></div>
-    <div class="form-card-body" style="padding:10px 12px;">
-      <div class="cl-item" onclick="toggleCl(this,'vf')"><div class="cl-box"></div><span class="cl-label">Assist to walk</span></div>
-      <div class="cl-item" onclick="toggleCl(this,'vf')"><div class="cl-box"></div><span class="cl-label">Assist in and out of bed or chair</span></div>
-      <div class="cl-item" onclick="toggleCl(this,'vf')"><div class="cl-box"></div><span class="cl-label">Apply elastic stockings</span></div>
-      <div class="cl-item" onclick="toggleCl(this,'vf')"><div class="cl-box"></div><span class="cl-label">Medication reminder</span></div>
-      <div class="cl-item" onclick="toggleCl(this,'vf')"><div class="cl-box"></div><span class="cl-label">Reinforce exercise</span></div>
+    <div style="margin-bottom:20px;">
+      <label class="form-label">Supply needs for Lance</label>
+      <textarea class="form-textarea" id="cl-supplies" placeholder="e.g. Running low on incontinence pads, gloves size M..." style="min-height:60px;"></textarea>
     </div>
+
   </div>
-  <div class="form-card">
-    <div class="form-card-header"><div class="form-card-title">Light Housekeeping</div></div>
-    <div class="form-card-body" style="padding:10px 12px;">
-      <div class="cl-item" onclick="toggleCl(this,'vf')"><div class="cl-box"></div><span class="cl-label">Vacuum or sweep living areas</span></div>
-      <div class="cl-item" onclick="toggleCl(this,'vf')"><div class="cl-box"></div><span class="cl-label">Bathroom sanitation</span></div>
-      <div class="cl-item" onclick="toggleCl(this,'vf')"><div class="cl-box"></div><span class="cl-label">Damp mop floors</span></div>
-      <div class="cl-item" onclick="toggleCl(this,'vf')"><div class="cl-box"></div><span class="cl-label">General laundry</span></div>
-      <div class="cl-item" onclick="toggleCl(this,'vf')"><div class="cl-box"></div><span class="cl-label">Change bed linen</span></div>
-      <div class="cl-item" onclick="toggleCl(this,'vf')"><div class="cl-box"></div><span class="cl-label">Make bed</span></div>
-      <div class="cl-item" onclick="toggleCl(this,'vf')"><div class="cl-box"></div><span class="cl-label">Collect garbage</span></div>
-    </div>
-  </div>
-  <div class="form-card">
-    <div class="form-card-header"><div class="form-card-title">Observations</div></div>
-    <div class="form-card-body">
-      <div class="form-row">
-        <label class="form-label">Observations or items to flag</label>
-        <textarea class="form-textarea" id="cl-obs" placeholder="e.g. Client refused shower today..."></textarea>
-      </div>
-      <div class="form-row">
-        <label class="form-label">Supply needs for Lance</label>
-        <textarea class="form-textarea" id="cl-supplies" placeholder="e.g. Running low on incontinence pads..." style="min-height:60px;"></textarea>
-      </div>
-    </div>
-  </div>
-  <button class="submit-btn" onclick="submitVisit()" id="submit-btn">Submit Visit Log</button>
-  <button class="submit-btn sec" onclick="showSect('visit')" style="margin:0 14px 14px;">← Back</button>
 </div>
 
 <!-- ── CLIENTS ── -->
 <div class="section" id="sect-clients">
   <div class="section-header"><span class="section-title">My Clients</span></div>
   <div id="clients-list"><div class="empty-state">Loading clients...</div></div>
-</div>
-
-<!-- ── PAY SUMMARY ── -->
-<div class="section" id="sect-pay">
-  <div class="section-header"><span class="section-title">My Pay</span></div>
-  <div id="pay-content"><div class="empty-state">Loading pay summary...</div></div>
-
-  <!-- Availability -->
-  <div class="section-header" style="margin-top:8px;"><span class="section-title">My Availability</span></div>
-  <div class="form-card">
-    <div class="form-card-header"><div class="form-card-title">Available Days</div></div>
-    <div class="form-card-body">
-      <div class="avail-grid" id="avail-days">
-        <div class="avail-day" data-day="Mon" onclick="toggleAvailDay(this)"><div class="avail-day-label">Mon</div></div>
-        <div class="avail-day" data-day="Tue" onclick="toggleAvailDay(this)"><div class="avail-day-label">Tue</div></div>
-        <div class="avail-day" data-day="Wed" onclick="toggleAvailDay(this)"><div class="avail-day-label">Wed</div></div>
-        <div class="avail-day" data-day="Thu" onclick="toggleAvailDay(this)"><div class="avail-day-label">Thu</div></div>
-        <div class="avail-day" data-day="Fri" onclick="toggleAvailDay(this)"><div class="avail-day-label">Fri</div></div>
-        <div class="avail-day" data-day="Sat" onclick="toggleAvailDay(this)"><div class="avail-day-label">Sat</div></div>
-        <div class="avail-day" data-day="Sun" onclick="toggleAvailDay(this)"><div class="avail-day-label">Sun</div></div>
-      </div>
-      <div class="avail-shifts" id="avail-shifts">
-        <div class="avail-shift" data-shift="Morning" onclick="toggleAvailShift(this)"><div class="avail-shift-label">Morning</div><div class="avail-shift-time">7am – 2pm</div></div>
-        <div class="avail-shift" data-shift="Afternoon" onclick="toggleAvailShift(this)"><div class="avail-shift-label">Afternoon</div><div class="avail-shift-time">2pm – 9pm</div></div>
-        <div class="avail-shift" data-shift="Overnight" onclick="toggleAvailShift(this)"><div class="avail-shift-label">Overnight</div><div class="avail-shift-time">9pm – 7am</div></div>
-      </div>
-      <button class="submit-btn" onclick="saveAvailability()" style="margin:0 0 0;">Save Availability</button>
-    </div>
-  </div>
 </div>
 
 <!-- ── MESSAGES ── -->
@@ -686,26 +501,60 @@ a{color:inherit;text-decoration:none;}
 <!-- ── DOCUMENTS ── -->
 <div class="section" id="sect-documents">
   <div class="section-header"><span class="section-title">My Documents</span></div>
-  <div class="card" id="docs-card">
+  <div class="card">
     <div id="docs-list"><div class="empty-state" style="padding:20px;">Loading documents...</div></div>
   </div>
 </div>
 
-<!-- BOTTOM NAV -->
+<!-- BOTTOM NAV — matches bm array exactly -->
 <div class="bottom-nav">
   <div class="bnav-item active" onclick="showSect('home')" id="bn-home"><div class="bnav-icon">HQ</div><div class="bnav-lbl">Home</div></div>
   <div class="bnav-item" onclick="showSect('schedule')" id="bn-schedule"><div class="bnav-icon">SCH</div><div class="bnav-lbl">Schedule</div></div>
-  <div class="bnav-item" onclick="showSect('clients')" id="bn-clients"><div class="bnav-icon">CLI</div><div class="bnav-lbl">Clients</div></div>
+  <div class="bnav-item" onclick="showSect('checklist')" id="bn-checklist"><div class="bnav-icon">CKL</div><div class="bnav-lbl">Checklist</div></div>
   <div class="bnav-item" onclick="showSect('messages')" id="bn-messages"><div class="bnav-icon" style="position:relative;">MSG<div class="bnav-dot" id="bnav-msg-dot"></div></div><div class="bnav-lbl">Messages</div></div>
-  <div class="bnav-item" onclick="showSect('pay')" id="bn-pay"><div class="bnav-icon">PAY</div><div class="bnav-lbl">Pay</div></div>
+  <div class="bnav-item" onclick="showSect('clients')" id="bn-clients"><div class="bnav-icon">CLI</div><div class="bnav-lbl">Clients</div></div>
 </div>
+
 </div><!-- /app -->
+
+<!-- CHECKOUT SHEET -->
+<div id="checkout-sheet" style="display:none;position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.75);" onclick="if(event.target===this)closeCheckout()">
+  <div style="position:absolute;bottom:0;left:0;right:0;background:var(--bg2);border-radius:20px 20px 0 0;padding:20px 14px calc(24px + var(--safe-bottom));max-height:85vh;overflow-y:auto;">
+    <div style="width:40px;height:4px;background:var(--border2);border-radius:100px;margin:0 auto 20px;"></div>
+    <div style="font-family:var(--serif);font-size:18px;color:var(--text);margin-bottom:4px;">Check Out — <span id="co-client-name">—</span></div>
+    <div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px;margin-bottom:20px;">Started <span id="co-timein">—</span> · <span id="co-elapsed-sheet">—</span> elapsed</div>
+
+    <div style="margin-bottom:16px;">
+      <label class="form-label">Client Mood</label>
+      <div class="mood-row" id="co-mood-row">
+        <div class="mood-opt sel" onclick="selectMood(this,'Great')"><span class="mood-emoji">:)</span><span class="mood-lbl">Great</span></div>
+        <div class="mood-opt" onclick="selectMood(this,'Good')"><span class="mood-emoji">:|</span><span class="mood-lbl">Good</span></div>
+        <div class="mood-opt" onclick="selectMood(this,'Neutral')"><span class="mood-emoji">--</span><span class="mood-lbl">Neutral</span></div>
+        <div class="mood-opt" onclick="selectMood(this,'Low')"><span class="mood-emoji">:(</span><span class="mood-lbl">Low</span></div>
+        <div class="mood-opt" onclick="selectMood(this,'Agitated')"><span class="mood-emoji">:x</span><span class="mood-lbl">Agitated</span></div>
+      </div>
+    </div>
+
+    <div style="margin-bottom:12px;">
+      <label class="form-label">Observations or follow-up needed</label>
+      <textarea class="form-textarea" id="co-obs" placeholder="Anything to flag from today's visit..."></textarea>
+    </div>
+
+    <div style="margin-bottom:20px;">
+      <label class="form-label" style="color:var(--red);">Incident? Leave blank if none</label>
+      <textarea class="form-textarea" id="co-incident" placeholder="Describe any falls, medication issues, or safety concerns..." style="border-color:rgba(224,85,85,.2);min-height:60px;"></textarea>
+    </div>
+
+    <button class="submit-btn danger" onclick="doCheckOut()" id="co-submit-btn" style="margin:0 0 8px;">Check Out + Submit Visit</button>
+    <button class="submit-btn sec" onclick="closeCheckout()" style="margin:0;">Cancel</button>
+  </div>
+</div>
 
 <!-- SUCCESS OVERLAY -->
 <div class="success-overlay" id="success-overlay">
-  <div class="success-check">OK</div>
-  <div class="success-title" id="success-title">Visit Logged</div>
-  <div class="success-msg" id="success-msg">Visit submitted. Lance has been notified.</div>
+  <div class="success-check">✓</div>
+  <div class="success-title" id="success-title">Visit Complete</div>
+  <div class="success-msg" id="success-msg">Visit logged. Family has been notified.</div>
   <button class="success-btn" onclick="closeSuccess()">Done</button>
 </div>
 
@@ -714,10 +563,10 @@ a{color:inherit;text-decoration:none;}
 
 <script>
 const API = 'https://proximity-agent-production.up.railway.app';
-let pswName = '', pswPin = '', pswEmail = '', lockIn = '';
-let selectedMoodVf = 'Great', selectedMoodCs = 'Great';
-let appUnlocked = false;
-let activeVisit = null; // { id, client_name, checkin_time }
+let pswName = '', pswPin = '', pswEmail = '';
+let lockIn = '', appUnlocked = false;
+let activeVisit = null; // { id, client_name, time_in, checkin_time }
+let selectedMood = 'Great';
 let weekOffset = 0;
 let scheduleData = null;
 let elapsedTimer = null;
@@ -734,7 +583,6 @@ function goToPin() {
   document.getElementById('lock-step-1').classList.remove('active');
   document.getElementById('lock-step-2').classList.add('active');
 }
-
 function lk(k) {
   if (lockIn.length >= 4) return;
   lockIn += k; updateDots();
@@ -752,7 +600,7 @@ function lk(k) {
     }, 120);
   }
 }
-function ld() { lockIn = lockIn.slice(0, -1); updateDots(); }
+function ld() { lockIn = lockIn.slice(0,-1); updateDots(); }
 function updateDots() { for (let i = 0; i < 4; i++) document.getElementById('ld'+i).classList.toggle('filled', i < lockIn.length); }
 
 async function verifyPin() {
@@ -767,12 +615,12 @@ function unlockApp() {
   history.pushState(null, '', window.location.href);
   document.getElementById('lock').style.display = 'none';
   document.getElementById('app').style.display = 'block';
-  const ini = pswName.split(' ').map(w => w[0]||'').join('').toUpperCase().slice(0, 2);
+  const ini = pswName.split(' ').map(w => w[0]||'').join('').toUpperCase().slice(0,2);
   document.getElementById('psw-avatar').textContent = ini;
   document.getElementById('psw-name-display').textContent = pswName.split(' ')[0];
-  document.getElementById('vf-date').valueAsDate = new Date();
   fetchPSWEmail();
   loadAll();
+  restoreChecklist();
 }
 
 async function fetchPSWEmail() {
@@ -784,14 +632,7 @@ async function fetchPSWEmail() {
 }
 
 async function loadAll() {
-  await Promise.all([
-    loadSchedule(),
-    loadClients(),
-    loadMessages(false),
-    loadPaySummary(),
-    loadDocuments()
-  ]);
-  populateClientSelect();
+  await Promise.all([loadSchedule(), loadClients(), loadMessages(false), loadDocuments()]);
 }
 
 // ── SCHEDULE + SIGN IN / OUT ──
@@ -802,81 +643,105 @@ async function loadSchedule() {
     if (!d.success) return;
     scheduleData = d;
     activeVisit = d.active_visit || null;
-    renderActiveBanner();
+    updateShiftUI();
     renderWeek();
-    renderNextShift();
+    renderRecentVisits();
   } catch (e) { console.error('loadSchedule:', e); }
 }
 
-function renderActiveBanner() {
-  const banner = document.getElementById('active-banner');
-  const coPanel = document.getElementById('checkout-panel');
-  const manualCard = document.getElementById('manual-signin-card');
+function updateShiftUI() {
+  const signinCard = document.getElementById('signin-card');
+  const activeCard = document.getElementById('active-visit-card');
+  const homeBanner = document.getElementById('home-active-banner');
+  const pill = document.getElementById('shift-status-pill');
+  const noShift = document.getElementById('cl-no-shift');
+  const clVisitName = document.getElementById('cl-visit-name');
+
   if (activeVisit) {
-    banner.classList.add('show');
-    if (manualCard) manualCard.style.display = 'none';
-    document.getElementById('active-client-name').textContent = activeVisit.client_name || '—';
-    const tin = activeVisit.time_in || activeVisit.checkin_time?.slice(11,16) || '—';
-    document.getElementById('active-time-display').textContent = 'Started at ' + tin;
-    // Checkout panel
-    coPanel.style.display = 'block';
-    document.getElementById('co-client-name').textContent = activeVisit.client_name || '—';
-    document.getElementById('co-start-time').textContent = tin;
-    startElapsedTimer();
+    // Schedule tab
+    signinCard.style.display = 'none';
+    activeCard.style.display = 'block';
+    document.getElementById('av-client').textContent = activeVisit.client_name || '—';
+    const tin = activeVisit.time_in || (activeVisit.checkin_time||'').slice(11,16) || '—';
+    document.getElementById('av-timein').textContent = tin;
+    // Home tab
+    homeBanner.classList.add('show');
+    document.getElementById('home-active-client').textContent = activeVisit.client_name || '—';
+    document.getElementById('home-active-timein').textContent = 'Started at ' + tin;
+    // Topbar pill
+    pill.style.display = 'block';
+    // Checklist
+    if (noShift) noShift.style.display = 'none';
+    if (clVisitName) clVisitName.textContent = activeVisit.client_name || '';
+    // Start elapsed timer
+    startElapsed();
   } else {
-    banner.classList.remove('show');
-    coPanel.style.display = 'none';
-    stopElapsedTimer();
-    if (manualCard) manualCard.style.display = 'block';
+    signinCard.style.display = 'block';
+    activeCard.style.display = 'none';
+    homeBanner.classList.remove('show');
+    pill.style.display = 'none';
+    if (noShift) noShift.style.display = 'block';
+    if (clVisitName) clVisitName.textContent = '';
+    stopElapsed();
   }
 }
 
-function startElapsedTimer() {
-  stopElapsedTimer();
+function startElapsed() {
+  stopElapsed();
   if (!activeVisit?.checkin_time) return;
   const tick = () => {
-    const elapsed = Math.round((Date.now() - new Date(activeVisit.checkin_time)) / 60000);
-    const hrs = Math.floor(elapsed / 60);
-    const mins = elapsed % 60;
-    const str = hrs > 0 ? `${hrs}h ${mins}m` : `${mins}m`;
-    const el = document.getElementById('co-elapsed');
-    if (el) el.textContent = str;
+    const mins = Math.round((Date.now() - new Date(activeVisit.checkin_time)) / 60000);
+    const h = Math.floor(mins / 60), m = mins % 60;
+    const str = h > 0 ? `${h}h ${m}m` : `${m}m`;
+    const av = document.getElementById('av-elapsed');
+    const hm = document.getElementById('home-elapsed');
+    const cs = document.getElementById('co-elapsed-sheet');
+    if (av) av.textContent = str + ' elapsed';
+    if (hm) hm.textContent = str + ' elapsed';
+    if (cs) cs.textContent = str;
   };
   tick();
-  elapsedTimer = setInterval(tick, 60000);
+  elapsedTimer = setInterval(tick, 30000);
 }
+function stopElapsed() { if (elapsedTimer) { clearInterval(elapsedTimer); elapsedTimer = null; } }
 
-function stopElapsedTimer() {
-  if (elapsedTimer) { clearInterval(elapsedTimer); elapsedTimer = null; }
-}
+function renderRecentVisits() {
+  const el = document.getElementById('recent-visits-list');
+  if (!scheduleData) { el.innerHTML = '<div class="empty-state">No visits yet</div>'; return; }
+  const visits = (scheduleData.completed_visits || []).slice(0, 5);
+  if (!visits.length) { el.innerHTML = '<div class="empty-state">No visits logged yet</div>'; return; }
+  el.innerHTML = visits.map(v => `
+    <div class="card">
+      <div class="card-header">
+        <div>
+          <div class="card-name">${v.client_name||'—'}</div>
+          <div class="card-sub">${fmtd(v.visit_date)} · ${v.time_in||'—'} – ${v.time_out||'—'} · ${v.hours_worked||0}h</div>
+          ${v.visit_summary ? `<div class="card-meta" style="margin-top:6px;line-height:1.5;">${v.visit_summary}</div>` : ''}
+        </div>
+        <span class="badge b-done">Done</span>
+      </div>
+    </div>`).join('');
 
-function renderNextShift() {
-  const wrap = document.getElementById('next-shift-wrap');
-  if (!scheduleData) { wrap.innerHTML = '<div class="empty-state">No upcoming shifts</div>'; return; }
-  if (activeVisit) {
-    wrap.innerHTML = `<div class="card"><div class="card-header"><div><div class="card-name">${activeVisit.client_name}</div><div class="card-sub">Visit in progress</div></div><span class="badge b-inprogress">Active</span></div><div class="card-actions"><div class="card-act" onclick="openCheckout()">Check Out →</div></div></div>`;
-    return;
-  }
-  const upcoming = (scheduleData.bookings || []).filter(b => b.scheduled_date >= new Date().toISOString().slice(0,10));
-  if (!upcoming.length) { wrap.innerHTML = '<div class="empty-state">No upcoming shifts scheduled</div>'; return; }
-  const next = upcoming[0];
-  wrap.innerHTML = `<div class="card"><div class="card-header"><div><div class="card-name">${next.client_name}</div><div class="card-sub">${fmtd(next.scheduled_date)} · ${next.scheduled_time||'—'}</div></div><span class="badge b-upcoming">Upcoming</span></div><div class="card-actions"><div class="card-act ok" onclick="checkIn('${next.client_name}','${next.id||''}')">Sign In</div></div></div>`;
+  // Update home stats
+  const today = new Date().toISOString().slice(0,10);
+  const monthStr = today.slice(0,7);
+  const allVisits = scheduleData.completed_visits || [];
+  const todayV = allVisits.filter(v => v.visit_date === today);
+  const monthV = allVisits.filter(v => (v.visit_date||'').startsWith(monthStr));
+  const monthHrs = monthV.reduce((s,v) => s + parseFloat(v.hours_worked||0), 0);
+  document.getElementById('s-today').textContent = todayV.length + (activeVisit ? 1 : 0);
+  document.getElementById('s-month').textContent = monthV.length;
+  document.getElementById('s-hours').textContent = monthHrs.toFixed(1) + 'h';
 }
 
 function renderWeek() {
   const el = document.getElementById('schedule-days');
-  const today = new Date();
-  today.setHours(12, 0, 0, 0);
+  const today = new Date(); today.setHours(12,0,0,0);
   const startOfWeek = new Date(today);
-  startOfWeek.setDate(today.getDate() - today.getDay() + 1 + (weekOffset * 7)); // Mon
+  const dow = today.getDay() === 0 ? 6 : today.getDay() - 1;
+  startOfWeek.setDate(today.getDate() - dow + (weekOffset * 7));
 
-  const days = [];
-  for (let i = 0; i < 7; i++) {
-    const d = new Date(startOfWeek);
-    d.setDate(startOfWeek.getDate() + i);
-    days.push(d);
-  }
-
+  const days = Array.from({length:7}, (_,i) => { const d = new Date(startOfWeek); d.setDate(startOfWeek.getDate()+i); return d; });
   const startStr = days[0].toISOString().slice(0,10);
   const endStr = days[6].toISOString().slice(0,10);
   document.getElementById('week-label').textContent = `${fmtd(startStr)} – ${fmtd(endStr)}`;
@@ -888,90 +753,74 @@ function renderWeek() {
   el.innerHTML = days.map(d => {
     const ds = d.toISOString().slice(0,10);
     const isToday = ds === todayStr;
-    const dayBookings = bookings.filter(b => b.scheduled_date === ds);
+    const dayLabel = d.toLocaleDateString('en-CA', {weekday:'short',month:'short',day:'numeric'});
     const dayVisits = visits.filter(v => v.visit_date === ds);
+    const dayBookings = bookings.filter(b => b.scheduled_date === ds);
 
-    const dayLabel = d.toLocaleDateString('en-CA', { weekday: 'short', month: 'short', day: 'numeric' });
-
-    let shiftsHtml = '';
-    // Show completed visits
+    let rows = '';
     dayVisits.forEach(v => {
-      shiftsHtml += `<div class="schedule-shift">
-        <div><div class="shift-client">${v.client_name||'—'}</div><div class="shift-time">${v.time_in||'—'} – ${v.time_out||'—'} · ${v.hours_worked||0}h</div></div>
-        <div class="shift-status complete">Done</div>
-      </div>`;
+      rows += `<div class="schedule-shift"><div><div class="shift-client">${v.client_name||'—'}</div><div class="shift-time">${v.time_in||'—'} – ${v.time_out||'—'} · ${v.hours_worked||0}h</div></div><div class="shift-badge done">Done</div></div>`;
     });
-    // Show active visit for today
     if (isToday && activeVisit) {
-      shiftsHtml += `<div class="schedule-shift" style="background:rgba(224,154,61,.05);">
-        <div><div class="shift-client">${activeVisit.client_name}</div><div class="shift-time">Started ${activeVisit.time_in||'—'} · In progress</div></div>
-        <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end;">
-          <div class="shift-status inprogress">Active</div>
-          <button style="font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--amber);background:rgba(224,154,61,.1);border:1px solid rgba(224,154,61,.3);border-radius:6px;padding:4px 10px;cursor:pointer;min-height:30px;touch-action:manipulation;" onclick="openCheckout()">Check Out</button>
-        </div>
-      </div>`;
+      const tin = activeVisit.time_in || (activeVisit.checkin_time||'').slice(11,16) || '—';
+      rows += `<div class="schedule-shift" style="background:rgba(224,154,61,.04);"><div><div class="shift-client">${activeVisit.client_name}</div><div class="shift-time">Started ${tin} · In progress</div></div><button onclick="openCheckout()" style="font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--amber);background:rgba(224,154,61,.1);border:1px solid rgba(224,154,61,.3);border-radius:6px;padding:5px 10px;cursor:pointer;min-height:32px;touch-action:manipulation;">Check Out</button></div>`;
     }
-    // Show upcoming bookings (no completed visit yet)
     dayBookings.forEach(b => {
       const alreadyDone = dayVisits.some(v => v.client_name === b.client_name);
-      const isActiveBooking = activeVisit && activeVisit.client_name === b.client_name && isToday;
-      if (alreadyDone || isActiveBooking) return;
-      shiftsHtml += `<div class="schedule-shift">
-        <div><div class="shift-client">${b.client_name||'—'}</div><div class="shift-time">${b.scheduled_time||'—'} · ${b.duration_minutes ? Math.round(b.duration_minutes/60*10)/10+'h' : ''}</div></div>
-        <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end;">
-          <div class="shift-status upcoming">Upcoming</div>
-          ${isToday ? `<button style="font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--green3);background:rgba(26,107,90,.1);border:1px solid rgba(26,107,90,.3);border-radius:6px;padding:4px 10px;cursor:pointer;min-height:30px;touch-action:manipulation;" onclick="checkIn('${b.client_name}','${b.id||''}')">Sign In</button>` : ''}
-        </div>
-      </div>`;
+      const isActive = activeVisit && activeVisit.client_name === b.client_name && isToday;
+      if (alreadyDone || isActive) return;
+      rows += `<div class="schedule-shift"><div><div class="shift-client">${b.client_name||'—'}</div><div class="shift-time">${b.scheduled_time||'TBD'}</div></div><div class="shift-badge upcoming">Upcoming</div></div>`;
     });
+    if (!rows) rows = `<div class="schedule-empty">No shifts</div>`;
 
-    if (!shiftsHtml) shiftsHtml = `<div class="schedule-day-empty">No shifts</div>`;
-
-    return `<div class="schedule-day">
-      <div class="schedule-day-header">
-        <div class="schedule-day-label ${isToday ? 'today' : ''}">${dayLabel}${isToday ? ' — Today' : ''}</div>
-      </div>
-      ${shiftsHtml}
-    </div>`;
+    return `<div class="schedule-day"><div class="schedule-day-hdr"><div class="schedule-day-lbl ${isToday?'today':''}">${dayLabel}${isToday?' · Today':''}</div></div>${rows}</div>`;
   }).join('');
-}
-
-function checkInManual() {
-  const sel = document.getElementById('signin-client');
-  const clientName = sel ? sel.value : '';
-  if (!clientName) { showToast('Select a client first', 'err'); return; }
-  checkIn(clientName, '');
 }
 
 function shiftWeek(dir) { weekOffset += dir; renderWeek(); }
 
 // ── CHECK IN ──
-async function checkIn(clientName, bookingId) {
-  if (activeVisit) { showToast('Already have an active visit open', 'err'); return; }
-  showToast('Checking in...', 'ok');
+async function doCheckIn() {
+  const clientName = document.getElementById('signin-client').value;
+  if (!clientName) { showToast('Select a client first', 'err'); return; }
+  if (activeVisit) { showToast('Already have an active visit', 'err'); return; }
+
+  const btn = document.getElementById('signin-btn');
+  btn.textContent = 'Signing in...'; btn.disabled = true;
+
   try {
     const res = await fetch(`${API}/visit/checkin`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ psw_name: pswName, pin: pswPin, operator_id: 'proximity-care', client_name: clientName, booking_id: bookingId || null })
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({psw_name: pswName, pin: pswPin, operator_id: 'proximity-care', client_name: clientName})
     });
     const d = await res.json();
     if (!res.ok) throw new Error(d.error || 'Check-in failed');
-    activeVisit = { id: d.visit_id, client_name: clientName, time_in: d.time_in, checkin_time: new Date().toISOString() };
-    document.getElementById('cs-client-name').textContent = clientName;
-    renderActiveBanner();
-    renderNextShift();
+
+    activeVisit = {id: d.visit_id, client_name: clientName, time_in: d.time_in, checkin_time: new Date().toISOString()};
+    updateShiftUI();
     renderWeek();
+    renderRecentVisits();
     showToast('Signed in — ' + clientName, 'ok');
+    showSect('checklist');
   } catch (e) {
     showToast(e.message, 'err');
   }
+  btn.textContent = 'Sign In Now'; btn.disabled = false;
 }
 
-// ── CHECKOUT SHEET ──
+// ── CHECK OUT ──
 function openCheckout() {
   if (!activeVisit) { showToast('No active visit', 'err'); return; }
-  document.getElementById('cs-client-name').textContent = activeVisit.client_name || '—';
+  document.getElementById('co-client-name').textContent = activeVisit.client_name || '—';
+  const tin = activeVisit.time_in || (activeVisit.checkin_time||'').slice(11,16) || '—';
+  document.getElementById('co-timein').textContent = tin;
+  // Elapsed
+  if (activeVisit.checkin_time) {
+    const mins = Math.round((Date.now() - new Date(activeVisit.checkin_time)) / 60000);
+    const h = Math.floor(mins/60), m = mins%60;
+    document.getElementById('co-elapsed-sheet').textContent = h > 0 ? `${h}h ${m}m` : `${m}m`;
+  }
   document.getElementById('checkout-sheet').style.display = 'block';
   document.body.style.overflow = 'hidden';
 }
@@ -980,27 +829,32 @@ function closeCheckout() {
   document.body.style.overflow = '';
 }
 
-async function submitCheckout() {
+async function doCheckOut() {
   if (!activeVisit) return;
-  const tasks = Array.from(document.querySelectorAll('#checkout-sheet .cl-item.done')).map(el => el.querySelector('.cl-label').textContent);
-  const obs = document.getElementById('cs-obs').value.trim();
-  const incident = document.getElementById('cs-incident').value.trim();
 
-  const btn = document.getElementById('cs-submit-btn');
+  // Collect checklist items
+  const tasks = Array.from(document.querySelectorAll('#sect-checklist .cl-item.done'))
+    .map(el => el.querySelector('.cl-label').textContent);
+  const obs = document.getElementById('cl-obs').value.trim();
+  const supplies = document.getElementById('cl-supplies').value.trim();
+  const incident = document.getElementById('co-incident').value.trim();
+  const observations = [obs, supplies].filter(Boolean).join(' | ');
+
+  const btn = document.getElementById('co-submit-btn');
   btn.textContent = 'Submitting...'; btn.disabled = true;
 
   try {
     const res = await fetch(`${API}/visit/checkout`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {'Content-Type':'application/json'},
       body: JSON.stringify({
         psw_name: pswName, pin: pswPin, operator_id: 'proximity-care',
         visit_id: activeVisit.id,
         tasks_completed: tasks,
-        client_mood: selectedMoodCs,
+        client_mood: selectedMood,
         incident_reported: incident.length > 0,
         incident_notes: incident || null,
-        observations: obs || null
+        observations: observations || null
       })
     });
     const d = await res.json();
@@ -1008,120 +862,75 @@ async function submitCheckout() {
 
     closeCheckout();
     activeVisit = null;
-    renderActiveBanner();
-
-    // Reset checkout sheet fields
-    document.querySelectorAll('#checkout-sheet .cl-item').forEach(el => { el.classList.remove('done'); el.querySelector('.cl-box').textContent = ''; });
-    document.getElementById('cs-obs').value = '';
-    document.getElementById('cs-incident').value = '';
-    document.getElementById('cs-cl-count').textContent = '0 tasks completed';
+    stopElapsed();
+    resetChecklist();
+    updateShiftUI();
 
     document.getElementById('success-title').textContent = 'Visit Complete';
-    document.getElementById('success-msg').textContent = `${d.hours_worked}h logged. Family notified. Lance has the care summary.`;
+    document.getElementById('success-msg').textContent = `${d.hours_worked}h logged for ${d.visit_id ? 'this visit' : 'your visit'}. Family has been notified with the care summary.`;
     document.getElementById('success-overlay').classList.add('show');
 
     await loadSchedule();
-    await loadPaySummary();
   } catch (e) {
     showToast(e.message, 'err');
   }
-  btn.textContent = 'Check Out + Submit'; btn.disabled = false;
-}
-
-// ── MANUAL LOG VISIT ──
-function calcHours() {
-  const tin = document.getElementById('vf-time-in').value;
-  const tout = document.getElementById('vf-time-out').value;
-  if (!tin || !tout) return;
-  const [ih, im] = tin.split(':').map(Number);
-  const [oh, om] = tout.split(':').map(Number);
-  let mins = (oh * 60 + om) - (ih * 60 + im);
-  if (mins < 0) mins += 24 * 60;
-  const hrs = (mins / 60).toFixed(1);
-  document.getElementById('hours-display').textContent = hrs;
-  document.getElementById('pay-line').textContent = '$' + Math.round(parseFloat(hrs) * 19) + ' this visit';
-}
-
-function toggleCl(el, prefix) {
-  el.classList.toggle('done');
-  el.querySelector('.cl-box').textContent = el.classList.contains('done') ? 'x' : '';
-  const countId = prefix === 'cs' ? 'cs-cl-count' : 'cl-count';
-  const scope = prefix === 'cs' ? '#checkout-sheet' : '#sect-checklist';
-  const done = document.querySelectorAll(scope + ' .cl-item.done').length;
-  const el2 = document.getElementById(countId);
-  if (el2) el2.textContent = done + ' tasks completed';
-}
-
-function selectMood(el, mood, prefix) {
-  const scope = prefix === 'cs' ? '#checkout-sheet' : '#sect-visit';
-  document.querySelectorAll(scope + ' .mood-opt').forEach(o => o.classList.remove('sel'));
-  el.classList.add('sel');
-  if (prefix === 'cs') selectedMoodCs = mood;
-  else selectedMoodVf = mood;
-}
-
-async function submitVisit() {
-  const client = document.getElementById('vf-client').value;
-  const date = document.getElementById('vf-date').value;
-  const notes = document.getElementById('vf-notes').value.trim();
-  const timeIn = document.getElementById('vf-time-in').value;
-  const timeOut = document.getElementById('vf-time-out').value;
-  const hours = parseFloat(document.getElementById('hours-display').textContent || 0);
-  const incidents = document.getElementById('vf-incidents').value.trim();
-  const obs = document.getElementById('cl-obs').value.trim();
-  const supplies = document.getElementById('cl-supplies').value.trim();
-  const tasks = Array.from(document.querySelectorAll('#sect-checklist .cl-item.done')).map(el => el.querySelector('.cl-label').textContent);
-
-  if (!client || !date) { showToast('Client and date required', 'err'); return; }
-  if (!notes && tasks.length === 0) { showToast('Add notes or complete checklist items', 'err'); return; }
-
-  const btn = document.getElementById('submit-btn');
-  btn.textContent = 'Submitting...'; btn.disabled = true;
-
-  const nameParts = client.trim().split(/\s+/);
-  const payload = {
-    operator_id: 'proximity-care', psw_name: pswName, psw_email: pswEmail || '',
-    client_name: client, client_first_name: nameParts[0] || '', client_last_name: nameParts.slice(1).join(' '),
-    visit_date: date, time_in: timeIn, time_out: timeOut, hours_worked: hours,
-    tasks_completed: tasks.length ? tasks : [], client_mood: selectedMoodVf,
-    incident_reported: incidents.length > 0, incident_notes: incidents || null,
-    notes: [notes, obs, supplies].filter(Boolean).join('\n\n') || null
-  };
-
-  try {
-    const res = await fetch(`${API}/webhook/visit`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-    const d = await res.json().catch(() => ({}));
-    if (!res.ok && !d.success) throw new Error(d.error || 'Server error');
-    document.getElementById('success-title').textContent = 'Visit Logged';
-    document.getElementById('success-msg').textContent = 'Visit for ' + client + ' logged. Lance has been notified.';
-    document.getElementById('success-overlay').classList.add('show');
-    sessionStorage.removeItem('psw-draft');
-  } catch {
-    showToast('Submission failed — check connection', 'err');
-  }
-  btn.textContent = 'Submit Visit Log'; btn.disabled = false;
+  btn.textContent = 'Check Out + Submit Visit'; btn.disabled = false;
 }
 
 function closeSuccess() {
   document.getElementById('success-overlay').classList.remove('show');
-  resetManualForm();
   showSect('home');
 }
 
-function resetManualForm() {
-  document.getElementById('vf-client').selectedIndex = 0;
-  document.getElementById('vf-date').valueAsDate = new Date();
-  document.getElementById('vf-time-in').value = '09:00';
-  document.getElementById('vf-time-out').value = '17:00';
-  document.getElementById('vf-notes').value = '';
-  document.getElementById('vf-incidents').value = '';
+// ── CHECKLIST ──
+function toggleCl(el) {
+  el.classList.toggle('done');
+  el.querySelector('.cl-box').textContent = el.classList.contains('done') ? '✓' : '';
+  updateClCount();
+  saveChecklist();
+}
+function updateClCount() {
+  const total = document.querySelectorAll('#sect-checklist .cl-item').length;
+  const done = document.querySelectorAll('#sect-checklist .cl-item.done').length;
+  document.getElementById('cl-count').textContent = `${done} / ${total}`;
+}
+function saveChecklist() {
+  try {
+    const done = Array.from(document.querySelectorAll('#sect-checklist .cl-item.done'))
+      .map(el => el.querySelector('.cl-label').textContent);
+    sessionStorage.setItem('cl-state', JSON.stringify(done));
+    sessionStorage.setItem('cl-obs', document.getElementById('cl-obs').value);
+    sessionStorage.setItem('cl-supplies', document.getElementById('cl-supplies').value);
+  } catch {}
+}
+function restoreChecklist() {
+  try {
+    const done = JSON.parse(sessionStorage.getItem('cl-state') || '[]');
+    document.querySelectorAll('#sect-checklist .cl-item').forEach(el => {
+      const label = el.querySelector('.cl-label').textContent;
+      if (done.includes(label)) { el.classList.add('done'); el.querySelector('.cl-box').textContent = '✓'; }
+    });
+    const obs = sessionStorage.getItem('cl-obs');
+    const sup = sessionStorage.getItem('cl-supplies');
+    if (obs) document.getElementById('cl-obs').value = obs;
+    if (sup) document.getElementById('cl-supplies').value = sup;
+    updateClCount();
+  } catch {}
+}
+function resetChecklist() {
+  document.querySelectorAll('#sect-checklist .cl-item').forEach(el => {
+    el.classList.remove('done'); el.querySelector('.cl-box').textContent = '';
+  });
   document.getElementById('cl-obs').value = '';
   document.getElementById('cl-supplies').value = '';
-  document.querySelectorAll('#sect-checklist .cl-item').forEach(el => { el.classList.remove('done'); el.querySelector('.cl-box').textContent = ''; });
-  document.querySelectorAll('#sect-visit .mood-opt').forEach(o => o.classList.remove('sel'));
-  document.querySelector('#sect-visit .mood-opt').classList.add('sel');
-  selectedMoodVf = 'Great';
-  calcHours();
+  updateClCount();
+  try { sessionStorage.removeItem('cl-state'); sessionStorage.removeItem('cl-obs'); sessionStorage.removeItem('cl-supplies'); } catch {}
+}
+
+function selectMood(el, mood) {
+  document.querySelectorAll('#co-mood-row .mood-opt').forEach(o => o.classList.remove('sel'));
+  el.classList.add('sel');
+  selectedMood = mood;
 }
 
 // ── CLIENTS ──
@@ -1132,15 +941,15 @@ async function loadClients() {
     const d = await res.json();
     const clients = d.clients || [];
     if (!clients.length) { el.innerHTML = '<div class="empty-state">No clients assigned yet</div>'; return; }
-    el.innerHTML = clients.map((c, i) => {
+    el.innerHTML = clients.map((c,i) => {
       const name = c.full_name || c.client_name;
-      const ini = name.split(' ').map(w => w[0]||'').join('').toUpperCase().slice(0,2);
+      const ini = name.split(' ').map(w=>w[0]||'').join('').toUpperCase().slice(0,2);
       const cid = 'cl'+i;
       return `<div class="card">
         <div class="card-header" onclick="toggleDetail('${cid}')" style="cursor:pointer;">
           <div style="display:flex;align-items:center;gap:11px;flex:1;">
             <div style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,var(--green),var(--green3));display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:12px;color:#fff;flex-shrink:0;">${ini}</div>
-            <div><div class="card-name">${name}</div><div class="card-sub">${c.hours_per_week||'?'}h/wk · Since ${c.start_date?fmtd(c.start_date):'—'}</div><div class="card-meta">${c.summary||''}</div></div>
+            <div><div class="card-name">${name}</div><div class="card-sub">${c.hours_per_week||'?'}h/wk · Since ${c.start_date?fmtd(c.start_date):'—'}</div></div>
           </div>
           <div class="card-right"><span class="badge b-active">${c.status||'Active'}</span><div style="font-size:10px;color:var(--muted);" id="chev-${cid}">▼</div></div>
         </div>
@@ -1149,114 +958,20 @@ async function loadClients() {
           ${c.daily_routine?`<div style="margin-bottom:10px;"><div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:4px;">Daily Routine</div><div style="color:var(--muted2);">${c.daily_routine}</div></div>`:''}
           ${c.preferences?`<div style="margin-bottom:10px;"><div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:4px;">Preferences</div><div style="color:var(--muted2);">${c.preferences}</div></div>`:''}
           ${c.medications?`<div style="margin-bottom:10px;"><div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:4px;">Medications</div><div style="color:var(--text);">${c.medications}</div></div>`:''}
-          ${c.emergency_contact_1_name||c.emergency_contact_name?`<div><div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:4px;">Emergency Contact</div><div style="color:var(--text);">${c.emergency_contact_1_name||c.emergency_contact_name}${(c.emergency_contact_1_phone||c.emergency_contact_phone)?' · <a href="tel:'+(c.emergency_contact_1_phone||c.emergency_contact_phone)+'" style="color:var(--green3);">'+(c.emergency_contact_1_phone||c.emergency_contact_phone)+'</a>':''}</div></div>`:''}
+          ${(c.emergency_contact_1_name||c.emergency_contact_name)?`<div><div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:4px;">Emergency Contact</div><div style="color:var(--text);">${c.emergency_contact_1_name||c.emergency_contact_name}${(c.emergency_contact_1_phone||c.emergency_contact_phone)?' · <a href="tel:'+(c.emergency_contact_1_phone||c.emergency_contact_phone)+'" style="color:var(--green3);">'+(c.emergency_contact_1_phone||c.emergency_contact_phone)+'</a>':''}</div></div>`:''}
         </div>
       </div>`;
     }).join('');
   } catch { el.innerHTML = '<div class="empty-state">Could not load clients</div>'; }
 }
 
-function populateClientSelect() {
-  const sel = document.getElementById('vf-client');
-  if (!sel) return;
-  // Get from loaded clients if any, fallback to static list
-  sel.innerHTML = '<option value="">Select client...</option>';
-  const staticClients = ['Rosetta Ferrari','Bhangu Amrit','Priya Singh','Helia Cordeiro','Samina Thedlo','Parul Priya','Kim Phung','Emmanuel Sagolili','Blake Heald','Rick Vardzel','Roman Pinto'];
-  staticClients.forEach(name => { const o = document.createElement('option'); o.value = name; o.textContent = name; sel.appendChild(o); });
-}
-
-// ── PAY SUMMARY ──
-async function loadPaySummary() {
-  const el = document.getElementById('pay-content');
-  try {
-    const res = await fetch(`${API}/psw/pay-summary?psw_name=${encodeURIComponent(pswName)}&pin=${pswPin}&operator_id=proximity-care`);
-    const d = await res.json();
-    if (!d.success) throw new Error(d.error);
-
-    const cur = d.current_period;
-    document.getElementById('s-pay').textContent = '$' + (cur.total_pay || 0).toFixed(0);
-
-    let html = `<div class="pay-period-card">
-      <div class="pay-period-header">
-        <div class="pay-period-label pay-period-current">Current Period</div>
-        <div style="font-family:var(--mono);font-size:10px;color:var(--muted);">${cur.label||'—'}</div>
-      </div>
-      <div class="pay-period-body">
-        <div class="pay-row"><div class="pay-row-label">Hours</div><div class="pay-row-value">${cur.total_hours}</div></div>
-        <div class="pay-row"><div class="pay-row-label">Rate</div><div class="pay-row-value">$${d.rate}/hr</div></div>
-        <div class="pay-row"><div class="pay-row-label">Visits</div><div class="pay-row-value">${cur.visit_count}</div></div>
-        <div class="pay-row"><div class="pay-row-label">Total</div><div class="pay-row-value total">$${cur.total_pay.toFixed(2)}</div></div>
-      </div>
-    </div>`;
-
-    if (d.all_time) {
-      html += `<div class="pay-period-card">
-        <div class="pay-period-header"><div class="pay-period-label">All Time</div></div>
-        <div class="pay-period-body">
-          <div class="pay-row"><div class="pay-row-label">Total Visits</div><div class="pay-row-value">${d.all_time.total_visits}</div></div>
-          <div class="pay-row"><div class="pay-row-label">Total Hours</div><div class="pay-row-value">${d.all_time.total_hours}</div></div>
-        </div>
-      </div>`;
-    }
-
-    // Past periods
-    const pastPeriods = (d.periods || []).slice(1, 4); // up to 3 past periods
-    if (pastPeriods.length) {
-      pastPeriods.forEach(p => {
-        html += `<div class="pay-period-card">
-          <div class="pay-period-header">
-            <div class="pay-period-label">${p.label}</div>
-            <div style="font-family:var(--mono);font-size:12px;color:var(--gold);">$${p.total_pay.toFixed(2)}</div>
-          </div>
-          <div class="pay-period-body">
-            <div class="pay-row"><div class="pay-row-label">Hours</div><div class="pay-row-value">${p.total_hours}</div></div>
-            <div class="pay-row"><div class="pay-row-label">Visits</div><div class="pay-row-value">${p.visits.length}</div></div>
-          </div>
-        </div>`;
-      });
-    }
-
-    el.innerHTML = html;
-
-    // Load availability
-    loadAvailability();
-  } catch { el.innerHTML = '<div class="empty-state">Could not load pay summary</div>'; }
-}
-
-// ── AVAILABILITY ──
-async function loadAvailability() {
-  try {
-    const res = await fetch(`${API}/psw/notes/${encodeURIComponent(pswName)}?pin=${pswPin}`);
-    const d = await res.json();
-    if (d.psw_record) {
-      const days = (d.psw_record.availability_days || '').split(',').map(s => s.trim()).filter(Boolean);
-      const shifts = (d.psw_record.availability_shifts || '').split(',').map(s => s.trim()).filter(Boolean);
-      document.querySelectorAll('.avail-day').forEach(el => {
-        if (days.includes(el.dataset.day)) el.classList.add('sel');
-      });
-      document.querySelectorAll('.avail-shift').forEach(el => {
-        if (shifts.includes(el.dataset.shift)) el.classList.add('sel');
-      });
-    }
-  } catch {}
-}
-
-function toggleAvailDay(el) { el.classList.toggle('sel'); }
-function toggleAvailShift(el) { el.classList.toggle('sel'); }
-
-async function saveAvailability() {
-  const days = Array.from(document.querySelectorAll('.avail-day.sel')).map(el => el.dataset.day).join(',');
-  const shifts = Array.from(document.querySelectorAll('.avail-shift.sel')).map(el => el.dataset.shift).join(',');
-  try {
-    const res = await fetch(`${API}/psw/availability`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ psw_name: pswName, pin: pswPin, operator_id: 'proximity-care', availability_days: days, availability_shifts: shifts })
-    });
-    const d = await res.json();
-    if (!res.ok) throw new Error(d.error);
-    showToast('Availability saved', 'ok');
-  } catch { showToast('Save failed', 'err'); }
+function toggleDetail(id) {
+  const el = document.getElementById(id);
+  const chev = document.getElementById('chev-'+id);
+  if (!el) return;
+  const open = el.style.display !== 'none';
+  el.style.display = open ? 'none' : 'block';
+  if (chev) chev.textContent = open ? '▼' : '▲';
 }
 
 // ── MESSAGES ──
@@ -1269,24 +984,18 @@ async function loadMessages(scroll = true) {
     const unread = notes.filter(n => n.sender === 'lance' && !n.read_at).length;
     const badge = document.getElementById('msg-badge');
     const dot = document.getElementById('bnav-msg-dot');
-    if (unread > 0) {
-      if (badge) { badge.textContent = unread; badge.classList.add('show'); }
-      if (dot) dot.classList.add('show');
-    } else {
-      if (badge) badge.classList.remove('show');
-      if (dot) dot.classList.remove('show');
-    }
-    if (!notes.length) { el.innerHTML = '<div class="empty-state">No messages yet. Send Lance a message.</div>'; return; }
+    if (unread > 0) { badge.textContent = unread; badge.classList.add('show'); dot.classList.add('show'); }
+    else { badge.classList.remove('show'); dot.classList.remove('show'); }
+    if (!notes.length) { el.innerHTML = '<div class="empty-state">No messages yet</div>'; return; }
     el.innerHTML = notes.map(n => `<div class="msg-bubble ${n.sender==='lance'?'msg-lance':'msg-me'}"><div class="msg-text">${n.message}</div><div class="msg-time">${ago(n.created_at)}</div></div>`).join('');
     if (scroll) el.scrollTop = el.scrollHeight;
   } catch { el.innerHTML = '<div class="empty-state">Could not load messages</div>'; }
 }
-
 async function sendMsg() {
   const msg = document.getElementById('msg-input').value.trim();
   if (!msg) return;
   try {
-    const res = await fetch(`${API}/psw/note`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ psw_name: pswName, sender: 'psw', message: msg, pin: pswPin }) });
+    const res = await fetch(`${API}/psw/note`, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({psw_name:pswName,sender:'psw',message:msg,pin:pswPin})});
     const d = await res.json();
     if (!d.success) throw new Error();
     document.getElementById('msg-input').value = '';
@@ -1304,35 +1013,16 @@ async function loadDocuments() {
     const rec = d.psw_record;
     if (!rec) { el.innerHTML = '<div class="empty-state" style="padding:20px;">No documents on file</div>'; return; }
     const docs = [
-      { name: 'PSW Certificate', key: 'psw_cert', url: rec.psw_cert_url, expiry: rec.psw_cert_expiry, status: rec.psw_cert_status },
-      { name: 'Police Check', key: 'police_check', url: rec.police_check_url, expiry: rec.police_check_expiry, status: rec.police_check_status },
-      { name: 'CPR Certification', key: 'cpr_cert', url: rec.cpr_cert_url, expiry: rec.cpr_cert_expiry, status: rec.cpr_cert_status },
-      { name: 'First Aid', key: 'first_aid', url: rec.first_aid_url, expiry: rec.first_aid_expiry, status: rec.first_aid_status }
+      {name:'PSW Certificate',key:'psw_cert',url:rec.psw_cert_url,expiry:rec.psw_cert_expiry,status:rec.psw_cert_status},
+      {name:'Police Check',key:'police_check',url:rec.police_check_url,expiry:rec.police_check_expiry,status:rec.police_check_status},
+      {name:'CPR Certification',key:'cpr_cert',url:rec.cpr_cert_url,expiry:rec.cpr_cert_expiry,status:rec.cpr_cert_status},
+      {name:'First Aid',key:'first_aid',url:rec.first_aid_url,expiry:rec.first_aid_expiry,status:rec.first_aid_status}
     ];
     el.innerHTML = docs.map(doc => {
       const st = doc.status || (doc.url ? 'valid' : 'missing');
-      const expStr = doc.expiry ? 'Expires ' + fmtd(doc.expiry) : 'No expiry on file';
-      return `<div class="doc-row">
-        <div class="doc-icon">${doc.key.split('_').map(w=>w[0].toUpperCase()).join('')}</div>
-        <div class="doc-info">
-          <div class="doc-name">${doc.name}</div>
-          <div class="doc-meta">${doc.url ? expStr : 'Not uploaded'}</div>
-        </div>
-        <div class="doc-status ${st}">${st}</div>
-      </div>`;
+      return `<div class="doc-row"><div class="doc-icon">${doc.key.split('_').map(w=>w[0].toUpperCase()).join('')}</div><div class="doc-info"><div class="doc-name">${doc.name}</div><div class="doc-meta">${doc.url ? (doc.expiry ? 'Expires '+fmtd(doc.expiry) : 'On file') : 'Not uploaded'}</div></div><div class="doc-status ${st}">${st}</div></div>`;
     }).join('');
   } catch { el.innerHTML = '<div class="empty-state" style="padding:20px;">Could not load documents</div>'; }
-}
-
-// ── STATS ──
-function updateStats() {
-  if (!scheduleData) return;
-  const today = new Date().toISOString().slice(0,10);
-  const todayVisits = (scheduleData.completed_visits || []).filter(v => v.visit_date === today);
-  document.getElementById('s-visits').textContent = todayVisits.length + (activeVisit ? 1 : 0);
-  const monthStr = new Date().toISOString().slice(0,7);
-  const monthVisits = (scheduleData.completed_visits || []).filter(v => (v.visit_date||'').startsWith(monthStr));
-  document.getElementById('s-month').textContent = monthVisits.length;
 }
 
 // ── NAV ──
@@ -1342,57 +1032,51 @@ function showSect(name) {
   document.querySelectorAll('.bnav-item').forEach(b => b.classList.remove('active'));
   const s = document.getElementById('sect-'+name); if (s) s.classList.add('active');
   const tabs = document.querySelectorAll('.nav-tab');
-  const tm = ['home','schedule','visit','clients','pay','messages','documents'];
+  const tm = ['home','schedule','checklist','clients','messages','documents'];
   const ti = tm.indexOf(name); if (ti >= 0 && tabs[ti]) tabs[ti].classList.add('active');
-  const bm = ['home','schedule','clients','messages','pay'];
-  const bi = bm.indexOf(name);
   const bnavs = document.querySelectorAll('.bnav-item');
-  if (bi >= 0 && bnavs[bi]) bnavs[bi].classList.add('active');
+  const bm = ['home','schedule','checklist','messages','clients'];
+  const bi = bm.indexOf(name); if (bi >= 0 && bnavs[bi]) bnavs[bi].classList.add('active');
   if (name === 'messages') loadMessages();
-  if (name === 'schedule') { loadSchedule(); }
-  if (name === 'pay') loadPaySummary();
-  window.scrollTo(0, 0);
-  history.pushState({ section: name }, '', window.location.href);
-}
-
-function toggleDetail(id) {
-  const el = document.getElementById(id);
-  const chev = document.getElementById('chev-'+id);
-  if (!el) return;
-  const open = el.style.display !== 'none';
-  el.style.display = open ? 'none' : 'block';
-  if (chev) chev.textContent = open ? '▼' : '▲';
+  if (name === 'schedule') loadSchedule();
+  if (name === 'checklist') {
+    updateClCount();
+    const noShift = document.getElementById('cl-no-shift');
+    if (noShift) noShift.style.display = activeVisit ? 'none' : 'block';
+  }
+  window.scrollTo(0,0);
+  history.pushState({section:name},'',window.location.href);
 }
 
 // ── HELPERS ──
 function fmtd(str) {
   if (!str) return '—';
   const d = new Date(str.includes('T') ? str : str+'T12:00:00');
-  return d.toLocaleDateString('en-CA', { month: 'short', day: 'numeric' });
+  return d.toLocaleDateString('en-CA',{month:'short',day:'numeric'});
 }
 function ago(str) {
   if (!str) return '—';
-  const d = (Date.now() - new Date(str)) / 1000;
+  const d = (Date.now()-new Date(str))/1000;
   if (d < 60) return 'just now';
   if (d < 3600) return Math.floor(d/60)+'m ago';
   if (d < 86400) return Math.floor(d/3600)+'h ago';
   return Math.floor(d/86400)+'d ago';
 }
-function showToast(msg, type = 'ok') {
+function showToast(msg, type='ok') {
   const t = document.getElementById('toast');
-  t.textContent = msg; t.className = 'toast show ' + type;
+  t.textContent = msg; t.className = 'toast show '+type;
   setTimeout(() => t.classList.remove('show'), 3000);
 }
 
 window.addEventListener('popstate', function() {
   if (!appUnlocked) return;
-  const sections = ['home','schedule','visit','checklist','clients','pay','messages','documents'];
-  const current = sections.find(s => document.getElementById('sect-'+s)?.classList.contains('active'));
-  if (current && current !== 'home') { history.pushState(null,'',window.location.href); showSect('home'); }
+  const sects = ['home','schedule','checklist','clients','messages','documents'];
+  const cur = sects.find(s => document.getElementById('sect-'+s)?.classList.contains('active'));
+  if (cur && cur !== 'home') { history.pushState(null,'',window.location.href); showSect('home'); }
 });
 
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/psw-sw.js').catch(() => {});
+  navigator.serviceWorker.register('/psw-sw.js').catch(()=>{});
 }
 </script>
 </body>
