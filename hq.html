@@ -320,6 +320,7 @@ a{color:inherit;text-decoration:none;}
   <div class="nav-tab" onclick="showSect('crm')">CRM <span class="nbadge" id="crm-badge">0</span></div>
   <div class="nav-tab" onclick="showSect('applicants')">Applicants <span class="nbadge" id="app-badge">0</span></div>
   <div class="nav-tab" onclick="showSect('operator')">+ Agency</div>
+  <div class="nav-tab" onclick="showSect('revenue')">Revenue</div>
 </div>
 
 <!-- LEADS -->
@@ -517,6 +518,11 @@ a{color:inherit;text-decoration:none;}
     </div>
   </div>
   <div id="schedule-board"></div>
+</div>
+
+<div class="section" id="sect-revenue">
+  <div class="section-header"><span class="section-title">Revenue & Analytics</span></div>
+  <div id="revenue-content"><div class="empty-state">Loading analytics...</div></div>
 </div>
 
 <div class="section" id="sect-operator">
@@ -723,6 +729,14 @@ a{color:inherit;text-decoration:none;}
 </div>
 
 <!-- PSW MESSAGE SHEET -->
+<div class="sheet" id="psw-detail-sheet">
+  <div class="sheet-header">
+    <div class="sheet-title" id="psw-detail-title">PSW Profile</div>
+    <div class="sheet-close" onclick="closeSheet('psw-detail-sheet')">✕</div>
+  </div>
+  <div class="sheet-body" id="psw-detail-body"></div>
+</div>
+
 <div class="sheet" id="psw-msg-sheet">
   <div class="sheet-handle"></div>
   <div class="sheet-title" id="psw-msg-title">Message PSW</div>
@@ -932,27 +946,7 @@ function renderClients() {
   }).join('');
 }
 
-function openClientDetail(id) {
-  const c = (D.clients||[]).find(x=>x.id===id); if(!c) return;
-  const name = `${c.first_name||''} ${c.last_name||''}`.trim();
-  const slug = c.portal_slug || '';
-  document.getElementById('client-sheet-title').textContent = name;
-  document.getElementById('client-sheet-body').innerHTML = `
-    <div class="cpf"><div class="cpf-lbl">Email</div><div class="cpf-val">${c.email?`<a href="mailto:${c.email}">${c.email}</a>`:'—'}</div></div>
-    <div class="cpf"><div class="cpf-lbl">Portal</div><div class="cpf-val">${slug||'—'} · PIN ${c.portal_pin||'—'}</div></div>
-    <div class="cpf"><div class="cpf-lbl">Status</div><div class="cpf-val"><span class="badge b-active">Active</span></div></div>
-    <div class="cpf"><div class="cpf-lbl">Started</div><div class="cpf-val">${fmtd(c.created_at)}</div></div>
-    <div style="margin-top:16px;font-family:var(--mono);font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--teal2);margin-bottom:10px;">Care Plan</div>
-    <div class="sheet-row"><div class="slbl">Summary</div><textarea class="sinput" id="cp-summary" rows="3" style="min-height:80px;resize:none;" placeholder="Overview of care needs..."></textarea></div>
-    <div class="sheet-row"><div class="slbl">Goals</div><textarea class="sinput" id="cp-goals" rows="2" style="min-height:60px;resize:none;" placeholder="Client goals and priorities..."></textarea></div>
-    <div class="sheet-row"><div class="slbl">Daily Routine</div><textarea class="sinput" id="cp-routine" rows="3" style="min-height:80px;resize:none;" placeholder="Morning routine, meal times, sleep schedule..."></textarea></div>
-    <div class="sheet-row"><div class="slbl">Preferences and Notes</div><textarea class="sinput" id="cp-prefs" rows="2" style="min-height:60px;resize:none;" placeholder="Likes, dislikes, communication preferences..."></textarea></div>
-    <button class="sbtn" style="margin-top:4px;" onclick="saveCarePlan('${id}','${slug}','${name}')">Save Care Plan</button>
-    <button class="sbtn" style="margin-top:8px;" onclick="genInvoice('${name}','${c.email||''}','${c.assigned_psw||''}',${c.client_rate||22},${c.psw_rate||19});closeSheet('client-sheet');">Generate This Month's Invoice</button>
-    <button class="sbtn ghost" style="margin-top:8px;" onclick="triggerOnboardClient('${slug}');closeSheet('client-sheet');">Resend Welcome Email</button>`;
-  loadCarePlan(slug);
-  openSheet('client-sheet');
-}
+
 
 async function loadCarePlan(slug) {
   if (!slug) return;
@@ -1275,6 +1269,7 @@ function renderPSWs() {
       <div class="card-actions">
         ${email?`<div class="card-act call" onclick="window.location.href='mailto:${email}'">Email</div>`:''}
         <div class="card-act" onclick="openPSWMsg('${p.name}')">Message</div>
+        <div class="card-act ok" onclick="openPSWDetail('${p.id||p.name}')">View</div>
       </div>
     </div>`;
   }).join('');
@@ -1557,13 +1552,14 @@ function showSect(name) {
   document.querySelectorAll('.bnav-item').forEach(b=>b.classList.remove('active'));
   const s=document.getElementById('sect-'+name); if(s) s.classList.add('active');
   const tabs=document.querySelectorAll('.nav-tab');
-  const tm=['leads','clients','psws','onboard','bookings','purchases','messages','visits','activity','schedule','crm','applicants','operator'];
+  const tm=['leads','clients','psws','onboard','bookings','purchases','messages','visits','activity','schedule','crm','applicants','operator','revenue'];
   const ti=tm.indexOf(name); if(ti>=0&&tabs[ti]) tabs[ti].classList.add('active');
   const bm=['leads','clients','bookings','purchases','activity'];
   const bi=bm.indexOf(name);
   const bnavs=document.querySelectorAll('.bnav-item');
   if(bi>=0&&bnavs[bi]) bnavs[bi].classList.add('active');
   if(name==='onboard') populateOnboardSelects();
+  if(name==='revenue') renderRevenue();
   if(name==='crm') renderCRM();
   if(name==='applicants') loadApplicants();
   if(name==='schedule') renderSchedule();
@@ -2176,7 +2172,201 @@ async function deleteShift(id) {
   } catch(e) { showToast(e.message, 'err'); }
 }
 
+// ── REVENUE ANALYTICS ──
+function renderRevenue() {
+  const el = document.getElementById('revenue-content');
+  if (!el) return;
+  const clients = D.clients || [];
+  const leads = D.leads || [];
+  const bookings = D.bookings || [];
+  const purchases = D.purchases || [];
+  const psws = D.psws || [];
+  const activity = D.recent_activity || [];
+
+  const now = new Date();
+  const monthStr = now.toISOString().slice(0,7);
+
+  // Monthly leads
+  const monthLeads = leads.filter(l => (l.created_at||'').startsWith(monthStr));
+  const converted = leads.filter(l => l.status === 'converted');
+  const convRate = leads.length ? Math.round(converted.length / leads.length * 100) : 0;
+
+  // MRR estimate — active clients × $500 (operator revenue not client revenue for now)
+  const activeClients = clients.length;
+  const pswCount = psws.filter(p => p.status === 'active').length;
+
+  // Upcoming bookings this week
+  const weekEnd = new Date(now); weekEnd.setDate(now.getDate() + 7);
+  const weekBookings = bookings.filter(b => {
+    const d = new Date(b.scheduled_date);
+    return d >= now && d <= weekEnd;
+  });
+
+  // Revenue from purchases
+  const totalRevenue = purchases.reduce((s, p) => s + parseFloat(p.amount || 0), 0);
+
+  const kpis = [
+    { label: 'Active Clients', val: activeClients, sub: 'proximity care', color: 'var(--teal2)' },
+    { label: 'Active PSWs', val: pswCount, sub: 'on roster', color: 'var(--text)' },
+    { label: 'Shifts This Week', val: weekBookings.length, sub: 'upcoming', color: 'var(--gold)' },
+    { label: 'Total Leads', val: leads.length, sub: `${monthLeads.length} this month`, color: 'var(--text)' },
+    { label: 'Converted', val: converted.length, sub: `${convRate}% rate`, color: 'var(--green2)' },
+    { label: 'Operators Revenue', val: '$' + totalRevenue.toFixed(0), sub: 'from purchases', color: 'var(--gold)' },
+  ];
+
+  let html = '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);margin:0 12px 16px;border-radius:8px;overflow:hidden;">';
+  kpis.forEach(k => {
+    html += `<div style="background:var(--bg2);padding:14px 10px;text-align:center;">
+      <div style="font-family:var(--mono);font-size:18px;font-weight:500;color:${k.color};">${k.val}</div>
+      <div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-top:4px;">${k.label}</div>
+      <div style="font-size:10px;color:var(--muted);margin-top:2px;">${k.sub}</div>
+    </div>`;
+  });
+  html += '</div>';
+
+  // Lead pipeline breakdown
+  const stages = ['new','contacted','demo','call','converted','dead'];
+  html += `<div style="margin:0 12px 16px;">
+    <div style="font-family:var(--mono);font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--muted2);margin-bottom:10px;">Lead Pipeline</div>
+    <div style="display:flex;flex-direction:column;gap:6px;">`;
+  stages.forEach(st => {
+    const count = leads.filter(l => l.status === st).length;
+    const pct = leads.length ? Math.round(count / leads.length * 100) : 0;
+    const colors = {new:'var(--muted2)',contacted:'var(--teal2)',demo:'var(--gold)',call:'var(--green2)',converted:'var(--green2)',dead:'var(--red)'};
+    html += `<div style="display:flex;align-items:center;gap:10px;">
+      <div style="font-family:var(--mono);font-size:10px;color:var(--muted);width:70px;text-transform:uppercase;letter-spacing:1px;">${st}</div>
+      <div style="flex:1;height:6px;background:var(--border);border-radius:100px;"><div style="width:${pct}%;height:100%;background:${colors[st]||'var(--muted2)'};border-radius:100px;"></div></div>
+      <div style="font-family:var(--mono);font-size:11px;color:${colors[st]||'var(--muted2)'};">${count}</div>
+    </div>`;
+  });
+  html += '</div></div>';
+
+  // Client list with rates
+  html += `<div style="margin:0 12px 16px;">
+    <div style="font-family:var(--mono);font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--muted2);margin-bottom:10px;">Active Clients — Rates</div>`;
+  if (clients.length) {
+    clients.forEach(c => {
+      const name = `${c.first_name||''} ${c.last_name||''}`.trim();
+      const margin = (c.client_rate||22) - (c.psw_rate||19);
+      html += `<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:var(--bg2);border:1px solid var(--border);border-radius:6px;margin-bottom:4px;">
+        <div><div style="font-size:12px;font-weight:500;color:var(--text);">${name}</div><div style="font-family:var(--mono);font-size:10px;color:var(--muted);">${c.assigned_psw||'Unassigned'}</div></div>
+        <div style="text-align:right;">
+          <div style="font-family:var(--mono);font-size:12px;color:var(--text);">$${c.client_rate||22}/hr</div>
+          <div style="font-family:var(--mono);font-size:10px;color:var(--green2);">+$${margin} margin</div>
+        </div>
+      </div>`;
+    });
+  } else {
+    html += '<div class="empty-state">No active clients</div>';
+  }
+  html += '</div>';
+
+  el.innerHTML = html;
+}
+
+// ── PSW PROFILE DRAWER ──
+async function openPSWDetail(pswId) {
+  const p = (D.psws||[]).find(x=>x.id===pswId || x.full_name===pswId);
+  if (!p) return;
+  const name = p.full_name || p.name || '—';
+  document.getElementById('psw-detail-title').textContent = name;
+  const body = document.getElementById('psw-detail-body');
+  body.innerHTML = '<div class="empty-state">Loading profile...</div>';
+  openSheet('psw-detail-sheet');
+
+  // Fetch full PSW record
+  try {
+    const res = await fetch(`${API}/psw/notes/${encodeURIComponent(name)}?pin=hq-operator-bypass-2026`);
+    const d = await res.json();
+    const rec = d.psw_record || {};
+
+    // Assigned clients
+    const assignedClients = (D.clients||[]).filter(c => c.assigned_psw === name);
+
+    // Doc status helper
+    const docSt = (url, expiry) => {
+      if (!url) return '<span style="color:var(--red);font-family:var(--mono);font-size:9px;">MISSING</span>';
+      if (expiry) {
+        const daysLeft = Math.round((new Date(expiry) - new Date()) / 86400000);
+        if (daysLeft < 30) return `<span style="color:var(--amber);font-family:var(--mono);font-size:9px;">EXP ${fmtd(expiry)}</span>`;
+      }
+      return `<span style="color:var(--green2);font-family:var(--mono);font-size:9px;">VALID${expiry?' · '+fmtd(expiry):''}</span>`;
+    };
+
+    body.innerHTML = `
+      <div class="cpf"><div class="cpf-lbl">Email</div><div class="cpf-val">${p.email?`<a href="mailto:${p.email}">${p.email}</a>`:'—'}</div></div>
+      <div class="cpf"><div class="cpf-lbl">Phone</div><div class="cpf-val">${p.phone?`<a href="tel:${p.phone}">${p.phone}</a>`:'—'}</div></div>
+      <div class="cpf"><div class="cpf-lbl">PSW Code</div><div class="cpf-val" style="font-family:var(--mono);">${rec.psw_code||p.psw_code||'—'}</div></div>
+      <div class="cpf"><div class="cpf-lbl">Status</div><div class="cpf-val"><span class="badge b-${p.status||'active'}">${p.status||'active'}</span></div></div>
+      <div class="cpf"><div class="cpf-lbl">Availability</div><div class="cpf-val">${rec.availability_days||'Not set'} · ${rec.availability_shifts||''}</div></div>
+
+      <div style="margin:16px 0 10px;font-family:var(--mono);font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--teal2);">Documents</div>
+      <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:16px;">
+        <div style="display:flex;justify-content:space-between;padding:8px 12px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;">
+          <div style="font-size:12px;color:var(--text);">PSW Certificate</div>${docSt(rec.psw_cert_url,rec.psw_cert_expiry)}
+        </div>
+        <div style="display:flex;justify-content:space-between;padding:8px 12px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;">
+          <div style="font-size:12px;color:var(--text);">Police Check</div>${docSt(rec.police_check_url,rec.police_check_expiry)}
+        </div>
+        <div style="display:flex;justify-content:space-between;padding:8px 12px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;">
+          <div style="font-size:12px;color:var(--text);">CPR Certification</div>${docSt(rec.cpr_cert_url,rec.cpr_cert_expiry)}
+        </div>
+        <div style="display:flex;justify-content:space-between;padding:8px 12px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;">
+          <div style="font-size:12px;color:var(--text);">First Aid</div>${docSt(rec.first_aid_url,rec.first_aid_expiry)}
+        </div>
+      </div>
+
+      <div style="margin-bottom:10px;font-family:var(--mono);font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--teal2);">Assigned Clients</div>
+      ${assignedClients.length
+        ? assignedClients.map(c => `<div style="padding:8px 12px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;margin-bottom:4px;font-size:12px;color:var(--text);">${c.first_name||''} ${c.last_name||''}</div>`).join('')
+        : '<div style="font-size:12px;color:var(--muted);margin-bottom:12px;">No clients assigned</div>'
+      }
+
+      <div style="margin:16px 0 8px;display:flex;gap:8px;">
+        <button class="sbtn" style="flex:1;" onclick="openPSWMsg('${name}');closeSheet('psw-detail-sheet');">Message ${name.split(' ')[0]}</button>
+      </div>`;
+  } catch {
+    body.innerHTML = '<div class="empty-state">Could not load profile</div>';
+  }
+}
+
+// ── EXPANDED CLIENT DETAIL ──
+// Override existing openClientDetail with full profile version
+function openClientDetail(id) {
+  const c = (D.clients||[]).find(x=>x.id===id); if(!c) return;
+  const name = `${c.first_name||''} ${c.last_name||''}`.trim();
+  const slug = c.portal_slug || '';
+  document.getElementById('client-sheet-title').textContent = name;
+  document.getElementById('client-sheet-body').innerHTML = `
+    <div class="cpf"><div class="cpf-lbl">Family</div><div class="cpf-val">${c.family_contact_name||'—'} · ${c.family_email?`<a href="mailto:${c.family_email}">${c.family_email}</a>`:'no email'}</div></div>
+    <div class="cpf"><div class="cpf-lbl">Portal</div><div class="cpf-val" style="font-family:var(--mono);">${slug||'—'} · PIN ${c.portal_pin||'—'}</div></div>
+    <div class="cpf"><div class="cpf-lbl">Assigned PSW</div><div class="cpf-val">${c.assigned_psw||'Unassigned'}</div></div>
+    <div class="cpf"><div class="cpf-lbl">Rates</div><div class="cpf-val">Client $${c.client_rate||22}/hr · PSW $${c.psw_rate||19}/hr · Margin $${(c.client_rate||22)-(c.psw_rate||19)}/hr</div></div>
+    <div class="cpf"><div class="cpf-lbl">Start Date</div><div class="cpf-val">${c.start_date?fmtd(c.start_date):'Not set'}</div></div>
+
+    <div style="margin:16px 0 10px;font-family:var(--mono);font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--teal2);">Care Profile</div>
+    <div class="cpf"><div class="cpf-lbl">Care Type</div><div class="cpf-val">${c.care_type||'—'}</div></div>
+    <div class="cpf"><div class="cpf-lbl">Mobility</div><div class="cpf-val">${c.mobility_level||'—'}</div></div>
+    <div class="cpf"><div class="cpf-lbl">Cognitive</div><div class="cpf-val">${c.cognitive_status||'—'}</div></div>
+    <div class="cpf"><div class="cpf-lbl">Medications</div><div class="cpf-val">${c.medications||'—'}</div></div>
+    ${c.emergency_contact_1_name?`<div class="cpf"><div class="cpf-lbl">Emergency 1</div><div class="cpf-val">${c.emergency_contact_1_name} · ${c.emergency_contact_1_relation||''} · <a href="tel:${c.emergency_contact_1_phone||''}">${c.emergency_contact_1_phone||'—'}</a></div></div>`:''}
+    ${c.emergency_contact_2_name?`<div class="cpf"><div class="cpf-lbl">Emergency 2</div><div class="cpf-val">${c.emergency_contact_2_name} · ${c.emergency_contact_2_relation||''} · <a href="tel:${c.emergency_contact_2_phone||''}">${c.emergency_contact_2_phone||'—'}</a></div></div>`:''}
+
+    ${c.care_notes?`<div style="margin:12px 0;padding:12px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;font-size:12px;color:var(--muted2);line-height:1.6;">${c.care_notes}</div>`:''}
+
+    <div style="margin:16px 0 10px;font-family:var(--mono);font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--teal2);">Care Plan</div>
+    <div class="sheet-row"><div class="slbl">Summary</div><textarea class="sinput" id="cp-summary" rows="3" style="min-height:80px;resize:none;" placeholder="Overview of care needs..."></textarea></div>
+    <div class="sheet-row"><div class="slbl">Goals</div><textarea class="sinput" id="cp-goals" rows="2" style="min-height:60px;resize:none;" placeholder="Client goals and priorities..."></textarea></div>
+    <div class="sheet-row"><div class="slbl">Daily Routine</div><textarea class="sinput" id="cp-routine" rows="3" style="min-height:80px;resize:none;" placeholder="Morning routine, meal times, sleep schedule..."></textarea></div>
+    <div class="sheet-row"><div class="slbl">Preferences</div><textarea class="sinput" id="cp-prefs" rows="2" style="min-height:60px;resize:none;" placeholder="Likes, dislikes, communication preferences..."></textarea></div>
+    <button class="sbtn" style="margin-top:4px;" onclick="saveCarePlan('${id}','${slug}','${name}')">Save Care Plan</button>
+    <button class="sbtn" style="margin-top:8px;" onclick="genInvoice('${name}','${c.family_email||c.email||''}','${c.assigned_psw||''}',${c.client_rate||22},${c.psw_rate||19});closeSheet('client-sheet');">Generate Invoice</button>
+    <button class="sbtn ghost" style="margin-top:8px;" onclick="triggerOnboardClient('${slug}');closeSheet('client-sheet');">Resend Welcome Email</button>`;
+  loadCarePlan(slug);
+  openSheet('client-sheet');
+}
+
 setInterval(()=>loadAll(false), 90000);
-</script>
+
 </body>
 </html>
