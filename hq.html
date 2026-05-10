@@ -131,9 +131,12 @@ a{color:inherit;text-decoration:none;}
 .card-act{flex:1;padding:10px 6px;text-align:center;font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--muted2);border-right:1px solid var(--border);cursor:pointer;min-height:44px;display:flex;align-items:center;justify-content:center;gap:3px;transition:background .12s,color .12s;}
 .card-act:last-child{border-right:none;}
 .card-act:active{background:var(--bg3);}
-.card-act.call:active{color:var(--teal2);}
-.card-act.ok:active{color:var(--green2);}
-.card-act.warn:active{color:var(--gold);}
+.card-act.call{color:var(--teal2);}
+.card-act.call:active{color:var(--teal3);background:rgba(61,138,122,.08);}
+.card-act.ok{color:var(--green2);}
+.card-act.ok:active{color:var(--green2);background:rgba(74,154,110,.08);}
+.card-act.warn{color:var(--amber);}
+.card-act.warn:active{color:var(--gold);background:rgba(224,154,61,.08);}
 
 /* BADGES */
 .badge{font-family:var(--mono);font-size:9px;letter-spacing:1.5px;text-transform:uppercase;padding:3px 8px;border-radius:100px;display:inline-block;}
@@ -878,8 +881,8 @@ function renderClients() {
         <span class="badge b-active">Active</span>
       </div>
       <div class="card-actions">
-        <div class="card-act warn" onclick="genInvoice('${name}','${c.email||''}','${c.assigned_psw||''}',${c.client_rate||22},${c.psw_rate||19})">Invoice</div>
-        <div class="card-act" onclick="openClientDetail('${c.id}')">Care Plan</div>
+        <div class="card-act" onclick="genInvoice('${name}','${c.email||''}','${c.assigned_psw||''}',${c.client_rate||22},${c.psw_rate||19})">Invoice</div>
+        <div class="card-act" onclick="openClientDetail('${c.id}')">View</div>
         <div class="card-act ok" onclick="triggerOnboardClient('${c.portal_slug||''}')">Welcome</div>
       </div>
     </div>`;
@@ -1700,8 +1703,8 @@ async function loadApplicants() {
         </div>
         ${a.message?`<div style="font-size:11px;color:var(--muted2);padding:0 0 8px;line-height:1.5;">"${a.message.slice(0,120)}${a.message.length>120?'...':''}"</div>`:''}
         <div style="display:flex;gap:6px;flex-wrap:wrap;padding-top:4px;">
-          ${a.phone?`<a href="tel:${a.phone}" class="card-act ok">Call</a>`:''}
-          ${a.email?`<a href="mailto:${a.email}" class="card-act ok">Email</a>`:''}
+          ${a.phone?`<a href="tel:${a.phone}" class="card-act call">Call</a>`:''}
+          ${a.email?`<a href="mailto:${a.email}" class="card-act call">Email</a>`:''}
           ${st==='applied'?`<button class="card-act ok" onclick="qualifyApplicant('${a.id}')">Qualify →</button>`:''}
           ${st==='qualified'?`<button class="card-act ok" onclick="initiateOnboarding('${a.id}','${a.email||''}')">Send Onboarding Link →</button>`:''}
           ${st==='documents_complete'?`<button class="card-act ok" onclick="activateApplicantAsStaff('${a.id}','${name}','${a.email||''}','${a.phone||''}')">Activate as PSW →</button>`:''}
