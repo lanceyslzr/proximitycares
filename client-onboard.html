@@ -1,0 +1,1352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>Care Intake — Proximity Care Services</title>
+
+<!-- Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Jost:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<!-- Lenis smooth scroll -->
+<script src="https://unpkg.com/lenis@1.1.14/dist/lenis.min.js"></script>
+
+<style>
+/* ── CSS RESET + BASE ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html { scroll-behavior: auto; font-size: 16px; }
+body { font-family: 'Jost', sans-serif; background: #faf8f4; color: #1a1a1a; min-height: 100vh; overflow-x: hidden; }
+
+/* ── CSS VARIABLES ── */
+:root {
+  --cream: #faf8f4;
+  --cream-2: #f2ede4;
+  --navy: #1B3A6B;
+  --navy-light: #2a4f8a;
+  --gold: #b87010;
+  --gold-light: #d4921e;
+  --text: #1a1a1a;
+  --text-soft: #4a4a4a;
+  --text-muted: #888;
+  --border: #e0d8cc;
+  --border-focus: #1B3A6B;
+  --success: #1e6b4a;
+  --error: #b03030;
+  --white: #ffffff;
+  --shadow: 0 2px 20px rgba(27,58,107,0.10);
+  --shadow-card: 0 4px 32px rgba(27,58,107,0.12);
+  --radius: 4px;
+  --transition: 0.25s ease;
+}
+
+/* ── CANVAS ── */
+#pc-canvas {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.35;
+}
+
+/* ── NOISE TEXTURE ── */
+.noise-overlay {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0.03;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E");
+}
+
+/* ── LAYOUT ── */
+.page-wrap {
+  position: relative;
+  z-index: 2;
+  min-height: 100vh;
+  padding: 0 0 80px;
+}
+
+/* ── HEADER ── */
+.site-header {
+  padding: 28px 40px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-bottom: 1px solid var(--border);
+  background: rgba(250,248,244,0.85);
+  backdrop-filter: blur(8px);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+.logo-mark {
+  width: 36px; height: 36px;
+  background: var(--navy);
+  border-radius: 2px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.logo-mark svg { width: 20px; height: 20px; }
+.logo-text { font-family: 'Cormorant Garamond', serif; font-size: 18px; font-weight: 500; color: var(--navy); letter-spacing: 0.02em; }
+.logo-sub { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--text-muted); letter-spacing: 0.12em; text-transform: uppercase; margin-top: 1px; }
+
+/* ── HERO ── */
+.hero {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 56px 40px 40px;
+  text-align: center;
+}
+.hero-eyebrow {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 16px;
+  opacity: 0;
+  animation: fadeUp 0.7s ease forwards 0.1s;
+}
+.hero-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(2rem, 5vw, 3rem);
+  font-weight: 400;
+  color: var(--navy);
+  line-height: 1.15;
+  margin-bottom: 20px;
+  opacity: 0;
+  animation: fadeUp 0.7s ease forwards 0.2s;
+}
+.hero-sub {
+  font-family: 'Jost', sans-serif;
+  font-size: 16px;
+  font-weight: 300;
+  color: var(--text-soft);
+  line-height: 1.75;
+  max-width: 480px;
+  margin: 0 auto 32px;
+  opacity: 0;
+  animation: fadeUp 0.7s ease forwards 0.3s;
+}
+
+/* ── PROGRESS BAR ── */
+.progress-wrap {
+  max-width: 680px;
+  margin: 0 auto 40px;
+  padding: 0 40px;
+  opacity: 0;
+  animation: fadeUp 0.7s ease forwards 0.4s;
+}
+.progress-steps {
+  display: flex;
+  align-items: center;
+  gap: 0;
+}
+.progress-step {
+  flex: 1;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+.progress-step::before {
+  content: '';
+  position: absolute;
+  top: 14px;
+  left: calc(-50% + 14px);
+  right: calc(50% + 14px);
+  height: 1px;
+  background: var(--border);
+  transition: background var(--transition);
+}
+.progress-step:first-child::before { display: none; }
+.step-dot {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  border: 2px solid var(--border);
+  background: var(--cream);
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  color: var(--text-muted);
+  transition: all var(--transition);
+  position: relative;
+  z-index: 1;
+}
+.step-label {
+  font-family: 'Jost', sans-serif;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-muted);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  text-align: center;
+  transition: color var(--transition);
+}
+.progress-step.active .step-dot {
+  border-color: var(--navy);
+  background: var(--navy);
+  color: #fff;
+}
+.progress-step.active .step-label { color: var(--navy); }
+.progress-step.done .step-dot {
+  border-color: var(--success);
+  background: var(--success);
+  color: #fff;
+}
+.progress-step.done::before { background: var(--success); }
+.progress-step.done + .progress-step::before { background: var(--success); }
+
+/* ── FORM CARD ── */
+.form-card {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 0 40px;
+}
+.step-panel {
+  display: none;
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+  opacity: 0;
+  transform: translateY(12px);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+.step-panel.active {
+  display: block;
+  opacity: 1;
+  transform: translateY(0);
+}
+.panel-header {
+  padding: 28px 36px 24px;
+  border-bottom: 1px solid var(--border);
+  background: var(--cream-2);
+}
+.panel-num {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 6px;
+}
+.panel-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.6rem;
+  font-weight: 500;
+  color: var(--navy);
+}
+.panel-body { padding: 32px 36px 28px; }
+
+/* ── FORM FIELDS ── */
+.field-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+.field-row.single { grid-template-columns: 1fr; }
+.field-row.triple { grid-template-columns: 1fr 1fr 1fr; }
+.field-group { display: flex; flex-direction: column; gap: 6px; }
+.field-label {
+  font-family: 'Jost', sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-soft);
+}
+.field-label .req { color: var(--gold); margin-left: 2px; }
+.field-hint {
+  font-family: 'Jost', sans-serif;
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: -2px;
+}
+input[type="text"],
+input[type="email"],
+input[type="tel"],
+input[type="date"],
+select,
+textarea {
+  font-family: 'Jost', sans-serif;
+  font-size: 16px;
+  color: var(--text);
+  background: var(--cream);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px 14px;
+  width: 100%;
+  outline: none;
+  transition: border-color var(--transition), box-shadow var(--transition);
+  appearance: none;
+  -webkit-appearance: none;
+  min-height: 44px;
+}
+input:focus, select:focus, textarea:focus {
+  border-color: var(--border-focus);
+  box-shadow: 0 0 0 3px rgba(27,58,107,0.08);
+  background: var(--white);
+}
+select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' fill='none'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23888' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  padding-right: 36px;
+  cursor: pointer;
+}
+textarea { min-height: 88px; resize: vertical; line-height: 1.6; }
+
+/* ── SECTION DIVIDER ── */
+.section-divider {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 20px;
+  margin-top: 8px;
+}
+
+/* ── AGREEMENT BLOCK ── */
+.agreement-box {
+  background: var(--cream-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+  margin-bottom: 24px;
+  max-height: 260px;
+  overflow-y: auto;
+  font-family: 'Jost', sans-serif;
+  font-size: 13px;
+  color: var(--text-soft);
+  line-height: 1.8;
+}
+.agreement-box h4 {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--navy);
+  margin-bottom: 12px;
+}
+.agreement-box p { margin-bottom: 10px; }
+.agreement-box p:last-child { margin-bottom: 0; }
+
+.checkbox-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.checkbox-row input[type="checkbox"] {
+  width: 20px; height: 20px;
+  min-height: 20px;
+  flex-shrink: 0;
+  margin-top: 2px;
+  accent-color: var(--navy);
+  cursor: pointer;
+  border-radius: 2px;
+}
+.checkbox-label {
+  font-family: 'Jost', sans-serif;
+  font-size: 14px;
+  color: var(--text);
+  line-height: 1.6;
+  cursor: pointer;
+}
+
+/* ── SIGNATURE FIELD ── */
+.sig-field-wrap { position: relative; }
+.sig-field-wrap input {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 22px;
+  font-style: italic;
+  color: var(--navy);
+}
+.sig-note {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  color: var(--text-muted);
+  letter-spacing: 0.08em;
+  margin-top: 4px;
+}
+
+/* ── BUTTONS ── */
+.btn-row {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  padding-top: 24px;
+  border-top: 1px solid var(--border);
+  margin-top: 8px;
+}
+.btn-back {
+  font-family: 'Jost', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-soft);
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 100px;
+  padding: 12px 24px;
+  cursor: pointer;
+  transition: all var(--transition);
+  min-height: 44px;
+  touch-action: manipulation;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+}
+.btn-back:hover { border-color: var(--navy); color: var(--navy); }
+.btn-next {
+  font-family: 'Jost', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: var(--white);
+  background: var(--navy);
+  border: none;
+  border-radius: 100px;
+  padding: 12px 32px;
+  cursor: pointer;
+  transition: all var(--transition);
+  min-height: 44px;
+  touch-action: manipulation;
+}
+.btn-next:hover { background: var(--navy-light); }
+.btn-next:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-submit {
+  font-family: 'Jost', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: var(--white);
+  background: var(--success);
+  border: none;
+  border-radius: 100px;
+  padding: 12px 36px;
+  cursor: pointer;
+  transition: all var(--transition);
+  min-height: 44px;
+  touch-action: manipulation;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.btn-submit:hover { background: #28855a; }
+.btn-submit:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* ── TOAST / ERRORS ── */
+.field-error {
+  font-family: 'Jost', sans-serif;
+  font-size: 12px;
+  color: var(--error);
+  margin-top: 4px;
+}
+.toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%) translateY(80px);
+  background: #2c2c2c;
+  color: #fff;
+  font-family: 'Jost', sans-serif;
+  font-size: 14px;
+  padding: 14px 24px;
+  border-radius: 100px;
+  z-index: 100;
+  transition: transform 0.3s ease;
+  white-space: nowrap;
+  max-width: 90vw;
+  text-align: center;
+}
+.toast.show { transform: translateX(-50%) translateY(0); }
+.toast.success { background: var(--success); }
+.toast.error { background: var(--error); }
+
+/* ── STATE SCREENS ── */
+.state-screen {
+  display: none;
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 40px 40px;
+  text-align: center;
+}
+.state-screen.active { display: block; }
+.state-icon {
+  width: 72px; height: 72px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 28px;
+  font-size: 32px;
+}
+.state-icon.loading { background: var(--cream-2); border: 1px solid var(--border); }
+.state-icon.success { background: #e8f5ee; }
+.state-icon.error { background: #fdecea; }
+.state-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 2rem;
+  color: var(--navy);
+  margin-bottom: 16px;
+  font-weight: 400;
+}
+.state-body {
+  font-family: 'Jost', sans-serif;
+  font-size: 16px;
+  color: var(--text-soft);
+  line-height: 1.75;
+  max-width: 440px;
+  margin: 0 auto 32px;
+}
+.spinner {
+  width: 28px; height: 28px;
+  border: 3px solid rgba(27,58,107,0.2);
+  border-top-color: var(--navy);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+/* ── REVEAL ── */
+.reveal {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.55s ease, transform 0.55s ease;
+}
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ── ANIMATIONS ── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ── 1024px ── */
+@media (max-width: 1024px) {
+  .hero { padding: 48px 32px 36px; }
+  .progress-wrap { padding: 0 32px; }
+  .form-card { padding: 0 32px; }
+}
+
+/* ── 768px ── */
+@media (max-width: 768px) {
+  .site-header { padding: 20px 24px; }
+  .hero { padding: 40px 24px 32px; }
+  .progress-wrap { padding: 0 24px; margin-bottom: 28px; }
+  .step-label { display: none; }
+  .form-card { padding: 0 24px; }
+  .panel-header { padding: 22px 24px 20px; }
+  .panel-body { padding: 24px 24px 20px; }
+  .field-row { grid-template-columns: 1fr; gap: 14px; }
+  .field-row.triple { grid-template-columns: 1fr; }
+  .btn-row { flex-direction: column-reverse; }
+  .btn-back, .btn-next, .btn-submit { width: 100%; justify-content: center; text-align: center; }
+  .page-wrap { padding-bottom: calc(60px + env(safe-area-inset-bottom)); }
+}
+
+/* ── 480px ── */
+@media (max-width: 480px) {
+  .hero-title { font-size: 1.75rem; }
+  .site-header { padding: 16px 20px; }
+  .hero { padding: 32px 20px 28px; }
+  .progress-wrap { padding: 0 20px; }
+  .form-card { padding: 0 16px; }
+  .panel-header { padding: 18px 20px 16px; }
+  .panel-body { padding: 20px 20px 18px; }
+}
+
+/* ── hover:none (touch devices) ── */
+@media (hover: none) {
+  * { cursor: default !important; }
+  .btn-back:hover, .btn-next:hover, .btn-submit:hover { background: unset; }
+  .btn-back:hover { border-color: var(--border); color: var(--text-soft); }
+  .btn-next:hover { background: var(--navy); }
+  .btn-submit:hover { background: var(--success); }
+}
+</style>
+</head>
+<body>
+
+<!-- Particle canvas -->
+<canvas id="pc-canvas"></canvas>
+
+<!-- Noise overlay -->
+<div class="noise-overlay"></div>
+
+<!-- Loading state -->
+<div id="screen-loading" class="state-screen active">
+  <div class="state-icon loading">
+    <div class="spinner"></div>
+  </div>
+  <h2 class="state-title" style="font-size:1.4rem;margin-bottom:12px;">Verifying your link</h2>
+  <p class="state-body" style="font-size:14px;margin-bottom:0;">One moment while we load your intake form.</p>
+</div>
+
+<!-- Invalid token state -->
+<div id="screen-invalid" class="state-screen">
+  <div class="state-icon error">⚠️</div>
+  <h2 class="state-title">Link expired</h2>
+  <p class="state-body">This intake link has expired or has already been used. Please contact us to receive a new link.</p>
+  <p style="font-family:'DM Mono',monospace;font-size:13px;color:var(--navy);">647-382-8047 · hello@proximitycares.ca</p>
+</div>
+
+<!-- Success state -->
+<div id="screen-success" class="state-screen">
+  <div class="state-icon success">✓</div>
+  <h2 class="state-title">Intake complete</h2>
+  <p class="state-body" id="success-msg">Your care intake has been submitted. Our team will review and be in touch within 24 hours to confirm the care schedule. You will receive an email shortly with your family portal access.</p>
+  <div style="margin-top:16px;">
+    <p style="font-family:'DM Mono',monospace;font-size:12px;color:var(--text-muted);letter-spacing:0.08em;">QUESTIONS? CALL US</p>
+    <p style="font-family:'Cormorant Garamond',serif;font-size:1.3rem;color:var(--navy);margin-top:4px;">647-382-8047</p>
+  </div>
+</div>
+
+<!-- Main form page -->
+<div id="page-main" class="page-wrap" style="display:none;">
+
+  <header class="site-header">
+    <div class="logo-mark">
+      <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M10 2C10 2 4 5.5 4 11C4 14.3 6.7 17 10 17C13.3 17 16 14.3 16 11C16 5.5 10 2 10 2Z" fill="white" opacity="0.9"/>
+        <circle cx="10" cy="11" r="2.5" fill="#1B3A6B"/>
+      </svg>
+    </div>
+    <div>
+      <div class="logo-text" id="header-agency">Proximity Care Services</div>
+      <div class="logo-sub">Care Intake</div>
+    </div>
+  </header>
+
+  <div class="hero">
+    <p class="hero-eyebrow">Step-by-step</p>
+    <h1 class="hero-title">Care Intake Form</h1>
+    <p class="hero-sub">This form takes about 5 minutes. Tell us about the person receiving care, their needs, emergency contacts, and review the care agreement.</p>
+  </div>
+
+  <!-- Progress steps -->
+  <div class="progress-wrap">
+    <div class="progress-steps">
+      <div class="progress-step active" id="prog-1">
+        <div class="step-dot">1</div>
+        <div class="step-label">Client Info</div>
+      </div>
+      <div class="progress-step" id="prog-2">
+        <div class="step-dot">2</div>
+        <div class="step-label">Care Needs</div>
+      </div>
+      <div class="progress-step" id="prog-3">
+        <div class="step-dot">3</div>
+        <div class="step-label">Contacts</div>
+      </div>
+      <div class="progress-step" id="prog-4">
+        <div class="step-dot">4</div>
+        <div class="step-label">Agreement</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Form panels -->
+  <div class="form-card">
+
+    <!-- STEP 1 — Client Information -->
+    <div class="step-panel active" id="step-1">
+      <div class="panel-header">
+        <div class="panel-num">Step 01 of 04</div>
+        <h2 class="panel-title">Client Information</h2>
+      </div>
+      <div class="panel-body">
+
+        <div class="field-row">
+          <div class="field-group">
+            <label class="field-label">First name <span class="req">*</span></label>
+            <input type="text" id="f-first-name" placeholder="Margaret" autocomplete="given-name">
+          </div>
+          <div class="field-group">
+            <label class="field-label">Last name <span class="req">*</span></label>
+            <input type="text" id="f-last-name" placeholder="Williams" autocomplete="family-name">
+          </div>
+        </div>
+
+        <div class="field-row">
+          <div class="field-group">
+            <label class="field-label">Date of birth</label>
+            <input type="date" id="f-dob">
+          </div>
+          <div class="field-group">
+            <label class="field-label">Preferred language</label>
+            <select id="f-language">
+              <option value="">Select language</option>
+              <option value="English">English</option>
+              <option value="French">French</option>
+              <option value="Punjabi">Punjabi</option>
+              <option value="Hindi">Hindi</option>
+              <option value="Urdu">Urdu</option>
+              <option value="Mandarin">Mandarin</option>
+              <option value="Cantonese">Cantonese</option>
+              <option value="Tagalog">Tagalog</option>
+              <option value="Spanish">Spanish</option>
+              <option value="Portuguese">Portuguese</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="field-row single">
+          <div class="field-group">
+            <label class="field-label">Home address</label>
+            <input type="text" id="f-address" placeholder="123 Maple Street" autocomplete="street-address">
+          </div>
+        </div>
+
+        <div class="field-row triple">
+          <div class="field-group">
+            <label class="field-label">City</label>
+            <input type="text" id="f-city" placeholder="Mississauga" autocomplete="address-level2">
+          </div>
+          <div class="field-group">
+            <label class="field-label">Province</label>
+            <select id="f-province">
+              <option value="ON">Ontario</option>
+              <option value="BC">British Columbia</option>
+              <option value="AB">Alberta</option>
+              <option value="QB">Quebec</option>
+              <option value="MB">Manitoba</option>
+              <option value="SK">Saskatchewan</option>
+              <option value="NS">Nova Scotia</option>
+              <option value="NB">New Brunswick</option>
+              <option value="NL">Newfoundland</option>
+              <option value="PE">PEI</option>
+            </select>
+          </div>
+          <div class="field-group">
+            <label class="field-label">Postal code</label>
+            <input type="text" id="f-postal" placeholder="L5B 2T4" maxlength="7" autocomplete="postal-code">
+          </div>
+        </div>
+
+        <div class="section-divider">Your contact information</div>
+
+        <div class="field-row">
+          <div class="field-group">
+            <label class="field-label">Your full name <span class="req">*</span></label>
+            <input type="text" id="f-family-name" placeholder="John Williams" autocomplete="name">
+          </div>
+          <div class="field-group">
+            <label class="field-label">Your relationship to client</label>
+            <select id="f-relation">
+              <option value="">Select</option>
+              <option value="Son">Son</option>
+              <option value="Daughter">Daughter</option>
+              <option value="Spouse">Spouse</option>
+              <option value="Sibling">Sibling</option>
+              <option value="Friend">Friend</option>
+              <option value="Power of Attorney">Power of Attorney</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="field-row">
+          <div class="field-group">
+            <label class="field-label">Your email <span class="req">*</span></label>
+            <input type="email" id="f-family-email" placeholder="john@email.com" autocomplete="email">
+          </div>
+          <div class="field-group">
+            <label class="field-label">Your phone</label>
+            <input type="tel" id="f-family-phone" placeholder="416-555-0100" autocomplete="tel">
+          </div>
+        </div>
+
+        <div class="btn-row">
+          <button class="btn-next" onclick="goNext(1)">Care Needs →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 2 — Care Needs -->
+    <div class="step-panel" id="step-2">
+      <div class="panel-header">
+        <div class="panel-num">Step 02 of 04</div>
+        <h2 class="panel-title">Care Needs</h2>
+      </div>
+      <div class="panel-body">
+
+        <div class="field-row">
+          <div class="field-group">
+            <label class="field-label">Type of care needed <span class="req">*</span></label>
+            <select id="f-care-type">
+              <option value="">Select care type</option>
+              <option value="Personal Care">Personal Care (bathing, grooming, dressing)</option>
+              <option value="Companionship">Companionship and supervision</option>
+              <option value="Meal Preparation">Meal preparation</option>
+              <option value="Light Housekeeping">Light housekeeping</option>
+              <option value="Medication Reminders">Medication reminders</option>
+              <option value="Mobility Assistance">Mobility assistance</option>
+              <option value="Post-Surgery Recovery">Post-surgery recovery</option>
+              <option value="Dementia Care">Dementia / Alzheimer's care</option>
+              <option value="Palliative Care">Palliative care</option>
+              <option value="Combination">Combination of the above</option>
+            </select>
+          </div>
+          <div class="field-group">
+            <label class="field-label">Hours per week (approx.)</label>
+            <select id="f-hours">
+              <option value="">Select</option>
+              <option value="Under 10 hours">Under 10 hours</option>
+              <option value="10-20 hours">10–20 hours</option>
+              <option value="20-30 hours">20–30 hours</option>
+              <option value="30-40 hours">30–40 hours</option>
+              <option value="40+ hours">40+ hours (live-in)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="field-row">
+          <div class="field-group">
+            <label class="field-label">Mobility level</label>
+            <select id="f-mobility">
+              <option value="">Select</option>
+              <option value="Independent">Independent</option>
+              <option value="Uses walking aid">Uses walking aid (cane / walker)</option>
+              <option value="Wheelchair">Wheelchair user</option>
+              <option value="Bed-bound">Bed-bound / limited mobility</option>
+              <option value="Requires full assist">Requires full physical assistance</option>
+            </select>
+          </div>
+          <div class="field-group">
+            <label class="field-label">Cognitive status</label>
+            <select id="f-cognitive">
+              <option value="">Select</option>
+              <option value="Alert and oriented">Alert and oriented</option>
+              <option value="Mild memory challenges">Mild memory challenges</option>
+              <option value="Moderate dementia">Moderate dementia / confusion</option>
+              <option value="Severe cognitive impairment">Severe cognitive impairment</option>
+              <option value="Other">Other (explain in notes below)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="field-row single">
+          <div class="field-group">
+            <label class="field-label">Current medications</label>
+            <div class="field-hint">List medications by name if known. We do not administer medications but PSWs need to be aware.</div>
+            <textarea id="f-medications" placeholder="e.g. Metformin 500mg twice daily, Lisinopril 10mg morning"></textarea>
+          </div>
+        </div>
+
+        <div class="section-divider">Physician information</div>
+
+        <div class="field-row">
+          <div class="field-group">
+            <label class="field-label">Family physician</label>
+            <input type="text" id="f-physician-name" placeholder="Dr. Sarah Ahmed">
+          </div>
+          <div class="field-group">
+            <label class="field-label">Physician phone</label>
+            <input type="tel" id="f-physician-phone" placeholder="905-555-0200">
+          </div>
+        </div>
+
+        <div class="field-row single">
+          <div class="field-group">
+            <label class="field-label">Special instructions or additional notes</label>
+            <div class="field-hint">Allergies, behavioural notes, cultural preferences, anything else your PSW should know.</div>
+            <textarea id="f-care-notes" placeholder="e.g. Allergic to penicillin. Prefers female caregiver. Muslim dietary requirements."></textarea>
+          </div>
+        </div>
+
+        <div class="btn-row">
+          <button class="btn-back" onclick="goBack(2)">← Back</button>
+          <button class="btn-next" onclick="goNext(2)">Emergency Contacts →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 3 — Emergency Contacts -->
+    <div class="step-panel" id="step-3">
+      <div class="panel-header">
+        <div class="panel-num">Step 03 of 04</div>
+        <h2 class="panel-title">Emergency Contacts</h2>
+      </div>
+      <div class="panel-body">
+
+        <div class="section-divider">Primary emergency contact</div>
+
+        <div class="field-row triple">
+          <div class="field-group">
+            <label class="field-label">Full name <span class="req">*</span></label>
+            <input type="text" id="f-ec1-name" placeholder="Sarah Williams">
+          </div>
+          <div class="field-group">
+            <label class="field-label">Relationship</label>
+            <input type="text" id="f-ec1-relation" placeholder="Daughter">
+          </div>
+          <div class="field-group">
+            <label class="field-label">Phone <span class="req">*</span></label>
+            <input type="tel" id="f-ec1-phone" placeholder="416-555-0101">
+          </div>
+        </div>
+
+        <div class="section-divider" style="margin-top:24px;">Secondary emergency contact (optional)</div>
+
+        <div class="field-row triple">
+          <div class="field-group">
+            <label class="field-label">Full name</label>
+            <input type="text" id="f-ec2-name" placeholder="Michael Williams">
+          </div>
+          <div class="field-group">
+            <label class="field-label">Relationship</label>
+            <input type="text" id="f-ec2-relation" placeholder="Son">
+          </div>
+          <div class="field-group">
+            <label class="field-label">Phone</label>
+            <input type="tel" id="f-ec2-phone" placeholder="905-555-0102">
+          </div>
+        </div>
+
+        <div class="section-divider" style="margin-top:24px;">Care start date</div>
+
+        <div class="field-row">
+          <div class="field-group">
+            <label class="field-label">Preferred care start date</label>
+            <div class="field-hint">We will confirm availability when we review your intake.</div>
+            <input type="date" id="f-start-date">
+          </div>
+          <div class="field-group">
+            <label class="field-label">Schedule preference</label>
+            <select id="f-schedule">
+              <option value="">Select</option>
+              <option value="Weekdays only">Weekdays only</option>
+              <option value="Weekends only">Weekends only</option>
+              <option value="Weekdays and weekends">Weekdays and weekends</option>
+              <option value="Mornings">Mornings preferred</option>
+              <option value="Afternoons">Afternoons preferred</option>
+              <option value="Evenings">Evenings preferred</option>
+              <option value="Overnight">Overnight</option>
+              <option value="Flexible">Flexible</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="btn-row">
+          <button class="btn-back" onclick="goBack(3)">← Back</button>
+          <button class="btn-next" onclick="goNext(3)">Care Agreement →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 4 — Care Agreement -->
+    <div class="step-panel" id="step-4">
+      <div class="panel-header">
+        <div class="panel-num">Step 04 of 04</div>
+        <h2 class="panel-title">Care Agreement</h2>
+      </div>
+      <div class="panel-body">
+
+        <div class="agreement-box">
+          <h4>Service Agreement — Proximity Care Services Inc.</h4>
+          <p>This agreement is between Proximity Care Services Inc. ("the Agency"), a private home care agency operating in the Peel Region of Ontario, and the undersigned family representative ("the Client Family") on behalf of the care recipient named in this intake form.</p>
+
+          <p><strong>1. Services.</strong> Proximity Care Services Inc. agrees to provide personal support worker (PSW) services as described in the care plan established during the intake process. Services may include personal care, meal preparation, companionship, light housekeeping, mobility assistance, and medication reminders (reminders only — PSWs do not administer medications).</p>
+
+          <p><strong>2. Rates and Billing.</strong> Services are billed at the hourly rate agreed upon at the time of scheduling. Invoices are issued monthly and are due within 14 days of issue. A late payment fee of 1.5% per month may apply to overdue balances. Rates are subject to change with 30 days written notice.</p>
+
+          <p><strong>3. Scheduling.</strong> The Agency will make reasonable efforts to provide consistent PSW coverage. In cases of PSW illness, emergency, or unavailability, the Agency will arrange alternate coverage where possible. The Client Family agrees to provide at least 24 hours notice to cancel or reschedule a visit. Cancellations with less than 24 hours notice may be charged at 50% of the scheduled visit rate.</p>
+
+          <p><strong>4. PSW Conduct.</strong> All Proximity Care PSWs have undergone a criminal background check, hold a valid PSW certificate, and maintain current CPR and First Aid certification. PSWs are employed by the Agency and are not independent contractors. The Client Family agrees not to directly hire any Proximity Care PSW for a period of 12 months following the end of services.</p>
+
+          <p><strong>5. Termination.</strong> Either party may terminate this agreement with 7 days written notice. The Agency reserves the right to terminate services immediately in cases of unsafe working conditions, abuse, or failure to pay outstanding invoices.</p>
+
+          <p><strong>6. Confidentiality and Privacy.</strong> All client and family information collected during intake and throughout service delivery is kept confidential and handled in accordance with Ontario's Personal Health Information Protection Act (PHIPA). Information is not shared with third parties except as required by law or with the explicit consent of the Client Family.</p>
+
+          <p><strong>7. Liability.</strong> Proximity Care Services Inc. carries general liability insurance. The Agency is not responsible for pre-existing medical conditions or accidents resulting from the care recipient's own actions. The Client Family agrees to disclose all known medical conditions, medications, and risks prior to service commencement.</p>
+
+          <p><strong>8. Governing Law.</strong> This agreement is governed by the laws of the Province of Ontario.</p>
+
+          <p>By submitting this intake form with the e-signature below, the Client Family acknowledges that they have read, understood, and agree to the terms of this Service Agreement.</p>
+        </div>
+
+        <div class="checkbox-row">
+          <input type="checkbox" id="f-agree" onchange="toggleSubmit()">
+          <label class="checkbox-label" for="f-agree">I have read and agree to the Proximity Care Services Inc. Service Agreement on behalf of the care recipient named in this intake form.</label>
+        </div>
+
+        <div class="section-divider">Electronic signature</div>
+
+        <div class="field-row single">
+          <div class="field-group">
+            <label class="field-label">Your full name (acts as your e-signature) <span class="req">*</span></label>
+            <div class="sig-field-wrap">
+              <input type="text" id="f-signature" placeholder="Sign with your full name" autocomplete="name">
+            </div>
+            <div class="sig-note">By typing your name above you are providing a legally binding electronic signature.</div>
+          </div>
+        </div>
+
+        <div class="btn-row">
+          <button class="btn-back" onclick="goBack(4)">← Back</button>
+          <button class="btn-submit" id="btn-submit" onclick="submitForm()" disabled>
+            <span>Submit Care Intake</span>
+            <span>→</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /form-card -->
+</div><!-- /page-main -->
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ── CONFIG ──
+const RAILWAY = 'https://proximity-agent-production.up.railway.app';
+
+// ── STATE ──
+let currentStep = 1;
+let tokenData = null;
+let tokenParam = '';
+
+// ── INIT ──
+document.addEventListener('DOMContentLoaded', async () => {
+  initCanvas();
+  initLenis();
+  initReveal();
+  await validateToken();
+});
+
+// ── TOKEN VALIDATION ──
+async function validateToken() {
+  const params = new URLSearchParams(window.location.search);
+  tokenParam = params.get('token') || '';
+
+  if (!tokenParam) {
+    showScreen('invalid');
+    return;
+  }
+
+  try {
+    const res = await fetch(`${RAILWAY}/client/onboard/${tokenParam}`);
+    const data = await res.json();
+
+    if (!res.ok || !data.success) {
+      showScreen('invalid');
+      return;
+    }
+
+    tokenData = data;
+
+    // Pre-fill family email if passed in token
+    if (data.family_email) {
+      const emailField = document.getElementById('f-family-email');
+      if (emailField) emailField.value = data.family_email;
+    }
+    if (data.family_name) {
+      const nameField = document.getElementById('f-family-name');
+      if (nameField) nameField.value = data.family_name;
+    }
+    if (data.client_name) {
+      const parts = data.client_name.trim().split(/\s+/);
+      const fn = document.getElementById('f-first-name');
+      const ln = document.getElementById('f-last-name');
+      if (fn && parts[0]) fn.value = parts[0];
+      if (ln && parts[1]) ln.value = parts.slice(1).join(' ');
+    }
+
+    // Update header agency name
+    const headerAgency = document.getElementById('header-agency');
+    if (headerAgency && data.agency_name) headerAgency.textContent = data.agency_name;
+
+    showScreen('main');
+  } catch (err) {
+    console.error('Token validation error:', err);
+    showScreen('invalid');
+  }
+}
+
+function showScreen(which) {
+  document.getElementById('screen-loading').classList.remove('active');
+  document.getElementById('screen-invalid').classList.remove('active');
+  document.getElementById('screen-success').classList.remove('active');
+  document.getElementById('page-main').style.display = 'none';
+
+  if (which === 'main') {
+    document.getElementById('page-main').style.display = 'block';
+  } else if (which === 'loading') {
+    document.getElementById('screen-loading').classList.add('active');
+  } else if (which === 'invalid') {
+    document.getElementById('screen-invalid').classList.add('active');
+  } else if (which === 'success') {
+    document.getElementById('screen-success').classList.add('active');
+  }
+}
+
+// ── STEP NAVIGATION ──
+function goNext(fromStep) {
+  if (!validateStep(fromStep)) return;
+  const toStep = fromStep + 1;
+  setStep(toStep);
+}
+
+function goBack(fromStep) {
+  setStep(fromStep - 1);
+}
+
+function setStep(n) {
+  // Hide current panel
+  const cur = document.getElementById(`step-${currentStep}`);
+  if (cur) cur.classList.remove('active');
+
+  // Update progress
+  for (let i = 1; i <= 4; i++) {
+    const prog = document.getElementById(`prog-${i}`);
+    if (!prog) continue;
+    prog.classList.remove('active', 'done');
+    if (i < n) prog.classList.add('done');
+    else if (i === n) prog.classList.add('active');
+  }
+
+  currentStep = n;
+  const next = document.getElementById(`step-${n}`);
+  if (next) {
+    next.classList.add('active');
+    // Animate in
+    requestAnimationFrame(() => {
+      next.style.opacity = '0';
+      next.style.transform = 'translateY(12px)';
+      requestAnimationFrame(() => {
+        next.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+        next.style.opacity = '1';
+        next.style.transform = 'translateY(0)';
+      });
+    });
+  }
+
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ── VALIDATION ──
+function validateStep(step) {
+  if (step === 1) {
+    const fn = v('f-first-name');
+    const ln = v('f-last-name');
+    const fe = v('f-family-email');
+    const fam = v('f-family-name');
+    if (!fn) { toast('First name is required', 'error'); focus('f-first-name'); return false; }
+    if (!ln) { toast('Last name is required', 'error'); focus('f-last-name'); return false; }
+    if (!fam) { toast('Your full name is required', 'error'); focus('f-family-name'); return false; }
+    if (!fe || !fe.includes('@')) { toast('A valid email is required', 'error'); focus('f-family-email'); return false; }
+    return true;
+  }
+  if (step === 2) {
+    const ct = v('f-care-type');
+    if (!ct) { toast('Please select a care type', 'error'); focus('f-care-type'); return false; }
+    return true;
+  }
+  if (step === 3) {
+    const ec1 = v('f-ec1-name');
+    const ec1p = v('f-ec1-phone');
+    if (!ec1) { toast('Primary emergency contact name is required', 'error'); focus('f-ec1-name'); return false; }
+    if (!ec1p) { toast('Primary emergency contact phone is required', 'error'); focus('f-ec1-phone'); return false; }
+    return true;
+  }
+  return true;
+}
+
+function v(id) { return (document.getElementById(id)?.value || '').trim(); }
+function focus(id) { document.getElementById(id)?.focus(); }
+
+// ── TOGGLE SUBMIT ──
+function toggleSubmit() {
+  const agreed = document.getElementById('f-agree').checked;
+  const sig = v('f-signature');
+  const btn = document.getElementById('btn-submit');
+  if (btn) btn.disabled = !(agreed && sig.length > 2);
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  const sigField = document.getElementById('f-signature');
+  if (sigField) sigField.addEventListener('input', toggleSubmit);
+});
+
+// ── SUBMIT ──
+async function submitForm() {
+  if (!document.getElementById('f-agree').checked) {
+    toast('Please accept the care agreement', 'error');
+    return;
+  }
+  const sig = v('f-signature');
+  if (!sig || sig.length < 3) {
+    toast('Please enter your full name as e-signature', 'error');
+    focus('f-signature');
+    return;
+  }
+
+  const btn = document.getElementById('btn-submit');
+  btn.disabled = true;
+  btn.innerHTML = '<span>Submitting...</span>';
+
+  const payload = {
+    token: tokenParam,
+    operator_id: tokenData?.operator_id || 'proximity-care',
+    first_name: v('f-first-name'),
+    last_name: v('f-last-name'),
+    date_of_birth: v('f-dob') || null,
+    address: v('f-address') || null,
+    city: v('f-city') || null,
+    postal_code: v('f-postal') || null,
+    care_type: v('f-care-type') || null,
+    mobility_level: v('f-mobility') || null,
+    cognitive_status: v('f-cognitive') || null,
+    medications: v('f-medications') || null,
+    physician_name: v('f-physician-name') || null,
+    physician_phone: v('f-physician-phone') || null,
+    emergency_contact_1_name: v('f-ec1-name') || null,
+    emergency_contact_1_phone: v('f-ec1-phone') || null,
+    emergency_contact_1_relation: v('f-ec1-relation') || null,
+    emergency_contact_2_name: v('f-ec2-name') || null,
+    emergency_contact_2_phone: v('f-ec2-phone') || null,
+    emergency_contact_2_relation: v('f-ec2-relation') || null,
+    family_name: v('f-family-name') || null,
+    family_email: v('f-family-email'),
+    family_phone: v('f-family-phone') || null,
+    care_notes: v('f-care-notes') || null,
+    agreement_accepted: true,
+    agreement_timestamp: new Date().toISOString()
+  };
+
+  try {
+    const res = await fetch(`${RAILWAY}/client/onboard/submit`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+
+    if (!res.ok) {
+      toast(data.error || 'Submission failed. Please try again.', 'error');
+      btn.disabled = false;
+      btn.innerHTML = '<span>Submit Care Intake</span><span>→</span>';
+      return;
+    }
+
+    // Success
+    const clientFirst = v('f-first-name');
+    const successMsg = document.getElementById('success-msg');
+    if (successMsg && clientFirst) {
+      successMsg.textContent = `${clientFirst}'s care intake has been submitted. Our team will review and be in touch within 24 hours to confirm the care schedule. Check your email for your family portal access PIN.`;
+    }
+    showScreen('success');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  } catch (err) {
+    console.error('Submit error:', err);
+    toast('Network error. Please check your connection and try again.', 'error');
+    btn.disabled = false;
+    btn.innerHTML = '<span>Submit Care Intake</span><span>→</span>';
+  }
+}
+
+// ── TOAST ──
+function toast(msg, type = '') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'toast' + (type ? ' ' + type : '') + ' show';
+  clearTimeout(el._t);
+  el._t = setTimeout(() => el.classList.remove('show'), 3200);
+}
+
+// ── LENIS ──
+function initLenis() {
+  const lenis = new Lenis({ lerp: 0.1, smoothWheel: true });
+  function raf(time) { lenis.raf(time); requestAnimationFrame(raf); }
+  requestAnimationFrame(raf);
+}
+
+// ── INTERSECTION OBSERVER ──
+function initReveal() {
+  const obs = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); obs.unobserve(e.target); } });
+  }, { threshold: 0.12 });
+  document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+}
+
+// ── PARTICLE CANVAS ──
+function initCanvas() {
+  const canvas = document.getElementById('pc-canvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+
+  let W = canvas.width = window.innerWidth;
+  let H = canvas.height = window.innerHeight;
+
+  const particles = [];
+  const COUNT = Math.min(40, Math.floor(W * H / 28000));
+
+  for (let i = 0; i < COUNT; i++) {
+    particles.push({
+      x: Math.random() * W,
+      y: Math.random() * H,
+      vx: (Math.random() - 0.5) * 0.3,
+      vy: (Math.random() - 0.5) * 0.3,
+      r: Math.random() * 2 + 0.5
+    });
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, W, H);
+
+    for (const p of particles) {
+      p.x += p.vx; p.y += p.vy;
+      if (p.x < 0) p.x = W; if (p.x > W) p.x = 0;
+      if (p.y < 0) p.y = H; if (p.y > H) p.y = 0;
+
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(27,58,107,0.4)';
+      ctx.fill();
+    }
+
+    for (let i = 0; i < particles.length; i++) {
+      for (let j = i + 1; j < particles.length; j++) {
+        const dx = particles[i].x - particles[j].x;
+        const dy = particles[i].y - particles[j].y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < 120) {
+          ctx.beginPath();
+          ctx.moveTo(particles[i].x, particles[i].y);
+          ctx.lineTo(particles[j].x, particles[j].y);
+          ctx.strokeStyle = `rgba(27,58,107,${(1 - dist / 120) * 0.12})`;
+          ctx.lineWidth = 0.5;
+          ctx.stroke();
+        }
+      }
+    }
+
+    requestAnimationFrame(draw);
+  }
+
+  draw();
+
+  window.addEventListener('resize', () => {
+    W = canvas.width = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+  });
+}
+</script>
+</body>
+</html>
