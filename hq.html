@@ -827,6 +827,7 @@ function renderLeads() {
         ${l.phone?`<div class="card-act" onclick="window.location.href='sms:${l.phone}'">Text</div>`:''}
         <div class="card-act warn" onclick="openStatusSheet('${l.id}')">Status</div>
         <div class="card-act ok" onclick="convertLead('${l.id}','${l.email||''}')">✓ Convert</div>
+        ${l.email?`<div class="card-act" onclick="sendIntakeLinkFromLead('${l.email}','${(l.first_name||'')+' '+(l.last_name||'')}'.trim(),'')" style="font-size:9px;min-height:34px;touch-action:manipulation;">Intake Link</div>`:''}
       </div>
     </div>`;
   }).join('');
@@ -1127,6 +1128,23 @@ async function activatePSW() {
   btn.disabled = false;
   btn.textContent = 'Activate PSW + Send Welcome Email';
   onPSWSelect();
+}
+
+async function sendIntakeLinkFromLead(email, familyName, clientName) {
+  if (!email) { showToast('No email on this lead', 'warn'); return; }
+  const operator_id = currentOp || 'proximity-care';
+  try {
+    const res = await fetch(API + '/client/onboard/init', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ operator_id, family_email: email, family_name: familyName || null, client_name: clientName || null })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed');
+    showToast('Intake link sent to ' + email, 'ok');
+  } catch (err) {
+    showToast('Error: ' + err.message, 'warn');
+  }
 }
 
 async function sendIntakeLink() {
@@ -1508,7 +1526,7 @@ function showSect(name) {
   document.querySelectorAll('.bnav-item').forEach(b=>b.classList.remove('active'));
   const s=document.getElementById('sect-'+name); if(s) s.classList.add('active');
   const tabs=document.querySelectorAll('.nav-tab');
-  const tm=['leads','clients','psws','onboard','bookings','purchases','messages','visits','activity','crm','applicants','schedule','operator'];
+  const tm=['leads','clients','psws','onboard','bookings','purchases','messages','visits','activity','schedule','crm','applicants','operator'];
   const ti=tm.indexOf(name); if(ti>=0&&tabs[ti]) tabs[ti].classList.add('active');
   const bm=['leads','clients','bookings','purchases','activity'];
   const bi=bm.indexOf(name);
