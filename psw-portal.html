@@ -21,10 +21,9 @@
   --gold:#c8a96e;--text:#e8f4ee;
   --muted:rgba(232,244,238,.35);--muted2:rgba(232,244,238,.55);--muted3:rgba(232,244,238,.75);
   --border:rgba(26,107,90,.15);--border2:rgba(26,107,90,.28);--border3:rgba(26,107,90,.45);
-  --red:#e05555;--amber:#e09a3d;
+  --red:#e05555;--amber:#e09a3d;--navy:#1B3A6B;
   --mono:'DM Mono',monospace;--body:'Poppins',sans-serif;--serif:'Lora',serif;
-  --safe-bottom:env(safe-area-inset-bottom,0px);
-  --safe-top:env(safe-area-inset-top,0px);
+  --safe-bottom:env(safe-area-inset-bottom,0px);--safe-top:env(safe-area-inset-top,0px);
 }
 html{height:100%;background:var(--bg);}
 body{font-family:var(--body);background:var(--bg);color:var(--text);min-height:100%;overflow-x:hidden;-webkit-text-size-adjust:100%;padding-bottom:calc(68px + var(--safe-bottom));}
@@ -32,7 +31,7 @@ button{font-family:var(--body);cursor:pointer;border:none;background:none;}
 input,select,textarea{font-family:var(--body);font-size:16px;}
 a{color:inherit;text-decoration:none;}
 
-/* LOCK */
+/* ── LOCK ── */
 #lock{position:fixed;inset:0;background:var(--bg);z-index:999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px;padding:0 24px;}
 .lock-title{font-family:var(--serif);font-size:28px;color:var(--text);font-weight:400;letter-spacing:.5px;text-align:center;}
 .lock-title span{color:var(--green3);}
@@ -43,19 +42,19 @@ a{color:inherit;text-decoration:none;}
 .lock-name-input{width:100%;background:var(--bg2);border:1px solid var(--border2);color:var(--text);padding:13px 16px;font-size:16px;border-radius:12px;text-align:center;}
 .lock-name-input::placeholder{color:var(--muted);}
 .lock-name-input:focus{outline:none;border-color:var(--green3);}
-.lock-next-btn{width:100%;background:linear-gradient(135deg,var(--green),var(--green2));color:#fff;padding:14px;font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;border-radius:12px;border:none;cursor:pointer;min-height:48px;}
+.lock-next-btn{width:100%;background:linear-gradient(135deg,var(--green),var(--green2));color:#fff;padding:14px;font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;border-radius:12px;border:none;cursor:pointer;min-height:48px;touch-action:manipulation;}
 .lock-dots{display:flex;gap:14px;justify-content:center;}
 .lock-dot{width:13px;height:13px;border-radius:50%;border:1px solid var(--border2);background:transparent;transition:all .15s;}
 .lock-dot.filled{background:var(--green3);border-color:var(--green3);}
 .lock-pad{display:grid;grid-template-columns:repeat(3,72px);gap:10px;justify-content:center;}
-.lock-key{width:72px;height:72px;border-radius:50%;border:1px solid var(--border2);background:var(--bg2);color:var(--text);font-size:22px;font-weight:300;display:flex;align-items:center;justify-content:center;transition:all .12s;user-select:none;}
+.lock-key{width:72px;height:72px;border-radius:50%;border:1px solid var(--border2);background:var(--bg2);color:var(--text);font-size:22px;font-weight:300;display:flex;align-items:center;justify-content:center;transition:all .12s;user-select:none;touch-action:manipulation;}
 .lock-key:active{background:var(--bg3);border-color:var(--green3);}
 .lock-key.del{font-size:14px;color:var(--muted2);}
 .lock-key.empty{background:none;border:none;pointer-events:none;}
 .lock-err{font-family:var(--mono);font-size:11px;color:var(--red);letter-spacing:1px;opacity:0;transition:opacity .3s;text-align:center;}
 .lock-err.show{opacity:1;}
 
-/* TOPBAR */
+/* ── TOPBAR ── */
 .topbar{position:sticky;top:0;z-index:100;padding:calc(var(--safe-top) + 8px) 16px 10px;background:rgba(10,26,20,.96);border-bottom:1px solid var(--border);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);}
 .topbar-inner{display:flex;align-items:center;justify-content:space-between;}
 .psw-info{display:flex;align-items:center;gap:10px;}
@@ -63,28 +62,44 @@ a{color:inherit;text-decoration:none;}
 .psw-name-top{font-size:14px;font-weight:500;color:var(--text);}
 .psw-role{font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--green3);margin-top:1px;}
 
-/* NAV TABS */
+/* ── NAV TABS ── */
 .nav-tabs{display:flex;background:var(--bg2);border-bottom:1px solid var(--border);overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
 .nav-tabs::-webkit-scrollbar{display:none;}
-.nav-tab{flex-shrink:0;padding:11px 14px;font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted2);border-bottom:2px solid transparent;cursor:pointer;white-space:nowrap;min-height:44px;display:flex;align-items:center;}
+.nav-tab{flex-shrink:0;padding:11px 14px;font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted2);border-bottom:2px solid transparent;cursor:pointer;white-space:nowrap;min-height:44px;display:flex;align-items:center;gap:5px;touch-action:manipulation;}
 .nav-tab.active{color:var(--green3);border-bottom-color:var(--green3);}
+.nav-badge{background:var(--red);color:#fff;border-radius:100px;font-size:9px;padding:1px 5px;min-width:16px;text-align:center;display:none;}
+.nav-badge.show{display:inline-block;}
 
-/* SECTIONS */
+/* ── SECTIONS ── */
 .section{display:none;padding-bottom:8px;}
 .section.active{display:block;}
 .section-header{display:flex;align-items:center;justify-content:space-between;padding:12px 14px 8px;}
 .section-title{font-family:var(--mono);font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--muted2);}
 
-/* STATS STRIP */
+/* ── STATS STRIP ── */
 .stats-strip{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);margin:0 0 12px;}
 .stat-card{background:var(--bg2);padding:14px 8px;text-align:center;}
 .stat-val{font-family:var(--mono);font-size:20px;font-weight:500;color:var(--text);line-height:1;}
 .stat-lbl{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-top:4px;}
 .stat-card.hi .stat-val{color:var(--green3);}
+.stat-card.pay .stat-val{color:var(--gold);}
 
-/* QUICK ACTIONS */
+/* ── ACTIVE VISIT BANNER ── */
+.active-banner{margin:0 14px 12px;background:linear-gradient(135deg,var(--green),var(--green2));border-radius:12px;padding:16px;display:none;}
+.active-banner.show{display:block;}
+.active-banner-label{font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.7);margin-bottom:6px;}
+.active-banner-name{font-size:15px;font-weight:600;color:#fff;margin-bottom:2px;}
+.active-banner-time{font-family:var(--mono);font-size:12px;color:rgba(255,255,255,.8);}
+.active-banner-btn{margin-top:12px;width:100%;background:rgba(0,0,0,.2);color:#fff;padding:12px;font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;border-radius:8px;border:1px solid rgba(255,255,255,.2);cursor:pointer;min-height:44px;touch-action:manipulation;}
+
+/* ── SIGN IN CARD ── */
+.signin-card{margin:0 14px 12px;background:var(--bg2);border:1px solid var(--border);border-radius:12px;overflow:hidden;}
+.signin-card-header{background:var(--bg3);padding:13px 16px;border-bottom:1px solid var(--border);font-family:var(--serif);font-size:15px;color:var(--text);}
+.signin-card-body{padding:16px;}
+
+/* ── QUICK ACTIONS ── */
 .quick-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 14px 14px;}
-.quick-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:16px 14px;cursor:pointer;transition:border-color .15s;}
+.quick-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:16px 14px;cursor:pointer;transition:border-color .15s;touch-action:manipulation;}
 .quick-card:active{border-color:var(--green3);}
 .quick-card.primary{background:linear-gradient(135deg,var(--green),var(--green2));border:none;}
 .quick-label{font-size:13px;font-weight:500;color:var(--text);margin-top:6px;}
@@ -93,13 +108,12 @@ a{color:inherit;text-decoration:none;}
 .quick-icon{font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--green3);border:1px solid var(--border2);display:inline-block;padding:3px 8px;border-radius:4px;}
 .quick-card.primary .quick-icon{color:#fff;border-color:rgba(255,255,255,.3);}
 
-/* FORM CARDS */
+/* ── FORM CARDS ── */
 .form-card{margin:0 14px 10px;background:var(--bg2);border:1px solid var(--border);border-radius:12px;overflow:hidden;}
 .form-card-header{background:var(--bg3);padding:13px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
 .form-card-title{font-family:var(--serif);font-size:15px;font-weight:400;color:var(--text);}
 .form-card-badge{font-family:var(--mono);font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--green3);border:1px solid var(--border2);border-radius:100px;padding:3px 8px;}
 .form-card-body{padding:16px;}
-.form-section-title{font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--green3);margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border);}
 .form-row{margin-bottom:12px;}
 .form-row-2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;}
 .form-label{font-family:var(--mono);font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:5px;display:block;}
@@ -109,36 +123,35 @@ a{color:inherit;text-decoration:none;}
 .form-textarea{width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:11px 13px;font-size:16px;border-radius:8px;resize:none;min-height:80px;line-height:1.5;}
 .form-textarea:focus{outline:none;border-color:var(--green3);}
 
-/* HOURS CALC */
+/* ── HOURS CALC ── */
 .hours-calc{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:12px 14px;display:flex;justify-content:space-between;align-items:center;margin-top:8px;}
 .hours-val{font-family:var(--mono);font-size:22px;font-weight:500;color:var(--green3);}
 .hours-lbl{font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);}
 .pay-line{font-family:var(--mono);font-size:11px;color:var(--gold);margin-top:3px;}
 
-/* MOOD */
+/* ── MOOD ── */
 .mood-row{display:flex;gap:6px;}
-.mood-opt{flex:1;padding:9px 4px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;text-align:center;cursor:pointer;transition:all .15s;}
+.mood-opt{flex:1;padding:9px 4px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;text-align:center;cursor:pointer;transition:all .15s;touch-action:manipulation;}
 .mood-opt.sel{border-color:var(--green3);background:rgba(26,107,90,.15);}
 .mood-emoji{font-size:18px;display:block;margin-bottom:2px;}
 .mood-lbl{font-family:var(--mono);font-size:8px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;}
 
-/* CHECKLIST */
-.cl-group{margin-bottom:16px;}
-.cl-group-title{font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--green3);margin-bottom:8px;padding-bottom:5px;border-bottom:1px solid var(--border);}
-.cl-item{display:flex;align-items:center;gap:10px;padding:9px 12px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;margin-bottom:6px;cursor:pointer;transition:all .12s;min-height:44px;}
+/* ── CHECKLIST ── */
+.cl-count{font-family:var(--mono);font-size:11px;color:var(--green3);padding:8px 14px;background:var(--bg3);border-radius:6px;margin-bottom:12px;text-align:center;}
+.cl-item{display:flex;align-items:center;gap:10px;padding:9px 12px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;margin-bottom:6px;cursor:pointer;transition:all .12s;min-height:44px;touch-action:manipulation;}
 .cl-item.done{background:rgba(26,107,90,.15);border-color:var(--green3);}
 .cl-box{width:18px;height:18px;border-radius:4px;border:1px solid var(--border2);background:transparent;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:11px;transition:all .12s;}
 .cl-item.done .cl-box{background:var(--green3);border-color:var(--green3);color:#fff;}
 .cl-label{font-size:12px;color:var(--muted3);line-height:1.3;}
 .cl-item.done .cl-label{color:var(--text);}
-.cl-count{font-family:var(--mono);font-size:11px;color:var(--green3);padding:8px 14px;background:var(--bg3);border-radius:6px;margin-bottom:12px;text-align:center;}
 
-/* SUBMIT BTN */
-.submit-btn{width:calc(100% - 28px);margin:0 14px 14px;background:linear-gradient(135deg,var(--green),var(--green2));color:#fff;padding:16px;font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;border-radius:12px;cursor:pointer;border:none;min-height:52px;transition:all .2s;}
+/* ── SUBMIT BTN ── */
+.submit-btn{width:calc(100% - 28px);margin:0 14px 14px;background:linear-gradient(135deg,var(--green),var(--green2));color:#fff;padding:16px;font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;border-radius:12px;cursor:pointer;border:none;min-height:52px;transition:all .2s;touch-action:manipulation;}
 .submit-btn:active{transform:scale(.98);}
 .submit-btn.sec{background:none;border:1px solid var(--border2);color:var(--green3);margin-top:0;}
+.submit-btn.danger{background:linear-gradient(135deg,#b03030,#c84040);}
 
-/* CARDS */
+/* ── CARDS ── */
 .card{margin:0 14px 8px;background:var(--bg2);border:1px solid var(--border);border-radius:12px;overflow:hidden;}
 .card-header{padding:13px 14px;display:flex;align-items:flex-start;justify-content:space-between;gap:8px;}
 .card-name{font-size:14px;font-weight:500;color:var(--text);}
@@ -146,17 +159,64 @@ a{color:inherit;text-decoration:none;}
 .card-meta{font-size:11px;color:var(--muted);margin-top:3px;}
 .card-right{display:flex;flex-direction:column;align-items:flex-end;gap:5px;flex-shrink:0;}
 .card-actions{display:flex;border-top:1px solid var(--border);}
-.card-act{flex:1;padding:10px 6px;text-align:center;font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--muted2);border-right:1px solid var(--border);cursor:pointer;min-height:44px;display:flex;align-items:center;justify-content:center;transition:background .12s,color .12s;}
+.card-act{flex:1;padding:10px 6px;text-align:center;font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--muted2);border-right:1px solid var(--border);cursor:pointer;min-height:44px;display:flex;align-items:center;justify-content:center;transition:background .12s,color .12s;touch-action:manipulation;}
 .card-act:last-child{border-right:none;}
 .card-act:active{background:var(--bg3);color:var(--green3);}
+.card-act.danger{color:var(--red);}
 
-/* BADGES */
+/* ── BADGES ── */
 .badge{font-family:var(--mono);font-size:9px;letter-spacing:1.5px;text-transform:uppercase;padding:3px 8px;border-radius:100px;display:inline-block;}
 .b-active{background:rgba(74,154,110,.15);color:var(--green4);border:1px solid rgba(74,154,110,.3);}
 .b-upcoming{background:rgba(200,169,110,.15);color:var(--gold);border:1px solid rgba(200,169,110,.3);}
 .b-done{background:rgba(26,107,90,.2);color:var(--green3);border:1px solid rgba(26,107,90,.3);}
+.b-inprogress{background:rgba(224,154,61,.15);color:var(--amber);border:1px solid rgba(224,154,61,.3);}
+.b-incident{background:rgba(224,85,85,.15);color:var(--red);border:1px solid rgba(224,85,85,.3);}
 
-/* MESSAGES */
+/* ── SCHEDULE GRID ── */
+.schedule-grid{margin:0 14px 12px;}
+.schedule-week-nav{display:flex;align-items:center;justify-content:space-between;padding:10px 0 12px;}
+.week-nav-btn{background:var(--bg2);border:1px solid var(--border);color:var(--text);padding:8px 14px;border-radius:8px;font-family:var(--mono);font-size:11px;letter-spacing:1px;cursor:pointer;min-height:36px;touch-action:manipulation;}
+.week-label{font-family:var(--mono);font-size:11px;color:var(--muted2);letter-spacing:1px;}
+.schedule-day{margin-bottom:8px;background:var(--bg2);border:1px solid var(--border);border-radius:10px;overflow:hidden;}
+.schedule-day-header{padding:10px 14px;background:var(--bg3);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.schedule-day-label{font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted2);}
+.schedule-day-label.today{color:var(--green3);}
+.schedule-day-empty{padding:12px 14px;font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px;}
+.schedule-shift{padding:12px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:12px;}
+.schedule-shift:last-child{border-bottom:none;}
+.shift-client{font-size:13px;font-weight:500;color:var(--text);}
+.shift-time{font-family:var(--mono);font-size:11px;color:var(--muted2);margin-top:3px;}
+.shift-status{font-family:var(--mono);font-size:9px;letter-spacing:1.5px;text-transform:uppercase;}
+.shift-status.complete{color:var(--green3);}
+.shift-status.upcoming{color:var(--gold);}
+.shift-status.inprogress{color:var(--amber);}
+
+/* ── PAY SUMMARY ── */
+.pay-period-card{margin:0 14px 10px;background:var(--bg2);border:1px solid var(--border);border-radius:12px;overflow:hidden;}
+.pay-period-header{background:var(--bg3);padding:13px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.pay-period-label{font-family:var(--mono);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted2);}
+.pay-period-current{color:var(--green3);}
+.pay-period-body{padding:16px;}
+.pay-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);}
+.pay-row:last-child{border-bottom:none;}
+.pay-row-label{font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);}
+.pay-row-value{font-family:var(--mono);font-size:14px;color:var(--text);}
+.pay-row-value.total{color:var(--gold);font-size:18px;}
+
+/* ── AVAILABILITY GRID ── */
+.avail-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-bottom:16px;}
+.avail-day{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:8px 4px;text-align:center;cursor:pointer;transition:all .15s;touch-action:manipulation;}
+.avail-day.sel{background:rgba(26,107,90,.2);border-color:var(--green3);}
+.avail-day-label{font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--muted2);}
+.avail-day.sel .avail-day-label{color:var(--green3);}
+.avail-shifts{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:16px;}
+.avail-shift{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:12px 8px;text-align:center;cursor:pointer;transition:all .15s;touch-action:manipulation;}
+.avail-shift.sel{background:rgba(26,107,90,.2);border-color:var(--green3);}
+.avail-shift-label{font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted2);}
+.avail-shift.sel .avail-shift-label{color:var(--green3);}
+.avail-shift-time{font-size:11px;color:var(--muted);margin-top:3px;}
+
+/* ── MESSAGES ── */
 .msg-thread{padding:12px 14px;display:flex;flex-direction:column;gap:10px;min-height:200px;}
 .msg-bubble{padding:10px 13px;border-radius:12px;max-width:84%;}
 .msg-lance{background:linear-gradient(135deg,var(--green),var(--green2));color:#fff;margin-left:auto;border-radius:12px 12px 3px 12px;}
@@ -166,48 +226,50 @@ a{color:inherit;text-decoration:none;}
 .msg-input-wrap{position:sticky;bottom:calc(68px + var(--safe-bottom));background:var(--bg2);border-top:1px solid var(--border);padding:10px 12px;display:flex;gap:8px;align-items:flex-end;}
 .msg-input{flex:1;background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:10px 13px;border-radius:18px;font-size:16px;resize:none;max-height:100px;}
 .msg-input:focus{outline:none;border-color:var(--green3);}
-.msg-send{width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,var(--green),var(--green3));color:#fff;font-size:15px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;border:none;font-family:var(--mono);}
-.msg-send:active{transform:scale(.95);}
+.msg-send{width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,var(--green),var(--green3));color:#fff;font-size:15px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;border:none;touch-action:manipulation;}
 
-/* DOCUMENTS */
-.upload-zone{margin:0 14px 10px;padding:24px 16px;background:var(--bg2);border:1px dashed var(--border2);border-radius:12px;text-align:center;cursor:pointer;}
-.upload-zone:active{border-color:var(--green3);}
-.upload-lbl{font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted2);}
-.upload-sub{font-size:11px;color:var(--muted);margin-top:4px;}
+/* ── DOCUMENTS ── */
 .doc-row{display:flex;align-items:center;gap:12px;padding:12px 14px;border-bottom:1px solid var(--border);}
 .doc-icon{width:32px;height:32px;border-radius:6px;background:rgba(26,107,90,.15);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:9px;color:var(--green3);flex-shrink:0;letter-spacing:1px;text-transform:uppercase;}
 .doc-info{flex:1;min-width:0;}
 .doc-name{font-size:13px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .doc-meta{font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:2px;}
+.doc-status{font-family:var(--mono);font-size:9px;padding:2px 7px;border-radius:100px;}
+.doc-status.valid{color:var(--green3);border:1px solid rgba(58,170,138,.3);}
+.doc-status.missing{color:var(--red);border:1px solid rgba(224,85,85,.3);}
+.doc-status.expiring{color:var(--amber);border:1px solid rgba(224,154,61,.3);}
 
-/* SUCCESS OVERLAY */
+/* ── SUCCESS OVERLAY ── */
 .success-overlay{position:fixed;inset:0;background:rgba(10,26,20,.95);z-index:400;display:none;flex-direction:column;align-items:center;justify-content:center;gap:20px;padding:24px;}
 .success-overlay.show{display:flex;}
 .success-check{width:64px;height:64px;border-radius:50%;background:var(--green3);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:24px;color:#fff;}
 .success-title{font-family:var(--serif);font-size:24px;color:var(--text);font-weight:400;text-align:center;}
 .success-msg{font-family:var(--mono);font-size:11px;color:var(--muted2);letter-spacing:1px;text-align:center;line-height:1.8;}
-.success-btn{background:var(--green);color:#fff;padding:14px 32px;font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;border-radius:10px;border:none;cursor:pointer;min-height:48px;}
+.success-btn{background:var(--green);color:#fff;padding:14px 32px;font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;border-radius:10px;border:none;cursor:pointer;min-height:48px;touch-action:manipulation;}
 
-/* BOTTOM NAV */
+/* ── BOTTOM NAV ── */
 .bottom-nav{position:fixed;bottom:0;left:0;right:0;z-index:200;background:rgba(10,26,20,.97);border-top:1px solid var(--border);display:flex;padding-bottom:var(--safe-bottom);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);}
-.bnav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:7px 4px;cursor:pointer;min-height:56px;gap:3px;color:var(--muted2);transition:color .2s;}
+.bnav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:7px 4px;cursor:pointer;min-height:56px;gap:3px;color:var(--muted2);transition:color .2s;touch-action:manipulation;}
 .bnav-item.active{color:var(--green3);}
-.bnav-icon{font-family:var(--mono);font-size:8px;letter-spacing:2px;text-transform:uppercase;line-height:1;padding:4px 6px;border:1px solid currentColor;border-radius:3px;margin-bottom:2px;}
+.bnav-icon{font-family:var(--mono);font-size:8px;letter-spacing:2px;text-transform:uppercase;line-height:1;padding:4px 6px;border:1px solid currentColor;border-radius:3px;margin-bottom:2px;position:relative;}
+.bnav-dot{position:absolute;top:-3px;right:-3px;width:7px;height:7px;border-radius:50%;background:var(--red);display:none;}
+.bnav-dot.show{display:block;}
 .bnav-lbl{font-family:var(--mono);font-size:8px;letter-spacing:1px;text-transform:uppercase;}
 
-/* TOAST */
+/* ── TOAST ── */
 .toast{position:fixed;bottom:calc(72px + var(--safe-bottom));left:50%;transform:translateX(-50%) translateY(16px);background:var(--bg2);border:1px solid var(--border2);color:var(--text);font-family:var(--mono);font-size:11px;letter-spacing:1px;padding:10px 18px;border-radius:100px;z-index:500;opacity:0;transition:all .3s;pointer-events:none;white-space:nowrap;max-width:90vw;overflow:hidden;text-overflow:ellipsis;}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
 .toast.ok{border-color:var(--green3);color:var(--green3);}
 .toast.err{border-color:var(--red);color:var(--red);}
 
-/* EMPTY */
+/* ── EMPTY ── */
 .empty-state{text-align:center;padding:40px 20px;font-family:var(--mono);font-size:11px;letter-spacing:1px;color:var(--muted);text-transform:uppercase;}
 
 @media(max-width:380px){
   .form-row-2{grid-template-columns:1fr;}
   .mood-row{flex-wrap:wrap;}
   .mood-opt{min-width:calc(33% - 4px);}
+  .avail-grid{grid-template-columns:repeat(4,1fr);}
 }
 </style>
 </head>
@@ -219,13 +281,11 @@ a{color:inherit;text-decoration:none;}
     <div class="lock-title">Proximity <span>Care</span></div>
     <div class="lock-sub" style="margin-top:6px;">PSW Portal</div>
   </div>
-
   <div class="lock-step active" id="lock-step-1">
     <div class="lock-label">Your name</div>
     <input class="lock-name-input" id="lock-name" placeholder="e.g. Carolina Hermida" autocomplete="name">
     <button class="lock-next-btn" onclick="goToPin()">Continue</button>
   </div>
-
   <div class="lock-step" id="lock-step-2">
     <div class="lock-label" id="lock-pin-label">Enter your PIN</div>
     <div class="lock-dots">
@@ -261,71 +321,170 @@ a{color:inherit;text-decoration:none;}
 <!-- NAV TABS -->
 <div class="nav-tabs">
   <div class="nav-tab active" onclick="showSect('home')">Home</div>
+  <div class="nav-tab" onclick="showSect('schedule')">Schedule</div>
   <div class="nav-tab" onclick="showSect('visit')">Log Visit</div>
-  <div class="nav-tab" onclick="showSect('checklist')">Checklist</div>
   <div class="nav-tab" onclick="showSect('clients')">Clients</div>
-  <div class="nav-tab" onclick="showSect('schedule')">My Visits</div>
-  <div class="nav-tab" onclick="showSect('messages')">Messages</div>
+  <div class="nav-tab" onclick="showSect('pay')">Pay</div>
+  <div class="nav-tab" onclick="showSect('messages')">Messages <span class="nav-badge" id="msg-badge">0</span></div>
   <div class="nav-tab" onclick="showSect('documents')">Documents</div>
 </div>
 
-<!-- HOME -->
+<!-- ── HOME ── -->
 <div class="section active" id="sect-home">
   <div class="stats-strip">
-    <div class="stat-card hi"><div class="stat-val" id="s-visits">0</div><div class="stat-lbl">Visits Today</div></div>
-    <div class="stat-card"><div class="stat-val" id="s-hours">0h</div><div class="stat-lbl">Hours Today</div></div>
+    <div class="stat-card hi"><div class="stat-val" id="s-visits">0</div><div class="stat-lbl">Today</div></div>
     <div class="stat-card"><div class="stat-val" id="s-month">0</div><div class="stat-lbl">This Month</div></div>
+    <div class="stat-card pay"><div class="stat-val" id="s-pay">$0</div><div class="stat-lbl">Period Pay</div></div>
   </div>
+
+  <!-- Active visit banner -->
+  <div class="active-banner" id="active-banner">
+    <div class="active-banner-label">Visit in progress</div>
+    <div class="active-banner-name" id="active-client-name">—</div>
+    <div class="active-banner-time" id="active-time-display">Started at —</div>
+    <button class="active-banner-btn" onclick="showSect('schedule')">Check Out →</button>
+  </div>
+
   <div class="section-header"><span class="section-title">Quick Actions</span></div>
   <div class="quick-grid">
-    <div class="quick-card primary" onclick="showSect('visit')">
-      <div class="quick-icon">Log</div>
-      <div class="quick-label">Log a Visit</div>
-      <div class="quick-sub">Submit today</div>
+    <div class="quick-card primary" onclick="showSect('schedule')">
+      <div class="quick-icon">SCH</div>
+      <div class="quick-label">My Schedule</div>
+      <div class="quick-sub">Sign in or out</div>
     </div>
     <div class="quick-card" onclick="showSect('messages')">
-      <div class="quick-icon">Msg</div>
+      <div class="quick-icon">MSG</div>
       <div class="quick-label">Message Lance</div>
       <div class="quick-sub">Private thread</div>
     </div>
     <div class="quick-card" onclick="showSect('clients')">
-      <div class="quick-icon">Cli</div>
+      <div class="quick-icon">CLI</div>
       <div class="quick-label">My Clients</div>
       <div class="quick-sub">Care plans</div>
     </div>
-    <div class="quick-card" onclick="showSect('documents')">
-      <div class="quick-icon">Doc</div>
-      <div class="quick-label">Documents</div>
-      <div class="quick-sub">Upload files</div>
+    <div class="quick-card" onclick="showSect('pay')">
+      <div class="quick-icon">PAY</div>
+      <div class="quick-label">My Pay</div>
+      <div class="quick-sub">Hours + earnings</div>
     </div>
+  </div>
+
+  <!-- Next shift card -->
+  <div class="section-header"><span class="section-title">Next Shift</span></div>
+  <div id="next-shift-wrap"><div class="empty-state">Loading schedule...</div></div>
+</div>
+
+<!-- ── SCHEDULE ── -->
+<div class="section" id="sect-schedule">
+  <div class="section-header">
+    <span class="section-title">My Schedule</span>
+    <div style="font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);">Swipe to see more</div>
+  </div>
+
+  <!-- Active visit checkout panel -->
+  <div id="checkout-panel" style="display:none;margin:0 14px 12px;">
+    <div style="background:rgba(224,154,61,.1);border:1px solid rgba(224,154,61,.3);border-radius:12px;padding:16px;">
+      <div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--amber);margin-bottom:8px;">Visit in progress</div>
+      <div style="font-size:15px;font-weight:600;color:var(--text);margin-bottom:4px;" id="co-client-name">—</div>
+      <div style="font-family:var(--mono);font-size:12px;color:var(--muted2);">Started: <span id="co-start-time">—</span></div>
+      <div style="font-family:var(--mono);font-size:12px;color:var(--amber);margin-top:2px;">Running: <span id="co-elapsed">—</span></div>
+    </div>
+  </div>
+
+  <!-- Week navigation -->
+  <div class="schedule-grid">
+    <div class="schedule-week-nav">
+      <button class="week-nav-btn" onclick="shiftWeek(-1)">← Prev</button>
+      <div class="week-label" id="week-label">This Week</div>
+      <button class="week-nav-btn" onclick="shiftWeek(1)">Next →</button>
+    </div>
+    <div id="schedule-days"></div>
   </div>
 </div>
 
-<!-- LOG VISIT -->
+<!-- ── CHECKOUT SHEET (slides up) ── -->
+<div id="checkout-sheet" style="display:none;position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.7);" onclick="if(event.target===this)closeCheckout()">
+  <div style="position:absolute;bottom:0;left:0;right:0;background:var(--bg2);border-radius:20px 20px 0 0;padding:20px 14px calc(20px + var(--safe-bottom));max-height:90vh;overflow-y:auto;">
+    <div style="width:40px;height:4px;background:var(--border2);border-radius:100px;margin:0 auto 20px;"></div>
+    <div style="font-family:var(--serif);font-size:18px;color:var(--text);margin-bottom:16px;">Complete Visit — <span id="cs-client-name">—</span></div>
+
+    <div style="padding:0 14px 8px;"><div class="cl-count" id="cs-cl-count">0 tasks completed</div></div>
+    <div class="form-card">
+      <div class="form-card-header"><div class="form-card-title">Personal Care</div></div>
+      <div class="form-card-body" style="padding:10px 12px;">
+        <div class="cl-item" onclick="toggleCl(this,'cs')"><div class="cl-box"></div><span class="cl-label">Morning AM care</span></div>
+        <div class="cl-item" onclick="toggleCl(this,'cs')"><div class="cl-box"></div><span class="cl-label">Afternoon PM care</span></div>
+        <div class="cl-item" onclick="toggleCl(this,'cs')"><div class="cl-box"></div><span class="cl-label">Bedtime care</span></div>
+        <div class="cl-item" onclick="toggleCl(this,'cs')"><div class="cl-box"></div><span class="cl-label">Sponge bath</span></div>
+        <div class="cl-item" onclick="toggleCl(this,'cs')"><div class="cl-box"></div><span class="cl-label">Assist tub or shower</span></div>
+        <div class="cl-item" onclick="toggleCl(this,'cs')"><div class="cl-box"></div><span class="cl-label">Hair care</span></div>
+        <div class="cl-item" onclick="toggleCl(this,'cs')"><div class="cl-box"></div><span class="cl-label">Oral hygiene</span></div>
+        <div class="cl-item" onclick="toggleCl(this,'cs')"><div class="cl-box"></div><span class="cl-label">Skin care</span></div>
+      </div>
+    </div>
+    <div class="form-card">
+      <div class="form-card-header"><div class="form-card-title">Nutrition & Mobility</div></div>
+      <div class="form-card-body" style="padding:10px 12px;">
+        <div class="cl-item" onclick="toggleCl(this,'cs')"><div class="cl-box"></div><span class="cl-label">Breakfast prepared</span></div>
+        <div class="cl-item" onclick="toggleCl(this,'cs')"><div class="cl-box"></div><span class="cl-label">Lunch prepared</span></div>
+        <div class="cl-item" onclick="toggleCl(this,'cs')"><div class="cl-box"></div><span class="cl-label">Dinner prepared</span></div>
+        <div class="cl-item" onclick="toggleCl(this,'cs')"><div class="cl-box"></div><span class="cl-label">Assist to walk</span></div>
+        <div class="cl-item" onclick="toggleCl(this,'cs')"><div class="cl-box"></div><span class="cl-label">Medication reminder</span></div>
+        <div class="cl-item" onclick="toggleCl(this,'cs')"><div class="cl-box"></div><span class="cl-label">Transfer to toilet or commode</span></div>
+      </div>
+    </div>
+    <div class="form-card">
+      <div class="form-card-header"><div class="form-card-title">Housekeeping</div></div>
+      <div class="form-card-body" style="padding:10px 12px;">
+        <div class="cl-item" onclick="toggleCl(this,'cs')"><div class="cl-box"></div><span class="cl-label">Vacuum or sweep</span></div>
+        <div class="cl-item" onclick="toggleCl(this,'cs')"><div class="cl-box"></div><span class="cl-label">Bathroom sanitation</span></div>
+        <div class="cl-item" onclick="toggleCl(this,'cs')"><div class="cl-box"></div><span class="cl-label">General laundry</span></div>
+        <div class="cl-item" onclick="toggleCl(this,'cs')"><div class="cl-box"></div><span class="cl-label">Change bed linen</span></div>
+        <div class="cl-item" onclick="toggleCl(this,'cs')"><div class="cl-box"></div><span class="cl-label">Clean up kitchen</span></div>
+      </div>
+    </div>
+
+    <div class="form-card">
+      <div class="form-card-header"><div class="form-card-title">Visit Notes</div></div>
+      <div class="form-card-body">
+        <div class="form-row">
+          <label class="form-label">Client Mood</label>
+          <div class="mood-row" id="cs-mood-row">
+            <div class="mood-opt sel" onclick="selectMood(this,'Great','cs')"><span class="mood-emoji">:)</span><span class="mood-lbl">Great</span></div>
+            <div class="mood-opt" onclick="selectMood(this,'Good','cs')"><span class="mood-emoji">:|</span><span class="mood-lbl">Good</span></div>
+            <div class="mood-opt" onclick="selectMood(this,'Neutral','cs')"><span class="mood-emoji">--</span><span class="mood-lbl">Neutral</span></div>
+            <div class="mood-opt" onclick="selectMood(this,'Low','cs')"><span class="mood-emoji">:(</span><span class="mood-lbl">Low</span></div>
+            <div class="mood-opt" onclick="selectMood(this,'Agitated','cs')"><span class="mood-emoji">:x</span><span class="mood-lbl">Agitated</span></div>
+          </div>
+        </div>
+        <div class="form-row">
+          <label class="form-label">Observations or follow-up needed</label>
+          <textarea class="form-textarea" id="cs-obs" placeholder="Anything to flag from today's visit..."></textarea>
+        </div>
+        <div class="form-row">
+          <label class="form-label" style="color:var(--red);">Incident? (Leave blank if none)</label>
+          <textarea class="form-textarea" id="cs-incident" placeholder="Describe any falls, medication issues, or safety concerns..." style="border-color:rgba(224,85,85,.2);min-height:60px;"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <button class="submit-btn danger" onclick="submitCheckout()" id="cs-submit-btn" style="margin-bottom:8px;">Check Out + Submit</button>
+    <button class="submit-btn sec" onclick="closeCheckout()" style="margin-bottom:0;">Cancel</button>
+  </div>
+</div>
+
+<!-- ── LOG VISIT (manual/retrospective) ── -->
 <div class="section" id="sect-visit">
   <div class="section-header"><span class="section-title">Log a Visit</span></div>
+  <div style="margin:0 14px 12px;padding:12px 14px;background:rgba(200,169,110,.08);border:1px solid rgba(200,169,110,.2);border-radius:8px;font-family:var(--mono);font-size:10px;color:var(--gold);letter-spacing:1px;line-height:1.6;">Use this tab to log a past visit. For today's shift, use the Schedule tab to sign in and out.</div>
 
   <div class="form-card">
-    <div class="form-card-header">
-      <div class="form-card-title">Visit Details</div>
-      <div class="form-card-badge">Required</div>
-    </div>
+    <div class="form-card-header"><div class="form-card-title">Visit Details</div><div class="form-card-badge">Manual Log</div></div>
     <div class="form-card-body">
       <div class="form-row">
         <label class="form-label">Client Name</label>
         <select class="form-select" id="vf-client">
           <option value="">Select client...</option>
-          <option value="Rosetta Ferrari">Rosetta Ferrari</option>
-          <option value="Bhangu Amrit">Bhangu Amrit</option>
-          <option value="Priya Singh">Priya Singh</option>
-          <option value="Helia Cordeiro">Helia Cordeiro</option>
-          <option value="Samina Thedlo">Samina Thedlo</option>
-          <option value="Parul Priya">Parul Priya</option>
-          <option value="Kim Phung">Kim Phung</option>
-          <option value="Emmanuel Sagolili">Emmanuel Sagolili</option>
-          <option value="Blake Heald">Blake Heald</option>
-          <option value="Rick Vardzel">Rick Vardzel</option>
-          <option value="Roman Pinto">Roman Pinto</option>
         </select>
       </div>
       <div class="form-row-2">
@@ -356,22 +515,22 @@ a{color:inherit;text-decoration:none;}
     <div class="form-card-header"><div class="form-card-title">Visit Notes</div></div>
     <div class="form-card-body">
       <div class="form-row">
-        <label class="form-label">What was completed during this visit?</label>
-        <textarea class="form-textarea" id="vf-notes" placeholder="e.g. Completed morning routine, prepared breakfast, assisted with medication, 30 min walk in the garden..."></textarea>
+        <label class="form-label">What was completed?</label>
+        <textarea class="form-textarea" id="vf-notes" placeholder="e.g. Completed morning routine, prepared breakfast, assisted with medication..."></textarea>
       </div>
       <div class="form-row">
         <label class="form-label">Client Mood</label>
         <div class="mood-row">
-          <div class="mood-opt sel" onclick="selectMood(this,'Great')"><span class="mood-emoji">:)</span><span class="mood-lbl">Great</span></div>
-          <div class="mood-opt" onclick="selectMood(this,'Good')"><span class="mood-emoji">:|</span><span class="mood-lbl">Good</span></div>
-          <div class="mood-opt" onclick="selectMood(this,'Neutral')"><span class="mood-emoji">--</span><span class="mood-lbl">Neutral</span></div>
-          <div class="mood-opt" onclick="selectMood(this,'Low')"><span class="mood-emoji">:(</span><span class="mood-lbl">Low</span></div>
-          <div class="mood-opt" onclick="selectMood(this,'Agitated')"><span class="mood-emoji">:x</span><span class="mood-lbl">Agitated</span></div>
+          <div class="mood-opt sel" onclick="selectMood(this,'Great','vf')"><span class="mood-emoji">:)</span><span class="mood-lbl">Great</span></div>
+          <div class="mood-opt" onclick="selectMood(this,'Good','vf')"><span class="mood-emoji">:|</span><span class="mood-lbl">Good</span></div>
+          <div class="mood-opt" onclick="selectMood(this,'Neutral','vf')"><span class="mood-emoji">--</span><span class="mood-lbl">Neutral</span></div>
+          <div class="mood-opt" onclick="selectMood(this,'Low','vf')"><span class="mood-emoji">:(</span><span class="mood-lbl">Low</span></div>
+          <div class="mood-opt" onclick="selectMood(this,'Agitated','vf')"><span class="mood-emoji">:x</span><span class="mood-lbl">Agitated</span></div>
         </div>
       </div>
       <div class="form-row">
-        <label class="form-label">Incidents or follow-up needed (leave blank if none)</label>
-        <textarea class="form-textarea" id="vf-incidents" placeholder="Any falls, medication issues, or items needing follow-up..." style="min-height:60px;"></textarea>
+        <label class="form-label">Incidents (leave blank if none)</label>
+        <textarea class="form-textarea" id="vf-incidents" placeholder="Falls, medication issues, items needing follow-up..." style="min-height:60px;"></textarea>
       </div>
     </div>
   </div>
@@ -379,141 +538,150 @@ a{color:inherit;text-decoration:none;}
   <button class="submit-btn" onclick="showSect('checklist')">Next — Checklist</button>
 </div>
 
-<!-- CHECKLIST -->
+<!-- ── CHECKLIST (manual log flow) ── -->
 <div class="section" id="sect-checklist">
   <div class="section-header"><span class="section-title">Daily Checklist</span></div>
   <div style="padding:0 14px 8px;"><div class="cl-count" id="cl-count">0 tasks completed</div></div>
-
   <div class="form-card">
     <div class="form-card-header"><div class="form-card-title">Personal Care</div></div>
     <div class="form-card-body" style="padding:10px 12px;">
-      <div class="cl-item" onclick="toggleCl(this)"><div class="cl-box"></div><span class="cl-label">Morning AM care</span></div>
-      <div class="cl-item" onclick="toggleCl(this)"><div class="cl-box"></div><span class="cl-label">Afternoon PM care</span></div>
-      <div class="cl-item" onclick="toggleCl(this)"><div class="cl-box"></div><span class="cl-label">Bedtime care</span></div>
-      <div class="cl-item" onclick="toggleCl(this)"><div class="cl-box"></div><span class="cl-label">Sponge bath</span></div>
-      <div class="cl-item" onclick="toggleCl(this)"><div class="cl-box"></div><span class="cl-label">Assist tub or shower</span></div>
-      <div class="cl-item" onclick="toggleCl(this)"><div class="cl-box"></div><span class="cl-label">Hair care — shampoo and comb</span></div>
-      <div class="cl-item" onclick="toggleCl(this)"><div class="cl-box"></div><span class="cl-label">Care of hands and nails</span></div>
-      <div class="cl-item" onclick="toggleCl(this)"><div class="cl-box"></div><span class="cl-label">Oral hygiene</span></div>
-      <div class="cl-item" onclick="toggleCl(this)"><div class="cl-box"></div><span class="cl-label">Skin care — lotions and creams</span></div>
+      <div class="cl-item" onclick="toggleCl(this,'vf')"><div class="cl-box"></div><span class="cl-label">Morning AM care</span></div>
+      <div class="cl-item" onclick="toggleCl(this,'vf')"><div class="cl-box"></div><span class="cl-label">Afternoon PM care</span></div>
+      <div class="cl-item" onclick="toggleCl(this,'vf')"><div class="cl-box"></div><span class="cl-label">Bedtime care</span></div>
+      <div class="cl-item" onclick="toggleCl(this,'vf')"><div class="cl-box"></div><span class="cl-label">Sponge bath</span></div>
+      <div class="cl-item" onclick="toggleCl(this,'vf')"><div class="cl-box"></div><span class="cl-label">Assist tub or shower</span></div>
+      <div class="cl-item" onclick="toggleCl(this,'vf')"><div class="cl-box"></div><span class="cl-label">Hair care — shampoo and comb</span></div>
+      <div class="cl-item" onclick="toggleCl(this,'vf')"><div class="cl-box"></div><span class="cl-label">Care of hands and nails</span></div>
+      <div class="cl-item" onclick="toggleCl(this,'vf')"><div class="cl-box"></div><span class="cl-label">Oral hygiene</span></div>
+      <div class="cl-item" onclick="toggleCl(this,'vf')"><div class="cl-box"></div><span class="cl-label">Skin care — lotions and creams</span></div>
     </div>
   </div>
-
   <div class="form-card">
     <div class="form-card-header"><div class="form-card-title">Elimination</div></div>
     <div class="form-card-body" style="padding:10px 12px;">
-      <div class="cl-item" onclick="toggleCl(this)"><div class="cl-box"></div><span class="cl-label">Transfer to toilet or commode</span></div>
-      <div class="cl-item" onclick="toggleCl(this)"><div class="cl-box"></div><span class="cl-label">Empty and clean commode</span></div>
-      <div class="cl-item" onclick="toggleCl(this)"><div class="cl-box"></div><span class="cl-label">Change incontinence products</span></div>
-      <div class="cl-item" onclick="toggleCl(this)"><div class="cl-box"></div><span class="cl-label">Change or clean catheter bag</span></div>
+      <div class="cl-item" onclick="toggleCl(this,'vf')"><div class="cl-box"></div><span class="cl-label">Transfer to toilet or commode</span></div>
+      <div class="cl-item" onclick="toggleCl(this,'vf')"><div class="cl-box"></div><span class="cl-label">Empty and clean commode</span></div>
+      <div class="cl-item" onclick="toggleCl(this,'vf')"><div class="cl-box"></div><span class="cl-label">Change incontinence products</span></div>
     </div>
   </div>
-
-  <div class="form-card">
-    <div class="form-card-header"><div class="form-card-title">Physical Activities</div></div>
-    <div class="form-card-body" style="padding:10px 12px;">
-      <div class="cl-item" onclick="toggleCl(this)"><div class="cl-box"></div><span class="cl-label">Assist to walk</span></div>
-      <div class="cl-item" onclick="toggleCl(this)"><div class="cl-box"></div><span class="cl-label">Assist in and out of bed or chair</span></div>
-      <div class="cl-item" onclick="toggleCl(this)"><div class="cl-box"></div><span class="cl-label">Apply elastic stockings</span></div>
-      <div class="cl-item" onclick="toggleCl(this)"><div class="cl-box"></div><span class="cl-label">Medication reminder</span></div>
-      <div class="cl-item" onclick="toggleCl(this)"><div class="cl-box"></div><span class="cl-label">Reinforce exercise</span></div>
-    </div>
-  </div>
-
   <div class="form-card">
     <div class="form-card-header"><div class="form-card-title">Nutrition</div></div>
     <div class="form-card-body" style="padding:10px 12px;">
-      <div class="cl-item" onclick="toggleCl(this)"><div class="cl-box"></div><span class="cl-label">Breakfast prepared</span></div>
-      <div class="cl-item" onclick="toggleCl(this)"><div class="cl-box"></div><span class="cl-label">Lunch prepared</span></div>
-      <div class="cl-item" onclick="toggleCl(this)"><div class="cl-box"></div><span class="cl-label">Dinner prepared</span></div>
-      <div class="cl-item" onclick="toggleCl(this)"><div class="cl-box"></div><span class="cl-label">Assist with feeding</span></div>
-      <div class="cl-item" onclick="toggleCl(this)"><div class="cl-box"></div><span class="cl-label">Clean up kitchen and dishes</span></div>
+      <div class="cl-item" onclick="toggleCl(this,'vf')"><div class="cl-box"></div><span class="cl-label">Breakfast prepared</span></div>
+      <div class="cl-item" onclick="toggleCl(this,'vf')"><div class="cl-box"></div><span class="cl-label">Lunch prepared</span></div>
+      <div class="cl-item" onclick="toggleCl(this,'vf')"><div class="cl-box"></div><span class="cl-label">Dinner prepared</span></div>
+      <div class="cl-item" onclick="toggleCl(this,'vf')"><div class="cl-box"></div><span class="cl-label">Assist with feeding</span></div>
+      <div class="cl-item" onclick="toggleCl(this,'vf')"><div class="cl-box"></div><span class="cl-label">Clean up kitchen and dishes</span></div>
     </div>
   </div>
-
+  <div class="form-card">
+    <div class="form-card-header"><div class="form-card-title">Physical Activities</div></div>
+    <div class="form-card-body" style="padding:10px 12px;">
+      <div class="cl-item" onclick="toggleCl(this,'vf')"><div class="cl-box"></div><span class="cl-label">Assist to walk</span></div>
+      <div class="cl-item" onclick="toggleCl(this,'vf')"><div class="cl-box"></div><span class="cl-label">Assist in and out of bed or chair</span></div>
+      <div class="cl-item" onclick="toggleCl(this,'vf')"><div class="cl-box"></div><span class="cl-label">Apply elastic stockings</span></div>
+      <div class="cl-item" onclick="toggleCl(this,'vf')"><div class="cl-box"></div><span class="cl-label">Medication reminder</span></div>
+      <div class="cl-item" onclick="toggleCl(this,'vf')"><div class="cl-box"></div><span class="cl-label">Reinforce exercise</span></div>
+    </div>
+  </div>
   <div class="form-card">
     <div class="form-card-header"><div class="form-card-title">Light Housekeeping</div></div>
     <div class="form-card-body" style="padding:10px 12px;">
-      <div class="cl-item" onclick="toggleCl(this)"><div class="cl-box"></div><span class="cl-label">Vacuum or sweep living areas</span></div>
-      <div class="cl-item" onclick="toggleCl(this)"><div class="cl-box"></div><span class="cl-label">Bathroom sanitation</span></div>
-      <div class="cl-item" onclick="toggleCl(this)"><div class="cl-box"></div><span class="cl-label">Damp mop floors</span></div>
-      <div class="cl-item" onclick="toggleCl(this)"><div class="cl-box"></div><span class="cl-label">General laundry</span></div>
-      <div class="cl-item" onclick="toggleCl(this)"><div class="cl-box"></div><span class="cl-label">Change bed linen</span></div>
-      <div class="cl-item" onclick="toggleCl(this)"><div class="cl-box"></div><span class="cl-label">Make bed</span></div>
-      <div class="cl-item" onclick="toggleCl(this)"><div class="cl-box"></div><span class="cl-label">Collect garbage</span></div>
+      <div class="cl-item" onclick="toggleCl(this,'vf')"><div class="cl-box"></div><span class="cl-label">Vacuum or sweep living areas</span></div>
+      <div class="cl-item" onclick="toggleCl(this,'vf')"><div class="cl-box"></div><span class="cl-label">Bathroom sanitation</span></div>
+      <div class="cl-item" onclick="toggleCl(this,'vf')"><div class="cl-box"></div><span class="cl-label">Damp mop floors</span></div>
+      <div class="cl-item" onclick="toggleCl(this,'vf')"><div class="cl-box"></div><span class="cl-label">General laundry</span></div>
+      <div class="cl-item" onclick="toggleCl(this,'vf')"><div class="cl-box"></div><span class="cl-label">Change bed linen</span></div>
+      <div class="cl-item" onclick="toggleCl(this,'vf')"><div class="cl-box"></div><span class="cl-label">Make bed</span></div>
+      <div class="cl-item" onclick="toggleCl(this,'vf')"><div class="cl-box"></div><span class="cl-label">Collect garbage</span></div>
     </div>
   </div>
-
   <div class="form-card">
-    <div class="form-card-header"><div class="form-card-title">Observations and Supplies</div></div>
+    <div class="form-card-header"><div class="form-card-title">Observations</div></div>
     <div class="form-card-body">
       <div class="form-row">
-        <label class="form-label">Observations — anything to flag from today's tasks</label>
-        <textarea class="form-textarea" id="cl-obs" placeholder="e.g. Client refused shower today, seemed more tired than usual..."></textarea>
+        <label class="form-label">Observations or items to flag</label>
+        <textarea class="form-textarea" id="cl-obs" placeholder="e.g. Client refused shower today..."></textarea>
       </div>
       <div class="form-row">
-        <label class="form-label">Supply needs or follow-up for Lance</label>
-        <textarea class="form-textarea" id="cl-supplies" placeholder="e.g. Running low on incontinence pads. Gloves size M almost out..." style="min-height:60px;"></textarea>
+        <label class="form-label">Supply needs for Lance</label>
+        <textarea class="form-textarea" id="cl-supplies" placeholder="e.g. Running low on incontinence pads..." style="min-height:60px;"></textarea>
       </div>
     </div>
   </div>
-
   <button class="submit-btn" onclick="submitVisit()" id="submit-btn">Submit Visit Log</button>
-  <button class="submit-btn sec" onclick="showSect('visit')" style="margin:0 14px 14px;">Back to Visit Details</button>
+  <button class="submit-btn sec" onclick="showSect('visit')" style="margin:0 14px 14px;">← Back</button>
 </div>
 
-<!-- CLIENTS -->
+<!-- ── CLIENTS ── -->
 <div class="section" id="sect-clients">
   <div class="section-header"><span class="section-title">My Clients</span></div>
   <div id="clients-list"><div class="empty-state">Loading clients...</div></div>
 </div>
 
-<!-- SCHEDULE -->
-<div class="section" id="sect-schedule">
-  <div class="section-header"><span class="section-title">My Visits</span></div>
-  <div id="schedule-list"><div class="empty-state">Loading visits...</div></div>
+<!-- ── PAY SUMMARY ── -->
+<div class="section" id="sect-pay">
+  <div class="section-header"><span class="section-title">My Pay</span></div>
+  <div id="pay-content"><div class="empty-state">Loading pay summary...</div></div>
+
+  <!-- Availability -->
+  <div class="section-header" style="margin-top:8px;"><span class="section-title">My Availability</span></div>
+  <div class="form-card">
+    <div class="form-card-header"><div class="form-card-title">Available Days</div></div>
+    <div class="form-card-body">
+      <div class="avail-grid" id="avail-days">
+        <div class="avail-day" data-day="Mon" onclick="toggleAvailDay(this)"><div class="avail-day-label">Mon</div></div>
+        <div class="avail-day" data-day="Tue" onclick="toggleAvailDay(this)"><div class="avail-day-label">Tue</div></div>
+        <div class="avail-day" data-day="Wed" onclick="toggleAvailDay(this)"><div class="avail-day-label">Wed</div></div>
+        <div class="avail-day" data-day="Thu" onclick="toggleAvailDay(this)"><div class="avail-day-label">Thu</div></div>
+        <div class="avail-day" data-day="Fri" onclick="toggleAvailDay(this)"><div class="avail-day-label">Fri</div></div>
+        <div class="avail-day" data-day="Sat" onclick="toggleAvailDay(this)"><div class="avail-day-label">Sat</div></div>
+        <div class="avail-day" data-day="Sun" onclick="toggleAvailDay(this)"><div class="avail-day-label">Sun</div></div>
+      </div>
+      <div class="avail-shifts" id="avail-shifts">
+        <div class="avail-shift" data-shift="Morning" onclick="toggleAvailShift(this)"><div class="avail-shift-label">Morning</div><div class="avail-shift-time">7am – 2pm</div></div>
+        <div class="avail-shift" data-shift="Afternoon" onclick="toggleAvailShift(this)"><div class="avail-shift-label">Afternoon</div><div class="avail-shift-time">2pm – 9pm</div></div>
+        <div class="avail-shift" data-shift="Overnight" onclick="toggleAvailShift(this)"><div class="avail-shift-label">Overnight</div><div class="avail-shift-time">9pm – 7am</div></div>
+      </div>
+      <button class="submit-btn" onclick="saveAvailability()" style="margin:0 0 0;">Save Availability</button>
+    </div>
+  </div>
 </div>
 
-<!-- MESSAGES -->
+<!-- ── MESSAGES ── -->
 <div class="section" id="sect-messages">
   <div class="section-header"><span class="section-title">Message Lance</span></div>
   <div class="msg-thread" id="msg-thread"><div class="empty-state">Loading messages...</div></div>
   <div class="msg-input-wrap">
     <textarea class="msg-input" id="msg-input" placeholder="Type a message to Lance..." rows="1" oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,100)+'px';"></textarea>
-    <button class="msg-send" onclick="sendMsg()">Send</button>
+    <button class="msg-send" onclick="sendMsg()">→</button>
   </div>
 </div>
 
-<!-- DOCUMENTS -->
+<!-- ── DOCUMENTS ── -->
 <div class="section" id="sect-documents">
   <div class="section-header"><span class="section-title">My Documents</span></div>
-  <div class="upload-zone" onclick="document.getElementById('file-input').click()">
-    <div class="upload-lbl">Upload Document</div>
-    <div class="upload-sub">Tap to select a file — CPR cert, incident photo, supply receipt</div>
-  </div>
-  <input type="file" id="file-input" style="display:none;" onchange="uploadDoc(this)">
-  <div class="card">
-    <div id="docs-list"><div class="empty-state" style="padding:20px;">No documents uploaded yet</div></div>
+  <div class="card" id="docs-card">
+    <div id="docs-list"><div class="empty-state" style="padding:20px;">Loading documents...</div></div>
   </div>
 </div>
 
 <!-- BOTTOM NAV -->
 <div class="bottom-nav">
   <div class="bnav-item active" onclick="showSect('home')" id="bn-home"><div class="bnav-icon">HQ</div><div class="bnav-lbl">Home</div></div>
-  <div class="bnav-item" onclick="showSect('visit')" id="bn-visit"><div class="bnav-icon">LOG</div><div class="bnav-lbl">Visit</div></div>
+  <div class="bnav-item" onclick="showSect('schedule')" id="bn-schedule"><div class="bnav-icon">SCH</div><div class="bnav-lbl">Schedule</div></div>
   <div class="bnav-item" onclick="showSect('clients')" id="bn-clients"><div class="bnav-icon">CLI</div><div class="bnav-lbl">Clients</div></div>
-  <div class="bnav-item" onclick="showSect('messages')" id="bn-messages"><div class="bnav-icon">MSG</div><div class="bnav-lbl">Messages</div></div>
-  <div class="bnav-item" onclick="showSect('documents')" id="bn-documents"><div class="bnav-icon">DOC</div><div class="bnav-lbl">Docs</div></div>
+  <div class="bnav-item" onclick="showSect('messages')" id="bn-messages"><div class="bnav-icon" style="position:relative;">MSG<div class="bnav-dot" id="bnav-msg-dot"></div></div><div class="bnav-lbl">Messages</div></div>
+  <div class="bnav-item" onclick="showSect('pay')" id="bn-pay"><div class="bnav-icon">PAY</div><div class="bnav-lbl">Pay</div></div>
 </div>
-
 </div><!-- /app -->
 
 <!-- SUCCESS OVERLAY -->
 <div class="success-overlay" id="success-overlay">
   <div class="success-check">OK</div>
-  <div class="success-title">Visit Logged</div>
+  <div class="success-title" id="success-title">Visit Logged</div>
   <div class="success-msg" id="success-msg">Visit submitted. Lance has been notified.</div>
-  <button class="success-btn" onclick="resetForm()">Log Another Visit</button>
+  <button class="success-btn" onclick="closeSuccess()">Done</button>
 </div>
 
 <!-- TOAST -->
@@ -521,15 +689,16 @@ a{color:inherit;text-decoration:none;}
 
 <script>
 const API = 'https://proximity-agent-production.up.railway.app';
-let pswName = '';
-let pswPin = '';
-let pswEmail = '';
-let lockIn = '';
+let pswName = '', pswPin = '', pswEmail = '', lockIn = '';
+let selectedMoodVf = 'Great', selectedMoodCs = 'Great';
+let appUnlocked = false;
+let activeVisit = null; // { id, client_name, checkin_time }
+let weekOffset = 0;
+let scheduleData = null;
+let elapsedTimer = null;
+
 window.addEventListener('online', () => showToast('Back online', 'ok'));
-window.addEventListener('offline', () => showToast('No internet — visit may not save', 'err'));
-let selectedMood = 'Great';
-let visitsToday = 0;
-let hoursToday = 0;
+window.addEventListener('offline', () => showToast('No internet', 'err'));
 
 // ── LOCK ──
 function goToPin() {
@@ -548,31 +717,24 @@ function lk(k) {
     setTimeout(async () => {
       pswPin = lockIn;
       const valid = await verifyPin();
-      if (valid) {
-        unlockApp();
-      } else {
+      if (valid) { unlockApp(); }
+      else {
         document.getElementById('lock-err').classList.add('show');
-        for(let i=0;i<4;i++) document.getElementById('ld'+i).classList.remove('filled');
+        for (let i = 0; i < 4; i++) document.getElementById('ld'+i).classList.remove('filled');
         lockIn = '';
         setTimeout(() => document.getElementById('lock-err').classList.remove('show'), 2000);
       }
     }, 120);
   }
 }
-function ld() { lockIn = lockIn.slice(0,-1); updateDots(); }
-function updateDots() { for(let i=0;i<4;i++) document.getElementById('ld'+i).classList.toggle('filled', i < lockIn.length); }
+function ld() { lockIn = lockIn.slice(0, -1); updateDots(); }
+function updateDots() { for (let i = 0; i < 4; i++) document.getElementById('ld'+i).classList.toggle('filled', i < lockIn.length); }
 
 async function verifyPin() {
   try {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 10000);
-    const res = await fetch(`${API}/psw/notes/${encodeURIComponent(pswName)}?pin=${pswPin}`, { signal: controller.signal });
-    clearTimeout(timeout);
+    const res = await fetch(`${API}/psw/notes/${encodeURIComponent(pswName)}?pin=${pswPin}`);
     return res.ok;
-  } catch(e) {
-    if (e.name === 'AbortError') showToast('Connection timeout — check your internet', 'err');
-    return false;
-  }
+  } catch { return false; }
 }
 
 function unlockApp() {
@@ -580,16 +742,12 @@ function unlockApp() {
   history.pushState(null, '', window.location.href);
   document.getElementById('lock').style.display = 'none';
   document.getElementById('app').style.display = 'block';
-  const ini = pswName.split(' ').map(w=>w[0]||'').join('').toUpperCase().slice(0,2);
+  const ini = pswName.split(' ').map(w => w[0]||'').join('').toUpperCase().slice(0, 2);
   document.getElementById('psw-avatar').textContent = ini;
   document.getElementById('psw-name-display').textContent = pswName.split(' ')[0];
   document.getElementById('vf-date').valueAsDate = new Date();
-  loadMessages();
-  loadClients();
-  loadSchedule();
-  calcHours();
   fetchPSWEmail();
-  restoreDraft();
+  loadAll();
 }
 
 async function fetchPSWEmail() {
@@ -600,36 +758,242 @@ async function fetchPSWEmail() {
   } catch {}
 }
 
-function saveDraft() {
-  try {
-    const draft = {
-      client: document.getElementById('vf-client').value,
-      notes: document.getElementById('vf-notes').value,
-      incidents: document.getElementById('vf-incidents').value,
-      obs: document.getElementById('cl-obs').value,
-      supplies: document.getElementById('cl-supplies').value,
-      mood: selectedMood
-    };
-    sessionStorage.setItem('psw-draft', JSON.stringify(draft));
-  } catch {}
+async function loadAll() {
+  await Promise.all([
+    loadSchedule(),
+    loadClients(),
+    loadMessages(false),
+    loadPaySummary(),
+    loadDocuments()
+  ]);
+  populateClientSelect();
 }
 
-function restoreDraft() {
+// ── SCHEDULE + SIGN IN / OUT ──
+async function loadSchedule() {
   try {
-    const raw = sessionStorage.getItem('psw-draft');
-    if (!raw) return;
-    const draft = JSON.parse(raw);
-    if (draft.client) document.getElementById('vf-client').value = draft.client;
-    if (draft.notes) document.getElementById('vf-notes').value = draft.notes;
-    if (draft.incidents) document.getElementById('vf-incidents').value = draft.incidents;
-    if (draft.obs) document.getElementById('cl-obs').value = draft.obs;
-    if (draft.supplies) document.getElementById('cl-supplies').value = draft.supplies;
-    if (draft.mood) { selectedMood = draft.mood; }
-    if (raw) showToast('Draft restored', 'ok');
-  } catch {}
+    const res = await fetch(`${API}/psw/schedule-upcoming?psw_name=${encodeURIComponent(pswName)}&pin=${pswPin}&operator_id=proximity-care`);
+    const d = await res.json();
+    if (!d.success) return;
+    scheduleData = d;
+    activeVisit = d.active_visit || null;
+    renderActiveBanner();
+    renderWeek();
+    renderNextShift();
+  } catch (e) { console.error('loadSchedule:', e); }
 }
 
-// ── HOURS ──
+function renderActiveBanner() {
+  const banner = document.getElementById('active-banner');
+  const coPanel = document.getElementById('checkout-panel');
+  if (activeVisit) {
+    banner.classList.add('show');
+    document.getElementById('active-client-name').textContent = activeVisit.client_name || '—';
+    const tin = activeVisit.time_in || activeVisit.checkin_time?.slice(11,16) || '—';
+    document.getElementById('active-time-display').textContent = 'Started at ' + tin;
+    // Checkout panel
+    coPanel.style.display = 'block';
+    document.getElementById('co-client-name').textContent = activeVisit.client_name || '—';
+    document.getElementById('co-start-time').textContent = tin;
+    startElapsedTimer();
+  } else {
+    banner.classList.remove('show');
+    coPanel.style.display = 'none';
+    stopElapsedTimer();
+  }
+}
+
+function startElapsedTimer() {
+  stopElapsedTimer();
+  if (!activeVisit?.checkin_time) return;
+  const tick = () => {
+    const elapsed = Math.round((Date.now() - new Date(activeVisit.checkin_time)) / 60000);
+    const hrs = Math.floor(elapsed / 60);
+    const mins = elapsed % 60;
+    const str = hrs > 0 ? `${hrs}h ${mins}m` : `${mins}m`;
+    const el = document.getElementById('co-elapsed');
+    if (el) el.textContent = str;
+  };
+  tick();
+  elapsedTimer = setInterval(tick, 60000);
+}
+
+function stopElapsedTimer() {
+  if (elapsedTimer) { clearInterval(elapsedTimer); elapsedTimer = null; }
+}
+
+function renderNextShift() {
+  const wrap = document.getElementById('next-shift-wrap');
+  if (!scheduleData) { wrap.innerHTML = '<div class="empty-state">No upcoming shifts</div>'; return; }
+  if (activeVisit) {
+    wrap.innerHTML = `<div class="card"><div class="card-header"><div><div class="card-name">${activeVisit.client_name}</div><div class="card-sub">Visit in progress</div></div><span class="badge b-inprogress">Active</span></div><div class="card-actions"><div class="card-act" onclick="openCheckout()">Check Out →</div></div></div>`;
+    return;
+  }
+  const upcoming = (scheduleData.bookings || []).filter(b => b.scheduled_date >= new Date().toISOString().slice(0,10));
+  if (!upcoming.length) { wrap.innerHTML = '<div class="empty-state">No upcoming shifts scheduled</div>'; return; }
+  const next = upcoming[0];
+  wrap.innerHTML = `<div class="card"><div class="card-header"><div><div class="card-name">${next.client_name}</div><div class="card-sub">${fmtd(next.scheduled_date)} · ${next.scheduled_time||'—'}</div></div><span class="badge b-upcoming">Upcoming</span></div><div class="card-actions"><div class="card-act ok" onclick="checkIn('${next.client_name}','${next.id||''}')">Sign In</div></div></div>`;
+}
+
+function renderWeek() {
+  const el = document.getElementById('schedule-days');
+  const today = new Date();
+  today.setHours(12, 0, 0, 0);
+  const startOfWeek = new Date(today);
+  startOfWeek.setDate(today.getDate() - today.getDay() + 1 + (weekOffset * 7)); // Mon
+
+  const days = [];
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(startOfWeek);
+    d.setDate(startOfWeek.getDate() + i);
+    days.push(d);
+  }
+
+  const startStr = days[0].toISOString().slice(0,10);
+  const endStr = days[6].toISOString().slice(0,10);
+  document.getElementById('week-label').textContent = `${fmtd(startStr)} – ${fmtd(endStr)}`;
+
+  const bookings = scheduleData?.bookings || [];
+  const visits = scheduleData?.completed_visits || [];
+  const todayStr = new Date().toISOString().slice(0,10);
+
+  el.innerHTML = days.map(d => {
+    const ds = d.toISOString().slice(0,10);
+    const isToday = ds === todayStr;
+    const dayBookings = bookings.filter(b => b.scheduled_date === ds);
+    const dayVisits = visits.filter(v => v.visit_date === ds);
+
+    const dayLabel = d.toLocaleDateString('en-CA', { weekday: 'short', month: 'short', day: 'numeric' });
+
+    let shiftsHtml = '';
+    // Show completed visits
+    dayVisits.forEach(v => {
+      shiftsHtml += `<div class="schedule-shift">
+        <div><div class="shift-client">${v.client_name||'—'}</div><div class="shift-time">${v.time_in||'—'} – ${v.time_out||'—'} · ${v.hours_worked||0}h</div></div>
+        <div class="shift-status complete">Done</div>
+      </div>`;
+    });
+    // Show active visit for today
+    if (isToday && activeVisit) {
+      shiftsHtml += `<div class="schedule-shift" style="background:rgba(224,154,61,.05);">
+        <div><div class="shift-client">${activeVisit.client_name}</div><div class="shift-time">Started ${activeVisit.time_in||'—'} · In progress</div></div>
+        <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end;">
+          <div class="shift-status inprogress">Active</div>
+          <button style="font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--amber);background:rgba(224,154,61,.1);border:1px solid rgba(224,154,61,.3);border-radius:6px;padding:4px 10px;cursor:pointer;min-height:30px;touch-action:manipulation;" onclick="openCheckout()">Check Out</button>
+        </div>
+      </div>`;
+    }
+    // Show upcoming bookings (no completed visit yet)
+    dayBookings.forEach(b => {
+      const alreadyDone = dayVisits.some(v => v.client_name === b.client_name);
+      const isActiveBooking = activeVisit && activeVisit.client_name === b.client_name && isToday;
+      if (alreadyDone || isActiveBooking) return;
+      shiftsHtml += `<div class="schedule-shift">
+        <div><div class="shift-client">${b.client_name||'—'}</div><div class="shift-time">${b.scheduled_time||'—'} · ${b.duration_minutes ? Math.round(b.duration_minutes/60*10)/10+'h' : ''}</div></div>
+        <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end;">
+          <div class="shift-status upcoming">Upcoming</div>
+          ${isToday ? `<button style="font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--green3);background:rgba(26,107,90,.1);border:1px solid rgba(26,107,90,.3);border-radius:6px;padding:4px 10px;cursor:pointer;min-height:30px;touch-action:manipulation;" onclick="checkIn('${b.client_name}','${b.id||''}')">Sign In</button>` : ''}
+        </div>
+      </div>`;
+    });
+
+    if (!shiftsHtml) shiftsHtml = `<div class="schedule-day-empty">No shifts</div>`;
+
+    return `<div class="schedule-day">
+      <div class="schedule-day-header">
+        <div class="schedule-day-label ${isToday ? 'today' : ''}">${dayLabel}${isToday ? ' — Today' : ''}</div>
+      </div>
+      ${shiftsHtml}
+    </div>`;
+  }).join('');
+}
+
+function shiftWeek(dir) { weekOffset += dir; renderWeek(); }
+
+// ── CHECK IN ──
+async function checkIn(clientName, bookingId) {
+  if (activeVisit) { showToast('Already have an active visit open', 'err'); return; }
+  showToast('Checking in...', 'ok');
+  try {
+    const res = await fetch(`${API}/visit/checkin`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ psw_name: pswName, pin: pswPin, operator_id: 'proximity-care', client_name: clientName, booking_id: bookingId || null })
+    });
+    const d = await res.json();
+    if (!res.ok) throw new Error(d.error || 'Check-in failed');
+    activeVisit = { id: d.visit_id, client_name: clientName, time_in: d.time_in, checkin_time: new Date().toISOString() };
+    document.getElementById('cs-client-name').textContent = clientName;
+    renderActiveBanner();
+    renderNextShift();
+    renderWeek();
+    showToast('Signed in — ' + clientName, 'ok');
+  } catch (e) {
+    showToast(e.message, 'err');
+  }
+}
+
+// ── CHECKOUT SHEET ──
+function openCheckout() {
+  if (!activeVisit) { showToast('No active visit', 'err'); return; }
+  document.getElementById('cs-client-name').textContent = activeVisit.client_name || '—';
+  document.getElementById('checkout-sheet').style.display = 'block';
+  document.body.style.overflow = 'hidden';
+}
+function closeCheckout() {
+  document.getElementById('checkout-sheet').style.display = 'none';
+  document.body.style.overflow = '';
+}
+
+async function submitCheckout() {
+  if (!activeVisit) return;
+  const tasks = Array.from(document.querySelectorAll('#checkout-sheet .cl-item.done')).map(el => el.querySelector('.cl-label').textContent);
+  const obs = document.getElementById('cs-obs').value.trim();
+  const incident = document.getElementById('cs-incident').value.trim();
+
+  const btn = document.getElementById('cs-submit-btn');
+  btn.textContent = 'Submitting...'; btn.disabled = true;
+
+  try {
+    const res = await fetch(`${API}/visit/checkout`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        psw_name: pswName, pin: pswPin, operator_id: 'proximity-care',
+        visit_id: activeVisit.id,
+        tasks_completed: tasks,
+        client_mood: selectedMoodCs,
+        incident_reported: incident.length > 0,
+        incident_notes: incident || null,
+        observations: obs || null
+      })
+    });
+    const d = await res.json();
+    if (!res.ok) throw new Error(d.error || 'Checkout failed');
+
+    closeCheckout();
+    activeVisit = null;
+    renderActiveBanner();
+
+    // Reset checkout sheet fields
+    document.querySelectorAll('#checkout-sheet .cl-item').forEach(el => { el.classList.remove('done'); el.querySelector('.cl-box').textContent = ''; });
+    document.getElementById('cs-obs').value = '';
+    document.getElementById('cs-incident').value = '';
+    document.getElementById('cs-cl-count').textContent = '0 tasks completed';
+
+    document.getElementById('success-title').textContent = 'Visit Complete';
+    document.getElementById('success-msg').textContent = `${d.hours_worked}h logged. Family notified. Lance has the care summary.`;
+    document.getElementById('success-overlay').classList.add('show');
+
+    await loadSchedule();
+    await loadPaySummary();
+  } catch (e) {
+    showToast(e.message, 'err');
+  }
+  btn.textContent = 'Check Out + Submit'; btn.disabled = false;
+}
+
+// ── MANUAL LOG VISIT ──
 function calcHours() {
   const tin = document.getElementById('vf-time-in').value;
   const tout = document.getElementById('vf-time-out').value;
@@ -643,26 +1007,24 @@ function calcHours() {
   document.getElementById('pay-line').textContent = '$' + Math.round(parseFloat(hrs) * 19) + ' this visit';
 }
 
-// ── CHECKLIST ──
-function toggleCl(el) {
+function toggleCl(el, prefix) {
   el.classList.toggle('done');
-  const box = el.querySelector('.cl-box');
-  box.textContent = el.classList.contains('done') ? 'x' : '';
-  updateClCount();
-}
-function updateClCount() {
-  const done = document.querySelectorAll('.cl-item.done').length;
-  document.getElementById('cl-count').textContent = done + ' tasks completed';
+  el.querySelector('.cl-box').textContent = el.classList.contains('done') ? 'x' : '';
+  const countId = prefix === 'cs' ? 'cs-cl-count' : 'cl-count';
+  const scope = prefix === 'cs' ? '#checkout-sheet' : '#sect-checklist';
+  const done = document.querySelectorAll(scope + ' .cl-item.done').length;
+  const el2 = document.getElementById(countId);
+  if (el2) el2.textContent = done + ' tasks completed';
 }
 
-// ── MOOD ──
-function selectMood(el, mood) {
-  document.querySelectorAll('.mood-opt').forEach(o => o.classList.remove('sel'));
+function selectMood(el, mood, prefix) {
+  const scope = prefix === 'cs' ? '#checkout-sheet' : '#sect-visit';
+  document.querySelectorAll(scope + ' .mood-opt').forEach(o => o.classList.remove('sel'));
   el.classList.add('sel');
-  selectedMood = mood;
+  if (prefix === 'cs') selectedMoodCs = mood;
+  else selectedMoodVf = mood;
 }
 
-// ── SUBMIT VISIT ──
 async function submitVisit() {
   const client = document.getElementById('vf-client').value;
   const date = document.getElementById('vf-date').value;
@@ -673,7 +1035,7 @@ async function submitVisit() {
   const incidents = document.getElementById('vf-incidents').value.trim();
   const obs = document.getElementById('cl-obs').value.trim();
   const supplies = document.getElementById('cl-supplies').value.trim();
-  const tasks = Array.from(document.querySelectorAll('.cl-item.done')).map(el => el.querySelector('.cl-label').textContent);
+  const tasks = Array.from(document.querySelectorAll('#sect-checklist .cl-item.done')).map(el => el.querySelector('.cl-label').textContent);
 
   if (!client || !date) { showToast('Client and date required', 'err'); return; }
   if (!notes && tasks.length === 0) { showToast('Add notes or complete checklist items', 'err'); return; }
@@ -683,54 +1045,35 @@ async function submitVisit() {
 
   const nameParts = client.trim().split(/\s+/);
   const payload = {
-    operator_id: 'proximity-care',
-    psw_name: pswName,
-    psw_email: pswEmail || '',
-    client_name: client,
-    client_first_name: nameParts[0] || '',
-    client_last_name: nameParts.slice(1).join(' '),
-    visit_date: date,
-    time_in: timeIn,
-    time_out: timeOut,
-    hours_worked: hours,
-    tasks_completed: tasks.length ? tasks : [],
-    client_mood: selectedMood,
-    incident_reported: incidents.length > 0,
-    incident_notes: incidents || null,
+    operator_id: 'proximity-care', psw_name: pswName, psw_email: pswEmail || '',
+    client_name: client, client_first_name: nameParts[0] || '', client_last_name: nameParts.slice(1).join(' '),
+    visit_date: date, time_in: timeIn, time_out: timeOut, hours_worked: hours,
+    tasks_completed: tasks.length ? tasks : [], client_mood: selectedMoodVf,
+    incident_reported: incidents.length > 0, incident_notes: incidents || null,
     notes: [notes, obs, supplies].filter(Boolean).join('\n\n') || null
   };
 
   try {
-    const res = await fetch(`${API}/webhook/visit`, {
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body: JSON.stringify(payload)
-    });
+    const res = await fetch(`${API}/webhook/visit`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
     const d = await res.json().catch(() => ({}));
     if (!res.ok && !d.success) throw new Error(d.error || 'Server error');
-
-    visitsToday++;
-    hoursToday += hours;
-    document.getElementById('s-visits').textContent = visitsToday;
-    document.getElementById('s-hours').textContent = hoursToday.toFixed(1) + 'h';
+    document.getElementById('success-title').textContent = 'Visit Logged';
     document.getElementById('success-msg').textContent = 'Visit for ' + client + ' logged. Lance has been notified.';
     document.getElementById('success-overlay').classList.add('show');
     sessionStorage.removeItem('psw-draft');
-  } catch(e) {
-    // Try no-cors fallback — visit may still have been logged
-    try {
-      await fetch(`${API}/webhook/visit`, { method:'POST', mode:'no-cors', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
-      document.getElementById('success-msg').textContent = 'Visit submitted. Connection was slow — check with Lance to confirm.';
-      document.getElementById('success-overlay').classList.add('show');
-    } catch(e2) {
-      showToast('Submission failed — check internet connection', 'err');
-    }
+  } catch {
+    showToast('Submission failed — check connection', 'err');
   }
   btn.textContent = 'Submit Visit Log'; btn.disabled = false;
 }
 
-function resetForm() {
+function closeSuccess() {
   document.getElementById('success-overlay').classList.remove('show');
+  resetManualForm();
+  showSect('home');
+}
+
+function resetManualForm() {
   document.getElementById('vf-client').selectedIndex = 0;
   document.getElementById('vf-date').valueAsDate = new Date();
   document.getElementById('vf-time-in').value = '09:00';
@@ -739,12 +1082,11 @@ function resetForm() {
   document.getElementById('vf-incidents').value = '';
   document.getElementById('cl-obs').value = '';
   document.getElementById('cl-supplies').value = '';
-  document.querySelectorAll('.cl-item').forEach(el => { el.classList.remove('done'); el.querySelector('.cl-box').textContent = ''; });
-  document.querySelectorAll('.mood-opt').forEach(o => o.classList.remove('sel'));
-  document.querySelector('.mood-opt').classList.add('sel');
-  selectedMood = 'Great';
-  updateClCount(); calcHours();
-  showSect('home');
+  document.querySelectorAll('#sect-checklist .cl-item').forEach(el => { el.classList.remove('done'); el.querySelector('.cl-box').textContent = ''; });
+  document.querySelectorAll('#sect-visit .mood-opt').forEach(o => o.classList.remove('sel'));
+  document.querySelector('#sect-visit .mood-opt').classList.add('sel');
+  selectedMoodVf = 'Great';
+  calcHours();
 }
 
 // ── CLIENTS ──
@@ -757,120 +1099,151 @@ async function loadClients() {
     if (!clients.length) { el.innerHTML = '<div class="empty-state">No clients assigned yet</div>'; return; }
     el.innerHTML = clients.map((c, i) => {
       const name = c.full_name || c.client_name;
-      const ini = name.split(' ').map(w=>w[0]||'').join('').toUpperCase().slice(0,2);
+      const ini = name.split(' ').map(w => w[0]||'').join('').toUpperCase().slice(0,2);
       const cid = 'cl'+i;
-      const hasDetails = c.daily_routine || c.preferences || c.goals || c.emergency_contact_name;
-      return `
-      <div class="card">
-        <div class="card-header" ${hasDetails?`onclick="togglePSWVisit('${cid}')" style="cursor:pointer;"`:''}>
+      return `<div class="card">
+        <div class="card-header" onclick="toggleDetail('${cid}')" style="cursor:pointer;">
           <div style="display:flex;align-items:center;gap:11px;flex:1;">
             <div style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,var(--green),var(--green3));display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:12px;color:#fff;flex-shrink:0;">${ini}</div>
-            <div>
-              <div class="card-name">${name}</div>
-              <div class="card-sub">${c.hours_per_week||'?'}h per week · Since ${c.start_date?fmtd(c.start_date):'—'}</div>
-              <div class="card-meta">${c.summary||''}</div>
-            </div>
+            <div><div class="card-name">${name}</div><div class="card-sub">${c.hours_per_week||'?'}h/wk · Since ${c.start_date?fmtd(c.start_date):'—'}</div><div class="card-meta">${c.summary||''}</div></div>
           </div>
-          <div class="card-right">
-            <span class="badge b-active">${c.status||'Active'}</span>
-            ${hasDetails?`<div style="font-size:10px;color:var(--muted);" id="chev-${cid}">▼</div>`:''}
-          </div>
+          <div class="card-right"><span class="badge b-active">${c.status||'Active'}</span><div style="font-size:10px;color:var(--muted);" id="chev-${cid}">▼</div></div>
         </div>
         <div id="${cid}" style="display:none;padding:14px 16px;border-top:1px solid var(--border);font-size:12px;line-height:1.8;">
           ${c.goals?`<div style="margin-bottom:10px;"><div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:4px;">Goals</div><div style="color:var(--muted2);">${c.goals}</div></div>`:''}
           ${c.daily_routine?`<div style="margin-bottom:10px;"><div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:4px;">Daily Routine</div><div style="color:var(--muted2);">${c.daily_routine}</div></div>`:''}
           ${c.preferences?`<div style="margin-bottom:10px;"><div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:4px;">Preferences</div><div style="color:var(--muted2);">${c.preferences}</div></div>`:''}
-          ${c.emergency_contact_name?`<div style="margin-bottom:10px;"><div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:4px;">Emergency Contact</div><div style="color:var(--text);">${c.emergency_contact_name}${c.emergency_contact_phone?' · <a href="tel:'+c.emergency_contact_phone+'" style="color:var(--green3);">'+c.emergency_contact_phone+'</a>':''}</div></div>`:''}
+          ${c.medications?`<div style="margin-bottom:10px;"><div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:4px;">Medications</div><div style="color:var(--text);">${c.medications}</div></div>`:''}
+          ${c.emergency_contact_1_name||c.emergency_contact_name?`<div><div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:4px;">Emergency Contact</div><div style="color:var(--text);">${c.emergency_contact_1_name||c.emergency_contact_name}${(c.emergency_contact_1_phone||c.emergency_contact_phone)?' · <a href="tel:'+(c.emergency_contact_1_phone||c.emergency_contact_phone)+'" style="color:var(--green3);">'+(c.emergency_contact_1_phone||c.emergency_contact_phone)+'</a>':''}</div></div>`:''}
         </div>
       </div>`;
     }).join('');
   } catch { el.innerHTML = '<div class="empty-state">Could not load clients</div>'; }
 }
 
-// ── SCHEDULE ──
-async function loadSchedule() {
-  const el = document.getElementById('schedule-list');
+function populateClientSelect() {
+  const sel = document.getElementById('vf-client');
+  if (!sel) return;
+  // Get from loaded clients if any, fallback to static list
+  sel.innerHTML = '<option value="">Select client...</option>';
+  const staticClients = ['Rosetta Ferrari','Bhangu Amrit','Priya Singh','Helia Cordeiro','Samina Thedlo','Parul Priya','Kim Phung','Emmanuel Sagolili','Blake Heald','Rick Vardzel','Roman Pinto'];
+  staticClients.forEach(name => { const o = document.createElement('option'); o.value = name; o.textContent = name; sel.appendChild(o); });
+}
+
+// ── PAY SUMMARY ──
+async function loadPaySummary() {
+  const el = document.getElementById('pay-content');
   try {
-    const res = await fetch(`${API}/hq/visits?operator_id=proximity-care`);
+    const res = await fetch(`${API}/psw/pay-summary?psw_name=${encodeURIComponent(pswName)}&pin=${pswPin}&operator_id=proximity-care`);
     const d = await res.json();
-    const allVisits = (d.visits || []).filter(v => v.psw_name && v.psw_name.trim().toLowerCase() === pswName.trim().toLowerCase());
-    allVisits.sort((a,b) => (b.visit_date||'').localeCompare(a.visit_date||''));
+    if (!d.success) throw new Error(d.error);
 
-    const totalHours = allVisits.reduce((sum, v) => sum + parseFloat(v.hours_worked || 0), 0);
+    const cur = d.current_period;
+    document.getElementById('s-pay').textContent = '$' + (cur.total_pay || 0).toFixed(0);
 
-    let html = `<div style="display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border);margin:0 12px 12px;border-radius:8px;overflow:hidden;">
-      <div style="background:var(--bg2);padding:14px;text-align:center;">
-        <div style="font-family:var(--mono);font-size:20px;font-weight:500;color:var(--teal2);">${allVisits.length}</div>
-        <div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-top:4px;">Total Visits</div>
+    let html = `<div class="pay-period-card">
+      <div class="pay-period-header">
+        <div class="pay-period-label pay-period-current">Current Period</div>
+        <div style="font-family:var(--mono);font-size:10px;color:var(--muted);">${cur.label||'—'}</div>
       </div>
-      <div style="background:var(--bg2);padding:14px;text-align:center;">
-        <div style="font-family:var(--mono);font-size:20px;font-weight:500;color:var(--gold);">${totalHours.toFixed(1)}</div>
-        <div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-top:4px;">Total Hours</div>
+      <div class="pay-period-body">
+        <div class="pay-row"><div class="pay-row-label">Hours</div><div class="pay-row-value">${cur.total_hours}</div></div>
+        <div class="pay-row"><div class="pay-row-label">Rate</div><div class="pay-row-value">$${d.rate}/hr</div></div>
+        <div class="pay-row"><div class="pay-row-label">Visits</div><div class="pay-row-value">${cur.visit_count}</div></div>
+        <div class="pay-row"><div class="pay-row-label">Total</div><div class="pay-row-value total">$${cur.total_pay.toFixed(2)}</div></div>
       </div>
     </div>`;
 
-    if (!allVisits.length) {
-      html += '<div class="empty-state">No visits logged yet</div>';
-    } else {
-      html += allVisits.map((v, i) => {
-        const tasks = Array.isArray(v.tasks_completed) ? v.tasks_completed.join(', ') : (v.tasks_completed || '');
-        const mood = v.client_mood || '';
-        const moodMap = {'Great':'GRT','Good':'GD','Neutral':'NTR','Low':'LOW','Agitated':'AGT'};
-        const moodEmoji = Object.entries(moodMap).find(([k]) => mood.toLowerCase().includes(k.toLowerCase()))?.[1] || '';
-        const vid = 'pv'+i;
-        return `<div class="card">
-          <div class="card-header" onclick="togglePSWVisit('${vid}')" style="cursor:pointer;">
-            <div style="flex:1;min-width:0;">
-              <div class="card-name">${v.client_name || '—'}</div>
-              <div class="card-sub">${v.time_in||''} ${v.time_out?'to '+v.time_out:''}</div>
-              <div class="card-meta">${tasks ? tasks.slice(0,60)+(tasks.length>60?'...':'') : 'No tasks logged'}</div>
-              ${v.incident_reported?'<div style="font-size:11px;color:var(--red);margin-top:4px;">Incident reported</div>':''}
-            </div>
-            <div class="card-right">
-              <div style="font-family:var(--mono);font-size:11px;color:var(--teal2);">${fmtd(v.visit_date)}</div>
-              <div style="font-family:var(--mono);font-size:11px;color:var(--gold);">${v.hours_worked||0}h</div>
-              ${mood?'<div style="font-family:var(--mono);font-size:9px;color:var(--muted2);letter-spacing:1px;">'+mood+'</div>':''}
-              <div style="font-size:10px;color:var(--muted);" id="chev-${vid}">+</div>
-            </div>
+    if (d.all_time) {
+      html += `<div class="pay-period-card">
+        <div class="pay-period-header"><div class="pay-period-label">All Time</div></div>
+        <div class="pay-period-body">
+          <div class="pay-row"><div class="pay-row-label">Total Visits</div><div class="pay-row-value">${d.all_time.total_visits}</div></div>
+          <div class="pay-row"><div class="pay-row-label">Total Hours</div><div class="pay-row-value">${d.all_time.total_hours}</div></div>
+        </div>
+      </div>`;
+    }
+
+    // Past periods
+    const pastPeriods = (d.periods || []).slice(1, 4); // up to 3 past periods
+    if (pastPeriods.length) {
+      pastPeriods.forEach(p => {
+        html += `<div class="pay-period-card">
+          <div class="pay-period-header">
+            <div class="pay-period-label">${p.label}</div>
+            <div style="font-family:var(--mono);font-size:12px;color:var(--gold);">$${p.total_pay.toFixed(2)}</div>
           </div>
-          <div id="${vid}" style="display:none;padding:14px 16px;border-top:1px solid var(--border);font-size:12px;line-height:1.8;">
-            ${tasks?'<div style="margin-bottom:10px;"><div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:4px;">Tasks Completed</div><div style="color:var(--muted2);">'+tasks+'</div></div>':''}
-            ${mood?'<div style="margin-bottom:10px;"><div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:4px;">Client Mood</div><div style="color:var(--text);">'+mood+'</div></div>':''}
-            ${v.visit_summary?'<div style="margin-bottom:10px;"><div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:4px;">Care Summary</div><div style="color:var(--muted2);">'+v.visit_summary+'</div></div>':''}
-            ${v.incident_notes?'<div style="margin-bottom:10px;"><div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--red);margin-bottom:4px;">Incident Notes</div><div style="color:var(--text);">'+v.incident_notes+'</div></div>':''}
+          <div class="pay-period-body">
+            <div class="pay-row"><div class="pay-row-label">Hours</div><div class="pay-row-value">${p.total_hours}</div></div>
+            <div class="pay-row"><div class="pay-row-label">Visits</div><div class="pay-row-value">${p.visits.length}</div></div>
           </div>
         </div>`;
-      }).join('');
+      });
     }
 
     el.innerHTML = html;
-    document.getElementById('s-month').textContent = allVisits.length;
-  } catch(e) { console.error(e); el.innerHTML = '<div class="empty-state">Could not load visits</div>'; }
+
+    // Load availability
+    loadAvailability();
+  } catch { el.innerHTML = '<div class="empty-state">Could not load pay summary</div>'; }
 }
 
-function togglePSWVisit(id) {
-  const el = document.getElementById(id);
-  const chev = document.getElementById('chev-'+id);
-  if (!el) return;
-  const open = el.style.display !== 'none';
-  el.style.display = open ? 'none' : 'block';
-  if (chev) chev.textContent = open ? '+' : '−';
+// ── AVAILABILITY ──
+async function loadAvailability() {
+  try {
+    const res = await fetch(`${API}/psw/notes/${encodeURIComponent(pswName)}?pin=${pswPin}`);
+    const d = await res.json();
+    if (d.psw_record) {
+      const days = (d.psw_record.availability_days || '').split(',').map(s => s.trim()).filter(Boolean);
+      const shifts = (d.psw_record.availability_shifts || '').split(',').map(s => s.trim()).filter(Boolean);
+      document.querySelectorAll('.avail-day').forEach(el => {
+        if (days.includes(el.dataset.day)) el.classList.add('sel');
+      });
+      document.querySelectorAll('.avail-shift').forEach(el => {
+        if (shifts.includes(el.dataset.shift)) el.classList.add('sel');
+      });
+    }
+  } catch {}
+}
+
+function toggleAvailDay(el) { el.classList.toggle('sel'); }
+function toggleAvailShift(el) { el.classList.toggle('sel'); }
+
+async function saveAvailability() {
+  const days = Array.from(document.querySelectorAll('.avail-day.sel')).map(el => el.dataset.day).join(',');
+  const shifts = Array.from(document.querySelectorAll('.avail-shift.sel')).map(el => el.dataset.shift).join(',');
+  try {
+    const res = await fetch(`${API}/psw/availability`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ psw_name: pswName, pin: pswPin, operator_id: 'proximity-care', availability_days: days, availability_shifts: shifts })
+    });
+    const d = await res.json();
+    if (!res.ok) throw new Error(d.error);
+    showToast('Availability saved', 'ok');
+  } catch { showToast('Save failed', 'err'); }
 }
 
 // ── MESSAGES ──
-async function loadMessages() {
+async function loadMessages(scroll = true) {
   const el = document.getElementById('msg-thread');
   try {
     const res = await fetch(`${API}/psw/notes/${encodeURIComponent(pswName)}?pin=${pswPin}`);
     const d = await res.json();
     const notes = d.notes || [];
+    const unread = notes.filter(n => n.sender === 'lance' && !n.read_at).length;
+    const badge = document.getElementById('msg-badge');
+    const dot = document.getElementById('bnav-msg-dot');
+    if (unread > 0) {
+      if (badge) { badge.textContent = unread; badge.classList.add('show'); }
+      if (dot) dot.classList.add('show');
+    } else {
+      if (badge) badge.classList.remove('show');
+      if (dot) dot.classList.remove('show');
+    }
     if (!notes.length) { el.innerHTML = '<div class="empty-state">No messages yet. Send Lance a message.</div>'; return; }
-    el.innerHTML = notes.map(n => `
-      <div class="msg-bubble ${n.sender==='lance'?'msg-lance':'msg-me'}">
-        <div class="msg-text">${n.message}</div>
-        <div class="msg-time">${ago(n.created_at)}</div>
-      </div>`).join('');
-    el.scrollTop = el.scrollHeight;
+    el.innerHTML = notes.map(n => `<div class="msg-bubble ${n.sender==='lance'?'msg-lance':'msg-me'}"><div class="msg-text">${n.message}</div><div class="msg-time">${ago(n.created_at)}</div></div>`).join('');
+    if (scroll) el.scrollTop = el.scrollHeight;
   } catch { el.innerHTML = '<div class="empty-state">Could not load messages</div>'; }
 }
 
@@ -878,97 +1251,114 @@ async function sendMsg() {
   const msg = document.getElementById('msg-input').value.trim();
   if (!msg) return;
   try {
-    const res = await fetch(`${API}/psw/note`, {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ psw_name: pswName, sender:'psw', message: msg, pin: pswPin })
-    });
+    const res = await fetch(`${API}/psw/note`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ psw_name: pswName, sender: 'psw', message: msg, pin: pswPin }) });
     const d = await res.json();
     if (!d.success) throw new Error();
     document.getElementById('msg-input').value = '';
-    showToast('Message sent', 'ok');
+    showToast('Sent', 'ok');
     await loadMessages();
   } catch { showToast('Send failed', 'err'); }
 }
 
 // ── DOCUMENTS ──
-async function uploadDoc(input) {
-  const file = input.files[0]; if (!file) return;
-  showToast('Uploading...', 'ok');
+async function loadDocuments() {
+  const el = document.getElementById('docs-list');
   try {
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('psw_name', pswName);
-    formData.append('pin', pswPin);
-    const res = await fetch(`${API}/psw/upload`, { method:'POST', body: formData });
+    const res = await fetch(`${API}/psw/notes/${encodeURIComponent(pswName)}?pin=${pswPin}`);
     const d = await res.json();
-    if (!d.success) throw new Error(d.error);
-    showToast('Document uploaded', 'ok');
-    const list = document.getElementById('docs-list');
-    if (list.querySelector('.empty-state')) list.innerHTML = '';
-    const row = document.createElement('div');
-    row.className = 'doc-row';
-    row.innerHTML = `<div class="doc-icon">PDF</div><div class="doc-info"><div class="doc-name">${file.name}</div><div class="doc-meta">Just uploaded</div></div>`;
-    list.appendChild(row);
-  } catch(err) { showToast(err.message || 'Upload failed', 'err'); }
-  input.value = '';
+    const rec = d.psw_record;
+    if (!rec) { el.innerHTML = '<div class="empty-state" style="padding:20px;">No documents on file</div>'; return; }
+    const docs = [
+      { name: 'PSW Certificate', key: 'psw_cert', url: rec.psw_cert_url, expiry: rec.psw_cert_expiry, status: rec.psw_cert_status },
+      { name: 'Police Check', key: 'police_check', url: rec.police_check_url, expiry: rec.police_check_expiry, status: rec.police_check_status },
+      { name: 'CPR Certification', key: 'cpr_cert', url: rec.cpr_cert_url, expiry: rec.cpr_cert_expiry, status: rec.cpr_cert_status },
+      { name: 'First Aid', key: 'first_aid', url: rec.first_aid_url, expiry: rec.first_aid_expiry, status: rec.first_aid_status }
+    ];
+    el.innerHTML = docs.map(doc => {
+      const st = doc.status || (doc.url ? 'valid' : 'missing');
+      const expStr = doc.expiry ? 'Expires ' + fmtd(doc.expiry) : 'No expiry on file';
+      return `<div class="doc-row">
+        <div class="doc-icon">${doc.key.split('_').map(w=>w[0].toUpperCase()).join('')}</div>
+        <div class="doc-info">
+          <div class="doc-name">${doc.name}</div>
+          <div class="doc-meta">${doc.url ? expStr : 'Not uploaded'}</div>
+        </div>
+        <div class="doc-status ${st}">${st}</div>
+      </div>`;
+    }).join('');
+  } catch { el.innerHTML = '<div class="empty-state" style="padding:20px;">Could not load documents</div>'; }
+}
+
+// ── STATS ──
+function updateStats() {
+  if (!scheduleData) return;
+  const today = new Date().toISOString().slice(0,10);
+  const todayVisits = (scheduleData.completed_visits || []).filter(v => v.visit_date === today);
+  document.getElementById('s-visits').textContent = todayVisits.length + (activeVisit ? 1 : 0);
+  const monthStr = new Date().toISOString().slice(0,7);
+  const monthVisits = (scheduleData.completed_visits || []).filter(v => (v.visit_date||'').startsWith(monthStr));
+  document.getElementById('s-month').textContent = monthVisits.length;
 }
 
 // ── NAV ──
 function showSect(name) {
-  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
-  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
-  document.querySelectorAll('.bnav-item').forEach(b=>b.classList.remove('active'));
-  const s=document.getElementById('sect-'+name); if(s) s.classList.add('active');
-  const tabs=document.querySelectorAll('.nav-tab');
-  const tm=['home','visit','checklist','clients','schedule','messages','documents'];
-  const ti=tm.indexOf(name); if(ti>=0&&tabs[ti]) tabs[ti].classList.add('active');
-  const bm=['home','visit','clients','messages','documents'];
-  const bi=bm.indexOf(name);
-  const bnavs=document.querySelectorAll('.bnav-item');
-  if(bi>=0&&bnavs[bi]) bnavs[bi].classList.add('active');
-  if(name==='messages') loadMessages();
-  if(name==='clients') loadClients();
-  if(name==='schedule') loadSchedule();
-  window.scrollTo(0,0);
-  history.pushState({section: name}, '', window.location.href);
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.bnav-item').forEach(b => b.classList.remove('active'));
+  const s = document.getElementById('sect-'+name); if (s) s.classList.add('active');
+  const tabs = document.querySelectorAll('.nav-tab');
+  const tm = ['home','schedule','visit','checklist','clients','pay','messages','documents'];
+  const ti = tm.indexOf(name); if (ti >= 0 && tabs[ti]) tabs[ti].classList.add('active');
+  const bm = ['home','schedule','clients','messages','pay'];
+  const bi = bm.indexOf(name);
+  const bnavs = document.querySelectorAll('.bnav-item');
+  if (bi >= 0 && bnavs[bi]) bnavs[bi].classList.add('active');
+  if (name === 'messages') loadMessages();
+  if (name === 'schedule') { loadSchedule(); }
+  if (name === 'pay') loadPaySummary();
+  window.scrollTo(0, 0);
+  history.pushState({ section: name }, '', window.location.href);
+}
+
+function toggleDetail(id) {
+  const el = document.getElementById(id);
+  const chev = document.getElementById('chev-'+id);
+  if (!el) return;
+  const open = el.style.display !== 'none';
+  el.style.display = open ? 'none' : 'block';
+  if (chev) chev.textContent = open ? '▼' : '▲';
 }
 
 // ── HELPERS ──
 function fmtd(str) {
-  if(!str) return '—';
-  const d=new Date(str.includes('T')?str:str+'T12:00:00');
-  return d.toLocaleDateString('en-CA',{month:'short',day:'numeric'});
+  if (!str) return '—';
+  const d = new Date(str.includes('T') ? str : str+'T12:00:00');
+  return d.toLocaleDateString('en-CA', { month: 'short', day: 'numeric' });
 }
 function ago(str) {
-  if(!str) return '—';
-  const d=(Date.now()-new Date(str))/1000;
-  if(d<60) return 'just now';
-  if(d<3600) return Math.floor(d/60)+'m ago';
-  if(d<86400) return Math.floor(d/3600)+'h ago';
+  if (!str) return '—';
+  const d = (Date.now() - new Date(str)) / 1000;
+  if (d < 60) return 'just now';
+  if (d < 3600) return Math.floor(d/60)+'m ago';
+  if (d < 86400) return Math.floor(d/3600)+'h ago';
   return Math.floor(d/86400)+'d ago';
 }
-function showToast(msg, type='ok') {
-  const t=document.getElementById('toast');
-  t.textContent=msg; t.className='toast show '+type;
-  setTimeout(()=>t.classList.remove('show'),3000);
+function showToast(msg, type = 'ok') {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = 'toast show ' + type;
+  setTimeout(() => t.classList.remove('show'), 3000);
 }
 
-// Handle Android back button — only when app is unlocked
-let appUnlocked = false;
-window.addEventListener('popstate', function(e) {
+window.addEventListener('popstate', function() {
   if (!appUnlocked) return;
-  const sections = ['home','visit','checklist','clients','schedule','messages','documents'];
+  const sections = ['home','schedule','visit','checklist','clients','pay','messages','documents'];
   const current = sections.find(s => document.getElementById('sect-'+s)?.classList.contains('active'));
-  if (current && current !== 'home') {
-    history.pushState(null, '', window.location.href);
-    showSect('home');
-  }
+  if (current && current !== 'home') { history.pushState(null,'',window.location.href); showSect('home'); }
 });
 
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/psw-sw.js').catch(()=>{});
+  navigator.serviceWorker.register('/psw-sw.js').catch(() => {});
 }
-
 </script>
 </body>
 </html>
