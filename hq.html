@@ -814,6 +814,9 @@ a{color:inherit;text-decoration:none;}
     <div class="sd-conflict-row" id="sd-conflict-row" style="display:none;">
       <div id="sd-conflict-msg"></div>
     </div>
+    <div id="sd-broadcast-row" style="margin-bottom:10px;display:none;">
+      <button onclick="broadcastShift(window._sdBookingId)" style="width:100%;padding:10px;border-radius:6px;font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;min-height:40px;border:1px solid rgba(200,169,110,.3);background:rgba(200,169,110,.08);color:var(--gold);">📡 Broadcast to Available PSWs</button>
+    </div>
     <div class="sd-btns">
       <button class="sd-edit-btn" id="sd-edit">Edit</button>
       <button class="sd-delete-btn" id="sd-delete">Remove</button>
@@ -2290,6 +2293,9 @@ function _showShiftDetail(b, props) {
     document.getElementById('sd-conflict-msg').textContent = conflict?.reason || 'Schedule conflict detected';
   }
 
+  window._sdBookingId = b.id;
+  const broadcastRow = document.getElementById('sd-broadcast-row');
+  if (broadcastRow) broadcastRow.style.display = (!b.assigned_to || b.assigned_to==='') ? 'block' : 'none';
   document.getElementById('sd-edit').onclick   = () => { m.style.display='none'; openEditShift(b.id); };
   document.getElementById('sd-delete').onclick = () => { m.style.display='none'; deleteShift(b.id); };
   document.getElementById('sd-close').onclick  = () => { m.style.display='none'; };
@@ -2679,6 +2685,51 @@ function openClientDetail(id) {
 }
 
 setInterval(()=>loadAll(false), 90000);
+
+// ── SHIFT BROADCAST ──
+async function broadcastShift(bookingId) {
+  const bookings = D.bookings || [];
+  const b = bookings.find(x => x.id === bookingId);
+  if (!b) { showToast('Booking not found', 'err'); return; }
+
+  const clientName = b.client_name || '';
+  const date = b.scheduled_date || '';
+  const time = b.scheduled_time || '09:00';
+  const dur  = b.duration_minutes || 480;
+
+  if (!confirm(`Broadcast open shift to all available PSWs?
+
+Client: ${clientName}
+Date: ${date} ${time}
+
+First to accept gets it.`)) return;
+
+  showToast('Broadcasting to PSWs...', 'ok');
+
+  try {
+    const res = await fetch(`${API}/hq/broadcast-shift`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        operator_id: currentOp,
+        booking_id: bookingId,
+        client_name: clientName,
+        scheduled_date: date,
+        scheduled_time: time,
+        duration_minutes: dur
+      })
+    });
+    const d = await res.json();
+    if (!d.success) throw new Error(d.error || 'Broadcast failed');
+    showToast(`Broadcast sent to ${d.psws_notified} PSW${d.psws_notified!==1?'s':''}`, 'ok');
+    // Close detail modal if open
+    const dm = document.getElementById('shift-detail-modal');
+    if (dm) dm.style.display = 'none';
+  } catch(e) {
+    showToast(e.message, 'err');
+  }
+}
+
 </script>
 </body>
 </html>
