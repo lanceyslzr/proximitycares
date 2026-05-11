@@ -790,6 +790,26 @@ a{color:inherit;text-decoration:none;}
 </div>
 
 
+
+<!-- INCIDENT RESOLVE MODAL -->
+<div class="conflict-modal-overlay" id="incident-modal">
+  <div class="conflict-modal-box" style="border-color:var(--red);">
+    <div class="conflict-modal-title">⚠ Incident Report</div>
+    <div style="margin-bottom:12px;">
+      <div style="font-family:var(--mono);font-size:10px;color:var(--muted2);margin-bottom:4px;" id="im-meta"></div>
+      <div style="font-size:13px;color:var(--text);line-height:1.6;background:rgba(224,85,85,.06);border:1px solid rgba(224,85,85,.2);border-radius:6px;padding:10px 12px;" id="im-notes"></div>
+    </div>
+    <div style="margin-bottom:12px;">
+      <div style="font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--muted2);margin-bottom:6px;">Resolution Note</div>
+      <textarea id="im-resolve-note" style="width:100%;background:var(--bg3);border:1px solid var(--border2);color:var(--text);padding:10px;border-radius:6px;font-family:var(--sans);font-size:13px;min-height:80px;resize:vertical;outline:none;box-sizing:border-box;" placeholder="Describe how this was resolved..."></textarea>
+    </div>
+    <div class="conflict-modal-btns">
+      <button class="cm-override-btn" id="im-resolve" style="background:rgba(74,154,110,.1);border-color:var(--green2)!important;color:var(--green2);">✓ Mark Resolved</button>
+      <button class="cm-cancel-btn" id="im-close">Close</button>
+    </div>
+  </div>
+</div>
+
 <!-- CONFLICT MODAL -->
 <div class="conflict-modal-overlay" id="conflict-modal">
   <div class="conflict-modal-box">
@@ -886,6 +906,9 @@ async function loadAll(spin=false) {
 function renderAll() {
   renderStats(); renderLeads(); renderClients(); renderPSWs();
   renderBookings(); renderPurchases(); renderMessages(); renderActivity(); renderVisits();
+  const openInc = (D.visits||[]).filter(v=>v.incident_reported&&!v.incident_resolved).length;
+  const icEl = document.getElementById('incident-count');
+  if (icEl) { icEl.textContent = openInc; icEl.style.display = openInc > 0 ? 'inline' : 'none'; }
   renderCRM();
 }
 
@@ -1548,7 +1571,7 @@ async function renderVisits() {
             <div class="card-name">${v.psw_name||'—'}</div>
             <div class="card-sub">${v.client_name||'—'} · ${v.time_in||''} ${v.time_out?'to '+v.time_out:''}</div>
             <div class="card-meta">${tasks ? tasks.slice(0,60)+(tasks.length>60?'...':'') : 'No tasks logged'}</div>
-            ${v.incident_reported?`<div style="font-size:11px;color:var(--red);margin-top:4px;">Incident reported</div>`:''}
+            ${v.incident_reported?`<div style="font-size:11px;color:var(--red);margin-top:4px;display:flex;align-items:center;gap:6px;">⚠ Incident ${v.incident_resolved?'<span style="color:var(--green2);">Resolved</span>':"<button onclick='event.stopPropagation();openIncidentResolve("+JSON.stringify(v)+")' style='font-family:var(--mono);font-size:8px;background:rgba(224,85,85,.1);border:1px solid rgba(224,85,85,.3);color:var(--red);padding:2px 8px;border-radius:3px;cursor:pointer;min-height:24px;'>Resolve</button>"}</div>`:''}
           </div>
           <div class="card-right">
             <div style="font-family:var(--mono);font-size:11px;color:var(--teal2);">${fmtd(v.visit_date)}</div>
@@ -2295,7 +2318,7 @@ function _showShiftDetail(b, props) {
 
   window._sdBookingId = b.id;
   const broadcastRow = document.getElementById('sd-broadcast-row');
-  if (broadcastRow) broadcastRow.style.display = (!b.assigned_to || b.assigned_to==='') ? 'block' : 'none';
+  if (broadcastRow) broadcastRow.style.display = (!b.assigned_to||b.assigned_to==='') ? 'block' : 'none';
   document.getElementById('sd-edit').onclick   = () => { m.style.display='none'; openEditShift(b.id); };
   document.getElementById('sd-delete').onclick = () => { m.style.display='none'; deleteShift(b.id); };
   document.getElementById('sd-close').onclick  = () => { m.style.display='none'; };
@@ -2686,48 +2709,105 @@ function openClientDetail(id) {
 
 setInterval(()=>loadAll(false), 90000);
 
+// ── INCIDENT WORKFLOW ──
+function setVisitView(view) {
+  const logEl = document.getElementById('visits-list');
+  const incEl = document.getElementById('incidents-list');
+  const logBtn = document.getElementById('vv-log');
+  const incBtn = document.getElementById('vv-incidents');
+  if (!logEl || !incEl) return;
+  if (view === 'incidents') {
+    logEl.style.display = 'none'; incEl.style.display = 'block';
+    if (logBtn) { logBtn.style.borderColor='var(--border)'; logBtn.style.color='var(--muted2)'; logBtn.style.background='none'; }
+    if (incBtn) { incBtn.style.borderColor='var(--red)'; incBtn.style.color='var(--red)'; incBtn.style.background='rgba(224,85,85,.08)'; }
+    renderIncidents();
+  } else {
+    logEl.style.display = 'block'; incEl.style.display = 'none';
+    if (logBtn) { logBtn.style.borderColor='var(--teal2)'; logBtn.style.color='var(--teal2)'; logBtn.style.background='rgba(61,138,122,.1)'; }
+    if (incBtn) { incBtn.style.borderColor='var(--border)'; incBtn.style.color='var(--muted2)'; incBtn.style.background='none'; }
+  }
+}
+
+function renderIncidents() {
+  const visits = D.visits || [];
+  const incidents = visits.filter(v => v.incident_reported && !v.incident_resolved);
+  const el = document.getElementById('incidents-list');
+  if (!el) return;
+  if (!incidents.length) {
+    el.innerHTML = '<div class="empty-state" style="color:var(--green2);">✓ No open incidents</div>';
+    return;
+  }
+  el.innerHTML = incidents.map(v => `
+    <div class="card" style="border-color:rgba(224,85,85,.3);margin:8px 12px;">
+      <div class="card-header">
+        <div style="flex:1;min-width:0;">
+          <div class="card-name" style="color:var(--red);">⚠ ${v.client_name||'—'}</div>
+          <div class="card-sub">${v.psw_name||'—'} · ${fmtd(v.visit_date)}</div>
+          <div class="card-meta" style="color:var(--muted2);margin-top:4px;">${v.incident_notes||'No details'}</div>
+        </div>
+        <div class="card-right">
+          <span class="badge b-pending">OPEN</span>
+        </div>
+      </div>
+      <div class="card-actions">
+        <div class="card-act call" onclick="openIncidentResolve(${JSON.stringify(v).replace(/"/g,'&quot;')})">Resolve</div>
+      </div>
+    </div>`).join('');
+}
+
+function openIncidentResolve(visit) {
+  if (typeof visit === 'string') { try { visit = JSON.parse(visit); } catch(e) { return; } }
+  const m = document.getElementById('incident-modal');
+  if (!m) return;
+  document.getElementById('im-meta').textContent = `${visit.psw_name||'—'} → ${visit.client_name||'—'} · ${fmtd(visit.visit_date)}`;
+  document.getElementById('im-notes').textContent = visit.incident_notes || 'No details provided';
+  document.getElementById('im-resolve-note').value = '';
+  document.getElementById('im-resolve').onclick = () => resolveIncident(visit.id);
+  document.getElementById('im-close').onclick = () => { m.style.display = 'none'; };
+  m.style.display = 'flex';
+}
+
+async function resolveIncident(visitId) {
+  const note = document.getElementById('im-resolve-note').value.trim();
+  if (!note) { showToast('Add a resolution note first', 'err'); return; }
+  const btn = document.getElementById('im-resolve');
+  btn.textContent = 'Resolving...'; btn.disabled = true;
+  try {
+    const res = await fetch(`${API}/hq/incident-resolve`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ operator_id: currentOp, visit_id: visitId, resolution_note: note })
+    });
+    const d = await res.json();
+    if (!d.success) throw new Error(d.error || 'Failed');
+    document.getElementById('incident-modal').style.display = 'none';
+    showToast('Incident marked resolved', 'ok');
+    await loadAll(false);
+    setVisitView('incidents');
+  } catch(e) { showToast(e.message, 'err'); }
+  btn.textContent = '✓ Mark Resolved'; btn.disabled = false;
+}
+
+
 // ── SHIFT BROADCAST ──
 async function broadcastShift(bookingId) {
   const bookings = D.bookings || [];
   const b = bookings.find(x => x.id === bookingId);
   if (!b) { showToast('Booking not found', 'err'); return; }
-
-  const clientName = b.client_name || '';
-  const date = b.scheduled_date || '';
-  const time = b.scheduled_time || '09:00';
-  const dur  = b.duration_minutes || 480;
-
-  if (!confirm(`Broadcast open shift to all available PSWs?
-
-Client: ${clientName}
-Date: ${date} ${time}
-
-First to accept gets it.`)) return;
-
+  if (!confirm(`Broadcast open shift to all available PSWs?\n\nClient: ${b.client_name||''}\nDate: ${b.scheduled_date} ${b.scheduled_time}\n\nFirst to accept gets it.`)) return;
   showToast('Broadcasting to PSWs...', 'ok');
-
   try {
     const res = await fetch(`${API}/hq/broadcast-shift`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        operator_id: currentOp,
-        booking_id: bookingId,
-        client_name: clientName,
-        scheduled_date: date,
-        scheduled_time: time,
-        duration_minutes: dur
-      })
+      body: JSON.stringify({ operator_id: currentOp, booking_id: bookingId, client_name: b.client_name, scheduled_date: b.scheduled_date, scheduled_time: b.scheduled_time, duration_minutes: b.duration_minutes||480 })
     });
     const d = await res.json();
-    if (!d.success) throw new Error(d.error || 'Broadcast failed');
-    showToast(`Broadcast sent to ${d.psws_notified} PSW${d.psws_notified!==1?'s':''}`, 'ok');
-    // Close detail modal if open
+    if (!d.success) throw new Error(d.error||'Broadcast failed');
+    showToast(`Sent to ${d.psws_notified} PSW${d.psws_notified!==1?'s':''}`, 'ok');
     const dm = document.getElementById('shift-detail-modal');
     if (dm) dm.style.display = 'none';
-  } catch(e) {
-    showToast(e.message, 'err');
-  }
+  } catch(e) { showToast(e.message, 'err'); }
 }
 
 </script>
