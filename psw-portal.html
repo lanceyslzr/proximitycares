@@ -837,11 +837,24 @@ async function doCheckIn() {
   const btn = document.getElementById('signin-btn');
   btn.textContent = 'Signing in...'; btn.disabled = true;
 
+  // Capture GPS before checkin
+  let latitude = null, longitude = null;
+  try {
+    const pos = await new Promise((resolve, reject) => {
+      navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 8000, maximumAge: 0 });
+    });
+    latitude  = pos.coords.latitude;
+    longitude = pos.coords.longitude;
+    btn.textContent = 'Location captured...';
+  } catch(gpsErr) {
+    // GPS denied or unavailable — continue without it
+  }
+
   try {
     const res = await fetch(`${API}/visit/checkin`, {
       method: 'POST',
       headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({psw_name: pswName, pin: pswPin, operator_id: 'proximity-care', client_name: clientName})
+      body: JSON.stringify({psw_name: pswName, pin: pswPin, operator_id: 'proximity-care', client_name: clientName, latitude, longitude})
     });
     const d = await res.json();
     if (!res.ok) throw new Error(d.error || 'Check-in failed');
