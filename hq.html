@@ -14,6 +14,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+<link href='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.css' rel='stylesheet' />
+<script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js'></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 :root{
@@ -103,6 +105,36 @@ a{color:inherit;text-decoration:none;}
 .op-finput:focus,.op-fselect:focus{border-color:var(--teal2);}
 .op-color-row{display:flex;align-items:center;gap:10px;}
 .op-color-preview{width:32px;height:32px;border-radius:4px;border:1px solid var(--border2);flex-shrink:0;}
+
+/* ── FULLCALENDAR WRAPPER ── */
+#fc-root { background: var(--bg); }
+#fc-cal { background: var(--bg); }
+.fc-view-harness { background: var(--bg2); border-radius: 8px; overflow: hidden; border: 1px solid var(--border); }
+
+/* ── CONFLICT MODAL ── */
+.conflict-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:500;display:none;align-items:center;justify-content:center;padding:16px;}
+.conflict-modal-box{background:var(--bg2);border:1px solid var(--red);border-radius:12px;padding:20px;max-width:360px;width:100%;}
+.conflict-modal-title{font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--red);margin-bottom:12px;}
+.conflict-modal-reason{font-size:13px;color:var(--text);margin-bottom:8px;line-height:1.5;}
+.conflict-modal-sub{font-family:var(--mono);font-size:10px;color:var(--muted2);margin-bottom:4px;}
+.conflict-modal-btns{display:flex;gap:8px;margin-top:16px;}
+.conflict-modal-btns button{flex:1;padding:10px;border-radius:6px;font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;min-height:44px;border:1px solid;}
+.cm-override-btn{background:rgba(224,85,85,.1);border-color:var(--red)!important;color:var(--red);}
+.cm-cancel-btn{background:var(--bg3);border-color:var(--border2)!important;color:var(--muted2);}
+
+/* ── SHIFT DETAIL MODAL ── */
+.shift-detail-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:500;display:none;align-items:center;justify-content:center;padding:16px;}
+.shift-detail-box{background:var(--bg2);border:1px solid var(--border2);border-radius:12px;padding:20px;max-width:340px;width:100%;}
+.sd-title{font-size:16px;font-weight:500;color:var(--text);margin-bottom:4px;}
+.sd-row{font-family:var(--mono);font-size:11px;color:var(--muted2);margin-bottom:4px;}
+.sd-status{font-family:var(--mono);font-size:10px;letter-spacing:1px;margin-bottom:12px;}
+.sd-conflict-row{background:rgba(224,85,85,.08);border:1px solid rgba(224,85,85,.25);border-radius:6px;padding:8px 10px;margin-bottom:12px;font-family:var(--mono);font-size:10px;color:var(--red);line-height:1.5;}
+.sd-btns{display:flex;gap:8px;}
+.sd-btns button{flex:1;padding:9px;border-radius:6px;font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;min-height:40px;border:1px solid;}
+.sd-edit-btn{background:rgba(61,138,122,.1);border-color:rgba(61,138,122,.3)!important;color:var(--teal2);}
+.sd-delete-btn{background:rgba(224,85,85,.08);border-color:rgba(224,85,85,.2)!important;color:var(--red);}
+.sd-close-btn{background:var(--bg3);border-color:var(--border)!important;color:var(--muted2);flex:0.5;}
+
 @media(max-width:600px){.op-form-grid{grid-template-columns:1fr;}}
 
 /* NAV TABS */
@@ -754,6 +786,39 @@ a{color:inherit;text-decoration:none;}
   <div class="msend-wrap">
     <textarea class="minput" id="psw-msg-input" placeholder="Type a message..." rows="1" oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,100)+'px';"></textarea>
     <button class="msend" onclick="sendPSWMsg()">Send</button>
+  </div>
+</div>
+
+
+<!-- CONFLICT MODAL -->
+<div class="conflict-modal-overlay" id="conflict-modal">
+  <div class="conflict-modal-box">
+    <div class="conflict-modal-title">⚠ Schedule Conflict</div>
+    <div class="conflict-modal-reason" id="cm-reason"></div>
+    <div class="conflict-modal-sub" id="cm-booking"></div>
+    <div class="conflict-modal-sub" id="cm-conflict"></div>
+    <div class="conflict-modal-btns">
+      <button class="cm-override-btn" id="cm-override">Override Anyway</button>
+      <button class="cm-cancel-btn" id="cm-cancel">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- SHIFT DETAIL MODAL -->
+<div class="shift-detail-overlay" id="shift-detail-modal">
+  <div class="shift-detail-box">
+    <div class="sd-title" id="sd-title"></div>
+    <div class="sd-row" id="sd-psw"></div>
+    <div class="sd-row" id="sd-date"></div>
+    <div class="sd-status" id="sd-status"></div>
+    <div class="sd-conflict-row" id="sd-conflict-row" style="display:none;">
+      <div id="sd-conflict-msg"></div>
+    </div>
+    <div class="sd-btns">
+      <button class="sd-edit-btn" id="sd-edit">Edit</button>
+      <button class="sd-delete-btn" id="sd-delete">Remove</button>
+      <button class="sd-close-btn" id="sd-close">✕</button>
+    </div>
   </div>
 </div>
 
@@ -1938,239 +2003,332 @@ let dragData = null;
 function renderSchedule() {
   const el = document.getElementById('schedule-board');
   if (!el) return;
-  const psws = D.psws || [];
-  const clients = D.clients || [];
+
+  // Build FullCalendar if not already initialized
+  if (!window._fcInitialized) {
+    window._fcInitialized = true;
+    el.innerHTML = '<div id="fc-root" style="padding:0 12px 12px;"></div>';
+    setTimeout(() => _initFC(), 50);
+  } else {
+    _refreshFC();
+  }
+}
+
+function _buildFCEvents() {
   const bookings = D.bookings || [];
-
-  // Week dates
-  const today = new Date(); today.setHours(12,0,0,0);
-  const dow = today.getDay() === 0 ? 6 : today.getDay() - 1;
-  const weekStart = new Date(today);
-  weekStart.setDate(today.getDate() - dow + (schedWeekOffset * 7));
-  const days = Array.from({length:7}, (_,i) => { const d = new Date(weekStart); d.setDate(weekStart.getDate()+i); return d; });
-  const todayStr = new Date().toISOString().slice(0,10);
-  const startStr = days[0].toISOString().slice(0,10);
-  const endStr = days[6].toISOString().slice(0,10);
-
-  // Filter
-  const filterLower = schedFilter.toLowerCase();
+  const visits   = D.visits  || [];
 
   // Conflict detection
   const conflicts = new Set();
   bookings.forEach((b1,i) => {
     bookings.forEach((b2,j) => {
       if(i>=j) return;
-      if(b1.assigned_to!==b2.assigned_to||b1.scheduled_date!==b2.scheduled_date||!b1.assigned_to) return;
+      if(!b1.assigned_to||b1.assigned_to!==b2.assigned_to||b1.scheduled_date!==b2.scheduled_date) return;
       const t1s=toMins(b1.scheduled_time),t1e=t1s+(b1.duration_minutes||60);
       const t2s=toMins(b2.scheduled_time),t2e=t2s+(b2.duration_minutes||60);
       if(t1s<t2e&&t2s<t1e){conflicts.add(b1.id);conflicts.add(b2.id);}
     });
   });
+  window._fcConflicts = conflicts;
 
-  // Open shifts — clients with no booking on any day this week
-  const openShifts = [];
-  clients.forEach(c => {
-    const cname = `${c.first_name||''} ${c.last_name||''}`.trim();
-    days.forEach(d => {
-      const ds = d.toISOString().slice(0,10);
-      const hasCoverage = bookings.some(b => b.client_name===cname && b.scheduled_date===ds && b.status!=='cancelled');
-      if (!hasCoverage) openShifts.push({client:cname, date:ds, assigned_psw: c.assigned_psw||''});
-    });
+  // Active visit ids
+  const activeVisitClients = new Set(
+    visits.filter(v=>v.status==='in_progress').map(v=>v.client_slug||v.client_name)
+  );
+
+  return bookings.map(b => {
+    const isConflict = conflicts.has(b.id);
+    const clientName = b.client_name || '';
+    const pswName    = b.assigned_to  || b.psw_name || '';
+    const isLive     = activeVisitClients.has(clientName) || activeVisitClients.has(b.client_slug);
+    const isCancelled= b.status === 'cancelled';
+
+    let color = '#1e5a4e'; // default teal-dark
+    if (isConflict)  color = '#8b2020';
+    if (isLive)      color = '#1a6b3a';
+    if (isCancelled) color = '#2a2a2a';
+
+    const startDT = `${b.scheduled_date}T${b.scheduled_time||'09:00'}`;
+    const durMins = b.duration_minutes || 480;
+    const endDT   = _addMins(startDT, durMins);
+
+    return {
+      id:         b.id,
+      title:      pswName ? `${clientName} · ${pswName}` : clientName || 'Unassigned',
+      start:      startDT,
+      end:        endDT,
+      color,
+      borderColor: isConflict ? '#e05555' : isLive ? '#4a9a6e' : '#3d8a7a',
+      textColor:  '#e8e4dc',
+      extendedProps: { booking: b, isConflict, isLive, isCancelled }
+    };
   });
-
-  // PSW weekly hours
-  const pswHours = {};
-  psws.forEach(p => { pswHours[p.full_name] = 0; });
-  bookings.filter(b=>b.scheduled_date>=startStr&&b.scheduled_date<=endStr&&b.status!=='cancelled').forEach(b=>{
-    if(b.assigned_to&&pswHours[b.assigned_to]!==undefined) pswHours[b.assigned_to]+=(b.duration_minutes||60)/60;
-  });
-
-  let html = '';
-
-  // ── CONTROLS BAR ──
-  html += `<div style="display:flex;align-items:center;gap:8px;padding:10px 12px;flex-wrap:wrap;">
-    <button onclick="shiftSchedWeek(-1)" style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted2);background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:6px 12px;cursor:pointer;min-height:34px;">← Prev</button>
-    <div style="font-family:var(--mono);font-size:10px;letter-spacing:1px;color:var(--muted2);flex:1;text-align:center;">${fmtd(startStr)} – ${fmtd(endStr)}</div>
-    <button onclick="shiftSchedWeek(1)" style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted2);background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:6px 12px;cursor:pointer;min-height:34px;">Next →</button>
-  </div>
-  <div style="display:flex;align-items:center;gap:8px;padding:0 12px 10px;flex-wrap:wrap;">
-    <button onclick="setSchedView('client')" style="font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;padding:5px 12px;border-radius:6px;cursor:pointer;min-height:30px;border:1px solid var(--border);background:${schedView==='client'?'var(--teal2)':'var(--bg2)'};color:${schedView==='client'?'#fff':'var(--muted2)'};">By Client</button>
-    <button onclick="setSchedView('psw')" style="font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;padding:5px 12px;border-radius:6px;cursor:pointer;min-height:30px;border:1px solid var(--border);background:${schedView==='psw'?'var(--teal2)':'var(--bg2)'};color:${schedView==='psw'?'#fff':'var(--muted2)'};">By PSW</button>
-    <input type="text" placeholder="Filter by name..." value="${schedFilter}" oninput="schedFilter=this.value;renderSchedule()" style="font-family:var(--mono);font-size:11px;background:var(--bg2);border:1px solid var(--border);color:var(--text);padding:5px 10px;border-radius:6px;min-height:30px;width:160px;">
-    <div style="font-family:var(--mono);font-size:9px;color:var(--muted);margin-left:auto;">${openShifts.length} open ${openShifts.length===1?'slot':'slots'} this week</div>
-  </div>`;
-
-  // ── OPEN SHIFTS BANNER ──
-  const todayOpen = openShifts.filter(o=>o.date===todayStr);
-  if(todayOpen.length) {
-    html += `<div style="margin:0 12px 10px;padding:10px 14px;background:rgba(224,85,85,.06);border:1px solid rgba(224,85,85,.25);border-radius:8px;">
-      <div style="font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--red);margin-bottom:6px;">No Coverage Today</div>
-      <div style="display:flex;gap:6px;flex-wrap:wrap;">
-        ${todayOpen.map(o=>`<span style="font-size:11px;color:var(--muted2);background:var(--bg3);border:1px solid rgba(224,85,85,.3);border-radius:100px;padding:3px 10px;cursor:pointer;" onclick="openAddShift('${o.assigned_psw}','${o.date}')">${o.client} +</span>`).join('')}
-      </div>
-    </div>`;
-  }
-
-  if(schedView === 'client') {
-    // ── CLIENT VIEW — rows = clients, cols = days ──
-    let filteredClients = clients.filter(c => {
-      if(!filterLower) return true;
-      const cname = `${c.first_name||''} ${c.last_name||''}`.trim().toLowerCase();
-      return cname.includes(filterLower) || (c.assigned_psw||'').toLowerCase().includes(filterLower);
-    });
-
-    if(!filteredClients.length) { html += '<div class="empty-state">No clients match filter</div>'; el.innerHTML=html; return; }
-
-    html += `<div style="overflow-x:auto;padding:0 12px 12px;">
-    <table style="border-collapse:collapse;width:100%;min-width:700px;font-size:11px;">
-    <thead><tr>
-      <th style="background:var(--bg3);padding:8px 12px;text-align:left;font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--muted2);border:1px solid var(--border);min-width:150px;position:sticky;left:0;z-index:2;">Client</th>
-      ${days.map(d=>{
-        const ds=d.toISOString().slice(0,10);
-        const isToday=ds===todayStr;
-        const label=d.toLocaleDateString('en-CA',{weekday:'short',month:'short',day:'numeric'});
-        return `<th style="background:${isToday?'rgba(61,122,138,.12)':'var(--bg3)'};padding:7px 10px;text-align:center;font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:${isToday?'var(--teal2)':'var(--muted2)'};border:1px solid var(--border);min-width:120px;">${label}</th>`;
-      }).join('')}
-    </tr></thead><tbody>`;
-
-    filteredClients.forEach((c,ri) => {
-      const cname = `${c.first_name||''} ${c.last_name||''}`.trim();
-      const bg = ri%2===0 ? 'var(--bg2)' : 'var(--bg3)';
-      html += `<tr>
-        <td style="padding:8px 12px;border:1px solid var(--border);background:var(--bg2);vertical-align:top;position:sticky;left:0;z-index:1;">
-          <div style="font-size:12px;font-weight:500;color:var(--text);">${cname}</div>
-          <div style="font-family:var(--mono);font-size:9px;color:var(--muted);margin-top:2px;">${c.assigned_psw||'Unassigned'}</div>
-        </td>`;
-      days.forEach(d => {
-        const ds = d.toISOString().slice(0,10);
-        const isToday = ds===todayStr;
-        const dayBookings = bookings.filter(b=>b.scheduled_date===ds&&b.client_name===cname);
-        const activeB = dayBookings.filter(b=>b.status!=='cancelled');
-        const cancelledB = dayBookings.filter(b=>b.status==='cancelled');
-        const hasConflict = activeB.some(b=>conflicts.has(b.id));
-
-        html += `<td style="padding:4px;border:1px solid var(--border);background:${hasConflict?'rgba(224,85,85,.06)':isToday?'rgba(61,122,138,.04)':bg};vertical-align:top;"
-          ondragover="event.preventDefault();this.style.background='rgba(61,122,138,.12)'"
-          ondragleave="this.style.background='${isToday?'rgba(61,122,138,.04)':bg}'"
-          ondrop="dropShift(event,'${c.assigned_psw||''}','${ds}',this,'${cname}')">`;
-
-        activeB.forEach(b => {
-          const isConflict = conflicts.has(b.id);
-          html += `<div draggable="true"
-            ondragstart="dragShift(event,'${b.id}','${b.client_name}','${b.scheduled_time||''}','${b.duration_minutes||60}')"
-            ondragend="this.style.opacity='1'"
-            style="background:${isConflict?'rgba(224,85,85,.2)':'rgba(61,122,138,.18)'};border:1px solid ${isConflict?'rgba(224,85,85,.5)':'rgba(61,122,138,.4)'};border-radius:6px;padding:5px 7px;margin-bottom:3px;cursor:grab;">
-            <div style="font-size:10px;font-weight:500;color:var(--text);">${b.assigned_to||'Unassigned'}</div>
-            <div style="font-family:var(--mono);font-size:9px;color:var(--muted2);">${b.scheduled_time||'—'} · ${Math.round((b.duration_minutes||60)/60*10)/10}h</div>
-            ${isConflict?'<div style="font-family:var(--mono);font-size:8px;color:var(--red);">CONFLICT</div>':''}
-            <div style="display:flex;gap:3px;margin-top:4px;">
-              <button onclick="toggleShiftStatus('${b.id}','cancelled')" style="flex:1;font-family:var(--mono);font-size:8px;color:var(--amber);background:transparent;border:1px solid rgba(224,154,61,.3);border-radius:4px;padding:2px;cursor:pointer;min-height:20px;">Off</button>
-              <button onclick="openEditShift('${b.id}','${b.client_name}','${b.assigned_to||''}','${ds}','${b.scheduled_time||''}','${b.duration_minutes||60}')" style="flex:1;font-family:var(--mono);font-size:8px;color:var(--teal2);background:transparent;border:1px solid var(--border);border-radius:4px;padding:2px;cursor:pointer;min-height:20px;">Edit</button>
-              <button onclick="deleteShift('${b.id}')" style="font-family:var(--mono);font-size:8px;color:var(--red);background:transparent;border:1px solid rgba(224,85,85,.3);border-radius:4px;padding:2px 4px;cursor:pointer;min-height:20px;">✕</button>
-            </div>
-          </div>`;
-        });
-
-        cancelledB.forEach(b => {
-          html += `<div style="background:rgba(255,255,255,.03);border:1px dashed rgba(255,255,255,.1);border-radius:6px;padding:4px 7px;margin-bottom:3px;opacity:.5;">
-            <div style="font-size:9px;color:var(--muted);text-decoration:line-through;">${b.assigned_to||'—'}</div>
-            <div style="display:flex;gap:3px;margin-top:3px;">
-              <button onclick="toggleShiftStatus('${b.id}','scheduled')" style="width:100%;font-family:var(--mono);font-size:8px;color:var(--green2);background:transparent;border:1px solid rgba(42,138,114,.3);border-radius:4px;padding:2px;cursor:pointer;min-height:20px;">On</button>
-            </div>
-          </div>`;
-        });
-
-        html += `<button onclick="openAddShift('${c.assigned_psw||''}','${ds}','${cname}')" style="width:100%;font-family:var(--mono);font-size:9px;color:var(--muted);background:transparent;border:1px dashed var(--border);border-radius:5px;padding:4px;cursor:pointer;min-height:26px;display:block;margin-top:${dayBookings.length?'2px':'0'};">+ Add</button>`;
-        html += '</td>';
-      });
-      html += '</tr>';
-    });
-    html += '</tbody></table></div>';
-
-  } else {
-    // ── PSW VIEW — rows = PSWs, cols = days ──
-    let filteredPSWs = psws.filter(p => {
-      if(!filterLower) return true;
-      return p.full_name.toLowerCase().includes(filterLower);
-    });
-
-    if(!filteredPSWs.length) { html += '<div class="empty-state">No PSWs match filter</div>'; el.innerHTML=html; return; }
-
-    html += `<div style="overflow-x:auto;padding:0 12px 12px;">
-    <table style="border-collapse:collapse;width:100%;min-width:700px;font-size:11px;">
-    <thead><tr>
-      <th style="background:var(--bg3);padding:8px 12px;text-align:left;font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--muted2);border:1px solid var(--border);min-width:140px;position:sticky;left:0;z-index:2;">PSW</th>
-      ${days.map(d=>{
-        const ds=d.toISOString().slice(0,10);
-        const isToday=ds===todayStr;
-        const label=d.toLocaleDateString('en-CA',{weekday:'short',month:'short',day:'numeric'});
-        return `<th style="background:${isToday?'rgba(61,122,138,.12)':'var(--bg3)'};padding:7px 10px;text-align:center;font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:${isToday?'var(--teal2)':'var(--muted2)'};border:1px solid var(--border);min-width:120px;">${label}</th>`;
-      }).join('')}
-    </tr></thead><tbody>`;
-
-    filteredPSWs.forEach((psw,ri) => {
-      const hrs = Math.round((pswHours[psw.full_name]||0)*10)/10;
-      const pct = Math.min(100,Math.round(hrs/40*100));
-      const capColor = pct>90?'var(--red)':pct>70?'var(--amber)':'var(--teal2)';
-      const bg = ri%2===0?'var(--bg2)':'var(--bg3)';
-
-      html += `<tr>
-        <td style="padding:8px 12px;border:1px solid var(--border);background:var(--bg2);vertical-align:top;position:sticky;left:0;z-index:1;">
-          <div style="font-size:12px;font-weight:500;color:var(--text);">${psw.full_name}</div>
-          ${psw.psw_code?`<div style="font-family:var(--mono);font-size:8px;color:var(--muted);">${psw.psw_code}</div>`:''}
-          <div style="margin-top:5px;display:flex;align-items:center;gap:5px;">
-            <div style="flex:1;height:3px;background:var(--border);border-radius:100px;"><div style="width:${pct}%;height:100%;background:${capColor};border-radius:100px;"></div></div>
-            <div style="font-family:var(--mono);font-size:9px;color:${capColor};">${hrs}h</div>
-          </div>
-        </td>`;
-
-      days.forEach(d => {
-        const ds = d.toISOString().slice(0,10);
-        const isToday = ds===todayStr;
-        const dayBookings = bookings.filter(b=>b.scheduled_date===ds&&b.assigned_to===psw.full_name);
-        const activeB = dayBookings.filter(b=>b.status!=='cancelled');
-        const cancelledB = dayBookings.filter(b=>b.status==='cancelled');
-        const hasConflict = activeB.some(b=>conflicts.has(b.id));
-
-        html += `<td style="padding:4px;border:1px solid var(--border);background:${hasConflict?'rgba(224,85,85,.06)':isToday?'rgba(61,122,138,.04)':bg};vertical-align:top;"
-          ondragover="event.preventDefault();this.style.background='rgba(61,122,138,.12)'"
-          ondragleave="this.style.background='${isToday?'rgba(61,122,138,.04)':bg}'"
-          ondrop="dropShift(event,'${psw.full_name}','${ds}',this)">`;
-
-        activeB.forEach(b => {
-          const isConflict = conflicts.has(b.id);
-          html += `<div draggable="true"
-            ondragstart="dragShift(event,'${b.id}','${b.client_name}','${b.scheduled_time||''}','${b.duration_minutes||60}')"
-            ondragend="this.style.opacity='1'"
-            style="background:${isConflict?'rgba(224,85,85,.2)':'rgba(61,122,138,.18)'};border:1px solid ${isConflict?'rgba(224,85,85,.5)':'rgba(61,122,138,.4)'};border-radius:6px;padding:5px 7px;margin-bottom:3px;cursor:grab;">
-            <div style="font-size:10px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${b.client_name}</div>
-            <div style="font-family:var(--mono);font-size:9px;color:var(--muted2);">${b.scheduled_time||'—'} · ${Math.round((b.duration_minutes||60)/60*10)/10}h</div>
-            ${isConflict?'<div style="font-family:var(--mono);font-size:8px;color:var(--red);">CONFLICT</div>':''}
-            <div style="display:flex;gap:3px;margin-top:4px;">
-              <button onclick="toggleShiftStatus('${b.id}','cancelled')" style="flex:1;font-family:var(--mono);font-size:8px;color:var(--amber);background:transparent;border:1px solid rgba(224,154,61,.3);border-radius:4px;padding:2px;cursor:pointer;min-height:20px;">Off</button>
-              <button onclick="openEditShift('${b.id}','${b.client_name}','${psw.full_name}','${ds}','${b.scheduled_time||''}','${b.duration_minutes||60}')" style="flex:1;font-family:var(--mono);font-size:8px;color:var(--teal2);background:transparent;border:1px solid var(--border);border-radius:4px;padding:2px;cursor:pointer;min-height:20px;">Edit</button>
-              <button onclick="deleteShift('${b.id}')" style="font-family:var(--mono);font-size:8px;color:var(--red);background:transparent;border:1px solid rgba(224,85,85,.3);border-radius:4px;padding:2px 4px;cursor:pointer;min-height:20px;">✕</button>
-            </div>
-          </div>`;
-        });
-
-        cancelledB.forEach(b => {
-          html += `<div style="background:rgba(255,255,255,.03);border:1px dashed rgba(255,255,255,.1);border-radius:6px;padding:4px 7px;margin-bottom:3px;opacity:.5;">
-            <div style="font-size:9px;color:var(--muted);text-decoration:line-through;">${b.client_name}</div>
-            <button onclick="toggleShiftStatus('${b.id}','scheduled')" style="width:100%;font-family:var(--mono);font-size:8px;color:var(--green2);background:transparent;border:1px solid rgba(42,138,114,.3);border-radius:4px;padding:2px;cursor:pointer;min-height:20px;margin-top:3px;">On</button>
-          </div>`;
-        });
-
-        html += `<button onclick="openAddShift('${psw.full_name}','${ds}','')" style="width:100%;font-family:var(--mono);font-size:9px;color:var(--muted);background:transparent;border:1px dashed var(--border);border-radius:5px;padding:4px;cursor:pointer;min-height:26px;display:block;margin-top:${dayBookings.length?'2px':'0'};">+ Add</button>`;
-        html += '</td>';
-      });
-      html += '</tr>';
-    });
-    html += '</tbody></table></div>';
-  }
-
-  el.innerHTML = html;
 }
+
+function _addMins(dtStr, mins) {
+  const d = new Date(dtStr);
+  d.setMinutes(d.getMinutes() + mins);
+  return d.toISOString().slice(0,16);
+}
+
+function _initFC() {
+  const root = document.getElementById('fc-root');
+  if (!root) return;
+
+  const psws    = D.psws    || [];
+  const clients = D.clients || [];
+
+  // PSW capacity sidebar HTML
+  const capBar = `
+    <div id="fc-sidebar" style="margin-bottom:10px;display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
+      <span style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-right:4px;">Capacity</span>
+      ${psws.map(p => {
+        const hrs = _pswWeekHours(p.full_name);
+        const max = p.max_hours_per_week || 40;
+        const pct = Math.min(100, Math.round(hrs/max*100));
+        const col = pct>90?'var(--red)':pct>70?'var(--amber)':'var(--teal2)';
+        return `<div style="display:flex;align-items:center;gap:4px;background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:3px 8px;">
+          <span style="font-size:9px;color:var(--muted2);font-family:var(--mono);">${(p.full_name||'').split(' ')[0]}</span>
+          <div style="width:40px;height:4px;background:var(--bg4);border-radius:2px;overflow:hidden;">
+            <div style="width:${pct}%;height:100%;background:${col};border-radius:2px;transition:width .3s;"></div>
+          </div>
+          <span style="font-family:var(--mono);font-size:9px;color:${col};">${hrs}h</span>
+        </div>`;
+      }).join('')}
+      <button onclick="openAddShift('','')" style="font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--teal2);background:rgba(61,138,122,.1);border:1px solid rgba(61,138,122,.3);border-radius:4px;padding:4px 10px;cursor:pointer;min-height:28px;margin-left:auto;">+ Shift</button>
+    </div>`;
+
+  root.innerHTML = capBar + '<div id="fc-cal"></div>';
+
+  const calEl = document.getElementById('fc-cal');
+  if (!calEl || typeof FullCalendar === 'undefined') {
+    root.innerHTML += '<div style="padding:20px;font-family:var(--mono);font-size:11px;color:var(--muted);">Loading calendar...</div>';
+    return;
+  }
+
+  window._fc = new FullCalendar.Calendar(calEl, {
+    initialView: window.innerWidth < 768 ? 'listWeek' : 'timeGridWeek',
+    headerToolbar: {
+      left:   'prev,next today',
+      center: 'title',
+      right:  'dayGridMonth,timeGridWeek,listWeek'
+    },
+    height: 'auto',
+    slotMinTime: '06:00:00',
+    slotMaxTime: '22:00:00',
+    allDaySlot: false,
+    nowIndicator: true,
+    editable: true,
+    selectable: true,
+    selectMirror: true,
+    events: _buildFCEvents(),
+    eventSources: [],
+
+    // Click empty slot → add shift pre-filled
+    select(info) {
+      const dateStr = info.startStr.slice(0,10);
+      const timeStr = info.startStr.slice(11,16) || '09:00';
+      openAddShift('', dateStr);
+      document.getElementById('ss-date').value = dateStr;
+      document.getElementById('ss-time').value = timeStr;
+      window._fc.unselect();
+    },
+
+    // Click event → show detail / edit
+    eventClick(info) {
+      const b = info.event.extendedProps.booking;
+      if (!b) return;
+      _showShiftDetail(b, info.event.extendedProps);
+    },
+
+    // Drag to reschedule
+    eventDrop(info) {
+      const b = info.event.extendedProps.booking;
+      if (!b) { info.revert(); return; }
+      const newDate = info.event.startStr.slice(0,10);
+      const newTime = info.event.startStr.slice(11,16);
+
+      // Check conflict before saving
+      const conflict = _detectDropConflict(b.id, b.assigned_to, newDate, newTime, b.duration_minutes||480);
+      if (conflict) {
+        _showConflictModal(conflict, b, newDate, newTime, info);
+        return;
+      }
+      _patchBooking(b.id, { scheduled_date: newDate, scheduled_time: newTime }, info);
+    },
+
+    // Style events
+    eventDidMount(info) {
+      const b = info.event.extendedProps.booking;
+      if (!b) return;
+      if (info.event.extendedProps.isLive) {
+        info.el.style.boxShadow = '0 0 0 2px #4a9a6e, 0 0 8px rgba(74,154,110,0.4)';
+        info.el.style.animation = 'livepulse 2s infinite';
+      }
+      if (info.event.extendedProps.isConflict) {
+        info.el.style.boxShadow = '0 0 0 2px #e05555';
+      }
+      // Tooltip
+      info.el.title = `${b.client_name||''} · ${b.assigned_to||'Unassigned'}\n${b.scheduled_date} ${b.scheduled_time}\n${(b.duration_minutes||480)/60}h`;
+    },
+
+    // FullCalendar theme
+    themeSystem: 'standard'
+  });
+
+  window._fc.render();
+  _styleFC();
+}
+
+function _refreshFC() {
+  if (!window._fc) return;
+  window._fc.removeAllEvents();
+  window._fc.addEventSource(_buildFCEvents());
+  _updateCapacityBars();
+}
+
+function _pswWeekHours(pswName) {
+  const bookings = D.bookings || [];
+  const today = new Date();
+  const dow = today.getDay()===0?6:today.getDay()-1;
+  const weekStart = new Date(today); weekStart.setDate(today.getDate()-dow);
+  const weekEnd   = new Date(weekStart); weekEnd.setDate(weekStart.getDate()+6);
+  const ws = weekStart.toISOString().slice(0,10);
+  const we = weekEnd.toISOString().slice(0,10);
+  return bookings
+    .filter(b=>b.assigned_to===pswName&&b.scheduled_date>=ws&&b.scheduled_date<=we&&b.status!=='cancelled')
+    .reduce((sum,b)=>sum+(b.duration_minutes||480)/60,0);
+}
+
+function _updateCapacityBars() {
+  const psws = D.psws || [];
+  psws.forEach(p => {
+    const hrs = _pswWeekHours(p.full_name);
+    const max = p.max_hours_per_week || 40;
+    const pct = Math.min(100,Math.round(hrs/max*100));
+    const col = pct>90?'var(--red)':pct>70?'var(--amber)':'var(--teal2)';
+    const name = (p.full_name||'').split(' ')[0];
+    // Update bar if exists
+    const bars = document.querySelectorAll('#fc-sidebar > div');
+    bars.forEach(bar => {
+      if (bar.textContent.includes(name)) {
+        const barInner = bar.querySelector('div > div');
+        if (barInner) { barInner.style.width = pct+'%'; barInner.style.background = col; }
+      }
+    });
+  });
+}
+
+function _detectDropConflict(bookingId, pswName, newDate, newTime, durMins) {
+  if (!pswName) return null;
+  const bookings = D.bookings || [];
+  const newStart = toMins(newTime);
+  const newEnd   = newStart + durMins;
+  for (const b of bookings) {
+    if (b.id===bookingId||b.assigned_to!==pswName||b.scheduled_date!==newDate||b.status==='cancelled') continue;
+    const bs = toMins(b.scheduled_time);
+    const be = bs + (b.duration_minutes||480);
+    if (newStart<be && bs<newEnd) {
+      return { conflictingBooking: b, reason: `${pswName} is already assigned to ${b.client_name||'another client'} from ${b.scheduled_time} (${(b.duration_minutes||480)/60}h)` };
+    }
+  }
+  return null;
+}
+
+function _showConflictModal(conflict, booking, newDate, newTime, fcInfo) {
+  const m = document.getElementById('conflict-modal');
+  if (!m) { fcInfo.revert(); return; }
+  document.getElementById('cm-reason').textContent   = conflict.reason;
+  document.getElementById('cm-booking').textContent  = `Moving: ${booking.client_name} · ${newDate} ${newTime}`;
+  document.getElementById('cm-conflict').textContent = `Conflict: ${conflict.conflictingBooking.client_name} · ${conflict.conflictingBooking.scheduled_time}`;
+  m.style.display = 'flex';
+  // Override button — save anyway
+  document.getElementById('cm-override').onclick = async () => {
+    m.style.display = 'none';
+    await _patchBooking(booking.id, { scheduled_date: newDate, scheduled_time: newTime }, fcInfo);
+  };
+  // Cancel — revert drag
+  document.getElementById('cm-cancel').onclick = () => {
+    m.style.display = 'none';
+    fcInfo.revert();
+  };
+}
+
+async function _patchBooking(id, updates, fcInfo) {
+  try {
+    const res = await fetch(`${API}/hq/booking/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ operator_id: currentOp, ...updates })
+    });
+    const d = await res.json();
+    if (!d.success) throw new Error(d.error||'Failed');
+    showToast('Shift updated', 'ok');
+    await loadAll(false);
+    _refreshFC();
+  } catch(e) {
+    showToast(e.message, 'err');
+    if (fcInfo?.revert) fcInfo.revert();
+  }
+}
+
+function _showShiftDetail(b, props) {
+  const m = document.getElementById('shift-detail-modal');
+  if (!m) { openEditShift(b.id); return; }
+
+  const dur = (b.duration_minutes||480)/60;
+  const isLive = props.isLive;
+  const isConflict = props.isConflict;
+
+  document.getElementById('sd-title').textContent = b.client_name || 'Shift';
+  document.getElementById('sd-psw').textContent   = b.assigned_to || 'Unassigned';
+  document.getElementById('sd-date').textContent  = `${b.scheduled_date} · ${b.scheduled_time} · ${dur}h`;
+  document.getElementById('sd-status').textContent = isLive ? '🟢 Live now' : isConflict ? '🔴 Conflict' : b.status||'scheduled';
+  document.getElementById('sd-conflict-row').style.display = isConflict ? 'block' : 'none';
+  if (isConflict) {
+    const conflict = _detectDropConflict(b.id, b.assigned_to, b.scheduled_date, b.scheduled_time, b.duration_minutes||480);
+    document.getElementById('sd-conflict-msg').textContent = conflict?.reason || 'Schedule conflict detected';
+  }
+
+  document.getElementById('sd-edit').onclick   = () => { m.style.display='none'; openEditShift(b.id); };
+  document.getElementById('sd-delete').onclick = () => { m.style.display='none'; deleteShift(b.id); };
+  document.getElementById('sd-close').onclick  = () => { m.style.display='none'; };
+  m.style.display = 'flex';
+}
+
+function _styleFC() {
+  const style = document.createElement('style');
+  style.textContent = `
+    .fc { font-family: 'DM Mono', monospace !important; }
+    .fc-toolbar-title { font-family: 'DM Sans', sans-serif !important; font-size: 14px !important; font-weight: 500 !important; color: #e8e4dc !important; letter-spacing: 1px; }
+    .fc-button { font-family: 'DM Mono', monospace !important; font-size: 9px !important; letter-spacing: 1.5px !important; text-transform: uppercase !important; background: #0d1117 !important; border: 1px solid rgba(61,138,122,.25) !important; color: rgba(232,228,220,.7) !important; padding: 5px 10px !important; border-radius: 4px !important; box-shadow: none !important; transition: all .2s !important; }
+    .fc-button:hover { border-color: #5aada0 !important; color: #5aada0 !important; background: rgba(61,138,122,.08) !important; }
+    .fc-button-active, .fc-button-primary:not(:disabled).fc-button-active { background: rgba(61,138,122,.15) !important; border-color: #5aada0 !important; color: #5aada0 !important; }
+    .fc-button:disabled { opacity: .35 !important; }
+    .fc-scrollgrid { border-color: rgba(61,138,122,.12) !important; }
+    .fc-scrollgrid td, .fc-scrollgrid th { border-color: rgba(61,138,122,.12) !important; }
+    .fc-col-header-cell { background: #0d1117 !important; }
+    .fc-col-header-cell-cushion { font-family: 'DM Mono', monospace !important; font-size: 9px !important; letter-spacing: 2px !important; text-transform: uppercase !important; color: rgba(232,228,220,.5) !important; padding: 6px 4px !important; text-decoration: none !important; }
+    .fc-timegrid-slot-label-cushion { font-family: 'DM Mono', monospace !important; font-size: 8px !important; color: rgba(232,228,220,.35) !important; letter-spacing: 1px !important; }
+    .fc-daygrid-day-number { font-family: 'DM Mono', monospace !important; font-size: 10px !important; color: rgba(232,228,220,.5) !important; text-decoration: none !important; }
+    .fc-day-today { background: rgba(61,138,122,.05) !important; }
+    .fc-day-today .fc-col-header-cell-cushion { color: #5aada0 !important; }
+    .fc-now-indicator-line { border-color: #5aada0 !important; border-width: 2px !important; }
+    .fc-event { border-radius: 4px !important; font-size: 10px !important; padding: 2px 4px !important; cursor: pointer !important; }
+    .fc-event-title { font-family: 'DM Mono', monospace !important; font-size: 9px !important; letter-spacing: .5px !important; overflow: hidden !important; text-overflow: ellipsis !important; }
+    .fc-event-time { font-family: 'DM Mono', monospace !important; font-size: 8px !important; opacity: .7 !important; }
+    .fc-highlight { background: rgba(61,138,122,.15) !important; }
+    .fc-list-event { background: transparent !important; }
+    .fc-list-event-title a { color: #e8e4dc !important; font-family: 'DM Mono', monospace !important; font-size: 11px !important; text-decoration: none !important; }
+    .fc-list-day-cushion { background: #0d1117 !important; }
+    .fc-list-day-text, .fc-list-day-side-text { color: rgba(232,228,220,.5) !important; font-family: 'DM Mono', monospace !important; font-size: 9px !important; letter-spacing: 2px !important; text-transform: uppercase !important; text-decoration: none !important; }
+    .fc-list-empty { color: rgba(232,228,220,.35) !important; font-family: 'DM Mono', monospace !important; font-size: 11px !important; }
+    .fc-toolbar { flex-wrap: wrap !important; gap: 6px !important; padding: 10px 0 !important; }
+    @media (max-width: 480px) { .fc-toolbar-title { font-size: 12px !important; } .fc-button { font-size: 8px !important; padding: 4px 7px !important; } }
+  `;
+  document.head.appendChild(style);
+}
+
 
 function setSchedView(v) { schedView = v; renderSchedule(); }
 function shiftSchedWeek(dir) { schedWeekOffset += dir; renderSchedule(); }
