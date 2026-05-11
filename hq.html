@@ -492,7 +492,17 @@ a{color:inherit;text-decoration:none;}
 
 <!-- VISITS -->
 <div class="section" id="sect-visits">
-  <div class="section-header"><span class="section-title">Visit Log</span></div>
+  <div class="section-header">
+    <span class="section-title">Visit Log</span>
+    <div style="display:flex;gap:6px;">
+      <div class="sect-action" onclick="exportPayrollCSV()" title="Export payroll CSV">↓ Payroll CSV</div>
+      <div class="sect-action" onclick="runVisitFlags()" title="AI visit flagging">✦ Flag Visits</div>
+    </div>
+  </div>
+  <div id="flag-panel" style="display:none;margin:0 12px 10px;background:rgba(224,154,61,.06);border:1px solid rgba(224,154,61,.25);border-radius:8px;padding:12px 14px;">
+    <div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--amber);margin-bottom:8px;">⚑ AI Visit Flags</div>
+    <div id="flag-list"></div>
+  </div>
   <div style="display:flex;gap:6px;padding:0 12px 10px;">
     <div id="mv-prev" onclick="setVisitMonth(-1)" style="flex:1;padding:8px 4px;text-align:center;font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;border:1px solid var(--border);border-radius:6px;cursor:pointer;color:var(--muted2);min-height:34px;display:flex;align-items:center;justify-content:center;">Last Month</div>
     <div id="mv-curr" onclick="setVisitMonth(0)" style="flex:1;padding:8px 4px;text-align:center;font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;border:1px solid var(--teal2);border-radius:6px;cursor:pointer;color:var(--teal2);min-height:34px;display:flex;align-items:center;justify-content:center;">This Month</div>
@@ -1577,6 +1587,7 @@ async function renderVisits() {
             <div style="font-family:var(--mono);font-size:11px;color:var(--teal2);">${fmtd(v.visit_date)}</div>
             <div style="font-family:var(--mono);font-size:11px;color:var(--gold);">${v.hours_worked||0}h</div>
             ${mood?`<div style="font-family:var(--mono);font-size:10px;color:var(--muted2);">${mood}</div>`:''}
+            ${v.satisfaction_rating?`<div style="font-size:11px;color:var(--gold);">${'★'.repeat(v.satisfaction_rating)}${'☆'.repeat(5-v.satisfaction_rating)}</div>`:''}
             <div style="font-size:10px;color:var(--muted);" id="chev-${vid}">+</div>
           </div>
         </div>
@@ -2808,6 +2819,56 @@ async function broadcastShift(bookingId) {
     const dm = document.getElementById('shift-detail-modal');
     if (dm) dm.style.display = 'none';
   } catch(e) { showToast(e.message, 'err'); }
+}
+
+
+// ── PAYROLL CSV EXPORT ──
+async function exportPayrollCSV() {
+  try {
+    showToast('Generating payroll CSV...', 'ok');
+    const url = `${API}/hq/payroll-csv?operator_id=${currentOp}`;
+    const res = await fetch(url);
+    if (!res.ok) { const d = await res.json(); throw new Error(d.error||'Export failed'); }
+    const blob = await res.blob();
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `payroll_${new Date().toISOString().slice(0,10)}.csv`;
+    a.click();
+    showToast('Payroll CSV downloaded', 'ok');
+  } catch(e) { showToast(e.message, 'err'); }
+}
+
+// ── AI VISIT FLAGGING ──
+async function runVisitFlags() {
+  const panel = document.getElementById('flag-panel');
+  const list  = document.getElementById('flag-list');
+  if (!panel || !list) return;
+  list.innerHTML = '<div style="font-family:var(--mono);font-size:10px;color:var(--muted2);">Scanning visits...</div>';
+  panel.style.display = 'block';
+  try {
+    const res = await fetch(`${API}/hq/flag-visits`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ operator_id: currentOp })
+    });
+    const d = await res.json();
+    if (!d.success) throw new Error(d.error || 'Flag scan failed');
+    if (!d.flags.length) {
+      list.innerHTML = '<div style="font-family:var(--mono);font-size:10px;color:var(--green2);">✓ No flags in last 3 days</div>';
+      return;
+    }
+    const typeLabels = { short_visit:'Short Visit', low_mood:'Low Mood', no_tasks:'No Tasks', concern_keywords:'Concern', open_incident:'Open Incident', low_rating:'Low Rating' };
+    const typeColors = { short_visit:'var(--amber)', low_mood:'var(--red)', no_tasks:'var(--muted2)', concern_keywords:'var(--red)', open_incident:'var(--red)', low_rating:'var(--amber)' };
+    list.innerHTML = d.flags.map(f => `
+      <div style="display:flex;align-items:flex-start;gap:8px;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.06);">
+        <span style="font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:${typeColors[f.type]||'var(--amber)'};white-space:nowrap;min-width:90px;">${typeLabels[f.type]||f.type}</span>
+        <span style="font-size:11px;color:var(--muted2);">${f.client} · ${f.psw} · ${fmtd(f.date)} — ${f.detail}</span>
+      </div>`).join('');
+    showToast(`${d.flags.length} flag${d.flags.length!==1?'s':''} found`, 'warn');
+  } catch(e) {
+    list.innerHTML = `<div style="font-family:var(--mono);font-size:10px;color:var(--red);">${e.message}</div>`;
+    showToast(e.message, 'err');
+  }
 }
 
 </script>
