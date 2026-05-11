@@ -463,17 +463,61 @@ function visitRow(v) {
   const tin = v.time_in ? String(v.time_in).slice(0,5) : '';
   const tout = v.time_out ? String(v.time_out).slice(0,5) : '';
   const fallbackPSW = (portalData && portalData.psw && portalData.psw.name) ? portalData.psw.name : 'PSW';
+  const rated = v.satisfaction_rating;
+  const summary = v.visit_summary || '';
+
+  // Stars row — show existing rating or tap-to-rate buttons
+  const starsHtml = rated
+    ? `<div class="visit-stars rated">
+        ${'★'.repeat(rated)}${'☆'.repeat(5 - rated)}
+        <span class="stars-label">Rated ${rated}/5</span>
+      </div>`
+    : `<div class="visit-stars unrated">
+        ${[1,2,3,4,5].map(s =>
+          `<button class="star-btn" onclick="rateVisit('${v.id}','${(clientSlug||'')}',${s},this)" aria-label="${s} star">☆</button>`
+        ).join('')}
+        <span class="stars-label">Rate this visit</span>
+      </div>`;
+
+  const summaryHtml = summary
+    ? `<div class="visit-summary">${summary}</div>` : '';
+
   return `<div class="visit-row">
     <div class="visit-date-box">
       <div class="visit-date-day">${day}</div>
       <div class="visit-date-num">${num}</div>
     </div>
-    <div class="visit-info">
+    <div class="visit-info" style="flex:1;min-width:0;">
       <div class="visit-psw">${v.psw_name || fallbackPSW}</div>
       <div class="visit-time">${tin}${tout ? ' – ' + tout : ''}</div>
+      ${summaryHtml}
+      ${starsHtml}
     </div>
     <div class="visit-hours">${hrs} hrs</div>
   </div>`;
+}
+
+async function rateVisit(visitId, slug, rating, btn) {
+  // Animate selected stars
+  const row = btn.closest('.visit-stars');
+  if (!row) return;
+  const btns = row.querySelectorAll('.star-btn');
+  btns.forEach((b, i) => { b.textContent = i < rating ? '★' : '☆'; b.disabled = true; });
+
+  try {
+    const res = await fetch(`${R}/family/rate-visit`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ slug, visit_id: visitId, rating })
+    });
+    const d = await res.json();
+    if (!d.success) throw new Error(d.error || 'Rating failed');
+    row.innerHTML = `${'★'.repeat(rating)}${'☆'.repeat(5-rating)} <span class="stars-label">Rated ${rating}/5 — thank you</span>`;
+    row.classList.replace('unrated','rated');
+  } catch(e) {
+    btns.forEach(b => { b.textContent = '☆'; b.disabled = false; });
+    alert('Could not save rating. Please try again.');
+  }
 }
 
 function docIcon(type) {
@@ -517,3 +561,12 @@ async function sendMsg() {
 </script>
 </body>
 </html>
+/* ── SATISFACTION STARS ── */
+.visit-summary{font-size:12px;color:#4a6a5a;line-height:1.5;margin-top:4px;opacity:.85;}
+.visit-stars{display:flex;align-items:center;gap:4px;margin-top:6px;flex-wrap:wrap;}
+.visit-stars.rated{font-size:14px;color:#c8a040;letter-spacing:1px;}
+.visit-stars.unrated .star-btn{background:none;border:none;font-size:18px;color:#c8d0c8;cursor:pointer;padding:0 1px;min-height:32px;min-width:28px;line-height:1;transition:color .15s;}
+.visit-stars.unrated .star-btn:hover,.visit-stars.unrated .star-btn:focus{color:#c8a040;}
+.stars-label{font-size:10px;color:#8a9a95;font-family:'DM Mono',monospace;letter-spacing:0.5px;margin-left:4px;}
+
+
