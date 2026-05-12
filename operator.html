@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#07090c">
+<title>Proximity Systems — Operator Console</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Cormorant+Garamond:ital,wght@0,300;0,400;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+:root{
+  --bg:#07090c;--bg2:#0d1117;--bg3:#111820;--bg4:#161e28;
+  --teal:#3d8a7a;--teal2:#5aada0;--teal3:#7dccc0;
+  --text:#e8e4dc;--muted:rgba(232,228,220,.35);--muted2:rgba(232,228,220,.55);--muted3:rgba(232,228,220,.75);
+  --border:rgba(61,138,122,.12);--border2:rgba(61,138,122,.22);--border3:rgba(61,138,122,.38);
+  --red:#e05555;--amber:#e09a3d;--green2:#3aaa8a;--gold:#c8a96e;--blue2:#6aaaf0;
+  --mono:'DM Mono',monospace;--sans:'DM Sans',sans-serif;--serif:'Cormorant Garamond',serif;
+  --safe-bottom:env(safe-area-inset-bottom,0px);--safe-top:env(safe-area-inset-top,0px);
+}
+html{height:100%;background:var(--bg);}
+body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:100%;overflow-x:hidden;-webkit-text-size-adjust:100%;}
+button{font-family:var(--sans);cursor:pointer;border:none;background:none;}
+input,select,textarea{font-family:var(--sans);font-size:16px;}
+a{color:inherit;text-decoration:none;}
+
+/* ── LOCK ── */
+#lock{position:fixed;inset:0;background:var(--bg);z-index:999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px;padding:0 24px;}
+.lock-title{font-family:var(--serif);font-size:32px;color:var(--text);font-weight:300;text-align:center;}
+.lock-title span{color:var(--teal2);}
+.lock-sub{font-family:var(--mono);font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--muted2);}
+.lock-dots{display:flex;gap:14px;justify-content:center;}
+.lock-dot{width:13px;height:13px;border-radius:50%;border:1px solid var(--border2);background:transparent;transition:all .15s;}
+.lock-dot.filled{background:var(--teal2);border-color:var(--teal2);}
+.lock-pad{display:grid;grid-template-columns:repeat(3,72px);gap:10px;justify-content:center;}
+.lock-key{width:72px;height:72px;border-radius:50%;border:1px solid var(--border2);background:var(--bg2);color:var(--text);font-size:22px;font-weight:300;display:flex;align-items:center;justify-content:center;transition:all .12s;user-select:none;touch-action:manipulation;}
+.lock-key:active{background:var(--bg3);border-color:var(--teal2);}
+.lock-key.del{font-size:14px;color:var(--muted2);}
+.lock-key.empty{background:none;border:none;pointer-events:none;}
+.lock-err{font-family:var(--mono);font-size:11px;color:var(--red);letter-spacing:1px;opacity:0;transition:opacity .3s;text-align:center;}
+.lock-err.show{opacity:1;}
+
+/* ── TOPBAR ── */
+.topbar{position:sticky;top:0;z-index:100;padding:calc(var(--safe-top)+8px) 16px 10px;background:rgba(7,9,12,.97);border-bottom:1px solid var(--border);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);}
+.topbar-inner{display:flex;align-items:center;justify-content:space-between;}
+.topbar-brand{display:flex;flex-direction:column;}
+.topbar-title{font-family:var(--serif);font-size:18px;color:var(--text);font-weight:300;}
+.topbar-title span{color:var(--teal2);}
+.topbar-sub{font-family:var(--mono);font-size:8px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-top:1px;}
+
+/* ── NAV TABS ── */
+.nav-tabs{display:flex;background:var(--bg2);border-bottom:1px solid var(--border);overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
+.nav-tabs::-webkit-scrollbar{display:none;}
+.nav-tab{flex-shrink:0;padding:11px 16px;font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted2);border-bottom:2px solid transparent;cursor:pointer;white-space:nowrap;min-height:44px;display:flex;align-items:center;gap:5px;touch-action:manipulation;}
+.nav-tab.active{color:var(--teal2);border-bottom-color:var(--teal2);}
+
+/* ── SECTIONS ── */
+.section{display:none;padding:0 0 80px;}
+.section.active{display:block;}
+.section-header{display:flex;align-items:center;justify-content:space-between;padding:14px 14px 10px;}
+.section-title{font-family:var(--mono);font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--muted2);}
+
+/* ── CARDS ── */
+.card{margin:0 14px 12px;background:var(--bg2);border:1px solid var(--border);border-radius:10px;overflow:hidden;padding:18px 16px;}
+.card-label{font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--teal2);margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid var(--border);}
+.card-desc{font-size:12px;color:var(--muted2);line-height:1.6;margin-bottom:14px;}
+
+/* ── FORM ── */
+.frow{margin-bottom:12px;}
+.frow2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;}
+.frow3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px;}
+.flabel{font-family:var(--mono);font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:5px;display:block;}
+.finput{width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:11px 13px;font-size:16px;border-radius:8px;outline:none;}
+.finput:focus{border-color:var(--teal2);}
+.fselect{width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:11px 13px;font-size:16px;border-radius:8px;-webkit-appearance:none;outline:none;}
+.fselect:focus{border-color:var(--teal2);}
+.ftextarea{width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:11px 13px;font-size:16px;border-radius:8px;resize:none;min-height:80px;line-height:1.5;outline:none;}
+.ftextarea:focus{border-color:var(--teal2);}
+.color-row{display:flex;align-items:center;gap:10px;}
+.color-preview{width:36px;height:36px;border-radius:8px;border:1px solid var(--border2);flex-shrink:0;}
+
+/* ── BUTTONS ── */
+.sbtn{width:100%;background:var(--teal);color:#fff;padding:14px;font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;border-radius:8px;border:none;cursor:pointer;min-height:48px;transition:background .2s;touch-action:manipulation;margin-top:4px;}
+.sbtn:hover{background:var(--teal2);}
+.sbtn:disabled{opacity:.5;pointer-events:none;}
+
+/* ── RESULT ── */
+.result-box{margin-top:10px;font-size:12px;color:var(--teal2);font-family:var(--mono);display:none;line-height:1.6;padding:10px 12px;background:rgba(61,138,122,.06);border:1px solid rgba(61,138,122,.2);border-radius:6px;}
+
+/* ── IMPORT GRID ── */
+.import-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;}
+.import-box{background:var(--bg3);border:1px solid var(--border2);padding:14px;border-radius:8px;}
+.import-title{font-size:11px;font-weight:500;color:var(--text);margin-bottom:3px;}
+.import-fields{font-family:var(--mono);font-size:9px;color:var(--muted);margin-bottom:6px;}
+.import-dl{font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--teal2);text-decoration:none;border-bottom:1px solid var(--teal2);display:inline-block;margin-bottom:10px;}
+.import-file{font-size:12px;color:var(--text);width:100%;margin-bottom:8px;}
+.import-btn{width:100%;background:var(--bg4);border:1px solid var(--border2);color:var(--teal2);padding:10px;font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;border-radius:6px;cursor:pointer;min-height:36px;touch-action:manipulation;}
+
+/* ── DIVIDER ── */
+.divider{border:none;border-top:1px solid var(--border);margin:20px 0;}
+
+/* ── TOAST ── */
+.toast{position:fixed;bottom:calc(20px + var(--safe-bottom));left:50%;transform:translateX(-50%) translateY(16px);background:var(--bg2);border:1px solid var(--border2);color:var(--text);font-family:var(--mono);font-size:11px;letter-spacing:1px;padding:10px 18px;border-radius:100px;z-index:500;opacity:0;transition:all .3s;pointer-events:none;white-space:nowrap;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+.toast.ok{border-color:var(--teal2);color:var(--teal2);}
+.toast.err{border-color:var(--red);color:var(--red);}
+
+@media(max-width:600px){
+  .frow2,.frow3,.import-grid{grid-template-columns:1fr;}
+}
+@media(hover:none){body{cursor:auto;}a,button{cursor:auto;}}
+</style>
+</head>
+<body>
+
+<!-- LOCK -->
+<div id="lock">
+  <div style="text-align:center;">
+    <div class="lock-title">Proximity <span>Systems</span></div>
+    <div class="lock-sub" style="margin-top:6px;">Operator Console</div>
+  </div>
+  <div class="lock-dots">
+    <div class="lock-dot" id="ld0"></div><div class="lock-dot" id="ld1"></div>
+    <div class="lock-dot" id="ld2"></div><div class="lock-dot" id="ld3"></div>
+  </div>
+  <div class="lock-pad">
+    <button class="lock-key" onclick="lk('1')">1</button><button class="lock-key" onclick="lk('2')">2</button><button class="lock-key" onclick="lk('3')">3</button>
+    <button class="lock-key" onclick="lk('4')">4</button><button class="lock-key" onclick="lk('5')">5</button><button class="lock-key" onclick="lk('6')">6</button>
+    <button class="lock-key" onclick="lk('7')">7</button><button class="lock-key" onclick="lk('8')">8</button><button class="lock-key" onclick="lk('9')">9</button>
+    <div class="lock-key empty"></div><button class="lock-key" onclick="lk('0')">0</button><button class="lock-key del" onclick="ld()">del</button>
+  </div>
+  <div class="lock-err" id="lock-err">Incorrect PIN. Try again.</div>
+</div>
+
+<!-- APP -->
+<div id="app" style="display:none;">
+
+<div class="topbar">
+  <div class="topbar-inner">
+    <div class="topbar-brand">
+      <div class="topbar-title">Proximity <span>Systems</span></div>
+      <div class="topbar-sub">Operator Console · Lance Salazar</div>
+    </div>
+    <a href="hq.html" style="font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--muted2);padding:6px 10px;border:1px solid var(--border);border-radius:6px;">← HQ</a>
+  </div>
+</div>
+
+<div class="nav-tabs">
+  <div class="nav-tab active" onclick="showTab('create')">Create Agency</div>
+  <div class="nav-tab" onclick="showTab('import')">Bulk Import</div>
+  <div class="nav-tab" onclick="showTab('postclose')">Post-Close</div>
+</div>
+
+<!-- ── CREATE AGENCY ── -->
+<div class="section active" id="tab-create">
+  <div class="section-header"><span class="section-title">Create New Agency</span></div>
+  <div class="card">
+    <div class="card-label">Agency Details</div>
+    <div class="frow2">
+      <div><label class="flabel">Agency Name *</label><input class="finput" id="op-agency" placeholder="Cedar Home Health Care"></div>
+      <div><label class="flabel">Owner Name *</label><input class="finput" id="op-owner" placeholder="Yendi Hernandez"></div>
+    </div>
+    <div class="frow2">
+      <div><label class="flabel">Owner Email *</label><input class="finput" id="op-email" type="email" placeholder="info@agency.com"></div>
+      <div><label class="flabel">Phone</label><input class="finput" id="op-phone" type="tel" placeholder="416-000-0000"></div>
+    </div>
+    <div class="frow2">
+      <div><label class="flabel">City / Territory</label><input class="finput" id="op-city" placeholder="Scarborough, ON"></div>
+      <div><label class="flabel">Tier</label>
+        <select class="fselect" id="op-tier">
+          <option value="tier1">Tier 1 — $3,000 setup</option>
+          <option value="tier2" selected>Tier 2 — $3,500 setup (Hero)</option>
+          <option value="tier3">Tier 3 — $5,000 setup</option>
+        </select>
+      </div>
+    </div>
+    <div class="frow2">
+      <div><label class="flabel">Operator ID (slug)</label><input class="finput" id="op-id" placeholder="cedar-home-health" style="font-family:var(--mono);font-size:13px;"></div>
+      <div><label class="flabel">Brand Color</label>
+        <div class="color-row">
+          <div class="color-preview" id="op-color-preview" style="background:#3d7a8a;"></div>
+          <input class="finput" id="op-color" value="#3d7a8a" placeholder="#3d7a8a" oninput="document.getElementById('op-color-preview').style.background=this.value" style="flex:1;">
+        </div>
+      </div>
+    </div>
+    <div class="frow"><label class="flabel">Notes</label><textarea class="ftextarea" id="op-notes" placeholder="Any context about this agency, what they discussed, their focus..." rows="2" style="min-height:60px;resize:none;"></textarea></div>
+    <button class="sbtn" id="op-create-btn" onclick="createOperator()">Create Agency + Send Welcome Email</button>
+    <div class="result-box" id="op-result"></div>
+  </div>
+</div>
+
+<!-- ── BULK IMPORT ── -->
+<div class="section" id="tab-import">
+  <div class="section-header"><span class="section-title">Bulk Import</span></div>
+
+  <div class="card">
+    <div class="card-label">Target Operator</div>
+    <div class="frow">
+      <label class="flabel">Operator ID</label>
+      <input class="finput" id="import-op-id" value="proximity-care" placeholder="cedar-home-health" style="font-family:var(--mono);font-size:14px;">
+    </div>
+    <p style="font-size:12px;color:var(--muted2);line-height:1.6;">All imports below will be assigned to this operator. Change this before importing for a new agency.</p>
+  </div>
+
+  <div class="card">
+    <div class="card-label">Import PSWs via CSV</div>
+    <p class="card-desc">CSV columns: first_name, last_name, email, phone, city, languages</p>
+    <a href="psw-import-template.csv" download class="import-dl">Download PSW Template</a>
+    <div class="frow">
+      <input type="file" id="psw-csv-file" accept=".csv" class="import-file">
+      <button class="sbtn" onclick="importPSWs()">Import PSWs</button>
+    </div>
+    <div class="result-box" id="psw-import-result"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-label">Import Clients via CSV</div>
+    <p class="card-desc">CSV columns: first_name, last_name, family_email, family_phone, family_name, assigned_psw, care_notes</p>
+    <a href="client-import-template.csv" download class="import-dl">Download Client Template</a>
+    <div class="frow">
+      <input type="file" id="client-csv-file" accept=".csv" class="import-file">
+      <button class="sbtn" onclick="importClients()">Import Clients</button>
+    </div>
+    <div class="result-box" id="client-import-result"></div>
+  </div>
+</div>
+
+<!-- ── POST-CLOSE ── -->
+<div class="section" id="tab-postclose">
+  <div class="section-header"><span class="section-title">Post-Close Email Sequence</span></div>
+  <div class="card">
+    <div class="card-label">Fire Welcome + Config Builder</div>
+    <p class="card-desc">After a new operator signs and pays — fire the Day 0 welcome email and schedule the config builder link email for 1 hour later.</p>
+    <div class="frow3">
+      <div><label class="flabel">Agency Name</label><input class="finput" id="pc-agency" placeholder="Cedar Home Health Care"></div>
+      <div><label class="flabel">Owner Name</label><input class="finput" id="pc-owner" placeholder="Yendi Hernandez"></div>
+      <div><label class="flabel">Owner Email</label><input class="finput" id="pc-email" type="email" placeholder="info@agency.com"></div>
+    </div>
+    <div class="frow">
+      <label class="flabel">Operator ID</label>
+      <input class="finput" id="pc-op-id" placeholder="cedar-home-health" style="font-family:var(--mono);font-size:14px;">
+    </div>
+    <button class="sbtn" onclick="firePostClose()">Fire Post-Close Sequence</button>
+    <div class="result-box" id="pc-result"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-label">Manual Churn Check</div>
+    <p class="card-desc">Run the churn detection cron now — finds operators with no activity in 14+ days and fires the retention email.</p>
+    <button class="sbtn" onclick="runChurnCheck()">Run Churn Check Now</button>
+    <div class="result-box" id="churn-result"></div>
+  </div>
+</div>
+
+</div><!-- /app -->
+
+<div class="toast" id="toast"></div>
+
+<script>
+const API = 'https://proximity-agent-production.up.railway.app';
+const HQ_PIN = '0822';
+let lockIn = '';
+
+function lk(k) {
+  if (lockIn.length >= 4) return;
+  lockIn += k; updateDots();
+  if (lockIn.length === 4) {
+    setTimeout(() => {
+      if (lockIn === HQ_PIN) {
+        document.getElementById('lock').style.display = 'none';
+        document.getElementById('app').style.display = 'block';
+      } else {
+        document.getElementById('lock-err').classList.add('show');
+        for (let i=0;i<4;i++) document.getElementById('ld'+i).classList.remove('filled');
+        lockIn = '';
+        setTimeout(() => document.getElementById('lock-err').classList.remove('show'), 2000);
+      }
+    }, 120);
+  }
+}
+function ld() { lockIn = lockIn.slice(0,-1); updateDots(); }
+function updateDots() { for (let i=0;i<4;i++) document.getElementById('ld'+i).classList.toggle('filled', i < lockIn.length); }
+
+function showTab(name) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  const tabs = document.querySelectorAll('.nav-tab');
+  const tm = ['create','import','postclose'];
+  const idx = tm.indexOf(name);
+  if (idx >= 0 && tabs[idx]) tabs[idx].classList.add('active');
+}
+
+function showToast(msg, type='ok') {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = 'toast show '+type;
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+function showResult(id, msg) {
+  const el = document.getElementById(id);
+  el.style.display = 'block';
+  el.innerHTML = msg;
+}
+
+// ── CREATE OPERATOR ──
+async function createOperator() {
+  const agency = document.getElementById('op-agency').value.trim();
+  const owner = document.getElementById('op-owner').value.trim();
+  const email = document.getElementById('op-email').value.trim();
+  const phone = document.getElementById('op-phone').value.trim();
+  const city = document.getElementById('op-city').value.trim();
+  const tier = document.getElementById('op-tier').value;
+  const opId = document.getElementById('op-id').value.trim();
+  const color = document.getElementById('op-color').value.trim();
+  const notes = document.getElementById('op-notes').value.trim();
+  if (!agency||!owner||!email) { showToast('Name, owner, and email required','err'); return; }
+  const btn = document.getElementById('op-create-btn');
+  btn.disabled = true; btn.textContent = 'Creating...';
+  try {
+    const res = await fetch(`${API}/operator/create`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        operator_id: opId || agency.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,''),
+        agency_name: agency, owner_name: owner, owner_email: email,
+        owner_phone: phone, territory: city, brand_primary: color||'#3d7a8a',
+        tier, notes, created_by: 'operator-console'
+      })
+    });
+    const d = await res.json();
+    if (!res.ok||!d.success) throw new Error(d.error||'Failed');
+    showResult('op-result', '✓ Agency created · Welcome email sent to ' + email + '<br>operator_id: ' + (d.operator_id||opId));
+    showToast('Agency created ✓','ok');
+    ['op-agency','op-owner','op-email','op-phone','op-city','op-id','op-notes'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
+    document.getElementById('op-color').value='#3d7a8a';
+    document.getElementById('op-color-preview').style.background='#3d7a8a';
+  } catch(e) { showToast('Create failed: '+e.message,'err'); }
+  finally { btn.disabled=false; btn.textContent='Create Agency + Send Welcome Email'; }
+}
+
+// ── IMPORT PSWs ──
+async function importPSWs() {
+  const opId = document.getElementById('import-op-id').value.trim() || 'proximity-care';
+  const fileInput = document.getElementById('psw-csv-file');
+  const result = document.getElementById('psw-import-result');
+  if (!fileInput.files[0]) { showToast('Select a CSV file first','err'); return; }
+  result.style.display='block'; result.textContent='Importing...';
+  const fd = new FormData();
+  fd.append('file', fileInput.files[0]);
+  fd.append('operator_id', opId);
+  try {
+    const res = await fetch(`${API}/operator/import-psws`, { method:'POST', body:fd });
+    const d = await res.json();
+    if (!res.ok||!d.success) throw new Error(d.error||'Failed');
+    result.innerHTML = `✓ ${d.activated.length} PSWs activated · ${d.failed.length} failed · ${d.skipped.length} skipped`;
+    if (d.activated.length) result.innerHTML += '<br>' + d.activated.map(p=>`${p.name} → ${p.psw_code} PIN:${p.pin}`).join('<br>');
+    showToast(d.activated.length+' PSWs activated ✓','ok');
+  } catch(e) { result.textContent='Error: '+e.message; showToast('Import failed','err'); }
+}
+
+// ── IMPORT CLIENTS ──
+async function importClients() {
+  const opId = document.getElementById('import-op-id').value.trim() || 'proximity-care';
+  const fileInput = document.getElementById('client-csv-file');
+  const result = document.getElementById('client-import-result');
+  if (!fileInput.files[0]) { showToast('Select a CSV file first','err'); return; }
+  result.style.display='block'; result.textContent='Importing...';
+  const fd = new FormData();
+  fd.append('file', fileInput.files[0]);
+  fd.append('operator_id', opId);
+  try {
+    const res = await fetch(`${API}/operator/import-clients`, { method:'POST', body:fd });
+    const d = await res.json();
+    if (!res.ok||!d.success) throw new Error(d.error||'Failed');
+    result.innerHTML = `✓ ${d.onboarded.length} clients onboarded · ${d.failed.length} failed · ${d.skipped.length} skipped`;
+    if (d.onboarded.length) result.innerHTML += '<br>' + d.onboarded.map(c=>`${c.name} → ${c.client_code}`).join('<br>');
+    showToast(d.onboarded.length+' clients onboarded ✓','ok');
+  } catch(e) { result.textContent='Error: '+e.message; showToast('Import failed','err'); }
+}
+
+// ── POST-CLOSE ──
+async function firePostClose() {
+  const agency = document.getElementById('pc-agency').value.trim();
+  const owner = document.getElementById('pc-owner').value.trim();
+  const email = document.getElementById('pc-email').value.trim();
+  const opId = document.getElementById('pc-op-id').value.trim() || 'proximity-care';
+  if (!agency||!owner||!email) { showToast('Fill in all 3 fields','err'); return; }
+  const result = document.getElementById('pc-result');
+  result.style.display='block'; result.textContent='Firing...';
+  try {
+    const res = await fetch(`${API}/operator/post-close`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ operator_id: opId, agency_name: agency, owner_name: owner, owner_email: email })
+    });
+    const d = await res.json();
+    if (!res.ok||!d.success) throw new Error(d.error||'Failed');
+    result.textContent = '✓ Day 0 welcome email sent · Config builder email fires in 1 hour';
+    showToast('Post-close sequence fired ✓','ok');
+  } catch(e) { result.textContent='Error: '+e.message; showToast('Failed','err'); }
+}
+
+// ── CHURN CHECK ──
+async function runChurnCheck() {
+  const result = document.getElementById('churn-result');
+  result.style.display='block'; result.textContent='Running...';
+  try {
+    const res = await fetch(`${API}/operator/churn-check`, { method:'POST', headers:{'Content-Type':'application/json'}, body:'{}' });
+    const d = await res.json();
+    result.textContent = d.success ? ('✓ Churn check complete · ' + (d.flagged||0) + ' operators flagged') : 'Error: ' + (d.error||'Failed');
+    showToast('Churn check done ✓','ok');
+  } catch(e) { result.textContent='Error: '+e.message; showToast('Failed','err'); }
+}
+</script>
+</body>
+</html>
