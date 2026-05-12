@@ -372,10 +372,11 @@ a{color:inherit;text-decoration:none;}
   <div class="stat-card hi"><div class="stat-val" id="s-leads">—</div><div class="stat-lbl">Leads</div></div>
   <div class="stat-card"><div class="stat-val" id="s-clients">—</div><div class="stat-lbl">Clients</div></div>
   <div class="stat-card"><div class="stat-val" id="s-bookings">—</div><div class="stat-lbl">Upcoming</div></div>
-  <div class="stat-card"><div class="stat-val" id="s-purchases">—</div><div class="stat-lbl">Sales</div></div>
+  <div class="stat-card"><div class="stat-val" id="s-visits">—</div><div class="stat-lbl">Visits</div></div>
 </div>
 
 <div class="nav-tabs">
+  <div class="nav-tab" onclick="showSect('overview')" style="color:var(--teal2);">Overview</div>
   <div class="nav-tab active" onclick="showSect('leads')">Leads <span class="nbadge" id="leads-badge">0</span></div>
   <div class="nav-tab" onclick="showSect('clients')">Clients</div>
   <div class="nav-tab" onclick="showSect('psws')">PSWs</div>
@@ -388,6 +389,92 @@ a{color:inherit;text-decoration:none;}
   <div class="nav-tab" onclick="showSect('crm')">CRM <span class="nbadge" id="crm-badge">0</span></div>
   <div class="nav-tab" onclick="showSect('applicants')">Applicants <span class="nbadge" id="app-badge">0</span></div>
   <div class="nav-tab" onclick="showSect('revenue')">Revenue</div>
+</div>
+
+<!-- OVERVIEW DASHBOARD -->
+<div class="section" id="sect-overview">
+  <div class="section-header" style="padding-bottom:4px;">
+    <span class="section-title">Operations Overview</span>
+    <span style="font-family:var(--mono);font-size:9px;color:var(--muted);" id="ov-updated">—</span>
+  </div>
+
+  <!-- Live KPI row -->
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);margin:0 12px 12px;border-radius:8px;overflow:hidden;">
+    <div style="background:var(--bg2);padding:14px 10px;text-align:center;cursor:pointer;" onclick="showSect('visits')">
+      <div style="font-family:var(--mono);font-size:22px;font-weight:500;color:var(--teal2);" id="ov-active-psws">—</div>
+      <div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-top:4px;">On Shift Now</div>
+    </div>
+    <div style="background:var(--bg2);padding:14px 10px;text-align:center;cursor:pointer;" onclick="showSect('leads')">
+      <div style="font-family:var(--mono);font-size:22px;font-weight:500;color:var(--gold);" id="ov-new-leads">—</div>
+      <div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-top:4px;">New Leads</div>
+    </div>
+    <div style="background:var(--bg2);padding:14px 10px;text-align:center;cursor:pointer;" onclick="showSect('revenue')">
+      <div style="font-family:var(--mono);font-size:22px;font-weight:500;color:var(--green2);" id="ov-month-rev">$—</div>
+      <div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-top:4px;">Month Billed</div>
+    </div>
+  </div>
+
+  <!-- Agency health row -->
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);margin:0 12px 12px;border-radius:8px;overflow:hidden;">
+    <div style="background:var(--bg2);padding:12px 6px;text-align:center;cursor:pointer;" onclick="showSect('clients')">
+      <div style="font-family:var(--mono);font-size:18px;font-weight:500;color:var(--text);" id="ov-clients">—</div>
+      <div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-top:3px;">Clients</div>
+    </div>
+    <div style="background:var(--bg2);padding:12px 6px;text-align:center;cursor:pointer;" onclick="showSect('psws')">
+      <div style="font-family:var(--mono);font-size:18px;font-weight:500;color:var(--text);" id="ov-psws">—</div>
+      <div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-top:3px;">PSWs</div>
+    </div>
+    <div style="background:var(--bg2);padding:12px 6px;text-align:center;cursor:pointer;" onclick="showSect('bookings')">
+      <div style="font-family:var(--mono);font-size:18px;font-weight:500;color:var(--text);" id="ov-bookings">—</div>
+      <div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-top:3px;">Upcoming</div>
+    </div>
+    <div style="background:var(--bg2);padding:12px 6px;text-align:center;cursor:pointer;" onclick="showSect('visits')">
+      <div style="font-family:var(--mono);font-size:18px;font-weight:500;color:var(--text);" id="ov-visits-month">—</div>
+      <div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-top:3px;">Month Visits</div>
+    </div>
+  </div>
+
+  <!-- Vacant shifts alert -->
+  <div id="ov-vacant-alert" style="display:none;margin:0 12px 10px;padding:11px 14px;background:rgba(224,154,61,.06);border:1px solid rgba(224,154,61,.25);border-radius:8px;cursor:pointer;" onclick="showSect('schedule')">
+    <div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--amber);margin-bottom:4px;">⚑ Open Shifts</div>
+    <div style="font-size:12px;color:var(--muted2);" id="ov-vacant-msg">—</div>
+  </div>
+
+  <!-- Open incidents alert -->
+  <div id="ov-incident-alert" style="display:none;margin:0 12px 10px;padding:11px 14px;background:rgba(224,85,85,.06);border:1px solid rgba(224,85,85,.2);border-radius:8px;cursor:pointer;" onclick="showSect('visits')">
+    <div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--red);margin-bottom:4px;">⚠ Open Incidents</div>
+    <div style="font-size:12px;color:var(--muted2);" id="ov-incident-msg">—</div>
+  </div>
+
+  <!-- Live attendance board -->
+  <div class="section-header" style="padding-bottom:4px;"><span class="section-title">Live Attendance</span></div>
+  <div style="margin:0 12px 12px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;overflow:hidden;" id="ov-attendance">
+    <div class="empty-state" style="padding:16px;">Loading attendance...</div>
+  </div>
+
+  <!-- Recent activity feed -->
+  <div class="section-header" style="padding-bottom:4px;"><span class="section-title">Recent Activity</span></div>
+  <div style="margin:0 12px 12px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;overflow:hidden;" id="ov-activity">
+    <div class="empty-state" style="padding:16px;">Loading activity...</div>
+  </div>
+
+  <!-- Today's schedule -->
+  <div class="section-header" style="padding-bottom:4px;">
+    <span class="section-title">Today's Shifts</span>
+    <div class="sect-action" onclick="showSect('schedule')">View All</div>
+  </div>
+  <div style="margin:0 12px 12px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;overflow:hidden;" id="ov-today-shifts">
+    <div class="empty-state" style="padding:16px;">Loading shifts...</div>
+  </div>
+
+  <!-- New leads today -->
+  <div class="section-header" style="padding-bottom:4px;">
+    <span class="section-title">New Leads</span>
+    <div class="sect-action" onclick="showSect('leads')">View All</div>
+  </div>
+  <div id="ov-leads-list" style="margin:0 12px 12px;">
+    <div class="empty-state">Loading leads...</div>
+  </div>
 </div>
 
 <!-- LEADS -->
@@ -555,12 +642,15 @@ a{color:inherit;text-decoration:none;}
 <div class="section" id="sect-visits">
   <div class="section-header">
     <span class="section-title">Visit Log</span>
-    <div style="display:flex;gap:6px;">
+    <div style="display:flex;gap:6px;flex-wrap:wrap;">
+      <div class="sect-action" id="vv-log" onclick="setVisitView('log')" style="border-color:var(--teal2);color:var(--teal2);background:rgba(61,138,122,.1);">Log</div>
+      <div class="sect-action" id="vv-incidents" onclick="setVisitView('incidents')">⚠ <span id="incident-count" style="display:none;background:var(--red);color:#fff;border-radius:100px;font-size:8px;padding:1px 5px;margin-left:2px;">0</span> Incidents</div>
       <div class="sect-action" onclick="toggleAttendance()">⬤ Live</div>
-      <div class="sect-action" onclick="exportPayrollCSV()" title="Export payroll CSV">↓ Payroll CSV</div>
-      <div class="sect-action" onclick="runVisitFlags()" title="AI visit flagging">✦ Flag Visits</div>
+      <div class="sect-action" onclick="exportPayrollCSV()">↓ CSV</div>
+      <div class="sect-action" onclick="runVisitFlags()">✦ Flag</div>
     </div>
   </div>
+  <div id="incidents-list" style="display:none;"></div>
   <div id="attendance-board" style="display:none;margin:0 12px 12px;">
     <div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--teal2);margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;"><span>⬤ Live Now</span><span id="attendance-updated" style="color:var(--muted);font-size:8px;">—</span></div>
     <div id="attendance-list"><div class="empty-state" style="padding:14px;">Loading...</div></div>
@@ -637,6 +727,18 @@ a{color:inherit;text-decoration:none;}
   <div id="revenue-content"><div class="empty-state">Loading analytics...</div></div>
 </div>
 
+
+<!-- OPERATOR FORMS — hidden from nav, accessed via operator.html but functions kept here -->
+<div style="display:none;" id="operator-forms-hidden">
+  <input id="op-agency" /><input id="op-owner" /><input id="op-email" /><input id="op-phone" />
+  <input id="op-city" /><select id="op-tier"></select><input id="op-id" /><input id="op-color" value="#3d7a8a"/>
+  <textarea id="op-notes"></textarea><button id="op-create-btn"></button>
+  <div id="op-color-preview"></div><div id="op-result"></div>
+  <input id="psw-csv-file" type="file" /><div id="psw-import-result"></div>
+  <input id="client-csv-file" type="file" /><div id="client-import-result"></div>
+  <input id="pc-agency" /><input id="pc-owner" /><input id="pc-email" />
+  <div id="pc-result"></div>
+</div>
 
 <!-- BOTTOM NAV -->
 <div class="bottom-nav">
@@ -905,10 +1007,23 @@ async function loadAll(spin=false) {
 function renderAll() {
   renderStats(); renderLeads(); renderClients(); renderPSWs();
   renderBookings(); renderMessages(); renderActivity(); renderVisits(); renderVacantVisits();
-  const openInc = (D.visits||[]).filter(v=>v.incident_reported&&!v.incident_resolved).length;
+  // incident-count badge — only update if element exists
   const icEl = document.getElementById('incident-count');
-  if (icEl) { icEl.textContent = openInc; icEl.style.display = openInc > 0 ? 'inline' : 'none'; }
+  if (icEl) {
+    const openInc = (D.visits||[]).filter(v=>v.incident_reported&&!v.incident_resolved).length;
+    icEl.textContent = openInc; icEl.style.display = openInc > 0 ? 'inline' : 'none';
+  }
   renderCRM();
+  renderOverview();
+  // Restore last tab after first full render
+  try {
+    const saved = localStorage.getItem('hq_tab');
+    if (saved && document.getElementById('sect-'+saved)) {
+      const cur = document.querySelector('.section.active');
+      // Only restore if we're still on leads (initial state)
+      if (!cur || cur.id === 'sect-leads') showSect(saved);
+    }
+  } catch(e) {}
 }
 
 // ── STATS ──
@@ -917,7 +1032,7 @@ function renderStats() {
   document.getElementById('s-leads').textContent = c.leads||0;
   document.getElementById('s-clients').textContent = c.clients||0;
   document.getElementById('s-bookings').textContent = c.bookings_upcoming||0;
-  document.getElementById('s-purchases').textContent = c.purchases_total||0;
+  document.getElementById('s-visits').textContent = (D.visits||[]).length||c.visits_total||0;
   document.getElementById('leads-badge').textContent = c.leads||0;
 
   // Lead monthly totals
@@ -946,7 +1061,7 @@ function renderLeads() {
   const el = document.getElementById('leads-list');
   if(!leads.length) { el.innerHTML = '<div class="empty-state">No leads yet</div>'; return; }
   el.innerHTML = leads.map(l => {
-    const name = `${l.first_name||''} ${l.last_name||''}`.trim()||'Unknown';
+    const name = [l.first_name,l.last_name].filter(Boolean).join(' ') || l.email?.split('@')[0] || l.phone || 'Lead #'+l.id?.slice(-4);
     const st = l.status||'new';
     return `
     <div class="card">
@@ -1737,12 +1852,13 @@ async function triggerSequences() {
 
 // ── NAV ──
 function showSect(name) {
+  try { localStorage.setItem('hq_tab', name); } catch(e) {}
   document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
   document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
   document.querySelectorAll('.bnav-item').forEach(b=>b.classList.remove('active'));
   const s=document.getElementById('sect-'+name); if(s) s.classList.add('active');
   const tabs=document.querySelectorAll('.nav-tab');
-  const tm=['leads','clients','psws','onboard','bookings','messages','visits','activity','schedule','crm','applicants','revenue'];
+  const tm=['overview','leads','clients','psws','onboard','bookings','messages','visits','activity','schedule','crm','applicants','revenue'];
   const ti=tm.indexOf(name); if(ti>=0&&tabs[ti]) tabs[ti].classList.add('active');
   const bm=['leads','clients','bookings','visits','activity'];
   const bi=bm.indexOf(name);
@@ -1753,6 +1869,7 @@ function showSect(name) {
   if(name==='activity') renderActivity();
   if(name==='revenue') renderRevenue();
   if(name==='crm') renderCRM();
+  if(name==='overview') renderOverview();
   if(name==='applicants') loadApplicants();
   if(name==='schedule') { renderSchedule(); renderVacantVisits(); }
   window.scrollTo(0,0);
@@ -2731,7 +2848,7 @@ async function renderRevenue() {
   html += `<div style="margin:0 12px 16px;">
     <div style="font-family:var(--mono);font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--muted2);margin-bottom:10px;">This Month — Per Client</div>`;
   if (Object.keys(clientRevMap).length) {
-    Object.entries(clientRevMap).forEach(([name, r]) => {
+    Object.entries(clientRevMap).filter(([name]) => name && name !== 'null' && name.trim()).forEach(([name, r]) => {
       const c = clients.find(cl => `${cl.first_name||''} ${cl.last_name||''}`.trim() === name);
       html += `<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--bg2);border:1px solid var(--border);border-radius:6px;margin-bottom:4px;cursor:pointer;" onclick="openClientDetail('${c?.id||''}')">
         <div>
@@ -3140,6 +3257,152 @@ function renderVacantVisits() {
   el.innerHTML = vacant.map(b => `<div class="vacant-card"><div class="vacant-info"><div class="vacant-client">${b.client_name||'—'}</div><div class="vacant-time">${b.scheduled_date ? fmtd(b.scheduled_date) : '—'}${b.scheduled_time ? ' · '+b.scheduled_time : ''}</div></div><button class="vacant-btn" onclick="broadcastShift('${b.id}')">📡 Broadcast</button></div>`).join('');
 }
 
+
+// ── OVERVIEW DASHBOARD ──
+function renderOverview() {
+  const now = new Date();
+  const today = now.toISOString().slice(0,10);
+  const monthStr = now.toISOString().slice(0,7);
+  const clients = D.clients||[];
+  const psws = D.psws||[];
+  const leads = D.leads||[];
+  const bookings = D.bookings||[];
+  const visits = D.visits||[];
+  const activity = D.recent_activity||[];
+
+  // KPIs
+  const activePSWs = visits.filter(v => v.visit_date===today && v.time_in && !v.time_out).length;
+  const newLeads = leads.filter(l => (l.created_at||'').startsWith(today)).length;
+  const monthVisits = visits.filter(v => (v.visit_date||'').startsWith(monthStr));
+  const monthBilled = monthVisits.reduce((s,v) => {
+    const c = clients.find(cl => `${cl.first_name||''} ${cl.last_name||''}`.trim() === v.client_name);
+    return s + parseFloat(v.hours_worked||0) * (c?.client_rate||22);
+  }, 0);
+
+  const setEl = (id, val) => { const el=document.getElementById(id); if(el) el.textContent=val; };
+  setEl('ov-active-psws', activePSWs);
+  setEl('ov-new-leads', newLeads);
+  setEl('ov-month-rev', '$' + monthBilled.toFixed(0));
+  setEl('ov-clients', clients.length);
+  setEl('ov-psws', psws.filter(p => p.status==='active').length || psws.length);
+  setEl('ov-bookings', bookings.filter(b => b.scheduled_date >= today && b.status !== 'cancelled').length);
+  setEl('ov-visits-month', monthVisits.length);
+  setEl('ov-updated', new Date().toLocaleTimeString('en-CA',{hour:'2-digit',minute:'2-digit'}));
+
+  // Vacant shifts alert
+  const vacant = bookings.filter(b => (!b.assigned_to||!b.assigned_to.trim()) && b.scheduled_date >= today && b.status !== 'cancelled');
+  const vacEl = document.getElementById('ov-vacant-alert');
+  const vacMsg = document.getElementById('ov-vacant-msg');
+  if (vacEl && vacMsg) {
+    if (vacant.length) {
+      vacEl.style.display='block';
+      vacMsg.textContent = `${vacant.length} shift${vacant.length!==1?'s':''} need a PSW — tap to assign`;
+    } else { vacEl.style.display='none'; }
+  }
+
+  // Open incidents alert
+  const incidents = visits.filter(v => v.incident_reported && !v.incident_resolved);
+  const incEl = document.getElementById('ov-incident-alert');
+  const incMsg = document.getElementById('ov-incident-msg');
+  if (incEl && incMsg) {
+    if (incidents.length) {
+      incEl.style.display='block';
+      incMsg.textContent = `${incidents.length} unresolved incident${incidents.length!==1?'s':''} — tap to resolve`;
+    } else { incEl.style.display='none'; }
+  }
+
+  // Live attendance
+  const attEl = document.getElementById('ov-attendance');
+  if (attEl) {
+    const pswStatuses = {};
+    psws.forEach(p => { pswStatuses[p.full_name||p.name] = {name:p.full_name||p.name, status:'off', client:'—'}; });
+    visits.filter(v => v.visit_date===today).forEach(v => {
+      const n = v.psw_name;
+      if (!pswStatuses[n]) pswStatuses[n] = {name:n, status:'off', client:'—'};
+      if (v.time_in && !v.time_out) { pswStatuses[n].status='active'; pswStatuses[n].client=v.client_name||'—'; }
+      else if (v.time_out) { pswStatuses[n].status='done'; pswStatuses[n].client=v.client_name||'—'; }
+    });
+    const rows = Object.values(pswStatuses).filter(r => r.status!=='off').slice(0,8);
+    const dotColor = {active:'var(--green2)',done:'var(--teal2)',off:'rgba(232,228,220,.15)'};
+    if (!rows.length) {
+      attEl.innerHTML = '<div class="empty-state" style="padding:14px;">No PSWs on shift today</div>';
+    } else {
+      attEl.innerHTML = rows.map(r => `
+        <div style="display:flex;align-items:center;gap:10px;padding:9px 14px;border-bottom:1px solid var(--border);">
+          <div style="width:8px;height:8px;border-radius:50%;background:${dotColor[r.status]||'var(--muted)'};flex-shrink:0;${r.status==='active'?'animation:livepulse 2s infinite':''}"></div>
+          <div style="flex:1;font-size:12px;font-weight:500;color:var(--text);">${r.name}</div>
+          <div style="font-family:var(--mono);font-size:10px;color:var(--muted2);">${r.client}</div>
+          <div style="font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:${r.status==='active'?'var(--green2)':'var(--teal2)'};">${r.status==='active'?'On Shift':'Done'}</div>
+        </div>`).join('');
+    }
+  }
+
+  // Activity feed
+  const actEl = document.getElementById('ov-activity');
+  if (actEl) {
+    const recent = activity.slice(0,6);
+    if (!recent.length) {
+      actEl.innerHTML = '<div class="empty-state" style="padding:14px;">No recent activity</div>';
+    } else {
+      const icons = {email_sent:'EML',visit_log:'VIS',checkout:'CHK',checkin:'CHK',booking_created:'BKG',lead_captured:'LDS',psw_message:'MSG',family_message:'FAM'};
+      const colors = {email_sent:'var(--teal2)',visit_log:'var(--green2)',checkout:'var(--green2)',checkin:'var(--amber)',booking_created:'var(--gold)',lead_captured:'var(--teal2)',error:'var(--red)'};
+      actEl.innerHTML = recent.map(a => {
+        const type = a.event_type||a.type||'';
+        const icon = icons[type]||'ACT';
+        const col = a.status==='error'?'var(--red)':colors[type]||'var(--muted2)';
+        return `<div style="display:flex;align-items:center;gap:10px;padding:9px 14px;border-bottom:1px solid var(--border);">
+          <div style="font-family:var(--mono);font-size:8px;letter-spacing:1px;text-transform:uppercase;padding:3px 6px;background:var(--bg3);border:1px solid var(--border);border-radius:4px;color:${col};flex-shrink:0;">${icon}</div>
+          <div style="flex:1;font-size:11px;color:var(--text);">${type.replace(/_/g,' ')}${a.contact_name?' · '+a.contact_name:a.psw_name?' · '+a.psw_name:''}</div>
+          <div style="font-family:var(--mono);font-size:10px;color:var(--muted);">${ago(a.created_at||a.timestamp)}</div>
+        </div>`;
+      }).join('');
+    }
+  }
+
+  // Today's shifts
+  const shiftEl = document.getElementById('ov-today-shifts');
+  if (shiftEl) {
+    const todayShifts = bookings.filter(b => b.scheduled_date===today && b.status!=='cancelled').sort((a,b)=>(a.scheduled_time||'').localeCompare(b.scheduled_time||''));
+    if (!todayShifts.length) {
+      shiftEl.innerHTML = '<div class="empty-state" style="padding:14px;">No shifts scheduled today</div>';
+    } else {
+      shiftEl.innerHTML = todayShifts.slice(0,6).map(b => {
+        const hasVisit = visits.some(v => v.client_name===b.client_name && v.visit_date===today);
+        const isActive = visits.some(v => v.client_name===b.client_name && v.visit_date===today && v.time_in && !v.time_out);
+        const status = isActive ? 'On Shift' : hasVisit ? 'Done' : !b.assigned_to ? 'Unassigned' : 'Scheduled';
+        const col = isActive?'var(--green2)':hasVisit?'var(--teal2)':!b.assigned_to?'var(--amber)':'var(--muted2)';
+        return `<div style="display:flex;align-items:center;gap:10px;padding:9px 14px;border-bottom:1px solid var(--border);cursor:pointer;" onclick="showSect('schedule')">
+          <div style="font-family:var(--mono);font-size:11px;color:var(--teal2);min-width:40px;">${b.scheduled_time||'—'}</div>
+          <div style="flex:1;">
+            <div style="font-size:12px;font-weight:500;color:var(--text);">${b.client_name||'—'}</div>
+            <div style="font-family:var(--mono);font-size:10px;color:var(--muted2);">${b.assigned_to||'⚑ Unassigned'}</div>
+          </div>
+          <div style="font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:${col};">${status}</div>
+        </div>`;
+      }).join('');
+    }
+  }
+
+  // New leads
+  const leadsEl = document.getElementById('ov-leads-list');
+  if (leadsEl) {
+    const recent = leads.slice(0,4);
+    if (!recent.length) { leadsEl.innerHTML = '<div class="empty-state">No leads yet</div>'; }
+    else {
+      leadsEl.innerHTML = recent.map(l => {
+        const name = [l.first_name,l.last_name].filter(Boolean).join(' ') || l.email?.split('@')[0] || 'Lead';
+        return `<div class="card" style="cursor:pointer;margin-bottom:6px;" onclick="showSect('leads')">
+          <div class="card-header">
+            <div><div class="card-name">${name}</div><div class="card-sub">${l.city||l.care_type_interest||'—'}</div></div>
+            <div class="card-right"><span class="badge b-${l.status||'new'}">${l.status||'new'}</span><div class="card-age">${ago(l.created_at)}</div></div>
+          </div>
+        </div>`;
+      }).join('');
+    }
+  }
+}
+
+// Auto-render overview when that tab is shown
 </script>
 </body>
 </html>

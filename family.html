@@ -151,6 +151,13 @@ html,body{min-height:100vh;font-family:'Poppins',sans-serif;background:var(--bg)
 
 .tab{display:none;padding-bottom:80px;}
 .tab.on{display:block;}
+/* ── SATISFACTION STARS ── */
+.visit-summary{font-size:12px;color:#4a6a5a;line-height:1.5;margin-top:4px;opacity:.85;}
+.visit-stars{display:flex;align-items:center;gap:4px;margin-top:6px;flex-wrap:wrap;}
+.visit-stars.rated{font-size:14px;color:#c8a040;letter-spacing:1px;}
+.visit-stars.unrated .star-btn{background:none;border:none;font-size:18px;color:#c8d0c8;cursor:pointer;padding:0 1px;min-height:32px;min-width:28px;line-height:1;transition:color .15s;}
+.visit-stars.unrated .star-btn:hover,.visit-stars.unrated .star-btn:focus{color:#c8a040;}
+.stars-label{font-size:10px;color:#8a9a95;font-family:'DM Mono',monospace;letter-spacing:0.5px;margin-left:4px;}
 </style>
 </head>
 <body>
@@ -232,11 +239,11 @@ html,body{min-height:100vh;font-family:'Poppins',sans-serif;background:var(--bg)
 
 <script>
 const R = 'https://proximity-agent-production.up.railway.app';
-let slug = '', pinVal = '', portalData = null;
+let slug = '', pinVal = '', portalData = null, clientSlug = '';
 
 // Get slug from URL
 const params = new URLSearchParams(window.location.search);
-slug = params.get('c') || '';
+slug = params.get('c') || ''; clientSlug = slug;
 
 // PIN LOGIC
 function pinPress(d) {
@@ -305,13 +312,17 @@ async function loadPortal() {
 }
 
 function renderAll() {
-  showTab('home');
+  try {
+    const saved = localStorage.getItem('family_tab_'+slug);
+    showTab(saved && ['home','visits','care','docs','billing'].includes(saved) ? saved : 'home');
+  } catch(e) { showTab('home'); }
 }
 
 // TABS
 function showTab(tab) {
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('on'));
   document.getElementById('nav-' + tab).classList.add('on');
+  try { localStorage.setItem('family_tab_'+slug, tab); } catch(e) {}
   if (!portalData) return;
 
   const c = document.getElementById('contentArea');
@@ -510,7 +521,7 @@ async function rateVisit(visitId, slug, rating, btn) {
     const res = await fetch(`${R}/family/rate-visit`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ slug, visit_id: visitId, rating })
+      body: JSON.stringify({ slug: (slug||clientSlug||''), visit_id: visitId, rating })
     });
     const d = await res.json();
     if (!d.success) throw new Error(d.error || 'Rating failed');
@@ -561,32 +572,20 @@ async function sendMsg() {
   if (s) { s.style.display = 'block'; setTimeout(() => s.style.display = 'none', 3000); }
 }
 
-// Auto-refresh every 60s so family sees latest visit data
+// Auto-refresh every 60s — silently update portal data
 setInterval(async () => {
   try {
-    const slug = window._slug;
-    if (!slug) return;
-    const R = 'https://proximity-agent-production.up.railway.app';
+    if (!slug || !portalData) return;
     const res = await fetch(`${R}/family/portal/${slug}`);
     const d = await res.json();
     if (d.success) {
       portalData = d;
-      // Silent refresh of visit counts
-      const visits = d.visits || [];
-      const countEl = document.getElementById('visit-count');
-      if (countEl) countEl.textContent = visits.length;
+      // Silently re-render current tab
+      const activeTab = document.querySelector('.nav-btn.on')?.id?.replace('nav-','');
+      if (activeTab) showTab(activeTab);
     }
   } catch {}
 }, 60000);
 </script>
 </body>
 </html>
-/* ── SATISFACTION STARS ── */
-.visit-summary{font-size:12px;color:#4a6a5a;line-height:1.5;margin-top:4px;opacity:.85;}
-.visit-stars{display:flex;align-items:center;gap:4px;margin-top:6px;flex-wrap:wrap;}
-.visit-stars.rated{font-size:14px;color:#c8a040;letter-spacing:1px;}
-.visit-stars.unrated .star-btn{background:none;border:none;font-size:18px;color:#c8d0c8;cursor:pointer;padding:0 1px;min-height:32px;min-width:28px;line-height:1;transition:color .15s;}
-.visit-stars.unrated .star-btn:hover,.visit-stars.unrated .star-btn:focus{color:#c8a040;}
-.stars-label{font-size:10px;color:#8a9a95;font-family:'DM Mono',monospace;letter-spacing:0.5px;margin-left:4px;}
-
-
