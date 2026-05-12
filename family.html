@@ -188,6 +188,15 @@ html,body{min-height:100vh;font-family:'Poppins',sans-serif;background:var(--bg)
 .visit-stars.unrated .star-btn{background:none;border:none;font-size:18px;color:#c8d0c8;cursor:pointer;padding:0 1px;min-height:32px;min-width:28px;line-height:1;transition:color .15s;}
 .visit-stars.unrated .star-btn:hover,.visit-stars.unrated .star-btn:focus{color:#c8a040;}
 .stars-label{font-size:10px;color:#8a9a95;font-family:'DM Mono',monospace;letter-spacing:0.5px;margin-left:4px;}
+
+/* SKELETON LOADER */
+.skeleton-wrap{padding:20px;}
+.skeleton-block{border-radius:14px;background:linear-gradient(90deg,#e8e4dc 25%,#f0ede8 50%,#e8e4dc 75%);background-size:200% 100%;animation:fam-shimmer 1.4s infinite;margin-bottom:14px;}
+@keyframes fam-shimmer{0%{background-position:200% 0;}100%{background-position:-200% 0;}}
+.skeleton-status{height:120px;border-radius:18px;margin-bottom:16px;}
+.skeleton-card-sm{height:80px;}
+.skeleton-card-md{height:120px;}
+.skeleton-card-lg{height:200px;}
 </style>
 </head>
 <body>
@@ -237,9 +246,11 @@ html,body{min-height:100vh;font-family:'Poppins',sans-serif;background:var(--bg)
   </div>
 
   <div class="content" id="contentArea">
-    <div class="loading">
-      <div class="spinner"></div>
-      <div class="loading-text">Loading your portal...</div>
+    <div class="skeleton-wrap">
+      <div class="skeleton-block skeleton-status"></div>
+      <div class="skeleton-block skeleton-card-sm"></div>
+      <div class="skeleton-block skeleton-card-md"></div>
+      <div class="skeleton-block skeleton-card-lg"></div>
     </div>
   </div>
 
@@ -307,6 +318,7 @@ async function verifyPin() {
       document.getElementById('app').classList.add('show');
       document.getElementById('tbName').textContent = d.client.first_name + ' ' + d.client.last_name;
       loadPortal();
+      setTimeout(requestPushPermission, 2000); // ask after portal loads
     } else {
       showPinError();
     }
@@ -368,7 +380,7 @@ function showTab(tab) {
       ? `Last visit: ${fmtDate(lastVisit.visit_date)}`
       : 'No visits logged yet';
 
-    c.innerHTML = `
+    c.innerHTML = renderPushPrompt() + `
       <div class="status-card">
         <div class="status-eyebrow">Your loved one</div>
         <div class="status-name">${client.first_name} ${client.last_name}</div>
@@ -683,6 +695,79 @@ setInterval(async () => {
     }
   } catch {}
 }, 60000);
+
+// ── WEB PUSH NOTIFICATIONS (Build 8) ──
+const VAPID_PUBLIC_KEY = 'BE7ZNd3gIMKhdBv5gnnKy19lvVcgc8be_DTb1zC1LRjlk7dV_Tuw9q-6omE6eiG_h_F4a_zY6RNY_Y91k1TVi3k';
+
+function urlBase64ToUint8Array(base64String) {
+  const padding = '='.repeat((4 - base64String.length % 4) % 4);
+  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+  const raw = atob(base64);
+  return new Uint8Array([...raw].map(c => c.charCodeAt(0)));
+}
+
+async function requestPushPermission() {
+  // Only run if service workers and push are supported
+  if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
+  try {
+    const permission = await Notification.requestPermission();
+    if (permission === 'granted') {
+      await subscribeToPush();
+    }
+  } catch (e) { console.log('Push permission error:', e); }
+}
+
+async function subscribeToPush() {
+  try {
+    const reg = await navigator.serviceWorker.ready;
+    // Check if already subscribed
+    let sub = await reg.pushManager.getSubscription();
+    if (!sub) {
+      sub = await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+      });
+    }
+    await sendSubscriptionToServer(sub);
+  } catch (e) { console.log('Push subscribe error:', e); }
+}
+
+async function sendSubscriptionToServer(subscription) {
+  try {
+    await fetch(`${R}/family/push-subscribe`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ slug, subscription: subscription.toJSON() })
+    });
+  } catch (e) { console.log('Push server save error:', e); }
+}
+
+function renderPushPrompt() {
+  // Show once — dismiss stores in localStorage
+  if (!('Notification' in window)) return '';
+  if (localStorage.getItem('push_dismissed_' + slug)) return '';
+  if (Notification.permission === 'granted') return '';
+  return `<div id="push-prompt" style="background:#fff8ec;border:1px solid #f0d9a0;border-radius:14px;padding:16px 18px;margin-bottom:16px;display:flex;align-items:flex-start;gap:12px;">
+    <div style="font-size:22px;flex-shrink:0;">🔔</div>
+    <div style="flex:1;">
+      <div style="font-size:13px;font-weight:600;color:var(--dark);margin-bottom:4px;">Get notified when your caregiver arrives</div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:10px;">Instant alerts when visits start and end.</div>
+      <div style="display:flex;gap:8px;">
+        <button onclick="requestPushPermission();document.getElementById('push-prompt')?.remove();" style="background:var(--green);color:#fff;border:none;border-radius:8px;padding:8px 14px;font-size:12px;font-weight:500;font-family:'Poppins',sans-serif;cursor:pointer;">Enable</button>
+        <button onclick="localStorage.setItem('push_dismissed_'+slug,'1');document.getElementById('push-prompt')?.remove();" style="background:none;border:1px solid var(--border);border-radius:8px;padding:8px 14px;font-size:12px;color:var(--muted);font-family:'Poppins',sans-serif;cursor:pointer;">Not now</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+// Register family service worker for push
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/family-sw.js').catch(() => {
+    // Fallback: use PSW service worker scope if family-sw doesn't exist
+  });
+}
+
+
 </script>
 </body>
 </html>
