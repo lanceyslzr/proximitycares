@@ -1075,9 +1075,18 @@ function switchOp(id, name) {
 async function loadAll(spin=false) {
   if(spin) { const b=document.getElementById('refresh-btn'); b.classList.add('refresh-spin'); setTimeout(()=>b.classList.remove('refresh-spin'),800); }
   try {
-    const res = await fetch(`${API}/hq/overview?operator_id=${currentOp}`);
-    D = await res.json();
+    // Fetch overview + visits in parallel
+    const [overviewRes, visitsRes] = await Promise.all([
+      fetch(`${API}/hq/overview?operator_id=${currentOp}`),
+      fetch(`${API}/hq/visits?operator_id=${currentOp}&limit=200`)
+    ]);
+    D = await overviewRes.json();
     if(!D.success) throw new Error('API error');
+    // Merge visits into D so renderOverview and renderStats can use them
+    try {
+      const vd = await visitsRes.json();
+      if (vd.visits) D.visits = vd.visits;
+    } catch {}
     renderAll();
   } catch(err) { showToast('Failed to load data', 'err'); }
 }
@@ -1109,7 +1118,7 @@ function renderStats() {
   document.getElementById('s-leads').textContent = c.leads||0;
   document.getElementById('s-clients').textContent = c.clients||0;
   document.getElementById('s-bookings').textContent = c.bookings_upcoming||0;
-  document.getElementById('s-visits').textContent = (D.visits||[]).length||c.visits_total||0;
+  document.getElementById('s-visits').textContent = c.visits_total || (D.visits||[]).length || 0;
   document.getElementById('leads-badge').textContent = c.leads||0;
 
   // Lead monthly totals
