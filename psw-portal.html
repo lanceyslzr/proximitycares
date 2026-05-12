@@ -394,18 +394,7 @@ a{color:inherit;text-decoration:none;}
       <div class="form-row">
         <label class="form-label">Client</label>
         <select class="form-select" id="signin-client">
-          <option value="">Select client...</option>
-          <option value="Rosetta Ferrari">Rosetta Ferrari</option>
-          <option value="Bhangu Amrit">Bhangu Amrit</option>
-          <option value="Priya Singh">Priya Singh</option>
-          <option value="Helia Cordeiro">Helia Cordeiro</option>
-          <option value="Samina Thedlo">Samina Thedlo</option>
-          <option value="Parul Priya">Parul Priya</option>
-          <option value="Kim Phung">Kim Phung</option>
-          <option value="Emmanuel Sagolili">Emmanuel Sagolili</option>
-          <option value="Blake Heald">Blake Heald</option>
-          <option value="Rick Vardzel">Rick Vardzel</option>
-          <option value="Roman Pinto">Roman Pinto</option>
+          <option value="">Loading clients...</option>
         </select>
       </div>
       <button class="submit-btn" onclick="doCheckIn()" id="signin-btn" style="margin:4px 0 0;">Sign In Now</button>
@@ -1024,6 +1013,15 @@ async function loadClients() {
         </div>
       </div>`;
     }).join('');
+    // Populate Sign In dropdown dynamically
+    const sel = document.getElementById('signin-client');
+    if (sel) {
+      sel.innerHTML = '<option value="">Select client...</option>' +
+        clients.map(c => {
+          const name = c.full_name || c.client_name;
+          return `<option value="${name}">${name}</option>`;
+        }).join('');
+    }
   } catch { el.innerHTML = '<div class="empty-state">Could not load clients</div>'; }
 }
 
