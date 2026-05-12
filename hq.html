@@ -1206,6 +1206,26 @@ async function convertLead(id, email) {
   if(email) await fetch(`${API}/onboarding/convert`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({operator_id:currentOp,contact_email:email})}).catch(()=>{});
 }
 
+
+// ── OPEN CLIENT SCHEDULE ──
+function openClientSchedule(clientName) {
+  // Navigate to schedule tab and open the Add Shift sheet pre-filled with this client
+  showSect('schedule');
+  setTimeout(() => {
+    // openAddShift(pswName, date, clientName)
+    openAddShift('', new Date().toISOString().slice(0,10), clientName);
+    // Pre-select client in the dropdown
+    const sel = document.getElementById('ss-client');
+    if (sel) {
+      // Try to find and select the option
+      Array.from(sel.options).forEach(opt => {
+        if (opt.value === clientName) opt.selected = true;
+      });
+    }
+    showToast('Schedule a shift for ' + clientName, 'ok');
+  }, 150);
+}
+
 // ── CLIENTS ──
 function renderClients() {
   const clients = D.clients||[];
@@ -1225,6 +1245,7 @@ function renderClients() {
       </div>
       <div class="card-actions">
         <div class="card-act" onclick="genInvoice('${name}','${c.email||''}','${c.assigned_psw||''}',${c.client_rate||22},${c.psw_rate||19})">Invoice</div>
+        <div class="card-act primary" onclick="openClientSchedule('${name}')">Schedule</div>
         <div class="card-act" onclick="openClientDetail('${c.id}')">View</div>
         <div class="card-act ok" onclick="triggerOnboardClient('${c.portal_slug||''}')">Welcome</div>
       </div>
@@ -3057,6 +3078,10 @@ function openClientDetail(id) {
   const slug = c.portal_slug || '';
   document.getElementById('client-sheet-title').textContent = name;
   document.getElementById('client-sheet-body').innerHTML = `
+    <div style="display:flex;gap:8px;margin-bottom:16px;">
+      <button style="flex:1;background:rgba(61,138,122,.12);color:var(--teal2);border:1px solid var(--border2);padding:10px;font-family:var(--mono);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;border-radius:6px;cursor:pointer;min-height:40px;touch-action:manipulation;" onclick="closeSheet('client-sheet');openClientSchedule('${name}')">+ Schedule Shift</button>
+      <button style="flex:1;background:rgba(200,169,110,.1);color:var(--gold);border:1px solid rgba(200,169,110,.3);padding:10px;font-family:var(--mono);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;border-radius:6px;cursor:pointer;min-height:40px;touch-action:manipulation;" onclick="genInvoice('${name}','${c.family_email||c.email||''}','${c.assigned_psw||''}',${c.client_rate||22},${c.psw_rate||19});closeSheet('client-sheet');">Invoice</button>
+    </div>
     <div class="cpf"><div class="cpf-lbl">Family</div><div class="cpf-val">${c.family_contact_name||'—'} · ${c.family_email?`<a href="mailto:${c.family_email}">${c.family_email}</a>`:'no email'}</div></div>
     <div class="cpf"><div class="cpf-lbl">Client Code</div><div class="cpf-val" style="font-family:var(--mono);color:var(--teal2);">${c.client_code||'—'}</div></div>
     <div class="cpf"><div class="cpf-lbl">Portal</div><div class="cpf-val" style="font-family:var(--mono);">${slug||'—'} · PIN ${c.portal_pin||'—'}</div></div>
