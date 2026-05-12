@@ -78,14 +78,16 @@ a{color:inherit;text-decoration:none;}
 .crm-col-name{font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted2);}
 .crm-col-count{font-family:var(--mono);font-size:9px;color:var(--muted);background:var(--bg3);border:1px solid var(--border);border-radius:100px;padding:1px 6px;}
 .crm-col-body{padding:8px;display:flex;flex-direction:column;gap:6px;flex:1;}
-.crm-card{background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:10px 10px 8px;transition:border-color .2s;}
+.crm-card{background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:10px 10px 8px;transition:border-color .2s,opacity .2s;cursor:grab;}
 .crm-card:hover{border-color:var(--border2);}
+.crm-card.dragging{opacity:.4;cursor:grabbing;}
+.crm-col-body.drag-over{background:rgba(61,138,122,.06);border-radius:4px;}
 .crm-card.closed{opacity:.5;}
 .crm-card-name{font-size:12px;font-weight:500;color:var(--text);margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .crm-card-agency{font-size:10px;color:var(--muted2);margin-bottom:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .crm-card-meta{font-family:var(--mono);font-size:9px;color:var(--muted);margin-bottom:8px;}
 .crm-card-acts{display:flex;gap:4px;flex-wrap:wrap;}
-.crm-card-btn{font-family:var(--mono);font-size:8px;letter-spacing:1px;padding:4px 7px;border:1px solid var(--border2);color:var(--muted2);background:none;border-radius:3px;cursor:pointer;white-space:nowrap;min-height:28px;display:inline-flex;align-items:center;}
+.crm-card-btn{font-family:var(--mono);font-size:8px;letter-spacing:1px;padding:4px 7px;border:1px solid var(--border2);color:var(--muted2);background:none;border-radius:3px;cursor:pointer;white-space:nowrap;min-height:28px;display:inline-flex;align-items:center;touch-action:manipulation;}
 .crm-card-btn:hover,.crm-card-btn:active{border-color:var(--teal2);color:var(--teal2);}
 .crm-card-btn.call{color:var(--teal3);border-color:rgba(90,173,160,.3);}
 .crm-card-btn.demo{color:var(--blue2);border-color:rgba(106,172,240,.3);}
@@ -140,7 +142,8 @@ a{color:inherit;text-decoration:none;}
 /* NAV TABS */
 .nav-tabs{display:flex;background:var(--bg2);border-bottom:1px solid var(--border);overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
 .nav-tabs::-webkit-scrollbar{display:none;}
-.nav-tab{flex-shrink:0;padding:11px 14px;font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted2);border-bottom:2px solid transparent;cursor:pointer;white-space:nowrap;min-height:44px;display:flex;align-items:center;gap:5px;}
+.nav-tab{flex-shrink:0;padding:11px 14px;font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted2);border-bottom:2px solid transparent;cursor:pointer;white-space:nowrap;min-height:44px;display:flex;align-items:center;gap:5px;touch-action:manipulation;-webkit-tap-highlight-color:transparent;}
+.nav-tab:active{color:var(--teal3);}
 .nav-tab.active{color:var(--teal2);border-bottom-color:var(--teal2);}
 .nbadge{background:var(--teal);color:#fff;border-radius:100px;font-size:8px;min-width:15px;height:15px;padding:0 3px;display:inline-flex;align-items:center;justify-content:center;}
 
@@ -149,11 +152,15 @@ a{color:inherit;text-decoration:none;}
 .section.active{display:block;}
 .section-header{display:flex;align-items:center;justify-content:space-between;padding:12px 14px 8px;}
 .section-title{font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--muted2);}
-.sect-action{font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--teal2);padding:7px 12px;border:1px solid var(--border2);border-radius:4px;cursor:pointer;min-height:34px;display:flex;align-items:center;}
+.sect-action{font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--teal2);padding:7px 12px;border:1px solid var(--border2);border-radius:4px;cursor:pointer;min-height:34px;display:flex;align-items:center;touch-action:manipulation;-webkit-tap-highlight-color:transparent;}
+.sect-action:active{background:rgba(61,138,122,.08);border-color:var(--teal2);}
 
 /* CARDS */
-.card{margin:0 12px 8px;background:var(--bg2);border:1px solid var(--border);border-radius:10px;overflow:hidden;}
+.card{margin:0 12px 8px;background:var(--bg2);border:1px solid var(--border);border-radius:10px;overflow:hidden;transition:border-color .15s;}
+.card[onclick]{cursor:pointer;}
+.card[onclick]:active{border-color:var(--border2);background:var(--bg3);}
 .card-header{padding:13px 14px;display:flex;align-items:flex-start;justify-content:space-between;gap:8px;}
+.card-header[onclick]{cursor:pointer;}
 .card-name{font-size:14px;font-weight:500;color:var(--text);}
 .card-sub{font-family:var(--mono);font-size:11px;color:var(--muted2);margin-top:3px;}
 .card-meta{font-size:11px;color:var(--muted);margin-top:3px;}
@@ -205,6 +212,8 @@ a{color:inherit;text-decoration:none;}
 .cal-day{flex-shrink:0;width:46px;padding:9px 0;border-radius:10px;background:var(--bg2);border:1px solid var(--border);display:flex;flex-direction:column;align-items:center;gap:3px;}
 .cal-day.today{border-color:var(--teal2);}
 .cal-day.has-b{background:var(--bg3);}
+.cal-day.selected{border-color:var(--teal2);background:rgba(61,138,122,.15);box-shadow:0 0 0 1px var(--teal2);}
+.cal-day.selected .cal-num{color:var(--teal2);}
 .cal-dow{font-family:var(--mono);font-size:9px;text-transform:uppercase;color:var(--muted);}
 .cal-num{font-size:15px;font-weight:500;color:var(--text);}
 .cal-dot{width:5px;height:5px;border-radius:50%;background:var(--teal2);}
@@ -254,6 +263,13 @@ a{color:inherit;text-decoration:none;}
 .sopt-lbl{font-size:14px;color:var(--text);}
 
 /* MSG */
+.msg-avatar-chip{flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;min-width:52px;}
+.msg-avatar-circle{width:42px;height:42px;border-radius:50%;background:var(--bg3);border:2px solid var(--border2);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:12px;color:var(--teal2);position:relative;transition:border-color .2s;}
+.msg-avatar-circle.active{border-color:var(--teal2);background:rgba(61,138,122,.12);}
+.msg-avatar-circle.has-unread{border-color:var(--red);}
+.msg-unread-dot{position:absolute;top:-1px;right:-1px;width:10px;height:10px;border-radius:50%;background:var(--red);border:2px solid var(--bg2);display:none;}
+.msg-unread-dot.show{display:block;}
+.msg-avatar-name{font-family:var(--mono);font-size:8px;letter-spacing:1px;text-transform:uppercase;color:var(--muted2);text-align:center;white-space:nowrap;}
 .msg-bubble{padding:10px 13px;border-radius:12px;margin-bottom:8px;max-width:84%;}
 .msg-lance{background:var(--teal);color:#fff;margin-left:auto;border-radius:12px 12px 3px 12px;}
 .msg-psw{background:var(--bg3);color:var(--text);border:1px solid var(--border);border-radius:12px 12px 12px 3px;}
@@ -365,7 +381,6 @@ a{color:inherit;text-decoration:none;}
   <div class="nav-tab" onclick="showSect('psws')">PSWs</div>
   <div class="nav-tab" onclick="showSect('onboard')">Onboard</div>
   <div class="nav-tab" onclick="showSect('bookings')">Bookings</div>
-  <div class="nav-tab" onclick="showSect('purchases')">Purchased</div>
   <div class="nav-tab" onclick="showSect('messages')">Messages</div>
   <div class="nav-tab" onclick="showSect('visits')">Visits</div>
   <div class="nav-tab" onclick="showSect('activity')">Activity</div>
@@ -495,18 +510,44 @@ a{color:inherit;text-decoration:none;}
   <div id="bookings-list"><div class="empty-state">Loading...</div></div>
 </div>
 
-<!-- PURCHASES -->
-<div class="section" id="sect-purchases">
-  <div class="section-header">
-    <span class="section-title">Purchased</span>
-    <div class="sect-action" onclick="openSheet('manual-purchase-sheet')">+ Log Sale</div>
-  </div>
-  <div id="purchases-list"><div class="empty-state">Loading...</div></div>
-</div>
 
 <!-- MESSAGES -->
 <div class="section" id="sect-messages">
   <div class="section-header"><span class="section-title">Messages</span></div>
+
+  <!-- PSW Threads row -->
+  <div style="padding:0 12px 10px;">
+    <div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted2);margin-bottom:8px;">PSW Threads</div>
+    <div id="psw-thread-row" style="display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none;"></div>
+  </div>
+
+  <!-- Active PSW thread panel -->
+  <div id="psw-thread-panel" style="display:none;margin:0 12px 12px;background:var(--bg2);border:1px solid var(--border2);border-radius:10px;overflow:hidden;">
+    <div style="padding:10px 14px;background:var(--bg3);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
+      <div style="font-family:var(--mono);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--teal2);" id="thread-psw-name">—</div>
+      <div onclick="closeThread()" style="font-family:var(--mono);font-size:10px;color:var(--muted);cursor:pointer;padding:4px 8px;border:1px solid var(--border);border-radius:4px;">✕ Close</div>
+    </div>
+    <div id="thread-body" style="padding:12px 14px;max-height:260px;overflow-y:auto;display:flex;flex-direction:column;gap:8px;"></div>
+    <div style="padding:10px 12px;border-top:1px solid var(--border);display:flex;gap:8px;align-items:flex-end;">
+      <textarea id="thread-input" class="minput" rows="1" placeholder="Message..." style="flex:1;" oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,80)+'px';"></textarea>
+      <button class="msend" onclick="sendThreadMsg()">→</button>
+    </div>
+  </div>
+
+  <!-- Broadcast -->
+  <div style="padding:0 12px 10px;">
+    <div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted2);margin-bottom:8px;">Broadcast to All PSWs</div>
+    <div style="display:flex;gap:8px;align-items:flex-end;">
+      <textarea id="broadcast-input" class="minput" rows="2" placeholder="Schedule update, training date, policy change..." style="flex:1;border-radius:8px;min-height:60px;"></textarea>
+      <button class="msend" onclick="sendBroadcast()" style="align-self:flex-end;">📡</button>
+    </div>
+    <div style="margin-top:6px;font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;">Sends to all active PSWs — they see it in their portal Messages tab</div>
+  </div>
+
+  <!-- Family messages -->
+  <div style="padding:0 12px 4px;">
+    <div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted2);margin-bottom:8px;">Family Messages</div>
+  </div>
   <div id="messages-list"><div class="empty-state">Loading...</div></div>
 </div>
 
@@ -557,11 +598,11 @@ a{color:inherit;text-decoration:none;}
     <div class="sect-action" onclick="renderCRM()">↻ Refresh</div>
   </div>
   <div class="crm-board" id="crm-board">
-    <div class="crm-col"><div class="crm-col-head"><span class="crm-col-name">Cold</span><span class="crm-col-count" id="crm-count-cold">0</span></div><div class="crm-col-body" id="crm-cold"></div></div>
-    <div class="crm-col"><div class="crm-col-head"><span class="crm-col-name">Contacted</span><span class="crm-col-count" id="crm-count-contacted">0</span></div><div class="crm-col-body" id="crm-contacted"></div></div>
-    <div class="crm-col"><div class="crm-col-head"><span class="crm-col-name">Demo</span><span class="crm-col-count" id="crm-count-demo">0</span></div><div class="crm-col-body" id="crm-demo"></div></div>
-    <div class="crm-col"><div class="crm-col-head"><span class="crm-col-name">Call</span><span class="crm-col-count" id="crm-count-call">0</span></div><div class="crm-col-body" id="crm-call"></div></div>
-    <div class="crm-col"><div class="crm-col-head"><span class="crm-col-name">Closed</span><span class="crm-col-count" id="crm-count-closed">0</span></div><div class="crm-col-body" id="crm-closed"></div></div>
+    <div class="crm-col"><div class="crm-col-head"><span class="crm-col-name">Cold</span><span class="crm-col-count" id="crm-count-cold">0</span></div><div class="crm-col-body" id="crm-cold" ondragover="crmDragOver(event)" ondrop="crmDrop(event,'cold')" ondragleave="crmDragLeave(event)"></div></div>
+    <div class="crm-col"><div class="crm-col-head"><span class="crm-col-name">Contacted</span><span class="crm-col-count" id="crm-count-contacted">0</span></div><div class="crm-col-body" id="crm-contacted" ondragover="crmDragOver(event)" ondrop="crmDrop(event,'contacted')" ondragleave="crmDragLeave(event)"></div></div>
+    <div class="crm-col"><div class="crm-col-head"><span class="crm-col-name">Demo</span><span class="crm-col-count" id="crm-count-demo">0</span></div><div class="crm-col-body" id="crm-demo" ondragover="crmDragOver(event)" ondrop="crmDrop(event,'demo')" ondragleave="crmDragLeave(event)"></div></div>
+    <div class="crm-col"><div class="crm-col-head"><span class="crm-col-name">Call</span><span class="crm-col-count" id="crm-count-call">0</span></div><div class="crm-col-body" id="crm-call" ondragover="crmDragOver(event)" ondrop="crmDrop(event,'call')" ondragleave="crmDragLeave(event)"></div></div>
+    <div class="crm-col"><div class="crm-col-head"><span class="crm-col-name">Closed</span><span class="crm-col-count" id="crm-count-closed">0</span></div><div class="crm-col-body" id="crm-closed" ondragover="crmDragOver(event)" ondrop="crmDrop(event,'closed')" ondragleave="crmDragLeave(event)"></div></div>
   </div>
 </div>
 
@@ -602,7 +643,7 @@ a{color:inherit;text-decoration:none;}
   <div class="bnav-item active" onclick="showSect('leads')" id="bn-leads"><div class="bnav-icon">LDS</div><div class="bnav-lbl">Leads</div></div>
   <div class="bnav-item" onclick="showSect('clients')" id="bn-clients"><div class="bnav-icon">CLI</div><div class="bnav-lbl">Clients</div></div>
   <div class="bnav-item" onclick="showSect('bookings')" id="bn-bookings"><div class="bnav-icon">BKG</div><div class="bnav-lbl">Book</div></div>
-  <div class="bnav-item" onclick="showSect('purchases')" id="bn-purchases"><div class="bnav-icon">SAL</div><div class="bnav-lbl">Sales</div></div>
+  <div class="bnav-item" onclick="showSect('visits')" id="bn-visits"><div class="bnav-icon">VIS</div><div class="bnav-lbl">Visits</div></div>
   <div class="bnav-item" onclick="showSect('activity')" id="bn-activity"><div class="bnav-icon">ACT</div><div class="bnav-lbl">Activity</div></div>
 </div>
 
@@ -722,21 +763,6 @@ a{color:inherit;text-decoration:none;}
   </div>
 </div>
 
-<!-- MANUAL PURCHASE SHEET -->
-<div class="sheet" id="manual-purchase-sheet">
-  <div class="sheet-handle"></div>
-  <div class="sheet-title">Log a Sale</div>
-  <div class="sheet-body">
-    <div class="sheet-row"><div class="slbl">Buyer Email</div><input class="sinput" id="mp-email" placeholder="buyer@email.com" type="email"></div>
-    <div class="sheet-row"><div class="slbl">Buyer Name</div><input class="sinput" id="mp-name" placeholder="Full name"></div>
-    <div class="sheet-row"><div class="slbl">Product Name</div><input class="sinput" id="mp-product" placeholder="e.g. 7 Steps to Long-Term Care Planning"></div>
-    <div class="srow2">
-      <div><div class="slbl">Label</div><select class="sselect" id="mp-label"><option value="book">Book</option><option value="course">Course</option><option value="consultation">Consultation</option><option value="setup_fee">Setup Fee</option><option value="retainer">Retainer</option><option value="other">Other</option></select></div>
-      <div><div class="slbl">Amount USD</div><input class="sinput" id="mp-amount" placeholder="0.00" type="number" step="0.01"></div>
-    </div>
-    <button class="sbtn" onclick="submitManualPurchase()">Log Sale</button>
-  </div>
-</div>
 
 <!-- PSW MESSAGE SHEET -->
 <div class="sheet" id="psw-detail-sheet">
@@ -873,7 +899,7 @@ async function loadAll(spin=false) {
 }
 function renderAll() {
   renderStats(); renderLeads(); renderClients(); renderPSWs();
-  renderBookings(); renderPurchases(); renderMessages(); renderActivity(); renderVisits(); renderVacantVisits();
+  renderBookings(); renderMessages(); renderActivity(); renderVisits(); renderVacantVisits();
   const openInc = (D.visits||[]).filter(v=>v.incident_reported&&!v.incident_resolved).length;
   const icEl = document.getElementById('incident-count');
   if (icEl) { icEl.textContent = openInc; icEl.style.display = openInc > 0 ? 'inline' : 'none'; }
@@ -1002,7 +1028,7 @@ function renderClients() {
       <div class="card-header" onclick="openClientDetail('${c.id}')">
         <div style="display:flex;align-items:center;gap:11px;flex:1;">
           <div class="avatar">${ini}</div>
-          <div><div class="card-name">${name}</div><div class="card-sub">${c.email||c.portal_slug||'—'}</div><div class="card-meta">Since ${fmtd(c.created_at)}</div></div>
+          <div><div class="card-name">${name}</div><div class="card-sub">${c.client_code?'<span style="font-family:var(--mono);color:var(--teal3);">'+c.client_code+'</span> · ':''} ${c.portal_slug||c.email||'—'}</div><div class="card-meta">Since ${fmtd(c.created_at)}</div></div>
         </div>
         <span class="badge b-active">Active</span>
       </div>
@@ -1328,10 +1354,10 @@ function renderPSWs() {
     const statusBadge = p.source === 'live' ? '<span class="badge b-active">Active</span>' : '<span class="badge b-pending">Not activated</span>';
     return `
     <div class="card">
-      <div class="card-header">
+      <div class="card-header" onclick="openPSWDetail('${p.id||p.name}')" style="cursor:pointer;">
         <div style="display:flex;align-items:center;gap:11px;flex:1;">
           <div class="avatar">${ini}</div>
-          <div><div class="card-name">${p.name}</div><div class="card-sub">${email||'No email on file'}</div></div>
+          <div><div class="card-name">${p.name}</div><div class="card-sub">${p.psw_code||p.id?'<span style="font-family:var(--mono);font-size:10px;color:var(--teal3);">'+(p.psw_code||'')+'</span> · ':''} ${email||'No email on file'}</div></div>
         </div>
         ${statusBadge}
       </div>
@@ -1377,15 +1403,47 @@ async function sendPSWMsg() {
 // ── BOOKINGS ──
 function renderBookings() {
   renderCal();
+  activeCalDate = null;
+  filterBookingsByDate(null);
+}
+
+let activeCalDate = null;
+
+function renderCal() {
+  const strip = document.getElementById('cal-strip');
+  const today = new Date(); today.setHours(0,0,0,0);
+  const bdates = new Set((D.bookings||[]).map(b=>b.scheduled_date));
+  let h='';
+  for(let i=0;i<14;i++) {
+    const d=new Date(today); d.setDate(today.getDate()+i);
+    const iso=d.toISOString().split('T')[0];
+    const dow=['Su','Mo','Tu','We','Th','Fr','Sa'][d.getDay()];
+    const isSelected = iso === activeCalDate;
+    h+=`<div class="cal-day${i===0?' today':''}${bdates.has(iso)?' has-b':''}${isSelected?' selected':''}" onclick="filterBookingsByDate('${iso}')" style="cursor:pointer;">
+      <div class="cal-dow">${dow}</div><div class="cal-num">${d.getDate()}</div>
+      ${bdates.has(iso)?'<div class="cal-dot"></div>':''}
+    </div>`;
+  }
+  strip.innerHTML=h;
+}
+
+function filterBookingsByDate(iso) {
+  if (activeCalDate === iso) {
+    activeCalDate = null;
+  } else {
+    activeCalDate = iso;
+  }
+  renderCal();
   const bookings = D.bookings||[];
   const el = document.getElementById('bookings-list');
-  if(!bookings.length) { el.innerHTML='<div class="empty-state">No upcoming appointments</div>'; return; }
-  el.innerHTML = bookings.map(b=>`
-    <div class="card">
+  const filtered = activeCalDate ? bookings.filter(b => b.scheduled_date === activeCalDate) : bookings;
+  if (!filtered.length) { el.innerHTML='<div class="empty-state">'+(activeCalDate?'No bookings on '+fmtd(activeCalDate):'No upcoming appointments')+'</div>'; return; }
+  el.innerHTML = filtered.map(b=>`
+    <div class="card" style="cursor:pointer;" onclick="openAddShift('${b.assigned_to||''}','${b.scheduled_date}','${b.client_name||''}')">
       <div class="card-header">
         <div>
           <div class="card-name">${b.client_name}</div>
-          <div class="card-sub">${b.booking_type}${b.assigned_to?' · '+b.assigned_to:''}</div>
+          <div class="card-sub">${b.booking_type}${b.assigned_to?' · '+b.assigned_to:' · <span style="color:var(--amber);">Unassigned</span>'}</div>
           <div class="card-meta">${b.location||''}</div>
         </div>
         <div class="card-right">
@@ -1394,25 +1452,8 @@ function renderBookings() {
           <div style="font-family:var(--mono);font-size:11px;color:var(--muted);">${b.scheduled_time||''}</div>
         </div>
       </div>
-      ${b.client_phone?`<div class="card-actions"><div class="card-act call" onclick="window.location.href='tel:${b.client_phone}'">Call</div><div class="card-act" onclick="window.location.href='sms:${b.client_phone}'">Text</div></div>`:''}
+      ${b.client_phone?`<div class="card-actions"><div class="card-act call" onclick="event.stopPropagation();window.location.href='tel:${b.client_phone}'">Call</div><div class="card-act" onclick="event.stopPropagation();window.location.href='sms:${b.client_phone}'">Text</div></div>`:''}
     </div>`).join('');
-}
-
-function renderCal() {
-  const strip = document.getElementById('cal-strip');
-  const today = new Date(); today.setHours(0,0,0,0);
-  const bdates = new Set((D.bookings||[]).map(b=>b.scheduled_date));
-  let html='';
-  for(let i=0;i<14;i++) {
-    const d=new Date(today); d.setDate(today.getDate()+i);
-    const iso=d.toISOString().split('T')[0];
-    const dow=['Su','Mo','Tu','We','Th','Fr','Sa'][d.getDay()];
-    html+=`<div class="cal-day${i===0?' today':''}${bdates.has(iso)?' has-b':''}">
-      <div class="cal-dow">${dow}</div><div class="cal-num">${d.getDate()}</div>
-      ${bdates.has(iso)?'<div class="cal-dot"></div>':''}
-    </div>`;
-  }
-  strip.innerHTML=html;
 }
 
 async function submitBooking() {
@@ -1431,48 +1472,18 @@ async function submitBooking() {
 }
 
 // ── PURCHASES ──
-function renderPurchases() {
-  const purchases = D.purchases||[];
-  const el = document.getElementById('purchases-list');
-  if(!purchases.length) { el.innerHTML='<div class="empty-state">No purchases yet</div>'; return; }
-  el.innerHTML = purchases.map(p=>`
-    <div class="card">
-      <div class="card-header">
-        <div style="flex:1;min-width:0;">
-          <div class="card-name">${p.product_name}</div>
-          <div class="card-sub">${p.buyer_name||p.buyer_email||'—'}</div>
-          <div class="card-meta">${p.buyer_email||''}</div>
-        </div>
-        <div class="card-right">
-          <span class="badge b-${p.product_label||'other'}">${p.product_label||'other'}</span>
-          ${p.amount_usd?`<div style="font-family:var(--mono);font-size:14px;color:var(--gold);">$${parseFloat(p.amount_usd).toFixed(2)}</div>`:''}
-          <div class="card-age">${ago(p.purchased_at||p.created_at)}</div>
-        </div>
-      </div>
-    </div>`).join('');
-}
-
-async function submitManualPurchase() {
-  const email=document.getElementById('mp-email').value.trim();
-  const product=document.getElementById('mp-product').value.trim();
-  if(!email||!product) { showToast('Email and product required','err'); return; }
-  try {
-    const r=await fetch(`${API}/webhook/purchase`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({operator_id:currentOp,buyer_email:email,buyer_name:document.getElementById('mp-name').value.trim(),product_name:product,product_label:document.getElementById('mp-label').value,amount_usd:parseFloat(document.getElementById('mp-amount').value||0),source:'manual'})});
-    const d=await r.json(); if(!d.success) throw new Error(d.error);
-    showToast('Sale logged ✓','ok'); closeAllSheets();
-    ['mp-email','mp-name','mp-product','mp-amount'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
-    await loadAll(false);
-  } catch(err) { showToast(err.message||'Failed','err'); }
-}
 
 // ── MESSAGES ──
+let activeThread = null;
+
 function renderMessages() {
+  renderPSWThreadRow();
   const msgs = D.messages||[];
   const el = document.getElementById('messages-list');
-  if(!msgs.length) { el.innerHTML='<div class="empty-state">No messages yet</div>'; return; }
+  if(!msgs.length) { el.innerHTML='<div class="empty-state">No family messages yet</div>'; return; }
   el.innerHTML = msgs.map(m=>{
     const payload=m.payload||{};
-    return `<div class="card">
+    return `<div class="card" style="cursor:pointer;" onclick="window.location.href='mailto:${m.contact_email||''}'">
       <div class="card-header">
         <div style="flex:1;min-width:0;">
           <div class="card-name">${m.contact_name||'Family'}</div>
@@ -1480,9 +1491,85 @@ function renderMessages() {
         </div>
         <div class="card-age">${ago(m.created_at)}</div>
       </div>
-      ${m.contact_email?`<div class="card-actions"><div class="card-act call" onclick="window.location.href='mailto:${m.contact_email}'">Reply</div></div>`:''}
+      ${m.contact_email?`<div class="card-actions"><div class="card-act call" onclick="event.stopPropagation();window.location.href='mailto:${m.contact_email}'">Reply</div></div>`:''}
     </div>`;
   }).join('');
+}
+
+function renderPSWThreadRow() {
+  const el = document.getElementById('psw-thread-row');
+  if (!el) return;
+  const psws = getMergedPSWList().filter(p => p.source === 'live' || p.email);
+  if (!psws.length) { el.innerHTML = '<div style="font-family:var(--mono);font-size:10px;color:var(--muted);">No active PSWs</div>'; return; }
+  el.innerHTML = psws.map(p => {
+    const ini = p.name.split(' ').map(w=>w[0]||'').join('').toUpperCase().slice(0,2);
+    const isActive = activeThread === p.name;
+    return `<div class="msg-avatar-chip" onclick="openThread('${p.name}')">
+      <div class="msg-avatar-circle${isActive?' active':''}">
+        ${ini}
+        <div class="msg-unread-dot" id="udot-${p.name.split(' ').join('_')}"></div>
+      </div>
+      <div class="msg-avatar-name">${p.name.split(' ')[0]}</div>
+    </div>`;
+  }).join('');
+}
+
+async function openThread(name) {
+  activeThread = name;
+  renderPSWThreadRow();
+  const panel = document.getElementById('psw-thread-panel');
+  const body = document.getElementById('thread-body');
+  const nameEl = document.getElementById('thread-psw-name');
+  panel.style.display = 'block';
+  nameEl.textContent = name;
+  body.innerHTML = '<div class="empty-state" style="padding:16px;">Loading...</div>';
+  activePSW = name;
+  try {
+    const r = await fetch(`${API}/psw/notes/${encodeURIComponent(name)}?pin=hq-operator-bypass-2026`);
+    const d = await r.json();
+    const notes = d.notes||[];
+    if (!notes.length) { body.innerHTML = '<div class="empty-state" style="padding:16px;">No messages yet</div>'; return; }
+    body.innerHTML = notes.map(n => `
+      <div class="msg-bubble ${n.sender==='lance'?'msg-lance':'msg-psw'}">
+        <div style="font-size:13px;line-height:1.5;">${n.message}</div>
+        <div class="msg-time">${ago(n.created_at)}</div>
+      </div>`).join('');
+    body.scrollTop = body.scrollHeight;
+  } catch { body.innerHTML = '<div class="empty-state">Could not load</div>'; }
+}
+
+function closeThread() {
+  activeThread = null;
+  document.getElementById('psw-thread-panel').style.display = 'none';
+  renderPSWThreadRow();
+}
+
+async function sendThreadMsg() {
+  const msg = document.getElementById('thread-input').value.trim();
+  if (!msg || !activePSW) return;
+  try {
+    const r = await fetch(`${API}/psw/note`, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({psw_name:activePSW,sender:'lance',message:msg})});
+    const d = await r.json(); if(!d.success) throw new Error();
+    document.getElementById('thread-input').value = '';
+    showToast('Sent ✓','ok');
+    await openThread(activePSW);
+  } catch { showToast('Send failed','err'); }
+}
+
+async function sendBroadcast() {
+  const msg = document.getElementById('broadcast-input').value.trim();
+  if (!msg) { showToast('Enter a message first','err'); return; }
+  const psws = getMergedPSWList().filter(p => p.source === 'live');
+  if (!psws.length) { showToast('No active PSWs found','err'); return; }
+  let sent = 0;
+  for (const p of psws) {
+    try {
+      await fetch(`${API}/psw/note`, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({psw_name:p.name,sender:'lance',message:msg})});
+      sent++;
+    } catch {}
+  }
+  document.getElementById('broadcast-input').value = '';
+  showToast(`Broadcast sent to ${sent} PSW${sent!==1?'s':''}`, 'ok');
 }
 
 // ── VISITS ──
@@ -1573,23 +1660,51 @@ function toggleVisit(id) {
 }
 
 // ── ACTIVITY ──
-function renderActivity() {
-  const logs=D.recent_activity||[];
+async function renderActivity() {
   const el=document.getElementById('activity-list');
-  if(!logs.length) { el.innerHTML='<div class="empty-state">No activity yet</div>'; return; }
-  const icons={email_sent:'EML',webhook_received:'WBH',booking_created:'BKG',purchase:'SAL',psw_message:'MSG',family_message:'FAM',visit_log:'VIS'};
-  el.innerHTML=logs.map(l=>{
-    const icon=icons[l.event_type]||'ACT';
-    const cls=l.status==='error'?'li-err':l.status==='skipped'?'li-info':'li-ok';
-    return `<div class="log-row">
-      <div class="log-icon ${cls}">${icon}</div>
-      <div class="log-info-t">
-        <div class="log-ev">${(l.event_type||'').replace(/_/g,' ')}${l.event_source?' · '+l.event_source:''}</div>
-        <div class="log-ct">${l.contact_name||l.contact_email||'—'}</div>
-      </div>
-      <div class="log-tm">${ago(l.created_at)}</div>
-    </div>`;
-  }).join('');
+  el.innerHTML='<div class="empty-state">Loading activity...</div>';
+  try {
+    // Fetch system logs with higher limit
+    const res = await fetch(`${API}/hq/activity?operator_id=${currentOp}&limit=100`);
+    const d = await res.json();
+    // Fall back to D.recent_activity if endpoint not available
+    const logs = d.logs || d.activity || D.recent_activity || [];
+    if(!logs.length) { el.innerHTML='<div class="empty-state">No activity yet</div>'; return; }
+    const icons={email_sent:'EML',webhook_received:'WBH',booking_created:'BKG',purchase:'SAL',psw_message:'MSG',family_message:'FAM',visit_complete:'VIS',visit_log:'VIS',checkout:'VIS',checkin:'CHK',lead_captured:'LDS',onboarding:'ONB'};
+    el.innerHTML=logs.map(l=>{
+      const type = l.event_type||l.type||'';
+      const icon=icons[type]||'ACT';
+      const cls=l.status==='error'?'li-err':l.status==='skipped'?'li-info':'li-ok';
+      const label = type.replace(/_/g,' ');
+      const contact = l.contact_name||l.contact_email||l.psw_name||l.client_name||'—';
+      const src = l.event_source||l.source||'';
+      return `<div class="log-row">
+        <div class="log-icon ${cls}" style="font-family:var(--mono);font-size:8px;letter-spacing:1px;text-transform:uppercase;">${icon}</div>
+        <div class="log-info-t">
+          <div class="log-ev">${label}${src?' · '+src:''}</div>
+          <div class="log-ct">${contact}</div>
+        </div>
+        <div class="log-tm">${ago(l.created_at||l.timestamp)}</div>
+      </div>`;
+    }).join('');
+  } catch {
+    // Fallback to D.recent_activity
+    const logs=D.recent_activity||[];
+    if(!logs.length) { el.innerHTML='<div class="empty-state">No activity yet</div>'; return; }
+    const icons={email_sent:'EML',webhook_received:'WBH',booking_created:'BKG',purchase:'SAL',psw_message:'MSG',family_message:'FAM',visit_log:'VIS',visit_complete:'VIS'};
+    el.innerHTML=logs.map(l=>{
+      const icon=icons[l.event_type]||'ACT';
+      const cls=l.status==='error'?'li-err':l.status==='skipped'?'li-info':'li-ok';
+      return `<div class="log-row">
+        <div class="log-icon ${cls}">${icon}</div>
+        <div class="log-info-t">
+          <div class="log-ev">${(l.event_type||'').replace(/_/g,' ')}${l.event_source?' · '+l.event_source:''}</div>
+          <div class="log-ct">${l.contact_name||l.contact_email||'—'}</div>
+        </div>
+        <div class="log-tm">${ago(l.created_at)}</div>
+      </div>`;
+    }).join('');
+  }
 }
 
 // ── FOLLOW-UP / SEQUENCES ──
@@ -1622,13 +1737,15 @@ function showSect(name) {
   document.querySelectorAll('.bnav-item').forEach(b=>b.classList.remove('active'));
   const s=document.getElementById('sect-'+name); if(s) s.classList.add('active');
   const tabs=document.querySelectorAll('.nav-tab');
-  const tm=['leads','clients','psws','onboard','bookings','purchases','messages','visits','activity','schedule','crm','applicants','revenue'];
+  const tm=['leads','clients','psws','onboard','bookings','messages','visits','activity','schedule','crm','applicants','revenue'];
   const ti=tm.indexOf(name); if(ti>=0&&tabs[ti]) tabs[ti].classList.add('active');
-  const bm=['leads','clients','bookings','purchases','activity'];
+  const bm=['leads','clients','bookings','visits','activity'];
   const bi=bm.indexOf(name);
   const bnavs=document.querySelectorAll('.bnav-item');
   if(bi>=0&&bnavs[bi]) bnavs[bi].classList.add('active');
   if(name==='onboard') populateOnboardSelects();
+  if(name==='messages') renderMessages();
+  if(name==='activity') renderActivity();
   if(name==='revenue') renderRevenue();
   if(name==='crm') renderCRM();
   if(name==='applicants') loadApplicants();
@@ -1734,7 +1851,7 @@ function renderCRM() {
       const canBack = si > 0;
       const canFwd = si < stages.length - 1;
       const demoSlug = (agency.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,''));
-      return `<div class="crm-card${stage==='closed'?' closed':''}">
+      return `<div class="crm-card${stage==='closed'?' closed':''}" draggable="true" ondragstart="crmDragStart(event,'${l.id}','${isSeed?'seed':'db'}','${stage}')">
         <div class="crm-card-name">${name}</div>
         <div class="crm-card-agency">${agency}${city?' · '+city:''}</div>
         <div class="crm-card-meta">${date}${l.source?' · '+l.source:''}</div>
@@ -2498,45 +2615,68 @@ async function deleteShift(id) {
 }
 
 // ── REVENUE ANALYTICS ──
-function renderRevenue() {
+async function renderRevenue() {
   const el = document.getElementById('revenue-content');
   if (!el) return;
+  el.innerHTML = '<div class="empty-state">Loading revenue data...</div>';
+
   const clients = D.clients || [];
   const leads = D.leads || [];
   const bookings = D.bookings || [];
-  const purchases = D.purchases || [];
   const psws = D.psws || [];
-  const activity = D.recent_activity || [];
-
   const now = new Date();
   const monthStr = now.toISOString().slice(0,7);
+
+  // Fetch real visit data for revenue calculation
+  let visits = [];
+  try {
+    const res = await fetch(`${API}/hq/visits?operator_id=${currentOp}&limit=200`);
+    const d = await res.json();
+    visits = d.visits || [];
+  } catch {}
+
+  // Month visits
+  const monthVisits = visits.filter(v => (v.visit_date||'').startsWith(monthStr));
+  const monthHours = monthVisits.reduce((s,v) => s + parseFloat(v.hours_worked||0), 0);
+
+  // Revenue per client this month (hours × client_rate)
+  const clientRevMap = {};
+  monthVisits.forEach(v => {
+    const c = clients.find(cl => {
+      const n = `${cl.first_name||''} ${cl.last_name||''}`.trim();
+      return n === v.client_name;
+    });
+    const rate = c?.client_rate || 22;
+    const pswRate = c?.psw_rate || 19;
+    const hrs = parseFloat(v.hours_worked||0);
+    if (!clientRevMap[v.client_name]) clientRevMap[v.client_name] = {billed:0, cost:0, hours:0, visits:0};
+    clientRevMap[v.client_name].billed += hrs * rate;
+    clientRevMap[v.client_name].cost += hrs * pswRate;
+    clientRevMap[v.client_name].hours += hrs;
+    clientRevMap[v.client_name].visits++;
+  });
+
+  const totalBilled = Object.values(clientRevMap).reduce((s,r) => s+r.billed, 0);
+  const totalCost = Object.values(clientRevMap).reduce((s,r) => s+r.cost, 0);
+  const totalMargin = totalBilled - totalCost;
 
   // Monthly leads
   const monthLeads = leads.filter(l => (l.created_at||'').startsWith(monthStr));
   const converted = leads.filter(l => l.status === 'converted');
   const convRate = leads.length ? Math.round(converted.length / leads.length * 100) : 0;
-
-  // MRR estimate — active clients × $500 (operator revenue not client revenue for now)
-  const activeClients = clients.length;
   const pswCount = psws.filter(p => p.status === 'active').length;
 
   // Upcoming bookings this week
   const weekEnd = new Date(now); weekEnd.setDate(now.getDate() + 7);
-  const weekBookings = bookings.filter(b => {
-    const d = new Date(b.scheduled_date);
-    return d >= now && d <= weekEnd;
-  });
-
-  // Revenue from purchases
-  const totalRevenue = purchases.reduce((s, p) => s + parseFloat(p.amount || 0), 0);
+  const weekBookings = bookings.filter(b => { const d = new Date(b.scheduled_date); return d >= now && d <= weekEnd; });
 
   const kpis = [
-    { label: 'Active Clients', val: activeClients, sub: 'proximity care', color: 'var(--teal2)' },
-    { label: 'Active PSWs', val: pswCount, sub: 'on roster', color: 'var(--text)' },
+    { label: 'Month Billed', val: '$'+totalBilled.toFixed(0), sub: monthHours.toFixed(1)+'h worked', color: 'var(--teal2)' },
+    { label: 'Month Cost', val: '$'+totalCost.toFixed(0), sub: 'PSW wages', color: 'var(--text)' },
+    { label: 'Month Margin', val: '$'+totalMargin.toFixed(0), sub: monthVisits.length+' visits', color: 'var(--green2)' },
+    { label: 'Active Clients', val: clients.length, sub: 'on service', color: 'var(--text)' },
     { label: 'Shifts This Week', val: weekBookings.length, sub: 'upcoming', color: 'var(--gold)' },
-    { label: 'Total Leads', val: leads.length, sub: `${monthLeads.length} this month`, color: 'var(--text)' },
-    { label: 'Converted', val: converted.length, sub: `${convRate}% rate`, color: 'var(--green2)' },
-    { label: 'Operators Revenue', val: '$' + totalRevenue.toFixed(0), sub: 'from purchases', color: 'var(--gold)' },
+    { label: 'Active PSWs', val: pswCount, sub: 'on roster', color: 'var(--text)' },
   ];
 
   let html = '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);margin:0 12px 16px;border-radius:8px;overflow:hidden;">';
@@ -2549,10 +2689,43 @@ function renderRevenue() {
   });
   html += '</div>';
 
-  // Lead pipeline breakdown
+  // Client revenue breakdown this month
+  html += `<div style="margin:0 12px 16px;">
+    <div style="font-family:var(--mono);font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--muted2);margin-bottom:10px;">This Month — Per Client</div>`;
+  if (Object.keys(clientRevMap).length) {
+    Object.entries(clientRevMap).forEach(([name, r]) => {
+      const c = clients.find(cl => `${cl.first_name||''} ${cl.last_name||''}`.trim() === name);
+      html += `<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--bg2);border:1px solid var(--border);border-radius:6px;margin-bottom:4px;cursor:pointer;" onclick="openClientDetail('${c?.id||''}')">
+        <div>
+          <div style="font-size:12px;font-weight:500;color:var(--text);">${name}</div>
+          <div style="font-family:var(--mono);font-size:10px;color:var(--muted);">${r.visits} visit${r.visits!==1?'s':''} · ${r.hours.toFixed(1)}h · $${c?.client_rate||22}/hr</div>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-family:var(--mono);font-size:13px;color:var(--teal2);">$${r.billed.toFixed(0)}</div>
+          <div style="font-family:var(--mono);font-size:10px;color:var(--green2);">+$${(r.billed-r.cost).toFixed(0)} margin</div>
+        </div>
+      </div>`;
+    });
+  } else {
+    html += '<div style="font-family:var(--mono);font-size:10px;color:var(--muted);padding:12px 0;">No visits logged this month yet</div>';
+  }
+
+  // All clients rates reference
+  html += `<div style="margin-top:12px;font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:8px;">All Clients — Rates</div>`;
+  clients.forEach(c => {
+    const name = `${c.first_name||''} ${c.last_name||''}`.trim();
+    const margin = (c.client_rate||22) - (c.psw_rate||19);
+    html += `<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:var(--bg2);border:1px solid var(--border);border-radius:6px;margin-bottom:4px;">
+      <div><div style="font-size:12px;font-weight:500;color:var(--text);">${name}</div><div style="font-family:var(--mono);font-size:10px;color:var(--muted);">${c.assigned_psw||'Unassigned'} · ${c.client_code||''}</div></div>
+      <div style="text-align:right;"><div style="font-family:var(--mono);font-size:12px;color:var(--text);">$${c.client_rate||22}/hr</div><div style="font-family:var(--mono);font-size:10px;color:var(--green2);">+$${margin} margin</div></div>
+    </div>`;
+  });
+  html += '</div>';
+
+  // Lead pipeline
   const stages = ['new','contacted','demo','call','converted','dead'];
   html += `<div style="margin:0 12px 16px;">
-    <div style="font-family:var(--mono);font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--muted2);margin-bottom:10px;">Lead Pipeline</div>
+    <div style="font-family:var(--mono);font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--muted2);margin-bottom:10px;">Lead Pipeline · ${monthLeads.length} this month · ${convRate}% converted</div>
     <div style="display:flex;flex-direction:column;gap:6px;">`;
   stages.forEach(st => {
     const count = leads.filter(l => l.status === st).length;
@@ -2565,26 +2738,6 @@ function renderRevenue() {
     </div>`;
   });
   html += '</div></div>';
-
-  // Client list with rates
-  html += `<div style="margin:0 12px 16px;">
-    <div style="font-family:var(--mono);font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--muted2);margin-bottom:10px;">Active Clients — Rates</div>`;
-  if (clients.length) {
-    clients.forEach(c => {
-      const name = `${c.first_name||''} ${c.last_name||''}`.trim();
-      const margin = (c.client_rate||22) - (c.psw_rate||19);
-      html += `<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:var(--bg2);border:1px solid var(--border);border-radius:6px;margin-bottom:4px;">
-        <div><div style="font-size:12px;font-weight:500;color:var(--text);">${name}</div><div style="font-family:var(--mono);font-size:10px;color:var(--muted);">${c.assigned_psw||'Unassigned'}</div></div>
-        <div style="text-align:right;">
-          <div style="font-family:var(--mono);font-size:12px;color:var(--text);">$${c.client_rate||22}/hr</div>
-          <div style="font-family:var(--mono);font-size:10px;color:var(--green2);">+$${margin} margin</div>
-        </div>
-      </div>`;
-    });
-  } else {
-    html += '<div class="empty-state">No active clients</div>';
-  }
-  html += '</div>';
 
   el.innerHTML = html;
 }
@@ -2664,6 +2817,7 @@ function openClientDetail(id) {
   document.getElementById('client-sheet-title').textContent = name;
   document.getElementById('client-sheet-body').innerHTML = `
     <div class="cpf"><div class="cpf-lbl">Family</div><div class="cpf-val">${c.family_contact_name||'—'} · ${c.family_email?`<a href="mailto:${c.family_email}">${c.family_email}</a>`:'no email'}</div></div>
+    <div class="cpf"><div class="cpf-lbl">Client Code</div><div class="cpf-val" style="font-family:var(--mono);color:var(--teal2);">${c.client_code||'—'}</div></div>
     <div class="cpf"><div class="cpf-lbl">Portal</div><div class="cpf-val" style="font-family:var(--mono);">${slug||'—'} · PIN ${c.portal_pin||'—'}</div></div>
     <div class="cpf"><div class="cpf-lbl">Assigned PSW</div><div class="cpf-val">${c.assigned_psw||'Unassigned'}</div></div>
     <div class="cpf"><div class="cpf-lbl">Rates</div><div class="cpf-val">Client $${c.client_rate||22}/hr · PSW $${c.psw_rate||19}/hr · Margin $${(c.client_rate||22)-(c.psw_rate||19)}/hr</div></div>
@@ -2843,6 +2997,33 @@ async function runVisitFlags() {
     showToast(e.message, 'err');
   }
 }
+
+
+// ── CRM DRAG AND DROP ──
+let _crmDragId = null;
+let _crmDragType = null;
+let _crmDragFromStage = null;
+
+function crmDragStart(e, id, type, fromStage) {
+  _crmDragId = id; _crmDragType = type; _crmDragFromStage = fromStage;
+  e.dataTransfer.effectAllowed = 'move';
+  e.currentTarget.classList.add('dragging');
+  setTimeout(() => e.currentTarget.classList.remove('dragging'), 0);
+}
+function crmDragOver(e) {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  e.currentTarget.classList.add('drag-over');
+}
+function crmDragLeave(e) { e.currentTarget.classList.remove('drag-over'); }
+function crmDrop(e, toStage) {
+  e.preventDefault();
+  e.currentTarget.classList.remove('drag-over');
+  if (!_crmDragId || toStage === _crmDragFromStage) { _crmDragId=null; return; }
+  crmMove(_crmDragId, _crmDragType, toStage, null);
+  _crmDragId = null; _crmDragType = null; _crmDragFromStage = null;
+}
+
 
 
 // ── LIVE ATTENDANCE ──
