@@ -92,11 +92,7 @@ a{color:inherit;text-decoration:none;}
 .crm-card-btn.call{color:var(--teal3);border-color:rgba(90,173,160,.3);}
 .crm-card-btn.demo{color:var(--blue2);border-color:rgba(106,172,240,.3);}
 .crm-empty{padding:16px 10px;font-size:10px;color:var(--muted);text-align:center;font-family:var(--mono);}
-@media(max-width:768px){
-  .crm-board{grid-template-columns:1fr;}
-  .crm-col{min-height:auto;}
-  .crm-col-head{position:static;}
-}
+
 
 /* CREATE OPERATOR */
 .op-form{padding:12px;}
@@ -137,7 +133,7 @@ a{color:inherit;text-decoration:none;}
 .sd-delete-btn{background:rgba(224,85,85,.08);border-color:rgba(224,85,85,.2)!important;color:var(--red);}
 .sd-close-btn{background:var(--bg3);border-color:var(--border)!important;color:var(--muted2);flex:0.5;}
 
-@media(max-width:600px){.op-form-grid{grid-template-columns:1fr;}}
+
 
 /* NAV TABS */
 .nav-tabs{display:flex;background:var(--bg2);border-bottom:1px solid var(--border);overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
@@ -311,6 +307,20 @@ a{color:inherit;text-decoration:none;}
 /* EMPTY */
 .empty-state{text-align:center;padding:44px 20px;font-family:var(--mono);font-size:11px;letter-spacing:1px;color:var(--muted);text-transform:uppercase;}
 
+/* SEARCH BAR */
+.list-search-wrap{padding:0 12px 10px;position:relative;}
+.list-search{width:100%;background:var(--bg2);border:1px solid var(--border2);color:var(--text);padding:10px 14px 10px 34px;font-family:var(--mono);font-size:12px;border-radius:6px;outline:none;transition:border-color .2s;}
+.list-search:focus{border-color:var(--teal2);}
+.list-search::placeholder{color:var(--muted);}
+.list-search-icon{position:absolute;left:22px;top:50%;transform:translateY(-50%);font-size:13px;color:var(--muted);pointer-events:none;}
+
+/* BULK SCHEDULE SHEET */
+.bulk-day-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:12px;}
+.bulk-day{padding:8px 4px;background:var(--bg3);border:1px solid var(--border);border-radius:4px;text-align:center;cursor:pointer;touch-action:manipulation;transition:all .15s;}
+.bulk-day.sel{background:rgba(61,138,122,.15);border-color:var(--teal2);}
+.bulk-day-lbl{font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--muted2);}
+.bulk-day.sel .bulk-day-lbl{color:var(--teal2);}
+
 /* ── LIVE ATTENDANCE ── */
 .att-row{display:flex;align-items:center;gap:10px;padding:9px 12px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;margin-bottom:6px;}
 .att-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
@@ -331,6 +341,12 @@ a{color:inherit;text-decoration:none;}
 .vacant-client{font-size:12px;font-weight:500;color:var(--text);}
 .vacant-time{font-family:var(--mono);font-size:10px;color:var(--muted2);margin-top:2px;}
 .vacant-btn{font-family:var(--mono);font-size:8px;letter-spacing:1px;text-transform:uppercase;padding:5px 10px;border-radius:6px;border:1px solid rgba(200,169,110,.3);background:rgba(200,169,110,.08);color:var(--gold);cursor:pointer;min-height:30px;white-space:nowrap;touch-action:manipulation;}
+@media(max-width:768px){
+  .crm-board{grid-template-columns:1fr;}
+  .crm-col{min-height:auto;}
+  .crm-col-head{position:static;}
+}
+@media(max-width:600px){.op-form-grid{grid-template-columns:1fr;}}
 </style>
 </head>
 <body>
@@ -488,6 +504,7 @@ a{color:inherit;text-decoration:none;}
     <div style="background:var(--bg2);padding:10px 6px;text-align:center;"><div style="font-family:var(--mono);font-size:16px;font-weight:500;color:var(--green2);" id="lmt-converted">—</div><div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-top:3px;">Converted</div></div>
     <div style="background:var(--bg2);padding:10px 6px;text-align:center;"><div style="font-family:var(--mono);font-size:16px;font-weight:500;color:var(--text);" id="lmt-pending">—</div><div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-top:3px;">Pending</div></div>
   </div>
+  <div class="list-search-wrap"><span class="list-search-icon">⌕</span><input class="list-search" id="leads-search" placeholder="Search leads..." oninput="filterList('leads-list','leads-search')" autocomplete="off"></div>
   <div id="leads-list"><div class="empty-state">Loading...</div></div>
 </div>
 
@@ -497,12 +514,14 @@ a{color:inherit;text-decoration:none;}
     <span class="section-title">Active Clients</span>
     <div class="sect-action" onclick="showSect('onboard')">+ Onboard</div>
   </div>
+  <div class="list-search-wrap"><span class="list-search-icon">⌕</span><input class="list-search" id="clients-search" placeholder="Search clients..." oninput="filterList('clients-list','clients-search')" autocomplete="off"></div>
   <div id="clients-list"><div class="empty-state">Loading...</div></div>
 </div>
 
 <!-- PSWs -->
 <div class="section" id="sect-psws">
   <div class="section-header"><span class="section-title">PSW Staff</span></div>
+  <div class="list-search-wrap"><span class="list-search-icon">⌕</span><input class="list-search" id="psws-search" placeholder="Search PSWs..." oninput="filterList('psws-list','psws-search')" autocomplete="off"></div>
   <div id="psws-list"><div class="empty-state">Loading...</div></div>
 </div>
 
@@ -669,6 +688,7 @@ a{color:inherit;text-decoration:none;}
     <div style="background:var(--bg2);padding:10px 6px;text-align:center;"><div style="font-family:var(--mono);font-size:16px;font-weight:500;color:var(--text);" id="vmt-hours">—</div><div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-top:3px;">Hours</div></div>
     <div style="background:var(--bg2);padding:10px 6px;text-align:center;"><div style="font-family:var(--mono);font-size:16px;font-weight:500;color:var(--text);" id="vmt-psws">—</div><div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-top:3px;">PSWs</div></div>
   </div>
+  <div class="list-search-wrap"><span class="list-search-icon">⌕</span><input class="list-search" id="visits-search" placeholder="Search by PSW or client..." oninput="filterList('visits-list','visits-search')" autocomplete="off"></div>
   <div id="visits-list"><div class="empty-state">Loading visits...</div></div>
 </div>
 
@@ -716,6 +736,7 @@ a{color:inherit;text-decoration:none;}
     <span class="section-title">Weekly Schedule</span>
     <div style="display:flex;gap:6px;">
       <div class="sect-action" onclick="openAddShift('','')">+ Shift</div>
+      <div class="sect-action" onclick="openBulkSchedule()" style="color:var(--gold);border-color:rgba(200,169,110,.3);">+ Bulk Week</div>
       <div class="sect-action" onclick="renderSchedule()">↻</div>
     </div>
   </div>
@@ -738,6 +759,56 @@ a{color:inherit;text-decoration:none;}
   <input id="client-csv-file" type="file" /><div id="client-import-result"></div>
   <input id="pc-agency" /><input id="pc-owner" /><input id="pc-email" />
   <div id="pc-result"></div>
+</div>
+
+<!-- BULK SCHEDULING SHEET -->
+<div class="sheet" id="bulk-sheet">
+  <div class="sheet-header">
+    <div class="sheet-title">Bulk Schedule Week</div>
+    <div class="sheet-close" onclick="closeSheet('bulk-sheet')">✕</div>
+  </div>
+  <div style="padding:12px 14px;font-family:var(--mono);font-size:10px;color:var(--muted2);line-height:1.6;margin-bottom:4px;">
+    Creates shifts for the selected PSW + client on every chosen day this week and next week.
+  </div>
+  <div class="sheet-row"><div class="slbl">PSW *</div>
+    <select class="sselect" id="bulk-psw"><option value="">Select PSW</option></select>
+  </div>
+  <div class="sheet-row"><div class="slbl">Client *</div>
+    <select class="sselect" id="bulk-client"><option value="">Select client</option></select>
+  </div>
+  <div class="sheet-row"><div class="slbl">Start Time *</div>
+    <input class="sinput" id="bulk-time" type="time" value="09:00" style="font-size:16px;">
+  </div>
+  <div class="sheet-row"><div class="slbl">Duration</div>
+    <select class="sselect" id="bulk-duration">
+      <option value="240">4 hours</option>
+      <option value="300">5 hours</option>
+      <option value="360">6 hours</option>
+      <option value="420">7 hours</option>
+      <option value="480" selected>8 hours</option>
+      <option value="600">10 hours</option>
+    </select>
+  </div>
+  <div class="sheet-row"><div class="slbl">Weeks ahead</div>
+    <select class="sselect" id="bulk-weeks">
+      <option value="1">1 week</option>
+      <option value="2" selected>2 weeks</option>
+      <option value="4">4 weeks</option>
+    </select>
+  </div>
+  <div style="padding:0 14px 10px;">
+    <div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:8px;">Days of Week</div>
+    <div class="bulk-day-grid">
+      <div class="bulk-day sel" data-dow="1" onclick="toggleBulkDay(this)"><div class="bulk-day-lbl">Mon</div></div>
+      <div class="bulk-day sel" data-dow="2" onclick="toggleBulkDay(this)"><div class="bulk-day-lbl">Tue</div></div>
+      <div class="bulk-day sel" data-dow="3" onclick="toggleBulkDay(this)"><div class="bulk-day-lbl">Wed</div></div>
+      <div class="bulk-day sel" data-dow="4" onclick="toggleBulkDay(this)"><div class="bulk-day-lbl">Thu</div></div>
+      <div class="bulk-day sel" data-dow="5" onclick="toggleBulkDay(this)"><div class="bulk-day-lbl">Fri</div></div>
+      <div class="bulk-day" data-dow="6" onclick="toggleBulkDay(this)"><div class="bulk-day-lbl">Sat</div></div>
+      <div class="bulk-day" data-dow="0" onclick="toggleBulkDay(this)"><div class="bulk-day-lbl">Sun</div></div>
+    </div>
+  </div>
+  <button class="sbtn" onclick="saveBulkSchedule()" id="bulk-save-btn" style="margin:0 14px 8px;width:calc(100% - 28px);">Create Shifts</button>
 </div>
 
 <!-- BOTTOM NAV -->
@@ -1853,6 +1924,7 @@ async function triggerSequences() {
 // ── NAV ──
 function showSect(name) {
   try { localStorage.setItem('hq_tab', name); } catch(e) {}
+  clearSearches();
   document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
   document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
   document.querySelectorAll('.bnav-item').forEach(b=>b.classList.remove('active'));
@@ -2955,7 +3027,21 @@ async function openPSWDetail(pswId) {
         : '<div style="font-size:12px;color:var(--muted);margin-bottom:12px;">No clients assigned</div>'
       }
 
-      <div style="margin:16px 0 8px;display:flex;gap:8px;">
+      <div style="margin:16px 0 10px;font-family:var(--mono);font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--gold);">Edit PSW</div>
+      <div class="srow2" style="padding:0;">
+        <div><div class="slbl">PSW Rate $/hr</div><input class="sinput" id="pe-rate" type="number" value="${p.psw_rate||19}" min="15" max="80" style="font-size:16px;"></div>
+        <div><div class="slbl">Status</div>
+          <select class="sselect" id="pe-status">
+            <option value="active" ${(p.status||'active')==='active'?'selected':''}>Active</option>
+            <option value="inactive" ${p.status==='inactive'?'selected':''}>Inactive</option>
+            <option value="on-leave" ${p.status==='on-leave'?'selected':''}>On Leave</option>
+          </select>
+        </div>
+      </div>
+      <div class="sheet-row"><div class="slbl">Internal Notes</div><textarea class="sinput" id="pe-notes" rows="2" style="min-height:60px;resize:none;" placeholder="Notes about this PSW...">${p.notes||rec.notes||''}</textarea></div>
+      <button class="sbtn" style="background:rgba(200,169,110,.12);color:var(--gold);border:1px solid rgba(200,169,110,.3);margin-bottom:8px;" onclick="savePSWEdits('${p.id}','${name}')">Save Changes</button>
+
+      <div style="display:flex;gap:8px;">
         <button class="sbtn" style="flex:1;" onclick="openPSWMsg('${name}');closeSheet('psw-detail-sheet');">Message ${name.split(' ')[0]}</button>
       </div>`;
   } catch {
@@ -2994,6 +3080,18 @@ function openClientDetail(id) {
     <div class="sheet-row"><div class="slbl">Daily Routine</div><textarea class="sinput" id="cp-routine" rows="3" style="min-height:80px;resize:none;" placeholder="Morning routine, meal times, sleep schedule..."></textarea></div>
     <div class="sheet-row"><div class="slbl">Preferences</div><textarea class="sinput" id="cp-prefs" rows="2" style="min-height:60px;resize:none;" placeholder="Likes, dislikes, communication preferences..."></textarea></div>
     <button class="sbtn" style="margin-top:4px;" onclick="saveCarePlan('${id}','${slug}','${name}')">Save Care Plan</button>
+
+    <div style="margin:18px 0 10px;font-family:var(--mono);font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--gold);">Edit Client</div>
+    <div class="sheet-row"><div class="slbl">Assigned PSW</div>
+      <select class="sselect" id="ce-psw">${getMergedPSWList().map(p=>`<option value="${p.name}" ${p.name===c.assigned_psw?'selected':''}>${p.name}</option>`).join('')}</select>
+    </div>
+    <div class="srow2">
+      <div><div class="slbl">Client Rate $/hr</div><input class="sinput" id="ce-client-rate" type="number" value="${c.client_rate||22}" min="15" max="100" style="font-size:16px;"></div>
+      <div><div class="slbl">PSW Rate $/hr</div><input class="sinput" id="ce-psw-rate" type="number" value="${c.psw_rate||19}" min="15" max="80" style="font-size:16px;"></div>
+    </div>
+    <div class="sheet-row"><div class="slbl">Care Notes</div><textarea class="sinput" id="ce-care-notes" rows="3" style="min-height:80px;resize:none;" placeholder="Internal care notes...">${c.care_notes||''}</textarea></div>
+    <button class="sbtn" style="margin-top:4px;background:rgba(200,169,110,.12);color:var(--gold);border:1px solid rgba(200,169,110,.3);" onclick="saveClientEdits('${id}')">Save Changes</button>
+
     <button class="sbtn" style="margin-top:8px;" onclick="genInvoice('${name}','${c.family_email||c.email||''}','${c.assigned_psw||''}',${c.client_rate||22},${c.psw_rate||19});closeSheet('client-sheet');">Generate Invoice</button>
     <button class="sbtn ghost" style="margin-top:8px;" onclick="triggerOnboardClient('${slug}');closeSheet('client-sheet');">Resend Welcome Email</button>`;
   loadCarePlan(slug);
@@ -3403,6 +3501,155 @@ function renderOverview() {
 }
 
 // Auto-render overview when that tab is shown
+
+
+
+
+// ── PSW INLINE EDIT ──
+async function savePSWEdits(pswId, pswName) {
+  const rate = parseFloat(document.getElementById('pe-rate')?.value) || 19;
+  const status = document.getElementById('pe-status')?.value || 'active';
+  const notes = document.getElementById('pe-notes')?.value.trim() || '';
+  try {
+    const res = await fetch(`${API}/hq/psw/${encodeURIComponent(pswName)}`, {
+      method: 'PATCH',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ operator_id: currentOp, psw_rate: rate, status, notes })
+    });
+    const d = await res.json();
+    if (!d.success) throw new Error(d.error || 'Update failed');
+    showToast('PSW updated ✓', 'ok');
+    closeSheet('psw-detail-sheet');
+    await loadAll(false);
+  } catch(e) { showToast(e.message || 'Update failed', 'err'); }
+}
+
+// ── CLIENT INLINE EDIT ──
+async function saveClientEdits(clientId) {
+  const psw = document.getElementById('ce-psw')?.value || '';
+  const clientRate = parseFloat(document.getElementById('ce-client-rate')?.value) || 22;
+  const pswRate = parseFloat(document.getElementById('ce-psw-rate')?.value) || 19;
+  const careNotes = document.getElementById('ce-care-notes')?.value.trim() || '';
+  try {
+    const res = await fetch(`${API}/hq/client/${clientId}`, {
+      method: 'PATCH',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({
+        operator_id: currentOp,
+        assigned_psw: psw,
+        client_rate: clientRate,
+        psw_rate: pswRate,
+        care_notes: careNotes
+      })
+    });
+    const d = await res.json();
+    if (!d.success) throw new Error(d.error || 'Update failed');
+    showToast('Client updated ✓', 'ok');
+    closeSheet('client-sheet');
+    await loadAll(false);
+  } catch(e) { showToast(e.message || 'Update failed', 'err'); }
+}
+
+// ── BULK SCHEDULING ──
+function toggleBulkDay(el) { el.classList.toggle('sel'); }
+
+function openBulkSchedule() {
+  // Populate PSW and client selects
+  const pswSel = document.getElementById('bulk-psw');
+  const cliSel = document.getElementById('bulk-client');
+  const psws = getMergedPSWList();
+  const clients = D.clients || [];
+  pswSel.innerHTML = '<option value="">Select PSW</option>' +
+    psws.map(p => `<option value="${p.name}">${p.name}</option>`).join('');
+  cliSel.innerHTML = '<option value="">Select client</option>' +
+    clients.map(c => {
+      const n = `${c.first_name||''} ${c.last_name||''}`.trim();
+      return `<option value="${n}">${n}</option>`;
+    }).join('');
+  openSheet('bulk-sheet');
+}
+
+async function saveBulkSchedule() {
+  const psw = document.getElementById('bulk-psw').value;
+  const client = document.getElementById('bulk-client').value;
+  const time = document.getElementById('bulk-time').value;
+  const duration = parseInt(document.getElementById('bulk-duration').value) || 480;
+  const weeksAhead = parseInt(document.getElementById('bulk-weeks').value) || 2;
+  if (!psw || !client) { showToast('Select PSW and client', 'err'); return; }
+
+  const selectedDows = Array.from(document.querySelectorAll('.bulk-day.sel'))
+    .map(el => parseInt(el.dataset.dow));
+  if (!selectedDows.length) { showToast('Select at least one day', 'err'); return; }
+
+  // Build date list for selected DOWs over weeksAhead weeks
+  const dates = [];
+  const today = new Date(); today.setHours(0,0,0,0);
+  for (let d = 0; d < weeksAhead * 7; d++) {
+    const nd = new Date(today); nd.setDate(today.getDate() + d);
+    if (selectedDows.includes(nd.getDay())) {
+      dates.push(nd.toISOString().slice(0,10));
+    }
+  }
+  if (!dates.length) { showToast('No dates in range', 'err'); return; }
+
+  const btn = document.getElementById('bulk-save-btn');
+  btn.disabled = true; btn.textContent = `Creating ${dates.length} shifts...`;
+
+  try {
+    const results = await Promise.all(dates.map(d =>
+      fetch(`${API}/hq/booking`, {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({
+          operator_id: currentOp, client_name: client,
+          booking_type: 'visit', scheduled_date: d,
+          scheduled_time: time, assigned_to: psw,
+          duration_minutes: duration
+        })
+      }).then(r => r.json()).catch(() => ({success:false}))
+    ));
+    const created = results.filter(r => r.success).length;
+    showToast(`${created} of ${dates.length} shifts created ✓`, 'ok');
+    closeAllSheets();
+    const res = await fetch(`${API}/hq/overview?operator_id=${currentOp}`);
+    const freshD = await res.json();
+    if (freshD.success) { D = freshD; _refreshFC(); renderVacantVisits(); renderStats(); }
+  } catch (e) { showToast(e.message || 'Failed', 'err'); }
+  btn.disabled = false; btn.textContent = 'Create Shifts';
+}
+
+// ── SEARCH / FILTER ──
+function filterList(listId, searchId) {
+  const q = (document.getElementById(searchId)?.value || '').toLowerCase().trim();
+  const el = document.getElementById(listId);
+  if (!el) return;
+  const cards = el.querySelectorAll('.card');
+  let visible = 0;
+  cards.forEach(card => {
+    const text = card.textContent.toLowerCase();
+    const show = !q || text.includes(q);
+    card.style.display = show ? '' : 'none';
+    if (show) visible++;
+  });
+  // Show empty state if all filtered out
+  let emptyEl = el.querySelector('.search-empty');
+  if (!emptyEl) {
+    emptyEl = document.createElement('div');
+    emptyEl.className = 'empty-state search-empty';
+    el.appendChild(emptyEl);
+  }
+  emptyEl.style.display = (q && visible === 0) ? 'block' : 'none';
+  emptyEl.textContent = 'No results for "' + q + '"';
+}
+
+// Clear searches when switching sections
+function clearSearches() {
+  ['leads-search','clients-search','psws-search','visits-search'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+}
+
+
 </script>
 </body>
 </html>
