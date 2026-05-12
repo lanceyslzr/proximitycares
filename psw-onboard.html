@@ -42,7 +42,7 @@ nav{background:rgba(247,250,255,0.97);border-bottom:1px solid var(--border);heig
 
 /* PROGRESS */
 .progress-wrap{max-width:480px;margin:0 auto;padding:28px 24px 0;}
-.doc-progress{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;}
+.doc-progress{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;}
 .dp-item{background:#fff;border:1px solid var(--border);padding:10px 8px;text-align:center;border-radius:3px;transition:all .3s;}
 .dp-item.done{border-color:var(--green);background:rgba(26,107,90,0.05);}
 .dp-item.active{border-color:var(--blue);background:rgba(61,143,214,0.05);}
@@ -91,6 +91,7 @@ nav{background:rgba(247,250,255,0.97);border-bottom:1px solid var(--border);heig
 
 @media(max-width:480px){
   .doc-progress{grid-template-columns:repeat(2,1fr);}
+  input[type=checkbox]{width:16px;height:16px;}
   .dp-label{font-size:7px;}
 }
 @media(hover:none){body{cursor:auto;}a,button{cursor:auto;}}
@@ -138,6 +139,10 @@ nav{background:rgba(247,250,255,0.97);border-bottom:1px solid var(--border);heig
         <span class="dp-check" id="dc-psw_cert">○</span>
         <div class="dp-label">PSW Cert</div>
       </div>
+      <div class="dp-item" id="dp-resume">
+        <span class="dp-check" id="dc-resume">○</span>
+        <div class="dp-label">Resume</div>
+      </div>
       <div class="dp-item" id="dp-police_check">
         <span class="dp-check" id="dc-police_check">○</span>
         <div class="dp-label">Police Check</div>
@@ -149,6 +154,10 @@ nav{background:rgba(247,250,255,0.97);border-bottom:1px solid var(--border);heig
       <div class="dp-item" id="dp-first_aid">
         <span class="dp-check" id="dc-first_aid">○</span>
         <div class="dp-label">First Aid</div>
+      </div>
+      <div class="dp-item" id="dp-gov_id">
+        <span class="dp-check" id="dc-gov_id">○</span>
+        <div class="dp-label">Gov ID</div>
       </div>
     </div>
   </div>
@@ -174,6 +183,27 @@ nav{background:rgba(247,250,255,0.97);border-bottom:1px solid var(--border);heig
         <div class="upload-progress" id="prog-psw_cert"><div class="upload-progress-bar" id="progbar-psw_cert"></div></div>
         <div class="upload-done-msg" id="done-psw_cert">✓ Uploaded successfully</div>
         <button class="upload-btn" id="btn-psw_cert" onclick="uploadDoc('psw_cert')" disabled>Upload PSW Certificate</button>
+      </div>
+    </div>
+
+    <!-- RESUME -->
+    <div class="doc-card" id="card-resume">
+      <div class="doc-card-head" onclick="toggleCard('resume')">
+        <div class="doc-status-dot"></div>
+        <div class="doc-card-title">Resume</div>
+        <div class="doc-card-status" id="status-resume">Missing</div>
+      </div>
+      <div class="doc-card-body">
+        <p class="doc-req">Upload your current resume. Include your PSW experience, previous employers, and references if available.</p>
+        <div class="upload-zone" id="zone-resume" onclick="document.getElementById('file-resume').click()" ondragover="dragOver(event,'resume')" ondragleave="dragLeave('resume')" ondrop="dropFile(event,'resume')">
+          <input type="file" id="file-resume" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" onchange="fileSelected('resume')">
+          <span class="uz-icon">📋</span>
+          <div class="uz-text"><strong>Tap to upload or drag here</strong>PDF, DOC, or PNG · Max 10MB</div>
+        </div>
+        <div id="filename-resume" style="font-size:11px;color:var(--muted);margin-top:6px;display:none;"></div>
+        <div class="upload-progress" id="prog-resume"><div class="upload-progress-bar" id="progbar-resume"></div></div>
+        <div class="upload-done-msg" id="done-resume">✓ Uploaded successfully</div>
+        <button class="upload-btn" id="btn-resume" onclick="uploadDoc('resume')" disabled>Upload Resume</button>
       </div>
     </div>
 
@@ -247,6 +277,68 @@ nav{background:rgba(247,250,255,0.97);border-bottom:1px solid var(--border);heig
     </div>
   </div>
 
+
+    <!-- GOV ID -->
+    <div class="doc-card" id="card-gov_id">
+      <div class="doc-card-head" onclick="toggleCard('gov_id')">
+        <div class="doc-status-dot"></div>
+        <div class="doc-card-title">Driver's License or Government ID</div>
+        <div class="doc-card-status" id="status-gov_id">Missing</div>
+      </div>
+      <div class="doc-card-body">
+        <p class="doc-req">Upload a clear photo of your driver's license, Ontario health card, or passport. Both sides if applicable.</p>
+        <label class="flabel">Expiry Date</label>
+        <input type="date" class="finput" id="expiry-gov_id">
+        <div class="upload-zone" id="zone-gov_id" onclick="document.getElementById('file-gov_id').click()" ondragover="dragOver(event,'gov_id')" ondragleave="dragLeave('gov_id')" ondrop="dropFile(event,'gov_id')">
+          <input type="file" id="file-gov_id" accept=".pdf,.jpg,.jpeg,.png" onchange="fileSelected('gov_id')">
+          <span class="uz-icon">🪪</span>
+          <div class="uz-text"><strong>Tap to upload or drag here</strong>JPG, PDF, or PNG · Max 10MB</div>
+        </div>
+        <div id="filename-gov_id" style="font-size:11px;color:var(--muted);margin-top:6px;display:none;"></div>
+        <div class="upload-progress" id="prog-gov_id"><div class="upload-progress-bar" id="progbar-gov_id"></div></div>
+        <div class="upload-done-msg" id="done-gov_id">✓ Uploaded successfully</div>
+        <button class="upload-btn" id="btn-gov_id" onclick="uploadDoc('gov_id')" disabled>Upload Government ID</button>
+      </div>
+    </div>
+
+    <!-- AVAILABILITY -->
+    <div class="doc-card" id="card-availability" style="border-color:var(--border2);">
+      <div class="doc-card-head" onclick="toggleCard('availability')">
+        <div class="doc-status-dot" id="avail-dot"></div>
+        <div class="doc-card-title">Availability</div>
+        <div class="doc-card-status" id="status-availability">Required</div>
+      </div>
+      <div class="doc-card-body">
+        <p class="doc-req">Let us know when you are available to work so we can match you to the right shifts.</p>
+        <label class="flabel">Days Available</label>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:16px;">
+          <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;"><input type="checkbox" id="avail-mon" value="Monday"> Mon</label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;"><input type="checkbox" id="avail-tue" value="Tuesday"> Tue</label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;"><input type="checkbox" id="avail-wed" value="Wednesday"> Wed</label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;"><input type="checkbox" id="avail-thu" value="Thursday"> Thu</label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;"><input type="checkbox" id="avail-fri" value="Friday"> Fri</label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;"><input type="checkbox" id="avail-sat" value="Saturday"> Sat</label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;"><input type="checkbox" id="avail-sun" value="Sunday"> Sun</label>
+        </div>
+        <label class="flabel">Shift Preference</label>
+        <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;">
+          <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;"><input type="checkbox" id="avail-morning"> Morning (7am to 3pm)</label>
+          <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;"><input type="checkbox" id="avail-afternoon"> Afternoon (3pm to 11pm)</label>
+          <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;"><input type="checkbox" id="avail-evening"> Evening / Nights (11pm to 7am)</label>
+          <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;"><input type="checkbox" id="avail-livein"> Live-in shifts</label>
+        </div>
+        <label class="flabel">Hours Per Week</label>
+        <select class="finput" id="avail-hours" style="margin-bottom:16px;">
+          <option value="">Select...</option>
+          <option value="part_time">Part time (under 20 hrs)</option>
+          <option value="full_time">Full time (20 to 40 hrs)</option>
+          <option value="flexible">Flexible</option>
+        </select>
+        <button class="upload-btn" onclick="submitAvailability()">Save Availability</button>
+        <div class="upload-done-msg" id="done-availability" style="display:none;">✓ Availability saved</div>
+      </div>
+    </div>
+
   <div class="submit-wrap">
     <div class="all-done-card" id="all-done-card">
       <div class="adc-check">
@@ -263,7 +355,7 @@ const API = 'https://proximity-agent-production.up.railway.app';
 const token = new URLSearchParams(window.location.search).get('token');
 let applicantId = null;
 let operatorId = 'proximity-care';
-const uploaded = { psw_cert: false, police_check: false, cpr_cert: false, first_aid: false };
+const uploaded = { psw_cert: false, resume: false, police_check: false, cpr_cert: false, first_aid: false, gov_id: false };
 const selectedFiles = {};
 
 // Load portal on init
@@ -387,7 +479,7 @@ function markDone(docType) {
   document.getElementById('dc-' + docType).textContent = '✓';
 
   // Activate next card
-  const order = ['psw_cert', 'police_check', 'cpr_cert', 'first_aid'];
+  const order = ['psw_cert', 'resume', 'police_check', 'cpr_cert', 'first_aid', 'gov_id'];
   const next = order[order.indexOf(docType) + 1];
   if(next && !uploaded[next]) {
     document.getElementById('dp-' + next).classList.add('active');
@@ -395,8 +487,30 @@ function markDone(docType) {
   }
   // Check all done
   if(Object.values(uploaded).every(Boolean)) {
+    document.getElementById('card-availability').querySelector('.doc-card-body').style.display = 'block';
     document.getElementById('all-done-card').classList.add('show');
   }
+}
+
+async function submitAvailability() {
+  const days = ['mon','tue','wed','thu','fri','sat','sun'].filter(d => document.getElementById('avail-'+d)?.checked).map(d => document.getElementById('avail-'+d).value);
+  const shifts = [];
+  if(document.getElementById('avail-morning')?.checked) shifts.push('Morning (7am-3pm)');
+  if(document.getElementById('avail-afternoon')?.checked) shifts.push('Afternoon (3pm-11pm)');
+  if(document.getElementById('avail-evening')?.checked) shifts.push('Evening/Nights (11pm-7am)');
+  if(document.getElementById('avail-livein')?.checked) shifts.push('Live-in');
+  const hours = document.getElementById('avail-hours')?.value || '';
+  if(!days.length || !shifts.length || !hours) { alert('Please complete all availability fields.'); return; }
+  const availability_json = { days, shifts, hours_per_week: hours };
+  try {
+    await fetch(`${API}/psw/onboard/availability`, {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ applicant_id: applicantId, availability_json })
+    });
+    document.getElementById('done-availability').style.display = 'block';
+    document.getElementById('avail-dot').style.background = 'var(--green)';
+    document.getElementById('status-availability').textContent = 'Saved ✓';
+  } catch(e) { alert('Could not save availability. Please try again.'); }
 }
 
 init();
