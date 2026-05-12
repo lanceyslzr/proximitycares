@@ -11,12 +11,14 @@
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 :root{
-  --bg:#f6f3ee;--white:#ffffff;--dark:#1a1a18;
-  --green:#1a6b5a;--green-l:#e8f5f1;--green-b:#c8e6dc;--green-d:#0f4a3d;
+  --bg:#f4f2ee;--white:#ffffff;--dark:#0f1a14;
+  --green:#1a6b5a;--green-l:#e8f5f1;--green-b:#c8e6dc;--green-d:#0b4035;
+  --green3:#3aaa8a;
   --muted:#7a7a72;--border:#e2ddd4;--shadow:rgba(0,0,0,0.06);
-  --teal:#3d7a8a;--teal-l:#e8f3f5;
+  --teal:#3d8a7a;--teal-l:#e8f3f5;
 }
 html,body{min-height:100vh;font-family:'Poppins',sans-serif;background:var(--bg);color:var(--dark);-webkit-font-smoothing:antialiased;}
+.mono{font-family:'DM Mono',monospace;}
 
 /* PIN GATE */
 .gate{position:fixed;inset:0;background:var(--bg);z-index:100;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;}
@@ -558,6 +560,24 @@ async function sendMsg() {
   const s = document.getElementById('msgSent');
   if (s) { s.style.display = 'block'; setTimeout(() => s.style.display = 'none', 3000); }
 }
+
+// Auto-refresh every 60s so family sees latest visit data
+setInterval(async () => {
+  try {
+    const slug = window._slug;
+    if (!slug) return;
+    const R = 'https://proximity-agent-production.up.railway.app';
+    const res = await fetch(`${R}/family/portal/${slug}`);
+    const d = await res.json();
+    if (d.success) {
+      portalData = d;
+      // Silent refresh of visit counts
+      const visits = d.visits || [];
+      const countEl = document.getElementById('visit-count');
+      if (countEl) countEl.textContent = visits.length;
+    }
+  } catch {}
+}, 60000);
 </script>
 </body>
 </html>
