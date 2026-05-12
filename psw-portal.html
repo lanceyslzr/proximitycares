@@ -851,6 +851,13 @@ function unlockApp() {
   restoreChecklist();
   initPullToRefresh(); // Build 4
   startIdleTimer();    // Build 6
+  // Delegated Sign In listener for schedule tab shift cards (data-checkin — never inline onclick)
+  document.getElementById('schedule-days').addEventListener('click', function(e) {
+    const btn = e.target.closest('.sched-signin-btn');
+    if (!btn) return;
+    const clientName = btn.dataset.checkin;
+    if (clientName) doCheckInFromShift(clientName);
+  });
   // Auto-refresh every 60s
   setInterval(() => {
     if (!navigator.onLine) return;
@@ -876,7 +883,9 @@ async function loadAll() {
 // ── SCHEDULE ──
 async function loadSchedule() {
   try {
-    const res = await fetch(`${API}/psw/schedule-upcoming?psw_name=${encodeURIComponent(pswName)}&pin=${pswPin}&operator_id=proximity-care`);
+    const now = new Date();
+    const fromDate = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-01`;
+    const res = await fetch(`${API}/psw/schedule-upcoming?psw_name=${encodeURIComponent(pswName)}&pin=${pswPin}&operator_id=proximity-care&from_date=${fromDate}`);
     const d = await res.json();
     if (!d.success) return;
     scheduleData = d;
@@ -1039,12 +1048,14 @@ function renderWeek() {
       if (done || active) return;
       if (isToday && !activeVisit) {
         // Today + no active visit = show Sign In button directly on shift card
+        // NEVER use inline onclick with dynamic client names — escaping collision crashes JS block
+        const safeName = (b.client_name||'').replace(/"/g,'&quot;');
         rows += `<div class="sched-shift" style="background:rgba(61,138,122,.03);">
           <div style="flex:1;min-width:0;">
             <div class="shift-client">${b.client_name||'—'}</div>
             <div class="shift-time">${b.scheduled_time||'TBD'}</div>
           </div>
-          <button onclick="doCheckInFromShift('${(b.client_name||'').replace(/'/g,'\\'')}")"
+          <button class="sched-signin-btn" data-checkin="${safeName}"
             style="font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:#fff;background:var(--teal);border:none;border-radius:6px;padding:7px 14px;cursor:pointer;min-height:34px;white-space:nowrap;touch-action:manipulation;flex-shrink:0;">Sign In</button>
         </div>`;
       } else {
