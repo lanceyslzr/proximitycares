@@ -128,6 +128,36 @@ html,body{min-height:100vh;font-family:'Poppins',sans-serif;background:var(--bg)
 .msg-btn:hover{background:var(--green-d);}
 .msg-sent{font-size:13px;color:var(--green);text-align:center;margin-top:8px;display:none;}
 
+/* MESSAGE THREAD */
+.msg-thread-wrap{background:var(--white);border-radius:16px;overflow:hidden;box-shadow:0 2px 12px var(--shadow);margin-bottom:16px;}
+.msg-thread-hdr{padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.msg-thread-title{font-size:13px;font-weight:500;color:var(--dark);}
+.msg-thread-body{padding:14px 16px;display:flex;flex-direction:column;gap:10px;max-height:320px;overflow-y:auto;}
+.msg-bubble-out{background:var(--green);color:#fff;padding:10px 14px;border-radius:14px 14px 3px 14px;max-width:85%;margin-left:auto;font-size:13px;line-height:1.5;}
+.msg-bubble-in{background:var(--bg);color:var(--dark);padding:10px 14px;border-radius:14px 14px 14px 3px;max-width:85%;border:1px solid var(--border);font-size:13px;line-height:1.5;}
+.msg-bubble-time{font-size:10px;opacity:.55;margin-top:3px;}
+.msg-input-row{display:flex;gap:8px;padding:12px 16px;border-top:1px solid var(--border);}
+.msg-input-field{flex:1;background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:10px 13px;font-size:14px;font-family:'Poppins',sans-serif;color:var(--dark);outline:none;resize:none;}
+.msg-input-field:focus{border-color:var(--green);}
+.msg-send-btn{width:44px;height:44px;border-radius:50%;background:var(--green);color:#fff;font-size:18px;display:flex;align-items:center;justify-content:center;cursor:pointer;border:none;flex-shrink:0;}
+
+/* VISIT DETAIL EXPAND */
+.visit-detail{padding:12px 18px 14px;border-top:1px solid var(--border);background:rgba(0,0,0,.02);}
+.visit-detail-lbl{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:4px;margin-top:8px;}
+.visit-detail-val{font-size:13px;color:var(--dark);line-height:1.6;}
+.visit-expand-btn{font-size:11px;color:var(--green);cursor:pointer;text-decoration:underline;margin-top:4px;display:inline-block;}
+
+/* UPCOMING SCHEDULE */
+.upcoming-row{display:flex;align-items:center;padding:12px 18px;border-bottom:1px solid var(--border);gap:12px;}
+.upcoming-row:last-child{border:none;}
+.upcoming-date{width:40px;text-align:center;flex-shrink:0;}
+.upcoming-date-dow{font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);}
+.upcoming-date-num{font-family:'Lora',serif;font-size:20px;color:var(--dark);line-height:1;}
+.upcoming-info{flex:1;}
+.upcoming-psw{font-size:13px;font-weight:500;color:var(--dark);}
+.upcoming-time{font-size:12px;color:var(--muted);margin-top:2px;}
+.upcoming-badge{font-size:10px;padding:2px 8px;border-radius:100px;background:var(--green-l);color:var(--green);font-weight:500;flex-shrink:0;}
+
 /* CARE PLAN */
 .plan-text{padding:18px;font-size:14px;color:var(--dark);line-height:1.75;font-family:'Lora',serif;}
 
@@ -316,6 +346,8 @@ function renderAll() {
     const saved = localStorage.getItem('family_tab_'+slug);
     showTab(saved && ['home','visits','care','docs','billing'].includes(saved) ? saved : 'home');
   } catch(e) { showTab('home'); }
+  // Load message thread after render
+  setTimeout(loadFamilyMessages, 100);
 }
 
 // TABS
@@ -364,12 +396,13 @@ function showTab(tab) {
       </div>
 
       <div class="section">
-        <div class="section-title">Send a Message</div>
-        <div class="msg-card">
-          <div class="msg-label">Message Lance directly</div>
-          <textarea class="msg-ta" id="msgTa" placeholder="Type your message here..."></textarea>
-          <button class="msg-btn" onclick="sendMsg()">Send Message</button>
-          <div class="msg-sent" id="msgSent">✓ Message sent. Lance will reply shortly.</div>
+        <div class="section-title">Messages</div>
+        <div class="msg-thread-wrap">
+          <div class="msg-thread-body" id="home-msg-thread"></div>
+          <div class="msg-input-row">
+            <textarea class="msg-input-field" id="msgTa" placeholder="Message Lance..." rows="1" oninput="this.style.height=\'auto\';this.style.height=Math.min(this.scrollHeight,80)+\'px\';"></textarea>
+            <button class="msg-send-btn" onclick="sendMsg()">&#8594;</button>
+          </div>
         </div>
       </div>`;
   }
@@ -397,12 +430,32 @@ function showTab(tab) {
         </div>
       </div>
       <div class="section">
-        <div class="section-title">Schedule</div>
+        <div class="section-title">Upcoming Schedule</div>
         <div class="card">
-          <div class="card-row"><span class="card-row-label">Days</span><span class="card-row-value">Monday to Friday</span></div>
-          <div class="card-row"><span class="card-row-label">Hours</span><span class="card-row-value">9:00 AM to 5:00 PM</span></div>
-          <div class="card-row"><span class="card-row-label">Caregiver</span><span class="card-row-value green">${psw.name}</span></div>
-          <div class="card-row"><span class="card-row-label">Since</span><span class="card-row-value">${client.start_date ? fmtDate(client.start_date) : 'On file'}</span></div>
+          ${(() => {
+            const upcoming = (portalData.upcoming_bookings||[]).slice(0,7);
+            if (!upcoming.length) {
+              return `<div class="card-row"><span class="card-row-label">Caregiver</span><span class="card-row-value green">${psw.name}</span></div>
+              <div class="card-row"><span class="card-row-label">Schedule</span><span class="card-row-value">${client.schedule||'On file'}</span></div>
+              <div class="card-row"><span class="card-row-label">Since</span><span class="card-row-value">${client.start_date ? fmtDate(client.start_date) : 'On file'}</span></div>`;
+            }
+            return upcoming.map(b => {
+              const bd = new Date((b.scheduled_date||'') + 'T12:00:00');
+              const dow = bd.toLocaleDateString('en-CA',{weekday:'short'});
+              const num = bd.getDate();
+              const mon = bd.toLocaleDateString('en-CA',{month:'short'});
+              const time = b.scheduled_time ? b.scheduled_time.slice(0,5) : '';
+              const dur = b.duration_minutes ? (b.duration_minutes/60)+'h' : '';
+              return `<div class="upcoming-row">
+                <div class="upcoming-date"><div class="upcoming-date-dow">${dow}</div><div class="upcoming-date-num">${num}</div></div>
+                <div class="upcoming-info">
+                  <div class="upcoming-psw">${b.assigned_to || psw.name}</div>
+                  <div class="upcoming-time">${mon} ${num}${time?' · '+time:''}${dur?' · '+dur:''}</div>
+                </div>
+                <div class="upcoming-badge">Scheduled</div>
+              </div>`;
+            }).join('');
+          })()}
         </div>
       </div>
       <div class="section">
@@ -478,24 +531,30 @@ function visitRow(v) {
   const fallbackPSW = (portalData && portalData.psw && portalData.psw.name) ? portalData.psw.name : 'PSW';
   const rated = v.satisfaction_rating;
   const summary = v.visit_summary || '';
+  const tasks = Array.isArray(v.tasks_completed) ? v.tasks_completed.join(', ') : (v.tasks_completed || '');
+  const mood = v.client_mood || '';
+  const vid = 'vd_' + (v.id || Math.random().toString(36).slice(2));
 
-  // Stars row — show existing rating or tap-to-rate buttons
   const starsHtml = rated
-    ? `<div class="visit-stars rated">
-        ${'★'.repeat(rated)}${'☆'.repeat(5 - rated)}
-        <span class="stars-label">Rated ${rated}/5</span>
-      </div>`
-    : `<div class="visit-stars unrated">
-        ${[1,2,3,4,5].map(s =>
-          `<button class="star-btn" onclick="rateVisit('${v.id}','${(clientSlug||'')}',${s},this)" aria-label="${s} star">☆</button>`
-        ).join('')}
-        <span class="stars-label">Rate this visit</span>
-      </div>`;
+    ? `<div class="visit-stars rated">${'★'.repeat(rated)}${'☆'.repeat(5 - rated)}<span class="stars-label">Rated ${rated}/5</span></div>`
+    : `<div class="visit-stars unrated">${[1,2,3,4,5].map(s =>
+        `<button class="star-btn" onclick="rateVisit('${v.id}','${(clientSlug||'')}',${s},this)" aria-label="${s} star">☆</button>`
+      ).join('')}<span class="stars-label">Rate this visit</span></div>`;
 
-  const summaryHtml = summary
-    ? `<div class="visit-summary">${summary}</div>` : '';
+  const hasDetail = summary || tasks || mood || v.notes;
+  const detailHtml = hasDetail ? `
+    <div id="${vid}" style="display:none;">
+      <div class="visit-detail">
+        ${summary ? `<div class="visit-detail-lbl">Care Summary</div><div class="visit-detail-val">${summary}</div>` : ''}
+        ${mood ? `<div class="visit-detail-lbl">Client Mood</div><div class="visit-detail-val">${mood}</div>` : ''}
+        ${tasks ? `<div class="visit-detail-lbl">Tasks Completed</div><div class="visit-detail-val">${tasks}</div>` : ''}
+        ${v.notes ? `<div class="visit-detail-lbl">Notes</div><div class="visit-detail-val">${v.notes}</div>` : ''}
+        ${v.incident_reported ? `<div class="visit-detail-lbl" style="color:#e05a6a;">Incident Reported</div><div class="visit-detail-val" style="color:#e05a6a;">${v.incident_notes||'See notes'}</div>` : ''}
+        ${starsHtml}
+      </div>
+    </div>` : '';
 
-  return `<div class="visit-row">
+  return `<div class="visit-row" ${hasDetail ? `onclick="toggleVisitDetail('${vid}',this)" style="cursor:pointer;"` : ''}>
     <div class="visit-date-box">
       <div class="visit-date-day">${day}</div>
       <div class="visit-date-num">${num}</div>
@@ -503,11 +562,19 @@ function visitRow(v) {
     <div class="visit-info" style="flex:1;min-width:0;">
       <div class="visit-psw">${v.psw_name || fallbackPSW}</div>
       <div class="visit-time">${tin}${tout ? ' – ' + tout : ''}</div>
-      ${summaryHtml}
-      ${starsHtml}
+      ${!hasDetail ? starsHtml : '<div class="visit-expand-btn">View details ›</div>'}
     </div>
     <div class="visit-hours">${hrs} hrs</div>
-  </div>`;
+  </div>${detailHtml}`;
+}
+
+function toggleVisitDetail(id, row) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const open = el.style.display !== 'none';
+  el.style.display = open ? 'none' : 'block';
+  const btn = row.querySelector('.visit-expand-btn');
+  if (btn) btn.textContent = open ? 'View details ›' : 'Hide details ‸';
 }
 
 async function rateVisit(visitId, slug, rating, btn) {
@@ -556,23 +623,51 @@ function fmtDate(d) {
   return new Date(d + 'T12:00:00').toLocaleDateString('en-CA', { month: 'short', day: 'numeric', year: 'numeric' });
 }
 
+// ── MESSAGING ──
+function renderMsgThread(messages) {
+  if (!messages || !messages.length) {
+    return '<div style="text-align:center;padding:24px 16px;font-size:13px;color:var(--muted);">No messages yet. Send us a note below.</div>';
+  }
+  return messages.map(m => {
+    const isOut = m.sender === 'family' || m.sender === 'client';
+    const time = m.created_at ? new Date(m.created_at).toLocaleDateString('en-CA',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}) : '';
+    return `<div class="${isOut ? 'msg-bubble-out' : 'msg-bubble-in'}">
+      <div>${m.message||m.body||''}</div>
+      <div class="msg-bubble-time">${time}</div>
+    </div>`;
+  }).join('');
+}
+
+async function loadFamilyMessages() {
+  try {
+    const res = await fetch(`${R}/family/portal/${slug}`);
+    const d = await res.json();
+    if (d.messages) {
+      const thread = document.getElementById('home-msg-thread');
+      if (thread) {
+        thread.innerHTML = renderMsgThread(d.messages);
+        thread.scrollTop = thread.scrollHeight;
+      }
+    }
+  } catch {}
+}
+
 async function sendMsg() {
   const ta = document.getElementById('msgTa');
   const msg = ta?.value?.trim();
   if (!msg) return;
+  ta.value = ''; ta.style.height = 'auto';
   try {
     await fetch(`${R}/family/message`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ slug, message: msg })
     });
+    await loadFamilyMessages();
   } catch (e) {}
-  ta.value = '';
-  const s = document.getElementById('msgSent');
-  if (s) { s.style.display = 'block'; setTimeout(() => s.style.display = 'none', 3000); }
 }
 
-// Auto-refresh every 60s — silently update portal data
+// Auto-refresh every 60s — silently update portal data and messages
 setInterval(async () => {
   try {
     if (!slug || !portalData) return;
@@ -583,6 +678,8 @@ setInterval(async () => {
       // Silently re-render current tab
       const activeTab = document.querySelector('.nav-btn.on')?.id?.replace('nav-','');
       if (activeTab) showTab(activeTab);
+      // Refresh message thread silently
+      loadFamilyMessages();
     }
   } catch {}
 }, 60000);
