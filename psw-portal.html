@@ -115,8 +115,6 @@ a{color:inherit;text-decoration:none;}
 .feed-right{flex-shrink:0;text-align:right;}
 .feed-hrs{font-family:var(--mono);font-size:12px;color:var(--teal2);}
 .feed-time{font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:1px;}
-@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.45;}}
-.feed-dot.active{animation:pulse 2s infinite;}
 
 /* ACTIVE BANNER */
 .active-banner{margin:10px 12px 4px;background:var(--bg3);border:1px solid var(--border2);border-radius:10px;padding:14px;display:none;}
@@ -131,6 +129,17 @@ a{color:inherit;text-decoration:none;}
 .banner-btn.cl:active{background:rgba(61,138,122,.2);}
 .banner-btn.co{background:rgba(224,154,61,.12);color:var(--amber);border:1px solid rgba(224,154,61,.3);}
 .banner-btn.co:active{background:rgba(224,154,61,.2);}
+
+/* OFFLINE BANNER */
+.offline-banner{margin:8px 12px;padding:10px 14px;background:rgba(224,85,85,.08);border:1px solid rgba(224,85,85,.25);border-radius:8px;font-family:var(--mono);font-size:10px;color:var(--red);letter-spacing:1px;display:none;align-items:center;gap:8px;}
+.offline-banner.show{display:flex;}
+
+/* PULL TO REFRESH */
+.ptr-wrap{position:relative;overflow:hidden;}
+.ptr-spinner{position:absolute;top:-40px;left:50%;transform:translateX(-50%);width:24px;height:24px;border:2px solid var(--border2);border-top-color:var(--teal2);border-radius:50%;transition:top .2s;z-index:10;}
+.ptr-spinner.visible{top:8px;}
+@keyframes ptr-spin{to{transform:translateX(-50%) rotate(360deg);}}
+.ptr-spinner.spinning{animation:ptr-spin .6s linear infinite;}
 
 /* SIGNIN CARD */
 .signin-card{margin:10px 12px 8px;background:var(--bg2);border:1px solid var(--border2);border-radius:10px;overflow:hidden;}
@@ -163,6 +172,14 @@ a{color:inherit;text-decoration:none;}
 .shift-badge.done{color:var(--teal2);}
 .shift-badge.upcoming{color:var(--gold);}
 .sched-empty{padding:14px;font-family:var(--mono);font-size:10px;color:var(--muted);text-align:center;letter-spacing:1px;}
+
+/* AVAILABLE SHIFTS (Build 7) */
+.avail-shift-card{margin:0 12px 8px;background:rgba(200,169,110,.05);border:1px solid rgba(200,169,110,.2);border-radius:8px;padding:12px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px;}
+.avail-shift-info{flex:1;min-width:0;}
+.avail-shift-client{font-size:13px;font-weight:500;color:var(--text);}
+.avail-shift-time{font-family:var(--mono);font-size:10px;color:var(--muted2);margin-top:2px;}
+.avail-shift-btn{font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;padding:7px 12px;border-radius:6px;border:1px solid rgba(200,169,110,.3);background:rgba(200,169,110,.1);color:var(--gold);cursor:pointer;min-height:34px;white-space:nowrap;touch-action:manipulation;transition:background .15s;}
+.avail-shift-btn:active{background:rgba(200,169,110,.2);}
 
 /* CARDS */
 .card{margin:0 12px 8px;background:var(--bg2);border:1px solid var(--border);border-radius:10px;overflow:hidden;}
@@ -263,6 +280,11 @@ a{color:inherit;text-decoration:none;}
 .pay-row-val{font-family:var(--mono);font-size:13px;color:var(--text);}
 .pay-row-val.total{color:var(--gold);font-size:17px;}
 
+/* SKELETON LOADER (Build 5) */
+.skeleton-row{height:56px;background:linear-gradient(90deg,var(--bg3) 25%,var(--bg4) 50%,var(--bg3) 75%);background-size:200% 100%;animation:shimmer 1.4s infinite;border-bottom:1px solid var(--border);}
+.skeleton-row:last-child{border-bottom:none;}
+@keyframes shimmer{0%{background-position:200% 0;}100%{background-position:-200% 0;}}
+
 /* BOTTOM NAV */
 .bottom-nav{position:fixed;bottom:0;left:0;right:0;z-index:200;background:rgba(7,9,12,.97);border-top:1px solid var(--border);display:flex;padding-bottom:var(--safe-bottom);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);}
 .bnav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:7px 4px;cursor:pointer;min-height:54px;gap:3px;color:var(--muted2);transition:color .2s;touch-action:manipulation;}
@@ -290,6 +312,9 @@ a{color:inherit;text-decoration:none;}
 .success-msg{font-family:var(--mono);font-size:11px;color:var(--muted2);letter-spacing:1px;text-align:center;line-height:1.8;max-width:280px;}
 .success-btn{background:var(--teal);color:#fff;padding:14px 32px;font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;border-radius:8px;border:none;cursor:pointer;min-height:48px;touch-action:manipulation;}
 .success-btn:active{background:var(--teal2);}
+
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.45;}}
+.feed-dot.active{animation:pulse 2s infinite;}
 
 @media(max-width:380px){
   .mood-row{flex-wrap:wrap;}
@@ -351,7 +376,13 @@ a{color:inherit;text-decoration:none;}
 </div>
 
 <!-- HOME -->
-<div class="section active" id="sect-home">
+<div class="section active ptr-wrap" id="sect-home">
+  <div class="ptr-spinner" id="ptr-spinner"></div>
+
+  <div class="offline-banner" id="offline-banner">
+    <span>⚡</span><span>You're offline — visits will sync when back online</span>
+  </div>
+
   <div class="stats-strip">
     <div class="stat-card hi"><div class="stat-val" id="s-today">—</div><div class="stat-lbl">Today</div></div>
     <div class="stat-card"><div class="stat-val" id="s-month">—</div><div class="stat-lbl">Month</div></div>
@@ -359,7 +390,6 @@ a{color:inherit;text-decoration:none;}
     <div class="stat-card pay"><div class="stat-val" id="s-earnings">—</div><div class="stat-lbl">Earned</div></div>
   </div>
 
-  <!-- Active visit banner -->
   <div class="active-banner" id="home-active-banner">
     <div class="active-banner-lbl">Visit in progress</div>
     <div class="active-banner-client" id="home-active-client">—</div>
@@ -371,7 +401,6 @@ a{color:inherit;text-decoration:none;}
     </div>
   </div>
 
-  <!-- Pay hero card -->
   <div class="pay-hero" id="home-pay-card" style="display:none;">
     <div class="pay-hero-hdr">
       <span class="pay-hero-label">Current Period</span>
@@ -385,13 +414,12 @@ a{color:inherit;text-decoration:none;}
     </div>
   </div>
 
-  <!-- Today & Recent feed -->
   <div class="section-header" style="padding-bottom:4px;">
     <span class="section-title">Today &amp; Recent</span>
     <span style="font-family:var(--mono);font-size:9px;color:var(--muted);" id="home-last-updated">—</span>
   </div>
   <div class="feed-card" id="home-feed">
-    <div class="empty-state" style="padding:24px;">Loading visits...</div>
+    <div class="skeleton-row"></div><div class="skeleton-row"></div><div class="skeleton-row"></div><div class="skeleton-row"></div>
   </div>
 </div>
 
@@ -422,6 +450,15 @@ a{color:inherit;text-decoration:none;}
       <button class="banner-btn cl" onclick="showSect('checklist')">Open Checklist</button>
       <button class="banner-btn co" onclick="openCheckout()">Check Out</button>
     </div>
+  </div>
+
+  <!-- Available shifts (Build 7) -->
+  <div id="avail-shifts-section" style="display:none;">
+    <div class="section-header" style="padding-top:4px;">
+      <span class="section-title">Available Shifts</span>
+      <span style="font-family:var(--mono);font-size:9px;color:var(--gold);">Tap to claim</span>
+    </div>
+    <div id="avail-shifts-list"></div>
   </div>
 
   <div class="week-nav">
@@ -494,13 +531,21 @@ a{color:inherit;text-decoration:none;}
 <!-- CLIENTS -->
 <div class="section" id="sect-clients">
   <div class="section-header"><span class="section-title">My Clients</span></div>
-  <div id="clients-list"><div class="empty-state">Loading clients...</div></div>
+  <div id="clients-list">
+    <div class="skeleton-row" style="margin:0 12px 6px;border-radius:8px;"></div>
+    <div class="skeleton-row" style="margin:0 12px 6px;border-radius:8px;height:72px;"></div>
+    <div class="skeleton-row" style="margin:0 12px 6px;border-radius:8px;height:72px;"></div>
+  </div>
 </div>
 
 <!-- MESSAGES -->
 <div class="section" id="sect-messages">
   <div class="section-header"><span class="section-title">Message Lance</span></div>
-  <div class="msg-thread" id="msg-thread"><div class="empty-state">Loading messages...</div></div>
+  <div class="msg-thread" id="msg-thread">
+    <div class="skeleton-row" style="border-radius:10px;height:44px;max-width:70%;margin-left:auto;"></div>
+    <div class="skeleton-row" style="border-radius:10px;height:44px;max-width:80%;"></div>
+    <div class="skeleton-row" style="border-radius:10px;height:44px;max-width:60%;margin-left:auto;"></div>
+  </div>
   <div class="msg-input-wrap">
     <textarea class="msg-input" id="msg-input" placeholder="Type a message to Lance..." rows="1" oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,100)+'px';"></textarea>
     <button class="msg-send" onclick="sendMsg()">→</button>
@@ -511,7 +556,6 @@ a{color:inherit;text-decoration:none;}
 <div class="section" id="sect-documents">
   <div class="section-header"><span class="section-title">My Documents</span></div>
   <div class="card"><div id="docs-list"><div class="empty-state" style="padding:20px;">Loading documents...</div></div></div>
-
   <div class="section-header" style="margin-top:4px;"><span class="section-title">Upload Document</span></div>
   <div class="doc-upload-area" onclick="document.getElementById('doc-file-input').click()">
     <div class="doc-upload-title">+ Upload New Document</div>
@@ -594,9 +638,186 @@ let selectedMood = 'Great';
 let weekOffset = 0;
 let scheduleData = null;
 let elapsedTimer = null;
+let idleTimer = null; // Build 6
 
-window.addEventListener('online', () => showToast('Back online', 'ok'));
-window.addEventListener('offline', () => showToast('No internet', 'err'));
+// ── NETWORK STATUS ──
+window.addEventListener('online', () => {
+  showToast('Back online', 'ok');
+  updateOfflineBanner(false);
+  flushQueue(); // Build 1 — replay queued actions
+});
+window.addEventListener('offline', () => {
+  showToast('No internet — visits will queue', 'warn');
+  updateOfflineBanner(true);
+});
+function updateOfflineBanner(offline) {
+  const b = document.getElementById('offline-banner');
+  if (b) b.classList.toggle('show', offline);
+}
+
+// ── BUILD 1: INDEXEDDB OFFLINE QUEUE ──
+function openQueueDB() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open('proximity-offline', 1);
+    req.onupgradeneeded = e => {
+      const db = e.target.result;
+      if (!db.objectStoreNames.contains('actions')) {
+        db.createObjectStore('actions', { keyPath: 'id', autoIncrement: true });
+      }
+    };
+    req.onsuccess = e => resolve(e.target.result);
+    req.onerror = e => reject(e.target.error);
+  });
+}
+async function queueAction(type, url, payload) {
+  try {
+    const db = await openQueueDB();
+    const tx = db.transaction('actions', 'readwrite');
+    tx.objectStore('actions').add({ type, url, payload, queued_at: new Date().toISOString() });
+    await new Promise((res, rej) => { tx.oncomplete = res; tx.onerror = rej; });
+    // Register background sync if supported
+    if ('serviceWorker' in navigator && 'SyncManager' in window) {
+      const reg = await navigator.serviceWorker.ready;
+      await reg.sync.register('proximity-queue');
+    }
+  } catch (e) { console.error('queueAction failed:', e); }
+}
+async function flushQueue() {
+  try {
+    const db = await openQueueDB();
+    const tx = db.transaction('actions', 'readwrite');
+    const store = tx.objectStore('actions');
+    const all = await new Promise((res, rej) => {
+      const req = store.getAll();
+      req.onsuccess = e => res(e.target.result || []);
+      req.onerror = rej;
+    });
+    if (!all.length) return;
+    let flushed = 0;
+    for (const action of all) {
+      try {
+        const res = await fetch(action.url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(action.payload)
+        });
+        if (res.ok) {
+          const delTx = db.transaction('actions', 'readwrite');
+          delTx.objectStore('actions').delete(action.id);
+          flushed++;
+        }
+      } catch {}
+    }
+    if (flushed > 0) {
+      showToast(`${flushed} queued visit${flushed > 1 ? 's' : ''} synced ✓`, 'ok');
+      await loadSchedule();
+      loadHomeData();
+    }
+  } catch (e) { console.error('flushQueue failed:', e); }
+}
+// Listen for SW queue replayed message
+navigator.serviceWorker?.addEventListener('message', e => {
+  if (e.data?.type === 'QUEUE_REPLAYED') {
+    loadSchedule();
+    loadHomeData();
+    showToast('Offline visits synced ✓', 'ok');
+  }
+});
+
+// ── BUILD 2: GPS GEOFENCING (HAVERSINE) ──
+function haversineDistance(lat1, lon1, lat2, lon2) {
+  const R = 6371000; // earth radius metres
+  const toRad = x => x * Math.PI / 180;
+  const dLat = toRad(lat2 - lat1);
+  const dLon = toRad(lon2 - lon1);
+  const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+            Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+            Math.sin(dLon/2) * Math.sin(dLon/2);
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+function checkGeofence(latitude, longitude, clientName) {
+  if (!latitude || !longitude || !scheduleData) return true;
+  // Find client address coords from scheduleData
+  const clients = scheduleData.clients || scheduleData.assigned_clients || [];
+  const client = clients.find(c => (c.full_name || c.client_name) === clientName);
+  if (!client || !client.latitude || !client.longitude) return true; // no coords stored, allow
+  const dist = Math.round(haversineDistance(latitude, longitude, client.latitude, client.longitude));
+  if (dist > 500) {
+    showToast(`You're ${dist}m from ${clientName.split(' ')[0]}'s address`, 'warn');
+    return false; // outside fence — warn but still allow (return value used for within_range flag)
+  }
+  return true;
+}
+
+// ── BUILD 3: HAPTIC FEEDBACK ──
+function haptic(pattern) {
+  if ('vibrate' in navigator) {
+    try { navigator.vibrate(pattern); } catch {}
+  }
+}
+
+// ── BUILD 4: PULL TO REFRESH ──
+let ptrStartY = 0;
+let ptrPulling = false;
+const PTR_THRESHOLD = 80;
+function initPullToRefresh() {
+  const section = document.getElementById('sect-home');
+  const spinner = document.getElementById('ptr-spinner');
+  if (!section || !spinner) return;
+  section.addEventListener('touchstart', e => {
+    if (window.scrollY === 0) {
+      ptrStartY = e.touches[0].clientY;
+      ptrPulling = true;
+    }
+  }, { passive: true });
+  section.addEventListener('touchmove', e => {
+    if (!ptrPulling) return;
+    const dist = e.touches[0].clientY - ptrStartY;
+    if (dist > 20) {
+      spinner.classList.add('visible');
+      if (dist > PTR_THRESHOLD) spinner.classList.add('spinning');
+    }
+  }, { passive: true });
+  section.addEventListener('touchend', async e => {
+    if (!ptrPulling) return;
+    const dist = e.changedTouches[0].clientY - ptrStartY;
+    ptrPulling = false;
+    if (dist > PTR_THRESHOLD) {
+      await Promise.all([loadSchedule(), loadHomeData()]);
+      showToast('Refreshed', 'ok');
+    }
+    spinner.classList.remove('visible', 'spinning');
+  }, { passive: true });
+}
+
+// ── BUILD 6: SESSION TIMEOUT ──
+function resetIdleTimer() {
+  if (!appUnlocked) return;
+  clearTimeout(idleTimer);
+  idleTimer = setTimeout(lockApp, 15 * 60 * 1000); // 15 minutes
+}
+function lockApp() {
+  appUnlocked = false;
+  pswPin = '';
+  lockIn = '';
+  // Reset PIN dots
+  for (let i = 0; i < 4; i++) {
+    const d = document.getElementById('ld'+i);
+    if (d) d.classList.remove('filled');
+  }
+  // Back to step 1
+  document.getElementById('lock-step-1').classList.add('active');
+  document.getElementById('lock-step-2').classList.remove('active');
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('lock').style.display = 'flex';
+  stopElapsed();
+}
+function startIdleTimer() {
+  ['touchstart','touchend','keydown','click'].forEach(ev =>
+    document.addEventListener(ev, resetIdleTimer, { passive: true })
+  );
+  resetIdleTimer();
+}
 
 // ── LOCK ──
 function goToPin() {
@@ -642,11 +863,16 @@ function unlockApp() {
   const ini = pswName.split(' ').map(w => w[0]||'').join('').toUpperCase().slice(0,2);
   document.getElementById('psw-avatar').textContent = ini;
   document.getElementById('psw-name-display').textContent = pswName.split(' ')[0];
+  // Show offline banner if already offline
+  if (!navigator.onLine) updateOfflineBanner(true);
   fetchPSWEmail();
   loadAll();
   restoreChecklist();
-  // Auto-refresh every 60s — keeps home, schedule, messages live
+  initPullToRefresh(); // Build 4
+  startIdleTimer();    // Build 6
+  // Auto-refresh every 60s
   setInterval(() => {
+    if (!navigator.onLine) return;
     loadSchedule();
     loadMessages(false);
     loadHomeData();
@@ -677,6 +903,7 @@ async function loadSchedule() {
     updateShiftUI();
     renderWeek();
     renderHomeFeed();
+    renderAvailableShifts(); // Build 7
   } catch (e) { console.error('loadSchedule:', e); }
 }
 
@@ -687,7 +914,6 @@ function updateShiftUI() {
   const pill = document.getElementById('shift-status-pill');
   const noShift = document.getElementById('cl-no-shift');
   const clName = document.getElementById('cl-visit-name');
-
   if (activeVisit) {
     signinCard.style.display = 'none';
     activeCard.style.display = 'block';
@@ -724,7 +950,6 @@ function startElapsed() {
       const el = document.getElementById(id);
       if (el) el.textContent = (id === 'co-elapsed-sheet') ? str : str + ' elapsed';
     });
-    // Also update feed-elapsed if present
     const feedEl = document.getElementById('feed-elapsed');
     if (feedEl) feedEl.textContent = str + ' elapsed';
   };
@@ -745,83 +970,50 @@ function renderHomeFeed() {
   const monthHrs = monthV.reduce((s,v) => s + parseFloat(v.hours_worked||0), 0);
   const bookings = scheduleData?.bookings || [];
   const todayBookings = bookings.filter(b => b.scheduled_date === today);
-
-  // Update stats
   document.getElementById('s-today').textContent = todayV.length + (activeVisit ? 1 : 0);
   document.getElementById('s-month').textContent = monthV.length;
   document.getElementById('s-hours').textContent = monthHrs.toFixed(1) + 'h';
   const upd = document.getElementById('home-last-updated');
   if (upd) upd.textContent = new Date().toLocaleTimeString('en-CA',{hour:'2-digit',minute:'2-digit'});
-
   const rows = [];
-
-  // Active visit
   if (activeVisit) {
     const tin = activeVisit.time_in || (activeVisit.checkin_time||'').slice(11,16) || '—';
     rows.push(`<div class="feed-row">
       <div class="feed-dot active"></div>
-      <div class="feed-body">
-        <div class="feed-client">${activeVisit.client_name||'—'}</div>
-        <div class="feed-meta">In progress · Started ${tin}</div>
-      </div>
+      <div class="feed-body"><div class="feed-client">${activeVisit.client_name||'—'}</div><div class="feed-meta">In progress · Started ${tin}</div></div>
       <div class="feed-right">
         <div class="feed-hrs" id="feed-elapsed" style="color:var(--amber);">— elapsed</div>
         <button onclick="openCheckout()" style="font-family:var(--mono);font-size:8px;letter-spacing:1px;text-transform:uppercase;color:var(--amber);background:rgba(224,154,61,.1);border:1px solid rgba(224,154,61,.3);border-radius:4px;padding:4px 8px;cursor:pointer;margin-top:4px;touch-action:manipulation;">Check Out</button>
       </div>
     </div>`);
   }
-
-  // Completed today
   todayV.forEach(v => {
     const hrs = parseFloat(v.hours_worked||0);
     rows.push(`<div class="feed-row">
       <div class="feed-dot done"></div>
-      <div class="feed-body">
-        <div class="feed-client">${v.client_name||'—'}</div>
-        <div class="feed-meta">${v.time_in||'—'} – ${v.time_out||'—'}</div>
-      </div>
-      <div class="feed-right">
-        <div class="feed-hrs">${hrs.toFixed(1)}h</div>
-        <div class="feed-time">${v.client_mood||''}</div>
-      </div>
+      <div class="feed-body"><div class="feed-client">${v.client_name||'—'}</div><div class="feed-meta">${v.time_in||'—'} – ${v.time_out||'—'}</div></div>
+      <div class="feed-right"><div class="feed-hrs">${hrs.toFixed(1)}h</div><div class="feed-time">${v.client_mood||''}</div></div>
     </div>`);
   });
-
-  // Upcoming today
   todayBookings.forEach(b => {
     const done = todayV.some(v => v.client_name === b.client_name);
     const active = activeVisit && activeVisit.client_name === b.client_name;
     if (done || active) return;
     rows.push(`<div class="feed-row" onclick="showSect('schedule')">
       <div class="feed-dot upcoming"></div>
-      <div class="feed-body">
-        <div class="feed-client">${b.client_name||'—'}</div>
-        <div class="feed-meta">Upcoming · ${b.scheduled_time||'TBD'}</div>
-      </div>
-      <div class="feed-right">
-        <div class="feed-time" style="color:var(--gold);">Sign in</div>
-      </div>
+      <div class="feed-body"><div class="feed-client">${b.client_name||'—'}</div><div class="feed-meta">Upcoming · ${b.scheduled_time||'TBD'}</div></div>
+      <div class="feed-right"><div class="feed-time" style="color:var(--gold);">Sign in</div></div>
     </div>`);
   });
-
-  // Past visits (not today, max 4)
   allVisits.filter(v => v.visit_date !== today).slice(0, 4).forEach(v => {
     const hrs = parseFloat(v.hours_worked||0);
     rows.push(`<div class="feed-row">
       <div class="feed-dot past"></div>
-      <div class="feed-body">
-        <div class="feed-client">${v.client_name||'—'}</div>
-        <div class="feed-meta">${fmtd(v.visit_date)} · ${v.time_in||'—'}${v.time_out?' – '+v.time_out:''}</div>
-      </div>
-      <div class="feed-right">
-        <div class="feed-hrs" style="color:var(--muted2);">${hrs.toFixed(1)}h</div>
-      </div>
+      <div class="feed-body"><div class="feed-client">${v.client_name||'—'}</div><div class="feed-meta">${fmtd(v.visit_date)} · ${v.time_in||'—'}${v.time_out?' – '+v.time_out:''}</div></div>
+      <div class="feed-right"><div class="feed-hrs" style="color:var(--muted2);">${hrs.toFixed(1)}h</div></div>
     </div>`);
   });
-
   el.innerHTML = rows.length ? rows.join('') : '<div class="empty-state" style="padding:24px;">No visits yet — sign in to your first shift</div>';
-
-  // Kick elapsed into feed-elapsed immediately
   if (activeVisit?.checkin_time) {
     const feedEl = document.getElementById('feed-elapsed');
     if (feedEl) {
@@ -869,6 +1061,47 @@ function renderWeek() {
 }
 function shiftWeek(dir) { weekOffset += dir; renderWeek(); }
 
+// ── BUILD 7: AVAILABLE SHIFTS ──
+function renderAvailableShifts() {
+  const section = document.getElementById('avail-shifts-section');
+  const list = document.getElementById('avail-shifts-list');
+  if (!section || !list || !scheduleData) return;
+  const today = new Date().toISOString().slice(0,10);
+  const cutoff = new Date(); cutoff.setDate(cutoff.getDate() + 7);
+  const cutoffStr = cutoff.toISOString().slice(0,10);
+  // Show unassigned shifts in the next 7 days
+  const avail = (scheduleData.bookings || []).filter(b =>
+    (!b.assigned_to || !b.assigned_to.trim()) &&
+    b.scheduled_date >= today &&
+    b.scheduled_date <= cutoffStr &&
+    b.status !== 'cancelled'
+  );
+  if (!avail.length) { section.style.display = 'none'; return; }
+  section.style.display = 'block';
+  list.innerHTML = avail.map(b => `
+    <div class="avail-shift-card">
+      <div class="avail-shift-info">
+        <div class="avail-shift-client">${b.client_name||'—'}</div>
+        <div class="avail-shift-time">${fmtd(b.scheduled_date)}${b.scheduled_time?' · '+b.scheduled_time:''}</div>
+      </div>
+      <button class="avail-shift-btn" onclick="claimShift('${b.id}','${b.client_name||''}')">Claim Shift</button>
+    </div>`).join('');
+}
+async function claimShift(bookingId, clientName) {
+  try {
+    const res = await fetch(`${API}/hq/booking/${bookingId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ operator_id: 'proximity-care', assigned_to: pswName })
+    });
+    const d = await res.json();
+    if (!res.ok || !d.success) throw new Error(d.error || 'Failed');
+    haptic(200); // Build 3
+    showToast(`${clientName} shift claimed ✓`, 'ok');
+    await loadSchedule();
+  } catch (e) { showToast(e.message || 'Could not claim shift', 'err'); }
+}
+
 // ── CHECK IN ──
 async function doCheckIn() {
   const clientName = document.getElementById('signin-client').value;
@@ -882,17 +1115,37 @@ async function doCheckIn() {
     latitude = pos.coords.latitude; longitude = pos.coords.longitude;
     btn.textContent = 'Location captured...';
   } catch {}
+
+  // Build 2 — geofence check (warn but still allow)
+  const within_range = checkGeofence(latitude, longitude, clientName);
+
+  // Offline path — Build 1
+  if (!navigator.onLine) {
+    await queueAction('checkin', `${API}/visit/checkin`, {
+      psw_name: pswName, pin: pswPin, operator_id: 'proximity-care',
+      client_name: clientName, latitude, longitude, within_range
+    });
+    // Store optimistic active visit locally
+    activeVisit = { id: 'queued-' + Date.now(), client_name: clientName, time_in: new Date().toTimeString().slice(0,5), checkin_time: new Date().toISOString() };
+    updateShiftUI(); renderWeek(); renderHomeFeed();
+    haptic(200); // Build 3
+    showToast('Queued — will sync when back online', 'warn');
+    showSect('checklist');
+    btn.textContent = 'Sign In Now'; btn.disabled = false;
+    return;
+  }
+
+  // Online path
   try {
     const res = await fetch(`${API}/visit/checkin`, {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({psw_name:pswName, pin:pswPin, operator_id:'proximity-care', client_name:clientName, latitude, longitude})
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ psw_name: pswName, pin: pswPin, operator_id: 'proximity-care', client_name: clientName, latitude, longitude, within_range })
     });
     const d = await res.json();
     if (!res.ok) throw new Error(d.error || 'Check-in failed');
-    activeVisit = {id:d.visit_id, client_name:clientName, time_in:d.time_in, checkin_time:new Date().toISOString()};
-    updateShiftUI();
-    renderWeek();
-    renderHomeFeed();
+    activeVisit = { id: d.visit_id, client_name: clientName, time_in: d.time_in, checkin_time: new Date().toISOString() };
+    updateShiftUI(); renderWeek(); renderHomeFeed();
+    haptic(200); // Build 3
     showToast('Signed in — ' + clientName, 'ok');
     showSect('checklist');
   } catch (e) { showToast(e.message, 'err'); }
@@ -927,26 +1180,42 @@ async function doCheckOut() {
   const incident = document.getElementById('co-incident').value.trim();
   const btn = document.getElementById('co-submit-btn');
   btn.textContent = 'Submitting...'; btn.disabled = true;
+  const payload = {
+    psw_name: pswName, pin: pswPin, operator_id: 'proximity-care',
+    visit_id: activeVisit.id,
+    tasks_completed: tasks,
+    client_mood: selectedMood,
+    incident_reported: incident.length > 0,
+    incident_notes: incident || null,
+    observations: [obs, supplies].filter(Boolean).join(' | ') || null
+  };
+
+  // Offline path — Build 1
+  if (!navigator.onLine) {
+    await queueAction('checkout', `${API}/visit/checkout`, payload);
+    closeCheckout();
+    activeVisit = null;
+    stopElapsed(); resetChecklist(); updateShiftUI();
+    haptic([100, 50, 100]); // Build 3
+    document.getElementById('success-title').textContent = 'Visit Queued';
+    document.getElementById('success-msg').textContent = 'No signal — visit will sync automatically when back online.';
+    document.getElementById('success-overlay').classList.add('show');
+    btn.textContent = 'Check Out + Submit Visit'; btn.disabled = false;
+    return;
+  }
+
+  // Online path
   try {
     const res = await fetch(`${API}/visit/checkout`, {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({
-        psw_name:pswName, pin:pswPin, operator_id:'proximity-care',
-        visit_id:activeVisit.id,
-        tasks_completed:tasks,
-        client_mood:selectedMood,
-        incident_reported:incident.length > 0,
-        incident_notes:incident||null,
-        observations:[obs,supplies].filter(Boolean).join(' | ')||null
-      })
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify(payload)
     });
     const d = await res.json();
     if (!res.ok) throw new Error(d.error || 'Checkout failed');
     closeCheckout();
     activeVisit = null;
-    stopElapsed();
-    resetChecklist();
-    updateShiftUI();
+    stopElapsed(); resetChecklist(); updateShiftUI();
+    haptic([100, 50, 100]); // Build 3
     document.getElementById('success-title').textContent = 'Visit Complete';
     document.getElementById('success-msg').textContent = `${d.hours_worked}h logged. Family notified with care summary.`;
     document.getElementById('success-overlay').classList.add('show');
@@ -964,6 +1233,7 @@ function closeSuccess() {
 function toggleCl(el) {
   el.classList.toggle('done');
   el.querySelector('.cl-box').textContent = el.classList.contains('done') ? '✓' : '';
+  haptic(30); // Build 3 — subtle tap on each task
   updateClCount(); saveChecklist();
 }
 function updateClCount() {
@@ -1113,7 +1383,6 @@ async function loadDocuments() {
 // ── DOCUMENT UPLOAD ──
 let _selectedDocType = 'psw_cert';
 let _selectedDocFile = null;
-
 function selectDocType(el, event) {
   if (event) event.stopPropagation();
   document.querySelectorAll('.doc-type-btn').forEach(b => b.classList.remove('sel'));
@@ -1212,7 +1481,6 @@ async function loadPaySummary() {
     }
     const past = (d.periods||[]).slice(1,4);
     past.forEach(p => {
-      // Safe visit count — API may return count or array
       const visitCount = Array.isArray(p.visits) ? p.visits.length : (p.visit_count || 0);
       html += `<div class="pay-period-card">
         <div class="pay-period-hdr">
