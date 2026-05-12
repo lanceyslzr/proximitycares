@@ -711,7 +711,11 @@ a{color:inherit;text-decoration:none;}
   <div class="sheet-row"><div class="slbl">Client *</div>
     <select class="sselect" id="ss-client"><option value="">Select client...</option></select>
   </div>
-  <div class="sheet-row"><div class="slbl">PSW</div><input class="sinput" id="ss-psw" placeholder="PSW name" style="font-size:16px;"></div>
+  <div class="sheet-row"><div class="slbl">PSW</div>
+    <select class="sselect" id="ss-psw">
+      <option value="">Select PSW (optional)</option>
+    </select>
+  </div>
   <div class="sheet-row"><div class="slbl">Date *</div><input class="sinput" id="ss-date" type="date" style="font-size:16px;"></div>
   <div class="sheet-row"><div class="slbl">Start Time *</div><input class="sinput" id="ss-time" type="time" style="font-size:16px;" value="09:00"></div>
   <div class="sheet-row"><div class="slbl">Duration</div>
@@ -738,7 +742,8 @@ a{color:inherit;text-decoration:none;}
       <option value="12w">Weekly × 12 weeks</option>
     </select>
   </div>
-  <button class="sbtn" onclick="saveShift()">Save Shift</button>
+  <button class="sbtn" onclick="saveShift(false)">Save Shift</button>
+  <button class="sbtn ghost" onclick="saveShift(true)" style="margin-top:8px;">Save + Add Another</button>
 </div>
 
 <div class="sheet" id="booking-sheet">
@@ -2517,10 +2522,10 @@ let editingBookingId = null;
 function openAddShift(pswName, date, clientName) {
   editingBookingId = null;
   document.getElementById('ss-title').textContent = 'Add Shift';
-  document.getElementById('ss-psw').value = pswName || '';
   document.getElementById('ss-date').value = date || '';
   document.getElementById('ss-time').value = '09:00';
   document.getElementById('ss-duration').value = '480';
+  // Populate client dropdown
   const sel = document.getElementById('ss-client');
   const clients = D.clients || [];
   sel.innerHTML = '<option value="">Select client...</option>' +
@@ -2528,6 +2533,11 @@ function openAddShift(pswName, date, clientName) {
       const n = `${c.first_name||''} ${c.last_name||''}`.trim();
       return `<option value="${n}" ${n===(clientName||'')?'selected':''}>${n}</option>`;
     }).join('');
+  // Populate PSW dropdown from live roster
+  const pswSel = document.getElementById('ss-psw');
+  const psws = getMergedPSWList();
+  pswSel.innerHTML = '<option value="">Unassigned</option>' +
+    psws.map(p => `<option value="${p.name}" ${p.name===pswName?'selected':''}>${p.name}</option>`).join('');
   const rec = document.getElementById('ss-recurring');
   if(rec) rec.value = 'none';
   openSheet('shift-sheet');
@@ -2536,7 +2546,6 @@ function openAddShift(pswName, date, clientName) {
 function openEditShift(id, clientName, pswName, date, time, duration) {
   editingBookingId = id;
   document.getElementById('ss-title').textContent = 'Edit Shift';
-  document.getElementById('ss-psw').value = pswName;
   document.getElementById('ss-date').value = date;
   document.getElementById('ss-time').value = time || '09:00';
   document.getElementById('ss-duration').value = duration || '480';
@@ -2544,13 +2553,17 @@ function openEditShift(id, clientName, pswName, date, time, duration) {
   const clients = D.clients || [];
   sel.innerHTML = '<option value="">Select client...</option>' +
     clients.map(c => {
-      const name = `${c.first_name||''} ${c.last_name||''}`;
+      const name = `${c.first_name||''} ${c.last_name||''}`.trim();
       return `<option value="${name}" ${name===clientName?'selected':''}>${name}</option>`;
     }).join('');
+  const pswSel = document.getElementById('ss-psw');
+  const psws = getMergedPSWList();
+  pswSel.innerHTML = '<option value="">Unassigned</option>' +
+    psws.map(p => `<option value="${p.name}" ${p.name===pswName?'selected':''}>${p.name}</option>`).join('');
   openSheet('shift-sheet');
 }
 
-async function saveShift() {
+async function saveShift(addAnother = false) {
   const client = document.getElementById('ss-client').value;
   const psw = document.getElementById('ss-psw').value;
   const date = document.getElementById('ss-date').value;
@@ -2559,48 +2572,73 @@ async function saveShift() {
   const recurring = document.getElementById('ss-recurring')?.value || 'none';
   if(!client||!date||!time){showToast('Client, date and time required','err');return;}
 
+  const btn = document.querySelector('#shift-sheet .sbtn');
+  if(btn){btn.disabled=true;btn.textContent='Saving...';}
+
   try {
     if(editingBookingId) {
       const res = await fetch(`${API}/hq/booking/${editingBookingId}`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({operator_id:currentOp,assigned_to:psw,scheduled_date:date,scheduled_time:time,duration_minutes:duration})});
       const d = await res.json(); if(!d.success) throw new Error(d.error);
-      showToast('Shift updated','ok');
+      showToast('Shift updated ✓','ok');
     } else {
       // Build list of dates to create
       const dates = [date];
       if(recurring !== 'none') {
         const start = new Date(date+'T12:00:00');
-        const weeks = recurring==='4w'?4:recurring==='8w'?8:12;
-        for(let w=1;w<=weeks;w++) {
-          if(recurring==='daily') {
-            for(let d=1;d<=7*weeks;d++) {
-              const nd = new Date(start); nd.setDate(start.getDate()+d);
-              dates.push(nd.toISOString().slice(0,10));
-            }
-            break;
-          } else if(recurring==='weekdays') {
-            for(let d=1;d<=7*weeks;d++) {
-              const nd = new Date(start); nd.setDate(start.getDate()+d);
-              if(nd.getDay()>0&&nd.getDay()<6) dates.push(nd.toISOString().slice(0,10));
-            }
-            break;
-          } else {
-            const nd = new Date(start); nd.setDate(start.getDate()+7*w);
+        if(recurring === 'daily') {
+          // Daily for 4 weeks
+          for(let i=1;i<=28;i++){
+            const nd=new Date(start);nd.setDate(start.getDate()+i);
+            dates.push(nd.toISOString().slice(0,10));
+          }
+        } else if(recurring === 'weekdays') {
+          // Weekdays Mon-Fri for 12 weeks (60 weekdays)
+          let added=0;
+          for(let i=1;i<=84&&added<60;i++){
+            const nd=new Date(start);nd.setDate(start.getDate()+i);
+            const dow=nd.getDay();
+            if(dow>0&&dow<6){dates.push(nd.toISOString().slice(0,10));added++;}
+          }
+        } else {
+          // Weekly ×N
+          const weeks=recurring==='4w'?4:recurring==='8w'?8:12;
+          for(let w=1;w<=weeks;w++){
+            const nd=new Date(start);nd.setDate(start.getDate()+7*w);
             dates.push(nd.toISOString().slice(0,10));
           }
         }
       }
-      // Deduplicate
-      const uniqueDates = [...new Set(dates)].slice(0,60);
-      let created = 0;
-      for(const d of uniqueDates) {
-        const res = await fetch(`${API}/hq/booking`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({operator_id:currentOp,client_name:client,booking_type:'visit',scheduled_date:d,scheduled_time:time,assigned_to:psw,duration_minutes:duration})});
-        const rd = await res.json(); if(rd.success) created++;
-      }
-      showToast(`${created} shift${created>1?'s':''} created`,'ok');
+      const uniqueDates=[...new Set(dates)].slice(0,60);
+      // Fire all creates in parallel for speed
+      const results = await Promise.all(uniqueDates.map(d =>
+        fetch(`${API}/hq/booking`,{method:'POST',headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({operator_id:currentOp,client_name:client,booking_type:'visit',
+            scheduled_date:d,scheduled_time:time,assigned_to:psw,duration_minutes:duration})})
+        .then(r=>r.json()).catch(()=>({success:false}))
+      ));
+      const created=results.filter(r=>r.success).length;
+      showToast(`${created} shift${created!==1?'s':''} created ✓`,'ok');
     }
-    closeAllSheets();
-    await loadAll(false);
-  } catch(e) { showToast(e.message,'err'); }
+
+    // Refresh data — update D then refresh calendar in-place (no full page reload)
+    const res = await fetch(`${API}/hq/overview?operator_id=${currentOp}`);
+    const freshD = await res.json();
+    if(freshD.success){ D=freshD; _refreshFC(); renderVacantVisits(); renderStats(); }
+
+    if(addAnother) {
+      // Keep sheet open, clear date/client for next entry, keep PSW
+      document.getElementById('ss-client').value='';
+      document.getElementById('ss-date').value='';
+      document.getElementById('ss-recurring').value='none';
+      document.getElementById('ss-title').textContent='Add Another Shift';
+      showToast('Ready for next shift','ok');
+    } else {
+      closeAllSheets();
+    }
+  } catch(e) { showToast(e.message||'Save failed','err'); }
+  finally {
+    if(btn){btn.disabled=false;btn.textContent='Save Shift';}
+  }
 }
 
 async function deleteShift(id) {
@@ -2845,7 +2883,17 @@ function openClientDetail(id) {
   openSheet('client-sheet');
 }
 
-setInterval(()=>loadAll(false), 90000);
+// Auto-refresh every 30s — when 20 PSWs are active, data stays current
+setInterval(async()=>{
+  const prev=JSON.stringify(D?.counts||{});
+  await loadAll(false);
+  const curr=JSON.stringify(D?.counts||{});
+  if(prev!==curr){
+    // Data changed — pulse the refresh button to signal new data
+    const btn=document.getElementById('refresh-btn');
+    if(btn){btn.style.color='var(--teal2)';setTimeout(()=>{btn.style.color='';},1200);}
+  }
+}, 30000);
 
 // ── INCIDENT WORKFLOW ──
 function setVisitView(view) {
