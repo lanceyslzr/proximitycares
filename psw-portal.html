@@ -259,14 +259,7 @@ a{color:inherit;text-decoration:none;}
 .doc-status.valid{color:var(--green2);border-color:rgba(106,201,138,.25);}
 .doc-status.missing{color:var(--red);border-color:rgba(224,85,85,.3);}
 .doc-status.expiring{color:var(--amber);border-color:rgba(224,154,61,.3);}
-.doc-upload-area{margin:0 12px 12px;background:var(--bg2);border:2px dashed var(--border2);border-radius:8px;padding:20px;text-align:center;cursor:pointer;transition:border-color .2s;}
-.doc-upload-area:active{border-color:var(--teal2);}
-.doc-upload-title{font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--teal2);margin-bottom:4px;}
-.doc-upload-sub{font-size:11px;color:var(--muted);margin-bottom:12px;}
-.doc-upload-select{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:12px;}
-.doc-type-btn{padding:8px 6px;background:var(--bg3);border:1px solid var(--border);border-radius:5px;font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--muted2);cursor:pointer;touch-action:manipulation;text-align:center;transition:all .15s;}
-.doc-type-btn.sel{background:rgba(61,138,122,.12);border-color:var(--teal2);color:var(--teal2);}
-.doc-file-input{display:none;}
+
 
 /* PAY HISTORY */
 .pay-period-card{margin:0 12px 8px;background:var(--bg2);border:1px solid var(--border);border-radius:10px;overflow:hidden;}
@@ -556,21 +549,9 @@ a{color:inherit;text-decoration:none;}
 <div class="section" id="sect-documents">
   <div class="section-header"><span class="section-title">My Documents</span></div>
   <div class="card"><div id="docs-list"><div class="empty-state" style="padding:20px;">Loading documents...</div></div></div>
-  <div class="section-header" style="margin-top:4px;"><span class="section-title">Upload Document</span></div>
-  <div class="doc-upload-area" onclick="document.getElementById('doc-file-input').click()">
-    <div class="doc-upload-title">+ Upload New Document</div>
-    <div class="doc-upload-sub">Tap to select a file (PDF, JPG, PNG)</div>
-    <div class="doc-upload-select">
-      <div class="doc-type-btn sel" data-type="psw_cert" onclick="selectDocType(this,event)">PSW Cert</div>
-      <div class="doc-type-btn" data-type="police_check" onclick="selectDocType(this,event)">Police Check</div>
-      <div class="doc-type-btn" data-type="cpr_cert" onclick="selectDocType(this,event)">CPR Cert</div>
-      <div class="doc-type-btn" data-type="first_aid" onclick="selectDocType(this,event)">First Aid</div>
-    </div>
-    <div style="font-family:var(--mono);font-size:10px;color:var(--muted2);" id="doc-selected-file">No file selected</div>
-    <input type="file" id="doc-file-input" class="doc-file-input" accept=".pdf,.jpg,.jpeg,.png" onchange="onDocFileSelected(this)">
+  <div style="margin:8px 12px;padding:10px 14px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px;">
+    Documents are managed by Lance. Contact him to update your files.
   </div>
-  <button class="sbtn" id="doc-upload-btn" onclick="uploadPSWDocument()" style="margin:0 12px 12px;width:calc(100% - 24px);" disabled>Upload Document</button>
-  <div id="doc-upload-status" style="margin:0 12px 8px;font-family:var(--mono);font-size:10px;color:var(--muted2);display:none;text-align:center;padding:8px;border-radius:6px;background:var(--bg2);border:1px solid var(--border);"></div>
 </div>
 
 <!-- PAY -->
@@ -928,7 +909,10 @@ function updateShiftUI() {
     if (clName) clName.textContent = activeVisit.client_name || '';
     startElapsed();
   } else {
-    signinCard.style.display = 'block';
+    // Only show manual signin card if no shifts are scheduled for today
+    const todayStr = new Date().toISOString().slice(0,10);
+    const todayBookings = (scheduleData?.bookings || []).filter(b => b.scheduled_date === todayStr);
+    signinCard.style.display = todayBookings.length ? 'none' : 'block';
     activeCard.style.display = 'none';
     homeBanner.classList.remove('show');
     pill.style.display = 'none';
@@ -1053,7 +1037,19 @@ function renderWeek() {
       const done = dayVisits.some(v => v.client_name === b.client_name);
       const active = activeVisit && activeVisit.client_name === b.client_name && isToday;
       if (done || active) return;
-      rows += `<div class="sched-shift"><div><div class="shift-client">${b.client_name||'—'}</div><div class="shift-time">${b.scheduled_time||'TBD'}</div></div><div class="shift-badge upcoming">Upcoming</div></div>`;
+      if (isToday && !activeVisit) {
+        // Today + no active visit = show Sign In button directly on shift card
+        rows += `<div class="sched-shift" style="background:rgba(61,138,122,.03);">
+          <div style="flex:1;min-width:0;">
+            <div class="shift-client">${b.client_name||'—'}</div>
+            <div class="shift-time">${b.scheduled_time||'TBD'}</div>
+          </div>
+          <button onclick="doCheckInFromShift('${(b.client_name||'').replace(/'/g,'\\'')}")"
+            style="font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:#fff;background:var(--teal);border:none;border-radius:6px;padding:7px 14px;cursor:pointer;min-height:34px;white-space:nowrap;touch-action:manipulation;flex-shrink:0;">Sign In</button>
+        </div>`;
+      } else {
+        rows += `<div class="sched-shift"><div><div class="shift-client">${b.client_name||'—'}</div><div class="shift-time">${b.scheduled_time||'TBD'}</div></div><div class="shift-badge upcoming">Upcoming</div></div>`;
+      }
     });
     if (!rows) rows = `<div class="sched-empty">No shifts</div>`;
     return `<div class="sched-day"><div class="sched-day-hdr"><div class="sched-day-lbl ${isToday?'today':''}">${dayLabel}${isToday?' · Today':''}</div></div>${rows}</div>`;
@@ -1150,6 +1146,51 @@ async function doCheckIn() {
     showSect('checklist');
   } catch (e) { showToast(e.message, 'err'); }
   btn.textContent = 'Sign In Now'; btn.disabled = false;
+}
+
+
+// ── CHECK IN FROM SHIFT CARD ──
+// Called directly from schedule shift cards — no dropdown needed
+async function doCheckInFromShift(clientName) {
+  if (!clientName) { showToast('Client name missing', 'err'); return; }
+  if (activeVisit) { showToast('Already have an active visit', 'err'); return; }
+  showToast('Signing in...', 'ok');
+  haptic(50);
+  let latitude = null, longitude = null;
+  try {
+    const pos = await new Promise((res, rej) => navigator.geolocation.getCurrentPosition(res, rej, {timeout:8000,maximumAge:0}));
+    latitude = pos.coords.latitude; longitude = pos.coords.longitude;
+  } catch {}
+  const within_range = checkGeofence(latitude, longitude, clientName);
+
+  // Offline path
+  if (!navigator.onLine) {
+    await queueAction('checkin', `${API}/visit/checkin`, {
+      psw_name: pswName, pin: pswPin, operator_id: 'proximity-care',
+      client_name: clientName, latitude, longitude, within_range
+    });
+    activeVisit = { id: 'queued-' + Date.now(), client_name: clientName, time_in: new Date().toTimeString().slice(0,5), checkin_time: new Date().toISOString() };
+    updateShiftUI(); renderWeek(); renderHomeFeed();
+    haptic(200);
+    showToast('Queued — will sync when back online', 'warn');
+    showSect('checklist');
+    return;
+  }
+
+  // Online path
+  try {
+    const res = await fetch(`${API}/visit/checkin`, {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ psw_name: pswName, pin: pswPin, operator_id: 'proximity-care', client_name: clientName, latitude, longitude, within_range })
+    });
+    const d = await res.json();
+    if (!res.ok) throw new Error(d.error || 'Check-in failed');
+    activeVisit = { id: d.visit_id, client_name: clientName, time_in: d.time_in, checkin_time: new Date().toISOString() };
+    updateShiftUI(); renderWeek(); renderHomeFeed();
+    haptic(200);
+    showToast('Signed in — ' + clientName, 'ok');
+    showSect('checklist');
+  } catch (e) { showToast(e.message, 'err'); }
 }
 
 // ── CHECK OUT ──
@@ -1380,52 +1421,7 @@ async function loadDocuments() {
   } catch { el.innerHTML = '<div class="empty-state" style="padding:20px;">Could not load documents</div>'; }
 }
 
-// ── DOCUMENT UPLOAD ──
-let _selectedDocType = 'psw_cert';
-let _selectedDocFile = null;
-function selectDocType(el, event) {
-  if (event) event.stopPropagation();
-  document.querySelectorAll('.doc-type-btn').forEach(b => b.classList.remove('sel'));
-  el.classList.add('sel');
-  _selectedDocType = el.dataset.type;
-}
-function onDocFileSelected(input) {
-  const file = input.files[0];
-  if (!file) return;
-  _selectedDocFile = file;
-  document.getElementById('doc-selected-file').textContent = file.name + ' · ' + (file.size/1024).toFixed(0) + 'KB';
-  document.getElementById('doc-upload-btn').disabled = false;
-}
-async function uploadPSWDocument() {
-  if (!_selectedDocFile) { showToast('Select a file first', 'err'); return; }
-  const btn = document.getElementById('doc-upload-btn');
-  const status = document.getElementById('doc-upload-status');
-  btn.disabled = true; btn.textContent = 'Uploading...';
-  status.style.display = 'block'; status.textContent = 'Uploading...';
-  try {
-    const fd = new FormData();
-    fd.append('file', _selectedDocFile);
-    fd.append('psw_name', pswName);
-    fd.append('pin', pswPin);
-    fd.append('operator_id', 'proximity-care');
-    fd.append('doc_type', _selectedDocType);
-    const res = await fetch(`${API}/psw/upload-doc`, { method: 'POST', body: fd });
-    const d = await res.json();
-    if (!res.ok || !d.success) throw new Error(d.error || 'Upload failed');
-    showToast('Document uploaded ✓', 'ok');
-    status.textContent = '✓ Uploaded successfully';
-    status.style.color = 'var(--teal2)';
-    _selectedDocFile = null;
-    document.getElementById('doc-selected-file').textContent = 'No file selected';
-    document.getElementById('doc-file-input').value = '';
-    await loadDocuments();
-  } catch(e) {
-    showToast(e.message || 'Upload failed', 'err');
-    status.textContent = '✗ ' + (e.message || 'Upload failed');
-    status.style.color = 'var(--red)';
-  }
-  btn.disabled = false; btn.textContent = 'Upload Document';
-}
+// Document upload removed — managed by Lance in HQ only
 
 // ── HOME DATA (pay card) ──
 async function loadHomeData() {
