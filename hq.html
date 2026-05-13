@@ -45,6 +45,8 @@ a{color:inherit;text-decoration:none;}
 .lock-pad{display:grid;grid-template-columns:repeat(3,72px);gap:10px;}
 .lock-key{width:72px;height:72px;border-radius:50%;border:1px solid var(--border2);background:var(--bg2);color:var(--text);font-size:22px;font-weight:300;display:flex;align-items:center;justify-content:center;transition:background .12s;user-select:none;}
 .lock-key:active{background:var(--bg3);border-color:var(--teal2);}
+button{transition:transform 80ms ease;}
+button:active{transform:scale(0.97);}
 .lock-key.del{font-size:16px;color:var(--muted2);}
 .lock-key.empty{background:none;border:none;pointer-events:none;}
 .lock-err{font-family:var(--mono);font-size:11px;color:var(--red);letter-spacing:1px;opacity:0;transition:opacity .3s;}
@@ -1044,6 +1046,7 @@ function lk(k) {
   if (lockIn.length === 4) {
     setTimeout(() => {
       if (lockIn === PIN) {
+        sessionStorage.setItem('hq_auth', '1');
         document.getElementById('lock').style.display = 'none';
         document.getElementById('app').style.display = 'block';
         loadAll(false);
@@ -3716,6 +3719,7 @@ function resetIdleTimer() {
 }
 
 function lockHQ() {
+  try { sessionStorage.removeItem('hq_auth'); } catch(e) {}
   lockIn = '';
   for (let i = 0; i < 4; i++) {
     const d = document.getElementById('d'+i);
@@ -3734,6 +3738,17 @@ function startHQIdleTimer() {
   resetIdleTimer();
 }
 
+// Build 12 — Session persistence: skip PIN if already authenticated this session
+(function() {
+  try {
+    if (sessionStorage.getItem('hq_auth') === '1') {
+      document.getElementById('lock').style.display = 'none';
+      document.getElementById('app').style.display = 'block';
+      loadAll(false);
+      startHQIdleTimer();
+    }
+  } catch(e) {}
+})();
 
 </script>
 </body>
