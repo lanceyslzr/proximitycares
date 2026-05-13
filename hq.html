@@ -15,7 +15,8 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
 // ── GPS LIVE MAP ──
 let _leafletMap = null;
 let _mapMarkers = [];
@@ -142,6 +143,7 @@ async function loadFamilyNotes() {
     el.innerHTML = '<div class="empty-state"><div class="empty-state-title">Could not load notes</div></div>';
   }
 }
+
 
 </script>
 <link href='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.css' rel='stylesheet' />
@@ -749,6 +751,31 @@ button:active{transform:scale(0.98);}
     </div>
     <button class="sbtn" id="co-btn" onclick="onboardClientFull()">Onboard Client + Send Welcome Emails</button>
   </div>
+
+  <!-- BULK IMPORT -->
+  <div class="card" style="padding:18px 16px;margin-top:8px;">
+    <div style="font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);margin-bottom:6px;padding-bottom:8px;border-bottom:1px solid var(--border);">Bulk Import — 50 PSWs or Clients at Once</div>
+    <p style="font-size:12px;color:var(--muted2);line-height:1.6;margin-bottom:14px;">Upload a CSV to activate multiple PSWs or onboard multiple clients in one shot. Each row fires the full welcome email flow.</p>
+    <div style="margin-bottom:18px;">
+      <div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted2);margin-bottom:6px;">Import PSWs</div>
+      <p style="font-size:11px;color:var(--muted);margin-bottom:8px;font-family:var(--mono);">first_name, last_name, email, phone</p>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px;">
+        <input type="file" id="bulk-psw-csv" accept=".csv" style="font-size:12px;color:var(--text);flex:1;min-width:0;background:var(--bg3);border:1px solid var(--border2);padding:8px;border-radius:6px;">
+        <button class="sect-action" onclick="bulkImportPSWs()" style="white-space:nowrap;">↑ Import PSWs</button>
+      </div>
+      <div id="bulk-psw-result" style="display:none;font-size:12px;color:var(--teal2);font-family:var(--mono);padding:8px 10px;background:rgba(61,138,122,.06);border:1px solid rgba(61,138,122,.2);border-radius:6px;line-height:1.6;"></div>
+    </div>
+    <div>
+      <div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted2);margin-bottom:6px;">Import Clients</div>
+      <p style="font-size:11px;color:var(--muted);margin-bottom:8px;font-family:var(--mono);">first_name, last_name, family_email, family_phone, family_name, assigned_psw, care_notes</p>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px;">
+        <input type="file" id="bulk-client-csv" accept=".csv" style="font-size:12px;color:var(--text);flex:1;min-width:0;background:var(--bg3);border:1px solid var(--border2);padding:8px;border-radius:6px;">
+        <button class="sect-action" onclick="bulkImportClients()" style="white-space:nowrap;">↑ Import Clients</button>
+      </div>
+      <div id="bulk-client-result" style="display:none;font-size:12px;color:var(--teal2);font-family:var(--mono);padding:8px 10px;background:rgba(61,138,122,.06);border:1px solid rgba(61,138,122,.2);border-radius:6px;line-height:1.6;"></div>
+    </div>
+  </div>
+
 </div>
 
 <!-- BOOKINGS -->
@@ -2587,6 +2614,45 @@ async function activateApplicantAsStaff(id, name, email, phone) {
 }
 
 // ── CSV BULK IMPORT ──
+// Bulk import wrappers — use new input IDs from Onboard tab
+async function bulkImportPSWs() {
+  const fileInput = document.getElementById('bulk-psw-csv');
+  const result = document.getElementById('bulk-psw-result');
+  if (!fileInput || !fileInput.files[0]) { showToast('Select a CSV file first', 'err'); return; }
+  result.style.display = 'block'; result.textContent = 'Importing...';
+  const fd = new FormData();
+  fd.append('file', fileInput.files[0]);
+  fd.append('operator_id', currentOp);
+  try {
+    const res = await fetch(`${API}/operator/import-psws`, { method: 'POST', body: fd });
+    const data = await res.json();
+    if (!res.ok || !data.success) throw new Error(data.error || 'Failed');
+    result.innerHTML = `✓ ${data.activated.length} PSWs activated · ${data.failed.length} failed · ${data.skipped.length} skipped`;
+    if (data.activated.length) result.innerHTML += '<br>' + data.activated.map(p => `${p.name} → PIN:${p.pin}`).join('<br>');
+    showToast(data.activated.length + ' PSWs activated ✓', 'ok');
+    loadAll(false);
+  } catch(e) { result.textContent = 'Error: ' + e.message; showToast('Import failed', 'err'); }
+}
+
+async function bulkImportClients() {
+  const fileInput = document.getElementById('bulk-client-csv');
+  const result = document.getElementById('bulk-client-result');
+  if (!fileInput || !fileInput.files[0]) { showToast('Select a CSV file first', 'err'); return; }
+  result.style.display = 'block'; result.textContent = 'Importing...';
+  const fd = new FormData();
+  fd.append('file', fileInput.files[0]);
+  fd.append('operator_id', currentOp);
+  try {
+    const res = await fetch(`${API}/operator/import-clients`, { method: 'POST', body: fd });
+    const data = await res.json();
+    if (!res.ok || !data.success) throw new Error(data.error || 'Failed');
+    result.innerHTML = `✓ ${data.onboarded.length} clients onboarded · ${data.failed.length} failed · ${data.skipped.length} skipped`;
+    if (data.onboarded.length) result.innerHTML += '<br>' + data.onboarded.map(c => `${c.name} → ${c.client_code}`).join('<br>');
+    showToast(data.onboarded.length + ' clients onboarded ✓', 'ok');
+    loadAll(false);
+  } catch(e) { result.textContent = 'Error: ' + e.message; showToast('Import failed', 'err'); }
+}
+
 async function importPSWs() {
   const fileInput = document.getElementById('psw-csv-file');
   const result = document.getElementById('psw-import-result');

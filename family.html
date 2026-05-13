@@ -500,15 +500,15 @@ function showTab(tab) {
         </div>
       </div>
       <div class="section">
-        <div class="section-title">Leave a Note for Your Coordinator</div>
+        <div class="section-title">Notes to Your Coordinator</div>
         <div class="card" style="padding:16px;">
-          <p style="font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:12px;">This note goes directly to your care coordinator. It is private — it won't appear in your portal and won't be shared with your care team.</p>
-          <textarea id="private-note-input" placeholder="e.g. Mom seemed confused this morning, or the timing of the visit felt off..." rows="3" style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px;font-size:14px;color:var(--text);resize:none;font-family:'Inter',sans-serif;line-height:1.5;outline:none;box-sizing:border-box;" maxlength="600" oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,120)+'px';"></textarea>
+          <p style="font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:12px;">Share observations about any visit — what your loved one said, how they seemed, anything worth noting. Private — only your coordinator sees this.</p>
+          <textarea id="private-note-input" placeholder="e.g. Mom mentioned she was cold during the visit, or she seemed more tired than usual..." rows="3" style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px;font-size:14px;color:var(--text);resize:none;font-family:'Inter',sans-serif;line-height:1.5;outline:none;box-sizing:border-box;" maxlength="600" oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,120)+'px';updateNoteCount(this)"></textarea>
           <div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px;">
             <span style="font-size:11px;color:var(--muted);" id="note-char-count">0 / 600</span>
-            <button onclick="submitPrivateNote()" style="background:var(--accent);color:#fff;border:none;border-radius:10px;padding:10px 20px;font-size:13px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;touch-action:manipulation;">Send Note</button>
+            <button onclick="submitPrivateNote()" style="background:var(--accent);color:#fff;border:none;border-radius:10px;padding:10px 20px;font-size:13px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;touch-action:manipulation;">Send to Coordinator</button>
           </div>
-          <div id="note-success" style="display:none;margin-top:10px;padding:10px 14px;background:rgba(58,170,138,0.1);border:1px solid rgba(58,170,138,0.25);border-radius:8px;font-size:13px;color:#3aaa8a;">✓ Your note has been sent to your coordinator privately.</div>
+          <div id="note-success" style="display:none;margin-top:10px;padding:10px 14px;background:rgba(58,170,138,0.1);border:1px solid rgba(58,170,138,0.25);border-radius:8px;font-size:13px;color:#3aaa8a;">✓ Sent privately to your coordinator.</div>
         </div>
       </div>`;
   }
@@ -946,24 +946,26 @@ async function downloadCarePlanPDF() {
 
 
 // ── PRIVATE NOTE ──
-document.addEventListener('input', function(e) {
-  if (e.target.id === 'private-note-input') {
-    const count = e.target.value.length;
-    const el = document.getElementById('note-char-count');
-    if (el) { el.textContent = count + ' / 600'; el.style.color = count > 550 ? 'var(--error)' : 'var(--muted)'; }
-  }
-});
+function updateNoteCount(el) {
+  const count = el.value.length;
+  const countEl = document.getElementById('note-char-count');
+  if (countEl) { countEl.textContent = count + ' / 600'; countEl.style.color = count > 550 ? 'var(--error)' : 'var(--muted)'; }
+}
 
-async function submitPrivateNote() {
+async function submitPrivateNote(visitDate, pswName) {
   const input = document.getElementById('private-note-input');
   const successEl = document.getElementById('note-success');
   if (!input || !input.value.trim()) return;
   const note = input.value.trim();
+  // Build context string if called from a visit row
+  const contextNote = visitDate && pswName
+    ? `[Re: ${pswName} visit on ${visitDate}] ${note}`
+    : note;
   try {
     const res = await fetch(`${R}/family/private-note`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ slug: clientSlug || slug, pin: pinVal, note })
+      body: JSON.stringify({ slug: clientSlug || slug, pin: pinVal, note: contextNote })
     });
     const d = await res.json();
     if (!d.success) throw new Error(d.error || 'Failed');
@@ -974,6 +976,19 @@ async function submitPrivateNote() {
   } catch(e) {
     alert('Could not send note. Please try again.');
   }
+}
+
+
+function scrollToNoteWithContext(visitDate, pswName) {
+  const input = document.getElementById('private-note-input');
+  if (!input) { showTab('visits'); setTimeout(() => scrollToNoteWithContext(visitDate, pswName), 200); return; }
+  // Pre-fill with context
+  if (visitDate || pswName) {
+    const ctx = pswName ? `Re: ${pswName}${visitDate ? ' on ' + visitDate : ''} — ` : '';
+    if (!input.value) { input.value = ctx; input.selectionStart = input.selectionEnd = ctx.length; }
+  }
+  input.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  input.focus();
 }
 
 </script>
