@@ -661,6 +661,18 @@ button:active{transform:scale(0.97);}
   <div style="padding:0 12px 4px;">
     <div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted2);margin-bottom:8px;">Family Messages</div>
   </div>
+  <!-- Family thread panel (hidden until conversation opened) -->
+  <div id="family-thread-panel" style="display:none;margin:0 12px 12px;background:var(--bg2);border:1px solid var(--border2);border-radius:10px;overflow:hidden;">
+    <div style="padding:10px 14px;background:var(--bg3);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
+      <div style="font-family:var(--mono);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--teal2);" id="family-thread-name">—</div>
+      <div onclick="closeFamilyThread()" style="font-family:var(--mono);font-size:10px;color:var(--muted);cursor:pointer;padding:4px 8px;border:1px solid var(--border);border-radius:4px;">✕ Close</div>
+    </div>
+    <div id="family-thread-body" style="padding:12px 14px;max-height:260px;overflow-y:auto;display:flex;flex-direction:column;gap:8px;"></div>
+    <div style="padding:10px 12px;border-top:1px solid var(--border);display:flex;gap:8px;align-items:flex-end;">
+      <textarea id="family-thread-input" class="minput" rows="1" placeholder="Reply to family..." style="flex:1;" oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,80)+'px';"></textarea>
+      <button class="msend" onclick="sendFamilyReply()">→</button>
+    </div>
+  </div>
   <div id="messages-list"><div class="empty-state">Loading...</div></div>
 </div>
 
@@ -1726,19 +1738,105 @@ function renderMessages() {
   const msgs = D.messages||[];
   const el = document.getElementById('messages-list');
   if(!msgs.length) { el.innerHTML='<div class="empty-state">No family messages yet</div>'; return; }
-  el.innerHTML = msgs.map(m=>{
-    const payload=m.payload||{};
-    return `<div class="card" style="cursor:pointer;" onclick="window.location.href='mailto:${m.contact_email||''}'">
+  // Group by contact_name — one row per client conversation, sorted by most recent
+  const byClient = {};
+  msgs.forEach(m => {
+    const key = m.contact_name || 'Family';
+    if (!byClient[key]) byClient[key] = { name: key, email: m.contact_email||'', last: m, slug: null };
+    if (new Date(m.created_at) > new Date(byClient[key].last.created_at)) byClient[key].last = m;
+  });
+  // Resolve slug from contact_name via D.clients
+  const clients = D.clients||[];
+  Object.keys(byClient).forEach(key => {
+    const name = key.replace('Family of ','');
+    const parts = name.split(' ');
+    const match = clients.find(c => c.first_name === parts[0] && (c.last_name||'') === (parts[1]||''));
+    if (match) byClient[key].slug = match.portal_slug;
+  });
+  const rows = Object.values(byClient).sort((a,b) => new Date(b.last.created_at) - new Date(a.last.created_at));
+  el.innerHTML = rows.map(r => {
+    const preview = (r.last.payload&&r.last.payload.message) ? r.last.payload.message : '—';
+    const slugAttr = r.slug ? `data-fslug="${r.slug}"` : '';
+    return `<div class="card" style="cursor:pointer;margin:0 12px 8px;" ${slugAttr} onclick="openFamilyThread(this.dataset.fslug,'${r.name.replace(/'/g,'&#39;')}')">
       <div class="card-header">
         <div style="flex:1;min-width:0;">
-          <div class="card-name">${m.contact_name||'Family'}</div>
-          <div class="card-sub" style="margin-top:6px;font-size:13px;color:var(--muted2);line-height:1.5;">${payload.message||m.contact_email||'—'}</div>
+          <div class="card-name">${r.name}</div>
+          <div class="card-sub" style="margin-top:4px;font-size:12px;color:var(--muted2);line-height:1.4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${preview}</div>
         </div>
-        <div class="card-age">${ago(m.created_at)}</div>
+        <div class="card-age">${ago(r.last.created_at)}</div>
       </div>
-      ${m.contact_email?`<div class="card-actions"><div class="card-act call" onclick="event.stopPropagation();window.location.href='mailto:${m.contact_email}'">Reply</div></div>`:''}
     </div>`;
   }).join('');
+}
+
+let activeFamilySlug = null;
+
+async function openFamilyThread(slug, name) {
+  if (!slug) { showToast('No portal slug for this client yet','err'); return; }
+  activeFamilySlug = slug;
+  const panel = document.getElementById('family-thread-panel');
+  const body = document.getElementById('family-thread-body');
+  const nameEl = document.getElementById('family-thread-name');
+  panel.style.display = 'block';
+  nameEl.textContent = name;
+  body.innerHTML = '<div class="empty-state" style="padding:16px;">Loading...</div>';
+  try {
+    const r = await fetch(`${API}/family/portal/${slug}`);
+    const d = await r.json();
+    const msgs = d.messages || [];
+    if (!msgs.length) { body.innerHTML = '<div class="empty-state" style="padding:16px;">No messages yet</div>'; return; }
+    body.innerHTML = msgs.map(m => `
+      <div class="msg-bubble ${m.sender==='hq'?'msg-lance':'msg-psw'}">
+        <div style="font-size:13px;line-height:1.5;">${m.message||''}</div>
+        <div class="msg-time">${ago(m.created_at)}</div>
+      </div>`).join('');
+    body.scrollTop = body.scrollHeight;
+  } catch { body.innerHTML = '<div class="empty-state" style="padding:16px;">Could not load</div>'; }
+}
+
+function closeFamilyThread() {
+  activeFamilySlug = null;
+  document.getElementById('family-thread-panel').style.display = 'none';
+}
+
+async function sendFamilyReply() {
+  const msg = document.getElementById('family-thread-input').value.trim();
+  if (!msg || !activeFamilySlug) return;
+  try {
+    const r = await fetch(`${API}/hq/family-reply`, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ slug: activeFamilySlug, message: msg, operator_id: currentOp })
+    });
+    const d = await r.json();
+    if (!d.success) throw new Error();
+    document.getElementById('family-thread-input').value = '';
+    showToast('Sent ✓','ok');
+    await openFamilyThread(activeFamilySlug, document.getElementById('family-thread-name').textContent);
+  } catch { showToast('Could not send — try again','err'); }
+}
+
+function activityNav(el) {
+  const type = el.dataset.eventType || '';
+  const routeMap = {
+    family_message: 'messages',
+    psw_message: 'messages',
+    visit_verified: 'visits',
+    visit_checked_in: 'visits',
+    visit_checked_out: 'visits',
+    visit_complete: 'visits',
+    visit_log: 'visits',
+    checkin: 'visits',
+    checkout: 'visits',
+    client_status_change: 'clients',
+    booking_created: 'bookings',
+    booking_cancelled: 'bookings',
+    shift_reminder: 'bookings',
+    lead_captured: 'leads',
+    onboarding: 'onboard'
+  };
+  const tab = routeMap[type] || 'activity';
+  showSect(tab);
 }
 
 function renderPSWThreadRow() {
@@ -1923,7 +2021,7 @@ async function renderActivity() {
       const label = type.replace(/_/g,' ');
       const contact = l.contact_name||l.contact_email||l.psw_name||l.client_name||'—';
       const src = l.event_source||l.source||'';
-      return `<div class="log-row">
+      return `<div class="log-row" style="cursor:pointer;" data-event-type="${type}" onclick="activityNav(this)">
         <div class="log-icon ${cls}" style="font-family:var(--mono);font-size:8px;letter-spacing:1px;text-transform:uppercase;">${icon}</div>
         <div class="log-info-t">
           <div class="log-ev">${label}${src?' · '+src:''}</div>
