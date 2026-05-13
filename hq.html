@@ -13,7 +13,7 @@
 <title>Proximity HQ</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <link href='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.css' rel='stylesheet' />
 <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js'></script>
 <style>
@@ -25,7 +25,7 @@
   --red:#e05555;--amber:#e09a3d;--green:#4a9a6e;--green2:#6ac98a;
   --blue:#3d7ab5;--blue2:#6aacf0;--purple:#a060e0;--purple2:#c080f0;
   --text:#e8e4dc;--muted:rgba(232,228,220,.35);--muted2:rgba(232,228,220,.55);--muted3:rgba(232,228,220,.75);
-  --mono:'DM Mono',monospace;--sans:'DM Sans',sans-serif;--serif:'Cormorant Garamond',serif;
+  --mono:'DM Mono',monospace;--sans:'Inter',sans-serif;
   --safe-bottom:env(safe-area-inset-bottom,0px);
 }
 html{height:100%;background:var(--bg);}
@@ -45,8 +45,8 @@ a{color:inherit;text-decoration:none;}
 .lock-pad{display:grid;grid-template-columns:repeat(3,72px);gap:10px;}
 .lock-key{width:72px;height:72px;border-radius:50%;border:1px solid var(--border2);background:var(--bg2);color:var(--text);font-size:22px;font-weight:300;display:flex;align-items:center;justify-content:center;transition:background .12s;user-select:none;}
 .lock-key:active{background:var(--bg3);border-color:var(--teal2);}
-button{transition:transform 80ms ease;}
-button:active{transform:scale(0.97);}
+button{transition:transform 50ms ease;touch-action:manipulation;-webkit-tap-highlight-color:transparent;}
+button:active{transform:scale(0.98);}
 .lock-key.del{font-size:16px;color:var(--muted2);}
 .lock-key.empty{background:none;border:none;pointer-events:none;}
 .lock-err{font-family:var(--mono);font-size:11px;color:var(--red);letter-spacing:1px;opacity:0;transition:opacity .3s;}
@@ -146,7 +146,9 @@ button:active{transform:scale(0.97);}
 .nbadge{background:var(--teal);color:#fff;border-radius:100px;font-size:8px;min-width:15px;height:15px;padding:0 3px;display:inline-flex;align-items:center;justify-content:center;}
 
 /* SECTIONS */
-.section{display:none;padding-bottom:8px;}
+.section{display:none;padding-bottom:8px;opacity:0;transition:opacity 150ms ease;}
+.section.active{display:block;}
+.section.visible{opacity:1;}
 .section.active{display:block;}
 .section-header{display:flex;align-items:center;justify-content:space-between;padding:12px 14px 8px;}
 .section-title{font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--muted2);}
@@ -297,7 +299,8 @@ button:active{transform:scale(0.97);}
 .bottom-nav{position:fixed;bottom:0;left:0;right:0;z-index:200;background:rgba(13,17,23,.97);border-top:1px solid var(--border);display:flex;padding-bottom:var(--safe-bottom);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);}
 .bnav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:7px 4px;cursor:pointer;min-height:54px;gap:3px;color:var(--muted2);transition:color .2s;position:relative;}
 .bnav-item.active{color:var(--teal2);}
-.bnav-icon{font-family:var(--mono);font-size:8px;letter-spacing:2px;text-transform:uppercase;line-height:1;padding:3px 5px;border:1px solid currentColor;border-radius:3px;margin-bottom:1px;}
+.bnav-icon{display:flex;align-items:center;justify-content:center;margin-bottom:2px;}
+.bnav-icon svg{width:20px;height:20px;}
 .bnav-lbl{font-family:var(--mono);font-size:8px;letter-spacing:1px;text-transform:uppercase;}
 
 /* TOAST */
@@ -307,7 +310,12 @@ button:active{transform:scale(0.97);}
 .toast.err{border-color:var(--red);color:var(--red);}
 
 /* EMPTY */
-.empty-state{text-align:center;padding:44px 20px;font-family:var(--mono);font-size:11px;letter-spacing:1px;color:var(--muted);text-transform:uppercase;}
+.empty-state{text-align:center;padding:36px 20px;display:flex;flex-direction:column;align-items:center;gap:8px;}
+.empty-state-icon{color:var(--muted);opacity:0.4;}
+.empty-state-icon svg{width:36px;height:36px;}
+.empty-state-title{font-size:13px;font-weight:500;color:var(--muted3);}
+.empty-state-sub{font-size:11px;color:var(--muted);line-height:1.5;max-width:220px;}
+.empty-state-legacy{text-align:center;padding:36px 20px;font-family:var(--mono);font-size:11px;letter-spacing:1px;color:var(--muted);}
 
 /* SEARCH BAR */
 .list-search-wrap{padding:0 12px 10px;position:relative;}
@@ -387,7 +395,7 @@ button:active{transform:scale(0.97);}
     </div>
   </div>
   <div style="display:flex;gap:8px;">
-    <div class="icon-btn" id="refresh-btn" onclick="loadAll(true)">↻</div>
+    <div class="icon-btn" id="refresh-btn" onclick="loadAll(true)" title="Refresh"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg></div>
   </div>
 </div>
 
@@ -511,7 +519,7 @@ button:active{transform:scale(0.97);}
     <div style="background:var(--bg2);padding:10px 6px;text-align:center;"><div style="font-family:var(--mono);font-size:16px;font-weight:500;color:var(--green2);" id="lmt-converted">—</div><div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-top:3px;">Converted</div></div>
     <div style="background:var(--bg2);padding:10px 6px;text-align:center;"><div style="font-family:var(--mono);font-size:16px;font-weight:500;color:var(--text);" id="lmt-pending">—</div><div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-top:3px;">Pending</div></div>
   </div>
-  <div class="list-search-wrap"><span class="list-search-icon">⌕</span><input class="list-search" id="leads-search" placeholder="Search leads..." oninput="filterList('leads-list','leads-search')" autocomplete="off"></div>
+  <div class="list-search-wrap"><span class="list-search-icon" style="font-size:14px;">⌕</span><input class="list-search" id="leads-search" placeholder="Search leads..." oninput="filterList('leads-list','leads-search')" autocomplete="off"></div>
   <div id="leads-list"><div class="empty-state">Loading...</div></div>
 </div>
 
@@ -521,14 +529,14 @@ button:active{transform:scale(0.97);}
     <span class="section-title">Active Clients</span>
     <div class="sect-action" onclick="showSect('onboard')">+ Onboard</div>
   </div>
-  <div class="list-search-wrap"><span class="list-search-icon">⌕</span><input class="list-search" id="clients-search" placeholder="Search clients..." oninput="filterList('clients-list','clients-search')" autocomplete="off"></div>
+  <div class="list-search-wrap"><span class="list-search-icon" style="font-size:14px;">⌕</span><input class="list-search" id="clients-search" placeholder="Search clients..." oninput="filterList('clients-list','clients-search')" autocomplete="off"></div>
   <div id="clients-list"><div class="empty-state">Loading...</div></div>
 </div>
 
 <!-- PSWs -->
 <div class="section" id="sect-psws">
   <div class="section-header"><span class="section-title">PSW Staff</span></div>
-  <div class="list-search-wrap"><span class="list-search-icon">⌕</span><input class="list-search" id="psws-search" placeholder="Search PSWs..." oninput="filterList('psws-list','psws-search')" autocomplete="off"></div>
+  <div class="list-search-wrap"><span class="list-search-icon" style="font-size:14px;">⌕</span><input class="list-search" id="psws-search" placeholder="Search PSWs..." oninput="filterList('psws-list','psws-search')" autocomplete="off"></div>
   <div id="psws-list"><div class="empty-state">Loading...</div></div>
 </div>
 
@@ -643,7 +651,7 @@ button:active{transform:scale(0.97);}
     <div id="thread-body" style="padding:12px 14px;max-height:260px;overflow-y:auto;display:flex;flex-direction:column;gap:8px;"></div>
     <div style="padding:10px 12px;border-top:1px solid var(--border);display:flex;gap:8px;align-items:flex-end;">
       <textarea id="thread-input" class="minput" rows="1" placeholder="Message..." style="flex:1;" oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,80)+'px';"></textarea>
-      <button class="msend" onclick="sendThreadMsg()">→</button>
+      <button class="msend" onclick="sendThreadMsg()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></button>
     </div>
   </div>
 
@@ -652,7 +660,7 @@ button:active{transform:scale(0.97);}
     <div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted2);margin-bottom:8px;">Broadcast to All PSWs</div>
     <div style="display:flex;gap:8px;align-items:flex-end;">
       <textarea id="broadcast-input" class="minput" rows="2" placeholder="Schedule update, training date, policy change..." style="flex:1;border-radius:8px;min-height:60px;"></textarea>
-      <button class="msend" onclick="sendBroadcast()" style="align-self:flex-end;">📡</button>
+      <button class="msend" onclick="sendBroadcast()" style="align-self:flex-end;" title="Broadcast to all PSWs"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.65 3.55 2 2 0 0 1 3.62 1.37h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 9a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg></button>
     </div>
     <div style="margin-top:6px;font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;">Sends to all active PSWs — they see it in their portal Messages tab</div>
   </div>
@@ -670,7 +678,7 @@ button:active{transform:scale(0.97);}
     <div id="family-thread-body" style="padding:12px 14px;max-height:260px;overflow-y:auto;display:flex;flex-direction:column;gap:8px;"></div>
     <div style="padding:10px 12px;border-top:1px solid var(--border);display:flex;gap:8px;align-items:flex-end;">
       <textarea id="family-thread-input" class="minput" rows="1" placeholder="Reply to family..." style="flex:1;" oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,80)+'px';"></textarea>
-      <button class="msend" onclick="sendFamilyReply()">→</button>
+      <button class="msend" onclick="sendFamilyReply()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></button>
     </div>
   </div>
   <div id="messages-list"><div class="empty-state">Loading...</div></div>
@@ -707,7 +715,7 @@ button:active{transform:scale(0.97);}
     <div style="background:var(--bg2);padding:10px 6px;text-align:center;"><div style="font-family:var(--mono);font-size:16px;font-weight:500;color:var(--text);" id="vmt-hours">—</div><div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-top:3px;">Hours</div></div>
     <div style="background:var(--bg2);padding:10px 6px;text-align:center;"><div style="font-family:var(--mono);font-size:16px;font-weight:500;color:var(--text);" id="vmt-psws">—</div><div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-top:3px;">PSWs</div></div>
   </div>
-  <div class="list-search-wrap"><span class="list-search-icon">⌕</span><input class="list-search" id="visits-search" placeholder="Search by PSW or client..." oninput="filterList('visits-list','visits-search')" autocomplete="off"></div>
+  <div class="list-search-wrap"><span class="list-search-icon" style="font-size:14px;">⌕</span><input class="list-search" id="visits-search" placeholder="Search by PSW or client..." oninput="filterList('visits-list','visits-search')" autocomplete="off"></div>
   <div id="visits-list"><div class="empty-state">Loading visits...</div></div>
 </div>
 
@@ -723,15 +731,15 @@ button:active{transform:scale(0.97);}
 <!-- CRM — Tab 9 -->
 <div class="section" id="sect-crm">
   <div class="section-header">
-    <span class="section-title">Operator Pipeline</span>
+    <span class="section-title">Client Pipeline</span>
     <div class="sect-action" onclick="renderCRM()">↻ Refresh</div>
   </div>
   <div class="crm-board" id="crm-board">
-    <div class="crm-col"><div class="crm-col-head"><span class="crm-col-name">Cold</span><span class="crm-col-count" id="crm-count-cold">0</span></div><div class="crm-col-body" id="crm-cold" ondragover="crmDragOver(event)" ondrop="crmDrop(event,'cold')" ondragleave="crmDragLeave(event)"></div></div>
+    <div class="crm-col"><div class="crm-col-head"><span class="crm-col-name">Inquiry</span><span class="crm-col-count" id="crm-count-cold">0</span></div><div class="crm-col-body" id="crm-cold" ondragover="crmDragOver(event)" ondrop="crmDrop(event,'cold')" ondragleave="crmDragLeave(event)"></div></div>
     <div class="crm-col"><div class="crm-col-head"><span class="crm-col-name">Contacted</span><span class="crm-col-count" id="crm-count-contacted">0</span></div><div class="crm-col-body" id="crm-contacted" ondragover="crmDragOver(event)" ondrop="crmDrop(event,'contacted')" ondragleave="crmDragLeave(event)"></div></div>
-    <div class="crm-col"><div class="crm-col-head"><span class="crm-col-name">Demo</span><span class="crm-col-count" id="crm-count-demo">0</span></div><div class="crm-col-body" id="crm-demo" ondragover="crmDragOver(event)" ondrop="crmDrop(event,'demo')" ondragleave="crmDragLeave(event)"></div></div>
-    <div class="crm-col"><div class="crm-col-head"><span class="crm-col-name">Call</span><span class="crm-col-count" id="crm-count-call">0</span></div><div class="crm-col-body" id="crm-call" ondragover="crmDragOver(event)" ondrop="crmDrop(event,'call')" ondragleave="crmDragLeave(event)"></div></div>
-    <div class="crm-col"><div class="crm-col-head"><span class="crm-col-name">Closed</span><span class="crm-col-count" id="crm-count-closed">0</span></div><div class="crm-col-body" id="crm-closed" ondragover="crmDragOver(event)" ondrop="crmDrop(event,'closed')" ondragleave="crmDragLeave(event)"></div></div>
+    <div class="crm-col"><div class="crm-col-head"><span class="crm-col-name">Assessment</span><span class="crm-col-count" id="crm-count-demo">0</span></div><div class="crm-col-body" id="crm-demo" ondragover="crmDragOver(event)" ondrop="crmDrop(event,'demo')" ondragleave="crmDragLeave(event)"></div></div>
+    <div class="crm-col"><div class="crm-col-head"><span class="crm-col-name">Signed</span><span class="crm-col-count" id="crm-count-call">0</span></div><div class="crm-col-body" id="crm-call" ondragover="crmDragOver(event)" ondrop="crmDrop(event,'call')" ondragleave="crmDragLeave(event)"></div></div>
+    <div class="crm-col"><div class="crm-col-head"><span class="crm-col-name">Active</span><span class="crm-col-count" id="crm-count-closed">0</span></div><div class="crm-col-body" id="crm-closed" ondragover="crmDragOver(event)" ondrop="crmDrop(event,'closed')" ondragleave="crmDragLeave(event)"></div></div>
   </div>
 </div>
 
@@ -832,11 +840,11 @@ button:active{transform:scale(0.97);}
 
 <!-- BOTTOM NAV -->
 <div class="bottom-nav">
-  <div class="bnav-item active" onclick="showSect('leads')" id="bn-leads"><div class="bnav-icon">LDS</div><div class="bnav-lbl">Leads</div></div>
-  <div class="bnav-item" onclick="showSect('clients')" id="bn-clients"><div class="bnav-icon">CLI</div><div class="bnav-lbl">Clients</div></div>
-  <div class="bnav-item" onclick="showSect('bookings')" id="bn-bookings"><div class="bnav-icon">BKG</div><div class="bnav-lbl">Book</div></div>
-  <div class="bnav-item" onclick="showSect('visits')" id="bn-visits"><div class="bnav-icon">VIS</div><div class="bnav-lbl">Visits</div></div>
-  <div class="bnav-item" onclick="showSect('activity')" id="bn-activity"><div class="bnav-icon">ACT</div><div class="bnav-lbl">Activity</div></div>
+  <div class="bnav-item active" onclick="showSect('leads')" id="bn-leads"><div class="bnav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div><div class="bnav-lbl">Leads</div></div>
+  <div class="bnav-item" onclick="showSect('clients')" id="bn-clients"><div class="bnav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78z"/></svg></div><div class="bnav-lbl">Clients</div></div>
+  <div class="bnav-item" onclick="showSect('bookings')" id="bn-bookings"><div class="bnav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="5" width="16" height="16" rx="2"/><path d="M8 3v4M16 3v4M4 11h16"/></svg></div><div class="bnav-lbl">Book</div></div>
+  <div class="bnav-item" onclick="showSect('visits')" id="bn-visits"><div class="bnav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div><div class="bnav-lbl">Visits</div></div>
+  <div class="bnav-item" onclick="showSect('activity')" id="bn-activity"><div class="bnav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div><div class="bnav-lbl">Activity</div></div>
 </div>
 
 </div><!-- /app -->
@@ -1173,7 +1181,7 @@ function renderLeads() {
   const leads = D.leads||[];
   const el = document.getElementById('leads-list');
   if (!el.querySelector('.card')) showSkeleton('leads-list', 5);
-  if(!leads.length) { el.innerHTML = '<div class="empty-state">No leads yet</div>'; return; }
+  if(!leads.length) { el.innerHTML = '<div class="empty-state"><div class="empty-state-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div><div class="empty-state-title">No leads yet</div><div class="empty-state-sub">Leads from your website and cold outreach will appear here.</div></div>'; return; }
   el.innerHTML = leads.map(l => {
     const name = [l.first_name,l.last_name].filter(Boolean).join(' ') || l.email?.split('@')[0] || l.phone || 'Lead #'+l.id?.slice(-4);
     const st = l.status||'new';
@@ -1274,7 +1282,7 @@ function renderClients() {
   const clients = D.clients||[];
   const el = document.getElementById('clients-list');
   if (!el.querySelector('.card')) showSkeleton('clients-list', 4, true);
-  if(!clients.length) { el.innerHTML='<div class="empty-state">No active clients</div>'; return; }
+  if(!clients.length) { el.innerHTML='<div class="empty-state"><div class="empty-state-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78z"/></svg></div><div class="empty-state-title">No active clients</div><div class="empty-state-sub">Onboard your first client to get started.</div></div>'; return; }
   el.innerHTML = clients.map(c => {
     const name = `${c.first_name||''} ${c.last_name||''}`.trim();
     const ini = name.split(' ').map(w=>w[0]||'').join('').toUpperCase().slice(0,2);
@@ -1737,7 +1745,7 @@ function renderMessages() {
   renderPSWThreadRow();
   const msgs = D.messages||[];
   const el = document.getElementById('messages-list');
-  if(!msgs.length) { el.innerHTML='<div class="empty-state">No family messages yet</div>'; return; }
+  if(!msgs.length) { el.innerHTML='<div class="empty-state"><div class="empty-state-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div><div class="empty-state-title">No family messages</div><div class="empty-state-sub">Messages from family portals will appear here.</div></div>'; return; }
   // Group by contact_name — one row per client conversation, sorted by most recent
   const byClient = {};
   msgs.forEach(m => {
@@ -1956,7 +1964,7 @@ async function renderVisits() {
     document.getElementById('vmt-hours').textContent = totalHours.toFixed(1)+'h';
     document.getElementById('vmt-psws').textContent = uniquePSWs;
 
-    if (!visits.length) { el.innerHTML = '<div class="empty-state">No visits this period</div>'; return; }
+    if (!visits.length) { el.innerHTML = '<div class="empty-state"><div class="empty-state-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div><div class="empty-state-title">No visits this period</div><div class="empty-state-sub">Completed visits will appear here once PSWs check out.</div></div>'; return; }
 
     el.innerHTML = visits.map((v, i) => {
       const tasks = Array.isArray(v.tasks_completed) ? v.tasks_completed.join(', ') : (v.tasks_completed || '');
@@ -2012,7 +2020,7 @@ async function renderActivity() {
     const d = await res.json();
     // Fall back to D.recent_activity if endpoint not available
     const logs = d.logs || d.activity || D.recent_activity || [];
-    if(!logs.length) { el.innerHTML='<div class="empty-state">No activity yet</div>'; return; }
+    if(!logs.length) { el.innerHTML='<div class="empty-state"><div class="empty-state-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div><div class="empty-state-title">No activity yet</div><div class="empty-state-sub">System events will appear here as your agency operates.</div></div>'; return; }
     const icons={email_sent:'EML',webhook_received:'WBH',booking_created:'BKG',purchase:'SAL',psw_message:'MSG',family_message:'FAM',visit_complete:'VIS',visit_log:'VIS',checkout:'VIS',checkin:'CHK',lead_captured:'LDS',onboarding:'ONB'};
     el.innerHTML=logs.map(l=>{
       const type = l.event_type||l.type||'';
@@ -2033,7 +2041,7 @@ async function renderActivity() {
   } catch {
     // Fallback to D.recent_activity
     const logs=D.recent_activity||[];
-    if(!logs.length) { el.innerHTML='<div class="empty-state">No activity yet</div>'; return; }
+    if(!logs.length) { el.innerHTML='<div class="empty-state"><div class="empty-state-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div><div class="empty-state-title">No activity yet</div><div class="empty-state-sub">System events will appear here as your agency operates.</div></div>'; return; }
     const icons={email_sent:'EML',webhook_received:'WBH',booking_created:'BKG',purchase:'SAL',psw_message:'MSG',family_message:'FAM',visit_log:'VIS',visit_complete:'VIS'};
     el.innerHTML=logs.map(l=>{
       const type=l.event_type||'';
@@ -2078,10 +2086,10 @@ async function triggerSequences() {
 function showSect(name) {
   try { localStorage.setItem('hq_tab', name); } catch(e) {}
   clearSearches();
-  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active','visible'));
   document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
   document.querySelectorAll('.bnav-item').forEach(b=>b.classList.remove('active'));
-  const s=document.getElementById('sect-'+name); if(s) s.classList.add('active');
+  const s=document.getElementById('sect-'+name); if(s) { s.classList.add('active'); requestAnimationFrame(()=>s.classList.add('visible')); }
   const tabs=document.querySelectorAll('.nav-tab');
   const tm=['overview','leads','clients','psws','onboard','bookings','messages','visits','activity','schedule','crm','applicants','revenue'];
   const ti=tm.indexOf(name); if(ti>=0&&tabs[ti]) tabs[ti].classList.add('active');
@@ -2146,7 +2154,9 @@ const CRM_STATUS_MAP = {
   'new':'cold','cold':'cold','contacted':'contacted',
   'demo':'demo','call':'call','closed':'closed','converted':'closed','dead':'closed'
 };
-const CRM_STAGE_LABELS = {cold:'Cold',contacted:'Contacted',demo:'Demo',call:'Call',closed:'Closed'};
+const CRM_STAGE_LABELS_CARE = {cold:'Inquiry',contacted:'Contacted',demo:'Assessment',call:'Signed',closed:'Active'};
+const CRM_STAGE_LABELS_SYS = {cold:'Cold',contacted:'Contacted',demo:'Demo',call:'Call',closed:'Closed'};
+const CRM_STAGE_LABELS = CRM_STAGE_LABELS_CARE;
 
 // Known pipeline — pre-seed if not in Supabase leads yet
 const CRM_SEED = [
@@ -2159,13 +2169,21 @@ const CRM_SEED = [
 ];
 
 function renderCRM() {
-  // Merge Supabase operator leads with seed pipeline
-  const supaLeads = (D.leads||[]).filter(l => l.lead_type === 'operator' || l.operator_id === 'proximity-systems');
-  const supaIds = new Set(supaLeads.map(l => l.id));
-  const seeds = CRM_SEED.filter(s => !supaLeads.some(l =>
-    l.email && s.email && l.email.toLowerCase() === s.email.toLowerCase()
-  ));
-  const all = [...supaLeads, ...seeds];
+  // Context-aware: proximity-care = home care client leads, proximity-systems = operator pipeline
+  const isOperatorView = currentOp === 'proximity-systems';
+  const stageLabels = isOperatorView ? CRM_STAGE_LABELS_SYS : CRM_STAGE_LABELS_CARE;
+  let all;
+  if (isOperatorView) {
+    // Operator pipeline: merge Supabase operator leads with seed pipeline
+    const supaLeads = (D.leads||[]).filter(l => l.lead_type === 'operator' || l.operator_id === 'proximity-systems');
+    const seeds = CRM_SEED.filter(s => !supaLeads.some(l =>
+      l.email && s.email && l.email.toLowerCase() === s.email.toLowerCase()
+    ));
+    all = [...supaLeads, ...seeds];
+  } else {
+    // Home care: use all leads for this operator (families inquiring about care)
+    all = D.leads || [];
+  }
 
   // Group by stage
   const cols = {cold:[],contacted:[],demo:[],call:[],closed:[]};
@@ -2197,6 +2215,7 @@ function renderCRM() {
       const si = stages.indexOf(stage);
       const canBack = si > 0;
       const canFwd = si < stages.length - 1;
+      const stageLabel = (isOperatorView ? CRM_STAGE_LABELS_SYS : CRM_STAGE_LABELS_CARE);
       const demoSlug = (agency.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,''));
       return `<div class="crm-card${stage==='closed'?' closed':''}" draggable="true" ondragstart="crmDragStart(event,'${l.id}','${isSeed?'seed':'db'}','${stage}')">
         <div class="crm-card-name">${name}</div>
@@ -2337,7 +2356,7 @@ async function loadApplicants() {
         </div>
       </div>`;
     }).join('');
-  } catch { el.innerHTML = '<div class="empty-state">Failed to load applicants</div>'; }
+  } catch { el.innerHTML = '<div class="empty-state"><div class="empty-state-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div><div class="empty-state-title">Could not load applicants</div></div>'; }
 }
 
 async function initiateOnboarding(applicantId, email) {
@@ -2552,25 +2571,39 @@ function _initFC() {
   const psws    = D.psws    || [];
   const clients = D.clients || [];
 
-  // PSW capacity sidebar HTML
+  // PSW capacity sidebar — filterable for 50+ PSW scale
+  const _capToday = new Date().toISOString().slice(0,10);
+  const _onShiftToday = new Set(
+    (D.bookings||[]).filter(b => b.scheduled_date===_capToday && b.status!=='cancelled' && b.assigned_to)
+      .map(b => b.assigned_to)
+  );
   const capBar = `
-    <div id="fc-sidebar" style="margin-bottom:10px;display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
-      <span style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-right:4px;">Capacity</span>
-      ${psws.map(p => {
-        const hrs = _pswWeekHours(p.full_name);
-        const max = p.max_hours_per_week || 40;
-        const pct = Math.min(100, Math.round(hrs/max*100));
-        const col = pct>90?'var(--red)':pct>70?'var(--amber)':'var(--teal2)';
-        return `<div style="display:flex;align-items:center;gap:4px;background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:3px 8px;">
-          <span style="font-size:9px;color:var(--muted2);font-family:var(--mono);">${(p.full_name||'').split(' ')[0]}</span>
-          <div style="width:40px;height:4px;background:var(--bg4);border-radius:2px;overflow:hidden;">
-            <div style="width:${pct}%;height:100%;background:${col};border-radius:2px;transition:width .3s;"></div>
-          </div>
-          <span style="font-family:var(--mono);font-size:9px;color:${col};">${hrs}h</span>
-        </div>`;
-      }).join('')}
-      <button onclick="openAddShift('','')" style="font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--teal2);background:rgba(61,138,122,.1);border:1px solid rgba(61,138,122,.3);border-radius:4px;padding:4px 10px;cursor:pointer;min-height:28px;margin-left:auto;">+ Shift</button>
+    <div id="fc-sidebar" style="margin-bottom:10px;">
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;flex-wrap:wrap;">
+        <span style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);">Capacity</span>
+        <div style="display:flex;gap:4px;margin-left:4px;">
+          <button id="cap-btn-today" onclick="_setCapFilter('today')" style="font-family:var(--mono);font-size:8px;letter-spacing:1px;text-transform:uppercase;padding:3px 8px;border-radius:4px;cursor:pointer;min-height:24px;border:1px solid var(--teal2);background:rgba(61,138,122,.15);color:var(--teal2);touch-action:manipulation;">Today</button>
+          <button id="cap-btn-all" onclick="_setCapFilter('all')" style="font-family:var(--mono);font-size:8px;letter-spacing:1px;text-transform:uppercase;padding:3px 8px;border-radius:4px;cursor:pointer;min-height:24px;border:1px solid var(--border);background:none;color:var(--muted2);touch-action:manipulation;">All</button>
+          <input id="cap-search" type="text" placeholder="Search PSW..." oninput="_filterCapSearch(this.value)" style="font-family:var(--mono);font-size:11px;background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:3px 8px;border-radius:4px;outline:none;width:110px;">
+        </div>
+        <button onclick="openAddShift('','')" style="font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--teal2);background:rgba(61,138,122,.1);border:1px solid rgba(61,138,122,.3);border-radius:4px;padding:4px 10px;cursor:pointer;min-height:28px;margin-left:auto;touch-action:manipulation;">+ Shift</button>
+      </div>
+      <div id="cap-chips" style="display:flex;gap:6px;flex-wrap:wrap;">
+        ${psws.map(p => {
+          const hrs = _pswWeekHours(p.full_name);
+          const max = p.max_hours_per_week || 40;
+          const pct = Math.min(100, Math.round(hrs/max*100));
+          const col = pct>90?'var(--red)':pct>70?'var(--amber)':'var(--teal2)';
+          const isToday = _onShiftToday.has(p.full_name);
+          return '<div class="cap-chip" data-psw="'+(p.full_name||'').toLowerCase()+'" data-today="'+isToday+'" style="display:flex;align-items:center;gap:4px;background:var(--bg2);border:1px solid '+(isToday?'rgba(61,138,122,.4)':'var(--border)')+';border-radius:4px;padding:3px 8px;">'
+            +'<span style="font-size:9px;color:var(--muted2);font-family:var(--mono);">'+(p.full_name||'').split(' ')[0]+'</span>'
+            +'<div style="width:40px;height:4px;background:var(--bg4);border-radius:2px;overflow:hidden;"><div style="width:'+pct+'%;height:100%;background:'+col+';border-radius:2px;transition:width .3s;"></div></div>'
+            +'<span style="font-family:var(--mono);font-size:9px;color:'+col+';">'+hrs+'h</span>'
+            +'</div>';
+        }).join('')}
+      </div>
     </div>`;
+  window._capFilter = 'today';
 
   root.innerHTML = capBar + '<div id="fc-cal"></div>';
 
@@ -2652,6 +2685,7 @@ function _initFC() {
 
   window._fc.render();
   _styleFC();
+  setTimeout(_applyCapFilter, 100); // Apply Today filter by default
 }
 
 function _refreshFC() {
@@ -2691,6 +2725,37 @@ function _updateCapacityBars() {
       }
     });
   });
+}
+
+function _setCapFilter(mode) {
+  window._capFilter = mode;
+  const todayBtn = document.getElementById('cap-btn-today');
+  const allBtn = document.getElementById('cap-btn-all');
+  const searchEl = document.getElementById('cap-search');
+  if (todayBtn) { todayBtn.style.background = mode==='today'?'rgba(61,138,122,.15)':'none'; todayBtn.style.borderColor = mode==='today'?'var(--teal2)':'var(--border)'; todayBtn.style.color = mode==='today'?'var(--teal2)':'var(--muted2)'; }
+  if (allBtn) { allBtn.style.background = mode==='all'?'rgba(61,138,122,.15)':'none'; allBtn.style.borderColor = mode==='all'?'var(--teal2)':'var(--border)'; allBtn.style.color = mode==='all'?'var(--teal2)':'var(--muted2)'; }
+  if (searchEl) searchEl.value = '';
+  document.querySelectorAll('.cap-chip').forEach(chip => {
+    if (mode === 'today') chip.style.display = chip.dataset.today === 'true' ? 'flex' : 'none';
+    else chip.style.display = 'flex';
+  });
+}
+
+function _filterCapSearch(q) {
+  const term = (q||'').toLowerCase().trim();
+  document.querySelectorAll('.cap-chip').forEach(chip => {
+    chip.style.display = !term || chip.dataset.psw.includes(term) ? 'flex' : 'none';
+  });
+  // update filter buttons to show neither active when searching
+  const todayBtn = document.getElementById('cap-btn-today');
+  const allBtn = document.getElementById('cap-btn-all');
+  if (todayBtn) { todayBtn.style.background='none'; todayBtn.style.borderColor='var(--border)'; todayBtn.style.color='var(--muted2)'; }
+  if (allBtn) { allBtn.style.background='none'; allBtn.style.borderColor='var(--border)'; allBtn.style.color='var(--muted2)'; }
+}
+
+function _applyCapFilter() {
+  const f = window._capFilter || 'today';
+  _setCapFilter(f);
 }
 
 function _detectDropConflict(bookingId, pswName, newDate, newTime, durMins) {
@@ -3292,7 +3357,7 @@ function renderIncidents() {
   const el = document.getElementById('incidents-list');
   if (!el) return;
   if (!incidents.length) {
-    el.innerHTML = '<div class="empty-state" style="color:var(--green2);">✓ No open incidents</div>';
+    el.innerHTML = '<div class="empty-state"><div class="empty-state-icon" style="color:var(--green2);opacity:0.7;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div><div class="empty-state-title" style="color:var(--green2);">No open incidents</div><div class="empty-state-sub">All visits are clear.</div></div>';
     return;
   }
   el.innerHTML = incidents.map(v => `
