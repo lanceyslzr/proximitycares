@@ -2036,12 +2036,13 @@ async function renderActivity() {
     if(!logs.length) { el.innerHTML='<div class="empty-state">No activity yet</div>'; return; }
     const icons={email_sent:'EML',webhook_received:'WBH',booking_created:'BKG',purchase:'SAL',psw_message:'MSG',family_message:'FAM',visit_log:'VIS',visit_complete:'VIS'};
     el.innerHTML=logs.map(l=>{
-      const icon=icons[l.event_type]||'ACT';
+      const type=l.event_type||'';
+      const icon=icons[type]||'ACT';
       const cls=l.status==='error'?'li-err':l.status==='skipped'?'li-info':'li-ok';
-      return `<div class="log-row">
+      return `<div class="log-row" style="cursor:pointer;" data-event-type="${type}" onclick="activityNav(this)">
         <div class="log-icon ${cls}">${icon}</div>
         <div class="log-info-t">
-          <div class="log-ev">${(l.event_type||'').replace(/_/g,' ')}${l.event_source?' · '+l.event_source:''}</div>
+          <div class="log-ev">${type.replace(/_/g,' ')}${l.event_source?' · '+l.event_source:''}</div>
           <div class="log-ct">${l.contact_name||l.contact_email||'—'}</div>
         </div>
         <div class="log-tm">${ago(l.created_at)}</div>
