@@ -1086,6 +1086,7 @@ function updateDots() { for(let i=0;i<4;i++) document.getElementById('d'+i).clas
 // ── OPERATOR ──
 function switchOp(id, name) {
   currentOp = id; currentOpName = name;
+  window._sentimentData = null; // Clear sentiment cache on operator switch
   document.getElementById('op-label').textContent = name;
   ['proximity-care','lcm-experts','proximity-systems'].forEach(op => {
     const el = document.getElementById('oc-'+op);
@@ -1280,12 +1281,24 @@ function openClientSchedule(clientName) {
 // ── CLIENTS ──
 function renderClients() {
   const clients = D.clients||[];
+  // Fetch sentiment scores lazily if not already loaded
+  if (!window._sentimentData && clients.length) {
+    fetch(`${API}/hq/sentiment/${currentOp}`)
+      .then(r => r.json())
+      .then(d => { if (d.success) { window._sentimentData = d.sentiment; renderClients(); } })
+      .catch(() => {});
+  }
   const el = document.getElementById('clients-list');
   if (!el.querySelector('.card')) showSkeleton('clients-list', 4, true);
   if(!clients.length) { el.innerHTML='<div class="empty-state"><div class="empty-state-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78z"/></svg></div><div class="empty-state-title">No active clients</div><div class="empty-state-sub">Onboard your first client to get started.</div></div>'; return; }
   el.innerHTML = clients.map(c => {
     const name = `${c.first_name||''} ${c.last_name||''}`.trim();
     const ini = name.split(' ').map(w=>w[0]||'').join('').toUpperCase().slice(0,2);
+    // Sentiment badge
+    const sentData = (window._sentimentData||[]).find(s => s.client_name === name);
+    const sentBadge = sentData && sentData.avg
+      ? `<div style="font-family:var(--mono);font-size:9px;color:${sentData.alert?'var(--red)':sentData.trend==='down'?'var(--amber)':'var(--green2)'};">${sentData.avg}★ ${sentData.trend==='up'?'↑':sentData.trend==='down'?'↓':'→'}</div>`
+      : '';
     return `
     <div class="card">
       <div class="card-header" onclick="openClientDetail('${c.id}')">
@@ -1293,7 +1306,7 @@ function renderClients() {
           <div class="avatar">${ini}</div>
           <div><div class="card-name">${name}</div><div class="card-sub">${c.client_code?'<span style="font-family:var(--mono);color:var(--teal3);">'+c.client_code+'</span> · ':''} ${c.portal_slug||c.email||'—'}</div><div class="card-meta">Since ${fmtd(c.created_at)}</div></div>
         </div>
-        <span class="badge b-active">Active</span>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;"><span class="badge b-active">Active</span>${sentBadge}</div>
       </div>
       <div class="card-actions">
         <div class="card-act" onclick="genInvoice('${name}','${c.email||''}','${c.assigned_psw||''}',${c.client_rate||22},${c.psw_rate||19})">Invoice</div>
@@ -2940,11 +2953,37 @@ function openAddShift(pswName, date, clientName) {
       const n = `${c.first_name||''} ${c.last_name||''}`.trim();
       return `<option value="${n}" ${n===(clientName||'')?'selected':''}>${n}</option>`;
     }).join('');
-  // Populate PSW dropdown from live roster
+  // Populate PSW dropdown from live roster — with compatibility scores
   const pswSel = document.getElementById('ss-psw');
   const psws = getMergedPSWList();
+  const visits = D.visits || [];
+  // Build score map: for each PSW, how many visits with this client and avg rating
+  const scoreMap = {};
+  if (clientName) {
+    psws.forEach(p => {
+      const pswVisits = visits.filter(v => v.psw_name === p.name && v.client_name === clientName);
+      const rated = pswVisits.filter(v => v.satisfaction_rating);
+      const avg = rated.length ? (rated.reduce((s,v) => s + v.satisfaction_rating, 0) / rated.length).toFixed(1) : null;
+      scoreMap[p.name] = { count: pswVisits.length, avg };
+    });
+  }
   pswSel.innerHTML = '<option value="">Unassigned</option>' +
-    psws.map(p => `<option value="${p.name}" ${p.name===pswName?'selected':''}>${p.name}</option>`).join('');
+    psws
+      .sort((a, b) => {
+        // Sort by: has history desc, then avg rating desc
+        const sa = scoreMap[a.name] || { count:0, avg:null };
+        const sb = scoreMap[b.name] || { count:0, avg:null };
+        if (sa.count !== sb.count) return sb.count - sa.count;
+        if (sa.avg && sb.avg) return parseFloat(sb.avg) - parseFloat(sa.avg);
+        return 0;
+      })
+      .map(p => {
+        const s = scoreMap[p.name];
+        const badge = s && s.count > 0
+          ? ` — ${s.count} visit${s.count!==1?'s':''}${s.avg?' · ★'+s.avg:''}`
+          : '';
+        return `<option value="${p.name}" ${p.name===pswName?'selected':''}>${p.name}${badge}</option>`;
+      }).join('');
   const rec = document.getElementById('ss-recurring');
   if(rec) rec.value = 'none';
   openSheet('shift-sheet');
