@@ -1,8 +1,8 @@
-// Proximity PSW Portal — Service Worker v2
-// Upgraded: offline queue sync + web push notifications
-const CACHE = 'proximity-psw-v2';
+// Proximity PSW Portal — Service Worker v5
+// Upgraded: offline queue sync + web push notifications + cache bust
+const CACHE = 'proximity-psw-v5';
 const STATIC = [
-  '/psw-portal.html',
+  '/index.html',
   '/psw-manifest.json',
   '/psw-icon-192.png',
   'https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&display=swap'
@@ -42,7 +42,20 @@ self.addEventListener('fetch', e => {
     return;
   }
 
-  // Cache-first for everything else
+  // Network-first for HTML, cache-first for everything else
+  if (url.pathname.endsWith('.html') || url.pathname === '/') {
+    e.respondWith(
+      fetch(e.request).then(res => {
+        if (res && res.status === 200) {
+          const clone = res.clone();
+          caches.open(CACHE).then(cache => cache.put(e.request, clone));
+        }
+        return res;
+      }).catch(() => caches.match(e.request))
+    );
+    return;
+  }
+
   e.respondWith(
     caches.match(e.request).then(cached => {
       if (cached) return cached;
@@ -52,7 +65,7 @@ self.addEventListener('fetch', e => {
           caches.open(CACHE).then(cache => cache.put(e.request, clone));
         }
         return res;
-      }).catch(() => caches.match('/psw-portal.html'));
+      }).catch(() => caches.match('/index.html'));
     })
   );
 });
