@@ -197,6 +197,8 @@ html,body{min-height:100vh;font-family:'Poppins',sans-serif;background:var(--bg)
 .skeleton-card-sm{height:80px;}
 .skeleton-card-md{height:120px;}
 .skeleton-card-lg{height:200px;}
+button{transition:transform 80ms ease;}
+button:active{transform:scale(0.97);}
 </style>
 </head>
 <body>
@@ -314,6 +316,7 @@ async function verifyPin() {
     });
     const d = await r.json();
     if (d.success) {
+      try { sessionStorage.setItem('family_pin_' + slug, pinVal); } catch(e) {}
       document.getElementById('gate').classList.add('hide');
       document.getElementById('app').classList.add('show');
       document.getElementById('tbName').textContent = d.client.first_name + ' ' + d.client.last_name;
@@ -335,6 +338,7 @@ function showPinError() {
 }
 
 function signOut() {
+  try { sessionStorage.removeItem('family_pin_' + slug); } catch(e) {}
   pinVal = '';
   updateDots();
   portalData = null;
@@ -767,6 +771,20 @@ if ('serviceWorker' in navigator) {
   });
 }
 
+// Build 12+13 — Session restore: skip PIN gate if already verified this session
+(function() {
+  try {
+    if (!slug) return;
+    const savedPin = sessionStorage.getItem('family_pin_' + slug);
+    if (savedPin) {
+      pinVal = savedPin;
+      document.getElementById('gate').classList.add('hide');
+      document.getElementById('app').classList.add('show');
+      loadPortal();
+      setTimeout(requestPushPermission, 2000);
+    }
+  } catch(e) {}
+})();
 
 </script>
 </body>
