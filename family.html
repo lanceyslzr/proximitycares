@@ -464,11 +464,11 @@ function showTab(tab) {
         </div>
       </div>
       <div class="section">
-        <div class="section-title">Messages</div>
+        <div class="section-title">Message Your Coordinator</div>
         <div class="msg-thread-wrap">
           <div class="msg-thread-body" id="home-msg-thread"></div>
           <div class="msg-input-row">
-            <textarea class="msg-input-field" id="msgTa" placeholder="Message your care team..." rows="1" maxlength="500" oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,80)+'px';updateCharCount(this);"></textarea>
+            <textarea class="msg-input-field" id="msgTa" placeholder="Message your coordinator..." rows="1" maxlength="500" oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,80)+'px';updateCharCount(this);"></textarea>
             <button class="msg-send-btn" onclick="sendMsg()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></button>
           </div>
           <div class="msg-char-count" id="msgCharCount" style="display:none;">0 / 500</div>
@@ -501,11 +501,35 @@ function showTab(tab) {
         </div>
       </div>
       <div class="section">
-        <div class="section-title">Notes to Your Coordinator</div>
+        <div class="section-title">Leave Feedback on a Visit</div>
         <div class="card" style="padding:16px;">
-          <p style="font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:12px;">Share observations about any visit — what your loved one said, how they seemed, anything worth noting. Private — only your coordinator sees this.</p>
-          <textarea id="private-note-input" placeholder="e.g. Mom mentioned she was cold during the visit, or she seemed more tired than usual..." rows="3" style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px;font-size:14px;color:var(--text);resize:none;font-family:'Inter',sans-serif;line-height:1.5;outline:none;box-sizing:border-box;" maxlength="600" oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,120)+'px';updateNoteCount(this)"></textarea>
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px;">
+          <p style="font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:14px;">Share private feedback about any visit or caregiver. Only your coordinator sees this — it helps us maintain quality care.</p>
+
+          <div style="margin-bottom:12px;">
+            <div style="font-size:11px;font-weight:600;color:var(--text-secondary);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px;font-size:10px;">Which caregiver?</div>
+            <select id="feedback-psw-select" style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 12px;font-size:14px;color:var(--text);font-family:'Inter',sans-serif;outline:none;-webkit-appearance:none;">
+              <option value="">Select caregiver...</option>
+              ${(() => {
+                const visits = portalData?.visits || [];
+                const names = [...new Set(visits.map(v => v.psw_name).filter(Boolean))];
+                return names.map(n => `<option value="${n}">${n}</option>`).join('');
+              })()}
+            </select>
+          </div>
+
+          <div style="margin-bottom:12px;">
+            <div style="font-size:10px;font-weight:600;color:var(--text-secondary);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.5px;">Performance Rating</div>
+            <div style="display:flex;gap:8px;" id="perf-stars">
+              ${[1,2,3,4,5].map(n => `<button onclick="setPerfRating(${n})" data-rating="${n}" style="font-size:24px;background:none;border:none;cursor:pointer;padding:2px;touch-action:manipulation;line-height:1;">☆</button>`).join('')}
+            </div>
+          </div>
+
+          <div style="margin-bottom:12px;">
+            <div style="font-size:10px;font-weight:600;color:var(--text-secondary);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px;">Your Notes</div>
+            <textarea id="private-note-input" placeholder="e.g. Carolina was wonderful today, Mom seemed much happier. Or: the timing felt rushed..." rows="3" style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px;font-size:14px;color:var(--text);resize:none;font-family:'Inter',sans-serif;line-height:1.5;outline:none;box-sizing:border-box;" maxlength="600" oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,120)+'px';updateNoteCount(this)"></textarea>
+          </div>
+
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-top:4px;">
             <span style="font-size:11px;color:var(--muted);" id="note-char-count">0 / 600</span>
             <button onclick="submitPrivateNote()" style="background:var(--accent);color:#fff;border:none;border-radius:10px;padding:10px 20px;font-size:13px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;touch-action:manipulation;">Send to Coordinator</button>
           </div>
@@ -953,15 +977,27 @@ function updateNoteCount(el) {
   if (countEl) { countEl.textContent = count + ' / 600'; countEl.style.color = count > 550 ? 'var(--error)' : 'var(--muted)'; }
 }
 
+let _perfRating = 0;
+
+function setPerfRating(n) {
+  _perfRating = n;
+  const stars = document.querySelectorAll('#perf-stars button');
+  stars.forEach((btn, i) => { btn.textContent = i < n ? '★' : '☆'; });
+}
+
 async function submitPrivateNote(visitDate, pswName) {
   const input = document.getElementById('private-note-input');
   const successEl = document.getElementById('note-success');
   if (!input || !input.value.trim()) return;
   const note = input.value.trim();
-  // Build context string if called from a visit row
-  const contextNote = visitDate && pswName
-    ? `[Re: ${pswName} visit on ${visitDate}] ${note}`
-    : note;
+
+  // Get PSW from dropdown if present
+  const pswSelect = document.getElementById('feedback-psw-select');
+  const selectedPSW = pswSelect ? pswSelect.value : (pswName || '');
+  const rating = _perfRating > 0 ? `[Rating: ${_perfRating}/5] ` : '';
+  const pswTag = selectedPSW ? `[Re: ${selectedPSW}] ` : (visitDate && pswName ? `[Re: ${pswName} on ${visitDate}] ` : '');
+  const contextNote = `${pswTag}${rating}${note}`;
+
   try {
     const res = await fetch(`${R}/family/private-note`, {
       method: 'POST',
@@ -971,6 +1007,9 @@ async function submitPrivateNote(visitDate, pswName) {
     const d = await res.json();
     if (!d.success) throw new Error(d.error || 'Failed');
     input.value = '';
+    if (pswSelect) pswSelect.value = '';
+    _perfRating = 0;
+    document.querySelectorAll('#perf-stars button').forEach(b => b.textContent = '☆');
     const countEl = document.getElementById('note-char-count');
     if (countEl) countEl.textContent = '0 / 600';
     if (successEl) { successEl.style.display = 'block'; setTimeout(() => { if(successEl) successEl.style.display = 'none'; }, 5000); }
