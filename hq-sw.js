@@ -1,5 +1,5 @@
 // Proximity HQ Service Worker
-const CACHE = 'proximity-hq-v3';
+const CACHE = 'proximity-hq-v4';
 const STATIC = [
   '/hq.html',
   '/hq-manifest.json',
@@ -36,6 +36,20 @@ self.addEventListener('fetch', e => {
           headers: { 'Content-Type': 'application/json' }
         })
       )
+    );
+    return;
+  }
+
+  // Network-first for HTML so updates land immediately
+  if (url.pathname.endsWith('.html') || url.pathname === '/') {
+    e.respondWith(
+      fetch(e.request).then(res => {
+        if (res && res.status === 200) {
+          const clone = res.clone();
+          caches.open(CACHE).then(cache => cache.put(e.request, clone));
+        }
+        return res;
+      }).catch(() => caches.match(e.request))
     );
     return;
   }

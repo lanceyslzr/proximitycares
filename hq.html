@@ -15,7 +15,30 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js">
+async function resendOnboardLink(applicantId, firstName, btn) {
+  if (!applicantId) return;
+  const orig = btn.textContent;
+  btn.textContent = 'Sending...'; btn.disabled = true;
+  try {
+    const res = await fetch(`${API}/psw/onboard/init`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ applicant_id: applicantId, operator_id: currentOp })
+    });
+    const d = await res.json();
+    if (!res.ok || !d.success) throw new Error(d.error || 'Failed');
+    btn.textContent = '✓ Sent';
+    btn.style.color = 'var(--teal2)';
+    showToast(`Onboarding link resent to ${firstName} ✓`, 'ok');
+    setTimeout(() => { btn.textContent = orig; btn.disabled = false; btn.style.color = ''; }, 3000);
+  } catch(e) {
+    btn.textContent = orig; btn.disabled = false;
+    showToast('Failed to resend: ' + e.message, 'err');
+  }
+}
+
+</script>
 <script>
 // ── GPS LIVE MAP ──
 let _leafletMap = null;
@@ -2553,7 +2576,7 @@ async function loadApplicants() {
           ${st==='onboarding'?`<span class="card-act" style="color:var(--muted);font-size:9px;letter-spacing:1px;">AWAITING DOCS</span>`:''}
           ${st==='hired'?`<button class="card-act ok" onclick="activateApplicantAsStaff('${a.id}','${name}','${a.email||''}','${a.phone||''}')">Send Portal Access →</button>`:''}
           ${st==='active'?`<span class="card-act" style="color:var(--teal2);font-size:9px;letter-spacing:1px;">ACTIVE ✓</span>`:''}
-          <a href="https://proximitycares.ca/psw-onboard.html" target="_blank" class="card-act" style="font-size:8px">Preview Portal</a>
+          <button class="card-act" style="font-size:8px;background:none;border:1px solid var(--border2);cursor:pointer;" onclick="resendOnboardLink('${a.id}','${a.first_name}',this)">↻ Resend Link</button>
         </div>
       </div>`;
     }).join('');
