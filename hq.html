@@ -95,7 +95,7 @@ async function refreshMapLocations() {
 
       const marker = L.marker([lat, lng], { icon })
         .addTo(_leafletMap)
-        .bindPopup(`<b>${loc.psw_name}</b><br>${loc.client_name}<br>Checked in ${loc.time_in||''}${elapsed?' · '+elapsed+' ago':''}`);
+        .bindPopup(`<b>${loc.psw_name}</b><br>${loc.client_name}<br>Checked in ${loc.time_in?fmtTime(loc.time_in):''}${elapsed?' · '+elapsed+' ago':''}`);
       _mapMarkers.push(marker);
       bounds.push([lat, lng]);
     });
@@ -2164,7 +2164,7 @@ async function renderVisits() {
         <div class="card-header" onclick="toggleVisit('${vid}')" style="cursor:pointer;">
           <div style="flex:1;min-width:0;">
             <div class="card-name">${v.psw_name||'—'}</div>
-            <div class="card-sub">${v.client_name||'—'} · ${v.time_in||''} ${v.time_out?'to '+v.time_out:''}</div>
+            <div class="card-sub">${v.client_name||'—'} · ${fmtTime(v.time_in)} ${v.time_out?'to '+fmtTime(v.time_out):''}</div>
             <div class="card-meta">${tasks ? tasks.slice(0,60)+(tasks.length>60?'...':'') : 'No tasks logged'}</div>
             ${v.incident_reported?`<div style="font-size:11px;color:var(--red);margin-top:4px;display:flex;align-items:center;gap:6px;">⚠ Incident ${v.incident_resolved?'<span style="color:var(--green2);">Resolved</span>':"<button onclick='event.stopPropagation();openIncidentResolve("+JSON.stringify(v)+")' style='font-family:var(--mono);font-size:8px;background:rgba(224,85,85,.1);border:1px solid rgba(224,85,85,.3);color:var(--red);padding:2px 8px;border-radius:3px;cursor:pointer;min-height:24px;'>Resolve</button>"}</div>`:''}
           </div>
@@ -2324,12 +2324,24 @@ function ago(str) {
 function fmtd(str) {
   if(!str) return '—';
   const d=new Date(str.includes('T')?str:str+'T12:00:00');
-  return d.toLocaleDateString('en-CA',{month:'short',day:'numeric'});
+  return d.toLocaleDateString('en-CA',{month:'short',day:'numeric',timeZone:'America/Toronto'});
 }
 function fmtdt(str) {
   if(!str) return '—';
   const d=new Date(str);
-  return d.toLocaleDateString('en-CA',{month:'short',day:'numeric',year:'numeric'})+' '+d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+  const tz='America/Toronto';
+  return d.toLocaleDateString('en-CA',{month:'short',day:'numeric',year:'numeric',timeZone:tz})+' '+d.toLocaleTimeString('en-CA',{hour:'2-digit',minute:'2-digit',timeZone:tz});
+}
+function fmtTime(str) {
+  if(!str) return '—';
+  // Handles both "HH:MM:SS" raw strings and ISO timestamps
+  if(str.includes('T') || str.includes('Z') || str.includes('+')) {
+    return new Date(str).toLocaleTimeString('en-CA',{hour:'2-digit',minute:'2-digit',timeZone:'America/Toronto'});
+  }
+  // Raw time string from DB like "11:59:00" — parse as Toronto local
+  const [h,m] = str.split(':');
+  const d = new Date(); d.setUTCHours(parseInt(h), parseInt(m), 0, 0);
+  return d.toLocaleTimeString('en-CA',{hour:'2-digit',minute:'2-digit',timeZone:'America/Toronto'});
 }
 function showToast(msg,type='ok') {
   const t=document.getElementById('toast');
