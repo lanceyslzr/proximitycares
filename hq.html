@@ -1323,6 +1323,7 @@ function updateDots() { for(let i=0;i<4;i++) document.getElementById('d'+i).clas
 function switchOp(id, name) {
   currentOp = id; currentOpName = name;
   window._sentimentData = null; // Clear sentiment cache on operator switch
+  window._arData = null; // Clear AR cache on operator switch
   document.getElementById('op-label').textContent = name;
   ['proximity-care','lcm-experts','proximity-systems'].forEach(op => {
     const el = document.getElementById('oc-'+op);
@@ -1524,6 +1525,13 @@ function renderClients() {
       .then(d => { if (d.success) { window._sentimentData = d.sentiment; renderClients(); } })
       .catch(() => {});
   }
+  // Fetch AR data lazily for overdue badges
+  if (!window._arData && clients.length) {
+    fetch(`${API}/hq/ar?operator_id=${currentOp}`)
+      .then(r => r.json())
+      .then(d => { if (d.success) { window._arData = d.invoices || []; renderClients(); } })
+      .catch(() => {});
+  }
   const el = document.getElementById('clients-list');
   if (!el.querySelector('.card')) showSkeleton('clients-list', 4, true);
   if(!clients.length) { el.innerHTML='<div class="empty-state"><div class="empty-state-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78z"/></svg></div><div class="empty-state-title">No active clients</div><div class="empty-state-sub">Onboard your first client to get started.</div></div>'; return; }
@@ -1535,6 +1543,11 @@ function renderClients() {
     const sentBadge = sentData && sentData.avg
       ? `<div style="font-family:var(--mono);font-size:9px;color:${sentData.alert?'var(--red)':sentData.trend==='down'?'var(--amber)':'var(--green2)'};">${sentData.avg}★ ${sentData.trend==='up'?'↑':sentData.trend==='down'?'↓':'→'}</div>`
       : '';
+    // BUILD 29 — overdue badge
+    const overdueInv = (window._arData||[]).find(inv => inv.client_name === name && inv.overdue);
+    const overdueBadge = overdueInv
+      ? `<div style="font-family:var(--mono);font-size:8px;letter-spacing:1px;padding:2px 6px;border-radius:100px;border:1px solid rgba(224,85,85,.4);color:var(--red);margin-top:2px;">OVERDUE $${parseFloat(overdueInv.total_amount||0).toFixed(0)}</div>`
+      : '';
     return `
     <div class="card">
       <div class="card-header" onclick="openClientDetail('${c.id}')">
@@ -1542,7 +1555,7 @@ function renderClients() {
           <div class="avatar">${ini}</div>
           <div><div class="card-name">${name}</div><div class="card-sub">${c.client_code?'<span style="font-family:var(--mono);color:var(--teal3);">'+c.client_code+'</span> · ':''} ${c.portal_slug||c.email||'—'}</div><div class="card-meta">Since ${fmtd(c.created_at)}</div></div>
         </div>
-        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;"><span class="badge b-active">Active</span>${sentBadge}</div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;"><span class="badge b-active">Active</span>${sentBadge}${overdueBadge}</div>
       </div>
       <div class="card-actions">
         <div class="card-act" onclick="genInvoice('${name}','${c.email||''}','${c.assigned_psw||''}',${c.client_rate||22},${c.psw_rate||19})">Invoice</div>
@@ -3638,6 +3651,59 @@ async function renderRevenue() {
   html += '</div></div>';
 
   el.innerHTML = html;
+
+  // BUILD 29 — AR section: load and append outstanding invoices
+  try {
+    const arRes = await fetch(`${API}/hq/ar?operator_id=${currentOp}`);
+    const arData = await arRes.json();
+    const invoices = arData.invoices || [];
+    const totalOut = arData.total_outstanding || 0;
+    const overdueCount = arData.overdue_count || 0;
+
+    let arHtml = `<div style="margin:0 12px 16px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+        <div style="font-family:var(--mono);font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--muted2);">Accounts Receivable</div>
+        <div style="display:flex;gap:6px;align-items:center;">
+          ${overdueCount ? `<span style="font-family:var(--mono);font-size:8px;letter-spacing:1px;padding:2px 7px;border-radius:100px;border:1px solid rgba(224,85,85,.4);color:var(--red);">⚠ ${overdueCount} OVERDUE</span>` : ''}
+          <span style="font-family:var(--mono);font-size:10px;color:var(--teal2);">$${totalOut.toFixed(0)} outstanding</span>
+        </div>
+      </div>`;
+
+    if (!invoices.length) {
+      arHtml += `<div style="font-family:var(--mono);font-size:10px;color:var(--muted);padding:12px 0;">All invoices paid ✓</div>`;
+    } else {
+      invoices.forEach(inv => {
+        const isOverdue = inv.overdue || inv.days_outstanding >= 30;
+        arHtml += `<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:${isOverdue ? 'rgba(224,85,85,.04)' : 'var(--bg2)'};border:1px solid ${isOverdue ? 'rgba(224,85,85,.25)' : 'var(--border)'};border-radius:6px;margin-bottom:4px;">
+          <div>
+            <div style="font-size:12px;font-weight:500;color:var(--text);">${inv.client_name||'—'}</div>
+            <div style="font-family:var(--mono);font-size:9px;color:${isOverdue ? 'var(--red)' : 'var(--muted)'};margin-top:2px;">${inv.month||''} ${inv.year||''} · ${inv.days_outstanding}d outstanding${isOverdue ? ' · OVERDUE' : ''}</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <div style="font-family:var(--mono);font-size:13px;color:${isOverdue ? 'var(--red)' : 'var(--teal2)'};">$${parseFloat(inv.total_amount||0).toFixed(0)}</div>
+            <button onclick="markInvoicePaid('${inv.id}')" style="font-family:var(--mono);font-size:8px;letter-spacing:1px;text-transform:uppercase;padding:5px 9px;border-radius:4px;border:1px solid rgba(74,154,110,.4);background:rgba(74,154,110,.08);color:var(--green2);cursor:pointer;min-height:30px;touch-action:manipulation;">Mark Paid</button>
+          </div>
+        </div>`;
+      });
+    }
+    arHtml += '</div>';
+
+    const revEl = document.getElementById('revenue-content');
+    if (revEl) revEl.innerHTML += arHtml;
+  } catch(e) { console.error('AR load error:', e.message); }
+}
+
+// ── BUILD 29 — MARK INVOICE PAID ──
+async function markInvoicePaid(id) {
+  try {
+    const res = await fetch(`${API}/hq/ar/mark-paid/${id}`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ operator_id: currentOp })
+    });
+    if (!res.ok) throw new Error();
+    showToast('Invoice marked paid ✓', 'ok');
+    renderRevenue();
+  } catch { showToast('Could not mark paid', 'err'); }
 }
 
 // ── PSW PROFILE DRAWER ──
