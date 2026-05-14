@@ -1685,6 +1685,11 @@ function lk(k) {
         sessionStorage.setItem('hq_auth', '1');
         document.getElementById('lock').style.display = 'none';
         document.getElementById('app').style.display = 'block';
+        // Show loading state immediately before data arrives
+        const todayShifts = document.getElementById('today-shifts-list');
+        if (todayShifts) todayShifts.innerHTML = '<div style="padding:16px;text-align:center;font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:2px;">LOADING...</div>';
+        const todayAct = document.getElementById('today-activity');
+        if (todayAct) todayAct.innerHTML = '<div style="padding:16px;text-align:center;font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:2px;">LOADING...</div>';
         loadAll(false);
         startHQIdleTimer();
       } else {
@@ -1919,15 +1924,23 @@ function attachLeadSwipe(id) {
 
 async function deleteLeadFromSwipe(id) {
   const wrap = document.getElementById('swipe-wrap-'+id);
+  const inner = document.getElementById('swipe-inner-'+id);
+  const del = document.getElementById('swipe-del-'+id);
   try {
     const res = await fetch(`${API}/hq/lead/${id}?operator_id=${currentOp}`, { method: 'DELETE' });
-    if (!res.ok) throw new Error();
+    const d = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(d.error || 'Delete failed');
     // Animate out
     if (wrap) { wrap.style.transition = 'all .25s'; wrap.style.opacity = '0'; wrap.style.maxHeight = wrap.offsetHeight+'px'; setTimeout(() => { wrap.style.maxHeight = '0'; wrap.style.margin = '0'; }, 50); setTimeout(() => wrap.remove(), 300); }
     D.leads = (D.leads||[]).filter(l => l.id !== id);
     showToast('Lead deleted', 'ok');
     renderStats();
-  } catch { showToast('Delete failed', 'err'); }
+  } catch(e) {
+    // Reset swipe position on failure
+    if (inner) { inner.style.transition = ''; inner.style.transform = ''; }
+    if (del) { del.style.transition = ''; del.style.transform = 'translateX(80px)'; }
+    showToast(e.message || 'Delete failed', 'err');
+  }
 }
 
 function openLeadDetail(id) {
@@ -3006,7 +3019,8 @@ function renderCRM() {
     all = [...supaLeads, ...seeds];
   } else {
     // Home care: use all leads for this operator (families inquiring about care)
-    all = D.leads || [];
+    // Filter out empty/junk leads with no identifying info
+    all = (D.leads || []).filter(l => l.first_name || l.last_name || l.email || l.phone);
   }
 
   // Group by stage
