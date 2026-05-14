@@ -388,7 +388,7 @@ a{color:inherit;text-decoration:none;}
   <!-- Cert expiry urgency banner — populated by loadDocuments -->
   <div id="cert-expiry-banner" style="display:none;"></div>
 
-  <div class="active-banner" id="home-active-banner">
+  <div class="active-banner" id="home-active-banner" style="display:none;">
     <div class="active-banner-lbl">Visit in progress</div>
     <div class="active-banner-client" id="home-active-client">—</div>
     <div class="active-banner-time" id="home-active-timein">Started at —</div>
@@ -994,7 +994,9 @@ async function loadAll() {
 async function loadSchedule() {
   try {
     const now = new Date();
-    const fromDate = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-01`;
+    // Start from 14 days ago to show recent history, extend 60 days forward for next-month shifts
+    const past = new Date(now); past.setDate(now.getDate() - 14);
+    const fromDate = past.toISOString().slice(0, 10);
     const res = await fetch(`${API}/psw/schedule-upcoming?psw_name=${encodeURIComponent(pswName)}&pin=${pswPin}&operator_id=${pswOperatorId}&from_date=${fromDate}`);
     const d = await res.json();
     if (!d.success) return;
@@ -1148,7 +1150,7 @@ function renderWeek() {
   const bookings = scheduleData?.bookings || [];
   const visits = scheduleData?.completed_visits || [];
   const todayStr = new Date().toISOString().slice(0,10);
-  el.innerHTML = days.map(d => {
+  el.innerHTML = days.map((d, i) => {
     const ds = d.toISOString().slice(0,10);
     const isToday = ds === todayStr;
     const dayLabel = d.toLocaleDateString('en-CA', {weekday:'short',month:'short',day:'numeric'});
