@@ -3834,9 +3834,88 @@ function openClientDetail(id) {
     <button class="sbtn" style="margin-top:4px;background:rgba(200,169,110,.12);color:var(--gold);border:1px solid rgba(200,169,110,.3);" onclick="saveClientEdits('${id}')">Save Changes</button>
 
     <button class="sbtn" style="margin-top:8px;" onclick="genInvoice('${name}','${c.family_email||c.email||''}','${c.assigned_psw||''}',${c.client_rate||22},${c.psw_rate||19});closeSheet('client-sheet');">Generate Invoice</button>
-    <button class="sbtn ghost" style="margin-top:8px;" onclick="triggerOnboardClient('${slug}');closeSheet('client-sheet');">Resend Welcome Email</button>`;
+    <button class="sbtn ghost" style="margin-top:8px;" onclick="triggerOnboardClient('${slug}');closeSheet('client-sheet');">Resend Welcome Email</button>
+
+    <div style="margin:18px 0 10px;font-family:var(--mono);font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--teal2);">Family Contacts</div>
+    <div id="fc-list-${id}" style="margin-bottom:10px;"><div style="font-family:var(--mono);font-size:10px;color:var(--muted);">Loading contacts...</div></div>
+    <div style="display:flex;flex-direction:column;gap:6px;padding:12px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;">
+      <div style="font-family:var(--mono);font-size:8px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:4px;">Add Contact</div>
+      <input class="sinput" id="fc-name-${id}" placeholder="Full name" style="font-size:15px;">
+      <input class="sinput" id="fc-email-${id}" placeholder="Email address" type="email" style="font-size:15px;">
+      <input class="sinput" id="fc-phone-${id}" placeholder="Phone (optional)" type="tel" style="font-size:15px;">
+      <input class="sinput" id="fc-rel-${id}" placeholder="Relationship (e.g. Daughter)" style="font-size:15px;">
+      <button class="sbtn" style="margin-top:4px;" onclick="addFamilyContact('${id}','${slug}')">Add Contact</button>
+    </div>`;
   loadCarePlan(slug);
+  loadFamilyContactsForClient(id, slug);
   openSheet('client-sheet');
+}
+
+async function loadFamilyContactsForClient(clientId, slug) {
+  const el = document.getElementById(`fc-list-${clientId}`);
+  if (!el || !slug) return;
+  try {
+    const res = await fetch(`${API}/hq/family-contacts/${slug}?operator_id=${currentOp}`);
+    const d = await res.json();
+    const contacts = d.contacts || [];
+    if (!contacts.length) {
+      el.innerHTML = `<div style="font-family:var(--mono);font-size:10px;color:var(--muted);padding:4px 0;">No additional contacts — notifications go to primary family email</div>`;
+      return;
+    }
+    el.innerHTML = contacts.map(fc => `
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--bg2);border:1px solid var(--border);border-radius:6px;margin-bottom:4px;">
+        <div>
+          <div style="font-size:12px;font-weight:500;color:var(--text);">${fc.name} <span style="font-family:var(--mono);font-size:9px;color:var(--muted);">${fc.relationship||''}</span></div>
+          <div style="font-size:11px;color:var(--muted2);margin-top:2px;">${fc.email}${fc.phone?' · '+fc.phone:''}</div>
+          <div style="display:flex;gap:8px;margin-top:6px;">
+            ${['checkin','summary','missed_visit'].map(type => `
+              <label style="display:flex;align-items:center;gap:4px;font-family:var(--mono);font-size:8px;letter-spacing:1px;color:${fc['receives_'+type]!==false?'var(--teal2)':'var(--muted)'};cursor:pointer;">
+                <input type="checkbox" ${fc['receives_'+type]!==false?'checked':''} onchange="toggleFamilyContactPref('${fc.id}','${type}',this.checked)" style="width:12px;height:12px;">
+                ${type.replace('_',' ')}
+              </label>`).join('')}
+          </div>
+        </div>
+        <button data-del-id="${fc.id}" data-del-name="${fc.name.replace(/"/g,'&quot;')}" onclick="removeFamilyContact(this.dataset.delId,this.dataset.delName,'${clientId}','${slug}')" style="font-size:13px;color:var(--muted);background:none;border:none;padding:4px;cursor:pointer;flex-shrink:0;">✕</button>
+      </div>`).join('');
+  } catch { el.innerHTML = `<div style="font-family:var(--mono);font-size:10px;color:var(--red);">Could not load contacts</div>`; }
+}
+
+async function addFamilyContact(clientId, slug) {
+  const name = document.getElementById(`fc-name-${clientId}`)?.value.trim();
+  const email = document.getElementById(`fc-email-${clientId}`)?.value.trim();
+  const phone = document.getElementById(`fc-phone-${clientId}`)?.value.trim();
+  const rel = document.getElementById(`fc-rel-${clientId}`)?.value.trim();
+  if (!name || !email) { showToast('Name and email required', 'err'); return; }
+  try {
+    const res = await fetch(`${API}/hq/family-contacts`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ client_slug: slug, operator_id: currentOp, name, email, phone: phone||null, relationship: rel||null })
+    });
+    if (!res.ok) throw new Error((await res.json()).error || 'Failed');
+    showToast(name + ' added ✓', 'ok');
+    ['fc-name','fc-email','fc-phone','fc-rel'].forEach(p => { const el = document.getElementById(`${p}-${clientId}`); if(el) el.value=''; });
+    loadFamilyContactsForClient(clientId, slug);
+  } catch(e) { showToast(e.message || 'Failed', 'err'); }
+}
+
+async function removeFamilyContact(id, name, clientId, slug) {
+  const confirmed = window.confirm ? window.confirm('Remove ' + name + '?') : true;
+  if (!confirmed) return;
+  try {
+    const res = await fetch(`${API}/hq/family-contacts/${id}?operator_id=${currentOp}`, { method: 'DELETE' });
+    if (!res.ok) throw new Error();
+    showToast(name + ' removed', 'ok');
+    loadFamilyContactsForClient(clientId, slug);
+  } catch { showToast('Could not remove contact', 'err'); }
+}
+
+async function toggleFamilyContactPref(id, type, value) {
+  try {
+    await fetch(`${API}/hq/family-contacts/${id}`, {
+      method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ operator_id: currentOp, [`receives_${type}`]: value })
+    });
+  } catch { showToast('Could not update preference', 'err'); }
 }
 
 // Auto-refresh every 30s — when 20 PSWs are active, data stays current
