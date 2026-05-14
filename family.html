@@ -283,9 +283,9 @@ button:active{transform:scale(0.98);}
       <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78z"/></svg></span>
       <span class="nav-label">Care Plan</span>
     </button>
-    <button class="nav-btn" id="nav-docs" onclick="showTab('docs')">
-      <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h6"/></svg></span>
-      <span class="nav-label">Documents</span>
+    <button class="nav-btn" id="nav-ask" onclick="showTab('ask')">
+      <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>
+      <span class="nav-label">Ask</span>
     </button>
     <button class="nav-btn" id="nav-billing" onclick="showTab('billing')">
       <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18"/><path d="M7 15h3"/></svg></span>
@@ -397,7 +397,7 @@ async function loadPortal() {
 function renderAll() {
   try {
     const saved = localStorage.getItem('family_tab_'+slug);
-    showTab(saved && ['home','visits','care','docs','billing'].includes(saved) ? saved : 'home');
+    showTab(saved && ['home','visits','care','ask','billing'].includes(saved) ? saved : 'home');
   } catch(e) { showTab('home'); }
   setTimeout(loadFamilyMessages, 100);
 }
@@ -441,6 +441,22 @@ function showTab(tab) {
         <div class="status-detail">${client.schedule || 'Schedule on file'}</div>
         <div class="status-badge"><span class="status-dot"></span>${statusMsg}</div>
       </div>
+      ${today_visit?.voice_note_url ? `<div style="margin-bottom:16px;padding:14px 16px;background:rgba(58,170,138,0.06);border:1px solid rgba(58,170,138,0.2);border-radius:12px;">
+        <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;color:var(--accent);margin-bottom:8px;">🎙 Voice message from ${(today_visit.psw_name||'your caregiver').split(' ')[0]}</div>
+        <audio controls src="${today_visit.voice_note_url}" style="width:100%;height:36px;border-radius:6px;"></audio>
+      </div>` : ''}
+      <a href="tel:6473828047" style="display:flex;align-items:center;justify-content:center;gap:10px;padding:13px;background:var(--accent);border-radius:12px;text-decoration:none;margin-bottom:16px;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.39 2 2 0 0 1 3.6 1.22h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L7.91 8.96a16 16 0 0 0 6 6l.96-.96a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+        <span style="color:#fff;font-size:13px;font-weight:600;font-family:'Inter',sans-serif;">Call Coordinator — 647-382-8047</span>
+      </a>
+      ${(portalData.upcoming_bookings||[]).length ? `<div class="section"><div class="section-title">Upcoming Visits</div><div class="card">${(portalData.upcoming_bookings||[]).slice(0,3).map(b => {
+        const bd = new Date((b.scheduled_date||'')+'T12:00:00');
+        const dow = bd.toLocaleDateString('en-CA',{weekday:'short'});
+        const num = bd.getDate();
+        const mon = bd.toLocaleDateString('en-CA',{month:'short'});
+        const time = b.scheduled_time?b.scheduled_time.slice(0,5):'';
+        return '<div class="upcoming-row"><div class="upcoming-date"><div class="upcoming-date-dow">'+dow+'</div><div class="upcoming-date-num">'+num+'</div></div><div class="upcoming-info"><div class="upcoming-psw">'+(b.assigned_to||psw.name)+'</div><div class="upcoming-time">'+mon+' '+num+(time?' · '+time:'')+'</div></div><div class="upcoming-badge">Scheduled</div></div>';
+      }).join('')}</div></div>` : ''}
       <div class="section">
         <div class="section-title">Your Care Team</div>
         ${(() => {
@@ -496,7 +512,36 @@ function showTab(tab) {
     const all = visits || [];
     const shown = all.slice(0, 5);
     const rest = all.slice(5);
-    html = `
+
+    // Mood trend chart
+    const moodMap = {'Great':5,'Good':4,'Neutral':3,'Low':2,'Agitated':1};
+    const moodData = all.filter(v => v.client_mood && moodMap[v.client_mood]).slice(0,20).reverse();
+    const moodChart = moodData.length >= 3 ? (() => {
+      const W = 300, H = 56, pad = 8;
+      const vals = moodData.map(v => moodMap[v.client_mood]);
+      const pts = vals.map((v,i) => {
+        const x = pad + (i/(vals.length-1))*(W-pad*2);
+        const y = H - pad - ((v-1)/4)*(H-pad*2);
+        return `${x.toFixed(1)},${y.toFixed(1)}`;
+      });
+      const lastVal = vals[vals.length-1];
+      const lastColor = lastVal>=4?'#3aaa8a':lastVal===3?'#c8a96e':'#e05555';
+      const lastMood = moodData[moodData.length-1].client_mood;
+      return `<div class="section"><div class="section-title">Wellbeing Trend — Last ${moodData.length} Visits</div><div class="card" style="padding:16px;">
+        <div style="display:flex;justify-content:space-between;margin-bottom:8px;"><span style="font-size:12px;color:var(--muted);">${fmtDate(moodData[0].visit_date)}</span><span style="font-size:13px;font-weight:600;color:${lastColor};">Most recent: ${lastMood}</span></div>
+        <svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;">
+          <polyline points="${pts.join(' ')}" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+          ${pts.map((pt,i)=>`<circle cx="${pt.split(',')[0]}" cy="${pt.split(',')[1]}" r="3" fill="${vals[i]>=4?'#3aaa8a':vals[i]===3?'#c8a96e':'#e05555'}"/>`).join('')}
+        </svg>
+        <div style="display:flex;justify-content:space-between;margin-top:4px;font-size:10px;color:var(--muted);"><span>Low</span><span>Neutral</span><span>Great</span></div>
+      </div></div>`;
+    })() : '';
+
+    // Photo gallery
+    const allPhotos = all.flatMap(v => Array.isArray(v.task_photos)?v.task_photos.map(url=>({url,date:v.visit_date})):[]);
+    const photoGallery = allPhotos.length ? `<div class="section"><div class="section-title">Visit Photos</div><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:3px;border-radius:12px;overflow:hidden;">${allPhotos.slice(0,9).map(p=>`<a href="${p.url}" target="_blank" style="display:block;aspect-ratio:1;overflow:hidden;"><img src="${p.url}" alt="Visit photo" style="width:100%;height:100%;object-fit:cover;" loading="lazy"></a>`).join('')}</div>${allPhotos.length>9?`<div style="text-align:center;padding:8px;font-size:12px;color:var(--muted);">${allPhotos.length-9} more photos</div>`:''}</div>` : '';
+
+    html = moodChart + photoGallery + `
       <div class="section">
         <div class="section-title">All Visits</div>
         <div class="card">
@@ -625,6 +670,30 @@ function showTab(tab) {
       </div>`;
   }
 
+  else if (tab === 'ask') {
+    const clientName = portalData.client?.first_name || 'your loved one';
+    const recentVisit = (portalData.visits||[])[0];
+    const visitCtx = recentVisit
+      ? `Last visit ${recentVisit.visit_date} with ${recentVisit.psw_name||'PSW'}. Mood: ${recentVisit.client_mood||'not recorded'}. Summary: ${(recentVisit.visit_summary||'').slice(0,200)}. Tasks: ${Array.isArray(recentVisit.tasks_completed)?recentVisit.tasks_completed.join(', '):'not listed'}.`
+      : 'No recent visits on file.';
+    window._askCtx = { visitCtx, clientName, phone: portalData.branding?.owner_phone || '647-382-8047' };
+    html = `
+      <div class="section">
+        <div class="section-title">Ask About Care</div>
+        <p style="font-size:13px;color:var(--muted);line-height:1.6;margin:0 0 16px;">Ask anything about recent visits, how ${clientName} is doing, or what the care team has been working on.</p>
+        <div id="ask-msgs" style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px;"></div>
+        <div style="display:flex;gap:8px;align-items:flex-end;">
+          <textarea id="ask-input" placeholder='e.g. "Did she eat today?" or "How has her mood been?"' rows="2" style="flex:1;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px;font-size:14px;color:var(--text);resize:none;font-family:'Inter',sans-serif;line-height:1.5;outline:none;box-sizing:border-box;" maxlength="300"></textarea>
+          <button onclick="sendAskMessage()" style="background:var(--accent);color:#fff;border:none;border-radius:10px;padding:12px 16px;font-size:14px;cursor:pointer;touch-action:manipulation;flex-shrink:0;">Ask</button>
+        </div>
+        <div style="margin-top:12px;display:flex;flex-wrap:wrap;gap:6px;">
+          ${['Did she eat today?','How was her mood?','What did the caregiver do?','Any concerns this week?'].map(q =>
+            `<button onclick="document.getElementById('ask-input').value='${q}'" style="background:var(--surface);border:1px solid var(--border);border-radius:100px;padding:6px 12px;font-size:12px;color:var(--muted);cursor:pointer;font-family:'Inter',sans-serif;touch-action:manipulation;">${q}</button>`
+          ).join('')}
+        </div>
+      </div>`;
+  }
+
   else if (tab === 'billing') {
     const { invoices } = portalData;
     html = `
@@ -665,6 +734,49 @@ function showTab(tab) {
 }
 
 // ── HELPERS ──
+// AI CHAT — Ask about visits
+async function sendAskMessage() {
+  const input = document.getElementById('ask-input');
+  const msgs = document.getElementById('ask-msgs');
+  if (!input || !msgs) return;
+  const q = input.value.trim();
+  if (!q) return;
+  input.value = '';
+
+  // User bubble
+  msgs.innerHTML += `<div style="align-self:flex-end;background:var(--accent);color:#fff;border-radius:14px 14px 4px 14px;padding:10px 14px;max-width:80%;font-size:14px;line-height:1.5;">${q}</div>`;
+  const thinking = document.createElement('div');
+  thinking.style.cssText = 'align-self:flex-start;background:var(--surface);border:1px solid var(--border);border-radius:14px 14px 14px 4px;padding:10px 14px;max-width:80%;font-size:14px;color:var(--muted);';
+  thinking.textContent = 'Checking visit notes…';
+  msgs.appendChild(thinking);
+  msgs.scrollTop = msgs.scrollHeight;
+
+  const ctx = window._askCtx || {};
+  const systemPrompt = `You are a helpful care assistant for a home care agency. A family member is asking about their loved one's care. Answer warmly and concisely based only on the visit information provided. If you don't have information to answer the question, say so honestly and suggest they contact their coordinator at ${ctx.phone||'647-382-8047'}. Never make up information.`;
+  const userMsg = `Visit context: ${ctx.visitCtx||'No visits on file.'}\n\nFamily question: ${q}`;
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 300,
+        system: systemPrompt,
+        messages: [{ role: 'user', content: userMsg }]
+      })
+    });
+    const d = await res.json();
+    const reply = d.content?.[0]?.text || 'I wasn\'t able to retrieve that information right now. Please contact your coordinator directly.';
+    thinking.style.color = 'var(--text)';
+    thinking.textContent = reply;
+  } catch {
+    thinking.style.color = 'var(--muted)';
+    thinking.textContent = `I'm having trouble connecting right now. Please call your coordinator at ${ctx.phone||'647-382-8047'}.`;
+  }
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
 function emptyState(iconSvg, title, sub) {
   return `<div class="empty-state"><div class="empty-state-icon">${iconSvg}</div><div class="empty-state-title">${title}</div><div class="empty-state-sub">${sub}</div></div>`;
 }
