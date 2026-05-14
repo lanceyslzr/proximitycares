@@ -1194,6 +1194,7 @@ button:active{transform:scale(0.98);}
     <div style="display:flex;gap:6px;">
       <div class="sect-action" onclick="openAddShift('','')">+ Shift</div>
       <div class="sect-action" onclick="openBulkSchedule()" style="color:var(--gold);border-color:rgba(200,169,110,.3);">+ Bulk Week</div>
+      <div class="sect-action" onclick="openSwapSheet()" style="color:var(--purple2);border-color:rgba(160,96,224,.3);">⇄ Swap</div>
       <div class="sect-action" id="map-toggle-btn" onclick="toggleLiveMap()" style="color:var(--teal2);border-color:rgba(61,138,122,.3);">⬤ Live Map</div>
       <div class="sect-action" onclick="renderSchedule()">↻</div>
     </div>
@@ -1276,6 +1277,27 @@ button:active{transform:scale(0.98);}
     </div>
   </div>
   <button class="sbtn" onclick="saveBulkSchedule()" id="bulk-save-btn" style="margin:0 14px 8px;width:calc(100% - 28px);">Create Shifts</button>
+</div>
+
+<!-- SWAP PSW SHEET -->
+<div class="sheet" id="swap-sheet">
+  <div class="sheet-header">
+    <div class="sheet-title">Swap PSW</div>
+    <div class="sheet-close" onclick="closeSheet('swap-sheet')">✕</div>
+  </div>
+  <div style="padding:0 14px 8px;font-family:var(--mono);font-size:10px;color:var(--muted2);line-height:1.7;">Reassigns all future shifts from one PSW to another. Notifies the new PSW by email.</div>
+  <div class="sheet-row"><div class="slbl">From PSW (being replaced)</div>
+    <select class="sselect" id="swap-from"><option value="">Select PSW...</option></select>
+  </div>
+  <div class="sheet-row"><div class="slbl">To PSW (replacement)</div>
+    <select class="sselect" id="swap-to"><option value="">Select PSW...</option></select>
+  </div>
+  <div class="srow2" style="padding:0 14px;">
+    <div><div class="slbl">From Date *</div><input class="sinput" id="swap-from-date" type="date" style="font-size:16px;"></div>
+    <div><div class="slbl">To Date (optional)</div><input class="sinput" id="swap-to-date" type="date" style="font-size:16px;"></div>
+  </div>
+  <div style="margin:8px 14px 0;padding:10px 12px;background:rgba(224,154,61,.06);border:1px solid rgba(224,154,61,.2);border-radius:6px;font-family:var(--mono);font-size:9px;color:var(--amber);line-height:1.6;">Leave "To Date" blank to swap all future shifts with no end date.</div>
+  <button class="sbtn" onclick="executeSwap()" style="margin:12px 14px 8px;width:calc(100% - 28px);" id="swap-execute-btn">Execute Swap</button>
 </div>
 
 <!-- SIDEBAR OVERLAY -->
@@ -1621,9 +1643,15 @@ button:active{transform:scale(0.98);}
     <div id="sd-broadcast-row" style="margin-bottom:10px;display:none;">
       <button onclick="broadcastShift(window._sdBookingId)" style="width:100%;padding:10px;border-radius:6px;font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;min-height:40px;border:1px solid rgba(200,169,110,.3);background:rgba(200,169,110,.08);color:var(--gold);">📡 Broadcast to Available PSWs</button>
     </div>
+    <!-- Series actions — shown only when shift has a series_id -->
+    <div id="sd-series-row" style="display:none;margin-bottom:10px;display:flex;gap:6px;">
+      <button id="sd-cancel-this" data-booking-id="" style="flex:1;padding:8px 4px;border-radius:6px;font-family:var(--mono);font-size:8px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;min-height:36px;border:1px solid rgba(224,85,85,.25);background:rgba(224,85,85,.06);color:var(--red);touch-action:manipulation;">Cancel This</button>
+      <button id="sd-cancel-future" data-booking-id="" data-series-id="" style="flex:1;padding:8px 4px;border-radius:6px;font-family:var(--mono);font-size:8px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;min-height:36px;border:1px solid rgba(224,85,85,.4);background:rgba(224,85,85,.12);color:var(--red);touch-action:manipulation;">Cancel All Future</button>
+      <button id="sd-swap" data-psw="" style="flex:1;padding:8px 4px;border-radius:6px;font-family:var(--mono);font-size:8px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;min-height:36px;border:1px solid rgba(200,169,110,.3);background:rgba(200,169,110,.08);color:var(--gold);touch-action:manipulation;">Swap PSW</button>
+    </div>
     <div class="sd-btns">
       <button class="sd-edit-btn" id="sd-edit">Edit</button>
-      <button class="sd-delete-btn" id="sd-delete">Remove</button>
+      <button class="sd-delete-btn" id="sd-delete" data-booking-id="">Remove</button>
       <button class="sd-close-btn" id="sd-close">✕</button>
     </div>
   </div>
@@ -3791,8 +3819,28 @@ function _showShiftDetail(b, props) {
   window._sdBookingId = b.id;
   const broadcastRow = document.getElementById('sd-broadcast-row');
   if (broadcastRow) broadcastRow.style.display = (!b.assigned_to||b.assigned_to==='') ? 'block' : 'none';
+
+  // Series row — show if this booking has a series_id
+  const seriesRow = document.getElementById('sd-series-row');
+  if (seriesRow) {
+    if (b.series_id) {
+      seriesRow.style.display = 'flex';
+      const cancelThis = document.getElementById('sd-cancel-this');
+      const cancelFuture = document.getElementById('sd-cancel-future');
+      const swapBtn = document.getElementById('sd-swap');
+      if (cancelThis) cancelThis.dataset.bookingId = b.id;
+      if (cancelFuture) { cancelFuture.dataset.bookingId = b.id; cancelFuture.dataset.seriesId = b.series_id; }
+      if (swapBtn) swapBtn.dataset.psw = b.assigned_to || '';
+    } else {
+      seriesRow.style.display = 'none';
+    }
+  }
+
+  // Wire delete button via data-attribute (no inline onclick with dynamic id)
+  const delBtn = document.getElementById('sd-delete');
+  if (delBtn) delBtn.dataset.bookingId = b.id;
+
   document.getElementById('sd-edit').onclick   = () => { m.style.display='none'; openEditShift(b.id); };
-  document.getElementById('sd-delete').onclick = () => { m.style.display='none'; deleteShift(b.id); };
   document.getElementById('sd-close').onclick  = () => { m.style.display='none'; };
   m.style.display = 'flex';
 }
@@ -4001,11 +4049,14 @@ async function saveShift(addAnother = false) {
         }
       }
       const uniqueDates=[...new Set(dates)].slice(0,60);
+      // Generate series_id for recurring shifts so they can be cancelled as a group
+      const seriesId = recurring !== 'none' ? crypto.randomUUID() : null;
       // Fire all creates in parallel for speed
       const results = await Promise.all(uniqueDates.map(d =>
         fetch(`${API}/hq/booking`,{method:'POST',headers:{'Content-Type':'application/json'},
           body:JSON.stringify({operator_id:currentOp,client_name:client,booking_type:'visit',
-            scheduled_date:d,scheduled_time:time,assigned_to:psw,duration_minutes:duration})})
+            scheduled_date:d,scheduled_time:time,assigned_to:psw,duration_minutes:duration,
+            series_id:seriesId})})
         .then(r=>r.json()).catch(()=>({success:false}))
       ));
       const created=results.filter(r=>r.success).length;
@@ -4034,7 +4085,6 @@ async function saveShift(addAnother = false) {
 }
 
 async function deleteShift(id) {
-  if (!confirm('Remove this shift?')) return;
   try {
     const res = await fetch(`${API}/hq/booking/${id}?operator_id=${currentOp}`, { method: 'DELETE' });
     const d = await res.json();
@@ -4042,6 +4092,93 @@ async function deleteShift(id) {
     showToast('Shift removed', 'ok');
     await loadAll(false);
   } catch(e) { showToast(e.message, 'err'); }
+}
+
+// ── BATCH 4 — SERIES CANCEL ──
+// Delegated listener for shift detail modal buttons (data-attribute safe)
+document.addEventListener('click', async e => {
+  // Delete shift
+  const delBtn = e.target.closest('#sd-delete');
+  if (delBtn && delBtn.dataset.bookingId) {
+    document.getElementById('shift-detail-modal').style.display = 'none';
+    deleteShift(delBtn.dataset.bookingId);
+    return;
+  }
+  // Cancel this shift only
+  const cancelThis = e.target.closest('#sd-cancel-this');
+  if (cancelThis && cancelThis.dataset.bookingId) {
+    document.getElementById('shift-detail-modal').style.display = 'none';
+    await cancelSeries(cancelThis.dataset.bookingId, null, 'this');
+    return;
+  }
+  // Cancel this + all future in series
+  const cancelFuture = e.target.closest('#sd-cancel-future');
+  if (cancelFuture && cancelFuture.dataset.bookingId) {
+    document.getElementById('shift-detail-modal').style.display = 'none';
+    await cancelSeries(cancelFuture.dataset.bookingId, cancelFuture.dataset.seriesId, 'future');
+    return;
+  }
+  // Swap PSW from shift detail
+  const swapBtn = e.target.closest('#sd-swap');
+  if (swapBtn) {
+    document.getElementById('shift-detail-modal').style.display = 'none';
+    openSwapSheet(swapBtn.dataset.psw);
+    return;
+  }
+});
+
+async function cancelSeries(bookingId, seriesId, mode) {
+  try {
+    const res = await fetch(`${API}/hq/booking/cancel-series`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ operator_id: currentOp, booking_id: bookingId, series_id: seriesId, mode, reason: 'Cancelled via HQ' })
+    });
+    const d = await res.json();
+    if (!d.success) throw new Error(d.error);
+    showToast(mode === 'future' ? `${d.cancelled} shift${d.cancelled !== 1 ? 's' : ''} cancelled ✓` : 'Shift cancelled ✓', 'ok');
+    await loadAll(false);
+    _refreshFC();
+  } catch(e) { showToast(e.message || 'Cancel failed', 'err'); }
+}
+
+// ── BATCH 4 — SWAP PSW ──
+function openSwapSheet(preselectPSW) {
+  const psws = getMergedPSWList();
+  const fromSel = document.getElementById('swap-from');
+  const toSel = document.getElementById('swap-to');
+  fromSel.innerHTML = '<option value="">Select PSW...</option>' + psws.map(p => `<option value="${p.name}" ${p.name===preselectPSW?'selected':''}>${p.name}</option>`).join('');
+  toSel.innerHTML = '<option value="">Select replacement PSW...</option>' + psws.map(p => `<option value="${p.name}">${p.name}</option>`).join('');
+  const today = new Date().toISOString().slice(0,10);
+  document.getElementById('swap-from-date').value = today;
+  document.getElementById('swap-to-date').value = '';
+  openSheet('swap-sheet');
+}
+
+async function executeSwap() {
+  const fromPSW = document.getElementById('swap-from').value;
+  const toPSW = document.getElementById('swap-to').value;
+  const fromDate = document.getElementById('swap-from-date').value;
+  const toDate = document.getElementById('swap-to-date').value;
+  if (!fromPSW || !toPSW) { showToast('Select both PSWs', 'err'); return; }
+  if (fromPSW === toPSW) { showToast('From and To PSW must be different', 'err'); return; }
+  if (!fromDate) { showToast('From date required', 'err'); return; }
+  const btn = document.getElementById('swap-execute-btn');
+  btn.disabled = true; btn.textContent = 'Swapping...';
+  try {
+    const res = await fetch(`${API}/hq/swap-psw`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ operator_id: currentOp, from_psw: fromPSW, to_psw: toPSW, from_date: fromDate, to_date: toDate || undefined })
+    });
+    const d = await res.json();
+    if (!d.success) throw new Error(d.error);
+    showToast(`${d.swapped} shift${d.swapped !== 1 ? 's' : ''} reassigned to ${toPSW} ✓`, 'ok');
+    closeSheet('swap-sheet');
+    await loadAll(false);
+    _refreshFC();
+  } catch(e) { showToast(e.message || 'Swap failed', 'err'); }
+  btn.disabled = false; btn.textContent = 'Execute Swap';
 }
 
 // ── REVENUE ANALYTICS ──
