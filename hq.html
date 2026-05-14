@@ -619,6 +619,16 @@ button:active{transform:scale(0.98);}
 .lead-swipe-inner.swiped{transform:translateX(-80px);}
 .lead-swipe-delete.visible{transform:translateX(0);}
 
+@media(max-width:1024px){
+  .section{padding:0 8px;}
+  .sect-head-row{flex-wrap:wrap;gap:6px;}
+  .fc-toolbar-chunk{flex-wrap:wrap;}
+}
+@media(max-width:900px){
+  .sidebar{width:260px;}
+  .card-header{flex-wrap:wrap;gap:8px;}
+  .sheet{width:100%;max-width:100%;border-radius:20px 20px 0 0;}
+}
 @media(max-width:768px){
   .crm-board{grid-template-columns:1fr;}
   .crm-col{min-height:auto;}
@@ -1391,7 +1401,7 @@ button:active{transform:scale(0.98);}
   <div class="search-top">
     <div class="search-input-wrap">
       <span class="search-icon-inner">⌕</span>
-      <input class="search-main-input" id="search-main-input" placeholder="Search clients, PSWs, visits..." oninput="runGlobalSearch(this.value)" autocomplete="off" autocorrect="off" spellcheck="false">
+      <input class="search-main-input" id="search-main-input" placeholder="Search clients, PSWs, visits..." oninput="(function(v){clearTimeout(window._gst);window._gst=setTimeout(()=>runGlobalSearch(v),120);})(this.value)" autocomplete="off" autocorrect="off" spellcheck="false">
     </div>
     <span class="search-cancel" onclick="toggleSearch()">Cancel</span>
   </div>
@@ -1721,8 +1731,11 @@ function updateDots() { for(let i=0;i<4;i++) document.getElementById('d'+i).clas
 // ── OPERATOR ──
 function switchOp(id, name) {
   currentOp = id; currentOpName = name;
-  window._sentimentData = null; // Clear sentiment cache on operator switch
-  window._arData = null; // Clear AR cache on operator switch
+  window._sentimentData = null;
+  window._arData = null;
+  // Destroy FC so old operator schedule doesn't persist
+  if (window._fc) { try { window._fc.destroy(); } catch(e) {} window._fc = null; }
+  window._fcInitialized = false;
   document.getElementById('op-label').textContent = name;
   ['proximity-care','lcm-experts','proximity-systems'].forEach(op => {
     const el = document.getElementById('oc-'+op);
@@ -1732,35 +1745,61 @@ function switchOp(id, name) {
 }
 
 // ── DATA ──
+let _hqFetching = false;
 async function loadAll(spin=false) {
-  if(spin) { const b=document.getElementById('refresh-btn'); b.classList.add('refresh-spin'); setTimeout(()=>b.classList.remove('refresh-spin'),800); }
+  if (_hqFetching) return;
+  _hqFetching = true;
+  if(spin) { const b=document.getElementById('refresh-btn'); if(b){b.classList.add('refresh-spin'); setTimeout(()=>b.classList.remove('refresh-spin'),800);} }
   try {
     const [overviewRes, visitsRes] = await Promise.all([
       fetch(`${API}/hq/overview?operator_id=${currentOp}`),
-      fetch(`${API}/hq/visits?operator_id=${currentOp}&limit=200`)
+      fetch(`${API}/hq/visits?operator_id=${currentOp}&limit=500`)
     ]);
-    D = await overviewRes.json();
-    if(!D.success) throw new Error('API error');
+    const freshD = await overviewRes.json();
+    if(!freshD.success) throw new Error('API error');
+    D = freshD;
     try {
       const vd = await visitsRes.json();
       if (vd.visits) D.visits = vd.visits;
     } catch {}
+    // Invalidate lazy caches so next render fetches fresh data
+    window._sentimentData = null;
+    window._arData = null;
+    _mergedPSWCache = null;
+    window._pswsRendered = false;
     renderAll();
-  } catch(err) { showToast('Failed to load data', 'err'); }
+  } catch(err) { showToast('Failed to load data — check connection', 'err'); }
+  finally { _hqFetching = false; }
 }
 function renderAll() {
-  renderStats(); renderLeads(); renderClients(); renderPSWs();
-  renderBookings(); renderMessages(); renderActivity(); renderVisits(); renderVacantVisits();
-  // incident-count badge — only update if element exists
+  // Always render these — stats and today are always visible
+  renderStats();
+  renderToday();
+  renderVacantVisits();
+  updateNotifications();
+
+  // Render only currently active section eagerly — defer others
+  const activeSect = (document.querySelector('.section.active')?.id || '').replace('sect-','');
+
+  renderLeads();   // lightweight — always render
+  renderClients(); // needed for badges across sections
+
+  // Heavier renders — only if section is active or data is fresh
+  if (activeSect === 'psws' || !window._pswsRendered) { renderPSWs(); window._pswsRendered = true; }
+  if (activeSect === 'messages') { renderMessages(); }
+  if (activeSect === 'activity') { renderActivity(); }
+  if (activeSect === 'visits') { renderVisits(); }
+  if (activeSect === 'crm') { renderCRM(); }
+  if (activeSect === 'overview') { renderOverview(); }
+  if (activeSect === 'revenue') { renderRevenue().catch(()=>{}); }
+  renderBookings();
+
+  // Incident badge
   const icEl = document.getElementById('incident-count');
   if (icEl) {
     const openInc = (D.visits||[]).filter(v=>v.incident_reported&&!v.incident_resolved).length;
     icEl.textContent = openInc; icEl.style.display = openInc > 0 ? 'inline' : 'none';
   }
-  renderCRM();
-  renderOverview();
-  renderToday();
-  updateNotifications();
   // Sync sidebar badges
   const c = D.counts||{};
   const snLB = document.getElementById('sn-leads-badge');
@@ -1834,7 +1873,8 @@ function renderLeads() {
   const el = document.getElementById('leads-list');
   if (!el.querySelector('.card')) showSkeleton('leads-list', 5);
   if(!leads.length) { el.innerHTML = '<div class="empty-state"><div class="empty-state-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div><div class="empty-state-title">No leads yet</div><div class="empty-state-sub">Leads from your website and cold outreach will appear here.</div></div>'; return; }
-  el.innerHTML = leads.map(l => {
+  const leadsToShow = leads.slice(0,100);
+  el.innerHTML = leadsToShow.map(l => {
     const name = [l.first_name,l.last_name].filter(Boolean).join(' ') || l.email?.split('@')[0] || l.phone || 'Lead #'+l.id?.slice(-4);
     const st = l.status||'new';
     return `
@@ -1995,8 +2035,11 @@ async function setStatus(st) {
 }
 
 async function convertLead(id, email) {
-  activeLead = id; await setStatus('converted');
-  if(email) await fetch(`${API}/onboarding/convert`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({operator_id:currentOp,contact_email:email})}).catch(()=>{});
+  try {
+    activeLead = id;
+    await setStatus('converted');
+    if(email) await fetch(`${API}/onboarding/convert`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({operator_id:currentOp,contact_email:email})}).catch(()=>{});
+  } catch(e) { showToast(e.message||'Convert failed','err'); }
 }
 
 
@@ -2023,18 +2066,18 @@ function openClientSchedule(clientName) {
 function renderClients() {
   const clients = D.clients||[];
   // Fetch sentiment scores lazily if not already loaded
-  if (!window._sentimentData && clients.length) {
-    fetch(`${API}/hq/sentiment/${currentOp}`)
-      .then(r => r.json())
-      .then(d => { if (d.success) { window._sentimentData = d.sentiment; renderClients(); } })
-      .catch(() => {});
-  }
-  // Fetch AR data lazily for overdue badges
-  if (!window._arData && clients.length) {
-    fetch(`${API}/hq/ar?operator_id=${currentOp}`)
-      .then(r => r.json())
-      .then(d => { if (d.success) { window._arData = d.invoices || []; renderClients(); } })
-      .catch(() => {});
+  // Lazy fetch sentiment and AR — batch them, render once when both arrive
+  if (clients.length && (!window._sentimentData || !window._arData)) {
+    const fetches = [];
+    if (!window._sentimentData) fetches.push(
+      fetch(`${API}/hq/sentiment/${currentOp}`).then(r=>r.json())
+        .then(d=>{ if(d.success) window._sentimentData=d.sentiment; }).catch(()=>{})
+    );
+    if (!window._arData) fetches.push(
+      fetch(`${API}/hq/ar?operator_id=${currentOp}`).then(r=>r.json())
+        .then(d=>{ if(d.success) window._arData=d.invoices||[]; }).catch(()=>{})
+    );
+    Promise.all(fetches).then(()=>renderClients()); // single re-render when both done
   }
   const el = document.getElementById('clients-list');
   if (!el.querySelector('.card')) showSkeleton('clients-list', 4, true);
@@ -2068,7 +2111,7 @@ function renderClients() {
         <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;"><span class="badge b-active">Active</span>${sentBadge}${overdueBadge}${consentBadge}</div>
       </div>
       <div class="card-actions">
-        <div class="card-act" onclick="genInvoice('${name}','${c.email||''}','${c.assigned_psw||''}',${c.client_rate||22},${c.psw_rate||19})">Invoice</div>
+        <div class="card-act" data-cn="${name.replace(/"/g,'&quot;')}" data-em="${(c.family_email||c.email||'').replace(/"/g,'&quot;')}" data-pw="${(c.assigned_psw||'').replace(/"/g,'&quot;')}" data-cr="${c.client_rate||22}" data-pr="${c.psw_rate||19}" onclick="genInvoice(this.dataset.cn,this.dataset.em,this.dataset.pw,parseFloat(this.dataset.cr),parseFloat(this.dataset.pr))">Invoice</div>
         <div class="card-act primary" onclick="openClientSchedule('${name}')">Schedule</div>
         <div class="card-act" onclick="openClientDetail('${c.id}')">View</div>
         <div class="card-act ok" onclick="triggerOnboardClient('${c.portal_slug||''}')">Welcome</div>
@@ -2109,6 +2152,7 @@ async function saveCarePlan(clientId, slug, clientName) {
     const d = await res.json();
     if (!d.success) throw new Error(d.error);
     showToast('Care plan saved + version snapshot created','ok');
+    await loadAll(false); // Refresh D so care plan is current
   } catch(err) { showToast(err.message||'Save failed','err'); }
 }
 
@@ -2232,21 +2276,24 @@ function onNewPSWNameInput() {
   document.getElementById('pa-btn').disabled = !newName;
 }
 
+let _mergedPSWCache = null;
 function getMergedPSWList() {
-  // Live PSWs from Supabase have priority. Static PSWS roster is fallback for ones not yet activated.
+  // Memoized — only rebuild when D changes (loadAll sets _mergedPSWCache=null via cache invalidation)
+  if (_mergedPSWCache) return _mergedPSWCache;
   const live = (D && D.psws) ? D.psws : [];
   const liveNames = new Set(live.map(p => p.full_name));
   const merged = [];
-  // Add live PSWs first (with their actual data)
-  live.forEach(p => merged.push({ name: p.full_name, email: p.email || '', phone: p.phone || '', source: 'live' }));
-  // Add roster PSWs that haven't been activated yet
+  live.forEach(p => merged.push({
+    name: p.full_name, email: p.email || '', phone: p.phone || '',
+    id: p.id, status: p.status || 'active', source: 'live'
+  }));
   PSWS.forEach(name => {
     if(!liveNames.has(name)) {
       merged.push({ name, email: PSW_EMAILS[name] || '', phone: '', source: 'roster' });
     }
   });
-  // Sort alphabetically
   merged.sort((a, b) => a.name.localeCompare(b.name));
+  _mergedPSWCache = merged;
   return merged;
 }
 
@@ -2269,8 +2316,8 @@ function populateOnboardSelects() {
     coSelect.appendChild(opt2);
   });
 
-  if(document.getElementById('pa-pin').textContent === '0000') regenPIN('pa-pin');
-  if(document.getElementById('co-pin').textContent === '0000') regenPIN('co-pin');
+  if(document.getElementById('pa-pin')?.textContent === '0000') regenPIN('pa-pin');
+  if(document.getElementById('co-pin')?.textContent === '0000') regenPIN('co-pin');
   const startField = document.getElementById('co-start');
   if(startField && !startField.value) {
     const today = new Date();
@@ -2288,7 +2335,7 @@ async function activatePSW() {
   const name = (selectedValue === '__NEW__') ? newName : selectedValue;
   const email = document.getElementById('pa-email').value.trim();
   const phone = document.getElementById('pa-phone').value.trim();
-  const pin = document.getElementById('pa-pin').textContent;
+  const pin = document.getElementById('pa-pin')?.textContent;
   if(!name) { showToast(selectedValue === '__NEW__' ? 'Enter the new PSW full name' : 'Select a PSW','err'); return; }
   if(!email) { showToast('Enter PSW email','err'); return; }
   const btn = document.getElementById('pa-btn');
@@ -2377,7 +2424,7 @@ async function onboardClientFull() {
   const slug = document.getElementById('co-slug').value.trim();
   const familyEmail = document.getElementById('co-family-email').value.trim();
   const familyContactName = document.getElementById('co-family-name').value.trim();
-  const pin = document.getElementById('co-pin').textContent;
+  const pin = document.getElementById('co-pin')?.textContent;
   const psw = document.getElementById('co-psw').value;
   const clientRate = parseFloat(document.getElementById('co-client-rate').value) || 22;
   const pswRate = parseFloat(document.getElementById('co-psw-rate').value) || 19;
@@ -2436,7 +2483,7 @@ function renderPSWs() {
       : '';
     return `
     <div class="card">
-      <div class="card-header" onclick="openPSWDetail('${p.id||p.name}')" style="cursor:pointer;">
+      <div class="card-header" data-psw-id="${p.id||''}" data-psw-name="${p.name}" data-psw-source="${p.source||'live'}" onclick="if(this.dataset.pswSource==='live'){openPSWDetail(this.dataset.pswId||this.dataset.pswName);}else{showToast('PSW not yet activated in Supabase','err');}" style="cursor:pointer;">
         <div style="display:flex;align-items:center;gap:11px;flex:1;">
           <div class="avatar">${ini}</div>
           <div><div class="card-name">${p.name}${probationBadge}</div><div class="card-sub">${p.psw_code||p.id?'<span style="font-family:var(--mono);font-size:10px;color:var(--teal3);">'+(p.psw_code||'')+'</span> · ':''} ${email||'No email on file'}</div></div>
@@ -2446,7 +2493,7 @@ function renderPSWs() {
       <div class="card-actions">
         ${email?`<div class="card-act call" onclick="window.location.href='mailto:${email}'">Email</div>`:''}
         <div class="card-act" onclick="openPSWMsg('${p.name}')">Message</div>
-        <div class="card-act ok" onclick="openPSWDetail('${p.id||p.name}')">View</div>
+        <div class="card-act ok" data-psw-id="${p.id||''}" data-psw-name="${p.name}" data-psw-source="${p.source||'live'}" onclick="if(this.dataset.pswSource==='live'){openPSWDetail(this.dataset.pswId||this.dataset.pswName);}else{showToast('PSW not yet activated in Supabase','err');}">View</div>
       </div>
     </div>`;
   }).join('');
@@ -2579,7 +2626,7 @@ function renderMessages() {
     if (match) byClient[key].slug = match.portal_slug;
   });
   const rows = Object.values(byClient).sort((a,b) => new Date(b.last.created_at) - new Date(a.last.created_at));
-  el.innerHTML = rows.map(r => {
+  el.innerHTML = rows.slice(0,50).map(r => {
     const preview = (r.last.payload&&r.last.payload.message) ? r.last.payload.message : '—';
     const slugAttr = r.slug ? `data-fslug="${r.slug}"` : '';
     return `<div class="card" style="cursor:pointer;margin:0 12px 8px;" ${slugAttr} onclick="openFamilyThread(this.dataset.fslug,'${r.name.replace(/'/g,'&#39;')}')">
@@ -2637,7 +2684,7 @@ async function sendFamilyReply() {
     if (!d.success) throw new Error();
     document.getElementById('family-thread-input').value = '';
     showToast('Sent ✓','ok');
-    await openFamilyThread(activeFamilySlug, document.getElementById('family-thread-name').textContent);
+    await openFamilyThread(activeFamilySlug, document.getElementById('family-thread-name')?.textContent);
   } catch { showToast('Could not send — try again','err'); }
 }
 
@@ -2854,7 +2901,7 @@ async function renderActivity() {
     const logs = d.logs || d.activity || D.recent_activity || [];
     if(!logs.length) { el.innerHTML='<div class="empty-state"><div class="empty-state-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div><div class="empty-state-title">No activity yet</div><div class="empty-state-sub">System events will appear here as your agency operates.</div></div>'; return; }
     const icons={email_sent:'EML',webhook_received:'WBH',booking_created:'BKG',purchase:'SAL',psw_message:'MSG',family_message:'FAM',visit_complete:'VIS',visit_log:'VIS',checkout:'VIS',checkin:'CHK',lead_captured:'LDS',onboarding:'ONB'};
-    el.innerHTML=logs.map(l=>{
+    el.innerHTML=logs.slice(0,80).map(l=>{
       const type = l.event_type||l.type||'';
       const icon=icons[type]||'ACT';
       const cls=l.status==='error'?'li-err':l.status==='skipped'?'li-info':'li-ok';
@@ -2936,11 +2983,11 @@ function showSect(name) {
   const bnavs=document.querySelectorAll('.bnav-item');
   if(bi>=0&&bnavs[bi]) bnavs[bi].classList.add('active');
   if(name==='onboard') populateOnboardSelects();
-  if(name==='messages') { renderMessages(); loadFamilyNotes(); }
-  if(name==='activity') renderActivity();
-  if(name==='revenue') renderRevenue();
-  if(name==='crm') renderCRM();
-  if(name==='overview') renderOverview();
+  if(name==='messages') { window._dirtyMessages=false; renderMessages(); loadFamilyNotes(); }
+  if(name==='activity') { window._dirtyActivity=false; renderActivity(); }
+  if(name==='revenue') { window._dirtyRevenue=false; renderRevenue().catch(e=>showToast('Revenue load failed','err')); }
+  if(name==='crm') { window._dirtyCRM=false; renderCRM(); }
+  if(name==='overview') { window._dirtyOverview=false; renderOverview(); }
   if(name==='applicants') loadApplicants();
   if(name==='schedule') { renderSchedule(); renderVacantVisits(); }
   if(name==='today') renderToday();
@@ -3629,7 +3676,8 @@ function renderSchedule() {
   if (!window._fcInitialized) {
     window._fcInitialized = true;
     el.innerHTML = '<div id="fc-root" style="padding:0 12px 12px;"></div>';
-    setTimeout(() => _initFC(), 50);
+    // Wait for data to be ready before init
+    if (D.bookings && D.bookings.length >= 0) { _initFC(); } else { setTimeout(() => _initFC(), 300); }
   } else {
     _refreshFC();
   }
@@ -3639,16 +3687,23 @@ function _buildFCEvents() {
   const bookings = D.bookings || [];
   const visits   = D.visits  || [];
 
-  // Conflict detection
+  // Conflict detection — O(n) using Map grouped by PSW+date
   const conflicts = new Set();
-  bookings.forEach((b1,i) => {
-    bookings.forEach((b2,j) => {
-      if(i>=j) return;
-      if(!b1.assigned_to||b1.assigned_to!==b2.assigned_to||b1.scheduled_date!==b2.scheduled_date) return;
-      const t1s=toMins(b1.scheduled_time),t1e=t1s+(b1.duration_minutes||60);
-      const t2s=toMins(b2.scheduled_time),t2e=t2s+(b2.duration_minutes||60);
-      if(t1s<t2e&&t2s<t1e){conflicts.add(b1.id);conflicts.add(b2.id);}
-    });
+  const _pswDayMap = {};
+  bookings.forEach(b => {
+    if (!b.assigned_to || b.status === 'cancelled') return;
+    const key = b.assigned_to + '|' + b.scheduled_date;
+    if (!_pswDayMap[key]) _pswDayMap[key] = [];
+    _pswDayMap[key].push(b);
+  });
+  Object.values(_pswDayMap).forEach(group => {
+    if (group.length < 2) return;
+    group.sort((a,b) => toMins(a.scheduled_time) - toMins(b.scheduled_time));
+    for (let i = 0; i < group.length - 1; i++) {
+      const a = group[i], b = group[i+1];
+      const aEnd = toMins(a.scheduled_time) + (a.duration_minutes||60);
+      if (toMins(b.scheduled_time) < aEnd) { conflicts.add(a.id); conflicts.add(b.id); }
+    }
   });
   window._fcConflicts = conflicts;
 
@@ -3749,8 +3804,8 @@ function _initFC() {
       right:  'dayGridMonth,timeGridWeek,listWeek'
     },
     height: 'auto',
-    slotMinTime: '06:00:00',
-    slotMaxTime: '22:00:00',
+    slotMinTime: '05:00:00',
+    slotMaxTime: '23:00:00',
     allDaySlot: false,
     nowIndicator: true,
     editable: true,
@@ -3931,8 +3986,13 @@ async function _patchBooking(id, updates, fcInfo) {
     const d = await res.json();
     if (!d.success) throw new Error(d.error||'Failed');
     showToast('Shift updated', 'ok');
-    await loadAll(false);
+    // Targeted refresh — don't reload entire dataset for a single patch
+    const freshRes = await fetch(`${API}/hq/overview?operator_id=${currentOp}`);
+    const freshD = await freshRes.json();
+    if (freshD.success) { D = freshD; _mergedPSWCache = null; }
     _refreshFC();
+    renderVacantVisits();
+    renderStats();
   } catch(e) {
     showToast(e.message, 'err');
     if (fcInfo?.revert) fcInfo.revert();
@@ -3949,7 +4009,12 @@ function _showShiftDetail(b, props) {
 
   document.getElementById('sd-title').textContent = b.client_name || 'Shift';
   document.getElementById('sd-psw').textContent   = b.assigned_to || 'Unassigned';
-  document.getElementById('sd-date').textContent  = `${b.scheduled_date} · ${b.scheduled_time} · ${dur}h`;
+  const _sdStartMins = toMins(b.scheduled_time || '09:00');
+  const _sdEndMins = _sdStartMins + (b.duration_minutes || 480);
+  const _sdEndH = Math.floor(_sdEndMins/60)%24;
+  const _sdEndM = _sdEndMins%60;
+  const _sdEndFmt = (_sdEndH%12||12)+':'+String(_sdEndM).padStart(2,'0')+(_sdEndH>=12?' PM':' AM');
+  document.getElementById('sd-date').textContent  = b.scheduled_date+' · '+fmtTime(b.scheduled_time||'09:00')+' → '+_sdEndFmt+' ('+dur+'h)';
   document.getElementById('sd-status').textContent = isLive ? '🟢 Live now' : isConflict ? '🔴 Conflict' : b.status||'scheduled';
   document.getElementById('sd-conflict-row').style.display = isConflict ? 'block' : 'none';
   if (isConflict) {
@@ -4031,6 +4096,9 @@ function toMins(t) {
 
 // ── STATUS TOGGLE ──
 async function toggleShiftStatus(id, newStatus) {
+  // Optimistic UI — update D immediately, revert on error
+  const _origBooking = (D.bookings||[]).find(b=>b.id===id);
+  if (_origBooking) { _origBooking.status = newStatus; _refreshFC(); }
   try {
     const res = await fetch(`${API}/hq/booking/${id}`, {
       method: 'PATCH',
@@ -4040,8 +4108,11 @@ async function toggleShiftStatus(id, newStatus) {
     const d = await res.json();
     if(!d.success) throw new Error(d.error);
     showToast(newStatus==='cancelled'?'Shift marked off':'Shift back on','ok');
-    await loadAll(false);
-  } catch(e) { showToast(e.message,'err'); }
+    // Targeted refresh — just update calendar and vacant list
+    const freshRes = await fetch(`${API}/hq/overview?operator_id=${currentOp}`);
+    const freshD = await freshRes.json();
+    if (freshD.success) { D = freshD; _mergedPSWCache = null; _refreshFC(); renderVacantVisits(); renderStats(); }
+  } catch(e) { if(_origBooking && _origBooking._prevStatus){_origBooking.status=_origBooking._prevStatus; _refreshFC();} showToast(e.message||'Update failed','err'); }
 }
 
 // ── DRAG AND DROP ──
@@ -4066,7 +4137,10 @@ async function dropShift(event, pswName, date, cell, clientName) {
     const d = await res.json();
     if(!d.success) throw new Error(d.error);
     showToast(`Moved → ${pswName||clientName} · ${date}`,'ok');
-    await loadAll(false);
+    // Targeted refresh — just update calendar and vacant list
+    const freshRes = await fetch(`${API}/hq/overview?operator_id=${currentOp}`);
+    const freshD = await freshRes.json();
+    if (freshD.success) { D = freshD; _mergedPSWCache = null; _refreshFC(); renderVacantVisits(); renderStats(); }
   } catch(e) { showToast(e.message,'err'); }
   dragBookingId = null; dragData = null;
 }
@@ -4152,8 +4226,10 @@ function openEditShift(id, clientName, pswName, date, time, duration) {
     }).join('');
   const pswSel = document.getElementById('ss-psw');
   const psws = getMergedPSWList();
+  // Only show active PSWs in edit dropdown — filter out roster-only entries
+  const activePSWs = psws.filter(p => p.source === 'live' ? (p.status === 'active' || p.status === 'on_leave') : true);
   pswSel.innerHTML = '<option value="">Unassigned</option>' +
-    psws.map(p => `<option value="${p.name}" ${p.name===pswName?'selected':''}>${p.name}</option>`).join('');
+    activePSWs.map(p => `<option value="${p.name}" ${p.name===pswName?'selected':''}>${p.name}${p.source==='roster'?' (roster)':''}</option>`).join('');
   openSheet('shift-sheet');
 }
 
@@ -4215,7 +4291,7 @@ async function saveShift(addAnother = false) {
 
   try {
     if(editingBookingId) {
-      const res = await fetch(`${API}/hq/booking/${editingBookingId}`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({operator_id:currentOp,assigned_to:psw,scheduled_date:date,scheduled_time:time,duration_minutes:duration})});
+      const res = await fetch(`${API}/hq/booking/${editingBookingId}`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({operator_id:currentOp,assigned_to:psw,scheduled_date:date,scheduled_time:time,duration_minutes:duration,client_name:client})});
       const d = await res.json(); if(!d.success) throw new Error(d.error);
       showToast('Shift updated ✓','ok');
     } else {
@@ -4267,8 +4343,11 @@ async function saveShift(addAnother = false) {
     if(freshD.success){
       D = freshD;
       // Destroy and re-init FC so it picks up new event data cleanly
-      if(window._fc){ window._fc.destroy(); window._fc=null; window._fcInitialized=false; }
-      renderSchedule();
+      // Refresh calendar without destroying to preserve scroll position
+      const _schedRes = await fetch(`${API}/hq/overview?operator_id=${currentOp}`);
+      const _schedD = await _schedRes.json();
+      if (_schedD.success) { D = _schedD; _mergedPSWCache = null; }
+      _refreshFC();
       renderVacantVisits();
       renderStats();
     }
@@ -4400,12 +4479,8 @@ async function renderRevenue() {
   const monthStr = now.toISOString().slice(0,7);
 
   // Fetch real visit data for revenue calculation
-  let visits = [];
-  try {
-    const res = await fetch(`${API}/hq/visits?operator_id=${currentOp}&limit=200`);
-    const d = await res.json();
-    visits = d.visits || [];
-  } catch {}
+  // Use D.visits already loaded — no duplicate fetch needed
+  const visits = D.visits || [];
 
   // Month visits
   const monthVisits = visits.filter(v => (v.visit_date||'').startsWith(monthStr));
@@ -4649,6 +4724,11 @@ async function openPSWDetail(pswId) {
 
       <div style="margin:16px 0 10px;font-family:var(--mono);font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--gold);">Edit PSW</div>
       <div class="srow2" style="padding:0;">
+        <div><div class="slbl">Phone</div><input class="sinput" id="pe-phone" type="tel" value="${p.phone||rec.phone||''}" style="font-size:16px;" placeholder="+1 416 555 0000"></div>
+        <div><div class="slbl">Email</div><input class="sinput" id="pe-email" type="email" value="${p.email||rec.email||''}" style="font-size:16px;"></div>
+      </div>
+      <div class="sheet-row"><div class="slbl">Availability</div><input class="sinput" id="pe-availability" type="text" value="${p.availability||rec.availability||''}" placeholder="e.g. Mon-Fri 7am-4pm, weekends" style="font-size:16px;"></div>
+      <div class="srow2" style="padding:0;">
         <div><div class="slbl">PSW Rate $/hr</div><input class="sinput" id="pe-rate" type="number" value="${p.psw_rate||19}" min="15" max="80" style="font-size:16px;"></div>
         <div><div class="slbl">Status</div>
           <select class="sselect" id="pe-status">
@@ -4658,7 +4738,7 @@ async function openPSWDetail(pswId) {
           </select>
         </div>
       </div>
-      <div class="sheet-row"><div class="slbl">Probation End Date <span style="font-size:9px;color:var(--muted);">(C6 — leave blank if not on probation)</span></div><input class="sinput" id="pe-probation-end" type="date" value="${p.probation_end||''}" style="font-size:16px;"></div>
+      <div class="sheet-row"><div class="slbl">Probation End Date <span style="font-size:9px;color:var(--muted);">(leave blank if not on probation)</span></div><input class="sinput" id="pe-probation-end" type="date" value="${p.probation_end||''}" style="font-size:16px;"></div>
       <div class="sheet-row"><div class="slbl">Internal Notes</div><textarea class="sinput" id="pe-notes" rows="2" style="min-height:60px;resize:none;" placeholder="Notes about this PSW...">${p.notes||rec.notes||''}</textarea></div>
       <button class="sbtn" style="background:rgba(200,169,110,.12);color:var(--gold);border:1px solid rgba(200,169,110,.3);margin-bottom:8px;" onclick="savePSWEdits('${p.id}','${name}')">Save Changes</button>
 
@@ -4724,8 +4804,20 @@ function openClientDetail(id) {
     <div id="cp-version-history" style="display:none;margin-top:10px;"></div>
 
     <div style="margin:18px 0 10px;font-family:var(--mono);font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--gold);">Edit Client</div>
+    <div class="srow2">
+      <div><div class="slbl">First Name</div><input class="sinput" id="ce-first-name" type="text" value="${c.first_name||''}" style="font-size:16px;"></div>
+      <div><div class="slbl">Last Name</div><input class="sinput" id="ce-last-name" type="text" value="${c.last_name||''}" style="font-size:16px;"></div>
+    </div>
+    <div class="srow2">
+      <div><div class="slbl">Phone</div><input class="sinput" id="ce-phone" type="tel" value="${c.phone||''}" style="font-size:16px;"></div>
+      <div><div class="slbl">Family Email</div><input class="sinput" id="ce-email" type="email" value="${c.family_email||c.email||''}" style="font-size:16px;"></div>
+    </div>
+    <div class="srow2">
+      <div><div class="slbl">City</div><input class="sinput" id="ce-city" type="text" value="${c.city||''}" style="font-size:16px;"></div>
+      <div><div class="slbl">Care Type</div><input class="sinput" id="ce-care-type" type="text" value="${c.care_type||''}" placeholder="e.g. Personal Support" style="font-size:16px;"></div>
+    </div>
     <div class="sheet-row"><div class="slbl">Assigned PSW</div>
-      <select class="sselect" id="ce-psw">${getMergedPSWList().map(p=>`<option value="${p.name}" ${p.name===c.assigned_psw?'selected':''}>${p.name}</option>`).join('')}</select>
+      <select class="sselect" id="ce-psw">${getMergedPSWList().filter(p=>p.source==='live').map(p=>`<option value="${p.name}" ${p.name===c.assigned_psw?'selected':''}>${p.name}</option>`).join('')}</select>
     </div>
     <div class="srow2">
       <div><div class="slbl">Client Rate $/hr</div><input class="sinput" id="ce-client-rate" type="number" value="${c.client_rate||22}" min="15" max="100" style="font-size:16px;"></div>
@@ -4829,16 +4921,27 @@ async function toggleFamilyContactPref(id, type, value) {
 }
 
 // Auto-refresh every 30s — when 20 PSWs are active, data stays current
-setInterval(async()=>{
+// Offline detection
+window.addEventListener('online', () => { showToast('Back online', 'ok'); loadAll(false); });
+window.addEventListener('offline', () => { showToast('No connection — data may be stale', 'err'); });
+
+window._pollInterval = setInterval(async()=>{
+  if (document.hidden) return; // skip poll when tab is hidden
   const prev=JSON.stringify(D?.counts||{});
   await loadAll(false);
   const curr=JSON.stringify(D?.counts||{});
   if(prev!==curr){
-    // Data changed — pulse the refresh button to signal new data
     const btn=document.getElementById('refresh-btn');
     if(btn){btn.style.color='var(--teal2)';setTimeout(()=>{btn.style.color='';},1200);}
   }
 }, 30000);
+
+// Refetch when tab regains visibility (fixes stale data after tab switch)
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden && sessionStorage.getItem('hq_auth')==='1') {
+    loadAll(false);
+  }
+});
 
 // ── INCIDENT WORKFLOW ──
 function setVisitView(view) {
@@ -5337,16 +5440,24 @@ async function savePSWEdits(pswId, pswName) {
   const status = document.getElementById('pe-status')?.value || 'active';
   const notes = document.getElementById('pe-notes')?.value.trim() || '';
   const probationEnd = document.getElementById('pe-probation-end')?.value || null;
+  const phone = document.getElementById('pe-phone')?.value.trim() || '';
+  const email = document.getElementById('pe-email')?.value.trim() || '';
+  const availability = document.getElementById('pe-availability')?.value.trim() || '';
   try {
+    const payload = { operator_id: currentOp, psw_rate: rate, status, notes, probation_end: probationEnd || null };
+    if (phone) payload.phone = phone;
+    if (email) payload.email = email;
+    if (availability) payload.availability = availability;
     const res = await fetch(`${API}/hq/psw/${encodeURIComponent(pswName)}`, {
       method: 'PATCH',
       headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({ operator_id: currentOp, psw_rate: rate, status, notes, probation_end: probationEnd || null })
+      body: JSON.stringify(payload)
     });
     const d = await res.json();
     if (!d.success) throw new Error(d.error || 'Update failed');
     showToast('PSW updated ✓', 'ok');
     closeSheet('psw-detail-sheet');
+    _mergedPSWCache = null;
     await loadAll(false);
   } catch(e) { showToast(e.message || 'Update failed', 'err'); }
 }
@@ -5357,17 +5468,26 @@ async function saveClientEdits(clientId) {
   const clientRate = parseFloat(document.getElementById('ce-client-rate')?.value) || 22;
   const pswRate = parseFloat(document.getElementById('ce-psw-rate')?.value) || 19;
   const careNotes = document.getElementById('ce-care-notes')?.value.trim() || '';
+  // Extended fields
+  const firstName = document.getElementById('ce-first-name')?.value.trim() || '';
+  const lastName = document.getElementById('ce-last-name')?.value.trim() || '';
+  const phone = document.getElementById('ce-phone')?.value.trim() || '';
+  const email = document.getElementById('ce-email')?.value.trim() || '';
+  const careType = document.getElementById('ce-care-type')?.value.trim() || '';
+  const city = document.getElementById('ce-city')?.value.trim() || '';
   try {
+    const payload = { operator_id: currentOp, assigned_psw: psw, client_rate: clientRate,
+      psw_rate: pswRate, care_notes: careNotes };
+    if (firstName) payload.first_name = firstName;
+    if (lastName) payload.last_name = lastName;
+    if (phone) payload.phone = phone;
+    if (email) payload.family_email = email;
+    if (careType) payload.care_type = careType;
+    if (city) payload.city = city;
     const res = await fetch(`${API}/hq/client/${clientId}`, {
       method: 'PATCH',
       headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({
-        operator_id: currentOp,
-        assigned_psw: psw,
-        client_rate: clientRate,
-        psw_rate: pswRate,
-        care_notes: careNotes
-      })
+      body: JSON.stringify(payload)
     });
     const d = await res.json();
     if (!d.success) throw new Error(d.error || 'Update failed');
@@ -5445,7 +5565,10 @@ async function saveBulkSchedule() {
 }
 
 // ── SEARCH / FILTER ──
+let _filterTimers = {};
 function filterList(listId, searchId) {
+  clearTimeout(_filterTimers[listId]);
+  _filterTimers[listId] = setTimeout(() => {
   const q = (document.getElementById(searchId)?.value || '').toLowerCase().trim();
   const el = document.getElementById(listId);
   if (!el) return;
@@ -5466,9 +5589,9 @@ function filterList(listId, searchId) {
   }
   emptyEl.style.display = (q && visible === 0) ? 'block' : 'none';
   emptyEl.textContent = 'No results for "' + q + '"';
+  }, 80);
 }
 
-// Clear searches when switching sections
 function clearSearches() {
   ['leads-search','clients-search','psws-search','visits-search'].forEach(id => {
     const el = document.getElementById(id);
@@ -5845,6 +5968,12 @@ function lockHQ() {
   document.getElementById('lock').style.display = 'flex';
   clearTimeout(_hqIdleTimer);
   _hqIdleTimer = null;
+  // Stop all polling intervals when locked
+  if (window._pollInterval) { clearInterval(window._pollInterval); window._pollInterval = null; }
+  if (window._mapInterval) { clearInterval(window._mapInterval); window._mapInterval = null; }
+  if (window.attendanceTimer) { clearInterval(window.attendanceTimer); window.attendanceTimer = null; }
+  // Clear D so data is not accessible via console
+  D = {};
 }
 
 function startHQIdleTimer() {
@@ -5862,6 +5991,11 @@ function startHQIdleTimer() {
       document.getElementById('app').style.display = 'block';
       loadAll(false);
       startHQIdleTimer();
+      // Restore last active tab
+      try {
+        const lastTab = localStorage.getItem('hq_tab') || 'today';
+        setTimeout(() => showSect(lastTab), 400);
+      } catch(e) {}
     }
   } catch(e) {}
 })();
