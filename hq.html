@@ -1531,9 +1531,12 @@ button:active{transform:scale(0.98);}
     </select>
   </div>
   <div class="sheet-row"><div class="slbl">Date *</div><input class="sinput" id="ss-date" type="date" style="font-size:16px;"></div>
-  <div class="sheet-row"><div class="slbl">Start Time *</div><input class="sinput" id="ss-time" type="time" style="font-size:16px;" value="09:00"></div>
+  <div class="sheet-row"><div class="slbl">Start Time *</div><input class="sinput" id="ss-time" type="time" style="font-size:16px;" value="09:00" oninput="syncEndFromDuration()"></div>
+  <div class="sheet-row"><div class="slbl">End Time</div>
+    <input class="sinput" id="ss-end" type="time" style="font-size:16px;" value="17:00" oninput="syncDurationFromEnd()">
+  </div>
   <div class="sheet-row"><div class="slbl">Duration</div>
-    <select class="sselect" id="ss-duration">
+    <select class="sselect" id="ss-duration" onchange="syncEndFromDuration()">
       <option value="60">1 hour</option>
       <option value="120">2 hours</option>
       <option value="180">3 hours</option>
@@ -1541,10 +1544,14 @@ button:active{transform:scale(0.98);}
       <option value="300">5 hours</option>
       <option value="360">6 hours</option>
       <option value="420">7 hours</option>
-      <option value="480" selected>8 hours</option>
+      <option value="480">8 hours</option>
+      <option value="540">9 hours</option>
       <option value="600">10 hours</option>
       <option value="720">12 hours</option>
     </select>
+  </div>
+  <div class="sheet-row"><div class="slbl" style="color:var(--muted2);font-size:10px;">Hours</div>
+    <div id="ss-hours-display" style="font-family:var(--mono);font-size:11px;color:var(--teal2);padding:8px 0;">8.0 hrs</div>
   </div>
   <div class="sheet-row"><div class="slbl">Repeat</div>
     <select class="sselect" id="ss-recurring">
@@ -4073,6 +4080,8 @@ function openAddShift(pswName, date, clientName) {
   document.getElementById('ss-date').value = date || '';
   document.getElementById('ss-time').value = '09:00';
   document.getElementById('ss-duration').value = '480';
+  document.getElementById('ss-end').value = '17:00';
+  document.getElementById('ss-hours-display').textContent = '8.0 hrs';
   // Populate client dropdown
   const sel = document.getElementById('ss-client');
   const clients = D.clients || [];
@@ -4122,7 +4131,18 @@ function openEditShift(id, clientName, pswName, date, time, duration) {
   document.getElementById('ss-title').textContent = 'Edit Shift';
   document.getElementById('ss-date').value = date;
   document.getElementById('ss-time').value = time || '09:00';
-  document.getElementById('ss-duration').value = duration || '480';
+  // Set duration — find closest option or default to 480
+  const durSel = document.getElementById('ss-duration');
+  const durVal = String(duration || 480);
+  const durOpt = Array.from(durSel.options).find(o => o.value === durVal);
+  durSel.value = durOpt ? durVal : '480';
+  // Compute and set end time from start + duration
+  const _editDurMins = parseInt(durSel.value) || 480;
+  const _editStart = time || '09:00';
+  const [_eh, _em] = _editStart.split(':').map(Number);
+  const _editEndMins = _eh * 60 + _em + _editDurMins;
+  document.getElementById('ss-end').value = `${String(Math.floor(_editEndMins/60)%24).padStart(2,'0')}:${String(_editEndMins%60).padStart(2,'0')}`;
+  document.getElementById('ss-hours-display').textContent = (_editDurMins/60).toFixed(1) + ' hrs';
   const sel = document.getElementById('ss-client');
   const clients = D.clients || [];
   sel.innerHTML = '<option value="">Select client...</option>' +
@@ -4137,12 +4157,56 @@ function openEditShift(id, clientName, pswName, date, time, duration) {
   openSheet('shift-sheet');
 }
 
+// ── SHIFT TIME SYNC ──
+// Called when duration dropdown changes — updates end time display
+function syncEndFromDuration() {
+  const startVal = document.getElementById('ss-time')?.value || '09:00';
+  const durMins = parseInt(document.getElementById('ss-duration')?.value) || 480;
+  const [h, m] = startVal.split(':').map(Number);
+  const endTotalMins = h * 60 + m + durMins;
+  const endH = Math.floor(endTotalMins / 60) % 24;
+  const endM = endTotalMins % 60;
+  const endStr = String(endH).padStart(2,'0') + ':' + String(endM).padStart(2,'0');
+  const endEl = document.getElementById('ss-end');
+  if (endEl) endEl.value = endStr;
+  const hoursEl = document.getElementById('ss-hours-display');
+  if (hoursEl) hoursEl.textContent = (durMins / 60).toFixed(1) + ' hrs';
+}
+
+// Called when end time input changes — updates duration dropdown to closest value
+function syncDurationFromEnd() {
+  const startVal = document.getElementById('ss-time')?.value || '09:00';
+  const endVal = document.getElementById('ss-end')?.value || '17:00';
+  const [sh, sm] = startVal.split(':').map(Number);
+  const [eh, em] = endVal.split(':').map(Number);
+  let durMins = (eh * 60 + em) - (sh * 60 + sm);
+  if (durMins <= 0) durMins += 1440; // handle overnight
+  // Find closest option
+  const sel = document.getElementById('ss-duration');
+  if (!sel) return;
+  const options = Array.from(sel.options).map(o => parseInt(o.value));
+  const closest = options.reduce((prev, curr) => Math.abs(curr - durMins) < Math.abs(prev - durMins) ? curr : prev);
+  sel.value = String(closest);
+  const hoursEl = document.getElementById('ss-hours-display');
+  if (hoursEl) hoursEl.textContent = (durMins / 60).toFixed(1) + ' hrs';
+}
+
 async function saveShift(addAnother = false) {
   const client = document.getElementById('ss-client').value;
   const psw = document.getElementById('ss-psw').value;
   const date = document.getElementById('ss-date').value;
   const time = document.getElementById('ss-time').value;
-  const duration = parseInt(document.getElementById('ss-duration').value) || 480;
+  // Compute duration from start + end time for accuracy; fall back to dropdown
+  const _sTime = document.getElementById('ss-time').value || '09:00';
+  const _eTime = document.getElementById('ss-end')?.value;
+  let duration = parseInt(document.getElementById('ss-duration').value) || 480;
+  if (_eTime) {
+    const [_sh,_sm] = _sTime.split(':').map(Number);
+    const [_eh,_em] = _eTime.split(':').map(Number);
+    let _computed = (_eh*60+_em) - (_sh*60+_sm);
+    if (_computed <= 0) _computed += 1440;
+    if (_computed >= 30) duration = _computed; // only use if sane
+  }
   const recurring = document.getElementById('ss-recurring')?.value || 'none';
   if(!client||!date||!time){showToast('Client, date and time required','err');return;}
 
@@ -4200,7 +4264,14 @@ async function saveShift(addAnother = false) {
     // Refresh data — update D then refresh calendar in-place (no full page reload)
     const res = await fetch(`${API}/hq/overview?operator_id=${currentOp}`);
     const freshD = await res.json();
-    if(freshD.success){ D=freshD; _refreshFC(); renderVacantVisits(); renderStats(); }
+    if(freshD.success){
+      D = freshD;
+      // Destroy and re-init FC so it picks up new event data cleanly
+      if(window._fc){ window._fc.destroy(); window._fc=null; window._fcInitialized=false; }
+      renderSchedule();
+      renderVacantVisits();
+      renderStats();
+    }
 
     if(addAnother) {
       // Keep sheet open, clear date/client for next entry, keep PSW
