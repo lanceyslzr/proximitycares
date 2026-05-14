@@ -1663,8 +1663,11 @@ button:active{transform:scale(0.98);}
 <script>
 const API = 'https://proximity-agent-production.up.railway.app';
 const PIN = '0822';
-const PSWS = ['Carolina Hermida','Luz Peralta','Dorine Biney','Renay Wilson','Edna Pakiwana','Phurbu Lhamo','Mandeep Kamboj','Mellonie Richards','Harvinder Kaur','Justin Nadres','Ashalee Williams','Sandeep Bawa'];
-const PSW_EMAILS = {'Carolina Hermida':'carolha719@gmail.com'};
+// PSWS and PSW_EMAILS — previously hardcoded roster, now DB-driven via D.psws
+// getMergedPSWList() uses D.psws as primary source. Empty fallback means
+// a second operator's PSWs won't bleed into dropdowns.
+const PSWS = [];
+const PSW_EMAILS = {};
 let lockIn = '';
 let currentOp = 'proximity-care';
 let currentOpName = 'Proximity Care';
