@@ -275,8 +275,6 @@ nav{background:rgba(247,250,255,0.97);border-bottom:1px solid var(--border);heig
         <button class="upload-btn" id="btn-first_aid" onclick="uploadDoc('first_aid')" disabled>Upload First Aid Certificate</button>
       </div>
     </div>
-  </div>
-
 
     <!-- GOV ID -->
     <div class="doc-card" id="card-gov_id">
@@ -338,6 +336,7 @@ nav{background:rgba(247,250,255,0.97);border-bottom:1px solid var(--border);heig
         <div class="upload-done-msg" id="done-availability" style="display:none;">✓ Availability saved</div>
       </div>
     </div>
+  </div>
 
   <div class="submit-wrap">
     <div class="all-done-card" id="all-done-card">
@@ -424,7 +423,7 @@ async function uploadDoc(docType) {
   const progBar = document.getElementById('progbar-' + docType);
   const doneMsg = document.getElementById('done-' + docType);
   const card = document.getElementById('card-' + docType);
-  const expiry = document.getElementById('expiry-' + docType).value;
+  const expiry = document.getElementById('expiry-' + docType)?.value || '';
 
   btn.disabled = true; btn.textContent = 'Uploading...';
   prog.style.display = 'block';
