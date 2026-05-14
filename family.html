@@ -756,18 +756,18 @@ async function sendAskMessage() {
   const userMsg = `Visit context: ${ctx.visitCtx||'No visits on file.'}\n\nFamily question: ${q}`;
 
   try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
+    const res = await fetch(`${R}/family/chat`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 300,
-        system: systemPrompt,
-        messages: [{ role: 'user', content: userMsg }]
+        slug,
+        question: q,
+        visit_context: ctx.visitCtx || '',
+        coordinator_phone: ctx.phone || '647-382-8047'
       })
     });
     const d = await res.json();
-    const reply = d.content?.[0]?.text || 'I wasn\'t able to retrieve that information right now. Please contact your coordinator directly.';
+    const reply = d.reply || 'I wasn\'t able to retrieve that information right now. Please contact your coordinator directly.';
     thinking.style.color = 'var(--text)';
     thinking.textContent = reply;
   } catch {
