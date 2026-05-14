@@ -572,6 +572,26 @@ a{color:inherit;text-decoration:none;}
 </div><!-- /app -->
 
 <!-- CHECKOUT SHEET -->
+<!-- EC-7 — CANCEL SHIFT SHEET -->
+<div id="cancel-shift-sheet" style="display:none;position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.75);" onclick="if(event.target===this)closeCancelShift()">
+  <div style="position:absolute;bottom:0;left:0;right:0;background:var(--bg2);border-radius:18px 18px 0 0;padding:20px 20px 40px;max-height:80vh;overflow-y:auto;">
+    <div style="width:36px;height:4px;background:var(--border2);border-radius:2px;margin:0 auto 16px;"></div>
+    <div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--red);margin-bottom:4px;">Cancel Shift</div>
+    <div style="font-size:15px;font-weight:500;color:var(--text);margin-bottom:4px;" id="cs-shift-info">—</div>
+    <div style="font-family:var(--mono);font-size:10px;color:var(--muted2);margin-bottom:16px;" id="cs-shift-date">—</div>
+    <div style="font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:8px;">Reason for cancellation *</div>
+    <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;" id="cs-reasons">
+      <button onclick="selectCancelReason(this,'I am ill and cannot work today')" style="text-align:left;padding:12px 14px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;cursor:pointer;touch-action:manipulation;">I am ill and cannot work today</button>
+      <button onclick="selectCancelReason(this,'Family emergency')" style="text-align:left;padding:12px 14px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;cursor:pointer;touch-action:manipulation;">Family emergency</button>
+      <button onclick="selectCancelReason(this,'Transportation issue')" style="text-align:left;padding:12px 14px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;cursor:pointer;touch-action:manipulation;">Transportation issue</button>
+      <button onclick="selectCancelReason(this,'Scheduling conflict')" style="text-align:left;padding:12px 14px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;cursor:pointer;touch-action:manipulation;">Scheduling conflict</button>
+    </div>
+    <textarea id="cs-custom-reason" placeholder="Add details (optional)..." style="width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:12px 14px;font-size:15px;border-radius:8px;resize:none;min-height:70px;font-family:var(--sans);box-sizing:border-box;margin-bottom:14px;outline:none;"></textarea>
+    <button id="cs-submit-btn" onclick="submitCancelShift()" style="width:100%;background:var(--red);color:#fff;border:none;padding:14px;border-radius:8px;font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;cursor:pointer;min-height:48px;opacity:.4;pointer-events:none;">Cancel This Shift</button>
+    <button onclick="closeCancelShift()" style="width:100%;background:none;border:1px solid var(--border);color:var(--muted2);padding:12px;border-radius:8px;font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;min-height:44px;margin-top:8px;">Keep Shift</button>
+  </div>
+</div>
+
 <div id="checkout-sheet" style="display:none;position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.75);" onclick="if(event.target===this)closeCheckout()">
   <div style="position:absolute;bottom:0;left:0;right:0;background:var(--bg2);border-radius:18px 18px 0 0;padding:20px 14px calc(24px + var(--safe-bottom));max-height:85vh;overflow-y:auto;">
     <div style="width:36px;height:4px;background:var(--border2);border-radius:2px;margin:0 auto 20px;"></div>
@@ -621,6 +641,20 @@ a{color:inherit;text-decoration:none;}
 </div>
 
 <!-- SUCCESS OVERLAY -->
+<!-- EC-3 — CHECKIN CONFIRMATION OVERLAY -->
+<div class="success-overlay" id="checkin-confirm-overlay" style="display:none;">
+  <div style="background:var(--bg2);border:1px solid var(--border2);border-radius:16px;padding:28px 24px;max-width:320px;width:100%;text-align:center;">
+    <div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted2);margin-bottom:12px;">Confirm Sign In</div>
+    <div style="font-size:18px;font-weight:500;color:var(--text);margin-bottom:6px;" id="cc-client-name">—</div>
+    <div style="font-family:var(--mono);font-size:11px;color:var(--muted2);margin-bottom:4px;" id="cc-scheduled-time">—</div>
+    <div id="cc-gps-warning" style="display:none;margin:12px 0;padding:10px 14px;background:rgba(224,154,61,.08);border:1px solid rgba(224,154,61,.3);border-radius:8px;font-family:var(--mono);font-size:10px;color:var(--amber);line-height:1.5;"></div>
+    <div style="display:flex;gap:10px;margin-top:18px;">
+      <button onclick="cancelCheckinConfirm()" style="flex:1;background:var(--bg3);border:1px solid var(--border2);color:var(--muted2);padding:12px;border-radius:8px;font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;min-height:44px;">Cancel</button>
+      <button onclick="confirmCheckin()" id="cc-confirm-btn" style="flex:2;background:var(--teal);color:#fff;border:none;padding:12px;border-radius:8px;font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;min-height:44px;">Confirm Sign In</button>
+    </div>
+  </div>
+</div>
+
 <div class="success-overlay" id="success-overlay">
   <div class="success-check">✓</div>
   <div class="success-title" id="success-title">Visit Complete</div>
@@ -1082,7 +1116,8 @@ function renderWeek() {
             style="font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:#fff;background:var(--teal);border:none;border-radius:6px;padding:7px 14px;cursor:pointer;min-height:34px;white-space:nowrap;touch-action:manipulation;flex-shrink:0;">Sign In</button>
         </div>`;
       } else {
-        rows += `<div class="sched-shift"><div><div class="shift-client">${b.client_name||'—'}</div><div class="shift-time">${b.scheduled_time||'TBD'}</div></div><div class="shift-badge upcoming">Upcoming</div></div>`;
+        // Upcoming shift — show Cancel button (EC-7)
+        rows += `<div class="sched-shift"><div style="flex:1;min-width:0;"><div class="shift-client">${b.client_name||'—'}</div><div class="shift-time">${b.scheduled_time||'TBD'} · ${fmtd(b.scheduled_date)}</div></div><div style="display:flex;gap:6px;align-items:center;"><div class="shift-badge upcoming">Upcoming</div><button onclick="openCancelShift('${b.id}','${(b.client_name||'').replace(/'/g,'')}','${b.scheduled_date}','${b.scheduled_time||''}')" style="font-family:var(--mono);font-size:8px;letter-spacing:1px;text-transform:uppercase;padding:5px 9px;border-radius:5px;border:1px solid rgba(224,85,85,.3);background:rgba(224,85,85,.06);color:var(--red);cursor:pointer;min-height:28px;touch-action:manipulation;">Cancel</button></div></div>`;
       }
     });
     if (!rows) rows = `<div class="sched-empty">No shifts</div>`;
@@ -1117,6 +1152,73 @@ function renderAvailableShifts() {
       <button class="avail-shift-btn" onclick="claimShift('${b.id}','${b.client_name||''}')">Claim Shift</button>
     </div>`).join('');
 }
+// ── EC-7 — PSW SHIFT CANCELLATION ──
+let _cancelShiftData = null;
+let _cancelReason = '';
+
+function openCancelShift(bookingId, clientName, date, time) {
+  _cancelShiftData = { bookingId, clientName, date, time };
+  _cancelReason = '';
+  document.getElementById('cs-shift-info').textContent = clientName || '—';
+  document.getElementById('cs-shift-date').textContent = (date || '—') + (time ? ' · ' + time : '');
+  // Reset reason buttons
+  document.querySelectorAll('#cs-reasons button').forEach(b => {
+    b.style.borderColor = 'var(--border)';
+    b.style.background = 'var(--bg3)';
+    b.style.color = 'var(--text)';
+  });
+  document.getElementById('cs-custom-reason').value = '';
+  const submitBtn = document.getElementById('cs-submit-btn');
+  submitBtn.style.opacity = '.4'; submitBtn.style.pointerEvents = 'none';
+  document.getElementById('cancel-shift-sheet').style.display = 'block';
+}
+
+function closeCancelShift() {
+  document.getElementById('cancel-shift-sheet').style.display = 'none';
+  _cancelShiftData = null; _cancelReason = '';
+}
+
+function selectCancelReason(btn, reason) {
+  _cancelReason = reason;
+  document.querySelectorAll('#cs-reasons button').forEach(b => {
+    b.style.borderColor = 'var(--border)';
+    b.style.background = 'var(--bg3)';
+    b.style.color = 'var(--text)';
+  });
+  btn.style.borderColor = 'rgba(224,85,85,.5)';
+  btn.style.background = 'rgba(224,85,85,.08)';
+  btn.style.color = 'var(--red)';
+  const submitBtn = document.getElementById('cs-submit-btn');
+  submitBtn.style.opacity = '1'; submitBtn.style.pointerEvents = 'auto';
+}
+
+async function submitCancelShift() {
+  if (!_cancelShiftData || !_cancelReason) return;
+  const customNote = document.getElementById('cs-custom-reason').value.trim();
+  const fullReason = customNote ? `${_cancelReason} — ${customNote}` : _cancelReason;
+  const submitBtn = document.getElementById('cs-submit-btn');
+  submitBtn.textContent = 'Cancelling...'; submitBtn.disabled = true;
+  try {
+    const res = await fetch(`${API}/psw/cancel-shift`, {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({
+        psw_name: pswName, pin: pswPin,
+        operator_id: 'proximity-care',
+        booking_id: _cancelShiftData.bookingId,
+        reason: fullReason
+      })
+    });
+    const d = await res.json();
+    if (!res.ok) throw new Error(d.error || 'Cancellation failed');
+    closeCancelShift();
+    showToast('Shift cancelled — coordinator notified', 'ok');
+    haptic([50, 30, 50]);
+    await loadSchedule();
+  } catch(e) { showToast(e.message || 'Could not cancel shift', 'err'); }
+  submitBtn.textContent = 'Cancel This Shift'; submitBtn.disabled = false;
+  submitBtn.style.opacity = '1'; submitBtn.style.pointerEvents = 'auto';
+}
+
 async function claimShift(bookingId, clientName) {
   try {
     const res = await fetch(`${API}/hq/booking/${bookingId}`, {
@@ -1165,6 +1267,50 @@ async function doCheckIn() {
     return;
   }
 
+  // EC-3 — Show confirmation screen before firing checkin
+  showCheckinConfirm(clientName, latitude, longitude, within_range, btn);
+}
+
+// EC-3 — Checkin confirmation state
+let _pendingCheckin = null;
+
+function showCheckinConfirm(clientName, latitude, longitude, within_range, btn) {
+  _pendingCheckin = { clientName, latitude, longitude, within_range, btn };
+  document.getElementById('cc-client-name').textContent = clientName;
+
+  // Find scheduled time from today's bookings
+  const today = new Date().toISOString().slice(0,10);
+  const booking = (window._scheduleData||[]).find(b =>
+    b.client_name === clientName && b.scheduled_date === today
+  );
+  document.getElementById('cc-scheduled-time').textContent = booking
+    ? `Scheduled ${booking.scheduled_time || '—'}`
+    : 'No scheduled booking found for today';
+
+  // GPS warning if >500m
+  const gpsEl = document.getElementById('cc-gps-warning');
+  if (latitude && longitude && !within_range) {
+    gpsEl.style.display = 'block';
+    gpsEl.textContent = '⚠ You appear to be more than 500m from the client\'s location. Confirm only if you are at the correct address.';
+  } else {
+    gpsEl.style.display = 'none';
+  }
+
+  document.getElementById('checkin-confirm-overlay').style.display = 'flex';
+}
+
+function cancelCheckinConfirm() {
+  document.getElementById('checkin-confirm-overlay').style.display = 'none';
+  if (_pendingCheckin?.btn) { _pendingCheckin.btn.textContent = 'Sign In Now'; _pendingCheckin.btn.disabled = false; }
+  _pendingCheckin = null;
+}
+
+async function confirmCheckin() {
+  if (!_pendingCheckin) return;
+  const { clientName, latitude, longitude, within_range, btn } = _pendingCheckin;
+  _pendingCheckin = null;
+  document.getElementById('checkin-confirm-overlay').style.display = 'none';
+
   // Online path
   try {
     const res = await fetch(`${API}/visit/checkin`, {
@@ -1173,13 +1319,13 @@ async function doCheckIn() {
     });
     const d = await res.json();
     if (!res.ok) throw new Error(d.error || 'Check-in failed');
-    activeVisit = { id: d.visit_id, client_name: clientName, time_in: d.time_in, checkin_time: new Date().toISOString() };
+    activeVisit = { id: d.visit_id, client_name: clientName, time_in: d.time_in, checkin_time: d.checkin_time || new Date().toISOString() };
     updateShiftUI(); renderWeek(); renderHomeFeed();
-    haptic(200); // Build 3
-    showToast('Signed in — ' + clientName, 'ok');
+    haptic(200);
+    showToast(d.resumed ? 'Resuming visit — ' + clientName : 'Signed in — ' + clientName, 'ok');
     showSect('checklist');
   } catch (e) { showToast(e.message, 'err'); }
-  btn.textContent = 'Sign In Now'; btn.disabled = false;
+  if (btn) { btn.textContent = 'Sign In Now'; btn.disabled = false; }
 }
 
 
@@ -1211,20 +1357,8 @@ async function doCheckInFromShift(clientName) {
     return;
   }
 
-  // Online path
-  try {
-    const res = await fetch(`${API}/visit/checkin`, {
-      method: 'POST', headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({ psw_name: pswName, pin: pswPin, operator_id: 'proximity-care', client_name: clientName, latitude, longitude, within_range })
-    });
-    const d = await res.json();
-    if (!res.ok) throw new Error(d.error || 'Check-in failed');
-    activeVisit = { id: d.visit_id, client_name: clientName, time_in: d.time_in, checkin_time: new Date().toISOString() };
-    updateShiftUI(); renderWeek(); renderHomeFeed();
-    haptic(200);
-    showToast('Signed in — ' + clientName, 'ok');
-    showSect('checklist');
-  } catch (e) { showToast(e.message, 'err'); }
+  // EC-3 — Show confirmation before firing
+  showCheckinConfirm(clientName, latitude, longitude, within_range, null);
 }
 
 // ── CHECK OUT ──
@@ -1321,6 +1455,30 @@ async function doCheckOut() {
       body: JSON.stringify(payload)
     });
     const d = await res.json();
+
+    // EC-1 — sub-8-min warning
+    if (d.sub_8_min) {
+      btn.textContent = 'Check Out + Submit Visit'; btn.disabled = false;
+      const confirmed = window.confirm(d.warning + '\n\nTap OK to check out anyway. This visit will be flagged for review.');
+      if (!confirmed) return;
+      const res2 = await fetch(`${API}/visit/checkout`, {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ ...payload, force_checkout: true })
+      });
+      const d2 = await res2.json();
+      if (!res2.ok) throw new Error(d2.error || 'Checkout failed');
+      closeCheckout();
+      activeVisit = null;
+      stopElapsed(); resetChecklist(); updateShiftUI();
+      haptic([100, 50, 100]);
+      document.getElementById('success-title').textContent = 'Visit Complete';
+      document.getElementById('success-msg').textContent = `${d2.hours_worked}h logged. Flagged for coordinator review (under 8 min).`;
+      document.getElementById('success-overlay').classList.add('show');
+      await loadSchedule(); loadHomeData();
+      btn.textContent = 'Check Out + Submit Visit'; btn.disabled = false;
+      return;
+    }
+
     if (!res.ok) throw new Error(d.error || 'Checkout failed');
     closeCheckout();
     activeVisit = null;
