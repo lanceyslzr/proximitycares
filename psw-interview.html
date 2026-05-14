@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Book Your Interview — Proximity Care Services</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400&family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{--navy:#1B3A6B;--cream:#faf8f4;--text:#1a1a1a;--muted:#888;--border:#e8e2d9;--teal:#3d8a7a;}
+body{background:var(--cream);font-family:'DM Sans',sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px 16px;}
+.card{background:#fff;border-radius:8px;box-shadow:0 2px 20px rgba(0,0,0,.08);max-width:520px;width:100%;overflow:hidden;}
+.header{background:var(--navy);padding:28px 32px;}
+.header-title{font-family:'Cormorant Garamond',Georgia,serif;font-size:22px;color:#fff;font-weight:400;}
+.header-sub{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.5);margin-top:4px;}
+.body{padding:32px;}
+.intro{font-size:15px;color:var(--text);line-height:1.75;margin-bottom:24px;}
+.zoom-note{background:#f0f8f6;border:1px solid #b8dfd8;border-radius:6px;padding:14px 16px;margin-bottom:20px;font-size:13px;color:#2d7a6a;line-height:1.6;}
+.section-label{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:12px;}
+.slots{display:flex;flex-direction:column;gap:8px;margin-bottom:24px;}
+.slot{display:flex;align-items:center;gap:12px;padding:14px 16px;border:1px solid var(--border);border-radius:6px;cursor:pointer;transition:border-color .15s,background .15s;}
+.slot:hover{border-color:var(--navy);background:#f5f7fb;}
+.slot.selected{border-color:var(--navy);background:#eff3fb;}
+.slot input[type=radio]{accent-color:var(--navy);flex-shrink:0;}
+.slot-label{font-size:14px;color:var(--text);line-height:1.4;}
+.btn{width:100%;padding:14px;background:var(--navy);color:#fff;border:none;border-radius:6px;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:500;cursor:pointer;}
+.btn:disabled{opacity:.4;cursor:not-allowed;}
+.btn:not(:disabled):hover{opacity:.9;}
+.state{text-align:center;padding:40px 32px;}
+.state-icon{font-size:48px;margin-bottom:16px;}
+.state-title{font-family:'Cormorant Garamond',serif;font-size:26px;color:var(--navy);margin-bottom:12px;font-weight:400;}
+.state-msg{font-size:15px;color:var(--muted);line-height:1.75;}
+.loading-text{font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);letter-spacing:1px;}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="header">
+    <div class="header-title">Proximity Care Services</div>
+    <div class="header-sub">Book your Zoom interview</div>
+  </div>
+  <div id="content">
+    <div class="state"><div class="loading-text">Loading available times...</div></div>
+  </div>
+</div>
+<script>
+var API = 'https://proximity-agent-production.up.railway.app';
+var params = new URLSearchParams(window.location.search);
+var applicantId = params.get('id');
+var opId = params.get('op') || 'proximity-care';
+var selectedSlot = null;
+
+function init() {
+  if (!applicantId) {
+    document.getElementById('content').innerHTML = '<div class="state"><div class="state-msg">Invalid link. Please contact Lance at 647-382-8047.</div></div>';
+    return;
+  }
+  fetch(API + '/leads/call-slots')
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      if (!d.success || !d.slots || !d.slots.length) throw new Error('no slots');
+      renderSlots(d.slots);
+    })
+    .catch(function(){
+      document.getElementById('content').innerHTML = '<div class="state"><div class="state-msg">Could not load times. Please call 647-382-8047.</div></div>';
+    });
+}
+
+function renderSlots(slots) {
+  var rows = slots.map(function(s){
+    return '<label class="slot" id="slot-' + s.value + '" onclick="selectSlot(\'' + s.value + '\')">' +
+      '<input type="radio" name="slot" value="' + s.value + '">' +
+      '<span class="slot-label">' + s.label + '</span>' +
+      '</label>';
+  }).join('');
+  document.getElementById('content').innerHTML =
+    '<div class="body">' +
+    '<div class="zoom-note">📹 This is a Zoom video interview with Lance. Once you pick a time, Lance will confirm and email you the Zoom link.</div>' +
+    '<p class="intro">Choose the time that works best for you. The interview is about 20 minutes — your experience, availability, and any questions you have.</p>' +
+    '<div class="section-label">Available times</div>' +
+    '<div class="slots">' + rows + '</div>' +
+    '<button class="btn" id="submit-btn" onclick="submitBooking()" disabled>Request This Time</button>' +
+    '</div>';
+}
+
+function selectSlot(val) {
+  selectedSlot = val;
+  var all = document.querySelectorAll('.slot');
+  for (var i = 0; i < all.length; i++) all[i].classList.remove('selected');
+  var el = document.getElementById('slot-' + val);
+  if (el) el.classList.add('selected');
+  var btn = document.getElementById('submit-btn');
+  if (btn) btn.disabled = false;
+}
+
+function submitBooking() {
+  if (!selectedSlot) return;
+  var btn = document.getElementById('submit-btn');
+  btn.disabled = true;
+  btn.textContent = 'Sending request...';
+  fetch(API + '/psw/book-interview', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({ applicant_id: applicantId, slot: selectedSlot, operator_id: opId })
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(d){
+    if (!d.success) throw new Error(d.error || 'failed');
+    document.getElementById('content').innerHTML =
+      '<div class="state">' +
+      '<div class="state-icon">✅</div>' +
+      '<div class="state-title">Request sent</div>' +
+      '<div class="state-msg">Lance will confirm your interview within a few hours. You will receive an email with the Zoom link once confirmed.<br><br>Questions? Call 647-382-8047.</div>' +
+      '</div>';
+  })
+  .catch(function(){
+    btn.disabled = false;
+    btn.textContent = 'Request This Time';
+    alert('Something went wrong. Please call 647-382-8047.');
+  });
+}
+
+init();
+</script>
+</body>
+</html>
