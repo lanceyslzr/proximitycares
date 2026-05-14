@@ -662,11 +662,34 @@ a{color:inherit;text-decoration:none;}
 <!-- SUCCESS OVERLAY -->
 <!-- EC-3 — CHECKIN CONFIRMATION OVERLAY -->
 <div class="success-overlay" id="checkin-confirm-overlay" style="display:none;">
-  <div style="background:var(--bg2);border:1px solid var(--border2);border-radius:16px;padding:28px 24px;max-width:320px;width:100%;text-align:center;">
+  <div style="background:var(--bg2);border:1px solid var(--border2);border-radius:16px;padding:28px 24px;max-width:340px;width:100%;text-align:center;max-height:90vh;overflow-y:auto;">
     <div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted2);margin-bottom:12px;">Confirm Sign In</div>
     <div style="font-size:18px;font-weight:500;color:var(--text);margin-bottom:6px;" id="cc-client-name">—</div>
     <div style="font-family:var(--mono);font-size:11px;color:var(--muted2);margin-bottom:4px;" id="cc-scheduled-time">—</div>
-    <div id="cc-gps-warning" style="display:none;margin:12px 0;padding:10px 14px;background:rgba(224,154,61,.08);border:1px solid rgba(224,154,61,.3);border-radius:8px;font-family:var(--mono);font-size:10px;color:var(--amber);line-height:1.5;"></div>
+    <div id="cc-gps-warning" style="display:none;margin:12px 0;padding:10px 14px;background:rgba(224,154,61,.08);border:1px solid rgba(224,154,61,.3);border-radius:8px;font-family:var(--mono);font-size:10px;color:var(--amber);line-height:1.5;text-align:left;"></div>
+
+    <!-- C3 — Care Directives & DNR acknowledgement -->
+    <div id="cc-directives-panel" style="display:none;margin:14px 0 0;text-align:left;">
+      <div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--teal2);margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--border);">Care Directives</div>
+      <div id="cc-medications" style="display:none;margin-bottom:10px;">
+        <div style="font-family:var(--mono);font-size:8px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:4px;">Medications</div>
+        <div style="font-size:12px;color:var(--text);line-height:1.6;" id="cc-medications-text"></div>
+      </div>
+      <div id="cc-care-notes" style="display:none;margin-bottom:10px;">
+        <div style="font-family:var(--mono);font-size:8px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:4px;">Care Notes</div>
+        <div style="font-size:12px;color:var(--muted2);line-height:1.6;" id="cc-care-notes-text"></div>
+      </div>
+      <div id="cc-dnr-banner" style="display:none;margin-bottom:12px;padding:10px 12px;background:rgba(224,85,85,.08);border:1px solid rgba(224,85,85,.3);border-radius:8px;">
+        <div style="font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--red);margin-bottom:4px;">⚠ DNR — Do Not Resuscitate</div>
+        <div style="font-size:11px;color:var(--muted2);line-height:1.5;">This client has a Do Not Resuscitate order on file. Do not perform CPR. Call 911 and report DNR status.</div>
+      </div>
+      <!-- Acknowledgement checkbox -->
+      <label style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;background:rgba(61,138,122,.06);border:1px solid rgba(61,138,122,.2);border-radius:8px;cursor:pointer;">
+        <input type="checkbox" id="cc-ack-checkbox" onchange="toggleCheckinConfirmBtn()" style="width:18px;height:18px;margin-top:1px;accent-color:var(--teal2);flex-shrink:0;">
+        <span style="font-size:12px;color:var(--muted2);line-height:1.5;">I have read and understood this client's care directives and will follow them during this visit.</span>
+      </label>
+    </div>
+
     <div style="display:flex;gap:10px;margin-top:18px;">
       <button onclick="cancelCheckinConfirm()" style="flex:1;background:var(--bg3);border:1px solid var(--border2);color:var(--muted2);padding:12px;border-radius:8px;font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;min-height:44px;">Cancel</button>
       <button onclick="confirmCheckin()" id="cc-confirm-btn" style="flex:2;background:var(--teal);color:#fff;border:none;padding:12px;border-radius:8px;font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;min-height:44px;">Confirm Sign In</button>
@@ -688,6 +711,17 @@ a{color:inherit;text-decoration:none;}
 const API = 'https://proximity-agent-production.up.railway.app';
 let pswName = '', pswPin = '', pswEmail = '';
 let lockIn = '', appUnlocked = false;
+
+// ── MULTI-TENANT OPERATOR ID ──
+let pswOperatorId = (function() {
+  try {
+    const urlParam = new URLSearchParams(window.location.search).get('op');
+    const stored = localStorage.getItem('psw_operator_id');
+    const opId = urlParam || stored || 'proximity-care';
+    localStorage.setItem('psw_operator_id', opId);
+    return opId;
+  } catch { return 'proximity-care'; }
+})();
 let activeVisit = null;
 let selectedMood = 'Great';
 let weekOffset = 0;
@@ -961,7 +995,7 @@ async function loadSchedule() {
   try {
     const now = new Date();
     const fromDate = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-01`;
-    const res = await fetch(`${API}/psw/schedule-upcoming?psw_name=${encodeURIComponent(pswName)}&pin=${pswPin}&operator_id=proximity-care&from_date=${fromDate}`);
+    const res = await fetch(`${API}/psw/schedule-upcoming?psw_name=${encodeURIComponent(pswName)}&pin=${pswPin}&operator_id=${pswOperatorId}&from_date=${fromDate}`);
     const d = await res.json();
     if (!d.success) return;
     scheduleData = d;
@@ -1231,7 +1265,7 @@ async function submitCancelShift() {
       method: 'POST', headers: {'Content-Type':'application/json'},
       body: JSON.stringify({
         psw_name: pswName, pin: pswPin,
-        operator_id: 'proximity-care',
+        operator_id: pswOperatorId,
         booking_id: _cancelShiftData.bookingId,
         reason: fullReason
       })
@@ -1252,7 +1286,7 @@ async function claimShift(bookingId, clientName) {
     const res = await fetch(`${API}/hq/booking/${bookingId}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ operator_id: 'proximity-care', assigned_to: pswName })
+      body: JSON.stringify({ operator_id: pswOperatorId, assigned_to: pswName })
     });
     const d = await res.json();
     if (!res.ok || !d.success) throw new Error(d.error || 'Failed');
@@ -1282,7 +1316,7 @@ async function doCheckIn() {
   // Offline path — Build 1
   if (!navigator.onLine) {
     await queueAction('checkin', `${API}/visit/checkin`, {
-      psw_name: pswName, pin: pswPin, operator_id: 'proximity-care',
+      psw_name: pswName, pin: pswPin, operator_id: pswOperatorId,
       client_name: clientName, latitude, longitude, within_range
     });
     // Store optimistic active visit locally
@@ -1324,7 +1358,57 @@ function showCheckinConfirm(clientName, latitude, longitude, within_range, btn) 
     gpsEl.style.display = 'none';
   }
 
+  // C3 — Care directives + DNR acknowledgement
+  const client = (window._pswClients || []).find(c =>
+    (c.full_name || c.client_name) === clientName
+  );
+  const panel = document.getElementById('cc-directives-panel');
+  const ackBox = document.getElementById('cc-ack-checkbox');
+  const confirmBtn = document.getElementById('cc-confirm-btn');
+
+  if (client && (client.medications || client.care_notes || client.dnr_status)) {
+    panel.style.display = 'block';
+
+    const medsEl = document.getElementById('cc-medications');
+    const medsText = document.getElementById('cc-medications-text');
+    if (client.medications) {
+      medsEl.style.display = 'block';
+      medsText.textContent = client.medications;
+    } else {
+      medsEl.style.display = 'none';
+    }
+
+    const notesEl = document.getElementById('cc-care-notes');
+    const notesText = document.getElementById('cc-care-notes-text');
+    if (client.care_notes) {
+      notesEl.style.display = 'block';
+      notesText.textContent = client.care_notes;
+    } else {
+      notesEl.style.display = 'none';
+    }
+
+    const dnrEl = document.getElementById('cc-dnr-banner');
+    dnrEl.style.display = client.dnr_status ? 'block' : 'none';
+
+    // Require acknowledgement
+    if (ackBox) ackBox.checked = false;
+    if (confirmBtn) { confirmBtn.style.opacity = '0.4'; confirmBtn.style.pointerEvents = 'none'; }
+    window._directivesRequired = true;
+  } else {
+    panel.style.display = 'none';
+    if (ackBox) ackBox.checked = false;
+    if (confirmBtn) { confirmBtn.style.opacity = '1'; confirmBtn.style.pointerEvents = 'auto'; }
+    window._directivesRequired = false;
+  }
+
   document.getElementById('checkin-confirm-overlay').style.display = 'flex';
+}
+
+function toggleCheckinConfirmBtn() {
+  if (!window._directivesRequired) return;
+  const checked = document.getElementById('cc-ack-checkbox')?.checked;
+  const btn = document.getElementById('cc-confirm-btn');
+  if (btn) { btn.style.opacity = checked ? '1' : '0.4'; btn.style.pointerEvents = checked ? 'auto' : 'none'; }
 }
 
 function cancelCheckinConfirm() {
@@ -1338,12 +1422,13 @@ async function confirmCheckin() {
   const { clientName, latitude, longitude, within_range, btn } = _pendingCheckin;
   _pendingCheckin = null;
   document.getElementById('checkin-confirm-overlay').style.display = 'none';
+  const directivesAcknowledged = !!(window._directivesRequired && document.getElementById('cc-ack-checkbox')?.checked);
 
   // Online path
   try {
     const res = await fetch(`${API}/visit/checkin`, {
       method: 'POST', headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({ psw_name: pswName, pin: pswPin, operator_id: 'proximity-care', client_name: clientName, latitude, longitude, within_range })
+      body: JSON.stringify({ psw_name: pswName, pin: pswPin, operator_id: pswOperatorId, client_name: clientName, latitude, longitude, within_range, directives_acknowledged: directivesAcknowledged })
     });
     const d = await res.json();
     if (!res.ok) throw new Error(d.error || 'Check-in failed');
@@ -1374,7 +1459,7 @@ async function doCheckInFromShift(clientName) {
   // Offline path
   if (!navigator.onLine) {
     await queueAction('checkin', `${API}/visit/checkin`, {
-      psw_name: pswName, pin: pswPin, operator_id: 'proximity-care',
+      psw_name: pswName, pin: pswPin, operator_id: pswOperatorId,
       client_name: clientName, latitude, longitude, within_range
     });
     activeVisit = { id: 'queued-' + Date.now(), client_name: clientName, time_in: new Date().toTimeString().slice(0,5), checkin_time: new Date().toISOString() };
@@ -1437,7 +1522,7 @@ async function doCheckOut() {
         const path = `${(pswName||'psw').replace(/\s+/g,'_').toLowerCase()}/${activeVisit.id}_${Date.now()}.${ext}`;
         const uploadRes = await fetch(`${API}/psw/upload-photo`, {
           method: 'POST', headers: {'Content-Type':'application/json'},
-          body: JSON.stringify({ psw_name: pswName, pin: pswPin, operator_id: 'proximity-care', path, type: file.type })
+          body: JSON.stringify({ psw_name: pswName, pin: pswPin, operator_id: pswOperatorId, path, type: file.type })
         }).catch(() => null);
         if (uploadRes?.ok) {
           const ud = await uploadRes.json();
@@ -1450,7 +1535,7 @@ async function doCheckOut() {
     }
   }
   const payload = {
-    psw_name: pswName, pin: pswPin, operator_id: 'proximity-care',
+    psw_name: pswName, pin: pswPin, operator_id: pswOperatorId,
     visit_id: activeVisit.id,
     tasks_completed: tasks,
     client_mood: selectedMood,
@@ -1582,6 +1667,7 @@ async function loadClients() {
     const res = await fetch(`${API}/psw/clients/${encodeURIComponent(pswName)}?pin=${pswPin}`);
     const d = await res.json();
     const clients = d.clients || [];
+    window._pswClients = clients; // C3 — store for DNR lookup at checkin
     if (!clients.length) { el.innerHTML = '<div class="empty-state">No clients assigned yet</div>'; return; }
     el.innerHTML = clients.map((c,i) => {
       const name = c.full_name || c.client_name;
@@ -1708,7 +1794,7 @@ async function loadDocuments() {
 // ── HOME DATA (pay card) ──
 async function loadHomeData() {
   try {
-    const res = await fetch(`${API}/psw/pay-summary?psw_name=${encodeURIComponent(pswName)}&pin=${pswPin}&operator_id=proximity-care`);
+    const res = await fetch(`${API}/psw/pay-summary?psw_name=${encodeURIComponent(pswName)}&pin=${pswPin}&operator_id=${pswOperatorId}`);
     const d = await res.json();
     if (!d.success || !d.current_period) return;
     const cur = d.current_period;
@@ -1732,7 +1818,7 @@ async function loadPaySummary() {
   if (!el) return;
   el.innerHTML = '<div class="empty-state">Loading...</div>';
   try {
-    const res = await fetch(`${API}/psw/pay-summary?psw_name=${encodeURIComponent(pswName)}&pin=${pswPin}&operator_id=proximity-care`);
+    const res = await fetch(`${API}/psw/pay-summary?psw_name=${encodeURIComponent(pswName)}&pin=${pswPin}&operator_id=${pswOperatorId}`);
     const d = await res.json();
     if (!d.success) throw new Error(d.error);
     const cur = d.current_period;
@@ -1872,7 +1958,7 @@ window.addEventListener('popstate', () => {
     const savedPin = localStorage.getItem('psw_pin');
     if (savedName && savedPin) {
       pswName = savedName; pswPin = savedPin;
-      fetch(`${API}/psw/notes/${encodeURIComponent(savedName)}?pin=${savedPin}&operator_id=proximity-care`)
+      fetch(`${API}/psw/notes/${encodeURIComponent(savedName)}?pin=${savedPin}&operator_id=${pswOperatorId}`)
         .then(r => { if (r.ok) { unlockApp(); } else { localStorage.removeItem('psw_name'); localStorage.removeItem('psw_pin'); } })
         .catch(() => { unlockApp(); }); // offline — restore anyway
     }
