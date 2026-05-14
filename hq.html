@@ -681,9 +681,9 @@ button:active{transform:scale(0.98);}
 
 <div class="stats-strip">
   <div class="stat-card hi"><div class="stat-val" id="s-leads">—</div><div class="stat-lbl">Leads</div></div>
-  <div class="stat-card"><div class="stat-val" id="s-clients">—</div><div class="stat-lbl">Clients</div></div>
-  <div class="stat-card"><div class="stat-val" id="s-bookings">—</div><div class="stat-lbl">Upcoming</div></div>
-  <div class="stat-card"><div class="stat-val" id="s-visits">—</div><div class="stat-lbl">Visits</div></div>
+  <div class="stat-card" onclick="showSect('clients')" style="cursor:pointer;" title="View clients"><div class="stat-val" id="s-clients">—</div><div class="stat-lbl">Clients</div></div>
+  <div class="stat-card" onclick="showSect('schedule')" style="cursor:pointer;" title="View schedule"><div class="stat-val" id="s-bookings">—</div><div class="stat-lbl">Upcoming</div></div>
+  <div class="stat-card" onclick="showSect('visits')" style="cursor:pointer;" title="View visits"><div class="stat-val" id="s-visits">—</div><div class="stat-lbl">Visits</div></div>
 </div>
 
 <!-- nav-tabs hidden — replaced by sidebar nav (Batch 3) -->
@@ -1753,7 +1753,7 @@ async function loadAll(spin=false) {
   try {
     const [overviewRes, visitsRes] = await Promise.all([
       fetch(`${API}/hq/overview?operator_id=${currentOp}`),
-      fetch(`${API}/hq/visits?operator_id=${currentOp}&limit=500`)
+      fetch(`${API}/hq/visits?operator_id=${currentOp}&limit=500&from_date=${new Date(Date.now()-90*86400000).toISOString().slice(0,10)}`)
     ]);
     const freshD = await overviewRes.json();
     if(!freshD.success) throw new Error('API error');
@@ -2493,6 +2493,7 @@ function renderPSWs() {
       <div class="card-actions">
         ${email?`<div class="card-act call" onclick="window.location.href='mailto:${email}'">Email</div>`:''}
         <div class="card-act" onclick="openPSWMsg('${p.name}')">Message</div>
+        <div class="card-act" onclick="showSect('schedule');setTimeout(()=>openAddShift(this.closest('.card').querySelector('[data-psw-name]')?.dataset.pswName||'',''),150);">+ Shift</div>
         <div class="card-act ok" data-psw-id="${p.id||''}" data-psw-name="${p.name}" data-psw-source="${p.source||'live'}" onclick="if(this.dataset.pswSource==='live'){openPSWDetail(this.dataset.pswId||this.dataset.pswName);}else{showToast('PSW not yet activated in Supabase','err');}">View</div>
       </div>
     </div>`;
@@ -2822,7 +2823,8 @@ async function renderVisits() {
     const target = new Date(now.getFullYear(), now.getMonth() + visitMonthOffset, 1);
     const year = target.getFullYear();
     const month = target.getMonth() + 1;
-    const res = await fetch(`${API}/hq/visits?operator_id=${currentOp}&limit=100`);
+    const _fromDate = target.toISOString().slice(0,10); // CLAUDE.md rule 14
+    const res = await fetch(`${API}/hq/visits?operator_id=${currentOp}&limit=100&from_date=${_fromDate}`);
     const d = await res.json();
     if (!d.visits) throw new Error('Failed');
 
@@ -2990,6 +2992,7 @@ function showSect(name) {
   if(name==='overview') { window._dirtyOverview=false; renderOverview(); }
   if(name==='applicants') loadApplicants();
   if(name==='schedule') { renderSchedule(); renderVacantVisits(); }
+  if(name==='visits') { renderVisits(); }
   if(name==='today') renderToday();
   window.scrollTo(0,0);
 }
@@ -3684,8 +3687,16 @@ function renderSchedule() {
 }
 
 function _buildFCEvents() {
-  const bookings = D.bookings || [];
-  const visits   = D.visits  || [];
+  // Filter to ±60 days around current FC view — prevents recurring series from flooding
+  const _fcCenter = window._fc ? (window._fc.view.currentStart || new Date()) : new Date();
+  const _winS = new Date(_fcCenter); _winS.setDate(_winS.getDate() - 60);
+  const _winE = new Date(_fcCenter); _winE.setDate(_winE.getDate() + 60);
+  const _ws = _winS.toISOString().slice(0,10);
+  const _we = _winE.toISOString().slice(0,10);
+  const bookings = (D.bookings || []).filter(b =>
+    !b.scheduled_date || (b.scheduled_date >= _ws && b.scheduled_date <= _we)
+  );
+  const visits = D.visits || [];
 
   // Conflict detection — O(n) using Map grouped by PSW+date
   const conflicts = new Set();
@@ -3986,13 +3997,23 @@ async function _patchBooking(id, updates, fcInfo) {
     const d = await res.json();
     if (!d.success) throw new Error(d.error||'Failed');
     showToast('Shift updated', 'ok');
-    // Targeted refresh — don't reload entire dataset for a single patch
     const freshRes = await fetch(`${API}/hq/overview?operator_id=${currentOp}`);
     const freshD = await freshRes.json();
     if (freshD.success) { D = freshD; _mergedPSWCache = null; }
     _refreshFC();
     renderVacantVisits();
     renderStats();
+    // Notify affected PSW
+    const pswToNotify = updates.assigned_to || d.psw_name;
+    if (pswToNotify) {
+      const _pmsg = updates.assigned_to
+        ? `A shift has been reassigned to you${updates.scheduled_date ? ' on ' + updates.scheduled_date : ''}. Check your schedule.`
+        : `Your schedule was updated${updates.scheduled_date ? ' for ' + updates.scheduled_date : ''}. Check your portal.`;
+      fetch(`${API}/psw/note`, {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ psw_name: pswToNotify, sender: 'lance', message: _pmsg })
+      }).catch(() => {});
+    }
   } catch(e) {
     showToast(e.message, 'err');
     if (fcInfo?.revert) fcInfo.revert();
@@ -4150,9 +4171,15 @@ let editingBookingId = null;
 
 function openAddShift(pswName, date, clientName) {
   editingBookingId = null;
+  if (!D.clients || !D.clients.length) {
+    showToast('Loading client data — try again in a moment', 'ok');
+    loadAll(false);
+    setTimeout(() => openAddShift(pswName, date, clientName), 1200);
+    return;
+  }
   document.getElementById('ss-title').textContent = 'Add Shift';
-  document.getElementById('ss-date').value = date || '';
-  document.getElementById('ss-time').value = '09:00';
+  document.getElementById('ss-date').value = date || new Date().toISOString().slice(0,10);
+  document.getElementById('ss-time').value = '08:00';
   document.getElementById('ss-duration').value = '480';
   document.getElementById('ss-end').value = '17:00';
   document.getElementById('ss-hours-display').textContent = '8.0 hrs';
@@ -4326,7 +4353,7 @@ async function saveShift(addAnother = false) {
       // Generate series_id for recurring shifts so they can be cancelled as a group
       const seriesId = recurring !== 'none' ? crypto.randomUUID() : null;
       // Fire all creates in parallel for speed
-      const results = await Promise.all(uniqueDates.map(d =>
+      const results = await Promise.all(uniqueDates.map(async d =>
         fetch(`${API}/hq/booking`,{method:'POST',headers:{'Content-Type':'application/json'},
           body:JSON.stringify({operator_id:currentOp,client_name:client,booking_type:'visit',
             scheduled_date:d,scheduled_time:time,assigned_to:psw,duration_minutes:duration,
@@ -4335,21 +4362,32 @@ async function saveShift(addAnother = false) {
       ));
       const created=results.filter(r=>r.success).length;
       showToast(`${created} shift${created!==1?'s':''} created ✓`,'ok');
+    if (psw && created > 0) {
+      fetch(`${API}/psw/note`, {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ psw_name: psw, sender: 'lance',
+          message: `${created} new shift${created!==1?'s have':' has'} been added to your schedule for ${client}. Check your portal.` })
+      }).catch(() => {});
+    }
     }
 
-    // Refresh data — update D then refresh calendar in-place (no full page reload)
-    const res = await fetch(`${API}/hq/overview?operator_id=${currentOp}`);
-    const freshD = await res.json();
-    if(freshD.success){
-      D = freshD;
-      // Destroy and re-init FC so it picks up new event data cleanly
-      // Refresh calendar without destroying to preserve scroll position
-      const _schedRes = await fetch(`${API}/hq/overview?operator_id=${currentOp}`);
-      const _schedD = await _schedRes.json();
-      if (_schedD.success) { D = _schedD; _mergedPSWCache = null; }
-      _refreshFC();
-      renderVacantVisits();
-      renderStats();
+    // Single targeted refresh — no double fetch
+    const _schedRes = await fetch(`${API}/hq/overview?operator_id=${currentOp}`);
+    const _schedD = await _schedRes.json();
+    if (_schedD.success) { D = _schedD; _mergedPSWCache = null; }
+    _refreshFC();
+    renderVacantVisits();
+    renderStats();
+    // Notify PSW of schedule change via in-app message
+    if (psw) {
+      const _isEdit = !!editingBookingId;
+      const _msg = _isEdit
+        ? `Your shift on ${date} at ${time} has been updated (${Math.round(duration/60)}h). Check your schedule.`
+        : `New shift: ${client} on ${date} at ${time} (${Math.round(duration/60)}h). Check your portal.`;
+      fetch(`${API}/psw/note`, {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ psw_name: psw, sender: 'lance', message: _msg })
+      }).catch(() => {});
     }
 
     if(addAnother) {
@@ -4374,6 +4412,15 @@ async function deleteShift(id) {
     const d = await res.json();
     if (!d.success) throw new Error(d.error);
     showToast('Shift removed', 'ok');
+    // Notify PSW of cancellation
+    const _delBook = (D.bookings||[]).find(b => b.id === id);
+    if (_delBook?.assigned_to) {
+      fetch(`${API}/psw/note`, {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ psw_name: _delBook.assigned_to, sender: 'lance',
+          message: `A shift on ${_delBook.scheduled_date||'your schedule'} has been cancelled. Check your portal.` })
+      }).catch(() => {});
+    }
     await loadAll(false);
   } catch(e) { showToast(e.message, 'err'); }
 }
@@ -4461,6 +4508,12 @@ async function executeSwap() {
     closeSheet('swap-sheet');
     await loadAll(false);
     _refreshFC();
+    // Notify both PSWs
+    if (d.swapped > 0) {
+      const _sDate = fromDate ? ' from ' + fromDate : '';
+      fetch(`${API}/psw/note`, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ psw_name: toPSW, sender: 'lance', message: `${d.swapped} shift${d.swapped!==1?'s have':' has'} been added to your schedule${_sDate}. Check your portal.` }) }).catch(()=>{});
+      fetch(`${API}/psw/note`, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ psw_name: fromPSW, sender: 'lance', message: `${d.swapped} shift${d.swapped!==1?'s have':' has'} been removed from your schedule${_sDate} and reassigned. Check your portal.` }) }).catch(()=>{});
+    }
   } catch(e) { showToast(e.message || 'Swap failed', 'err'); }
   btn.disabled = false; btn.textContent = 'Execute Swap';
 }
@@ -5151,7 +5204,8 @@ async function renderAttendance() {
   const updEl = document.getElementById('attendance-updated');
   if (!el) return;
   try {
-    const res = await fetch(`${API}/hq/visits?operator_id=${currentOp}&limit=100`);
+    const _attFrom = new Date(Date.now()-30*86400000).toISOString().slice(0,10);
+    const res = await fetch(`${API}/hq/visits?operator_id=${currentOp}&limit=100&from_date=${_attFrom}`);
     const d = await res.json();
     const visits = d.visits || [];
     const psws = D?.psws || [];
@@ -5356,7 +5410,7 @@ function renderOverview() {
         const isActive = visits.some(v => v.client_name===b.client_name && v.visit_date===today && v.time_in && !v.time_out);
         const status = isActive ? 'On Shift' : hasVisit ? 'Done' : !b.assigned_to ? 'Unassigned' : 'Scheduled';
         const col = isActive?'var(--green2)':hasVisit?'var(--teal2)':!b.assigned_to?'var(--amber)':'var(--muted2)';
-        return `<div style="display:flex;align-items:center;gap:10px;padding:9px 14px;border-bottom:1px solid var(--border);cursor:pointer;" onclick="showSect('schedule')">
+        return `<div style="display:flex;align-items:center;gap:10px;padding:9px 14px;border-bottom:1px solid var(--border);cursor:pointer;" onclick="showSect('schedule');setTimeout(()=>{ if(window._fc) window._fc.gotoDate('${b.scheduled_date}'); },200);">
           <div style="font-family:var(--mono);font-size:11px;color:var(--teal2);min-width:40px;">${b.scheduled_time||'—'}</div>
           <div style="flex:1;">
             <div style="font-size:12px;font-weight:500;color:var(--text);">${b.client_name||'—'}</div>
@@ -5543,7 +5597,7 @@ async function saveBulkSchedule() {
   btn.disabled = true; btn.textContent = `Creating ${dates.length} shifts...`;
 
   try {
-    const results = await Promise.all(dates.map(d =>
+    const results = await Promise.all(dates.map(async d =>
       fetch(`${API}/hq/booking`, {
         method: 'POST', headers: {'Content-Type':'application/json'},
         body: JSON.stringify({
@@ -5556,6 +5610,8 @@ async function saveBulkSchedule() {
     ));
     const created = results.filter(r => r.success).length;
     showToast(`${created} of ${dates.length} shifts created ✓`, 'ok');
+    // Notify PSW
+    if (psw && created > 0) { fetch(`${API}/psw/note`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ psw_name: psw, sender: 'lance', message: created + ' shift' + (created!==1?'s have':' has') + ' been added to your schedule for ' + client + '. Check your portal.' }) }).catch(()=>{}); }
     closeAllSheets();
     const res = await fetch(`${API}/hq/overview?operator_id=${currentOp}`);
     const freshD = await res.json();
