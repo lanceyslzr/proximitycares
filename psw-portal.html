@@ -311,6 +311,15 @@ a{color:inherit;text-decoration:none;}
 @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.45;}}
 .feed-dot.active{animation:pulse 2s infinite;}
 
+@media(max-width:768px){
+  .week-nav{padding:8px 12px 10px;}
+  .sched-day{margin:0 8px 6px;}
+  .card{margin:0 8px 6px;}
+}
+@media(max-width:600px){
+  .stats-strip{grid-template-columns:repeat(2,1fr);}
+  .nav-tab{padding:10px 10px;font-size:9px;letter-spacing:1.5px;}
+}
 @media(max-width:380px){
   .mood-row{flex-wrap:wrap;}
   .mood-opt{min-width:calc(33% - 4px);}
@@ -637,7 +646,7 @@ a{color:inherit;text-decoration:none;}
     <div style="margin-bottom:14px;">
       <label class="form-label">Task Photos <span style="font-size:10px;color:var(--muted);font-weight:400;">(optional — up to 4)</span></label>
       <div style="display:flex;align-items:center;gap:10px;margin-top:6px;">
-        <input type="file" id="co-photos" accept="image/*" multiple style="display:none;" onchange="previewPhotos(this)">
+        <input type="file" id="co-photos" accept="image/*" multiple style="display:none;" onchange="previewPhotos(this)" capture="environment">
         <button onclick="document.getElementById('co-photos').click()" style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;padding:8px 14px;border:1px solid var(--border2);background:var(--bg3);color:var(--muted2);border-radius:6px;cursor:pointer;min-height:36px;touch-action:manipulation;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="14" height="14" style="vertical-align:middle;margin-right:4px;"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>Add Photos</button>
         <div id="co-photo-preview" style="display:flex;gap:6px;flex-wrap:wrap;"></div>
       </div>
@@ -739,6 +748,13 @@ window.addEventListener('offline', () => {
   showToast('No internet — visits will queue', 'warn');
   updateOfflineBanner(true);
 });
+// Refetch when tab regains focus -- keeps data fresh after HQ edits
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden && appUnlocked) {
+    loadSchedule();
+    loadHomeData();
+  }
+});
 function updateOfflineBanner(offline) {
   const b = document.getElementById('offline-banner');
   if (b) b.classList.toggle('show', offline);
@@ -829,7 +845,7 @@ function checkGeofence(latitude, longitude, clientName) {
   // Find client address coords from scheduleData
   const clients = scheduleData.clients || scheduleData.assigned_clients || [];
   const client = clients.find(c => (c.full_name || c.client_name) === clientName);
-  if (!client || !client.latitude || !client.longitude) return true; // no coords stored, allow
+  if (!client || !client.latitude || !client.longitude) return null; // null = geofence not configured
   const dist = Math.round(haversineDistance(latitude, longitude, client.latitude, client.longitude));
   if (dist > 500) {
     showToast(`You're ${dist}m from ${clientName.split(' ')[0]}'s address`, 'warn');
@@ -871,7 +887,9 @@ function initPullToRefresh() {
     if (!ptrPulling) return;
     const dist = e.changedTouches[0].clientY - ptrStartY;
     ptrPulling = false;
-    if (dist > PTR_THRESHOLD) {
+    // Guard: don't refresh while checkout sheet is open
+    const checkoutOpen = document.getElementById('checkout-sheet')?.style.display !== 'none';
+    if (dist > PTR_THRESHOLD && !checkoutOpen) {
       await Promise.all([loadSchedule(), loadHomeData()]);
       showToast('Refreshed', 'ok');
     }
@@ -886,10 +904,19 @@ function resetIdleTimer() {
   idleTimer = setTimeout(lockApp, 15 * 60 * 1000); // 15 minutes
 }
 function lockApp() {
+  // Warn if locking during active visit (timer stops but visit remains in Supabase)
+  if (activeVisit) {
+    showToast('Visit in progress -- app locked. Re-enter PIN to continue.', 'warn');
+  }
   appUnlocked = false;
   pswPin = '';
   lockIn = '';
   try { localStorage.removeItem('psw_pin'); } catch {}
+  // Clear auto-refresh interval so it doesn't fire while locked
+  if (window._autoRefreshInterval) {
+    clearInterval(window._autoRefreshInterval);
+    window._autoRefreshInterval = null;
+  }
   // Reset PIN dots
   for (let i = 0; i < 4; i++) {
     const d = document.getElementById('ld'+i);
@@ -903,9 +930,13 @@ function lockApp() {
   stopElapsed();
 }
 function startIdleTimer() {
-  ['touchstart','touchend','keydown','click'].forEach(ev =>
-    document.addEventListener(ev, resetIdleTimer, { passive: true })
-  );
+  // Guard: only register idle listeners once across all unlock cycles
+  if (!window._idleListenersSet) {
+    window._idleListenersSet = true;
+    ['touchstart','touchend','keydown','click'].forEach(ev =>
+      document.addEventListener(ev, resetIdleTimer, { passive: true })
+    );
+  }
   resetIdleTimer();
 }
 
@@ -962,26 +993,33 @@ function unlockApp() {
   initPullToRefresh(); // Build 4
   startIdleTimer();    // Build 6
   // Delegated Sign In listener for schedule tab shift cards (data-checkin — never inline onclick)
-  document.getElementById('schedule-days').addEventListener('click', function(e) {
-    const btn = e.target.closest('.sched-signin-btn');
-    if (!btn) return;
-    const clientName = btn.dataset.checkin;
-    if (clientName) doCheckInFromShift(clientName);
-  });
-  // Auto-refresh every 60s
-  setInterval(() => {
-    if (!navigator.onLine) return;
-    loadSchedule();
-    loadMessages(false);
-    loadHomeData();
-  }, 60000);
+  if (!window._schedListenerSet) {
+    window._schedListenerSet = true;
+    document.getElementById('schedule-days').addEventListener('click', function(e) {
+      const btn = e.target.closest('.sched-signin-btn');
+      if (!btn) return;
+      const clientName = btn.dataset.checkin;
+      if (clientName) doCheckInFromShift(clientName);
+    });
+  }
+  if (!window._autoRefreshInterval) {
+    window._autoRefreshInterval = setInterval(() => {
+      if (!navigator.onLine || !appUnlocked) return;
+      loadSchedule();
+      loadMessages(false);
+      loadHomeData();
+    }, 60000);
+  }
 }
 
+// pswEmail fetched for future use in email-based features
 async function fetchPSWEmail() {
   try {
     const res = await fetch(`${API}/psw/notes/${encodeURIComponent(pswName)}?pin=${pswPin}`);
     const d = await res.json();
     if (d.psw_email) pswEmail = d.psw_email;
+    // Show PSW email in topbar if available
+    // psw-role-display not in current HTML -- reserved for future use
   } catch {}
 }
 
@@ -1426,6 +1464,22 @@ async function confirmCheckin() {
   document.getElementById('checkin-confirm-overlay').style.display = 'none';
   const directivesAcknowledged = !!(window._directivesRequired && document.getElementById('cc-ack-checkbox')?.checked);
 
+  // Offline path -- queue after directives acknowledged
+  if (!navigator.onLine) {
+    await queueAction('checkin', `${API}/visit/checkin`, {
+      psw_name: pswName, pin: pswPin, operator_id: pswOperatorId,
+      client_name: clientName, latitude, longitude, within_range,
+      directives_acknowledged: directivesAcknowledged
+    });
+    activeVisit = { id: 'queued-' + Date.now(), client_name: clientName, time_in: new Date().toTimeString().slice(0,5), checkin_time: new Date().toISOString() };
+    updateShiftUI(); renderWeek(); renderHomeFeed();
+    haptic(200);
+    showToast('Queued -- syncs when back online', 'warn');
+    showSect('checklist');
+    if (btn) { btn.textContent = 'Sign In Now'; btn.disabled = false; }
+    return;
+  }
+
   // Online path
   try {
     const res = await fetch(`${API}/visit/checkin`, {
@@ -1458,21 +1512,7 @@ async function doCheckInFromShift(clientName) {
   } catch {}
   const within_range = checkGeofence(latitude, longitude, clientName);
 
-  // Offline path
-  if (!navigator.onLine) {
-    await queueAction('checkin', `${API}/visit/checkin`, {
-      psw_name: pswName, pin: pswPin, operator_id: pswOperatorId,
-      client_name: clientName, latitude, longitude, within_range
-    });
-    activeVisit = { id: 'queued-' + Date.now(), client_name: clientName, time_in: new Date().toTimeString().slice(0,5), checkin_time: new Date().toISOString() };
-    updateShiftUI(); renderWeek(); renderHomeFeed();
-    haptic(200);
-    showToast('Queued — will sync when back online', 'warn');
-    showSect('checklist');
-    return;
-  }
-
-  // EC-3 — Show confirmation before firing
+  // Always show confirm first -- handles offline queue in confirmCheckin()
   showCheckinConfirm(clientName, latitude, longitude, within_range, null);
 }
 
@@ -1493,18 +1533,23 @@ function openCheckout() {
 function closeCheckout() {
   document.getElementById('checkout-sheet').style.display = 'none';
   document.body.style.overflow = '';
-  ['co-meds','co-incident'].forEach(id => { const el = document.getElementById(id); if(el) el.value = ''; });
+  ['co-meds','co-incident','co-obs'].forEach(id => { const el = document.getElementById(id); if(el) el.value = ''; });
   const photos = document.getElementById('co-photos'); if(photos) photos.value = '';
   const preview = document.getElementById('co-photo-preview'); if(preview) preview.innerHTML = '';
   const playback = document.getElementById('co-voice-playback'); if(playback) { playback.src = ''; playback.style.display = 'none'; }
   const status = document.getElementById('co-record-status'); if(status) status.textContent = '';
   const btn = document.getElementById('co-record-btn'); if(btn) { btn.style.borderColor = 'var(--border2)'; btn.style.color = 'var(--muted2)'; }
-  if (window._mediaRecorder && window._mediaRecorder.state === 'recording') { window._mediaRecorder.stop(); clearInterval(window._recordTimer); }
+  if (window._mediaRecorder && window._mediaRecorder.state === 'recording') { window._mediaRecorder.stop(); clearInterval(window._recordTimer); window._recordTimer = null; }
   window._voiceNoteUrl = null; window._voiceBlob = null;
+  // Reset mood to unselected state -- prevent stale mood from previous open
+  selectedMood = null;
+  document.querySelectorAll('#co-mood-row .mood-opt').forEach(o => o.classList.remove('sel'));
 }
 
 async function doCheckOut() {
   if (!activeVisit) return;
+  // Require mood selection
+  if (!selectedMood) { showToast('Please select a mood rating first', 'err'); return; }
   const tasks = Array.from(document.querySelectorAll('#sect-checklist .cl-item.done'))
     .map(el => el.querySelector('.cl-label').textContent);
   const obs = document.getElementById('cl-obs').value.trim();
@@ -1798,6 +1843,7 @@ async function loadHomeData() {
   try {
     const res = await fetch(`${API}/psw/pay-summary?psw_name=${encodeURIComponent(pswName)}&pin=${pswPin}&operator_id=${pswOperatorId}`);
     const d = await res.json();
+    window._lastPayData = d; // Cache so loadPaySummary can reuse
     if (!d.success || !d.current_period) return;
     const cur = d.current_period;
     const earningsEl = document.getElementById('s-earnings');
@@ -1983,10 +2029,17 @@ async function toggleVoiceRecord() {
   try {
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
     const chunks = [];
-    window._mediaRecorder = new MediaRecorder(stream);
+    // iOS Safari doesn't support audio/webm -- detect and fallback
+    const mimeType = MediaRecorder.isTypeSupported('audio/mp4') && !MediaRecorder.isTypeSupported('audio/webm')
+      ? 'audio/mp4'
+      : MediaRecorder.isTypeSupported('audio/webm;codecs=opus')
+        ? 'audio/webm;codecs=opus'
+        : '';
+    window._mediaRecorder = mimeType ? new MediaRecorder(stream, { mimeType }) : new MediaRecorder(stream);
     window._mediaRecorder.ondataavailable = e => chunks.push(e.data);
     window._mediaRecorder.onstop = () => {
-      const blob = new Blob(chunks, { type: 'audio/webm' });
+      const recType = (window._mediaRecorder && window._mediaRecorder.mimeType) || 'audio/webm';
+      const blob = new Blob(chunks, { type: recType });
       playback.src = URL.createObjectURL(blob); playback.style.display = 'block';
       window._voiceBlob = blob; stream.getTracks().forEach(t => t.stop()); status.textContent = 'Ready';
     };
@@ -1995,11 +2048,20 @@ async function toggleVoiceRecord() {
     btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="14" height="14" style="vertical-align:middle;margin-right:4px;"><rect x="6" y="6" width="12" height="12" rx="1"/></svg>Stop';
     btn.style.borderColor='var(--red)'; btn.style.color='var(--red)';
     window._recordTimer = setInterval(() => {
-      secs++; status.textContent = secs + 's / 30s';
+      secs++;
+      const remaining = 30 - secs;
+      if (remaining <= 5 && remaining > 0) {
+        status.textContent = secs + 's / 30s — ' + remaining + 's left';
+        status.style.color = 'var(--amber)';
+      } else {
+        status.textContent = secs + 's / 30s';
+        status.style.color = '';
+      }
       if (secs >= 30) {
-        window._mediaRecorder.stop(); clearInterval(window._recordTimer);
+        window._mediaRecorder.stop(); clearInterval(window._recordTimer); window._recordTimer = null;
         btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="14" height="14" style="vertical-align:middle;margin-right:4px;"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>Re-record';
-        btn.style.borderColor='var(--border2)'; btn.style.color='var(--muted2)'; status.textContent = 'Max 30s';
+        btn.style.borderColor='var(--border2)'; btn.style.color='var(--muted2)';
+        status.textContent = 'Max 30s reached'; status.style.color = '';
       }
     }, 1000);
   } catch(e) { showToast('Microphone access denied', 'err'); }
@@ -2008,11 +2070,26 @@ async function toggleVoiceRecord() {
 function previewPhotos(input) {
   const preview = document.getElementById('co-photo-preview'); if (!preview) return;
   preview.innerHTML = '';
+  const MAX_SIZE = 5 * 1024 * 1024; // 5MB
+  const validFiles = [];
   Array.from(input.files).slice(0,4).forEach(file => {
+    if (file.size > MAX_SIZE) {
+      showToast(file.name.slice(0,20) + ' too large (max 5MB)', 'err');
+      return;
+    }
+    validFiles.push(file);
     const img = document.createElement('img'); img.src = URL.createObjectURL(file);
     img.style.cssText = 'width:48px;height:48px;object-fit:cover;border-radius:6px;border:1px solid var(--border2);';
     preview.appendChild(img);
   });
+  // Replace file input with only valid files via DataTransfer
+  if (validFiles.length < Array.from(input.files).length) {
+    try {
+      const dt = new DataTransfer();
+      validFiles.forEach(f => dt.items.add(f));
+      input.files = dt.files;
+    } catch {}
+  }
 }
 
 if ('serviceWorker' in navigator) {
