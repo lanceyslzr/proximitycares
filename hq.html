@@ -2290,6 +2290,19 @@ function setVisitMonth(offset) {
   renderVisits();
 }
 
+// C5 — Incident badge helper (avoids nested template literal issues)
+function buildIncidentBadge(v) {
+  if (!v.incident_reported) return '';
+  if (v.incident_resolved) {
+    const reportLink = v.incident_report_url
+      ? `<a href="${v.incident_report_url}" target="_blank" style="font-family:var(--mono);font-size:8px;background:rgba(58,170,138,.08);border:1px solid rgba(58,170,138,.3);color:var(--green2);padding:2px 8px;border-radius:3px;text-decoration:none;min-height:24px;display:inline-flex;align-items:center;">↓ Report</a>`
+      : '';
+    return `<div style="font-size:11px;color:var(--red);margin-top:4px;display:flex;align-items:center;gap:6px;flex-wrap:wrap;">⚠ Incident <span style="color:var(--green2);">Resolved</span> ${reportLink}</div>`;
+  }
+  const vJson = JSON.stringify(v).replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+  return `<div style="font-size:11px;color:var(--red);margin-top:4px;display:flex;align-items:center;gap:6px;">⚠ Incident <button onclick="event.stopPropagation();openIncidentResolve('${vJson}')" style="font-family:var(--mono);font-size:8px;background:rgba(224,85,85,.1);border:1px solid rgba(224,85,85,.3);color:var(--red);padding:2px 8px;border-radius:3px;cursor:pointer;min-height:24px;">Resolve</button></div>`;
+}
+
 async function renderVisits() {
   const el = document.getElementById('visits-list');
   el.innerHTML = '<div class="empty-state">Loading visits...</div>';
@@ -2331,7 +2344,7 @@ async function renderVisits() {
             <div class="card-name">${v.psw_name||'—'}${sub8Badge}</div>
             <div class="card-sub">${v.client_name||'—'} · ${fmtTime(v.time_in)} ${v.time_out?'to '+fmtTime(v.time_out):''}</div>
             <div class="card-meta">${tasks ? tasks.slice(0,60)+(tasks.length>60?'...':'') : 'No tasks logged'}</div>
-            ${v.incident_reported?`<div style="font-size:11px;color:var(--red);margin-top:4px;display:flex;align-items:center;gap:6px;">⚠ Incident ${v.incident_resolved?'<span style="color:var(--green2);">Resolved</span>':"<button onclick='event.stopPropagation();openIncidentResolve("+JSON.stringify(v)+")' style='font-family:var(--mono);font-size:8px;background:rgba(224,85,85,.1);border:1px solid rgba(224,85,85,.3);color:var(--red);padding:2px 8px;border-radius:3px;cursor:pointer;min-height:24px;'>Resolve</button>"}</div>`:''}
+            ${v.incident_reported ? buildIncidentBadge(v) : ''}
           </div>
           <div class="card-right">
             <div style="font-family:var(--mono);font-size:11px;color:var(--teal2);">${fmtd(v.visit_date)}</div>
@@ -4135,7 +4148,17 @@ async function resolveIncident(visitId) {
     const d = await res.json();
     if (!d.success) throw new Error(d.error || 'Failed');
     document.getElementById('incident-modal').style.display = 'none';
-    showToast('Incident marked resolved', 'ok');
+    // C5 — Show download link if PDF was generated
+    if (d.report_url) {
+      showToast('Incident resolved · Report generated ✓', 'ok');
+      setTimeout(() => {
+        if (confirm(`Incident report ${d.report_ref} generated.\n\nDownload PDF now?`)) {
+          window.open(d.report_url, '_blank');
+        }
+      }, 500);
+    } else {
+      showToast('Incident marked resolved', 'ok');
+    }
     await loadAll(false);
     setVisitView('incidents');
   } catch(e) { showToast(e.message, 'err'); }
