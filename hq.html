@@ -1880,16 +1880,24 @@ function renderPSWs() {
   const el = document.getElementById('psws-list');
   if (!el.querySelector('.card')) showSkeleton('psws-list', 6, true);
   const merged = getMergedPSWList();
+  const today = new Date().toISOString().slice(0,10);
+  const in90 = new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString().slice(0,10);
   el.innerHTML = merged.map(p => {
     const ini = p.name.split(' ').map(w=>w[0]).join('').toUpperCase();
     const email = p.email || null;
     const statusBadge = p.source === 'live' ? '<span class="badge b-active">Active</span>' : '<span class="badge b-pending">Not activated</span>';
+    // C6 — probation badge
+    const onProbation = p.probation_end && p.probation_end >= today;
+    const probationSoon = onProbation && p.probation_end <= in90;
+    const probationBadge = onProbation
+      ? `<span style="font-family:var(--mono);font-size:8px;letter-spacing:1px;padding:2px 6px;border-radius:100px;border:1px solid ${probationSoon?'rgba(224,85,85,.4)':'rgba(224,154,61,.4)'};color:${probationSoon?'var(--red)':'var(--amber)'};margin-left:4px;">PROBATION${probationSoon?' ⚠':''}</span>`
+      : '';
     return `
     <div class="card">
       <div class="card-header" onclick="openPSWDetail('${p.id||p.name}')" style="cursor:pointer;">
         <div style="display:flex;align-items:center;gap:11px;flex:1;">
           <div class="avatar">${ini}</div>
-          <div><div class="card-name">${p.name}</div><div class="card-sub">${p.psw_code||p.id?'<span style="font-family:var(--mono);font-size:10px;color:var(--teal3);">'+(p.psw_code||'')+'</span> · ':''} ${email||'No email on file'}</div></div>
+          <div><div class="card-name">${p.name}${probationBadge}</div><div class="card-sub">${p.psw_code||p.id?'<span style="font-family:var(--mono);font-size:10px;color:var(--teal3);">'+(p.psw_code||'')+'</span> · ':''} ${email||'No email on file'}</div></div>
         </div>
         ${statusBadge}
       </div>
@@ -2237,24 +2245,26 @@ async function renderVisits() {
       const tasks = Array.isArray(v.tasks_completed) ? v.tasks_completed.join(', ') : (v.tasks_completed || '');
       const mood = v.client_mood || '';
       const vid = 'v'+i;
+      const sub8Badge = v.sub_8_min ? `<span style="font-family:var(--mono);font-size:8px;letter-spacing:1px;padding:2px 6px;border-radius:100px;border:1px solid rgba(224,85,85,.4);color:var(--red);margin-left:6px;">⚠ SUB-8-MIN</span>` : '';
       return `
-      <div class="card">
+      <div class="card" style="${v.sub_8_min?'border-color:rgba(224,85,85,.25);':''}">
         <div class="card-header" onclick="toggleVisit('${vid}')" style="cursor:pointer;">
           <div style="flex:1;min-width:0;">
-            <div class="card-name">${v.psw_name||'—'}</div>
+            <div class="card-name">${v.psw_name||'—'}${sub8Badge}</div>
             <div class="card-sub">${v.client_name||'—'} · ${fmtTime(v.time_in)} ${v.time_out?'to '+fmtTime(v.time_out):''}</div>
             <div class="card-meta">${tasks ? tasks.slice(0,60)+(tasks.length>60?'...':'') : 'No tasks logged'}</div>
             ${v.incident_reported?`<div style="font-size:11px;color:var(--red);margin-top:4px;display:flex;align-items:center;gap:6px;">⚠ Incident ${v.incident_resolved?'<span style="color:var(--green2);">Resolved</span>':"<button onclick='event.stopPropagation();openIncidentResolve("+JSON.stringify(v)+")' style='font-family:var(--mono);font-size:8px;background:rgba(224,85,85,.1);border:1px solid rgba(224,85,85,.3);color:var(--red);padding:2px 8px;border-radius:3px;cursor:pointer;min-height:24px;'>Resolve</button>"}</div>`:''}
           </div>
           <div class="card-right">
             <div style="font-family:var(--mono);font-size:11px;color:var(--teal2);">${fmtd(v.visit_date)}</div>
-            <div style="font-family:var(--mono);font-size:11px;color:var(--gold);">${v.hours_worked||0}h</div>
+            <div style="font-family:var(--mono);font-size:11px;color:${v.sub_8_min?'var(--red)':'var(--gold)'};">${v.hours_worked||0}h</div>
             ${mood?`<div style="font-family:var(--mono);font-size:10px;color:var(--muted2);">${mood}</div>`:''}
             ${v.satisfaction_rating?`<div style="font-size:11px;color:var(--gold);">${'★'.repeat(v.satisfaction_rating)}${'☆'.repeat(5-v.satisfaction_rating)}</div>`:''}
             <div style="font-size:10px;color:var(--muted);" id="chev-${vid}">+</div>
           </div>
         </div>
         <div id="${vid}" style="display:none;padding:14px 16px;border-top:1px solid var(--border);font-size:12px;line-height:1.8;">
+          ${v.sub_8_min?`<div style="margin-bottom:10px;padding:8px 12px;background:rgba(224,85,85,.06);border:1px solid rgba(224,85,85,.2);border-radius:6px;font-family:var(--mono);font-size:10px;color:var(--red);">⚠ Sub-8-minute visit — flagged for review. Invoice blocked until cleared.</div>`:''}
           ${tasks?`<div style="margin-bottom:10px;"><div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:4px;">Tasks Completed</div><div style="color:var(--muted2);">${tasks}</div></div>`:''}
           ${mood?`<div style="margin-bottom:10px;"><div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:4px;">Client Mood</div><div style="color:var(--text);">${mood}</div></div>`:''}
           ${v.visit_summary?`<div style="margin-bottom:10px;"><div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:4px;">Care Summary</div><div style="color:var(--muted2);">${v.visit_summary}</div></div>`:''}
@@ -3780,6 +3790,7 @@ async function openPSWDetail(pswId) {
           </select>
         </div>
       </div>
+      <div class="sheet-row"><div class="slbl">Probation End Date <span style="font-size:9px;color:var(--muted);">(C6 — leave blank if not on probation)</span></div><input class="sinput" id="pe-probation-end" type="date" value="${p.probation_end||''}" style="font-size:16px;"></div>
       <div class="sheet-row"><div class="slbl">Internal Notes</div><textarea class="sinput" id="pe-notes" rows="2" style="min-height:60px;resize:none;" placeholder="Notes about this PSW...">${p.notes||rec.notes||''}</textarea></div>
       <button class="sbtn" style="background:rgba(200,169,110,.12);color:var(--gold);border:1px solid rgba(200,169,110,.3);margin-bottom:8px;" onclick="savePSWEdits('${p.id}','${name}')">Save Changes</button>
 
@@ -4379,11 +4390,12 @@ async function savePSWEdits(pswId, pswName) {
   const rate = parseFloat(document.getElementById('pe-rate')?.value) || 19;
   const status = document.getElementById('pe-status')?.value || 'active';
   const notes = document.getElementById('pe-notes')?.value.trim() || '';
+  const probationEnd = document.getElementById('pe-probation-end')?.value || null;
   try {
     const res = await fetch(`${API}/hq/psw/${encodeURIComponent(pswName)}`, {
       method: 'PATCH',
       headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({ operator_id: currentOp, psw_rate: rate, status, notes })
+      body: JSON.stringify({ operator_id: currentOp, psw_rate: rate, status, notes, probation_end: probationEnd || null })
     });
     const d = await res.json();
     if (!d.success) throw new Error(d.error || 'Update failed');
