@@ -283,7 +283,8 @@ a{color:inherit;text-decoration:none;}
 .bottom-nav{position:fixed;bottom:0;left:0;right:0;z-index:200;background:rgba(7,9,12,.97);border-top:1px solid var(--border);display:flex;padding-bottom:var(--safe-bottom);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);}
 .bnav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:7px 4px;cursor:pointer;min-height:54px;gap:3px;color:var(--muted2);transition:color .2s;touch-action:manipulation;}
 .bnav-item.active{color:var(--teal2);}
-.bnav-icon{font-family:var(--mono);font-size:8px;letter-spacing:2px;text-transform:uppercase;line-height:1;padding:3px 5px;border:1px solid currentColor;border-radius:3px;margin-bottom:1px;position:relative;}
+.bnav-icon{display:flex;align-items:center;justify-content:center;width:24px;height:24px;position:relative;}
+.bnav-icon svg{width:22px;height:22px;}
 .bnav-dot{position:absolute;top:-3px;right:-3px;width:7px;height:7px;border-radius:50%;background:var(--red);display:none;}
 .bnav-dot.show{display:block;}
 .bnav-lbl{font-family:var(--mono);font-size:8px;letter-spacing:1px;text-transform:uppercase;}
@@ -383,6 +384,9 @@ a{color:inherit;text-decoration:none;}
     <div class="stat-card"><div class="stat-val" id="s-hours">—</div><div class="stat-lbl">Hours</div></div>
     <div class="stat-card pay"><div class="stat-val" id="s-earnings">—</div><div class="stat-lbl">Earned</div></div>
   </div>
+
+  <!-- Cert expiry urgency banner — populated by loadDocuments -->
+  <div id="cert-expiry-banner" style="display:none;"></div>
 
   <div class="active-banner" id="home-active-banner">
     <div class="active-banner-lbl">Visit in progress</div>
@@ -563,11 +567,26 @@ a{color:inherit;text-decoration:none;}
 
 <!-- BOTTOM NAV -->
 <div class="bottom-nav">
-  <div class="bnav-item active" onclick="showSect('home')" id="bn-home"><div class="bnav-icon">HQ</div><div class="bnav-lbl">Home</div></div>
-  <div class="bnav-item" onclick="showSect('schedule')" id="bn-schedule"><div class="bnav-icon">SCH</div><div class="bnav-lbl">Schedule</div></div>
-  <div class="bnav-item" onclick="showSect('checklist')" id="bn-checklist"><div class="bnav-icon">CKL</div><div class="bnav-lbl">Checklist</div></div>
-  <div class="bnav-item" onclick="showSect('messages')" id="bn-messages"><div class="bnav-icon" style="position:relative;">MSG<div class="bnav-dot" id="bnav-msg-dot"></div></div><div class="bnav-lbl">Messages</div></div>
-  <div class="bnav-item" onclick="showSect('clients')" id="bn-clients"><div class="bnav-icon">CLI</div><div class="bnav-lbl">Clients</div></div>
+  <div class="bnav-item active" onclick="showSect('home')" id="bn-home">
+    <div class="bnav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5L12 3l9 7.5"/><path d="M5 9.5V20a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V9.5"/><path d="M10 21v-6h4v6"/></svg></div>
+    <div class="bnav-lbl">Home</div>
+  </div>
+  <div class="bnav-item" onclick="showSect('schedule')" id="bn-schedule">
+    <div class="bnav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></div>
+    <div class="bnav-lbl">Schedule</div>
+  </div>
+  <div class="bnav-item" onclick="showSect('checklist')" id="bn-checklist">
+    <div class="bnav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div>
+    <div class="bnav-lbl">Checklist</div>
+  </div>
+  <div class="bnav-item" onclick="showSect('messages')" id="bn-messages">
+    <div class="bnav-icon" style="position:relative;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><div class="bnav-dot" id="bnav-msg-dot"></div></div>
+    <div class="bnav-lbl">Messages</div>
+  </div>
+  <div class="bnav-item" onclick="showSect('clients')" id="bn-clients">
+    <div class="bnav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
+    <div class="bnav-lbl">Clients</div>
+  </div>
 </div>
 </div><!-- /app -->
 
@@ -600,11 +619,11 @@ a{color:inherit;text-decoration:none;}
     <div style="margin-bottom:14px;">
       <label class="form-label">Client Mood</label>
       <div class="mood-row" id="co-mood-row">
-        <div class="mood-opt sel" onclick="selectMood(this,'Great')"><span class="mood-emoji">:)</span><span class="mood-lbl">Great</span></div>
-        <div class="mood-opt" onclick="selectMood(this,'Good')"><span class="mood-emoji">:|</span><span class="mood-lbl">Good</span></div>
-        <div class="mood-opt" onclick="selectMood(this,'Neutral')"><span class="mood-emoji">--</span><span class="mood-lbl">Neutral</span></div>
-        <div class="mood-opt" onclick="selectMood(this,'Low')"><span class="mood-emoji">:(</span><span class="mood-lbl">Low</span></div>
-        <div class="mood-opt" onclick="selectMood(this,'Agitated')"><span class="mood-emoji">:x</span><span class="mood-lbl">Agit.</span></div>
+        <div class="mood-opt sel" onclick="selectMood(this,'Great')"><span class="mood-emoji">😊</span><span class="mood-lbl">Great</span></div>
+        <div class="mood-opt" onclick="selectMood(this,'Good')"><span class="mood-emoji">🙂</span><span class="mood-lbl">Good</span></div>
+        <div class="mood-opt" onclick="selectMood(this,'Neutral')"><span class="mood-emoji">😐</span><span class="mood-lbl">Neutral</span></div>
+        <div class="mood-opt" onclick="selectMood(this,'Low')"><span class="mood-emoji">😔</span><span class="mood-lbl">Low</span></div>
+        <div class="mood-opt" onclick="selectMood(this,'Agitated')"><span class="mood-emoji">😤</span><span class="mood-lbl">Agit.</span></div>
       </div>
     </div>
     <div style="margin-bottom:12px;">
@@ -1049,9 +1068,19 @@ function renderHomeFeed() {
     const done = todayV.some(v => v.client_name === b.client_name);
     const active = activeVisit && activeVisit.client_name === b.client_name;
     if (done || active) return;
+    // Shift handoff — find last visit with this client
+    const lastVisit = allVisits.filter(v => v.client_name === b.client_name && v.visit_date !== today)
+      .sort((a,z) => (z.visit_date||'').localeCompare(a.visit_date||''))[0];
+    const handoff = lastVisit
+      ? `<div style="margin-top:6px;padding:6px 8px;background:var(--bg3);border:1px solid var(--border);border-radius:5px;font-size:10px;color:var(--muted2);line-height:1.5;">
+          <span style="color:var(--teal2);font-family:var(--mono);font-size:9px;">Last visit ${fmtd(lastVisit.visit_date)}</span>
+          ${lastVisit.client_mood ? ` · Mood: ${lastVisit.client_mood}` : ''}
+          ${lastVisit.visit_summary ? `<br>${lastVisit.visit_summary.slice(0,80)}${lastVisit.visit_summary.length>80?'…':''}` : ''}
+        </div>`
+      : '';
     rows.push(`<div class="feed-row" onclick="showSect('schedule')">
       <div class="feed-dot upcoming"></div>
-      <div class="feed-body"><div class="feed-client">${b.client_name||'—'}</div><div class="feed-meta">Upcoming · ${b.scheduled_time||'TBD'}</div></div>
+      <div class="feed-body"><div class="feed-client">${b.client_name||'—'}</div><div class="feed-meta">Upcoming · ${b.scheduled_time||'TBD'}</div>${handoff}</div>
       <div class="feed-right"><div class="feed-time" style="color:var(--gold);">Sign in</div></div>
     </div>`);
   });
@@ -1079,9 +1108,9 @@ function renderWeek() {
   const today = new Date(); today.setHours(12,0,0,0);
   const startOfWeek = new Date(today);
   const dow = today.getDay() === 0 ? 6 : today.getDay() - 1;
-  startOfWeek.setDate(today.getDate() - dow + (weekOffset * 7));
-  const days = Array.from({length:7}, (_,i) => { const d = new Date(startOfWeek); d.setDate(startOfWeek.getDate()+i); return d; });
-  document.getElementById('week-label').textContent = `${fmtd(days[0].toISOString().slice(0,10))} – ${fmtd(days[6].toISOString().slice(0,10))}`;
+  startOfWeek.setDate(today.getDate() - dow + (weekOffset * 14));
+  const days = Array.from({length:14}, (_,i) => { const d = new Date(startOfWeek); d.setDate(startOfWeek.getDate()+i); return d; });
+  document.getElementById('week-label').textContent = `${fmtd(days[0].toISOString().slice(0,10))} – ${fmtd(days[13].toISOString().slice(0,10))}`;
   const bookings = scheduleData?.bookings || [];
   const visits = scheduleData?.completed_visits || [];
   const todayStr = new Date().toISOString().slice(0,10);
@@ -1104,8 +1133,6 @@ function renderWeek() {
       const active = activeVisit && activeVisit.client_name === b.client_name && isToday;
       if (done || active) return;
       if (isToday && !activeVisit) {
-        // Today + no active visit = show Sign In button directly on shift card
-        // NEVER use inline onclick with dynamic client names — escaping collision crashes JS block
         const safeName = (b.client_name||'').replace(/"/g,'&quot;');
         rows += `<div class="sched-shift" style="background:rgba(61,138,122,.03);">
           <div style="flex:1;min-width:0;">
@@ -1116,12 +1143,13 @@ function renderWeek() {
             style="font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:#fff;background:var(--teal);border:none;border-radius:6px;padding:7px 14px;cursor:pointer;min-height:34px;white-space:nowrap;touch-action:manipulation;flex-shrink:0;">Sign In</button>
         </div>`;
       } else {
-        // Upcoming shift — show Cancel button (EC-7)
         rows += `<div class="sched-shift"><div style="flex:1;min-width:0;"><div class="shift-client">${b.client_name||'—'}</div><div class="shift-time">${b.scheduled_time||'TBD'} · ${fmtd(b.scheduled_date)}</div></div><div style="display:flex;gap:6px;align-items:center;"><div class="shift-badge upcoming">Upcoming</div><button onclick="openCancelShift('${b.id}','${(b.client_name||'').replace(/'/g,'')}','${b.scheduled_date}','${b.scheduled_time||''}')" style="font-family:var(--mono);font-size:8px;letter-spacing:1px;text-transform:uppercase;padding:5px 9px;border-radius:5px;border:1px solid rgba(224,85,85,.3);background:rgba(224,85,85,.06);color:var(--red);cursor:pointer;min-height:28px;touch-action:manipulation;">Cancel</button></div></div>`;
       }
     });
     if (!rows) rows = `<div class="sched-empty">No shifts</div>`;
-    return `<div class="sched-day"><div class="sched-day-hdr"><div class="sched-day-lbl ${isToday?'today':''}">${dayLabel}${isToday?' · Today':''}</div></div>${rows}</div>`;
+    // Week separator between day 7 and 8
+    const weekBreak = i === 6 ? `<div style="margin:8px 12px 0;font-family:var(--mono);font-size:8px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);padding:6px 0;border-top:1px solid var(--border);">Week 2</div>` : '';
+    return weekBreak + `<div class="sched-day"><div class="sched-day-hdr"><div class="sched-day-lbl ${isToday?'today':''}">${dayLabel}${isToday?' · Today':''}</div></div>${rows}</div>`;
   }).join('');
 }
 function shiftWeek(dir) { weekOffset += dir; renderWeek(); }
@@ -1636,6 +1664,33 @@ async function loadDocuments() {
       {name:'CPR Certification',key:'cpr_cert',url:rec.cpr_cert_url,expiry:rec.cpr_cert_expiry,status:rec.cpr_cert_status},
       {name:'First Aid',key:'first_aid',url:rec.first_aid_url,expiry:rec.first_aid_expiry,status:rec.first_aid_status}
     ];
+
+    // Cert expiry urgency banner on home screen
+    const today = new Date(); today.setHours(0,0,0,0);
+    const in30 = new Date(today); in30.setDate(today.getDate()+30);
+    const expiring = docs.filter(doc => {
+      if (!doc.expiry) return false;
+      const exp = new Date(doc.expiry + 'T12:00:00');
+      return exp <= in30 && exp >= today;
+    });
+    const certBanner = document.getElementById('cert-expiry-banner');
+    if (certBanner) {
+      if (expiring.length) {
+        const daysLeft = Math.round((new Date(expiring[0].expiry + 'T12:00:00') - today) / 86400000);
+        const urgent = daysLeft <= 7;
+        certBanner.style.display = 'block';
+        certBanner.innerHTML = `<div style="display:flex;align-items:flex-start;gap:10px;padding:12px 14px;background:${urgent?'rgba(224,85,85,.08)':'rgba(224,154,61,.08)'};border:1px solid ${urgent?'rgba(224,85,85,.3)':'rgba(224,154,61,.3)'};border-radius:10px;margin:0 12px 10px;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="${urgent?'var(--red)':'var(--amber)'}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18" style="flex-shrink:0;margin-top:1px;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          <div>
+            <div style="font-size:12px;font-weight:600;color:${urgent?'var(--red)':'var(--amber)'};">${expiring[0].name} expires in ${daysLeft} day${daysLeft!==1?'s':''}</div>
+            <div style="font-size:11px;color:var(--muted2);margin-top:2px;">Contact Lance to renew — expired certs prevent new client assignments.</div>
+          </div>
+        </div>`;
+      } else {
+        certBanner.style.display = 'none';
+      }
+    }
+
     el.innerHTML = docs.map(doc => {
       const st = doc.status || (doc.url ? 'valid' : 'missing');
       const initials = doc.key.split('_').map(w=>w[0].toUpperCase()).join('');
@@ -1681,27 +1736,63 @@ async function loadPaySummary() {
     const d = await res.json();
     if (!d.success) throw new Error(d.error);
     const cur = d.current_period;
+    const rate = d.rate || 19;
+
+    // Earnings projection — based on hours logged so far vs days elapsed
+    const now = new Date();
+    const dayOfMonth = now.getDate();
+    const daysInMonth = new Date(now.getFullYear(), now.getMonth()+1, 0).getDate();
+    const daysRemaining = daysInMonth - dayOfMonth;
+    const projectedHours = dayOfMonth > 0 ? parseFloat((cur.total_hours / dayOfMonth * daysInMonth).toFixed(1)) : cur.total_hours;
+    const projectedPay = (projectedHours * rate).toFixed(2);
+    const thisWeekHours = (() => {
+      const visits = scheduleData?.completed_visits || [];
+      const startOfWeek = new Date(now);
+      const dow = now.getDay() === 0 ? 6 : now.getDay() - 1;
+      startOfWeek.setDate(now.getDate() - dow);
+      startOfWeek.setHours(0,0,0,0);
+      return visits
+        .filter(v => new Date(v.visit_date + 'T12:00:00') >= startOfWeek)
+        .reduce((s,v) => s + parseFloat(v.hours_worked||0), 0).toFixed(1);
+    })();
+
     let html = `<div class="pay-period-card">
       <div class="pay-period-hdr">
-        <div class="pay-period-lbl current">Current Period</div>
-        <div style="font-family:var(--mono);font-size:10px;color:var(--muted);">${cur.label||'—'}</div>
+        <div class="pay-period-lbl current">This Month — ${cur.label||''}</div>
+        <div style="font-family:var(--mono);font-size:12px;color:var(--gold);">$${cur.total_pay.toFixed(2)}</div>
       </div>
       <div class="pay-period-body">
-        <div class="pay-row"><div class="pay-row-lbl">Hours</div><div class="pay-row-val">${cur.total_hours}</div></div>
-        <div class="pay-row"><div class="pay-row-lbl">Rate</div><div class="pay-row-val">$${d.rate}/hr</div></div>
+        <div class="pay-row"><div class="pay-row-lbl">Hours logged</div><div class="pay-row-val">${cur.total_hours}h</div></div>
         <div class="pay-row"><div class="pay-row-lbl">Visits</div><div class="pay-row-val">${cur.visit_count}</div></div>
-        <div class="pay-row"><div class="pay-row-lbl">Total</div><div class="pay-row-val total">$${cur.total_pay.toFixed(2)}</div></div>
+        <div class="pay-row"><div class="pay-row-lbl">Rate</div><div class="pay-row-val">$${rate}/hr</div></div>
+        <div class="pay-row"><div class="pay-row-lbl">This week</div><div class="pay-row-val">$${(parseFloat(thisWeekHours)*rate).toFixed(0)} · ${thisWeekHours}h</div></div>
       </div>
     </div>`;
+
+    // Projection card
+    html += `<div class="pay-period-card" style="border-color:rgba(200,169,110,.2);background:rgba(200,169,110,.04);">
+      <div class="pay-period-hdr">
+        <div class="pay-period-lbl" style="color:var(--gold);">Month Projection</div>
+        <div style="font-family:var(--mono);font-size:8px;color:var(--muted);">${daysRemaining}d remaining</div>
+      </div>
+      <div class="pay-period-body">
+        <div class="pay-row"><div class="pay-row-lbl">Projected hours</div><div class="pay-row-val" style="color:var(--gold);">${projectedHours}h</div></div>
+        <div class="pay-row"><div class="pay-row-lbl">Projected pay</div><div class="pay-row-val total" style="color:var(--gold);">$${projectedPay}</div></div>
+        <div class="pay-row" style="margin-top:4px;padding-top:8px;border-top:1px solid var(--border);"><div class="pay-row-lbl" style="font-size:9px;color:var(--muted);">Based on pace so far this month</div></div>
+      </div>
+    </div>`;
+
     if (d.all_time) {
       html += `<div class="pay-period-card">
-        <div class="pay-period-hdr"><div class="pay-period-lbl">All Time</div></div>
+        <div class="pay-period-hdr"><div class="pay-period-lbl">All Time (YTD)</div></div>
         <div class="pay-period-body">
-          <div class="pay-row"><div class="pay-row-lbl">Total Visits</div><div class="pay-row-val">${d.all_time.total_visits}</div></div>
-          <div class="pay-row"><div class="pay-row-lbl">Total Hours</div><div class="pay-row-val">${d.all_time.total_hours}</div></div>
+          <div class="pay-row"><div class="pay-row-lbl">Total visits</div><div class="pay-row-val">${d.all_time.total_visits}</div></div>
+          <div class="pay-row"><div class="pay-row-lbl">Total hours</div><div class="pay-row-val">${d.all_time.total_hours}h</div></div>
+          <div class="pay-row"><div class="pay-row-lbl">Est. total earned</div><div class="pay-row-val total">$${(parseFloat(d.all_time.total_hours) * rate).toFixed(0)}</div></div>
         </div>
       </div>`;
     }
+
     const past = (d.periods||[]).slice(1,4);
     past.forEach(p => {
       const visitCount = Array.isArray(p.visits) ? p.visits.length : (p.visit_count || 0);
@@ -1711,7 +1802,7 @@ async function loadPaySummary() {
           <div style="font-family:var(--mono);font-size:12px;color:var(--gold);">$${p.total_pay.toFixed(2)}</div>
         </div>
         <div class="pay-period-body">
-          <div class="pay-row"><div class="pay-row-lbl">Hours</div><div class="pay-row-val">${p.total_hours}</div></div>
+          <div class="pay-row"><div class="pay-row-lbl">Hours</div><div class="pay-row-val">${p.total_hours}h</div></div>
           <div class="pay-row"><div class="pay-row-lbl">Visits</div><div class="pay-row-val">${visitCount}</div></div>
         </div>
       </div>`;
