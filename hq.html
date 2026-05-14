@@ -1051,6 +1051,26 @@ button:active{transform:scale(0.98);}
 <!-- SHEETS -->
 <div class="sheet-overlay" id="sheet-overlay" onclick="closeAllSheets()"></div>
 
+<!-- APPLICANT SHEET -->
+<div class="sheet" id="app-sheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-body" style="padding-top:8px;">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px;">
+      <div>
+        <div style="font-size:17px;font-weight:500;color:var(--text);" id="app-sheet-name">—</div>
+        <div style="font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;margin-top:3px;" id="app-sheet-status">—</div>
+        <div style="font-size:11px;color:var(--muted2);margin-top:4px;" id="app-sheet-meta">—</div>
+      </div>
+      <button onclick="closeSheet('app-sheet')" style="font-size:18px;color:var(--muted2);background:none;border:none;padding:4px;line-height:1;">✕</button>
+    </div>
+    <div style="font-family:var(--mono);font-size:8px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:4px;">AVAILABILITY</div>
+    <div style="font-size:12px;color:var(--muted2);margin-bottom:16px;" id="app-sheet-avail">—</div>
+    <div style="font-family:var(--mono);font-size:8px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:2px;">DOCUMENTS</div>
+    <div id="app-sheet-docs"></div>
+    <div style="display:flex;flex-direction:column;gap:8px;margin-top:16px;" id="app-sheet-acts"></div>
+  </div>
+</div>
+
 <!-- OPERATOR SHEET -->
 <div class="sheet" id="op-sheet">
   <div class="sheet-handle"></div>
@@ -2430,7 +2450,7 @@ function renderCRM() {
     if(countEl) countEl.textContent = items.length;
     if(!items.length) { el.innerHTML = '<div class="crm-empty">Empty</div>'; return; }
     el.innerHTML = items.map(l => {
-      const name = [l.first_name,l.last_name].filter(Boolean).join(' ') || 'Unknown';
+      const name = [l.first_name,l.last_name].filter(Boolean).join(' ') || l.email || l.phone || 'Unknown';
       const agency = l.care_needed_for || l.agency_name || '—';
       const city = l.city || '';
       const date = ago(l.created_at);
@@ -2442,9 +2462,14 @@ function renderCRM() {
       const stageLabel = (isOperatorView ? CRM_STAGE_LABELS_SYS : CRM_STAGE_LABELS_CARE);
       const demoSlug = (agency.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,''));
       return `<div class="crm-card${stage==='closed'?' closed':''}" draggable="true" ondragstart="crmDragStart(event,'${l.id}','${isSeed?'seed':'db'}','${stage}')">
-        <div class="crm-card-name">${name}</div>
-        <div class="crm-card-agency">${agency}${city?' · '+city:''}</div>
-        <div class="crm-card-meta">${date}${l.source?' · '+l.source:''}</div>
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:6px;">
+          <div style="min-width:0;flex:1;">
+            <div class="crm-card-name">${name}</div>
+            <div class="crm-card-agency">${agency}${city?' · '+city:''}</div>
+            <div class="crm-card-meta">${date}${l.source?' · '+l.source:''}</div>
+          </div>
+          <button onclick="crmDelete('${l.id}','${isSeed?'seed':'db'}','${name.replace(/'/g,'')}',event)" style="flex-shrink:0;font-size:13px;color:var(--muted);background:none;border:none;padding:2px 4px;line-height:1;cursor:pointer;touch-action:manipulation;" title="Delete">✕</button>
+        </div>
         ${l.notes?`<div style="font-size:9px;color:var(--muted);margin-bottom:6px;line-height:1.4;">${l.notes.slice(0,80)}${l.notes.length>80?'...':''}</div>`:''}
         <div class="crm-card-acts">
           ${l.phone?`<a href="tel:${l.phone}" class="crm-card-btn call" onclick="event.stopPropagation()">📞 Call</a>`:''}
@@ -2458,7 +2483,24 @@ function renderCRM() {
   });
 }
 
-async function crmMove(id, type, newStage, e) {
+async function crmDelete(id, type, name, e) {
+  if(e) e.stopPropagation();
+  if(!confirm('Remove "'+name+'" from CRM?')) return;
+  if(type === 'seed') {
+    const idx = CRM_SEED.findIndex(s => s.id === id);
+    if(idx > -1) CRM_SEED.splice(idx, 1);
+    renderCRM();
+    showToast('Removed from CRM','ok');
+    return;
+  }
+  try {
+    const res = await fetch(`${API}/hq/lead/${id}?operator_id=${currentOp}`, { method:'DELETE' });
+    if(!res.ok) throw new Error();
+    D.leads = (D.leads||[]).filter(l => l.id !== id);
+    renderCRM();
+    showToast('Lead deleted','ok');
+  } catch { showToast('Delete failed','err'); }
+}
   if(e) e.stopPropagation();
   if(type === 'seed') {
     // Update seed in memory
@@ -2543,44 +2585,143 @@ async function loadApplicants() {
   try {
     const res = await fetch(`${API}/psw/applicants?operator_id=${currentOp}`);
     const data = await res.json();
-    const apps = data.applicants || [];
+    let apps = data.applicants || [];
+
+    // Deduplicate by email — keep most recent per email (array is already newest-first)
+    const seen = new Set();
+    apps = apps.filter(a => {
+      const key = (a.email || a.id).toLowerCase();
+      if(seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+
     const badge = document.getElementById('app-badge');
     if(badge) badge.textContent = apps.filter(a => a.status === 'applied').length;
     if(!apps.length) { el.innerHTML = '<div class="empty-state">No applications yet · <a href="https://proximitycares.ca/careers.html" target="_blank" style="color:var(--teal2)">View careers page</a></div>'; return; }
 
-    const statusColor = {applied:'var(--amber)',qualified:'var(--teal2)',rejected:'var(--red)',hired:'var(--green2)'};
+    const statusColor = {applied:'var(--amber)',qualified:'var(--teal2)',documents_complete:'var(--blue2)',rejected:'var(--red)',hired:'var(--green2)',active:'var(--green)'};
     el.innerHTML = apps.map(a => {
       const name = [a.first_name,a.last_name].filter(Boolean).join(' ');
       const certs = a.certifications || '—';
       const st = a.status || 'applied';
-      return `<div class="card">
+      return `<div class="card" onclick="openApplicantSheet('${a.id}')" style="cursor:pointer;">
         <div class="card-header">
           <div style="flex:1;min-width:0">
             <div class="card-name">${name}</div>
-            <div class="card-sub">${a.phone?`<a href="tel:${a.phone}" onclick="event.stopPropagation()">${a.phone}</a>`:a.email||'—'}</div>
+            <div class="card-sub">${a.phone?`${a.phone}`:a.email||'—'}</div>
             <div class="card-meta">${[a.city,a.availability,a.years_experience?a.years_experience+' yrs exp':''].filter(Boolean).join(' · ')}</div>
             <div class="card-meta" style="margin-top:3px;">${certs}</div>
           </div>
           <div class="card-right">
-            <span class="badge" style="background:${statusColor[st]||'var(--muted)'};color:#fff;border:none;">${st}</span>
+            <span class="badge" style="background:${statusColor[st]||'var(--muted)'};color:#fff;border:none;">${(st).replace('_',' ')}</span>
             <div style="font-family:var(--mono);font-size:9px;color:var(--muted);margin-top:4px;">${ago(a.created_at)}</div>
           </div>
         </div>
         ${a.message?`<div style="font-size:11px;color:var(--muted2);padding:0 0 8px;line-height:1.5;">"${a.message.slice(0,120)}${a.message.length>120?'...':''}"</div>`:''}
-        <div style="display:flex;gap:6px;flex-wrap:wrap;padding-top:4px;">
+        <div style="display:flex;gap:6px;flex-wrap:wrap;padding-top:4px;" onclick="event.stopPropagation()">
           ${a.phone?`<a href="tel:${a.phone}" class="card-act call">Call</a>`:''}
           ${a.email?`<a href="mailto:${a.email}" class="card-act call">Email</a>`:''}
           ${st==='applied'?`<button class="card-act ok" onclick="qualifyApplicant('${a.id}')">Qualify →</button>`:''}
           ${st==='qualified'?`<span class="card-act" style="color:var(--muted);font-size:9px;letter-spacing:1px;">AWAITING DOCS</span>`:''}
-          ${st==='documents_complete'?`<button class="card-act ok" onclick="hireApplicant('${a.id}')">Hire →</button>`:''}
+          ${st==='documents_complete'?`<button class="card-act ok" onclick="hireAndActivate('${a.id}','${name}','${a.email||''}','${a.phone||''}')">Hire + Activate →</button>`:''}
           ${st==='onboarding'?`<span class="card-act" style="color:var(--muted);font-size:9px;letter-spacing:1px;">AWAITING DOCS</span>`:''}
           ${st==='hired'?`<button class="card-act ok" onclick="activateApplicantAsStaff('${a.id}','${name}','${a.email||''}','${a.phone||''}')">Send Portal Access →</button>`:''}
           ${st==='active'?`<span class="card-act" style="color:var(--teal2);font-size:9px;letter-spacing:1px;">ACTIVE ✓</span>`:''}
           <button class="card-act" style="font-size:8px;background:none;border:1px solid var(--border2);cursor:pointer;" onclick="resendOnboardLink('${a.id}','${a.first_name}',this)">↻ Resend Link</button>
+          <button class="card-act" style="font-size:8px;background:none;border:1px solid rgba(224,85,85,.3);color:var(--red);cursor:pointer;" onclick="dismissApplicant('${a.id}','${name}')">✕ Dismiss</button>
         </div>
       </div>`;
     }).join('');
   } catch { el.innerHTML = '<div class="empty-state"><div class="empty-state-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div><div class="empty-state-title">Could not load applicants</div></div>'; }
+}
+
+// ── APPLICANT DOC VIEWER SHEET ──
+let _applicantCache = [];
+async function openApplicantSheet(id) {
+  // Pull from last loaded data if available, else refetch
+  let a = _applicantCache.find(x => x.id === id);
+  if(!a) {
+    try {
+      const res = await fetch(`${API}/psw/applicants?operator_id=${currentOp}`);
+      const data = await res.json();
+      _applicantCache = data.applicants || [];
+      a = _applicantCache.find(x => x.id === id);
+    } catch { showToast('Could not load applicant','err'); return; }
+  }
+  if(!a) return;
+  const name = [a.first_name,a.last_name].filter(Boolean).join(' ');
+  const st = a.status || 'applied';
+  const statusColor = {applied:'var(--amber)',qualified:'var(--teal2)',documents_complete:'var(--blue2)',rejected:'var(--red)',hired:'var(--green2)',active:'var(--green)'};
+  const docs = [
+    {label:'PSW Certificate', url: a.psw_cert_url},
+    {label:'Resume',          url: a.resume_url},
+    {label:'Police Check',    url: a.police_check_url},
+    {label:'CPR Certificate', url: a.cpr_cert_url},
+    {label:'First Aid',       url: a.first_aid_url},
+    {label:'Government ID',   url: a.gov_id_url}
+  ];
+  const avail = a.availability_json ? (() => {
+    try { const av = typeof a.availability_json === 'string' ? JSON.parse(a.availability_json) : a.availability_json;
+      return [av.days?.join(', '), av.shifts?.join(', '), av.hours_per_week].filter(Boolean).join(' · '); } catch { return ''; }
+  })() : '';
+
+  document.getElementById('app-sheet-name').textContent = name;
+  document.getElementById('app-sheet-status').textContent = (st).replace('_',' ');
+  document.getElementById('app-sheet-status').style.color = statusColor[st] || 'var(--muted2)';
+  document.getElementById('app-sheet-meta').textContent = [a.phone, a.email, a.city].filter(Boolean).join(' · ');
+  document.getElementById('app-sheet-avail').textContent = avail || '—';
+  document.getElementById('app-sheet-docs').innerHTML = docs.map(d =>
+    `<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);">
+      <div style="font-size:13px;color:${d.url?'var(--text)':'var(--muted)'};">${d.label}</div>
+      ${d.url
+        ? `<a href="${d.url}" target="_blank" style="font-family:var(--mono);font-size:9px;letter-spacing:1px;color:var(--teal2);border:1px solid rgba(90,173,160,.3);padding:4px 10px;border-radius:4px;">VIEW ↗</a>`
+        : `<span style="font-family:var(--mono);font-size:9px;color:var(--muted);">NOT UPLOADED</span>`}
+    </div>`
+  ).join('');
+
+  // Action buttons
+  const acts = document.getElementById('app-sheet-acts');
+  acts.innerHTML = '';
+  if(st === 'applied') acts.innerHTML += `<button class="sbtn ok" onclick="qualifyApplicant('${a.id}');closeSheet('app-sheet')">Qualify →</button>`;
+  if(st === 'documents_complete') acts.innerHTML += `<button class="sbtn ok" onclick="hireAndActivate('${a.id}','${name}','${a.email||''}','${a.phone||''}');closeSheet('app-sheet')">Hire + Activate →</button>`;
+  if(st === 'hired') acts.innerHTML += `<button class="sbtn ok" onclick="activateApplicantAsStaff('${a.id}','${name}','${a.email||''}','${a.phone||''}');closeSheet('app-sheet')">Send Portal Access →</button>`;
+  acts.innerHTML += `<button class="sbtn" onclick="resendOnboardLink('${a.id}','${a.first_name}',this)">↻ Resend Link</button>`;
+  acts.innerHTML += `<button class="sbtn" style="border-color:rgba(224,85,85,.3);color:var(--red);" onclick="dismissApplicant('${a.id}','${name}');closeSheet('app-sheet')">✕ Dismiss</button>`;
+
+  openSheet('app-sheet');
+}
+
+// ── HIRE + ACTIVATE (collapsed into one tap) ──
+async function hireAndActivate(id, name, email, phone) {
+  try {
+    const r1 = await fetch(`${API}/psw/hire`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({applicant_id: id, operator_id: currentOp})
+    });
+    if(!r1.ok) { const d = await r1.json(); throw new Error(d.error||'Hire failed'); }
+    const nm = name.split(' ');
+    const first = nm.shift(); const last = nm.join(' ');
+    const r2 = await fetch(`${API}/psw/activate`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({operator_id: currentOp, psw_name: name, psw_email: email, psw_phone: phone||null, first_name: first, last_name: last})
+    });
+    const d2 = await r2.json();
+    if(!r2.ok) throw new Error(d2.error||'Activation failed');
+    showToast(name+' hired and activated ✓','ok');
+    loadApplicants(); loadAll(false);
+  } catch(e) { showToast(e.message||'Failed','err'); }
+}
+
+// ── DISMISS APPLICANT ──
+async function dismissApplicant(id, name) {
+  if(!confirm('Dismiss '+name+'? This removes them from your applicants list.')) return;
+  try {
+    const res = await fetch(`${API}/psw/applicants/${id}?operator_id=${currentOp}`, { method:'DELETE' });
+    if(!res.ok) throw new Error();
+    showToast(name+' dismissed','ok');
+    loadApplicants();
+  } catch { showToast('Could not dismiss applicant','err'); }
 }
 
 async function initiateOnboarding(applicantId, email) {
