@@ -3294,6 +3294,9 @@ async function openApplicantSheet(id) {
   if(['qualified','documents_complete','hired'].includes(st)) {
     acts.innerHTML += `<button class="sbtn" style="background:rgba(61,138,122,.1);border-color:rgba(61,138,122,.3);color:var(--teal2);" onclick="runPSWIntakeAI('${a.id}','${name}')">✦ Generate PSW Profile with AI</button>`;
   }
+  if(st === 'documents_complete') {
+    acts.innerHTML += `<button class="sbtn" style="background:rgba(74,222,128,.08);border-color:rgba(74,222,128,.35);color:var(--green2);" onclick="approveDocsAndSendInterviewPicker('${a.id}','${name}')">✓ Docs Approved — Send Interview Picker</button>`;
+  }
   acts.innerHTML += `<button class="sbtn" onclick="resendOnboardLink('${a.id}','${a.first_name}',this)">↻ Resend Link</button>`;
   acts.innerHTML += `<button class="sbtn" style="border-color:rgba(224,85,85,.3);color:var(--red);" data-dismiss-id="${a.id}" data-dismiss-name="${name.replace(/"/g,'&quot;')}" onclick="dismissApplicant(this.dataset.dismissId,this.dataset.dismissName);closeSheet('app-sheet')">✕ Dismiss</button>`;
 
@@ -3363,6 +3366,38 @@ async function hireApplicant(id) {
 }
 
 // ── CLIENT INTAKE AI ──
+// ── ASSESSMENT UPLOAD ──
+async function saveAssessment(clientId, slug, triggerIntake) {
+  const notes = document.getElementById('ce-assessment-' + clientId)?.value.trim();
+  if (!notes) { showToast('Enter assessment notes first', 'err'); return; }
+  try {
+    const res = await fetch(`${API}/hq/client/assessment`, {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ operator_id: currentOp, client_id: clientId, portal_slug: slug, assessment_notes: notes, trigger_intake: triggerIntake })
+    });
+    const d = await res.json();
+    if (!d.success) throw new Error(d.error);
+    showToast(triggerIntake ? 'Assessment saved + intake link sent ✓' : 'Assessment saved ✓', 'ok');
+    closeSheet('client-sheet');
+    loadAll(false);
+  } catch(e) { showToast(e.message || 'Save failed', 'err'); }
+}
+
+// ── DOCS APPROVED — SEND INTERVIEW PICKER ──
+async function approveDocsAndSendInterviewPicker(applicantId, name) {
+  try {
+    const res = await fetch(`${API}/psw/docs-approved`, {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ operator_id: currentOp, applicant_id: applicantId })
+    });
+    const d = await res.json();
+    if (!d.success) throw new Error(d.error);
+    showToast('Docs approved — interview picker sent to ' + name + ' ✓', 'ok');
+    closeSheet('app-sheet');
+    loadApplicants();
+  } catch(e) { showToast(e.message || 'Failed', 'err'); }
+}
+
 async function runClientIntakeAI() {
   const notes = document.getElementById('co-ai-notes')?.value.trim();
   if (!notes) { showToast('Paste referral notes first', 'err'); return; }
@@ -4631,7 +4666,16 @@ function openClientDetail(id) {
     <button class="sbtn" style="margin-top:8px;" onclick="genInvoice('${name}','${c.family_email||c.email||''}','${c.assigned_psw||''}',${c.client_rate||22},${c.psw_rate||19});closeSheet('client-sheet');">Generate Invoice</button>
     <button class="sbtn ghost" style="margin-top:8px;" onclick="triggerOnboardClient('${slug}');closeSheet('client-sheet');">Resend Welcome Email</button>
 
-    <div style="margin:18px 0 10px;font-family:var(--mono);font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--teal2);">Family Contacts</div>
+    <!-- ASSESSMENT UPLOAD -->
+    <div style="margin:20px 0 10px;padding-top:16px;border-top:1px solid var(--border);">
+      <div style="font-family:var(--mono);font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--teal2);margin-bottom:10px;">Assessment</div>
+      ${c.assessment_completed_at ? `<div style="font-family:var(--mono);font-size:9px;color:var(--green2);margin-bottom:8px;">✓ Completed ${fmtd(c.assessment_completed_at)}</div>` : ''}
+      <textarea class="sinput" id="ce-assessment-${id}" rows="3" style="min-height:72px;resize:none;margin-bottom:8px;font-size:13px;" placeholder="Paste assessment notes here...">${c.assessment_notes||''}</textarea>
+      <div style="display:flex;gap:8px;">
+        <button class="sbtn ghost" style="flex:1;font-size:10px;padding:8px;" onclick="saveAssessment('${id}','${slug}',false)">Save Notes</button>
+        <button class="sbtn" style="flex:1;font-size:10px;padding:8px;background:rgba(61,138,122,.12);color:var(--teal2);border-color:rgba(61,138,122,.3);" onclick="saveAssessment('${id}','${slug}',true)">Save + Send Intake Link</button>
+      </div>
+    </div>
     <div id="fc-list-${id}" style="margin-bottom:10px;"><div style="font-family:var(--mono);font-size:10px;color:var(--muted);">Loading contacts...</div></div>
     <div style="display:flex;flex-direction:column;gap:6px;padding:12px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;">
       <div style="font-family:var(--mono);font-size:8px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:4px;">Add Contact</div>
