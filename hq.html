@@ -584,20 +584,27 @@ button:active{transform:scale(0.98);}
     <span style="font-family:var(--mono);font-size:9px;color:var(--muted);" id="ov-updated">—</span>
   </div>
 
-  <!-- Onboarding checklist — BUILD 31 — hidden when complete -->
-  <div id="ov-onboarding" style="display:none;margin:0 12px 12px;">
-    <div style="background:rgba(61,138,122,.06);border:1px solid rgba(61,138,122,.25);border-radius:10px;overflow:hidden;">
-      <div style="padding:12px 14px 8px;display:flex;align-items:center;justify-content:space-between;">
-        <div>
-          <div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--teal2);margin-bottom:3px;">Getting Started</div>
-          <div style="font-size:12px;color:var(--muted2);">Complete these steps to launch your agency</div>
+  <!-- System Health — replaces onboarding checklist (moved to operator.html) -->
+  <div id="ov-system-health" style="margin:0 12px 12px;">
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;overflow:hidden;">
+      <div style="padding:10px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
+        <div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted2);">System Health</div>
+        <div style="font-family:var(--mono);font-size:9px;color:var(--muted);" id="sh-updated">—</div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);">
+        <div style="background:var(--bg2);padding:12px 10px;text-align:center;">
+          <div style="font-family:var(--mono);font-size:16px;font-weight:500;color:var(--teal2);" id="sh-on-shift">—</div>
+          <div style="font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-top:3px;">On Shift</div>
         </div>
-        <div style="font-family:var(--mono);font-size:11px;color:var(--teal2);" id="ov-ob-progress">0/6</div>
+        <div style="background:var(--bg2);padding:12px 10px;text-align:center;cursor:pointer;" onclick="showSect('revenue')">
+          <div style="font-family:var(--mono);font-size:16px;font-weight:500;color:var(--amber);" id="sh-outstanding">$—</div>
+          <div style="font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-top:3px;">Outstanding</div>
+        </div>
+        <div style="background:var(--bg2);padding:12px 10px;text-align:center;cursor:pointer;" onclick="showSect('psws')">
+          <div style="font-family:var(--mono);font-size:16px;font-weight:500;color:var(--red);" id="sh-expiring">—</div>
+          <div style="font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-top:3px;">Certs Expiring</div>
+        </div>
       </div>
-      <div style="height:3px;background:var(--border);margin:0 14px 10px;">
-        <div id="ov-ob-bar" style="height:100%;background:var(--teal2);width:0%;transition:width .4s;border-radius:2px;"></div>
-      </div>
-      <div id="ov-ob-steps" style="padding:0 8px 10px;display:flex;flex-direction:column;gap:4px;"></div>
     </div>
   </div>
 
@@ -1336,49 +1343,18 @@ function switchOp(id, name) {
 async function loadAll(spin=false) {
   if(spin) { const b=document.getElementById('refresh-btn'); b.classList.add('refresh-spin'); setTimeout(()=>b.classList.remove('refresh-spin'),800); }
   try {
-    // Fetch overview + visits + branding in parallel
-    const [overviewRes, visitsRes, brandingRes] = await Promise.all([
+    const [overviewRes, visitsRes] = await Promise.all([
       fetch(`${API}/hq/overview?operator_id=${currentOp}`),
-      fetch(`${API}/hq/visits?operator_id=${currentOp}&limit=200`),
-      fetch(`${API}/hq/branding?operator_id=${currentOp}`)
+      fetch(`${API}/hq/visits?operator_id=${currentOp}&limit=200`)
     ]);
     D = await overviewRes.json();
     if(!D.success) throw new Error('API error');
-    // Merge visits into D so renderOverview and renderStats can use them
     try {
       const vd = await visitsRes.json();
       if (vd.visits) D.visits = vd.visits;
     } catch {}
-    // WHITE LABEL — apply operator branding
-    try {
-      const bd = await brandingRes.json();
-      if (bd.success) applyBranding(bd);
-    } catch {}
     renderAll();
   } catch(err) { showToast('Failed to load data', 'err'); }
-}
-
-// WHITE LABEL — inject operator branding into HQ
-function applyBranding(b) {
-  const root = document.documentElement;
-  if (b.brand_primary) {
-    // Convert hex to teal-equivalent — inject as teal vars
-    root.style.setProperty('--teal', b.brand_primary);
-    root.style.setProperty('--teal2', b.brand_primary);
-    root.style.setProperty('--border2', b.brand_primary + '40');
-    root.style.setProperty('--border3', b.brand_primary + '66');
-  }
-  if (b.brand_accent) root.style.setProperty('--gold', b.brand_accent);
-  // Agency name in op-label if it matches current op
-  const opLabel = document.getElementById('op-label');
-  if (opLabel && b.agency_name && currentOp !== 'proximity-care') opLabel.textContent = b.agency_name;
-  // Logo in topbar
-  const logoEl = document.querySelector('.logo');
-  if (logoEl && b.logo_url) {
-    logoEl.innerHTML = `<img src="${b.logo_url}" alt="${b.agency_name||''}" style="height:28px;max-width:140px;object-fit:contain;vertical-align:middle;">`;
-  } else if (logoEl && b.agency_name && currentOp !== 'proximity-care') {
-    logoEl.innerHTML = `<span style="font-family:var(--sans);font-size:14px;font-weight:600;">${b.agency_name}</span> <em style="font-style:normal;color:var(--teal2);font-size:12px;">HQ</em>`;
-  }
 }
 function renderAll() {
   renderStats(); renderLeads(); renderClients(); renderPSWs();
@@ -4206,57 +4182,45 @@ function renderVacantVisits() {
 
 
 // ── OVERVIEW DASHBOARD ──
-// ── BUILD 31 — OPERATOR ONBOARDING CHECKLIST ──
-const OB_STEPS = [
-  { label: 'Add your first client',       sub: 'Create a client record in the Onboard tab',      tab: 'onboard'    },
-  { label: 'Send intake link to family',  sub: 'Send the family portal welcome email',            tab: 'onboard'    },
-  { label: 'Add your first PSW',          sub: 'Activate a PSW and set their PIN',               tab: 'psws'       },
-  { label: 'Send PSW portal access',      sub: 'PSW receives login link and credentials',         tab: 'applicants' },
-  { label: 'Book your first shift',       sub: 'Schedule a visit in the Schedule tab',            tab: 'schedule'   },
-  { label: 'Preview the family portal',   sub: 'Open family.html to see what families see',       tab: 'clients'    }
-];
+// ── SYSTEM HEALTH CARD (replaced onboarding checklist) ──
+async function renderSystemHealth() {
+  const today = new Date().toISOString().slice(0,10);
+  const visits = D.visits || [];
+  const psws = D.psws || [];
 
-function renderChecklist() {
-  const wrap = document.getElementById('ov-onboarding');
-  const stepsEl = document.getElementById('ov-ob-steps');
-  const bar = document.getElementById('ov-ob-bar');
-  const prog = document.getElementById('ov-ob-progress');
-  if (!wrap || !stepsEl) return;
+  // On shift now
+  const onShift = visits.filter(v => v.visit_date === today && v.time_in && !v.time_out).length;
+  const shEl = document.getElementById('sh-on-shift');
+  if (shEl) shEl.textContent = onShift;
 
-  const step = parseInt(D.onboarding_step ?? 0);
-  const completed = D.onboarding_completed_at;
+  // Updated time
+  const updEl = document.getElementById('sh-updated');
+  if (updEl) updEl.textContent = new Date().toLocaleTimeString('en-CA', { hour:'2-digit', minute:'2-digit', timeZone:'America/Toronto' });
 
-  // Hide if all done
-  if (step >= 6 || completed) { wrap.style.display = 'none'; return; }
-  wrap.style.display = 'block';
-
-  const pct = Math.round((step / 6) * 100);
-  if (bar) bar.style.width = pct + '%';
-  if (prog) prog.textContent = step + '/6';
-
-  stepsEl.innerHTML = OB_STEPS.map((s, i) => {
-    const done = i < step;
-    const active = i === step;
-    return `<div onclick="${active ? `advanceOnboardingStep(${i + 1},'${s.tab}')` : done ? '' : ''}" style="display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:6px;background:${active ? 'rgba(61,138,122,.1)' : 'transparent'};border:1px solid ${active ? 'rgba(61,138,122,.3)' : 'transparent'};cursor:${active ? 'pointer' : 'default'};">
-      <div style="width:20px;height:20px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:10px;border:1px solid ${done ? 'var(--teal2)' : active ? 'var(--teal2)' : 'var(--border2)'};background:${done ? 'var(--teal2)' : 'transparent'};color:${done ? '#fff' : active ? 'var(--teal2)' : 'var(--muted)'};font-family:var(--mono);">${done ? '✓' : i + 1}</div>
-      <div style="flex:1;min-width:0;">
-        <div style="font-size:12px;color:${done ? 'var(--muted)' : active ? 'var(--text)' : 'var(--muted2)'};${done ? 'text-decoration:line-through;' : ''}">${s.label}</div>
-        ${active ? `<div style="font-size:10px;color:var(--muted2);margin-top:1px;">${s.sub} →</div>` : ''}
-      </div>
-    </div>`;
-  }).join('');
-}
-
-async function advanceOnboardingStep(newStep, tab) {
+  // Certs expiring within 30 days — fetch lazily
   try {
-    await fetch(`${API}/hq/onboarding-step`, {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ operator_id: currentOp, step: newStep })
-    });
-    D.onboarding_step = newStep;
-    renderChecklist();
-    if (tab) showSect(tab);
-  } catch(e) { showToast('Could not update checklist', 'err'); }
+    const res = await fetch(`${API}/hq/ar?operator_id=${currentOp}`);
+    const d = await res.json();
+    const outEl = document.getElementById('sh-outstanding');
+    if (outEl) {
+      const total = d.total_outstanding || 0;
+      outEl.textContent = total > 0 ? '$' + total.toFixed(0) : '$0';
+      outEl.style.color = total > 0 ? 'var(--amber)' : 'var(--green2)';
+    }
+  } catch {}
+
+  // Expiring PSW certs — count from psws with cert expiry within 30 days
+  const in30 = new Date(); in30.setDate(in30.getDate() + 30);
+  const expiring = psws.filter(p => {
+    if (!p.psw_cert_expiry) return false;
+    const exp = new Date(p.psw_cert_expiry);
+    return exp <= in30 && exp >= new Date();
+  }).length;
+  const expEl = document.getElementById('sh-expiring');
+  if (expEl) {
+    expEl.textContent = expiring;
+    expEl.style.color = expiring > 0 ? 'var(--red)' : 'var(--green2)';
+  }
 }
 
 function renderOverview() {
@@ -4270,8 +4234,8 @@ function renderOverview() {
   const visits = D.visits||[];
   const activity = D.recent_activity||[];
 
-  // BUILD 31 — onboarding checklist
-  renderChecklist();
+  // System Health card
+  renderSystemHealth();
 
   // KPIs
   const activePSWs = visits.filter(v => v.visit_date===today && v.time_in && !v.time_out).length;
