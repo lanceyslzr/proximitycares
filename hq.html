@@ -928,8 +928,43 @@ button:active{transform:scale(0.98);}
     <div style="background:var(--bg2);padding:10px 6px;text-align:center;"><div style="font-family:var(--mono);font-size:16px;font-weight:500;color:var(--text);" id="vmt-hours">—</div><div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-top:3px;">Hours</div></div>
     <div style="background:var(--bg2);padding:10px 6px;text-align:center;"><div style="font-family:var(--mono);font-size:16px;font-weight:500;color:var(--text);" id="vmt-psws">—</div><div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-top:3px;">PSWs</div></div>
   </div>
-  <div class="list-search-wrap"><span class="list-search-icon" style="font-size:14px;">⌕</span><input class="list-search" id="visits-search" placeholder="Search by PSW or client..." oninput="filterList('visits-list','visits-search')" autocomplete="off"></div>
+  <div class="list-search-wrap" style="display:flex;gap:8px;align-items:center;">
+    <span class="list-search-icon" style="font-size:14px;">⌕</span>
+    <input class="list-search" id="visits-search" placeholder="Search by PSW or client..." oninput="filterList('visits-list','visits-search')" autocomplete="off" style="flex:1;">
+    <button onclick="openManualVisitSheet()" style="flex-shrink:0;font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;padding:6px 12px;border-radius:6px;border:1px solid rgba(200,169,110,.3);background:rgba(200,169,110,.08);color:var(--gold);cursor:pointer;min-height:34px;white-space:nowrap;">+ Manual Visit</button>
+  </div>
   <div id="visits-list"><div class="empty-state">Loading visits...</div></div>
+</div>
+
+<!-- EC-6 — MANUAL VISIT SHEET -->
+<div class="sheet-overlay" id="manual-visit-sheet" onclick="if(event.target===this)closeSheet('manual-visit-sheet')">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">Manual Visit Entry</div>
+    <div style="font-family:var(--mono);font-size:9px;color:var(--amber);letter-spacing:1px;margin-bottom:14px;">EC-6 · Requires reason · Logged to audit trail</div>
+    <div class="srow2" style="padding:0;">
+      <div>
+        <div class="slbl">PSW Name</div>
+        <select class="sselect" id="mv-psw">
+          <option value="">Select PSW...</option>
+        </select>
+      </div>
+      <div>
+        <div class="slbl">Client Name</div>
+        <select class="sselect" id="mv-client">
+          <option value="">Select client...</option>
+        </select>
+      </div>
+    </div>
+    <div class="sheet-row"><div class="slbl">Visit Date</div><input class="sinput" id="mv-date" type="date" style="font-size:16px;"></div>
+    <div class="srow2" style="padding:0;">
+      <div><div class="slbl">Time In</div><input class="sinput" id="mv-time-in" type="time" style="font-size:16px;"></div>
+      <div><div class="slbl">Time Out</div><input class="sinput" id="mv-time-out" type="time" style="font-size:16px;"></div>
+    </div>
+    <div class="sheet-row"><div class="slbl">Reason for Manual Entry *</div><textarea class="sinput" id="mv-reason" rows="2" style="min-height:64px;resize:none;" placeholder="e.g. PSW forgot to log, system outage, paper timesheet..."></textarea></div>
+    <button class="sbtn" onclick="submitManualVisit()">Submit Manual Visit</button>
+    <div style="font-family:var(--mono);font-size:9px;color:var(--muted);margin-top:8px;text-align:center;">This visit will be flagged entry_type: manual in all reports</div>
+  </div>
 </div>
 
 <!-- ACTIVITY -->
@@ -4386,6 +4421,48 @@ function renderOverview() {
 
 
 // ── PSW INLINE EDIT ──
+// ── EC-6 — MANUAL VISIT ENTRY ──
+function openManualVisitSheet() {
+  // Populate PSW and client dropdowns from current data
+  const psws = D.psws || [];
+  const clients = D.clients || [];
+  const pswSel = document.getElementById('mv-psw');
+  const clientSel = document.getElementById('mv-client');
+  if (pswSel) pswSel.innerHTML = '<option value="">Select PSW...</option>' +
+    psws.filter(p => p.status === 'active').map(p => `<option value="${p.full_name||p.name}">${p.full_name||p.name}</option>`).join('');
+  if (clientSel) clientSel.innerHTML = '<option value="">Select client...</option>' +
+    clients.map(c => `<option value="${c.first_name} ${c.last_name||''}".trim()>${c.first_name} ${c.last_name||''}</option>`).join('');
+  // Default date to today
+  const dateEl = document.getElementById('mv-date');
+  if (dateEl) dateEl.value = new Date().toISOString().slice(0,10);
+  openSheet('manual-visit-sheet');
+}
+
+async function submitManualVisit() {
+  const psw = document.getElementById('mv-psw')?.value?.trim();
+  const client = document.getElementById('mv-client')?.value?.trim();
+  const date = document.getElementById('mv-date')?.value;
+  const timeIn = document.getElementById('mv-time-in')?.value;
+  const timeOut = document.getElementById('mv-time-out')?.value;
+  const reason = document.getElementById('mv-reason')?.value?.trim();
+  if (!psw || !client || !date || !timeIn || !timeOut || !reason) {
+    showToast('All fields required including reason', 'err'); return;
+  }
+  try {
+    const res = await fetch(`${API}/hq/manual-visit`, {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ operator_id: currentOp, psw_name: psw, client_name: client, visit_date: date, time_in: timeIn, time_out: timeOut, reason })
+    });
+    const d = await res.json();
+    if (!d.success) throw new Error(d.error || 'Failed');
+    showToast(`Manual visit logged — ${d.hours_worked}h`, 'ok');
+    closeSheet('manual-visit-sheet');
+    // Clear fields
+    ['mv-psw','mv-client','mv-time-in','mv-time-out','mv-reason'].forEach(id => { const el = document.getElementById(id); if(el) el.value=''; });
+    await loadAll(false);
+  } catch(e) { showToast(e.message || 'Could not submit', 'err'); }
+}
+
 async function savePSWEdits(pswId, pswName) {
   const rate = parseFloat(document.getElementById('pe-rate')?.value) || 19;
   const status = document.getElementById('pe-status')?.value || 'active';
