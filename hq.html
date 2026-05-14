@@ -584,6 +584,23 @@ button:active{transform:scale(0.98);}
     <span style="font-family:var(--mono);font-size:9px;color:var(--muted);" id="ov-updated">—</span>
   </div>
 
+  <!-- Onboarding checklist — BUILD 31 — hidden when complete -->
+  <div id="ov-onboarding" style="display:none;margin:0 12px 12px;">
+    <div style="background:rgba(61,138,122,.06);border:1px solid rgba(61,138,122,.25);border-radius:10px;overflow:hidden;">
+      <div style="padding:12px 14px 8px;display:flex;align-items:center;justify-content:space-between;">
+        <div>
+          <div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--teal2);margin-bottom:3px;">Getting Started</div>
+          <div style="font-size:12px;color:var(--muted2);">Complete these steps to launch your agency</div>
+        </div>
+        <div style="font-family:var(--mono);font-size:11px;color:var(--teal2);" id="ov-ob-progress">0/6</div>
+      </div>
+      <div style="height:3px;background:var(--border);margin:0 14px 10px;">
+        <div id="ov-ob-bar" style="height:100%;background:var(--teal2);width:0%;transition:width .4s;border-radius:2px;"></div>
+      </div>
+      <div id="ov-ob-steps" style="padding:0 8px 10px;display:flex;flex-direction:column;gap:4px;"></div>
+    </div>
+  </div>
+
   <!-- Live KPI row -->
   <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);margin:0 12px 12px;border-radius:8px;overflow:hidden;">
     <div style="background:var(--bg2);padding:14px 10px;text-align:center;cursor:pointer;" onclick="showSect('visits')">
@@ -4015,6 +4032,59 @@ function renderVacantVisits() {
 
 
 // ── OVERVIEW DASHBOARD ──
+// ── BUILD 31 — OPERATOR ONBOARDING CHECKLIST ──
+const OB_STEPS = [
+  { label: 'Add your first client',       sub: 'Create a client record in the Onboard tab',      tab: 'onboard'    },
+  { label: 'Send intake link to family',  sub: 'Send the family portal welcome email',            tab: 'onboard'    },
+  { label: 'Add your first PSW',          sub: 'Activate a PSW and set their PIN',               tab: 'psws'       },
+  { label: 'Send PSW portal access',      sub: 'PSW receives login link and credentials',         tab: 'applicants' },
+  { label: 'Book your first shift',       sub: 'Schedule a visit in the Schedule tab',            tab: 'schedule'   },
+  { label: 'Preview the family portal',   sub: 'Open family.html to see what families see',       tab: 'clients'    }
+];
+
+function renderChecklist() {
+  const wrap = document.getElementById('ov-onboarding');
+  const stepsEl = document.getElementById('ov-ob-steps');
+  const bar = document.getElementById('ov-ob-bar');
+  const prog = document.getElementById('ov-ob-progress');
+  if (!wrap || !stepsEl) return;
+
+  const step = parseInt(D.onboarding_step ?? 0);
+  const completed = D.onboarding_completed_at;
+
+  // Hide if all done
+  if (step >= 6 || completed) { wrap.style.display = 'none'; return; }
+  wrap.style.display = 'block';
+
+  const pct = Math.round((step / 6) * 100);
+  if (bar) bar.style.width = pct + '%';
+  if (prog) prog.textContent = step + '/6';
+
+  stepsEl.innerHTML = OB_STEPS.map((s, i) => {
+    const done = i < step;
+    const active = i === step;
+    return `<div onclick="${active ? `advanceOnboardingStep(${i + 1},'${s.tab}')` : done ? '' : ''}" style="display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:6px;background:${active ? 'rgba(61,138,122,.1)' : 'transparent'};border:1px solid ${active ? 'rgba(61,138,122,.3)' : 'transparent'};cursor:${active ? 'pointer' : 'default'};">
+      <div style="width:20px;height:20px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:10px;border:1px solid ${done ? 'var(--teal2)' : active ? 'var(--teal2)' : 'var(--border2)'};background:${done ? 'var(--teal2)' : 'transparent'};color:${done ? '#fff' : active ? 'var(--teal2)' : 'var(--muted)'};font-family:var(--mono);">${done ? '✓' : i + 1}</div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:12px;color:${done ? 'var(--muted)' : active ? 'var(--text)' : 'var(--muted2)'};${done ? 'text-decoration:line-through;' : ''}">${s.label}</div>
+        ${active ? `<div style="font-size:10px;color:var(--muted2);margin-top:1px;">${s.sub} →</div>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function advanceOnboardingStep(newStep, tab) {
+  try {
+    await fetch(`${API}/hq/onboarding-step`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ operator_id: currentOp, step: newStep })
+    });
+    D.onboarding_step = newStep;
+    renderChecklist();
+    if (tab) showSect(tab);
+  } catch(e) { showToast('Could not update checklist', 'err'); }
+}
+
 function renderOverview() {
   const now = new Date();
   const today = now.toISOString().slice(0,10);
@@ -4025,6 +4095,9 @@ function renderOverview() {
   const bookings = D.bookings||[];
   const visits = D.visits||[];
   const activity = D.recent_activity||[];
+
+  // BUILD 31 — onboarding checklist
+  renderChecklist();
 
   // KPIs
   const activePSWs = visits.filter(v => v.visit_date===today && v.time_in && !v.time_out).length;
