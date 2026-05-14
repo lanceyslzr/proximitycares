@@ -15,7 +15,8 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
 async function resendOnboardLink(applicantId, firstName, btn) {
   if (!applicantId) return;
   const orig = btn.textContent;
@@ -37,7 +38,6 @@ async function resendOnboardLink(applicantId, firstName, btn) {
     showToast('Failed to resend: ' + e.message, 'err');
   }
 }
-
 </script>
 <script>
 // ── GPS LIVE MAP ──
@@ -511,10 +511,119 @@ button:active{transform:scale(0.98);}
 .skeleton-row:last-child{border-bottom:none;}
 .skeleton-card{height:88px;margin:0 12px 8px;background:linear-gradient(90deg,var(--bg3) 25%,var(--bg4) 50%,var(--bg3) 75%);background-size:200% 100%;animation:hq-shimmer 1.4s infinite;border-radius:8px;}
 @keyframes hq-shimmer{0%{background-position:200% 0;}100%{background-position:-200% 0;}}
+/* ── SIDEBAR NAV ── */
+.sidebar-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:400;opacity:0;pointer-events:none;transition:opacity .25s;}
+.sidebar-overlay.open{opacity:1;pointer-events:all;}
+.sidebar{position:fixed;top:0;left:0;bottom:0;width:280px;background:var(--bg2);border-right:1px solid var(--border2);z-index:401;transform:translateX(-100%);transition:transform .25s cubic-bezier(.4,0,.2,1);overflow-y:auto;display:flex;flex-direction:column;}
+.sidebar.open{transform:translateX(0);}
+.sidebar-head{padding:20px 18px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.sidebar-logo{font-family:var(--serif);font-size:18px;color:var(--text);font-weight:300;letter-spacing:1px;}
+.sidebar-logo em{color:var(--teal2);font-style:italic;}
+.sidebar-close{width:32px;height:32px;display:flex;align-items:center;justify-content:center;color:var(--muted2);font-size:18px;cursor:pointer;border-radius:6px;border:1px solid var(--border);}
+.sidebar-body{padding:8px 0;flex:1;}
+.sidebar-section{font-family:var(--mono);font-size:8px;letter-spacing:3px;text-transform:uppercase;color:var(--muted);padding:14px 18px 6px;}
+.sn-item{display:flex;align-items:center;gap:12px;padding:11px 18px;cursor:pointer;transition:background .12s;position:relative;}
+.sn-item:active,.sn-item:hover{background:rgba(61,138,122,.07);}
+.sn-item.active{background:rgba(61,138,122,.1);}
+.sn-item.active .sn-label{color:var(--teal2);}
+.sn-item.active .sn-icon{color:var(--teal2);}
+.sn-icon{width:20px;height:20px;display:flex;align-items:center;justify-content:center;color:var(--muted2);flex-shrink:0;}
+.sn-icon svg{width:18px;height:18px;}
+.sn-label{font-size:13px;color:var(--muted3);flex:1;}
+.sn-badge{font-family:var(--mono);font-size:8px;padding:2px 6px;border-radius:100px;background:var(--teal);color:#fff;}
+.sidebar-footer{padding:16px 18px;border-top:1px solid var(--border);}
+
+/* ── SEARCH OVERLAY ── */
+.search-overlay{position:fixed;inset:0;background:rgba(7,9,12,.97);z-index:450;display:none;flex-direction:column;}
+.search-overlay.open{display:flex;}
+.search-top{padding:14px 14px 10px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;}
+.search-input-wrap{flex:1;display:flex;align-items:center;gap:8px;background:var(--bg2);border:1px solid var(--border2);border-radius:8px;padding:0 12px;}
+.search-icon-inner{color:var(--muted2);font-size:16px;flex-shrink:0;}
+.search-main-input{flex:1;background:none;border:none;color:var(--text);font-size:16px;padding:11px 0;outline:none;font-family:var(--sans);}
+.search-main-input::placeholder{color:var(--muted);}
+.search-cancel{font-family:var(--mono);font-size:11px;letter-spacing:1px;color:var(--muted2);cursor:pointer;padding:8px;flex-shrink:0;}
+.search-results{flex:1;overflow-y:auto;padding:8px 0;}
+.search-result-group{padding:8px 14px 4px;font-family:var(--mono);font-size:8px;letter-spacing:3px;text-transform:uppercase;color:var(--muted);}
+.search-result-item{display:flex;align-items:center;gap:12px;padding:12px 14px;cursor:pointer;border-bottom:1px solid var(--border);transition:background .1s;}
+.search-result-item:active{background:rgba(61,138,122,.08);}
+.search-result-icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:11px;font-weight:500;flex-shrink:0;}
+.sri-client{background:rgba(61,138,122,.12);color:var(--teal2);}
+.sri-psw{background:rgba(106,172,240,.12);color:var(--blue2);}
+.sri-visit{background:rgba(74,154,110,.12);color:var(--green2);}
+.sri-lead{background:rgba(200,169,110,.12);color:var(--gold);}
+.search-result-main{flex:1;min-width:0;}
+.search-result-name{font-size:14px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.search-result-sub{font-family:var(--mono);font-size:10px;color:var(--muted2);margin-top:2px;}
+.search-empty{padding:40px 20px;text-align:center;font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:1px;}
+
+/* ── QUICK-ADD FAB ── */
+.fab-wrap{position:fixed;bottom:calc(72px + var(--safe-bottom));right:16px;z-index:300;display:flex;flex-direction:column;align-items:flex-end;gap:10px;}
+.fab-main{width:50px;height:50px;border-radius:50%;background:var(--teal);border:none;color:#fff;font-size:22px;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 4px 16px rgba(61,138,122,.4);transition:transform .2s,background .2s;}
+.fab-main:active{background:var(--teal2);}
+.fab-main.open{transform:rotate(45deg);background:var(--bg3);border:1px solid var(--border2);}
+.fab-options{display:none;flex-direction:column;gap:8px;align-items:flex-end;}
+.fab-options.open{display:flex;}
+.fab-opt{display:flex;align-items:center;gap:10px;cursor:pointer;}
+.fab-opt-label{font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--text);background:var(--bg2);border:1px solid var(--border2);padding:6px 12px;border-radius:6px;white-space:nowrap;}
+.fab-opt-btn{width:38px;height:38px;border-radius:50%;border:1px solid var(--border2);background:var(--bg2);display:flex;align-items:center;justify-content:center;color:var(--teal2);font-size:16px;}
+
+/* ── NOTIFICATION PANEL ── */
+.notif-panel{position:fixed;top:54px;right:0;width:320px;max-height:calc(100vh - 54px);background:var(--bg2);border-left:1px solid var(--border2);border-bottom:1px solid var(--border2);z-index:350;transform:translateX(100%);transition:transform .25s cubic-bezier(.4,0,.2,1);overflow-y:auto;}
+.notif-panel.open{transform:translateX(0);}
+.notif-head{padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.notif-title{font-family:var(--mono);font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--muted2);}
+.notif-clear{font-family:var(--mono);font-size:9px;color:var(--teal2);cursor:pointer;}
+.notif-item{padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;gap:10px;cursor:pointer;transition:background .1s;}
+.notif-item:active{background:rgba(61,138,122,.07);}
+.notif-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:5px;}
+.nd-red{background:var(--red);}
+.nd-amber{background:var(--amber);}
+.nd-teal{background:var(--teal2);}
+.nd-gold{background:var(--gold);}
+.notif-text{font-size:12px;color:var(--text);line-height:1.5;}
+.notif-sub{font-family:var(--mono);font-size:10px;color:var(--muted2);margin-top:2px;}
+.notif-empty{padding:28px 16px;text-align:center;font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px;}
+.bell-badge{position:absolute;top:4px;right:4px;width:8px;height:8px;border-radius:50%;background:var(--red);border:2px solid var(--bg2);display:none;}
+.bell-badge.show{display:block;}
+
+/* ── TODAY SECTION ── */
+.today-time-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:0 12px 10px;}
+.today-time-card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:14px 12px;}
+.ttc-val{font-family:var(--mono);font-size:22px;font-weight:500;color:var(--teal2);}
+.ttc-lbl{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-top:4px;}
+.today-shift-row{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--border);}
+.tsr-time{font-family:var(--mono);font-size:11px;color:var(--teal2);min-width:44px;}
+.tsr-client{font-size:13px;font-weight:500;color:var(--text);flex:1;}
+.tsr-psw{font-family:var(--mono);font-size:10px;color:var(--muted2);}
+.tsr-status{font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;}
+
+/* ── CHIEF OF STAFF CARD ── */
+.cos-card{margin:0 12px 12px;background:var(--bg2);border:1px solid rgba(61,138,122,.3);border-radius:10px;overflow:hidden;}
+.cos-head{padding:10px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.cos-title{font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--teal2);}
+.cos-refresh{font-family:var(--mono);font-size:9px;color:var(--muted2);cursor:pointer;padding:3px 8px;border:1px solid var(--border);border-radius:4px;}
+.cos-body{padding:12px 14px;}
+.cos-item{display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);}
+.cos-item:last-child{border-bottom:none;}
+.cos-priority{font-family:var(--mono);font-size:9px;letter-spacing:1px;padding:2px 6px;border-radius:4px;flex-shrink:0;margin-top:1px;}
+.cp-high{background:rgba(224,85,85,.12);color:var(--red);border:1px solid rgba(224,85,85,.25);}
+.cp-med{background:rgba(224,154,61,.1);color:var(--amber);border:1px solid rgba(224,154,61,.25);}
+.cp-low{background:rgba(61,138,122,.1);color:var(--teal2);border:1px solid rgba(61,138,122,.2);}
+.cos-text{font-size:12px;color:var(--muted3);line-height:1.5;flex:1;}
+.cos-loading{padding:20px 14px;font-family:var(--mono);font-size:10px;color:var(--muted);display:flex;align-items:center;gap:8px;}
+
+/* ── SWIPE TO DELETE — LEADS ── */
+.lead-swipe-wrap{position:relative;overflow:hidden;margin:0 12px 8px;border-radius:10px;}
+.lead-swipe-delete{position:absolute;right:0;top:0;bottom:0;width:80px;background:var(--red);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:3px;color:#fff;font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;border-radius:0 10px 10px 0;transform:translateX(80px);transition:transform .25s cubic-bezier(.4,0,.2,1);}
+.lead-swipe-inner{transform:translateX(0);transition:transform .25s cubic-bezier(.4,0,.2,1);background:var(--bg2);border:1px solid var(--border);border-radius:10px;overflow:hidden;}
+.lead-swipe-inner.swiped{transform:translateX(-80px);}
+.lead-swipe-delete.visible{transform:translateX(0);}
+
 @media(max-width:768px){
   .crm-board{grid-template-columns:1fr;}
   .crm-col{min-height:auto;}
   .crm-col-head{position:static;}
+  .notif-panel{width:100%;}
 }
 @media(max-width:600px){.op-form-grid{grid-template-columns:1fr;}}
 </style>
@@ -543,13 +652,19 @@ button:active{transform:scale(0.98);}
 
 <div class="topbar">
   <div class="tl">
+    <button class="icon-btn" onclick="toggleSidebar()" title="Menu" style="flex-shrink:0;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
     <div class="logo">Proximity <em>HQ</em></div>
     <div class="op-pill" onclick="openSheet('op-sheet')">
       <div class="op-live"></div>
       <span class="op-name-text" id="op-label">Proximity Care</span>
     </div>
   </div>
-  <div style="display:flex;gap:8px;">
+  <div style="display:flex;gap:6px;">
+    <button class="icon-btn" onclick="toggleSearch()" title="Search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></button>
+    <div class="icon-btn" style="position:relative;" onclick="toggleNotifications()" title="Notifications">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+      <div class="bell-badge" id="bell-badge"></div>
+    </div>
     <div class="icon-btn" id="refresh-btn" onclick="loadAll(true)" title="Refresh"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg></div>
   </div>
 </div>
@@ -561,8 +676,10 @@ button:active{transform:scale(0.98);}
   <div class="stat-card"><div class="stat-val" id="s-visits">—</div><div class="stat-lbl">Visits</div></div>
 </div>
 
-<div class="nav-tabs">
-  <div class="nav-tab" onclick="showSect('overview')" style="color:var(--teal2);">Overview</div>
+<!-- nav-tabs hidden — replaced by sidebar nav (Batch 3) -->
+<div class="nav-tabs" style="display:none;" aria-hidden="true">
+  <div class="nav-tab" onclick="showSect('today')">Today</div>
+  <div class="nav-tab" onclick="showSect('overview')">Overview</div>
   <div class="nav-tab active" onclick="showSect('leads')">Leads <span class="nbadge" id="leads-badge">0</span></div>
   <div class="nav-tab" onclick="showSect('clients')">Clients</div>
   <div class="nav-tab" onclick="showSect('psws')">PSWs</div>
@@ -575,6 +692,71 @@ button:active{transform:scale(0.98);}
   <div class="nav-tab" onclick="showSect('crm')">CRM <span class="nbadge" id="crm-badge">0</span></div>
   <div class="nav-tab" onclick="showSect('applicants')">Applicants <span class="nbadge" id="app-badge">0</span></div>
   <div class="nav-tab" onclick="showSect('revenue')">Revenue</div>
+</div>
+
+<!-- TODAY — Default home (Batch 3) -->
+<div class="section active" id="sect-today">
+  <div class="section-header" style="padding-bottom:4px;">
+    <span class="section-title">Today</span>
+    <span style="font-family:var(--mono);font-size:9px;color:var(--muted);" id="today-updated">—</span>
+  </div>
+
+  <!-- Live time cards -->
+  <div class="today-time-row">
+    <div class="today-time-card">
+      <div class="ttc-val" id="today-on-shift">—</div>
+      <div class="ttc-lbl">On Shift Now</div>
+    </div>
+    <div class="today-time-card" style="cursor:pointer;" onclick="showSect('schedule')">
+      <div class="ttc-val" id="today-shifts-count">—</div>
+      <div class="ttc-lbl">Shifts Today</div>
+    </div>
+  </div>
+
+  <!-- Alert banners -->
+  <div id="today-vacant-alert" style="display:none;margin:0 12px 8px;padding:10px 14px;background:rgba(224,154,61,.06);border:1px solid rgba(224,154,61,.25);border-radius:8px;cursor:pointer;" onclick="showSect('schedule')">
+    <div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--amber);">⚑ Open Shifts</div>
+    <div style="font-size:12px;color:var(--muted2);margin-top:3px;" id="today-vacant-msg">—</div>
+  </div>
+  <div id="today-incident-alert" style="display:none;margin:0 12px 8px;padding:10px 14px;background:rgba(224,85,85,.06);border:1px solid rgba(224,85,85,.2);border-radius:8px;cursor:pointer;" onclick="showSect('visits')">
+    <div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--red);">⚠ Open Incidents</div>
+    <div style="font-size:12px;color:var(--muted2);margin-top:3px;" id="today-incident-msg">—</div>
+  </div>
+
+  <!-- AI Chief of Staff -->
+  <div class="cos-card">
+    <div class="cos-head">
+      <span class="cos-title">⬡ Chief of Staff</span>
+      <span class="cos-refresh" onclick="runChiefOfStaff()">↻ Refresh</span>
+    </div>
+    <div class="cos-body" id="cos-body">
+      <div class="cos-loading"><span style="animation:livepulse 1.5s infinite;display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--teal2);"></span>Loading action items...</div>
+    </div>
+  </div>
+
+  <!-- Today's shifts -->
+  <div class="section-header" style="padding-bottom:4px;">
+    <span class="section-title">Today's Shifts</span>
+    <div class="sect-action" onclick="showSect('schedule')">View All</div>
+  </div>
+  <div style="margin:0 12px 12px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;overflow:hidden;" id="today-shifts-list">
+    <div class="empty-state" style="padding:16px;">Loading shifts...</div>
+  </div>
+
+  <!-- Live attendance -->
+  <div class="section-header" style="padding-bottom:4px;"><span class="section-title">Staff Status</span></div>
+  <div style="margin:0 12px 12px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;overflow:hidden;" id="today-attendance">
+    <div class="empty-state" style="padding:16px;">Loading...</div>
+  </div>
+
+  <!-- Recent activity -->
+  <div class="section-header" style="padding-bottom:4px;">
+    <span class="section-title">Recent Activity</span>
+    <div class="sect-action" onclick="showSect('activity')">View All</div>
+  </div>
+  <div style="margin:0 12px 12px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;overflow:hidden;" id="today-activity">
+    <div class="empty-state" style="padding:16px;">Loading...</div>
+  </div>
 </div>
 
 <!-- OVERVIEW DASHBOARD -->
@@ -688,7 +870,7 @@ button:active{transform:scale(0.98);}
 </div>
 
 <!-- LEADS -->
-<div class="section active" id="sect-leads">
+<div class="section" id="sect-leads">
   <div class="section-header">
     <span class="section-title">All Leads</span>
     <div class="sect-action" onclick="triggerFollowUp()">↻ Follow-up</div>
@@ -1096,13 +1278,138 @@ button:active{transform:scale(0.98);}
   <button class="sbtn" onclick="saveBulkSchedule()" id="bulk-save-btn" style="margin:0 14px 8px;width:calc(100% - 28px);">Create Shifts</button>
 </div>
 
+<!-- SIDEBAR OVERLAY -->
+<div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebar()"></div>
+
+<!-- SIDEBAR NAV -->
+<div class="sidebar" id="sidebar">
+  <div class="sidebar-head">
+    <div class="sidebar-logo">Proximity <em>HQ</em></div>
+    <div class="sidebar-close" onclick="toggleSidebar()">✕</div>
+  </div>
+  <div class="sidebar-body">
+    <div class="sidebar-section">Operations</div>
+    <div class="sn-item active" id="sn-today" onclick="showSect('today');toggleSidebar()">
+      <div class="sn-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+      <span class="sn-label">Today</span>
+    </div>
+    <div class="sn-item" id="sn-overview" onclick="showSect('overview');toggleSidebar()">
+      <div class="sn-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></div>
+      <span class="sn-label">Overview</span>
+    </div>
+    <div class="sn-item" id="sn-schedule" onclick="showSect('schedule');toggleSidebar()">
+      <div class="sn-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="5" width="16" height="16" rx="2"/><path d="M8 3v4M16 3v4M4 11h16"/></svg></div>
+      <span class="sn-label">Schedule</span>
+    </div>
+    <div class="sidebar-section">People</div>
+    <div class="sn-item" id="sn-clients" onclick="showSect('clients');toggleSidebar()">
+      <div class="sn-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78z"/></svg></div>
+      <span class="sn-label">Clients</span>
+    </div>
+    <div class="sn-item" id="sn-psws" onclick="showSect('psws');toggleSidebar()">
+      <div class="sn-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+      <span class="sn-label">PSWs</span>
+    </div>
+    <div class="sn-item" id="sn-leads" onclick="showSect('leads');toggleSidebar()">
+      <div class="sn-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.65 3.55 2 2 0 0 1 3.62 1.37h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 9a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg></div>
+      <span class="sn-label">Leads</span>
+      <span class="sn-badge" id="sn-leads-badge">0</span>
+    </div>
+    <div class="sn-item" id="sn-applicants" onclick="showSect('applicants');toggleSidebar()">
+      <div class="sn-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg></div>
+      <span class="sn-label">Applicants</span>
+      <span class="sn-badge" id="sn-app-badge">0</span>
+    </div>
+    <div class="sidebar-section">Clinical</div>
+    <div class="sn-item" id="sn-visits" onclick="showSect('visits');toggleSidebar()">
+      <div class="sn-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div>
+      <span class="sn-label">Visits</span>
+    </div>
+    <div class="sn-item" id="sn-messages" onclick="showSect('messages');toggleSidebar()">
+      <div class="sn-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
+      <span class="sn-label">Messages</span>
+    </div>
+    <div class="sn-item" id="sn-onboard" onclick="showSect('onboard');toggleSidebar()">
+      <div class="sn-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg></div>
+      <span class="sn-label">Onboard</span>
+    </div>
+    <div class="sidebar-section">Business</div>
+    <div class="sn-item" id="sn-revenue" onclick="showSect('revenue');toggleSidebar()">
+      <div class="sn-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
+      <span class="sn-label">Revenue</span>
+    </div>
+    <div class="sn-item" id="sn-crm" onclick="showSect('crm');toggleSidebar()">
+      <div class="sn-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
+      <span class="sn-label">CRM Pipeline</span>
+      <span class="sn-badge" id="sn-crm-badge">0</span>
+    </div>
+    <div class="sn-item" id="sn-activity" onclick="showSect('activity');toggleSidebar()">
+      <div class="sn-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
+      <span class="sn-label">Activity Log</span>
+    </div>
+  </div>
+  <div class="sidebar-footer">
+    <div style="font-family:var(--mono);font-size:8px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;">Operator</div>
+    <div class="op-pill" onclick="toggleSidebar();setTimeout(()=>openSheet('op-sheet'),200)" style="width:fit-content;">
+      <div class="op-live"></div>
+      <span class="op-name-text" id="sidebar-op-label">Proximity Care</span>
+    </div>
+  </div>
+</div>
+
+<!-- GLOBAL SEARCH OVERLAY -->
+<div class="search-overlay" id="search-overlay">
+  <div class="search-top">
+    <div class="search-input-wrap">
+      <span class="search-icon-inner">⌕</span>
+      <input class="search-main-input" id="search-main-input" placeholder="Search clients, PSWs, visits..." oninput="runGlobalSearch(this.value)" autocomplete="off" autocorrect="off" spellcheck="false">
+    </div>
+    <span class="search-cancel" onclick="toggleSearch()">Cancel</span>
+  </div>
+  <div class="search-results" id="search-results">
+    <div class="search-empty">Start typing to search across all data</div>
+  </div>
+</div>
+
+<!-- NOTIFICATION PANEL -->
+<div class="notif-panel" id="notif-panel">
+  <div class="notif-head">
+    <span class="notif-title">Notifications</span>
+    <span class="notif-clear" onclick="document.getElementById('notif-panel').classList.remove('open')">Close</span>
+  </div>
+  <div id="notif-list"><div class="notif-empty">No alerts right now</div></div>
+</div>
+
+<!-- QUICK-ADD FAB -->
+<div class="fab-wrap" id="fab-wrap">
+  <div class="fab-options" id="fab-options">
+    <div class="fab-opt" onclick="closeFAB();openAddShift('','')">
+      <span class="fab-opt-label">Add Shift</span>
+      <div class="fab-opt-btn">⊕</div>
+    </div>
+    <div class="fab-opt" onclick="closeFAB();showSect('onboard')">
+      <span class="fab-opt-label">New Client</span>
+      <div class="fab-opt-btn">♡</div>
+    </div>
+    <div class="fab-opt" onclick="closeFAB();openManualVisitSheet()">
+      <span class="fab-opt-label">Manual Visit</span>
+      <div class="fab-opt-btn">✓</div>
+    </div>
+    <div class="fab-opt" onclick="closeFAB();showSect('messages')">
+      <span class="fab-opt-label">Broadcast</span>
+      <div class="fab-opt-btn">📡</div>
+    </div>
+  </div>
+  <button class="fab-main" id="fab-main" onclick="toggleFAB()">+</button>
+</div>
+
 <!-- BOTTOM NAV -->
 <div class="bottom-nav">
-  <div class="bnav-item active" onclick="showSect('leads')" id="bn-leads"><div class="bnav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div><div class="bnav-lbl">Leads</div></div>
+  <div class="bnav-item active" onclick="showSect('today')" id="bn-today"><div class="bnav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div><div class="bnav-lbl">Today</div></div>
   <div class="bnav-item" onclick="showSect('clients')" id="bn-clients"><div class="bnav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78z"/></svg></div><div class="bnav-lbl">Clients</div></div>
-  <div class="bnav-item" onclick="showSect('bookings')" id="bn-bookings"><div class="bnav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="5" width="16" height="16" rx="2"/><path d="M8 3v4M16 3v4M4 11h16"/></svg></div><div class="bnav-lbl">Book</div></div>
+  <div class="bnav-item" onclick="showSect('schedule')" id="bn-schedule"><div class="bnav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="5" width="16" height="16" rx="2"/><path d="M8 3v4M16 3v4M4 11h16"/></svg></div><div class="bnav-lbl">Schedule</div></div>
   <div class="bnav-item" onclick="showSect('visits')" id="bn-visits"><div class="bnav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div><div class="bnav-lbl">Visits</div></div>
-  <div class="bnav-item" onclick="showSect('activity')" id="bn-activity"><div class="bnav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div><div class="bnav-lbl">Activity</div></div>
+  <div class="bnav-item" onclick="toggleSidebar()" id="bn-menu"><div class="bnav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></div><div class="bnav-lbl">Menu</div></div>
 </div>
 
 </div><!-- /app -->
@@ -1402,13 +1709,30 @@ function renderAll() {
   }
   renderCRM();
   renderOverview();
+  renderToday();
+  updateNotifications();
+  // Sync sidebar badges
+  const c = D.counts||{};
+  const snLB = document.getElementById('sn-leads-badge');
+  const snAB = document.getElementById('sn-app-badge');
+  const snCB = document.getElementById('sn-crm-badge');
+  if(snLB) snLB.textContent = c.leads||0;
+  if(snAB) {
+    const appCount = (D.psw_applicants||[]).length;
+    snAB.textContent = appCount;
+    snAB.style.display = appCount > 0 ? '' : 'none';
+  }
+  if(snCB) snCB.textContent = c.leads||0;
+  // Sync sidebar op label
+  const solEl = document.getElementById('sidebar-op-label');
+  if(solEl) solEl.textContent = currentOpName;
   // Restore last tab after first full render
   try {
     const saved = localStorage.getItem('hq_tab');
     if (saved && document.getElementById('sect-'+saved)) {
       const cur = document.querySelector('.section.active');
-      // Only restore if we're still on leads (initial state)
-      if (!cur || cur.id === 'sect-leads') showSect(saved);
+      // Only restore if we're still on today (initial state)
+      if (!cur || cur.id === 'sect-today') showSect(saved);
     }
   } catch(e) {}
 }
@@ -1464,33 +1788,115 @@ function renderLeads() {
     const name = [l.first_name,l.last_name].filter(Boolean).join(' ') || l.email?.split('@')[0] || l.phone || 'Lead #'+l.id?.slice(-4);
     const st = l.status||'new';
     return `
-    <div class="card">
-      <div class="card-header" onclick="openLeadDetail('${l.id}')">
-        <div style="flex:1;min-width:0;">
-          <div class="card-name">${name}</div>
-          <div class="card-sub">${l.phone?`<a href="tel:${l.phone}" onclick="event.stopPropagation()">${l.phone}</a>`:l.email||'—'}</div>
-          <div class="card-meta">${[l.care_type_interest,l.urgency,l.city].filter(Boolean).join(' · ')}</div>
-          <div class="seq-row">
-            <div class="sdot ${l.day1_sent?'done':'pending'}"></div>
-            <div class="sdot ${l.day3_sent?'done':'pending'}"></div>
-            <div class="sdot ${l.day7_sent?'done':'pending'}"></div>
-            <span class="slabel">D1 D3 D7</span>
+    <div class="lead-swipe-wrap" id="swipe-wrap-${l.id}">
+      <div class="lead-swipe-inner card" id="swipe-inner-${l.id}" style="margin:0;border-radius:10px;overflow:hidden;">
+        <div class="card-header" onclick="openLeadDetail('${l.id}')">
+          <div style="flex:1;min-width:0;">
+            <div class="card-name">${name}</div>
+            <div class="card-sub">${l.phone?`<a href="tel:${l.phone}" onclick="event.stopPropagation()">${l.phone}</a>`:l.email||'—'}</div>
+            <div class="card-meta">${[l.care_type_interest,l.urgency,l.city].filter(Boolean).join(' · ')}</div>
+            <div class="seq-row">
+              <div class="sdot ${l.day1_sent?'done':'pending'}"></div>
+              <div class="sdot ${l.day3_sent?'done':'pending'}"></div>
+              <div class="sdot ${l.day7_sent?'done':'pending'}"></div>
+              <span class="slabel">D1 D3 D7</span>
+            </div>
+          </div>
+          <div class="card-right">
+            <span class="badge b-${st}">${st}</span>
+            <div class="card-age">${ago(l.created_at)}</div>
           </div>
         </div>
-        <div class="card-right">
-          <span class="badge b-${st}">${st}</span>
-          <div class="card-age">${ago(l.created_at)}</div>
+        <div class="card-actions">
+          ${l.phone?`<div class="card-act call" onclick="window.location.href='tel:${l.phone}'">Call</div>`:''}
+          ${l.phone?`<div class="card-act" onclick="window.location.href='sms:${l.phone}'">Text</div>`:''}
+          <div class="card-act warn" onclick="openStatusSheet('${l.id}')">Status</div>
+          <div class="card-act ok" onclick="convertLead('${l.id}','${l.email||''}')">✓ Convert</div>
+          ${l.email?`<div class="card-act" onclick="sendIntakeLinkFromLead('${l.email}','${(l.first_name||'')+' '+(l.last_name||'')}'.trim(),'')" style="font-size:9px;min-height:34px;touch-action:manipulation;">Intake Link</div>`:''}
         </div>
       </div>
-      <div class="card-actions">
-        ${l.phone?`<div class="card-act call" onclick="window.location.href='tel:${l.phone}'">Call</div>`:''}
-        ${l.phone?`<div class="card-act" onclick="window.location.href='sms:${l.phone}'">Text</div>`:''}
-        <div class="card-act warn" onclick="openStatusSheet('${l.id}')">Status</div>
-        <div class="card-act ok" onclick="convertLead('${l.id}','${l.email||''}')">✓ Convert</div>
-        ${l.email?`<div class="card-act" onclick="sendIntakeLinkFromLead('${l.email}','${(l.first_name||'')+' '+(l.last_name||'')}'.trim(),'')" style="font-size:9px;min-height:34px;touch-action:manipulation;">Intake Link</div>`:''}
+      <div class="lead-swipe-delete" id="swipe-del-${l.id}" data-lead-id="${l.id}" onclick="deleteLeadFromSwipe('${l.id}')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+        Delete
       </div>
     </div>`;
   }).join('');
+  // Attach swipe listeners after render
+  leads.forEach(l => attachLeadSwipe(l.id));
+}
+
+function attachLeadSwipe(id) {
+  const inner = document.getElementById('swipe-inner-'+id);
+  const del = document.getElementById('swipe-del-'+id);
+  if (!inner || !del) return;
+  let startX = 0, startY = 0, dx = 0, swiped = false;
+  inner.addEventListener('touchstart', e => {
+    startX = e.touches[0].clientX;
+    startY = e.touches[0].clientY;
+    dx = 0;
+    // If already swiped open, record that state
+    swiped = inner.style.transform === 'translateX(-80px)';
+  }, { passive: true });
+  inner.addEventListener('touchmove', e => {
+    dx = e.touches[0].clientX - startX;
+    const dy = Math.abs(e.touches[0].clientY - startY);
+    if (dy > Math.abs(dx)) return;
+    if (dx < -10 && !swiped) {
+      const clamped = Math.max(dx, -80);
+      inner.style.transform = 'translateX('+clamped+'px)';
+      inner.style.transition = 'none';
+      // del panel reveals as inner slides left — use px not %
+      const delOffset = 80 + clamped; // 0 when fully swiped, 80 when closed
+      del.style.transform = 'translateX('+delOffset+'px)';
+      del.style.transition = 'none';
+    } else if (dx > 10 && swiped) {
+      const clamped = Math.min(dx - 80, 0);
+      inner.style.transform = 'translateX('+clamped+'px)';
+      inner.style.transition = 'none';
+      del.style.transform = 'translateX('+(80 + clamped)+'px)';
+      del.style.transition = 'none';
+    }
+  }, { passive: true });
+  inner.addEventListener('touchend', () => {
+    inner.style.transition = '';
+    del.style.transition = '';
+    if (!swiped && dx < -40) {
+      inner.style.transform = 'translateX(-80px)';
+      del.style.transform = 'translateX(0)';
+      swiped = true;
+      // Close any other open swipes
+      document.querySelectorAll('.lead-swipe-inner').forEach(el => {
+        if (el !== inner && el.style.transform === 'translateX(-80px)') {
+          el.style.transform = '';
+          el.style.transition = '';
+          const otherId = el.id.replace('swipe-inner-','');
+          const otherDel = document.getElementById('swipe-del-'+otherId);
+          if (otherDel) { otherDel.style.transform = 'translateX(80px)'; otherDel.style.transition = ''; }
+        }
+      });
+    } else if (swiped && dx > 20) {
+      inner.style.transform = '';
+      del.style.transform = 'translateX(80px)';
+      swiped = false;
+    } else if (!swiped) {
+      inner.style.transform = '';
+      del.style.transform = 'translateX(80px)';
+    }
+    dx = 0;
+  }, { passive: true });
+}
+
+async function deleteLeadFromSwipe(id) {
+  const wrap = document.getElementById('swipe-wrap-'+id);
+  try {
+    const res = await fetch(`${API}/hq/lead/${id}?operator_id=${currentOp}`, { method: 'DELETE' });
+    if (!res.ok) throw new Error();
+    // Animate out
+    if (wrap) { wrap.style.transition = 'all .25s'; wrap.style.opacity = '0'; wrap.style.maxHeight = wrap.offsetHeight+'px'; setTimeout(() => { wrap.style.maxHeight = '0'; wrap.style.margin = '0'; }, 50); setTimeout(() => wrap.remove(), 300); }
+    D.leads = (D.leads||[]).filter(l => l.id !== id);
+    showToast('Lead deleted', 'ok');
+    renderStats();
+  } catch { showToast('Delete failed', 'err'); }
 }
 
 function openLeadDetail(id) {
@@ -2458,10 +2864,16 @@ function showSect(name) {
   document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
   document.querySelectorAll('.bnav-item').forEach(b=>b.classList.remove('active'));
   const s=document.getElementById('sect-'+name); if(s) { s.classList.add('active'); requestAnimationFrame(()=>s.classList.add('visible')); }
+  // Update sidebar active state
+  document.querySelectorAll('.sn-item').forEach(i=>i.classList.remove('active'));
+  const snEl = document.getElementById('sn-'+name);
+  if(snEl) snEl.classList.add('active');
+  // Update hidden nav-tab (index maintained for compatibility)
   const tabs=document.querySelectorAll('.nav-tab');
-  const tm=['overview','leads','clients','psws','onboard','bookings','messages','visits','activity','schedule','crm','applicants','revenue'];
+  const tm=['today','overview','leads','clients','psws','onboard','bookings','messages','visits','activity','schedule','crm','applicants','revenue'];
   const ti=tm.indexOf(name); if(ti>=0&&tabs[ti]) tabs[ti].classList.add('active');
-  const bm=['leads','clients','bookings','visits','activity'];
+  // Bottom nav: today, clients, schedule, visits, menu(last)
+  const bm=['today','clients','schedule','visits'];
   const bi=bm.indexOf(name);
   const bnavs=document.querySelectorAll('.bnav-item');
   if(bi>=0&&bnavs[bi]) bnavs[bi].classList.add('active');
@@ -2473,6 +2885,7 @@ function showSect(name) {
   if(name==='overview') renderOverview();
   if(name==='applicants') loadApplicants();
   if(name==='schedule') { renderSchedule(); renderVacantVisits(); }
+  if(name==='today') renderToday();
   window.scrollTo(0,0);
 }
 
@@ -4713,6 +5126,353 @@ function clearSearches() {
 }
 
 
+
+// ── BATCH 3 — SIDEBAR ──
+let _sidebarOpen = false;
+function toggleSidebar() {
+  _sidebarOpen = !_sidebarOpen;
+  document.getElementById('sidebar').classList.toggle('open', _sidebarOpen);
+  document.getElementById('sidebar-overlay').classList.toggle('open', _sidebarOpen);
+}
+
+// ── BATCH 3 — GLOBAL SEARCH ──
+let _searchOpen = false;
+function toggleSearch() {
+  _searchOpen = !_searchOpen;
+  const overlay = document.getElementById('search-overlay');
+  overlay.classList.toggle('open', _searchOpen);
+  if (_searchOpen) {
+    setTimeout(() => document.getElementById('search-main-input').focus(), 100);
+  } else {
+    document.getElementById('search-main-input').value = '';
+    document.getElementById('search-results').innerHTML = '<div class="search-empty">Start typing to search across all data</div>';
+  }
+}
+
+function runGlobalSearch(q) {
+  const el = document.getElementById('search-results');
+  if (!q || q.trim().length < 2) {
+    el.innerHTML = '<div class="search-empty">Start typing to search across all data</div>';
+    return;
+  }
+  const qLow = q.toLowerCase().trim();
+  const clients = D.clients || [];
+  const psws = D.psws || [];
+  const visits = D.visits || [];
+  const leads = D.leads || [];
+
+  const matchClients = clients.filter(c => {
+    const name = (c.first_name||'')+' '+(c.last_name||'');
+    return name.toLowerCase().includes(qLow) || (c.portal_slug||'').toLowerCase().includes(qLow) || (c.assigned_psw||'').toLowerCase().includes(qLow);
+  }).slice(0,5);
+
+  const matchPSWs = getMergedPSWList().filter(p =>
+    (p.name||'').toLowerCase().includes(qLow) || (p.email||'').toLowerCase().includes(qLow)
+  ).slice(0,5);
+
+  const matchVisits = visits.filter(v =>
+    (v.psw_name||'').toLowerCase().includes(qLow) || (v.client_name||'').toLowerCase().includes(qLow) || (v.ai_summary||'').toLowerCase().includes(qLow)
+  ).slice(0,4);
+
+  const matchLeads = leads.filter(l => {
+    const name = (l.first_name||'')+' '+(l.last_name||'');
+    return name.toLowerCase().includes(qLow) || (l.email||'').toLowerCase().includes(qLow) || (l.phone||'').includes(q);
+  }).slice(0,4);
+
+  let html = '';
+
+  if (matchClients.length) {
+    html += '<div class="search-result-group">Clients</div>';
+    html += matchClients.map(c => {
+      const name = ((c.first_name||'')+' '+(c.last_name||'')).trim();
+      const ini = name.split(' ').map(w=>w[0]||'').join('').toUpperCase().slice(0,2);
+      return `<div class="search-result-item" onclick="toggleSearch();showSect('clients');setTimeout(()=>openClientDetail('${c.id}'),200)">
+        <div class="search-result-icon sri-client">${ini}</div>
+        <div class="search-result-main"><div class="search-result-name">${name}</div><div class="search-result-sub">${c.assigned_psw||'Unassigned'} · ${c.portal_slug||'—'}</div></div>
+      </div>`;
+    }).join('');
+  }
+
+  if (matchPSWs.length) {
+    html += '<div class="search-result-group">PSWs</div>';
+    html += matchPSWs.map(p => {
+      const ini = (p.name||'?').split(' ').map(w=>w[0]||'').join('').toUpperCase().slice(0,2);
+      return `<div class="search-result-item" onclick="toggleSearch();showSect('psws');setTimeout(()=>openPSWDetail('${p.id||p.name}'),200)">
+        <div class="search-result-icon sri-psw">${ini}</div>
+        <div class="search-result-main"><div class="search-result-name">${p.name}</div><div class="search-result-sub">${p.email||'No email'} · ${p.status||'active'}</div></div>
+      </div>`;
+    }).join('');
+  }
+
+  if (matchVisits.length) {
+    html += '<div class="search-result-group">Visits</div>';
+    html += matchVisits.map(v => `<div class="search-result-item" onclick="toggleSearch();showSect('visits')">
+      <div class="search-result-icon sri-visit">✓</div>
+      <div class="search-result-main"><div class="search-result-name">${v.psw_name||'—'} → ${v.client_name||'—'}</div><div class="search-result-sub">${fmtd(v.visit_date)} · ${parseFloat(v.hours_worked||0).toFixed(1)}h</div></div>
+    </div>`).join('');
+  }
+
+  if (matchLeads.length) {
+    html += '<div class="search-result-group">Leads</div>';
+    html += matchLeads.map(l => {
+      const name = ((l.first_name||'')+' '+(l.last_name||'')).trim() || l.email?.split('@')[0] || 'Lead';
+      return `<div class="search-result-item" onclick="toggleSearch();showSect('leads');setTimeout(()=>openLeadDetail('${l.id}'),200)">
+        <div class="search-result-icon sri-lead">L</div>
+        <div class="search-result-main"><div class="search-result-name">${name}</div><div class="search-result-sub">${l.phone||l.email||'—'} · ${l.status||'new'}</div></div>
+      </div>`;
+    }).join('');
+  }
+
+  if (!html) html = `<div class="search-empty">No results for "${q}"</div>`;
+  el.innerHTML = html;
+}
+
+// ── BATCH 3 — NOTIFICATIONS ──
+let _notifOpen = false;
+function toggleNotifications() {
+  _notifOpen = !_notifOpen;
+  document.getElementById('notif-panel').classList.toggle('open', _notifOpen);
+  if (_notifOpen) updateNotifications();
+}
+
+function updateNotifications() {
+  const alerts = [];
+  const today = new Date().toISOString().slice(0,10);
+  const in30 = new Date(); in30.setDate(in30.getDate() + 30);
+
+  // Open incidents
+  const incidents = (D.visits||[]).filter(v => v.incident_reported && !v.incident_resolved);
+  if (incidents.length) alerts.push({ dot:'nd-red', text:`${incidents.length} unresolved incident${incidents.length!==1?'s':''}`, sub:'Tap to resolve in Visits', action:()=>{ toggleNotifications(); showSect('visits'); } });
+
+  // Vacant shifts in next 7 days
+  const cutoff = new Date(); cutoff.setDate(cutoff.getDate()+7);
+  const vacant = (D.bookings||[]).filter(b => (!b.assigned_to||!b.assigned_to.trim()) && b.scheduled_date >= today && b.scheduled_date <= cutoff.toISOString().slice(0,10) && b.status !== 'cancelled');
+  if (vacant.length) alerts.push({ dot:'nd-amber', text:`${vacant.length} shift${vacant.length!==1?'s':''} need a PSW`, sub:'Next 7 days — tap Schedule', action:()=>{ toggleNotifications(); showSect('schedule'); } });
+
+  // Expiring certs
+  const expiring = (D.psws||[]).filter(p => {
+    if (!p.psw_cert_expiry) return false;
+    const exp = new Date(p.psw_cert_expiry);
+    return exp <= in30 && exp >= new Date();
+  });
+  if (expiring.length) alerts.push({ dot:'nd-amber', text:`${expiring.length} PSW cert${expiring.length!==1?'s':''} expiring soon`, sub:expiring.map(p=>p.full_name||p.name).join(', '), action:()=>{ toggleNotifications(); showSect('psws'); } });
+
+  // Missing PIPEDA consent
+  const noConsent = (D.clients||[]).filter(c => !c.consent_given);
+  if (noConsent.length) alerts.push({ dot:'nd-gold', text:`${noConsent.length} client${noConsent.length!==1?'s':''} missing PIPEDA consent`, sub:noConsent.map(c=>(c.first_name||'')+' '+(c.last_name||'')).join(', '), action:()=>{ toggleNotifications(); showSect('clients'); } });
+
+  // Update bell badge
+  const badgeEl = document.getElementById('bell-badge');
+  if (badgeEl) badgeEl.classList.toggle('show', alerts.length > 0);
+
+  if (!_notifOpen) return;
+  const listEl = document.getElementById('notif-list');
+  if (!listEl) return;
+  if (!alerts.length) { listEl.innerHTML = '<div class="notif-empty">All clear — no alerts</div>'; return; }
+  listEl.innerHTML = alerts.map((a, i) => {
+    const id = 'notif-item-'+i;
+    return `<div class="notif-item" id="${id}">
+      <div class="notif-dot ${a.dot}"></div>
+      <div onclick="(${a.action.toString()})()">
+        <div class="notif-text">${a.text}</div>
+        <div class="notif-sub">${a.sub}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── BATCH 3 — FAB ──
+let _fabOpen = false;
+function toggleFAB() {
+  _fabOpen = !_fabOpen;
+  document.getElementById('fab-main').classList.toggle('open', _fabOpen);
+  document.getElementById('fab-options').classList.toggle('open', _fabOpen);
+}
+function closeFAB() {
+  _fabOpen = false;
+  document.getElementById('fab-main').classList.remove('open');
+  document.getElementById('fab-options').classList.remove('open');
+}
+
+// ── BATCH 3 — TODAY VIEW ──
+let _cosLoaded = false;
+function renderToday() {
+  const now = new Date();
+  const today = now.toISOString().slice(0,10);
+  const clients = D.clients||[];
+  const psws = D.psws||[];
+  const visits = D.visits||[];
+  const bookings = D.bookings||[];
+  const activity = D.recent_activity||[];
+
+  // Update timestamp
+  const updEl = document.getElementById('today-updated');
+  if (updEl) updEl.textContent = now.toLocaleTimeString('en-CA',{hour:'2-digit',minute:'2-digit',timeZone:'America/Toronto'});
+
+  // On shift now
+  const onShift = visits.filter(v => v.visit_date===today && v.time_in && !v.time_out).length;
+  const osEl = document.getElementById('today-on-shift');
+  if (osEl) osEl.textContent = onShift;
+
+  // Today's shifts count
+  const todayShifts = bookings.filter(b => b.scheduled_date===today && b.status!=='cancelled');
+  const scEl = document.getElementById('today-shifts-count');
+  if (scEl) scEl.textContent = todayShifts.length;
+
+  // Alert banners
+  const vacant = bookings.filter(b => (!b.assigned_to||!b.assigned_to.trim()) && b.scheduled_date===today && b.status!=='cancelled');
+  const vacAlertEl = document.getElementById('today-vacant-alert');
+  const vacMsgEl = document.getElementById('today-vacant-msg');
+  if (vacAlertEl && vacMsgEl) {
+    vacAlertEl.style.display = vacant.length ? 'block' : 'none';
+    if (vacant.length) vacMsgEl.textContent = `${vacant.length} shift${vacant.length!==1?'s':''} unassigned today`;
+  }
+  const incidents = visits.filter(v => v.incident_reported && !v.incident_resolved);
+  const incAlertEl = document.getElementById('today-incident-alert');
+  const incMsgEl = document.getElementById('today-incident-msg');
+  if (incAlertEl && incMsgEl) {
+    incAlertEl.style.display = incidents.length ? 'block' : 'none';
+    if (incidents.length) incMsgEl.textContent = `${incidents.length} unresolved incident${incidents.length!==1?'s':''}`;
+  }
+
+  // Today's shifts list
+  const shiftEl = document.getElementById('today-shifts-list');
+  if (shiftEl) {
+    if (!todayShifts.length) {
+      shiftEl.innerHTML = '<div class="empty-state" style="padding:16px;">No shifts scheduled today</div>';
+    } else {
+      shiftEl.innerHTML = todayShifts.sort((a,b)=>(a.scheduled_time||'').localeCompare(b.scheduled_time||'')).slice(0,8).map(b => {
+        const hasVisit = visits.some(v => v.client_name===b.client_name && v.visit_date===today);
+        const isActive = visits.some(v => v.client_name===b.client_name && v.visit_date===today && v.time_in && !v.time_out);
+        const status = isActive ? 'On Shift' : hasVisit ? 'Done' : !b.assigned_to ? 'Unassigned' : 'Scheduled';
+        const col = isActive?'var(--green2)':hasVisit?'var(--teal2)':!b.assigned_to?'var(--amber)':'var(--muted2)';
+        return `<div class="today-shift-row" onclick="showSect('schedule')">
+          <span class="tsr-time">${b.scheduled_time||'—'}</span>
+          <div style="flex:1;min-width:0;"><div class="tsr-client">${b.client_name||'—'}</div><div class="tsr-psw">${b.assigned_to||'⚑ Unassigned'}</div></div>
+          <span class="tsr-status" style="color:${col};">${status}</span>
+        </div>`;
+      }).join('');
+    }
+  }
+
+  // Staff status (live attendance)
+  const attEl = document.getElementById('today-attendance');
+  if (attEl) {
+    const pswStatuses = {};
+    psws.forEach(p => { pswStatuses[p.full_name||p.name] = {name:p.full_name||p.name, status:'off', client:'—'}; });
+    visits.filter(v => v.visit_date===today).forEach(v => {
+      const n = v.psw_name;
+      if (!pswStatuses[n]) pswStatuses[n] = {name:n, status:'off', client:'—'};
+      if (v.time_in && !v.time_out) { pswStatuses[n].status='active'; pswStatuses[n].client=v.client_name||'—'; }
+      else if (v.time_out) { pswStatuses[n].status='done'; pswStatuses[n].client=v.client_name||'—'; }
+    });
+    const rows = Object.values(pswStatuses).filter(r => r.status!=='off').slice(0,8);
+    const dotColor = {active:'var(--green2)',done:'var(--teal2)'};
+    if (!rows.length) {
+      attEl.innerHTML = '<div class="empty-state" style="padding:14px;">No PSWs on shift yet today</div>';
+    } else {
+      attEl.innerHTML = rows.map(r => `
+        <div style="display:flex;align-items:center;gap:10px;padding:9px 14px;border-bottom:1px solid var(--border);">
+          <div style="width:8px;height:8px;border-radius:50%;background:${dotColor[r.status]||'var(--muted)'};flex-shrink:0;${r.status==='active'?'animation:livepulse 2s infinite':''}"></div>
+          <div style="flex:1;font-size:12px;font-weight:500;color:var(--text);">${r.name}</div>
+          <div style="font-family:var(--mono);font-size:10px;color:var(--muted2);">${r.client}</div>
+          <div style="font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:${r.status==='active'?'var(--green2)':'var(--teal2)'};">${r.status==='active'?'On Shift':'Done'}</div>
+        </div>`).join('');
+    }
+  }
+
+  // Recent activity
+  const actEl = document.getElementById('today-activity');
+  if (actEl) {
+    const recent = activity.slice(0,5);
+    if (!recent.length) {
+      actEl.innerHTML = '<div class="empty-state" style="padding:14px;">No recent activity</div>';
+    } else {
+      const icons = {email_sent:'EML',visit_log:'VIS',checkout:'CHK',checkin:'CHK',booking_created:'BKG',lead_captured:'LDS',psw_message:'MSG',family_message:'FAM'};
+      const colors = {email_sent:'var(--teal2)',visit_log:'var(--green2)',checkout:'var(--green2)',checkin:'var(--amber)',booking_created:'var(--gold)',lead_captured:'var(--teal2)',error:'var(--red)'};
+      actEl.innerHTML = recent.map(a => {
+        const type = a.event_type||a.type||'';
+        const icon = icons[type]||'ACT';
+        const col = a.status==='error'?'var(--red)':colors[type]||'var(--muted2)';
+        return `<div style="display:flex;align-items:center;gap:10px;padding:9px 14px;border-bottom:1px solid var(--border);">
+          <div style="font-family:var(--mono);font-size:8px;letter-spacing:1px;text-transform:uppercase;padding:3px 6px;background:var(--bg3);border:1px solid var(--border);border-radius:4px;color:${col};flex-shrink:0;">${icon}</div>
+          <div style="flex:1;font-size:11px;color:var(--text);">${type.replace(/_/g,' ')}${a.contact_name?' · '+a.contact_name:a.psw_name?' · '+a.psw_name:''}</div>
+          <div style="font-family:var(--mono);font-size:10px;color:var(--muted);">${ago(a.created_at||a.timestamp)}</div>
+        </div>`;
+      }).join('');
+    }
+  }
+
+  // Chief of Staff — auto-run once per session load
+  if (!_cosLoaded && D.clients && D.clients.length) {
+    _cosLoaded = true;
+    runChiefOfStaff();
+  }
+}
+
+async function runChiefOfStaff() {
+  const cosEl = document.getElementById('cos-body');
+  if (!cosEl) return;
+  cosEl.innerHTML = '<div class="cos-loading"><span style="animation:livepulse 1.5s infinite;display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--teal2);margin-right:8px;"></span>Analysing agency data...</div>';
+
+  const today = new Date().toISOString().slice(0,10);
+  const visits = D.visits||[];
+  const clients = D.clients||[];
+  const bookings = D.bookings||[];
+  const psws = D.psws||[];
+  const leads = D.leads||[];
+
+  const onShift = visits.filter(v => v.visit_date===today && v.time_in && !v.time_out).length;
+  const openIncidents = visits.filter(v => v.incident_reported && !v.incident_resolved).length;
+  const cutoff7 = new Date(); cutoff7.setDate(cutoff7.getDate()+7);
+  const vacant = bookings.filter(b => (!b.assigned_to||!b.assigned_to.trim()) && b.scheduled_date >= today && b.scheduled_date <= cutoff7.toISOString().slice(0,10) && b.status!=='cancelled').length;
+  const in30 = new Date(); in30.setDate(in30.getDate()+30);
+  const expiringCerts = psws.filter(p => p.psw_cert_expiry && new Date(p.psw_cert_expiry) <= in30 && new Date(p.psw_cert_expiry) >= new Date()).length;
+  const noConsent = clients.filter(c => !c.consent_given).length;
+  const newLeads = leads.filter(l => ['new','contacted'].includes(l.status)).length;
+  const todayShifts = bookings.filter(b => b.scheduled_date===today && b.status!=='cancelled').length;
+
+  const snapshot = `You are the AI Chief of Staff for Proximity Care Services, a home care agency. Today is ${today}.
+
+Agency snapshot:
+- ${clients.length} active clients
+- ${psws.filter(p=>p.status==='active').length} active PSWs on roster
+- ${onShift} PSWs currently on shift
+- ${todayShifts} shifts scheduled today
+- ${vacant} vacant shifts in the next 7 days (no PSW assigned)
+- ${openIncidents} open unresolved incidents
+- ${expiringCerts} PSW certifications expiring within 30 days
+- ${noConsent} clients missing PIPEDA consent
+- ${newLeads} active leads in pipeline
+
+Generate exactly 3 to 5 prioritized action items for the operator. Each item must be concrete and actionable today. Format as a JSON array only, no markdown, no code blocks:
+[{"priority":"HIGH"|"MED"|"LOW","action":"one sentence describing exactly what to do"}]`;
+
+  try {
+    const res = await fetch(`${API}/hq/chief-of-staff`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ operator_id: currentOp, snapshot })
+    });
+    const data = await res.json();
+    if (!data.success) throw new Error(data.error || 'Server error');
+    const raw = data.result || '';
+    const clean = raw.replace(/```json|```/g,'').trim();
+    let items;
+    try { items = JSON.parse(clean); } catch { throw new Error('Parse failed'); }
+    if (!Array.isArray(items) || !items.length) throw new Error('Empty response');
+    cosEl.innerHTML = items.map(item => {
+      const p = (item.priority||'MED').toUpperCase();
+      const cls = p==='HIGH' ? 'cp-high' : p==='LOW' ? 'cp-low' : 'cp-med';
+      return `<div class="cos-item">
+        <span class="cos-priority ${cls}">${p}</span>
+        <span class="cos-text">${item.action||'—'}</span>
+      </div>`;
+    }).join('');
+  } catch(e) {
+    cosEl.innerHTML = `<div class="cos-loading" style="color:var(--muted2);">Could not load — ${e.message}</div>`;
+  }
+}
 
 // ── SESSION TIMEOUT (Build 6) ──
 let _hqIdleTimer = null;
