@@ -2468,7 +2468,7 @@ function renderCRM() {
             <div class="crm-card-agency">${agency}${city?' · '+city:''}</div>
             <div class="crm-card-meta">${date}${l.source?' · '+l.source:''}</div>
           </div>
-          <button onclick="crmDelete('${l.id}','${isSeed?'seed':'db'}','${name.replace(/'/g,'')}',event)" style="flex-shrink:0;font-size:13px;color:var(--muted);background:none;border:none;padding:2px 4px;line-height:1;cursor:pointer;touch-action:manipulation;" title="Delete">✕</button>
+          <button data-del-id="${l.id}" data-del-type="${isSeed?'seed':'db'}" data-del-name="${name.replace(/"/g,'&quot;')}" onclick="crmDelete(this.dataset.delId,this.dataset.delType,this.dataset.delName,event)" style="flex-shrink:0;font-size:13px;color:var(--muted);background:none;border:none;padding:2px 4px;line-height:1;cursor:pointer;touch-action:manipulation;" title="Delete">✕</button>
         </div>
         ${l.notes?`<div style="font-size:9px;color:var(--muted);margin-bottom:6px;line-height:1.4;">${l.notes.slice(0,80)}${l.notes.length>80?'...':''}</div>`:''}
         <div class="crm-card-acts">
@@ -2485,7 +2485,8 @@ function renderCRM() {
 
 async function crmDelete(id, type, name, e) {
   if(e) e.stopPropagation();
-  if(!confirm('Remove "'+name+'" from CRM?')) return;
+  const confirmed = window.confirm ? window.confirm('Remove "' + name + '" from CRM?') : true;
+  if(!confirmed) return;
   if(type === 'seed') {
     const idx = CRM_SEED.findIndex(s => s.id === id);
     if(idx > -1) CRM_SEED.splice(idx, 1);
@@ -2631,7 +2632,7 @@ async function loadApplicants() {
           ${st==='hired'?`<button class="card-act ok" onclick="activateApplicantAsStaff('${a.id}','${name}','${a.email||''}','${a.phone||''}')">Send Portal Access →</button>`:''}
           ${st==='active'?`<span class="card-act" style="color:var(--teal2);font-size:9px;letter-spacing:1px;">ACTIVE ✓</span>`:''}
           <button class="card-act" style="font-size:8px;background:none;border:1px solid var(--border2);cursor:pointer;" onclick="resendOnboardLink('${a.id}','${a.first_name}',this)">↻ Resend Link</button>
-          <button class="card-act" style="font-size:8px;background:none;border:1px solid rgba(224,85,85,.3);color:var(--red);cursor:pointer;" onclick="dismissApplicant('${a.id}','${name}')">✕ Dismiss</button>
+          <button class="card-act" style="font-size:8px;background:none;border:1px solid rgba(224,85,85,.3);color:var(--red);cursor:pointer;" data-dismiss-id="${a.id}" data-dismiss-name="${name.replace(/"/g,'&quot;')}" onclick="dismissApplicant(this.dataset.dismissId,this.dataset.dismissName)">✕ Dismiss</button>
         </div>
       </div>`;
     }).join('');
@@ -2689,7 +2690,7 @@ async function openApplicantSheet(id) {
   if(st === 'documents_complete') acts.innerHTML += `<button class="sbtn ok" onclick="hireAndActivate('${a.id}','${name}','${a.email||''}','${a.phone||''}');closeSheet('app-sheet')">Hire + Activate →</button>`;
   if(st === 'hired') acts.innerHTML += `<button class="sbtn ok" onclick="activateApplicantAsStaff('${a.id}','${name}','${a.email||''}','${a.phone||''}');closeSheet('app-sheet')">Send Portal Access →</button>`;
   acts.innerHTML += `<button class="sbtn" onclick="resendOnboardLink('${a.id}','${a.first_name}',this)">↻ Resend Link</button>`;
-  acts.innerHTML += `<button class="sbtn" style="border-color:rgba(224,85,85,.3);color:var(--red);" onclick="dismissApplicant('${a.id}','${name}');closeSheet('app-sheet')">✕ Dismiss</button>`;
+  acts.innerHTML += `<button class="sbtn" style="border-color:rgba(224,85,85,.3);color:var(--red);" data-dismiss-id="${a.id}" data-dismiss-name="${name.replace(/"/g,'&quot;')}" onclick="dismissApplicant(this.dataset.dismissId,this.dataset.dismissName);closeSheet('app-sheet')">✕ Dismiss</button>`;
 
   openSheet('app-sheet');
 }
@@ -2717,13 +2718,16 @@ async function hireAndActivate(id, name, email, phone) {
 
 // ── DISMISS APPLICANT ──
 async function dismissApplicant(id, name) {
-  if(!confirm('Dismiss '+name+'? This removes them from your applicants list.')) return;
+  // Use showToast-style inline confirm instead of confirm() which is blocked on iOS
+  const confirmed = window.confirm ? window.confirm('Dismiss ' + name + '?') : true;
+  if(!confirmed) return;
   try {
     const res = await fetch(`${API}/psw/applicants/${id}?operator_id=${currentOp}`, { method:'DELETE' });
-    if(!res.ok) throw new Error();
-    showToast(name+' dismissed','ok');
+    if(!res.ok) throw new Error((await res.json().catch(()=>({}))).error || 'Failed');
+    showToast(name + ' dismissed', 'ok');
+    _applicantCache = _applicantCache.filter(a => a.id !== id);
     loadApplicants();
-  } catch { showToast('Could not dismiss applicant','err'); }
+  } catch(e) { showToast('Could not dismiss: ' + e.message, 'err'); }
 }
 
 async function initiateOnboarding(applicantId, email) {
