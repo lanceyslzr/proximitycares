@@ -1588,14 +1588,20 @@ function renderClients() {
     const overdueBadge = overdueInv
       ? `<div style="font-family:var(--mono);font-size:8px;letter-spacing:1px;padding:2px 6px;border-radius:100px;border:1px solid rgba(224,85,85,.4);color:var(--red);margin-top:2px;">OVERDUE $${parseFloat(overdueInv.total_amount||0).toFixed(0)}</div>`
       : '';
+    // C2 — consent badge
+    const consentBadge = !c.consent_given
+      ? `<div style="font-family:var(--mono);font-size:8px;letter-spacing:1px;padding:2px 6px;border-radius:100px;border:1px solid rgba(224,85,85,.4);color:var(--red);margin-top:2px;">NO CONSENT</div>`
+      : '';
+    // C8 — referral source
+    const refSource = c.referral_source ? `<span style="font-family:var(--mono);font-size:9px;color:var(--muted);margin-left:4px;">· ${c.referral_source}</span>` : '';
     return `
     <div class="card">
       <div class="card-header" onclick="openClientDetail('${c.id}')">
         <div style="display:flex;align-items:center;gap:11px;flex:1;">
           <div class="avatar">${ini}</div>
-          <div><div class="card-name">${name}</div><div class="card-sub">${c.client_code?'<span style="font-family:var(--mono);color:var(--teal3);">'+c.client_code+'</span> · ':''} ${c.portal_slug||c.email||'—'}</div><div class="card-meta">Since ${fmtd(c.created_at)}</div></div>
+          <div><div class="card-name">${name}</div><div class="card-sub">${c.client_code?'<span style="font-family:var(--mono);color:var(--teal3);">'+c.client_code+'</span> · ':''} ${c.portal_slug||c.email||'—'}${refSource}</div><div class="card-meta">Since ${fmtd(c.created_at)}</div></div>
         </div>
-        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;"><span class="badge b-active">Active</span>${sentBadge}${overdueBadge}</div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;"><span class="badge b-active">Active</span>${sentBadge}${overdueBadge}${consentBadge}</div>
       </div>
       <div class="card-actions">
         <div class="card-act" onclick="genInvoice('${name}','${c.email||''}','${c.assigned_psw||''}',${c.client_rate||22},${c.psw_rate||19})">Invoice</div>
@@ -1630,15 +1636,52 @@ async function saveCarePlan(clientId, slug, clientName) {
   const goals = (document.getElementById('cp-goals')||{}).value || '';
   const daily_routine = (document.getElementById('cp-routine')||{}).value || '';
   const preferences = (document.getElementById('cp-prefs')||{}).value || '';
+  const reason = (document.getElementById('cp-reason')||{}).value?.trim() || 'Care plan updated';
   try {
     const res = await fetch(`${API}/client/care-plan`, {
       method:'PATCH', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ operator_id: currentOp, client_slug: slug, client_name: clientName, summary, goals, daily_routine, preferences })
+      body: JSON.stringify({ operator_id: currentOp, client_slug: slug, client_name: clientName, summary, goals, daily_routine, preferences, reason_for_change: reason, updated_by: 'lance' })
     });
     const d = await res.json();
     if (!d.success) throw new Error(d.error);
-    showToast('Care plan saved','ok');
+    showToast('Care plan saved + version snapshot created','ok');
   } catch(err) { showToast(err.message||'Save failed','err'); }
+}
+
+// C4 — Load care plan version history
+async function loadCarePlanVersions(slug) {
+  const el = document.getElementById('cp-version-history');
+  if (!el) return;
+  el.style.display = 'block';
+  el.innerHTML = '<div style="font-family:var(--mono);font-size:10px;color:var(--muted);padding:8px 0;">Loading history...</div>';
+  try {
+    const res = await fetch(`${API}/hq/care-plan-versions/${slug}?operator_id=${currentOp}`);
+    const d = await res.json();
+    const versions = d.versions || [];
+    if (!versions.length) { el.innerHTML = '<div style="font-family:var(--mono);font-size:10px;color:var(--muted);padding:8px 0;">No version history yet</div>'; return; }
+    el.innerHTML = `<div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted2);margin-bottom:8px;">Version History</div>` +
+      versions.map(v => `<div style="padding:8px 10px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;margin-bottom:4px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <div style="font-family:var(--mono);font-size:10px;color:var(--teal2);">v${v.version_number}</div>
+          <div style="font-family:var(--mono);font-size:9px;color:var(--muted);">${v.updated_at?new Date(v.updated_at).toLocaleDateString('en-CA'):''}</div>
+        </div>
+        <div style="font-size:11px;color:var(--muted2);margin-top:3px;">${v.reason_for_change||'—'} · ${v.updated_by||'—'}</div>
+      </div>`).join('');
+  } catch { el.innerHTML = '<div style="font-family:var(--mono);font-size:10px;color:var(--red);">Could not load history</div>'; }
+}
+
+// C2 — Record PIPEDA consent manually for existing clients
+async function recordConsent(slug) {
+  try {
+    const res = await fetch(`${API}/hq/client/${slug}/consent`, {
+      method: 'PATCH', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ operator_id: currentOp, consent_version: '1.0' })
+    });
+    const d = await res.json();
+    if (!d.success) throw new Error(d.error);
+    showToast('Consent recorded ✓', 'ok');
+    await loadAll(false);
+  } catch(e) { showToast(e.message || 'Could not record consent', 'err'); }
 }
 
 async function genInvoice(clientName, clientEmail, pswName, clientRate, pswRate) {
@@ -3700,6 +3743,28 @@ async function renderRevenue() {
   });
   html += '</div></div>';
 
+  // C8 — Referral source breakdown
+  const refMap = {};
+  clients.forEach(c => {
+    const src = c.referral_source || 'Unknown';
+    refMap[src] = (refMap[src] || 0) + 1;
+  });
+  if (Object.keys(refMap).length > 1 || (Object.keys(refMap).length === 1 && !refMap['Unknown'])) {
+    html += `<div style="margin:0 12px 16px;">
+      <div style="font-family:var(--mono);font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--muted2);margin-bottom:10px;">Client Referral Sources</div>
+      <div style="display:flex;flex-direction:column;gap:6px;">`;
+    const total = clients.length || 1;
+    Object.entries(refMap).sort((a,b) => b[1]-a[1]).forEach(([src, count]) => {
+      const pct = Math.round(count / total * 100);
+      html += `<div style="display:flex;align-items:center;gap:10px;">
+        <div style="font-family:var(--mono);font-size:10px;color:var(--muted);width:100px;text-transform:uppercase;letter-spacing:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${src}</div>
+        <div style="flex:1;height:6px;background:var(--border);border-radius:100px;"><div style="width:${pct}%;height:100%;background:var(--teal2);border-radius:100px;"></div></div>
+        <div style="font-family:var(--mono);font-size:11px;color:var(--teal2);">${count}</div>
+      </div>`;
+    });
+    html += '</div></div>';
+  }
+
   el.innerHTML = html;
 
   // BUILD 29 — AR section: load and append outstanding invoices
@@ -3856,6 +3921,18 @@ function openClientDetail(id) {
     <div class="cpf"><div class="cpf-lbl">Rates</div><div class="cpf-val">Client $${c.client_rate||22}/hr · PSW $${c.psw_rate||19}/hr · Margin $${(c.client_rate||22)-(c.psw_rate||19)}/hr</div></div>
     <div class="cpf"><div class="cpf-lbl">Start Date</div><div class="cpf-val">${c.start_date?fmtd(c.start_date):'Not set'}</div></div>
 
+    <!-- C2 — PIPEDA Consent -->
+    <div style="margin:12px 0;padding:10px 12px;background:${c.consent_given?'rgba(58,170,138,.06)':'rgba(224,85,85,.06)'};border:1px solid ${c.consent_given?'rgba(58,170,138,.25)':'rgba(224,85,85,.25)'};border-radius:6px;display:flex;align-items:center;justify-content:space-between;">
+      <div>
+        <div style="font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:${c.consent_given?'var(--green2)':'var(--red)'};">PIPEDA Consent ${c.consent_given?'✓':'Missing'}</div>
+        ${c.consent_given?`<div style="font-size:10px;color:var(--muted);margin-top:2px;">v${c.consent_version||'1.0'} · ${c.consent_date?new Date(c.consent_date).toLocaleDateString('en-CA'):'—'}</div>`:'<div style="font-size:10px;color:var(--muted);margin-top:2px;">Client has not provided PIPEDA consent</div>'}
+      </div>
+      ${!c.consent_given?`<button onclick="recordConsent('${slug}')" style="font-family:var(--mono);font-size:8px;letter-spacing:1px;padding:5px 10px;border-radius:5px;border:1px solid rgba(58,170,138,.4);background:rgba(58,170,138,.08);color:var(--green2);cursor:pointer;min-height:30px;">Record Consent</button>`:''}
+    </div>
+
+    <!-- C8 — Referral source -->
+    ${c.referral_source?`<div class="cpf"><div class="cpf-lbl">Referral Source</div><div class="cpf-val">${c.referral_source}${c.referral_detail?' · '+c.referral_detail:''}</div></div>`:''}
+
     <div style="margin:16px 0 10px;font-family:var(--mono);font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--teal2);">Care Profile</div>
     <div class="cpf"><div class="cpf-lbl">Care Type</div><div class="cpf-val">${c.care_type||'—'}</div></div>
     <div class="cpf"><div class="cpf-lbl">Mobility</div><div class="cpf-val">${c.mobility_level||'—'}</div></div>
@@ -3871,7 +3948,12 @@ function openClientDetail(id) {
     <div class="sheet-row"><div class="slbl">Goals</div><textarea class="sinput" id="cp-goals" rows="2" style="min-height:60px;resize:none;" placeholder="Client goals and priorities..."></textarea></div>
     <div class="sheet-row"><div class="slbl">Daily Routine</div><textarea class="sinput" id="cp-routine" rows="3" style="min-height:80px;resize:none;" placeholder="Morning routine, meal times, sleep schedule..."></textarea></div>
     <div class="sheet-row"><div class="slbl">Preferences</div><textarea class="sinput" id="cp-prefs" rows="2" style="min-height:60px;resize:none;" placeholder="Likes, dislikes, communication preferences..."></textarea></div>
-    <button class="sbtn" style="margin-top:4px;" onclick="saveCarePlan('${id}','${slug}','${name}')">Save Care Plan</button>
+    <div class="sheet-row"><div class="slbl">Reason for Change <span style="font-size:9px;color:var(--muted);">(C4 — required for version history)</span></div><input class="sinput" id="cp-reason" placeholder="e.g. New medication, fall risk assessment, family request..." style="font-size:15px;"></div>
+    <div style="display:flex;gap:8px;margin-top:4px;">
+      <button class="sbtn" style="flex:2;" onclick="saveCarePlan('${id}','${slug}','${name}')">Save Care Plan</button>
+      <button class="sbtn ghost" style="flex:1;font-size:10px;" onclick="loadCarePlanVersions('${slug}')">History</button>
+    </div>
+    <div id="cp-version-history" style="display:none;margin-top:10px;"></div>
 
     <div style="margin:18px 0 10px;font-family:var(--mono);font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--gold);">Edit Client</div>
     <div class="sheet-row"><div class="slbl">Assigned PSW</div>
