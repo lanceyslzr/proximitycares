@@ -1336,10 +1336,11 @@ function switchOp(id, name) {
 async function loadAll(spin=false) {
   if(spin) { const b=document.getElementById('refresh-btn'); b.classList.add('refresh-spin'); setTimeout(()=>b.classList.remove('refresh-spin'),800); }
   try {
-    // Fetch overview + visits in parallel
-    const [overviewRes, visitsRes] = await Promise.all([
+    // Fetch overview + visits + branding in parallel
+    const [overviewRes, visitsRes, brandingRes] = await Promise.all([
       fetch(`${API}/hq/overview?operator_id=${currentOp}`),
-      fetch(`${API}/hq/visits?operator_id=${currentOp}&limit=200`)
+      fetch(`${API}/hq/visits?operator_id=${currentOp}&limit=200`),
+      fetch(`${API}/hq/branding?operator_id=${currentOp}`)
     ]);
     D = await overviewRes.json();
     if(!D.success) throw new Error('API error');
@@ -1348,8 +1349,36 @@ async function loadAll(spin=false) {
       const vd = await visitsRes.json();
       if (vd.visits) D.visits = vd.visits;
     } catch {}
+    // WHITE LABEL — apply operator branding
+    try {
+      const bd = await brandingRes.json();
+      if (bd.success) applyBranding(bd);
+    } catch {}
     renderAll();
   } catch(err) { showToast('Failed to load data', 'err'); }
+}
+
+// WHITE LABEL — inject operator branding into HQ
+function applyBranding(b) {
+  const root = document.documentElement;
+  if (b.brand_primary) {
+    // Convert hex to teal-equivalent — inject as teal vars
+    root.style.setProperty('--teal', b.brand_primary);
+    root.style.setProperty('--teal2', b.brand_primary);
+    root.style.setProperty('--border2', b.brand_primary + '40');
+    root.style.setProperty('--border3', b.brand_primary + '66');
+  }
+  if (b.brand_accent) root.style.setProperty('--gold', b.brand_accent);
+  // Agency name in op-label if it matches current op
+  const opLabel = document.getElementById('op-label');
+  if (opLabel && b.agency_name && currentOp !== 'proximity-care') opLabel.textContent = b.agency_name;
+  // Logo in topbar
+  const logoEl = document.querySelector('.logo');
+  if (logoEl && b.logo_url) {
+    logoEl.innerHTML = `<img src="${b.logo_url}" alt="${b.agency_name||''}" style="height:28px;max-width:140px;object-fit:contain;vertical-align:middle;">`;
+  } else if (logoEl && b.agency_name && currentOp !== 'proximity-care') {
+    logoEl.innerHTML = `<span style="font-family:var(--sans);font-size:14px;font-weight:600;">${b.agency_name}</span> <em style="font-style:normal;color:var(--teal2);font-size:12px;">HQ</em>`;
+  }
 }
 function renderAll() {
   renderStats(); renderLeads(); renderClients(); renderPSWs();

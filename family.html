@@ -254,7 +254,7 @@ button:active{transform:scale(0.98);}
 <!-- APP -->
 <div class="app" id="app">
   <div class="topbar">
-    <div class="tb-brand">Proximity <em>Care</em></div>
+    <div class="tb-brand" id="agency-logo"><span id="agency-name">Proximity <em>Care</em></span></div>
     <div class="tb-right">
       <span class="tb-name" id="tbName"></span>
       <button class="tb-signout" onclick="signOut()">Sign out</button>
@@ -369,6 +369,21 @@ async function loadPortal() {
   try {
     const r = await fetch(`${R}/family/portal/${slug}`);
     portalData = await r.json();
+    // WHITE LABEL — inject operator branding
+    if (portalData.branding) {
+      const b = portalData.branding;
+      const root = document.documentElement;
+      if (b.brand_accent) root.style.setProperty('--accent', b.brand_accent);
+      if (b.brand_primary) root.style.setProperty('--accent', b.brand_primary);
+      // Update header agency name
+      const agencyEl = document.getElementById('agency-name');
+      if (agencyEl && b.agency_name) agencyEl.textContent = b.agency_name;
+      // Logo if provided
+      const logoEl = document.getElementById('agency-logo');
+      if (logoEl && b.logo_url) {
+        logoEl.innerHTML = `<img src="${b.logo_url}" alt="${b.agency_name||''}" style="height:24px;max-width:120px;object-fit:contain;vertical-align:middle;">`;
+      }
+    }
     renderAll();
   } catch (e) {
     document.getElementById('contentArea').innerHTML = emptyState(
