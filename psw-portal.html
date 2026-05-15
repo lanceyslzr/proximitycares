@@ -640,8 +640,9 @@ a{color:inherit;text-decoration:none;}
       <textarea class="form-textarea" id="co-obs" placeholder="Anything to flag from today's visit..."></textarea>
     </div>
     <div style="margin-bottom:14px;">
-      <label class="form-label">Medications Given <span style="font-size:10px;color:var(--muted);font-weight:400;">(optional)</span></label>
-      <textarea class="form-textarea" id="co-meds" placeholder="e.g. Metformin 500mg, Lisinopril 10mg" style="min-height:52px;resize:none;"></textarea>
+      <label class="form-label">Medication Administration <span style="font-family:var(--mono);font-size:9px;color:var(--muted);font-weight:400;letter-spacing:1px;">MAR</span></label>
+      <div id="co-mar-boxes" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;"></div>
+      <div id="co-mar-none" style="display:none;font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:6px;">No medications on file for this client</div>
     </div>
     <div style="margin-bottom:14px;">
       <label class="form-label">Task Photos <span style="font-size:10px;color:var(--muted);font-weight:400;">(optional — up to 4)</span></label>
@@ -1527,13 +1528,16 @@ function openCheckout() {
     const h = Math.floor(mins/60), m = mins%60;
     document.getElementById('co-elapsed-sheet').textContent = h > 0 ? `${h}h ${m}m` : `${m}m`;
   }
+  buildMAR();
   document.getElementById('checkout-sheet').style.display = 'block';
   document.body.style.overflow = 'hidden';
 }
 function closeCheckout() {
   document.getElementById('checkout-sheet').style.display = 'none';
   document.body.style.overflow = '';
-  ['co-meds','co-incident','co-obs'].forEach(id => { const el = document.getElementById(id); if(el) el.value = ''; });
+  // Clear MAR checkboxes
+  document.querySelectorAll('#co-mar-boxes input[type="checkbox"]').forEach(cb => cb.checked = false);
+  ['co-incident','co-obs'].forEach(id => { const el = document.getElementById(id); if(el) el.value = ''; });
   const photos = document.getElementById('co-photos'); if(photos) photos.value = '';
   const preview = document.getElementById('co-photo-preview'); if(preview) preview.innerHTML = '';
   const playback = document.getElementById('co-voice-playback'); if(playback) { playback.src = ''; playback.style.display = 'none'; }
@@ -1557,8 +1561,7 @@ async function doCheckOut() {
   const incident = document.getElementById('co-incident').value.trim();
   const btn = document.getElementById('co-submit-btn');
   btn.textContent = 'Submitting...'; btn.disabled = true;
-  const medsRaw = (document.getElementById('co-meds')?.value || '').trim();
-  const medsArr = medsRaw ? medsRaw.split(/[,\n]+/).map(m => m.trim()).filter(Boolean) : [];
+  const medsArr = Array.from(document.querySelectorAll('#co-mar-boxes input[type="checkbox"]:checked')).map(cb => cb.value).filter(Boolean);
   const voiceNoteUrl = window._voiceNoteUrl || null;
   let taskPhotoUrls = [];
   const photoFiles = document.getElementById('co-photos')?.files;
@@ -1858,6 +1861,64 @@ async function loadHomeData() {
       document.getElementById('home-pay-rate').textContent = '$' + (d.rate || 19) + '/hr';
     }
   } catch (e) { console.error('loadHomeData:', e); }
+}
+
+// ── MAR — MEDICATION ADMINISTRATION RECORD ──
+function buildMAR() {
+  const box = document.getElementById('co-mar-boxes');
+  const none = document.getElementById('co-mar-none');
+  if (!box) return;
+  box.innerHTML = '';
+
+  // Get client medications from schedule data
+  const clients = scheduleData?.clients || [];
+  const clientName = activeVisit?.client_name || '';
+  const nameParts = clientName.trim().split(/\s+/);
+  const client = clients.find(c => c.first_name === nameParts[0]) || {};
+  const medsRaw = client.medications || '';
+
+  if (!medsRaw) {
+    if (none) none.style.display = 'block';
+    return;
+  }
+  if (none) none.style.display = 'none';
+
+  // Detect if it's a timed dispenser (free text) vs named med list (comma/newline separated)
+  const isDispenser = medsRaw.toLowerCase().includes('dispenser') || medsRaw.toLowerCase().includes('x/day') || medsRaw.toLowerCase().includes('timed');
+  let meds = [];
+
+  if (isDispenser) {
+    // Extract dose count if present (e.g. "7x/day")
+    const match = medsRaw.match(/(\d+)\s*x\s*\/\s*day/i);
+    const doseCount = match ? parseInt(match[1]) : 7;
+    const labels = ['Morning 1','Morning 2','Noon','Afternoon','Evening 1','Evening 2','Night','Dose 8','Dose 9','Dose 10'];
+    meds = labels.slice(0, doseCount);
+  } else {
+    // Parse comma or newline separated med names
+    meds = medsRaw.split(/[,\n]+/).map(m => m.trim()).filter(Boolean);
+  }
+
+  meds.forEach(med => {
+    const id = 'mar-' + med.replace(/\s+/g, '-').toLowerCase();
+    const wrap = document.createElement('label');
+    wrap.style.cssText = 'display:flex;align-items:center;gap:8px;padding:9px 12px;background:var(--bg3);border:1px solid var(--border2);border-radius:8px;cursor:pointer;font-size:12px;color:var(--text);touch-action:manipulation;min-width:120px;flex:1;max-width:calc(50% - 4px);';
+    wrap.innerHTML = `
+      <input type="checkbox" id="${id}" value="${med}" style="width:18px;height:18px;accent-color:var(--teal2);cursor:pointer;flex-shrink:0;">
+      <span style="font-family:var(--mono);font-size:10px;letter-spacing:.5px;">${med}</span>`;
+    wrap.querySelector('input').addEventListener('change', function() {
+      wrap.style.background = this.checked ? 'rgba(61,138,122,.12)' : 'var(--bg3)';
+      wrap.style.borderColor = this.checked ? 'rgba(61,138,122,.5)' : 'var(--border2)';
+    });
+    box.appendChild(wrap);
+  });
+
+  // Show dispenser note if applicable
+  if (isDispenser) {
+    const note = document.createElement('div');
+    note.style.cssText = 'width:100%;font-family:var(--mono);font-size:9px;color:var(--muted);margin-top:4px;letter-spacing:.5px;';
+    note.textContent = medsRaw;
+    box.appendChild(note);
+  }
 }
 
 // ── PAY SUMMARY ──
