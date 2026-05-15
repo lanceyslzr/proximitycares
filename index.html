@@ -1429,25 +1429,7 @@ function finalizePlan(){
   document.getElementById('builder-progress-fill').style.width='100%';
   const pc=document.getElementById('planCard');
   if(pc){pc.classList.add('mobile-show');if(window.innerWidth<=900)pc.scrollIntoView({behavior:'smooth',block:'start'});}
-  // Builder complete — fire intent beacon with real care data
-  try{
-    fetch('https://proximity-agent-production.up.railway.app/webhook/lead',{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({
-        operator_id:'proximity-care',
-        first_name:'[Builder]',
-        last_name:'Completed',
-        phone:'',
-        email:'',
-        care_type_interest:plan.careType||'',
-        care_needed_for:plan.services&&plan.services.length?plan.services.join(', '):'',
-        urgency:plan.hours>=40?'hot':plan.hours>=20?'warm':'new',
-        source:'care_builder_complete',
-        pain_point:'Hours: '+(plan.hours||0)+'/wk · City: '+(plan.city||'unknown')
-      })
-    }).catch(function(){});
-  }catch(e){}
+  // Builder complete — contact info captured on form submit, not here
 }
 
 function emailPlan(){
@@ -1779,10 +1761,10 @@ function buildCalHTML(months, today, calStart, end20, bookedDates) {
 }
 
 async function submitBooking(selectedDate, selectedTime) {
-  var name = document.getElementById('bk-name').value.trim();
-  var phone = document.getElementById('bk-phone').value.trim();
-  var email = document.getElementById('bk-email').value.trim();
-  var city = document.getElementById('bk-city').value;
+  var name = document.getElementById('bk-name')?.value.trim() || '';
+  var phone = document.getElementById('bk-phone')?.value.trim() || '';
+  var email = document.getElementById('bk-email')?.value.trim() || '';
+  var city = document.getElementById('bk-city')?.value || '';
   var btn = document.getElementById('bk-submit');
 
   if(!name||!phone||!city||!selectedDate||!selectedTime) return;
