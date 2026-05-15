@@ -1136,34 +1136,34 @@ button:active{transform:scale(0.98);}
 </div>
 
 <!-- EC-6 — MANUAL VISIT SHEET -->
-<div class="sheet-overlay" id="manual-visit-sheet" onclick="if(event.target===this)closeSheet('manual-visit-sheet')">
-  <div class="sheet">
-    <div class="sheet-handle"></div>
+<div class="sheet" id="manual-visit-sheet">
+  <div class="sheet-header">
     <div class="sheet-title">Manual Visit Entry</div>
-    <div style="font-family:var(--mono);font-size:9px;color:var(--amber);letter-spacing:1px;margin-bottom:14px;">EC-6 · Requires reason · Logged to audit trail</div>
-    <div class="srow2" style="padding:0;">
-      <div>
-        <div class="slbl">PSW Name</div>
-        <select class="sselect" id="mv-psw">
-          <option value="">Select PSW...</option>
-        </select>
-      </div>
-      <div>
-        <div class="slbl">Client Name</div>
-        <select class="sselect" id="mv-client">
-          <option value="">Select client...</option>
-        </select>
-      </div>
-    </div>
-    <div class="sheet-row"><div class="slbl">Visit Date</div><input class="sinput" id="mv-date" type="date" style="font-size:16px;"></div>
-    <div class="srow2" style="padding:0;">
-      <div><div class="slbl">Time In</div><input class="sinput" id="mv-time-in" type="time" style="font-size:16px;"></div>
-      <div><div class="slbl">Time Out</div><input class="sinput" id="mv-time-out" type="time" style="font-size:16px;"></div>
-    </div>
-    <div class="sheet-row"><div class="slbl">Reason for Manual Entry *</div><textarea class="sinput" id="mv-reason" rows="2" style="min-height:64px;resize:none;" placeholder="e.g. PSW forgot to log, system outage, paper timesheet..."></textarea></div>
-    <button class="sbtn" onclick="submitManualVisit()">Submit Manual Visit</button>
-    <div style="font-family:var(--mono);font-size:9px;color:var(--muted);margin-top:8px;text-align:center;">This visit will be flagged entry_type: manual in all reports</div>
+    <div class="sheet-close" onclick="closeSheet('manual-visit-sheet')">✕</div>
   </div>
+  <div style="font-family:var(--mono);font-size:9px;color:var(--amber);letter-spacing:1px;margin:0 14px 14px;">EC-6 · Requires reason · Logged to audit trail</div>
+  <div class="srow2" style="padding:0 14px;">
+    <div>
+      <div class="slbl">PSW Name</div>
+      <select class="sselect" id="mv-psw">
+        <option value="">Select PSW...</option>
+      </select>
+    </div>
+    <div>
+      <div class="slbl">Client Name</div>
+      <select class="sselect" id="mv-client">
+        <option value="">Select client...</option>
+      </select>
+    </div>
+  </div>
+  <div class="sheet-row"><div class="slbl">Visit Date</div><input class="sinput" id="mv-date" type="date" style="font-size:16px;"></div>
+  <div class="srow2" style="padding:0 14px;">
+    <div><div class="slbl">Time In</div><input class="sinput" id="mv-time-in" type="time" style="font-size:16px;"></div>
+    <div><div class="slbl">Time Out</div><input class="sinput" id="mv-time-out" type="time" style="font-size:16px;"></div>
+  </div>
+  <div class="sheet-row"><div class="slbl">Reason for Manual Entry *</div><textarea class="sinput" id="mv-reason" rows="2" style="min-height:64px;resize:none;" placeholder="e.g. PSW forgot to log, system outage, paper timesheet..."></textarea></div>
+  <button class="sbtn" style="margin:0 14px 8px;width:calc(100% - 28px);" onclick="submitManualVisit()">Submit Manual Visit</button>
+  <div style="font-family:var(--mono);font-size:9px;color:var(--muted);margin:0 14px 14px;text-align:center;">This visit will be flagged entry_type: manual in all reports</div>
 </div>
 
 <!-- ACTIVITY -->
@@ -1298,26 +1298,24 @@ button:active{transform:scale(0.98);}
 </div>
 
 <!-- BULK BOOKING IMPORT SHEET -->
-<div class="sheet-overlay" id="import-bookings-sheet" onclick="if(event.target===this)closeSheet('import-bookings-sheet')">
-  <div class="sheet">
-    <div class="sheet-header">
-      <div class="sheet-title">Import Bookings CSV</div>
-      <div class="sheet-close" onclick="closeSheet('import-bookings-sheet')">✕</div>
-    </div>
-    <div style="padding:0 14px 10px;">
-      <div style="font-family:var(--mono);font-size:9px;letter-spacing:1px;color:var(--muted);margin-bottom:12px;line-height:1.7;">Upload a CSV with columns:<br><span style="color:var(--teal2);">psw_name, client_name, date, time_in, duration_minutes</span><br>Date format: YYYY-MM-DD &nbsp;·&nbsp; Time format: HH:MM</div>
-      <a id="ib-template-link" href="#" onclick="downloadBookingTemplate(event)" style="display:inline-block;font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--teal2);border:1px solid rgba(61,138,122,.3);padding:4px 10px;border-radius:4px;text-decoration:none;margin-bottom:14px;">↓ Download Template</a>
-    </div>
-    <div class="sheet-row" style="padding:0 14px 10px;">
-      <div class="slbl">Select CSV File</div>
-      <input type="file" id="ib-file" accept=".csv,text/csv" style="font-family:var(--mono);font-size:11px;color:var(--text);width:100%;padding:8px 0;">
-    </div>
-    <div id="ib-preview" style="display:none;margin:0 14px 10px;max-height:200px;overflow-y:auto;border:1px solid var(--border);border-radius:6px;"></div>
-    <div id="ib-result" style="display:none;margin:0 14px 10px;padding:10px 12px;border-radius:6px;font-family:var(--mono);font-size:10px;line-height:1.8;"></div>
-    <div style="display:flex;gap:8px;padding:0 14px 14px;">
-      <button class="sbtn" onclick="previewImportBookings()" style="flex:1;background:rgba(61,138,122,.1);border-color:rgba(61,138,122,.3);color:var(--teal2);">Preview</button>
-      <button class="sbtn" id="ib-confirm-btn" onclick="confirmImportBookings()" style="flex:1;display:none;">Import</button>
-    </div>
+<div class="sheet" id="import-bookings-sheet">
+  <div class="sheet-header">
+    <div class="sheet-title">Import Bookings CSV</div>
+    <div class="sheet-close" onclick="closeSheet('import-bookings-sheet')">✕</div>
+  </div>
+  <div style="padding:0 14px 10px;">
+    <div style="font-family:var(--mono);font-size:9px;letter-spacing:1px;color:var(--muted);margin-bottom:12px;line-height:1.7;">Upload a CSV with columns:<br><span style="color:var(--teal2);">psw_name, client_name, date, time_in, duration_minutes</span><br>Date format: YYYY-MM-DD &nbsp;·&nbsp; Time format: HH:MM</div>
+    <a id="ib-template-link" href="#" onclick="downloadBookingTemplate(event)" style="display:inline-block;font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--teal2);border:1px solid rgba(61,138,122,.3);padding:4px 10px;border-radius:4px;text-decoration:none;margin-bottom:14px;">↓ Download Template</a>
+  </div>
+  <div class="sheet-row" style="padding:0 14px 10px;">
+    <div class="slbl">Select CSV File</div>
+    <input type="file" id="ib-file" accept=".csv,text/csv" style="font-family:var(--mono);font-size:11px;color:var(--text);width:100%;padding:8px 0;">
+  </div>
+  <div id="ib-preview" style="display:none;margin:0 14px 10px;max-height:200px;overflow-y:auto;border:1px solid var(--border);border-radius:6px;"></div>
+  <div id="ib-result" style="display:none;margin:0 14px 10px;padding:10px 12px;border-radius:6px;font-family:var(--mono);font-size:10px;line-height:1.8;"></div>
+  <div style="display:flex;gap:8px;padding:0 14px 14px;">
+    <button class="sbtn" onclick="previewImportBookings()" style="flex:1;background:rgba(61,138,122,.1);border-color:rgba(61,138,122,.3);color:var(--teal2);">Preview</button>
+    <button class="sbtn" id="ib-confirm-btn" onclick="confirmImportBookings()" style="flex:1;display:none;">Import</button>
   </div>
 </div>
 
