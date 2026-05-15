@@ -1211,6 +1211,7 @@ button:active{transform:scale(0.98);}
     <div style="display:flex;gap:6px;">
       <div class="sect-action" onclick="openAddShift('','')">+ Shift</div>
       <div class="sect-action" onclick="openBulkSchedule()" style="color:var(--gold);border-color:rgba(200,169,110,.3);">+ Bulk Week</div>
+      <div class="sect-action" onclick="openImportBookings()" style="color:var(--teal3);border-color:rgba(125,202,189,.3);">↑ Import CSV</div>
       <div class="sect-action" onclick="openSwapSheet()" style="color:var(--purple2);border-color:rgba(160,96,224,.3);">⇄ Swap</div>
       <div class="sect-action" id="map-toggle-btn" onclick="toggleLiveMap()" style="color:var(--teal2);border-color:rgba(61,138,122,.3);">⬤ Live Map</div>
       <div class="sect-action" onclick="renderSchedule()">↻</div>
@@ -1294,6 +1295,30 @@ button:active{transform:scale(0.98);}
     </div>
   </div>
   <button class="sbtn" onclick="saveBulkSchedule()" id="bulk-save-btn" style="margin:0 14px 8px;width:calc(100% - 28px);">Create Shifts</button>
+</div>
+
+<!-- BULK BOOKING IMPORT SHEET -->
+<div class="sheet-overlay" id="import-bookings-sheet" onclick="if(event.target===this)closeSheet('import-bookings-sheet')">
+  <div class="sheet">
+    <div class="sheet-header">
+      <div class="sheet-title">Import Bookings CSV</div>
+      <div class="sheet-close" onclick="closeSheet('import-bookings-sheet')">✕</div>
+    </div>
+    <div style="padding:0 14px 10px;">
+      <div style="font-family:var(--mono);font-size:9px;letter-spacing:1px;color:var(--muted);margin-bottom:12px;line-height:1.7;">Upload a CSV with columns:<br><span style="color:var(--teal2);">psw_name, client_name, date, time_in, duration_minutes</span><br>Date format: YYYY-MM-DD &nbsp;·&nbsp; Time format: HH:MM</div>
+      <a id="ib-template-link" href="#" onclick="downloadBookingTemplate(event)" style="display:inline-block;font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--teal2);border:1px solid rgba(61,138,122,.3);padding:4px 10px;border-radius:4px;text-decoration:none;margin-bottom:14px;">↓ Download Template</a>
+    </div>
+    <div class="sheet-row" style="padding:0 14px 10px;">
+      <div class="slbl">Select CSV File</div>
+      <input type="file" id="ib-file" accept=".csv,text/csv" style="font-family:var(--mono);font-size:11px;color:var(--text);width:100%;padding:8px 0;">
+    </div>
+    <div id="ib-preview" style="display:none;margin:0 14px 10px;max-height:200px;overflow-y:auto;border:1px solid var(--border);border-radius:6px;"></div>
+    <div id="ib-result" style="display:none;margin:0 14px 10px;padding:10px 12px;border-radius:6px;font-family:var(--mono);font-size:10px;line-height:1.8;"></div>
+    <div style="display:flex;gap:8px;padding:0 14px 14px;">
+      <button class="sbtn" onclick="previewImportBookings()" style="flex:1;background:rgba(61,138,122,.1);border-color:rgba(61,138,122,.3);color:var(--teal2);">Preview</button>
+      <button class="sbtn" id="ib-confirm-btn" onclick="confirmImportBookings()" style="flex:1;display:none;">Import</button>
+    </div>
+  </div>
 </div>
 
 <!-- SWAP PSW SHEET -->
@@ -2850,28 +2875,43 @@ async function renderVisits() {
       const mood = v.client_mood || '';
       const vid = 'v'+i;
       const sub8Badge = v.sub_8_min ? `<span style="font-family:var(--mono);font-size:8px;letter-spacing:1px;padding:2px 6px;border-radius:100px;border:1px solid rgba(224,85,85,.4);color:var(--red);margin-left:6px;">⚠ SUB-8-MIN</span>` : '';
+      const entryBadge = v.entry_type === 'manual' ? `<span style="font-family:var(--mono);font-size:8px;letter-spacing:1px;padding:2px 6px;border-radius:100px;border:1px solid rgba(224,154,61,.4);color:var(--amber);margin-left:6px;">MANUAL</span>` : '';
+      const gpsBadge = v.checkin_distance_m != null ? `<span style="font-family:var(--mono);font-size:8px;letter-spacing:1px;padding:2px 6px;border-radius:100px;border:1px solid rgba(61,138,122,.3);color:var(--teal2);margin-left:6px;">📍 ${v.checkin_distance_m}m</span>` : '';
+      // Photos
+      const photos = Array.isArray(v.task_photos) ? v.task_photos : (v.task_photos ? [v.task_photos] : []);
+      const photosHtml = photos.length ? `<div style="margin-bottom:10px;"><div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;">Photos (${photos.length})</div><div style="display:flex;gap:6px;flex-wrap:wrap;">${photos.map(p => `<a href="${p.url||p}" target="_blank"><img src="${p.url||p}" style="width:64px;height:64px;object-fit:cover;border-radius:6px;border:1px solid var(--border);" loading="lazy"></a>`).join('')}</div></div>` : '';
+      // Voice note
+      const voiceHtml = v.voice_note_url ? `<div style="margin-bottom:10px;"><div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;">Voice Note</div><audio controls src="${v.voice_note_url}" style="width:100%;height:36px;accent-color:var(--teal2);"></audio></div>` : '';
+      // Satisfaction
+      const satHtml = v.satisfaction_rating ? `<div style="margin-bottom:10px;"><div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:4px;">Family Rating</div><div style="color:var(--gold);font-size:14px;">${'★'.repeat(v.satisfaction_rating)}${'☆'.repeat(5-v.satisfaction_rating)}${v.satisfaction_comment?`<span style="font-size:11px;color:var(--muted2);margin-left:8px;">"${v.satisfaction_comment}"</span>`:''}</div></div>` : '';
       return `
       <div class="card" style="${v.sub_8_min?'border-color:rgba(224,85,85,.25);':''}">
         <div class="card-header" onclick="toggleVisit('${vid}')" style="cursor:pointer;">
           <div style="flex:1;min-width:0;">
-            <div class="card-name">${v.psw_name||'—'}${sub8Badge}</div>
+            <div class="card-name">${v.psw_name||'—'}${sub8Badge}${entryBadge}</div>
             <div class="card-sub">${v.client_name||'—'} · ${fmtTime(v.time_in)} ${v.time_out?'to '+fmtTime(v.time_out):''}</div>
             <div class="card-meta">${tasks ? tasks.slice(0,60)+(tasks.length>60?'...':'') : 'No tasks logged'}</div>
+            ${gpsBadge}
             ${v.incident_reported ? buildIncidentBadge(v) : ''}
           </div>
           <div class="card-right">
             <div style="font-family:var(--mono);font-size:11px;color:var(--teal2);">${fmtd(v.visit_date)}</div>
             <div style="font-family:var(--mono);font-size:11px;color:${v.sub_8_min?'var(--red)':'var(--gold)'};">${v.hours_worked||0}h</div>
             ${mood?`<div style="font-family:var(--mono);font-size:10px;color:var(--muted2);">${mood}</div>`:''}
-            ${v.satisfaction_rating?`<div style="font-size:11px;color:var(--gold);">${'★'.repeat(v.satisfaction_rating)}${'☆'.repeat(5-v.satisfaction_rating)}</div>`:''}
+            ${v.voice_note_url?`<div style="font-family:var(--mono);font-size:9px;color:var(--teal2);">🎙 note</div>`:''}
+            ${photos.length?`<div style="font-family:var(--mono);font-size:9px;color:var(--teal2);">📷 ${photos.length}</div>`:''}
             <div style="font-size:10px;color:var(--muted);" id="chev-${vid}">+</div>
           </div>
         </div>
         <div id="${vid}" style="display:none;padding:14px 16px;border-top:1px solid var(--border);font-size:12px;line-height:1.8;">
           ${v.sub_8_min?`<div style="margin-bottom:10px;padding:8px 12px;background:rgba(224,85,85,.06);border:1px solid rgba(224,85,85,.2);border-radius:6px;font-family:var(--mono);font-size:10px;color:var(--red);">⚠ Sub-8-minute visit — flagged for review. Invoice blocked until cleared.</div>`:''}
+          ${v.entry_type==='manual'?`<div style="margin-bottom:10px;padding:8px 12px;background:rgba(224,154,61,.04);border:1px solid rgba(224,154,61,.2);border-radius:6px;font-family:var(--mono);font-size:10px;color:var(--amber);">✎ Manual entry — ${v.manual_entry_reason||'no reason provided'}</div>`:''}
           ${tasks?`<div style="margin-bottom:10px;"><div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:4px;">Tasks Completed</div><div style="color:var(--muted2);">${tasks}</div></div>`:''}
           ${mood?`<div style="margin-bottom:10px;"><div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:4px;">Client Mood</div><div style="color:var(--text);">${mood}</div></div>`:''}
           ${v.visit_summary?`<div style="margin-bottom:10px;"><div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:4px;">Care Summary</div><div style="color:var(--muted2);">${v.visit_summary}</div></div>`:''}
+          ${voiceHtml}
+          ${photosHtml}
+          ${satHtml}
           ${v.incident_notes?`<div style="margin-bottom:10px;"><div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--red);margin-bottom:4px;">Incident Notes</div><div style="color:var(--text);">${v.incident_notes}</div></div>`:''}
           ${v.notes?`<div style="margin-bottom:10px;"><div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:4px;">Notes</div><div style="color:var(--muted2);">${v.notes}</div></div>`:''}
         </div>
@@ -5446,6 +5486,111 @@ function renderOverview() {
 
 
 
+// ── BULK BOOKING IMPORT ──
+let _ibParsedRows = [];
+
+function openImportBookings() {
+  _ibParsedRows = [];
+  const fileEl = document.getElementById('ib-file');
+  const preview = document.getElementById('ib-preview');
+  const result = document.getElementById('ib-result');
+  const confirmBtn = document.getElementById('ib-confirm-btn');
+  if (fileEl) fileEl.value = '';
+  if (preview) { preview.style.display = 'none'; preview.innerHTML = ''; }
+  if (result) { result.style.display = 'none'; result.innerHTML = ''; }
+  if (confirmBtn) confirmBtn.style.display = 'none';
+  openSheet('import-bookings-sheet');
+}
+
+function downloadBookingTemplate(e) {
+  e.preventDefault();
+  const csv = 'psw_name,client_name,date,time_in,duration_minutes\nCarolina Hermida,Rosetta Ferrari,2026-05-20,09:00,480\n';
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'booking_import_template.csv';
+  a.click();
+}
+
+function previewImportBookings() {
+  const fileEl = document.getElementById('ib-file');
+  const preview = document.getElementById('ib-preview');
+  const confirmBtn = document.getElementById('ib-confirm-btn');
+  if (!fileEl?.files?.[0]) { showToast('Select a CSV file first', 'err'); return; }
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const text = e.target.result;
+    const lines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+    if (lines.length < 2) { showToast('CSV must have header + at least one row', 'err'); return; }
+    const header = lines[0].split(',').map(h => h.trim().toLowerCase().replace(/[^a-z_]/g,''));
+    const required = ['psw_name','client_name','date','time_in','duration_minutes'];
+    const missing = required.filter(c => !header.includes(c));
+    if (missing.length) { showToast(`Missing columns: ${missing.join(', ')}`, 'err'); return; }
+    _ibParsedRows = lines.slice(1).map(line => {
+      const cols = line.split(',').map(c => c.trim().replace(/^"|"$/g,''));
+      return {
+        psw_name: cols[header.indexOf('psw_name')] || '',
+        client_name: cols[header.indexOf('client_name')] || '',
+        date: cols[header.indexOf('date')] || '',
+        time_in: cols[header.indexOf('time_in')] || '',
+        duration_minutes: cols[header.indexOf('duration_minutes')] || '60'
+      };
+    }).filter(r => r.psw_name || r.client_name);
+    if (!_ibParsedRows.length) { showToast('No valid rows found', 'err'); return; }
+    preview.style.display = 'block';
+    preview.innerHTML = `<table style="width:100%;border-collapse:collapse;font-family:var(--mono);font-size:9px;">
+      <thead><tr style="background:var(--bg3);">${['PSW','Client','Date','Time','Mins'].map(h=>`<th style="padding:6px 8px;text-align:left;color:var(--muted);letter-spacing:1px;">${h}</th>`).join('')}</tr></thead>
+      <tbody>${_ibParsedRows.map((r,i)=>`<tr style="border-top:1px solid var(--border);${i%2===0?'background:var(--bg2);':''}">
+        <td style="padding:5px 8px;color:var(--text);">${r.psw_name}</td>
+        <td style="padding:5px 8px;color:var(--text);">${r.client_name}</td>
+        <td style="padding:5px 8px;color:var(--teal2);">${r.date}</td>
+        <td style="padding:5px 8px;color:var(--gold);">${r.time_in}</td>
+        <td style="padding:5px 8px;color:var(--muted2);">${r.duration_minutes}m</td>
+      </tr>`).join('')}</tbody>
+    </table>`;
+    confirmBtn.style.display = 'block';
+    showToast(`${_ibParsedRows.length} rows ready to import`, 'ok');
+  };
+  reader.readAsText(fileEl.files[0]);
+}
+
+async function confirmImportBookings() {
+  if (!_ibParsedRows.length) { showToast('Preview first', 'err'); return; }
+  const confirmBtn = document.getElementById('ib-confirm-btn');
+  const result = document.getElementById('ib-result');
+  confirmBtn.disabled = true;
+  confirmBtn.textContent = 'Importing...';
+  try {
+    const fileEl = document.getElementById('ib-file');
+    const formData = new FormData();
+    formData.append('file', fileEl.files[0]);
+    formData.append('operator_id', currentOp);
+    const res = await fetch(`${API}/hq/import-bookings`, { method: 'POST', body: formData });
+    const d = await res.json();
+    if (!d.success) throw new Error(d.error || 'Import failed');
+    result.style.display = 'block';
+    result.style.background = 'rgba(74,154,110,.06)';
+    result.style.border = '1px solid rgba(74,154,110,.25)';
+    result.style.color = 'var(--green2)';
+    let html = `✓ ${d.imported} bookings imported`;
+    if (d.skipped > 0) html += `<br><span style="color:var(--amber);">⚠ ${d.skipped} skipped (conflicts)</span>`;
+    if (d.errors > 0) {
+      html += `<br><span style="color:var(--red);">✕ ${d.errors} errors:</span>`;
+      d.details.errors.slice(0,5).forEach(e => { html += `<br><span style="color:var(--muted2);font-size:9px;">Row ${e.row}: ${e.reason}</span>`; });
+      if (d.errors > 5) html += `<br><span style="color:var(--muted);font-size:9px;">...and ${d.errors-5} more</span>`;
+    }
+    result.innerHTML = html;
+    showToast(`Imported ${d.imported} bookings`, 'ok');
+    _ibParsedRows = [];
+    confirmBtn.style.display = 'none';
+    await loadAll(false);
+  } catch(e) {
+    showToast(e.message || 'Import failed', 'err');
+    confirmBtn.disabled = false;
+    confirmBtn.textContent = 'Import';
+  }
+}
+
 // ── PSW INLINE EDIT ──
 // ── EC-6 — MANUAL VISIT ENTRY ──
 function openManualVisitSheet() {
@@ -5457,7 +5602,7 @@ function openManualVisitSheet() {
   if (pswSel) pswSel.innerHTML = '<option value="">Select PSW...</option>' +
     psws.filter(p => p.status === 'active').map(p => `<option value="${p.full_name||p.name}">${p.full_name||p.name}</option>`).join('');
   if (clientSel) clientSel.innerHTML = '<option value="">Select client...</option>' +
-    clients.map(c => `<option value="${c.first_name} ${c.last_name||''}".trim()>${c.first_name} ${c.last_name||''}</option>`).join('');
+    clients.map(c => { const n = (c.first_name + ' ' + (c.last_name||'')).trim(); return '<option value="' + n + '">' + n + '</option>'; }).join('');
   // Default date to today
   const dateEl = document.getElementById('mv-date');
   if (dateEl) dateEl.value = new Date().toISOString().slice(0,10);
