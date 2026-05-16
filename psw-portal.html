@@ -571,6 +571,20 @@ a{color:inherit;text-decoration:none;}
 <!-- PAY -->
 <div class="section" id="sect-pay">
   <div class="section-header"><span class="section-title">My Pay</span></div>
+  <div style="display:flex;gap:6px;flex-wrap:wrap;padding:0 12px 10px;">
+    <div class="pay-range-chip" data-range="today" onclick="setPayRange('today')" style="font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;padding:6px 10px;border-radius:6px;border:1px solid var(--border2);color:var(--muted2);cursor:pointer;min-height:30px;display:flex;align-items:center;">Today</div>
+    <div class="pay-range-chip" data-range="week" onclick="setPayRange('week')" style="font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;padding:6px 10px;border-radius:6px;border:1px solid var(--border2);color:var(--muted2);cursor:pointer;min-height:30px;display:flex;align-items:center;">Week</div>
+    <div class="pay-range-chip" data-range="month" onclick="setPayRange('month')" style="font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;padding:6px 10px;border-radius:6px;border:1px solid var(--teal2);color:var(--teal2);background:rgba(61,138,122,.1);cursor:pointer;min-height:30px;display:flex;align-items:center;">Month</div>
+    <div class="pay-range-chip" data-range="lastmonth" onclick="setPayRange('lastmonth')" style="font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;padding:6px 10px;border-radius:6px;border:1px solid var(--border2);color:var(--muted2);cursor:pointer;min-height:30px;display:flex;align-items:center;">Last Mo</div>
+    <div class="pay-range-chip" data-range="year" onclick="setPayRange('year')" style="font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;padding:6px 10px;border-radius:6px;border:1px solid var(--border2);color:var(--muted2);cursor:pointer;min-height:30px;display:flex;align-items:center;">Year</div>
+    <div class="pay-range-chip" data-range="custom" onclick="setPayRange('custom')" style="font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;padding:6px 10px;border-radius:6px;border:1px solid var(--border2);color:var(--muted2);cursor:pointer;min-height:30px;display:flex;align-items:center;">Custom</div>
+  </div>
+  <div id="pay-custom-range" style="display:none;gap:8px;align-items:center;padding:0 12px 10px;flex-wrap:wrap;">
+    <input type="date" id="pay-custom-from" style="font-family:var(--mono);font-size:11px;padding:6px 8px;border-radius:6px;border:1px solid var(--border2);background:var(--bg2);color:var(--text);min-height:34px;">
+    <span style="font-family:var(--mono);font-size:9px;color:var(--muted);">to</span>
+    <input type="date" id="pay-custom-to" style="font-family:var(--mono);font-size:11px;padding:6px 8px;border-radius:6px;border:1px solid var(--border2);background:var(--bg2);color:var(--text);min-height:34px;">
+    <button onclick="applyCustomPayRange()" style="font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;padding:6px 12px;border-radius:6px;border:1px solid rgba(61,138,122,.4);background:rgba(61,138,122,.1);color:var(--teal2);cursor:pointer;min-height:34px;">Apply</button>
+  </div>
   <div id="pay-content"><div class="empty-state">Loading pay summary...</div></div>
 </div>
 
@@ -734,6 +748,9 @@ let pswOperatorId = (function() {
 })();
 let activeVisit = null;
 let selectedMood = null; // reset to null — never pre-select a mood
+let payRangeMode = 'month';
+let payCustomFrom = '';
+let payCustomTo = '';
 let weekOffset = 0;
 let scheduleData = null;
 let elapsedTimer = null;
@@ -1861,22 +1878,82 @@ async function loadDocuments() {
 // Document upload removed — managed by Lance in HQ only
 
 // ── HOME DATA (pay card) ──
+// ── PAY DATE RANGE HELPER ──
+function getPayDateRange(mode, customFrom, customTo) {
+  const now = new Date();
+  const toISO = d => d.toISOString().slice(0, 10);
+  const y = now.getFullYear(), m = now.getMonth(), day = now.getDate();
+  if (mode === 'today') {
+    const d = toISO(now);
+    return { from: d, to: d, label: 'Today' };
+  }
+  if (mode === 'week') {
+    const dow = now.getDay() === 0 ? 6 : now.getDay() - 1; // Mon=0
+    const start = new Date(now); start.setDate(day - dow); start.setHours(0,0,0,0);
+    return { from: toISO(start), to: toISO(now), label: 'This Week' };
+  }
+  if (mode === 'month') {
+    const start = new Date(y, m, 1);
+    return { from: toISO(start), to: toISO(now), label: now.toLocaleString('en-CA', { month: 'long', year: 'numeric' }) };
+  }
+  if (mode === 'lastmonth') {
+    const start = new Date(y, m - 1, 1);
+    const end = new Date(y, m, 0);
+    const lbl = start.toLocaleString('en-CA', { month: 'long', year: 'numeric' });
+    return { from: toISO(start), to: toISO(end), label: lbl };
+  }
+  if (mode === 'year') {
+    const start = new Date(y, 0, 1);
+    return { from: toISO(start), to: toISO(now), label: String(y) };
+  }
+  if (mode === 'custom' && customFrom && customTo) {
+    const lbl = customFrom + ' to ' + customTo;
+    return { from: customFrom, to: customTo, label: lbl };
+  }
+  // Default: this month
+  return { from: toISO(new Date(y, m, 1)), to: toISO(now), label: now.toLocaleString('en-CA', { month: 'long', year: 'numeric' }) };
+}
+
+// ── MONTHLY TOTALS HELPER ──
+// Aggregates bi-weekly periods into full calendar months
+function getMonthlyTotals(d) {
+  const monthMap = {};
+  const rate = d.rate || 19;
+  (d.periods || []).forEach(p => {
+    if (!p.period_key) return;
+    const monthKey = p.period_key.slice(0, 7); // 'YYYY-MM'
+    if (!monthMap[monthKey]) {
+      const [y, m] = monthKey.split('-');
+      const monthName = new Date(parseInt(y), parseInt(m) - 1, 1)
+        .toLocaleString('en-CA', { month: 'long', year: 'numeric' });
+      monthMap[monthKey] = { month_key: monthKey, label: monthName, total_hours: 0, total_pay: 0, visit_count: 0 };
+    }
+    monthMap[monthKey].total_hours = Math.round((monthMap[monthKey].total_hours + (p.total_hours || 0)) * 100) / 100;
+    monthMap[monthKey].total_pay = Math.round((monthMap[monthKey].total_pay + (p.total_pay || 0)) * 100) / 100;
+    monthMap[monthKey].visit_count += Array.isArray(p.visits) ? p.visits.length : (p.visit_count || 0);
+  });
+  return Object.values(monthMap).sort((a, b) => b.month_key.localeCompare(a.month_key));
+}
+
 async function loadHomeData() {
   try {
     const res = await fetch(`${API}/psw/pay-summary?psw_name=${encodeURIComponent(pswName)}&pin=${pswPin}&operator_id=${pswOperatorId}`);
     const d = await res.json();
     window._lastPayData = d; // Cache so loadPaySummary can reuse
-    if (!d.success || !d.current_period) return;
-    const cur = d.current_period;
+    if (!d.success) return;
+    // Use monthly totals — sum both halves of the current calendar month
+    const months = getMonthlyTotals(d);
+    const curMonthKey = new Date().toISOString().slice(0, 7); // 'YYYY-MM'
+    const mon = months.find(m => m.month_key === curMonthKey) || { label: '—', total_hours: 0, total_pay: 0, visit_count: 0 };
     const earningsEl = document.getElementById('s-earnings');
-    if (earningsEl) earningsEl.textContent = '$' + cur.total_pay.toFixed(0);
+    if (earningsEl) earningsEl.textContent = '$' + mon.total_pay.toFixed(0);
     const card = document.getElementById('home-pay-card');
     if (card) {
       card.style.display = 'block';
-      document.getElementById('home-pay-period').textContent = cur.label || '—';
-      document.getElementById('home-pay-total').textContent = '$' + cur.total_pay.toFixed(2);
-      document.getElementById('home-pay-hours').textContent = cur.total_hours + 'h';
-      document.getElementById('home-pay-visits').textContent = cur.visit_count + ' visit' + (cur.visit_count !== 1 ? 's' : '');
+      document.getElementById('home-pay-period').textContent = mon.label;
+      document.getElementById('home-pay-total').textContent = '$' + mon.total_pay.toFixed(2);
+      document.getElementById('home-pay-hours').textContent = mon.total_hours + 'h';
+      document.getElementById('home-pay-visits').textContent = mon.visit_count + ' visit' + (mon.visit_count !== 1 ? 's' : '');
       document.getElementById('home-pay-rate').textContent = '$' + (d.rate || 19) + '/hr';
     }
   } catch (e) { console.error('loadHomeData:', e); }
@@ -1940,6 +2017,29 @@ function buildMAR() {
   }
 }
 
+// ── PAY RANGE SELECTOR ──
+function setPayRange(mode) {
+  payRangeMode = mode;
+  if (mode !== 'custom') { payCustomFrom = ''; payCustomTo = ''; }
+  document.querySelectorAll('.pay-range-chip').forEach(c => {
+    c.style.borderColor = c.dataset.range === mode ? 'var(--teal2)' : 'var(--border2)';
+    c.style.color = c.dataset.range === mode ? 'var(--teal2)' : 'var(--muted2)';
+    c.style.background = c.dataset.range === mode ? 'rgba(61,138,122,.1)' : 'transparent';
+  });
+  const customRow = document.getElementById('pay-custom-range');
+  if (customRow) customRow.style.display = mode === 'custom' ? 'flex' : 'none';
+  if (mode !== 'custom') loadPaySummary();
+}
+
+function applyCustomPayRange() {
+  const f = document.getElementById('pay-custom-from')?.value;
+  const t = document.getElementById('pay-custom-to')?.value;
+  if (!f || !t) { showToast('Select both dates', 'err'); return; }
+  if (f > t) { showToast('Start must be before end', 'err'); return; }
+  payCustomFrom = f; payCustomTo = t;
+  loadPaySummary();
+}
+
 // ── PAY SUMMARY ──
 async function loadPaySummary() {
   const el = document.getElementById('pay-content');
@@ -1949,16 +2049,15 @@ async function loadPaySummary() {
     const res = await fetch(`${API}/psw/pay-summary?psw_name=${encodeURIComponent(pswName)}&pin=${pswPin}&operator_id=${pswOperatorId}`);
     const d = await res.json();
     if (!d.success) throw new Error(d.error);
-    const cur = d.current_period;
     const rate = d.rate || 19;
+    const range = getPayDateRange(payRangeMode, payCustomFrom, payCustomTo);
 
     // Earnings projection — based on hours logged so far vs days elapsed
     const now = new Date();
     const dayOfMonth = now.getDate();
     const daysInMonth = new Date(now.getFullYear(), now.getMonth()+1, 0).getDate();
     const daysRemaining = daysInMonth - dayOfMonth;
-    const projectedHours = dayOfMonth > 0 ? parseFloat((cur.total_hours / dayOfMonth * daysInMonth).toFixed(1)) : cur.total_hours;
-    const projectedPay = (projectedHours * rate).toFixed(2);
+    // projectedHours/projectedPay computed below using monthly totals
     const thisWeekHours = (() => {
       const visits = scheduleData?.completed_visits || [];
       const startOfWeek = new Date(now);
@@ -1970,31 +2069,42 @@ async function loadPaySummary() {
         .reduce((s,v) => s + parseFloat(v.hours_worked||0), 0).toFixed(1);
     })();
 
+    // Filter all visits in d.periods by selected date range
+    const allVisitsInRange = (d.periods || []).flatMap(p => (p.visits || []))
+      .filter(v => v.visit_date && v.visit_date >= range.from && v.visit_date <= range.to);
+    const rangeHours = Math.round(allVisitsInRange.reduce((s,v) => s + parseFloat(v.hours_worked||0), 0) * 100) / 100;
+    const rangePay = Math.round(rangeHours * rate * 100) / 100;
+    const rangeVisits = allVisitsInRange.length;
+
     let html = `<div class="pay-period-card">
       <div class="pay-period-hdr">
-        <div class="pay-period-lbl current">This Month — ${cur.label||''}</div>
-        <div style="font-family:var(--mono);font-size:12px;color:var(--gold);">$${cur.total_pay.toFixed(2)}</div>
+        <div class="pay-period-lbl current">${range.label}</div>
+        <div style="font-family:var(--mono);font-size:12px;color:var(--gold);">$${rangePay.toFixed(2)}</div>
       </div>
       <div class="pay-period-body">
-        <div class="pay-row"><div class="pay-row-lbl">Hours logged</div><div class="pay-row-val">${cur.total_hours}h</div></div>
-        <div class="pay-row"><div class="pay-row-lbl">Visits</div><div class="pay-row-val">${cur.visit_count}</div></div>
+        <div class="pay-row"><div class="pay-row-lbl">Hours logged</div><div class="pay-row-val">${rangeHours}h</div></div>
+        <div class="pay-row"><div class="pay-row-lbl">Visits</div><div class="pay-row-val">${rangeVisits}</div></div>
         <div class="pay-row"><div class="pay-row-lbl">Rate</div><div class="pay-row-val">$${rate}/hr</div></div>
         <div class="pay-row"><div class="pay-row-lbl">This week</div><div class="pay-row-val">$${(parseFloat(thisWeekHours)*rate).toFixed(0)} · ${thisWeekHours}h</div></div>
       </div>
     </div>`;
 
-    // Projection card
-    html += `<div class="pay-period-card" style="border-color:rgba(200,169,110,.2);background:rgba(200,169,110,.04);">
-      <div class="pay-period-hdr">
-        <div class="pay-period-lbl" style="color:var(--gold);">Month Projection</div>
-        <div style="font-family:var(--mono);font-size:8px;color:var(--muted);">${daysRemaining}d remaining</div>
-      </div>
-      <div class="pay-period-body">
-        <div class="pay-row"><div class="pay-row-lbl">Projected hours</div><div class="pay-row-val" style="color:var(--gold);">${projectedHours}h</div></div>
-        <div class="pay-row"><div class="pay-row-lbl">Projected pay</div><div class="pay-row-val total" style="color:var(--gold);">$${projectedPay}</div></div>
-        <div class="pay-row" style="margin-top:4px;padding-top:8px;border-top:1px solid var(--border);"><div class="pay-row-lbl" style="font-size:9px;color:var(--muted);">Based on pace so far this month</div></div>
-      </div>
-    </div>`;
+    // Projection card — only shown for month/year modes where projection makes sense
+    if (payRangeMode === 'month' || payRangeMode === 'year') {
+      const projectedHours = dayOfMonth > 0 ? parseFloat((rangeHours / dayOfMonth * daysInMonth).toFixed(1)) : rangeHours;
+      const projectedPay = (projectedHours * rate).toFixed(2);
+      html += `<div class="pay-period-card" style="border-color:rgba(200,169,110,.2);background:rgba(200,169,110,.04);">
+        <div class="pay-period-hdr">
+          <div class="pay-period-lbl" style="color:var(--gold);">Projected This Month</div>
+          <div style="font-family:var(--mono);font-size:8px;color:var(--muted);">${daysRemaining}d remaining</div>
+        </div>
+        <div class="pay-period-body">
+          <div class="pay-row"><div class="pay-row-lbl">Projected hours</div><div class="pay-row-val" style="color:var(--gold);">${projectedHours}h</div></div>
+          <div class="pay-row"><div class="pay-row-lbl">Projected pay</div><div class="pay-row-val total" style="color:var(--gold);">$${projectedPay}</div></div>
+          <div class="pay-row" style="margin-top:4px;padding-top:8px;border-top:1px solid var(--border);"><div class="pay-row-lbl" style="font-size:9px;color:var(--muted);">Based on pace so far</div></div>
+        </div>
+      </div>`;
+    }
 
     if (d.all_time) {
       html += `<div class="pay-period-card">
@@ -2007,20 +2117,25 @@ async function loadPaySummary() {
       </div>`;
     }
 
-    const past = (d.periods||[]).slice(1,4);
-    past.forEach(p => {
-      const visitCount = Array.isArray(p.visits) ? p.visits.length : (p.visit_count || 0);
-      html += `<div class="pay-period-card">
-        <div class="pay-period-hdr">
-          <div class="pay-period-lbl">${p.label}</div>
-          <div style="font-family:var(--mono);font-size:12px;color:var(--gold);">$${p.total_pay.toFixed(2)}</div>
-        </div>
-        <div class="pay-period-body">
-          <div class="pay-row"><div class="pay-row-lbl">Hours</div><div class="pay-row-val">${p.total_hours}h</div></div>
-          <div class="pay-row"><div class="pay-row-lbl">Visits</div><div class="pay-row-val">${visitCount}</div></div>
-        </div>
-      </div>`;
-    });
+    // Past months summary — always show below regardless of filter mode
+    const months = getMonthlyTotals(d);
+    const curMonthKey = now.toISOString().slice(0, 7);
+    const pastMonths = months.filter(m => m.month_key !== curMonthKey).slice(0, 3);
+    if (pastMonths.length) {
+      html += `<div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);padding:12px 0 6px;">Past Months</div>`;
+      pastMonths.forEach(m => {
+        html += `<div class="pay-period-card">
+          <div class="pay-period-hdr">
+            <div class="pay-period-lbl">${m.label}</div>
+            <div style="font-family:var(--mono);font-size:12px;color:var(--gold);">$${m.total_pay.toFixed(2)}</div>
+          </div>
+          <div class="pay-period-body">
+            <div class="pay-row"><div class="pay-row-lbl">Hours</div><div class="pay-row-val">${m.total_hours}h</div></div>
+            <div class="pay-row"><div class="pay-row-lbl">Visits</div><div class="pay-row-val">${m.visit_count}</div></div>
+          </div>
+        </div>`;
+      });
+    }
     el.innerHTML = html;
   } catch { el.innerHTML = '<div class="empty-state">Could not load pay summary</div>'; }
 }
