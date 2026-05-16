@@ -4041,12 +4041,15 @@ async function _patchBooking(id, updates, fcInfo) {
     _refreshFC();
     renderVacantVisits();
     renderStats();
-    // Notify affected PSW
-    const pswToNotify = updates.assigned_to || d.psw_name;
+    // Notify affected PSW — use d.assigned_to (PATCH response field name)
+    const pswToNotify = updates.assigned_to || d.booking?.assigned_to || d.assigned_to ||
+      (D.bookings||[]).find(b => b.id === id)?.assigned_to;
     if (pswToNotify) {
+      const _newDate = updates.scheduled_date || d.scheduled_date || '';
+      const _newTime = updates.scheduled_time || d.scheduled_time || '';
       const _pmsg = updates.assigned_to
-        ? `A shift has been reassigned to you${updates.scheduled_date ? ' on ' + updates.scheduled_date : ''}. Check your schedule.`
-        : `Your schedule was updated${updates.scheduled_date ? ' for ' + updates.scheduled_date : ''}. Check your portal.`;
+        ? `A shift has been reassigned to you${_newDate ? ' on ' + _newDate : ''}. Check your schedule.`
+        : `Schedule change: your shift${_newDate ? ' on ' + _newDate : ''}${_newTime ? ' at ' + _newTime : ''} has been updated. Check your portal.`;
       fetch(`${API}/psw/note`, {
         method: 'POST', headers: {'Content-Type':'application/json'},
         body: JSON.stringify({ psw_name: pswToNotify, sender: 'lance', message: _pmsg })
