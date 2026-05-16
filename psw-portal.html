@@ -352,6 +352,29 @@ a{color:inherit;text-decoration:none;}
 .live-time{font-family:var(--mono);font-size:12px;color:var(--amber);}
 .sched-day.today-day{border:1px solid rgba(61,138,122,.3);border-radius:8px;overflow:hidden;}
 
+/* ── COMPLIANCE FEATURES ── */
+.sos-btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:14px;background:rgba(224,85,85,.1);border:1px solid rgba(224,85,85,.4);border-radius:10px;color:var(--red);font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;cursor:pointer;min-height:50px;touch-action:manipulation;margin-top:10px;}
+.sos-btn:active{background:rgba(224,85,85,.2);}
+.sos-sheet-overlay{display:none;position:fixed;inset:0;z-index:500;background:rgba(0,0,0,.85);}
+.sos-sheet-overlay.open{display:block;}
+.sos-sheet{position:fixed;bottom:0;left:0;right:0;background:var(--bg2);border-radius:18px 18px 0 0;max-height:88vh;overflow-y:auto;z-index:501;transform:translateY(100%);transition:transform .25s cubic-bezier(.4,0,.2,1);}
+.sos-sheet.open{transform:translateY(0);}
+.sos-contact-row{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--border);}
+.sos-contact-info{flex:1;min-width:0;}
+.sos-contact-name{font-size:14px;font-weight:500;color:var(--text);}
+.sos-contact-role{font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-top:2px;}
+.sos-call-btn{display:flex;align-items:center;gap:6px;padding:10px 16px;background:rgba(61,138,122,.12);border:1px solid rgba(61,138,122,.35);border-radius:8px;color:var(--teal2);font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;text-decoration:none;min-height:42px;touch-action:manipulation;}
+.sos-911{display:block;padding:16px;background:var(--red);color:#fff;border:none;border-radius:10px;font-family:var(--mono);font-size:13px;letter-spacing:2px;text-transform:uppercase;cursor:pointer;min-height:52px;width:100%;text-align:center;touch-action:manipulation;text-decoration:none;}
+/* ── REFUSAL OF CARE ── */
+.refusal-opt{display:flex;align-items:center;gap:10px;padding:12px 14px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;cursor:pointer;margin-bottom:6px;touch-action:manipulation;transition:all .12s;}
+.refusal-opt.sel{background:rgba(224,85,85,.08);border-color:rgba(224,85,85,.4);}
+.refusal-opt.sel .refusal-box{background:var(--red);border-color:var(--red);color:#fff;}
+.refusal-box{width:20px;height:20px;border-radius:5px;border:2px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0;}
+/* ── INCIDENT STRUCTURED ── */
+.incident-type-btn{padding:10px 14px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;font-size:13px;color:var(--text);cursor:pointer;touch-action:manipulation;text-align:left;width:100%;margin-bottom:6px;display:flex;align-items:center;gap:10px;}
+.incident-type-btn.sel{background:rgba(224,85,85,.08);border-color:rgba(224,85,85,.4);color:var(--red);}
+/* ── CARE PLAN ACK ── */
+.care-plan-ack-card{margin:10px 12px;padding:14px;background:rgba(61,138,122,.05);border:1px solid rgba(61,138,122,.2);border-radius:10px;}
 @media(max-width:768px){
   .week-nav{padding:8px 12px 10px;}
   .sched-day{margin:0 8px 6px;}
@@ -517,6 +540,7 @@ a{color:inherit;text-decoration:none;}
       <button class="banner-btn cl" onclick="showSect('checklist')">Open Checklist</button>
       <button class="banner-btn co" onclick="openCheckout()">Check Out</button>
     </div>
+    <button class="sos-btn" onclick="openSOS()">🚨 Emergency Contacts + SOS</button>
   </div>
 
   <!-- Available shifts (Build 7) -->
@@ -649,6 +673,20 @@ a{color:inherit;text-decoration:none;}
 </div>
 
 <!-- BOTTOM NAV -->
+<!-- SOS EMERGENCY SHEET -->
+<div class="sos-sheet-overlay" id="sos-sheet-overlay" onclick="closeSOS()"></div>
+<div class="sos-sheet" id="sos-sheet">
+  <div style="width:36px;height:4px;background:var(--border2);border-radius:2px;margin:12px auto 0;"></div>
+  <div style="padding:16px 18px 10px;border-bottom:1px solid var(--border);">
+    <div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--red);margin-bottom:4px;">Emergency Contacts</div>
+    <div style="font-size:15px;font-weight:500;color:var(--text);" id="sos-client-name">—</div>
+  </div>
+  <div style="padding:14px 18px;">
+    <a href="tel:911" class="sos-911">🚨 Call 911 — Emergency Services</a>
+  </div>
+  <div id="sos-contacts-list" style="padding:0 0 calc(20px + var(--safe-bottom));"></div>
+</div>
+
 <!-- LIVE OPS SECTION -->
 <div class="section" id="sect-live">
   <div style="padding:14px 12px 6px;font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);">Live Activity</div>
@@ -778,9 +816,49 @@ a{color:inherit;text-decoration:none;}
         <audio id="co-voice-playback" controls style="display:none;height:32px;flex:1;"></audio>
       </div>
     </div>
-    <div style="margin-bottom:20px;">
-      <label class="form-label" style="color:var(--red);">Incident? Leave blank if none</label>
-      <textarea class="form-textarea" id="co-incident" placeholder="Describe any falls, medication issues, safety concerns..." style="border-color:rgba(224,85,85,.2);min-height:60px;"></textarea>
+    <!-- REFUSAL OF CARE -->
+    <div style="margin-bottom:14px;" id="co-refusal-section">
+      <label class="form-label">Client Refused Care? <span style="font-family:var(--mono);font-size:9px;color:var(--muted);font-weight:400;">(select all that apply)</span></label>
+      <div style="margin-top:8px;" id="co-refusal-list">
+        <div class="refusal-opt" onclick="toggleRefusal(this,'Personal hygiene / bathing')"><div class="refusal-box"></div><span style="font-size:13px;">Personal hygiene / bathing</span></div>
+        <div class="refusal-opt" onclick="toggleRefusal(this,'Medication administration')"><div class="refusal-box"></div><span style="font-size:13px;">Medication administration</span></div>
+        <div class="refusal-opt" onclick="toggleRefusal(this,'Meals / nutrition')"><div class="refusal-box"></div><span style="font-size:13px;">Meals / nutrition</span></div>
+        <div class="refusal-opt" onclick="toggleRefusal(this,'Mobility assistance / transfer')"><div class="refusal-box"></div><span style="font-size:13px;">Mobility assistance / transfer</span></div>
+        <div class="refusal-opt" onclick="toggleRefusal(this,'Exercises / physiotherapy')"><div class="refusal-box"></div><span style="font-size:13px;">Exercises / physiotherapy</span></div>
+        <div class="refusal-opt" onclick="toggleRefusal(this,'Other')"><div class="refusal-box"></div><span style="font-size:13px;">Other</span></div>
+      </div>
+      <div id="co-refusal-reason-wrap" style="display:none;margin-top:8px;">
+        <textarea class="form-textarea" id="co-refusal-reason" placeholder="Client's reason for refusal (document their exact words where possible)..." style="min-height:60px;border-color:rgba(224,85,85,.2);"></textarea>
+        <div style="font-family:var(--mono);font-size:9px;color:var(--muted2);margin-top:4px;line-height:1.5;">Ontario standard: document refusal, offer alternatives, notify coordinator. Do not force care.</div>
+      </div>
+    </div>
+    <!-- INCIDENT REPORT -->
+    <div style="margin-bottom:20px;" id="co-incident-section">
+      <label class="form-label" style="color:var(--red);">Incident Report <span style="font-family:var(--mono);font-size:9px;color:var(--muted);font-weight:400;">Leave blank if none</span></label>
+      <div id="co-incident-types" style="margin-top:8px;display:none;">
+        <div class="incident-type-btn" onclick="selectIncidentType(this,'🤕 Fall / injury')">🤕 Fall / injury</div>
+        <div class="incident-type-btn" onclick="selectIncidentType(this,'💊 Medication error')">💊 Medication error</div>
+        <div class="incident-type-btn" onclick="selectIncidentType(this,'🚑 Medical emergency')">🚑 Medical emergency</div>
+        <div class="incident-type-btn" onclick="selectIncidentType(this,'⚠ Client agitation / aggression')">⚠ Client agitation / aggression</div>
+        <div class="incident-type-btn" onclick="selectIncidentType(this,'🏠 Home safety concern')">🏠 Home safety concern</div>
+        <div class="incident-type-btn" onclick="selectIncidentType(this,'Other')">📋 Other</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;margin-top:6px;margin-bottom:8px;">
+        <input type="checkbox" id="co-incident-flag" onchange="toggleIncidentSection()" style="width:18px;height:18px;accent-color:var(--red);flex-shrink:0;">
+        <label for="co-incident-flag" style="font-size:13px;color:var(--muted2);cursor:pointer;">Something happened during this visit</label>
+      </div>
+      <div id="co-incident-detail" style="display:none;">
+        <div style="font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;">Incident type</div>
+        <div id="co-incident-types-inner"></div>
+        <div style="font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;margin-top:10px;">What happened</div>
+        <textarea class="form-textarea" id="co-incident" placeholder="Describe exactly what happened, when, and any actions you took..." style="border-color:rgba(224,85,85,.3);min-height:80px;"></textarea>
+        <div style="margin-top:8px;display:flex;flex-direction:column;gap:6px;">
+          <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted2);cursor:pointer;"><input type="checkbox" id="co-911-called" style="accent-color:var(--red);width:16px;height:16px;"> 911 was called</label>
+          <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted2);cursor:pointer;"><input type="checkbox" id="co-family-notified" style="accent-color:var(--teal2);width:16px;height:16px;"> Family was notified</label>
+          <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted2);cursor:pointer;"><input type="checkbox" id="co-coordinator-notified" style="accent-color:var(--teal2);width:16px;height:16px;"> Coordinator was notified</label>
+        </div>
+        <div style="font-family:var(--mono);font-size:9px;color:var(--amber);margin-top:8px;line-height:1.5;">⚑ Incidents are reported to the coordinator automatically on checkout.</div>
+      </div>
     </div>
     <button class="sbtn danger" onclick="doCheckOut()" id="co-submit-btn">Check Out + Submit Visit</button>
     <button class="sbtn sec" onclick="closeCheckout()" style="margin-top:8px;">Cancel</button>
@@ -1643,6 +1721,31 @@ async function confirmCheckin() {
 // ── CHECK IN FROM SHIFT CARD ──
 // Called directly from schedule shift cards — no dropdown needed
 async function doCheckInFromShift(clientName) {
+  // Care plan acknowledgement — required before first visit each 30-day period
+  if (clientName && !checkCarePlanAck(clientName)) {
+    const clients = scheduleData?.clients || window._pswClients || [];
+    const c = clients.find(cl => {
+      const full = ((cl.first_name||'')+' '+(cl.last_name||'')).trim();
+      return full.toLowerCase()===clientName.toLowerCase() ||
+             (cl.client_name||cl.full_name||'').toLowerCase()===clientName.toLowerCase() ||
+             (cl.first_name||'').toLowerCase()===clientName.split(' ')[0].toLowerCase();
+    }) || {};
+    const hasPlan = c.care_notes || c.medications || c.care_directives;
+    if (hasPlan) {
+      const careSummary = [
+        c.care_notes ? 'Care notes: ' + c.care_notes.slice(0,120) + (c.care_notes.length>120?'…':'') : '',
+        c.medications ? 'Medications: ' + c.medications.slice(0,80) + (c.medications.length>80?'…':'') : '',
+        c.care_directives ? 'Directives: ' + c.care_directives.slice(0,80) + (c.care_directives.length>80?'…':'') : '',
+        c.dnr ? '⚠ DNR ON FILE — Do Not Resuscitate' : ''
+      ].filter(Boolean).join('\n\n');
+      const acked = window.confirm(
+        'Care Plan Review — ' + clientName + '\n\n' + careSummary +
+        '\n\nBy tapping OK you confirm you have reviewed this care plan and will follow it during today\'s visit.\n(Required every 30 days — Ontario Home Care Standards)'
+      );
+      if (!acked) return; // PSW cancelled — do not proceed to checkin
+      recordCarePlanAck(clientName);
+    }
+  }
   if (!clientName) { showToast('Client name missing', 'err'); return; }
   if (activeVisit) { showToast('Already have an active visit', 'err'); return; }
   showToast('Signing in...', 'ok');
@@ -1678,7 +1781,19 @@ function closeCheckout() {
   document.body.style.overflow = '';
   // Clear MAR checkboxes
   document.querySelectorAll('#co-mar-boxes input[type="checkbox"]').forEach(cb => cb.checked = false);
-  ['co-incident','co-obs'].forEach(id => { const el = document.getElementById(id); if(el) el.value = ''; });
+  ['co-incident','co-obs','co-refusal-reason'].forEach(id => { const el = document.getElementById(id); if(el) el.value = ''; });
+  document.querySelectorAll('#co-refusal-list .refusal-opt.sel').forEach(el => {
+    el.classList.remove('sel'); const box = el.querySelector('.refusal-box'); if(box) box.textContent = '';
+  });
+  const refWrap = document.getElementById('co-refusal-reason-wrap'); if(refWrap) refWrap.style.display = 'none';
+  const incFlag = document.getElementById('co-incident-flag'); if(incFlag) incFlag.checked = false;
+  const incDetail = document.getElementById('co-incident-detail'); if(incDetail) incDetail.style.display = 'none';
+  const incTypes = document.getElementById('co-incident-types'); if(incTypes) incTypes.style.display = 'none';
+  document.querySelectorAll('.incident-type-btn.sel').forEach(b => b.classList.remove('sel'));
+  const c911 = document.getElementById('co-911-called'); if(c911) c911.checked = false;
+  const cfam = document.getElementById('co-family-notified'); if(cfam) cfam.checked = false;
+  const ccoord = document.getElementById('co-coordinator-notified'); if(ccoord) ccoord.checked = false;
+  _selectedIncidentType = '';
   const photos = document.getElementById('co-photos'); if(photos) photos.value = '';
   const preview = document.getElementById('co-photo-preview'); if(preview) preview.innerHTML = '';
   const playback = document.getElementById('co-voice-playback'); if(playback) { playback.src = ''; playback.style.display = 'none'; }
@@ -1725,14 +1840,41 @@ async function doCheckOut() {
       } catch {}
     }
   }
+  // Refusal of care data
+  const refusalData = getRefusals();
+  const hasRefusal = refusalData.items.length > 0;
+
+  // Structured incident data
+  const incidentData = getIncidentData();
+  const hasIncident = !!incidentData;
+
+  // Build combined observations string — include refusal if present
+  let obsNotes = [obs, supplies].filter(Boolean).join(' | ') || null;
+  if (hasRefusal) {
+    const refusalStr = 'REFUSAL OF CARE: ' + refusalData.items.join(', ') + (refusalData.reason ? ' — Reason: ' + refusalData.reason : '') + ' (Ontario Standard: documented, alternatives offered)';
+    obsNotes = [obsNotes, refusalStr].filter(Boolean).join(' | ');
+  }
+
+  // Build incident notes string
+  let incidentNotes = null;
+  if (hasIncident) {
+    incidentNotes = [
+      incidentData.type ? 'TYPE: ' + incidentData.type : '',
+      incidentData.description,
+      incidentData.called_911 ? '911 CALLED: Yes' : '',
+      incidentData.family_notified ? 'FAMILY NOTIFIED: Yes' : '',
+      incidentData.coordinator_notified ? 'COORDINATOR NOTIFIED: Yes' : '',
+    ].filter(Boolean).join(' | ');
+  }
+
   const payload = {
     psw_name: pswName, pin: pswPin, operator_id: pswOperatorId,
     visit_id: activeVisit.id,
     tasks_completed: tasks,
     client_mood: selectedMood,
-    incident_reported: incident.length > 0,
-    incident_notes: incident || null,
-    observations: [obs, supplies].filter(Boolean).join(' | ') || null,
+    incident_reported: hasIncident,
+    incident_notes: incidentNotes,
+    observations: obsNotes,
     meds_given: medsArr.length ? medsArr : undefined,
     task_photos: taskPhotoUrls.length ? taskPhotoUrls : undefined,
     voice_note_url: voiceNoteUrl || undefined
@@ -2539,6 +2681,145 @@ function fmtTime(str) {
     const d = new Date(); d.setHours(parseInt(h),parseInt(m),0,0);
     return d.toLocaleTimeString('en-CA',{hour:'2-digit',minute:'2-digit',hour12:true});
   } catch { return str; }
+}
+
+
+// ── SOS EMERGENCY SHEET ──
+function openSOS() {
+  if (!activeVisit) return;
+  const clientName = activeVisit.client_name || '';
+  document.getElementById('sos-client-name').textContent = clientName;
+
+  const clients = scheduleData?.clients || window._pswClients || [];
+  const c = clients.find(cl => {
+    const full = ((cl.first_name||'') + ' ' + (cl.last_name||'')).trim();
+    return full.toLowerCase() === clientName.toLowerCase() ||
+           (cl.client_name||cl.full_name||'').toLowerCase() === clientName.toLowerCase() ||
+           (cl.first_name||'').toLowerCase() === clientName.split(' ')[0].toLowerCase();
+  }) || {};
+
+  const el = document.getElementById('sos-contacts-list');
+  let html = '';
+
+  const addContact = (name, phone, role) => {
+    if (!name && !phone) return;
+    html += `<div class="sos-contact-row">
+      <div class="sos-contact-info">
+        <div class="sos-contact-name">${name || 'Emergency Contact'}</div>
+        <div class="sos-contact-role">${role}</div>
+      </div>
+      ${phone ? `<a href="tel:${phone}" class="sos-call-btn">📞 Call</a>` : '<div style="font-family:var(--mono);font-size:10px;color:var(--muted);">No phone</div>'}
+    </div>`;
+  };
+
+  addContact(c.emergency_contact_1_name || c.emergency_contact_name,
+             c.emergency_contact_1_phone || c.emergency_contact_phone,
+             (c.emergency_contact_1_relation || 'Emergency Contact 1').toUpperCase());
+  if (c.emergency_contact_2_name) {
+    addContact(c.emergency_contact_2_name, c.emergency_contact_2_phone,
+               (c.emergency_contact_2_relation || 'Emergency Contact 2').toUpperCase());
+  }
+  if (c.family_contact_name || c.family_phone) {
+    addContact(c.family_contact_name || 'Family Contact', c.family_phone, 'FAMILY');
+  }
+
+  if (!html) {
+    html = '<div style="padding:20px 18px;font-size:13px;color:var(--muted2);">No emergency contacts on file. Contact your coordinator.</div>';
+  }
+
+  // Agency / coordinator contact
+  html += `<div class="sos-contact-row" style="background:rgba(61,138,122,.04);">
+    <div class="sos-contact-info">
+      <div class="sos-contact-name">Proximity Care Coordinator</div>
+      <div class="sos-contact-role">AGENCY</div>
+    </div>
+    <a href="tel:+16474180000" class="sos-call-btn">📞 Call</a>
+  </div>`;
+
+  el.innerHTML = html;
+  document.getElementById('sos-sheet-overlay').classList.add('open');
+  document.getElementById('sos-sheet').classList.add('open');
+  haptic(200);
+}
+
+function closeSOS() {
+  document.getElementById('sos-sheet-overlay').classList.remove('open');
+  document.getElementById('sos-sheet').classList.remove('open');
+}
+
+// ── REFUSAL OF CARE ──
+function toggleRefusal(el, reason) {
+  el.classList.toggle('sel');
+  const box = el.querySelector('.refusal-box');
+  box.textContent = el.classList.contains('sel') ? '✓' : '';
+  const anySelected = document.querySelectorAll('#co-refusal-list .refusal-opt.sel').length > 0;
+  const wrap = document.getElementById('co-refusal-reason-wrap');
+  if (wrap) wrap.style.display = anySelected ? 'block' : 'none';
+}
+
+function getRefusals() {
+  const selected = Array.from(document.querySelectorAll('#co-refusal-list .refusal-opt.sel'))
+    .map(el => el.querySelector('span').textContent.trim());
+  const reason = document.getElementById('co-refusal-reason')?.value.trim() || '';
+  return { items: selected, reason };
+}
+
+// ── STRUCTURED INCIDENT ──
+let _selectedIncidentType = '';
+
+function toggleIncidentSection() {
+  const checked = document.getElementById('co-incident-flag')?.checked;
+  const detail = document.getElementById('co-incident-detail');
+  const types = document.getElementById('co-incident-types') || document.getElementById('co-incident-types-inner');
+  if (detail) detail.style.display = checked ? 'block' : 'none';
+  if (types) types.style.display = checked ? 'block' : 'none';
+  if (!checked) { _selectedIncidentType = ''; document.querySelectorAll('.incident-type-btn').forEach(b => b.classList.remove('sel')); }
+}
+
+function selectIncidentType(el, type) {
+  document.querySelectorAll('.incident-type-btn').forEach(b => b.classList.remove('sel'));
+  el.classList.add('sel');
+  _selectedIncidentType = type;
+}
+
+function getIncidentData() {
+  const flagged = document.getElementById('co-incident-flag')?.checked;
+  if (!flagged) return null;
+  return {
+    type: _selectedIncidentType,
+    description: document.getElementById('co-incident')?.value.trim() || '',
+    called_911: document.getElementById('co-911-called')?.checked || false,
+    family_notified: document.getElementById('co-family-notified')?.checked || false,
+    coordinator_notified: document.getElementById('co-coordinator-notified')?.checked || false,
+  };
+}
+
+// ── CARE PLAN ACKNOWLEDGEMENT ──
+// Tracks which client care plans have been acknowledged this session
+window._carePlanAcks = window._carePlanAcks || {};
+
+function checkCarePlanAck(clientName) {
+  // Already acked this session
+  if (window._carePlanAcks[clientName]) return true;
+  // Check localStorage for persistent acks (keyed by PSW + client)
+  try {
+    const key = 'cp_ack_' + (pswName||'').replace(/\s+/g,'_') + '_' + (clientName||'').replace(/\s+/g,'_');
+    const stored = localStorage.getItem(key);
+    if (stored) {
+      const ackDate = new Date(stored);
+      const daysSince = (Date.now() - ackDate) / 86400000;
+      if (daysSince < 30) { window._carePlanAcks[clientName] = true; return true; }
+    }
+  } catch {}
+  return false;
+}
+
+function recordCarePlanAck(clientName) {
+  window._carePlanAcks[clientName] = true;
+  try {
+    const key = 'cp_ack_' + (pswName||'').replace(/\s+/g,'_') + '_' + (clientName||'').replace(/\s+/g,'_');
+    localStorage.setItem(key, new Date().toISOString());
+  } catch {}
 }
 
 // ── SESSION RESTORE — skip PIN if already authenticated ──
