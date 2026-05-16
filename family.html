@@ -297,6 +297,9 @@ button:active{transform:scale(0.98);}
 <script>
 const R = 'https://proximity-agent-production.up.railway.app';
 let slug = '', pinVal = '', portalData = null, clientSlug = '';
+let famVisitRange = 'month';
+let famCustomFrom = '';
+let famCustomTo = '';
 
 const params = new URLSearchParams(window.location.search);
 slug = params.get('c') || ''; clientSlug = slug;
@@ -403,6 +406,51 @@ function renderAll() {
 }
 
 // ── TABS ──
+// ── FAMILY VISIT RANGE HELPERS ──
+function getFamDateRange() {
+  const now = new Date();
+  const toISO = d => d.toISOString().slice(0, 10);
+  const y = now.getFullYear(), m = now.getMonth(), day = now.getDate();
+  if (famVisitRange === 'today') {
+    const d = toISO(now); return { from: d, to: d, label: 'Today' };
+  }
+  if (famVisitRange === 'week') {
+    const dow = now.getDay() === 0 ? 6 : now.getDay() - 1;
+    const start = new Date(now); start.setDate(day - dow); start.setHours(0,0,0,0);
+    return { from: toISO(start), to: toISO(now), label: 'This Week' };
+  }
+  if (famVisitRange === 'month') {
+    return { from: toISO(new Date(y, m, 1)), to: toISO(now), label: now.toLocaleString('en-CA', { month: 'long', year: 'numeric' }) };
+  }
+  if (famVisitRange === 'lastmonth') {
+    const start = new Date(y, m - 1, 1);
+    const end = new Date(y, m, 0);
+    return { from: toISO(start), to: toISO(end), label: start.toLocaleString('en-CA', { month: 'long', year: 'numeric' }) };
+  }
+  if (famVisitRange === 'year') {
+    return { from: toISO(new Date(y, 0, 1)), to: toISO(now), label: String(y) };
+  }
+  if (famVisitRange === 'custom' && famCustomFrom && famCustomTo) {
+    return { from: famCustomFrom, to: famCustomTo, label: famCustomFrom + ' to ' + famCustomTo };
+  }
+  return { from: toISO(new Date(y, m, 1)), to: toISO(now), label: now.toLocaleString('en-CA', { month: 'long', year: 'numeric' }) };
+}
+
+function setFamRange(mode) {
+  famVisitRange = mode;
+  if (mode !== 'custom') { famCustomFrom = ''; famCustomTo = ''; }
+  showTab('visits');
+}
+
+function applyFamCustomRange() {
+  const f = document.getElementById('fam-custom-from')?.value;
+  const t = document.getElementById('fam-custom-to')?.value;
+  if (!f || !t) return;
+  if (f > t) return;
+  famCustomFrom = f; famCustomTo = t;
+  showTab('visits');
+}
+
 function showTab(tab) {
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('on'));
   document.getElementById('nav-' + tab).classList.add('on');
@@ -510,8 +558,55 @@ function showTab(tab) {
   else if (tab === 'visits') {
     const { visits } = portalData;
     const all = visits || [];
-    const shown = all.slice(0, 5);
-    const rest = all.slice(5);
+    const range = getFamDateRange();
+    // Filter by selected range
+    const filtered = all.filter(v => v.visit_date && v.visit_date >= range.from && v.visit_date <= range.to);
+    const shown = filtered.slice(0, 8);
+    const rest = filtered.slice(8);
+
+    // Filter chips HTML
+    const chips = ['today','week','month','lastmonth','year','custom'].map(r => {
+      const labels = {today:'Today',week:'This Week',month:'This Month',lastmonth:'Last Month',year:'This Year',custom:'Custom'};
+      const active = r === famVisitRange;
+      return `<button onclick="setFamRange('${r}')" style="font-family:'Inter',sans-serif;font-size:11px;font-weight:${active?'600':'400'};padding:6px 12px;border-radius:20px;border:1.5px solid ${active?'var(--accent)':'var(--border)'};color:${active?'var(--accent)':'var(--muted)'};background:${active?'rgba(61,138,122,.08)':'transparent'};cursor:pointer;white-space:nowrap;">${labels[r]}</button>`;
+    }).join('');
+    const customInputs = famVisitRange === 'custom' ? `
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:8px;">
+        <input type="date" id="fam-custom-from" value="${famCustomFrom}" style="font-size:13px;padding:6px 10px;border-radius:8px;border:1px solid var(--border);color:var(--text);font-family:'Inter',sans-serif;">
+        <span style="font-size:12px;color:var(--muted);">to</span>
+        <input type="date" id="fam-custom-to" value="${famCustomTo}" style="font-size:13px;padding:6px 10px;border-radius:8px;border:1px solid var(--border);color:var(--text);font-family:'Inter',sans-serif;">
+        <button onclick="applyFamCustomRange()" style="font-size:12px;font-weight:600;padding:6px 14px;border-radius:8px;border:none;background:var(--accent);color:#fff;cursor:pointer;font-family:'Inter',sans-serif;">Apply</button>
+      </div>` : '';
+
+    // PSW panel — who visited in this range
+    const pswMap = {};
+    filtered.forEach(v => {
+      const n = v.psw_name || 'PSW';
+      if (!pswMap[n]) pswMap[n] = { visits: [], days: new Set() };
+      pswMap[n].visits.push(v);
+      if (v.visit_date) pswMap[n].days.add(v.visit_date);
+    });
+    const pswPanel = Object.keys(pswMap).length ? `
+      <div class="section">
+        <div class="section-title">Care Team — ${range.label}</div>
+        <div class="card" style="overflow:hidden;">
+          ${Object.entries(pswMap).map(([name, s]) => {
+            const ini = name.split(' ').map(w=>w[0]||'').join('').toUpperCase().slice(0,2);
+            const lastV = s.visits[0];
+            const lastIn = lastV && lastV.time_in ? fmtTime(lastV.time_in) : '';
+            const lastDate = lastV ? fmtDate(lastV.visit_date) : '';
+            const totalHrs = s.visits.reduce((sum,v) => sum + parseFloat(v.hours_worked||0), 0).toFixed(1);
+            return `<div style="display:flex;align-items:center;gap:12px;padding:14px 20px;border-bottom:1px solid var(--border);">
+              <div style="width:38px;height:38px;border-radius:50%;background:var(--green-l);border:1.5px solid var(--green-b);display:flex;align-items:center;justify-content:center;font-weight:600;font-size:13px;color:var(--green);flex-shrink:0;">${ini}</div>
+              <div style="flex:1;min-width:0;">
+                <div style="font-size:14px;font-weight:600;color:var(--text);">${name}</div>
+                <div style="font-size:12px;color:var(--muted);margin-top:2px;">${s.visits.length} visit${s.visits.length!==1?'s':''} · ${s.days.size} day${s.days.size!==1?'s':''} · ${totalHrs}h total</div>
+                ${lastDate ? '<div style="font-size:11px;color:var(--muted);margin-top:1px;">Last visit ' + lastDate + (lastIn ? ' at ' + lastIn : '') + '</div>' : ''}
+              </div>
+            </div>`;
+          }).join('')}
+        </div>
+      </div>` : '';
 
     // Mood trend chart
     const moodMap = {'Great':5,'Good':4,'Neutral':3,'Low':2,'Agitated':1};
@@ -541,22 +636,25 @@ function showTab(tab) {
     const allPhotos = all.flatMap(v => Array.isArray(v.task_photos)?v.task_photos.map(url=>({url,date:v.visit_date})):[]);
     const photoGallery = allPhotos.length ? `<div class="section"><div class="section-title">Visit Photos</div><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:3px;border-radius:12px;overflow:hidden;">${allPhotos.slice(0,9).map(p=>`<a href="${p.url}" target="_blank" style="display:block;aspect-ratio:1;overflow:hidden;"><img src="${p.url}" alt="Visit photo" style="width:100%;height:100%;object-fit:cover;" loading="lazy"></a>`).join('')}</div>${allPhotos.length>9?`<div style="text-align:center;padding:8px;font-size:12px;color:var(--muted);">${allPhotos.length-9} more photos</div>`:''}</div>` : '';
 
-    html = moodChart + photoGallery + `
+    html = `<div class="section" style="padding-bottom:0;">
+        <div style="display:flex;gap:6px;flex-wrap:wrap;padding:4px 0 12px;">${chips}</div>
+        ${customInputs}
+      </div>` + pswPanel + moodChart + photoGallery + `
       <div class="section">
-        <div class="section-title">All Visits</div>
+        <div class="section-title">Visits — ${range.label}</div>
         <div class="card">
-          ${all.length > 0
+          ${filtered.length > 0
             ? shown.map(v => visitRow(v)).join('') +
               (rest.length > 0
-                ? `<div id="visits-hidden" style="display:none;">${rest.map(v => visitRow(v)).join('')}</div>
-                   <div style="padding:14px 20px;text-align:center;border-top:1px solid var(--border);">
-                     <button onclick="document.getElementById('visits-hidden').style.display='block';this.parentElement.style.display='none';" style="background:none;border:none;color:var(--accent);font-size:13px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;">Show all ${all.length} visits</button>
-                   </div>`
+                ? '<div id="visits-hidden" style="display:none;">' + rest.map(v => visitRow(v)).join('') + '</div>' +
+                  '<div style="padding:14px 20px;text-align:center;border-top:1px solid var(--border);">' +
+                  '<button onclick="var h=document.getElementById(\'visits-hidden\');if(h)h.style.display=\'block\';this.parentElement.style.display=\'none\';" style="background:none;border:none;color:var(--accent);font-size:13px;font-weight:500;cursor:pointer;font-family:Inter,sans-serif;">Show all ' + filtered.length + ' visits</button>' +
+                  '</div>'
                 : '')
             : emptyState(
                 '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="5" width="16" height="16" rx="2"/><path d="M8 3v4M16 3v4M4 11h16M9 15h2M9 18h6"/></svg>',
-                'No visits logged yet',
-                'Your care visit history will appear here.'
+                'No visits in this period',
+                'Try a different date range to see visit history.'
               )}
         </div>
       </div>
