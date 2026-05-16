@@ -2546,7 +2546,7 @@ async function sendPSWMsg() {
   const msg = document.getElementById('psw-msg-input').value.trim();
   if(!msg||!activePSW) return;
   try {
-    const r = await fetch(`${API}/psw/note`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({psw_name:activePSW,sender:'lance',message:msg})});
+    const r = await fetch(`${API}/psw/note`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({psw_name:activePSW,sender:'lance',message:msg,operator_id:currentOp})});
     const d = await r.json(); if(!d.success) throw new Error();
     document.getElementById('psw-msg-input').value='';
     showToast('Sent ✓','ok'); await openPSWMsg(activePSW);
@@ -2787,7 +2787,7 @@ async function sendThreadMsg() {
   const msg = document.getElementById('thread-input').value.trim();
   if (!msg || !activePSW) return;
   try {
-    const r = await fetch(`${API}/psw/note`, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({psw_name:activePSW,sender:'lance',message:msg})});
+    const r = await fetch(`${API}/psw/note`, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({psw_name:activePSW,sender:'lance',message:msg,operator_id:currentOp})});
     const d = await r.json(); if(!d.success) throw new Error();
     document.getElementById('thread-input').value = '';
     showToast('Sent ✓','ok');
@@ -2803,7 +2803,7 @@ async function sendBroadcast() {
   let sent = 0;
   for (const p of psws) {
     try {
-      await fetch(`${API}/psw/note`, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({psw_name:p.name,sender:'lance',message:msg})});
+      await fetch(`${API}/psw/note`, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({psw_name:p.name,sender:'lance',message:msg,operator_id:currentOp})});
       sent++;
     } catch {}
   }
@@ -4052,7 +4052,7 @@ async function _patchBooking(id, updates, fcInfo) {
         : `Schedule change: your shift${_newDate ? ' on ' + _newDate : ''}${_newTime ? ' at ' + _newTime : ''} has been updated. Check your portal.`;
       fetch(`${API}/psw/note`, {
         method: 'POST', headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({ psw_name: pswToNotify, sender: 'lance', message: _pmsg })
+        body: JSON.stringify({ psw_name: pswToNotify, sender: 'lance', message: _pmsg, operator_id: currentOp })
       }).catch(() => {});
     }
   } catch(e) {
@@ -4552,8 +4552,8 @@ async function executeSwap() {
     // Notify both PSWs
     if (d.swapped > 0) {
       const _sDate = fromDate ? ' from ' + fromDate : '';
-      fetch(`${API}/psw/note`, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ psw_name: toPSW, sender: 'lance', message: `${d.swapped} shift${d.swapped!==1?'s have':' has'} been added to your schedule${_sDate}. Check your portal.` }) }).catch(()=>{});
-      fetch(`${API}/psw/note`, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ psw_name: fromPSW, sender: 'lance', message: `${d.swapped} shift${d.swapped!==1?'s have':' has'} been removed from your schedule${_sDate} and reassigned. Check your portal.` }) }).catch(()=>{});
+      fetch(`${API}/psw/note`, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ psw_name: toPSW, sender: 'lance', message: `${d.swapped} shift${d.swapped!==1?'s have':' has'} been added to your schedule${_sDate}. Check your portal.`, operator_id: currentOp }) }).catch(()=>{});
+      fetch(`${API}/psw/note`, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ psw_name: fromPSW, sender: 'lance', message: `${d.swapped} shift${d.swapped!==1?'s have':' has'} been removed from your schedule${_sDate} and reassigned. Check your portal.`, operator_id: currentOp }) }).catch(()=>{});
     }
   } catch(e) { showToast(e.message || 'Swap failed', 'err'); }
   btn.disabled = false; btn.textContent = 'Execute Swap';
@@ -5757,7 +5757,7 @@ async function saveBulkSchedule() {
     const created = results.filter(r => r.success).length;
     showToast(`${created} of ${dates.length} shifts created ✓`, 'ok');
     // Notify PSW
-    if (psw && created > 0) { fetch(`${API}/psw/note`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ psw_name: psw, sender: 'lance', message: created + ' shift' + (created!==1?'s have':' has') + ' been added to your schedule for ' + client + '. Check your portal.' }) }).catch(()=>{}); }
+    if (psw && created > 0) { fetch(`${API}/psw/note`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ psw_name: psw, sender: 'lance', message: created + ' shift' + (created!==1?'s have':' has') + ' been added to your schedule for ' + client + '. Check your portal.', operator_id: currentOp }) }).catch(()=>{}); }
     closeAllSheets();
     const res = await fetch(`${API}/hq/overview?operator_id=${currentOp}`);
     const freshD = await res.json();
@@ -6173,8 +6173,10 @@ function lockHQ() {
   // Stop all polling intervals when locked
   if (window._pollInterval) { clearInterval(window._pollInterval); window._pollInterval = null; }
   if (window._mapInterval) { clearInterval(window._mapInterval); window._mapInterval = null; }
-  if (window.attendanceTimer) { clearInterval(window.attendanceTimer); window.attendanceTimer = null; }
-  // Clear D so data is not accessible via console
+  if (attendanceTimer) { clearInterval(attendanceTimer); attendanceTimer = null; }
+  // Clear state so data is not accessible via console
+  _mergedPSWCache = null;
+  _hqFetching = false;
   D = {};
 }
 
