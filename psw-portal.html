@@ -754,6 +754,7 @@ document.addEventListener('visibilitychange', () => {
   if (!document.hidden && appUnlocked) {
     loadSchedule();
     loadHomeData();
+    loadMessages(false); // refresh notification badge when phone unlocks
   }
 });
 function updateOfflineBanner(offline) {
@@ -1009,7 +1010,7 @@ function unlockApp() {
       loadSchedule();
       loadMessages(false);
       loadHomeData();
-    }, 60000);
+    }, 30000); // 30s refresh — keeps notification badge current
   }
 }
 
@@ -1120,6 +1121,21 @@ function renderHomeFeed() {
   const upd = document.getElementById('home-last-updated');
   if (upd) upd.textContent = new Date().toLocaleTimeString('en-CA',{hour:'2-digit',minute:'2-digit'});
   const rows = [];
+
+  // ── Schedule change alerts — unread messages from lance shown at top ──
+  if (window._unreadNotes && window._unreadNotes.length > 0) {
+    window._unreadNotes.slice(0,3).forEach(n => {
+      rows.push(`<div class="feed-row" onclick="showSect('messages')" style="background:rgba(61,138,122,0.08);border:1px solid rgba(61,138,122,0.2);border-radius:8px;cursor:pointer;margin-bottom:2px;">
+        <div class="feed-dot" style="background:var(--teal2);box-shadow:0 0 6px rgba(61,138,122,0.6);"></div>
+        <div class="feed-body">
+          <div class="feed-client" style="color:var(--teal2);">Schedule Update</div>
+          <div class="feed-meta" style="color:var(--text2);">${n.message.slice(0,80)}${n.message.length>80?'…':''}</div>
+        </div>
+        <div class="feed-right"><div class="feed-time" style="color:var(--teal2);font-size:9px;">Tap →</div></div>
+      </div>`);
+    });
+  }
+
   if (activeVisit) {
     const tin = activeVisit.time_in || (activeVisit.checkin_time||'').slice(11,16) || '—';
     rows.push(`<div class="feed-row">
@@ -1763,11 +1779,14 @@ async function loadMessages(scroll=true) {
     const res = await fetch(`${API}/psw/notes/${encodeURIComponent(pswName)}?pin=${pswPin}`);
     const d = await res.json();
     const notes = d.notes || [];
-    const unread = notes.filter(n => n.sender === 'lance' && !n.read_at).length;
+    const unreadNotes = notes.filter(n => n.sender === 'lance' && !n.read_at);
+    window._unreadNotes = unreadNotes; // store for renderHomeFeed
+    const unread = unreadNotes.length;
     const badge = document.getElementById('msg-badge');
     const dot = document.getElementById('bnav-msg-dot');
     if (unread > 0) { badge.textContent = unread; badge.classList.add('show'); dot.classList.add('show'); }
     else { badge.classList.remove('show'); dot.classList.remove('show'); }
+    renderHomeFeed(); // re-render home feed to show/hide schedule alerts
     if (!notes.length) { el.innerHTML = '<div class="empty-state">No messages yet</div>'; return; }
     el.innerHTML = notes.map(n => `<div class="msg-bubble ${n.sender==='lance'?'msg-lance':'msg-psw'}"><div class="msg-text">${n.message}</div><div class="msg-time">${ago(n.created_at)}</div></div>`).join('');
     if (scroll) el.scrollTop = el.scrollHeight;
