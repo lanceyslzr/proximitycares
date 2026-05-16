@@ -646,6 +646,12 @@ button:active{transform:scale(0.98);}
 .card-header{min-height:52px;}
 .card-actions{padding:8px 14px 10px;gap:8px;}
 .card-act{min-height:36px;padding:7px 12px;font-size:9px;}
+/* ── GPS EXCEPTIONS PANEL ── */
+.gps-exc-row{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--border);}
+.gps-exc-row:last-child{border-bottom:none;}
+.gps-badge{font-family:var(--mono);font-size:8px;letter-spacing:1px;padding:3px 7px;border-radius:100px;border:1px solid rgba(224,85,85,.4);color:var(--red);white-space:nowrap;}
+.gps-badge.warn{border-color:rgba(224,154,61,.4);color:var(--amber);}
+.gps-badge.missing{border-color:rgba(168,191,196,.3);color:var(--muted2);}
 @media(max-width:1024px){
   .section{padding:0 8px;}
   .sect-head-row{flex-wrap:wrap;gap:6px;}
@@ -879,6 +885,15 @@ button:active{transform:scale(0.98);}
   <div class="section-header" style="padding-bottom:4px;"><span class="section-title">Live Attendance</span></div>
   <div style="margin:0 12px 12px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;overflow:hidden;" id="ov-attendance">
     <div class="empty-state" style="padding:16px;">Loading attendance...</div>
+  </div>
+
+  <!-- GPS Exceptions panel -->
+  <div class="section-header" style="padding-bottom:4px;">
+    <span class="section-title">GPS Exceptions</span>
+    <div class="sect-action" id="gps-exc-refresh" onclick="renderGPSExceptions()">↻ Refresh</div>
+  </div>
+  <div style="margin:0 12px 12px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;overflow:hidden;" id="ov-gps-exceptions">
+    <div class="empty-state" style="padding:14px;">Loading GPS data...</div>
   </div>
 
   <!-- Recent activity feed -->
@@ -5507,6 +5522,55 @@ async function renderSystemHealth() {
   }
 }
 
+async function renderGPSExceptions() {
+  const el = document.getElementById('ov-gps-exceptions');
+  if (!el) return;
+  try {
+    const r = await fetch(`${API}/hq/gps-exceptions?operator_id=${currentOp}&threshold_m=300&days=14`);
+    const d = await r.json();
+    if (!d.success) { el.innerHTML = '<div class="empty-state" style="padding:14px;">Could not load GPS data</div>'; return; }
+
+    if (!d.total_exceptions) {
+      el.innerHTML = '<div class="empty-state" style="padding:14px;color:var(--teal2);">✓ No GPS exceptions in last 14 days</div>';
+      return;
+    }
+
+    let html = '';
+
+    if (d.out_of_range?.length) {
+      html += `<div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--red);padding:8px 14px;background:rgba(224,85,85,.04);">Out of Range (>${d.threshold_m}m)</div>`;
+      html += d.out_of_range.map(v => {
+        const mapUrl = v.checkin_lat && v.checkin_lng ? `https://maps.google.com/?q=${v.checkin_lat},${v.checkin_lng}` : null;
+        return `<div class="gps-exc-row">
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:12px;font-weight:500;color:var(--text);">${v.psw_name}</div>
+            <div style="font-family:var(--mono);font-size:10px;color:var(--muted2);">${v.client_name} · ${fmtd(v.visit_date)} · ${v.time_in||'—'}</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <span class="gps-badge">${v.checkin_distance_m}m away</span>
+            ${mapUrl ? `<a href="${mapUrl}" target="_blank" style="font-family:var(--mono);font-size:9px;color:var(--teal2);text-decoration:none;">Map ↗</a>` : ''}
+          </div>
+        </div>`;
+      }).join('');
+    }
+
+    if (d.missing_gps?.length) {
+      html += `<div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);padding:8px 14px;background:var(--bg3);border-top:1px solid var(--border);">Missing GPS (client has address on file)</div>`;
+      html += d.missing_gps.map(v => `<div class="gps-exc-row">
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:12px;font-weight:500;color:var(--text);">${v.psw_name}</div>
+          <div style="font-family:var(--mono);font-size:10px;color:var(--muted2);">${v.client_name} · ${fmtd(v.visit_date)}</div>
+        </div>
+        <span class="gps-badge missing">No GPS</span>
+      </div>`).join('');
+    }
+
+    el.innerHTML = html;
+  } catch {
+    el.innerHTML = '<div class="empty-state" style="padding:14px;">GPS data unavailable</div>';
+  }
+}
+
 function renderOverview() {
   const now = new Date();
   const today = now.toISOString().slice(0,10);
@@ -5600,6 +5664,9 @@ function renderOverview() {
       }).join('');
     }
   }
+
+  // GPS Exceptions
+  renderGPSExceptions();
 
   // Activity feed
   const actEl = document.getElementById('ov-activity');
