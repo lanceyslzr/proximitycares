@@ -58,6 +58,19 @@ a{color:inherit;text-decoration:none;}
 
 /* TOPBAR */
 .topbar{position:sticky;top:0;z-index:100;height:54px;display:flex;align-items:center;justify-content:space-between;padding:0 14px;background:rgba(7,9,12,.96);border-bottom:1px solid var(--border);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);}
+.hamburger-btn{width:36px;height:36px;border-radius:8px;border:1px solid var(--border2);background:transparent;color:var(--muted2);display:flex;align-items:center;justify-content:center;cursor:pointer;touch-action:manipulation;flex-shrink:0;}
+.hamburger-btn:active{background:var(--bg3);}
+.drawer-overlay{display:none;position:fixed;inset:0;z-index:400;background:rgba(0,0,0,.6);}
+.drawer-overlay.open{display:block;}
+.drawer{position:fixed;top:0;right:-280px;bottom:0;width:260px;background:var(--bg2);border-left:1px solid var(--border);z-index:401;transition:right .28s cubic-bezier(.4,0,.2,1);padding:0;overflow-y:auto;}
+.drawer.open{right:0;}
+.drawer-header{padding:20px 18px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.drawer-close{width:32px;height:32px;border-radius:6px;border:none;background:var(--bg3);color:var(--muted2);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.drawer-item{display:flex;align-items:center;gap:12px;padding:14px 18px;border-bottom:1px solid var(--border);cursor:pointer;color:var(--text);font-size:14px;touch-action:manipulation;transition:background .12s;}
+.drawer-item:active{background:var(--bg3);}
+.drawer-item svg{width:18px;height:18px;color:var(--teal2);}
+.drawer-lbl{flex:1;}
+.drawer-badge{font-family:var(--mono);font-size:10px;background:var(--teal2);color:#000;border-radius:100px;padding:2px 7px;}
 .psw-info{display:flex;align-items:center;gap:10px;}
 .psw-avatar{width:32px;height:32px;border-radius:50%;background:var(--bg3);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:11px;color:var(--teal2);font-weight:500;flex-shrink:0;}
 .psw-name-top{font-size:14px;font-weight:500;color:var(--text);}
@@ -65,11 +78,7 @@ a{color:inherit;text-decoration:none;}
 .shift-pill{font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;padding:5px 10px;border-radius:100px;background:rgba(224,154,61,.15);color:var(--amber);border:1px solid rgba(224,154,61,.3);}
 
 /* NAV TABS */
-.nav-tabs{display:flex;background:var(--bg2);border-bottom:1px solid var(--border);overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
-.nav-tabs::-webkit-scrollbar{display:none;}
-.nav-tab{flex-shrink:0;padding:11px 14px;font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted2);border-bottom:2px solid transparent;cursor:pointer;white-space:nowrap;min-height:44px;display:flex;align-items:center;gap:5px;touch-action:manipulation;transition:color .15s;}
-.nav-tab.active{color:var(--teal2);border-bottom-color:var(--teal2);}
-.nav-tab:active{color:var(--teal3);}
+/* nav-tabs removed — using bottom nav + hamburger drawer */
 .nbadge{background:var(--red);color:#fff;border-radius:100px;font-size:8px;min-width:15px;height:15px;padding:0 3px;display:none;align-items:center;justify-content:center;}
 .nbadge.show{display:inline-flex;}
 
@@ -165,6 +174,7 @@ a{color:inherit;text-decoration:none;}
 .sched-day-hdr{padding:9px 14px;background:var(--bg3);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
 .sched-day-lbl{font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted2);}
 .sched-day-lbl.today{color:var(--teal2);}
+.sched-day-hdr.today-hdr{background:rgba(61,138,122,.08);border-bottom:1px solid rgba(61,138,122,.25);}
 .sched-shift{padding:11px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:10px;}
 .sched-shift:last-child{border-bottom:none;}
 .shift-client{font-size:13px;font-weight:500;color:var(--text);}
@@ -311,6 +321,37 @@ a{color:inherit;text-decoration:none;}
 @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.45;}}
 .feed-dot.active{animation:pulse 2s infinite;}
 
+.client-sheet-overlay{display:none;position:fixed;inset:0;z-index:350;background:rgba(0,0,0,.7);}
+.client-sheet-overlay.open{display:block;}
+.client-sheet{position:fixed;bottom:0;left:0;right:0;background:var(--bg2);border-radius:18px 18px 0 0;max-height:88vh;overflow-y:auto;z-index:351;transform:translateY(100%);transition:transform .3s cubic-bezier(.4,0,.2,1);}
+.client-sheet.open{transform:translateY(0);}
+.cs-drag{width:36px;height:4px;background:var(--border2);border-radius:2px;margin:12px auto 0;}
+.cs-hdr{padding:14px 18px 12px;border-bottom:1px solid var(--border);}
+.cs-name{font-size:18px;font-weight:500;color:var(--text);margin-bottom:2px;}
+.cs-status{font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--teal2);}
+.cs-section{padding:14px 18px;border-bottom:1px solid var(--border);}
+.cs-section-lbl{font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:8px;}
+.cs-row{display:flex;align-items:flex-start;gap:10px;margin-bottom:8px;font-size:13px;line-height:1.6;}
+.cs-val{color:var(--muted2);flex:1;}
+.cs-val.hi{color:var(--text);font-weight:500;}
+.cs-call-btn{display:inline-flex;align-items:center;gap:5px;padding:6px 12px;background:rgba(61,138,122,.1);border:1px solid rgba(61,138,122,.3);border-radius:6px;color:var(--teal2);font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;text-decoration:none;min-height:32px;}
+.visit-detail-overlay{display:none;position:fixed;inset:0;z-index:350;background:rgba(0,0,0,.7);}
+.visit-detail-overlay.open{display:block;}
+.visit-detail-sheet{position:fixed;bottom:0;left:0;right:0;background:var(--bg2);border-radius:18px 18px 0 0;max-height:80vh;overflow-y:auto;z-index:351;transform:translateY(100%);transition:transform .3s cubic-bezier(.4,0,.2,1);}
+.visit-detail-sheet.open{transform:translateY(0);}
+.live-card{margin:10px 12px;background:var(--bg2);border:1px solid var(--border2);border-radius:10px;overflow:hidden;}
+.live-card-hdr{padding:10px 14px;background:rgba(61,138,122,.06);border-bottom:1px solid var(--border);font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--teal2);display:flex;align-items:center;gap:6px;}
+.live-dot{width:7px;height:7px;border-radius:50%;background:var(--teal2);animation:pulse 1.5s infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.4;}}
+.live-row{display:flex;align-items:center;gap:12px;padding:12px 14px;border-bottom:1px solid var(--border);}
+.live-row:last-child{border-bottom:none;}
+.live-ini{width:34px;height:34px;border-radius:50%;background:rgba(61,138,122,.12);border:1px solid rgba(61,138,122,.3);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:10px;color:var(--teal2);flex-shrink:0;}
+.live-info{flex:1;min-width:0;}
+.live-name{font-size:13px;color:var(--text);font-weight:500;}
+.live-meta{font-family:var(--mono);font-size:10px;color:var(--muted2);margin-top:1px;}
+.live-time{font-family:var(--mono);font-size:12px;color:var(--amber);}
+.sched-day.today-day{border:1px solid rgba(61,138,122,.3);border-radius:8px;overflow:hidden;}
+
 @media(max-width:768px){
   .week-nav{padding:8px 12px 10px;}
   .sched-day{margin:0 8px 6px;}
@@ -318,13 +359,12 @@ a{color:inherit;text-decoration:none;}
 }
 @media(max-width:600px){
   .stats-strip{grid-template-columns:repeat(2,1fr);}
-  .nav-tab{padding:10px 10px;font-size:9px;letter-spacing:1.5px;}
+
 }
 @media(max-width:380px){
   .mood-row{flex-wrap:wrap;}
   .mood-opt{min-width:calc(33% - 4px);}
-}
-</style>
+}</style>
 </head>
 <body>
 
@@ -365,18 +405,38 @@ a{color:inherit;text-decoration:none;}
       <div class="psw-role">Personal Support Worker</div>
     </div>
   </div>
-  <div id="shift-status-pill" style="display:none;" class="shift-pill">On Shift</div>
+  <div style="display:flex;align-items:center;gap:8px;">
+    <div id="shift-status-pill" style="display:none;" class="shift-pill">On Shift</div>
+    <button class="hamburger-btn" onclick="openDrawer()" aria-label="Menu">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="18" height="18"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    </button>
+  </div>
 </div>
 
-<!-- NAV TABS -->
-<div class="nav-tabs">
-  <div class="nav-tab active" onclick="showSect('home')">Home</div>
-  <div class="nav-tab" onclick="showSect('schedule')">Schedule</div>
-  <div class="nav-tab" onclick="showSect('checklist')">Checklist</div>
-  <div class="nav-tab" onclick="showSect('clients')">Clients</div>
-  <div class="nav-tab" onclick="showSect('messages')">Messages <span class="nbadge" id="msg-badge">0</span></div>
-  <div class="nav-tab" onclick="showSect('documents')">Documents</div>
-  <div class="nav-tab" onclick="showSect('pay')">Pay</div>
+<!-- DRAWER MENU -->
+<div class="drawer-overlay" id="drawer-overlay" onclick="closeDrawer()"></div>
+<div class="drawer" id="drawer">
+  <div class="drawer-header">
+    <div style="font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted2);">More</div>
+    <button class="drawer-close" onclick="closeDrawer()">✕</button>
+  </div>
+  <div class="drawer-item" onclick="closeDrawer();showSect('live')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>
+    <span class="drawer-lbl">Live Status</span>
+    <span class="drawer-badge" id="drawer-live-badge" style="display:none;">Live</span>
+  </div>
+  <div class="drawer-item" onclick="closeDrawer();showSect('documents')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+    <span class="drawer-lbl">Documents</span>
+  </div>
+  <div class="drawer-item" onclick="closeDrawer();showSect('pay')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+    <span class="drawer-lbl">My Pay</span>
+  </div>
+  <div class="drawer-item" onclick="closeDrawer();lockApp()" style="margin-top:auto;color:var(--muted);">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+    <span class="drawer-lbl">Lock App</span>
+  </div>
 </div>
 
 <!-- HOME -->
@@ -589,6 +649,50 @@ a{color:inherit;text-decoration:none;}
 </div>
 
 <!-- BOTTOM NAV -->
+<!-- LIVE OPS SECTION -->
+<div class="section" id="sect-live">
+  <div style="padding:14px 12px 6px;font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);">Live Activity</div>
+  <div id="live-on-shift-card" class="live-card">
+    <div class="live-card-hdr"><span class="live-dot"></span>On Shift Now</div>
+    <div id="live-on-shift-list"><div class="empty-state" style="padding:14px;">Loading...</div></div>
+  </div>
+  <div style="padding:14px 12px 6px;font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-top:8px;">Today's Completed</div>
+  <div id="live-completed-card" class="live-card">
+    <div id="live-completed-list"><div class="empty-state" style="padding:14px;">Loading...</div></div>
+  </div>
+  <div style="padding:14px 12px 6px;font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-top:8px;">Upcoming Today</div>
+  <div id="live-upcoming-card" class="live-card">
+    <div id="live-upcoming-list"><div class="empty-state" style="padding:14px;">Loading...</div></div>
+  </div>
+</div>
+
+<!-- CLIENT DETAIL SHEET -->
+<div class="client-sheet-overlay" id="client-sheet-overlay" onclick="closeClientSheet()"></div>
+<div class="client-sheet" id="client-sheet">
+  <div class="cs-drag"></div>
+  <div class="cs-hdr">
+    <div class="cs-name" id="cs-name">—</div>
+    <div class="cs-status" id="cs-status">Active Client</div>
+  </div>
+  <div id="cs-today-shift" style="display:none;" class="cs-section">
+    <div class="cs-section-lbl">Today's Shift</div>
+    <div class="cs-row"><div class="cs-val hi" id="cs-shift-time">—</div></div>
+  </div>
+  <div id="cs-body"></div>
+  <div style="height:calc(20px + var(--safe-bottom));"></div>
+</div>
+
+<!-- VISIT DETAIL SHEET -->
+<div class="visit-detail-overlay" id="visit-detail-overlay" onclick="closeVisitDetail()"></div>
+<div class="visit-detail-sheet" id="visit-detail-sheet">
+  <div class="cs-drag"></div>
+  <div class="cs-hdr">
+    <div class="cs-name" id="vd-client">—</div>
+    <div class="cs-status" id="vd-date">—</div>
+  </div>
+  <div id="vd-body" style="padding:0 0 calc(20px + var(--safe-bottom));"></div>
+</div>
+
 <div class="bottom-nav">
   <div class="bnav-item active" onclick="showSect('home')" id="bn-home">
     <div class="bnav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5L12 3l9 7.5"/><path d="M5 9.5V20a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V9.5"/><path d="M10 21v-6h4v6"/></svg></div>
@@ -1186,18 +1290,21 @@ function renderHomeFeed() {
           ${lastVisit.visit_summary ? `<br>${lastVisit.visit_summary.slice(0,80)}${lastVisit.visit_summary.length>80?'…':''}` : ''}
         </div>`
       : '';
-    rows.push(`<div class="feed-row" onclick="showSect('schedule')">
+    const _safeFeedName = (b.client_name||'').replace(/'/g,'').replace(/"/g,'');
+    rows.push(`<div class="feed-row" onclick="doCheckInFromShift('${_safeFeedName}')" style="cursor:pointer;">
       <div class="feed-dot upcoming"></div>
       <div class="feed-body"><div class="feed-client">${b.client_name||'—'}</div><div class="feed-meta">Upcoming · ${b.scheduled_time||'TBD'}</div>${handoff}</div>
-      <div class="feed-right"><div class="feed-time" style="color:var(--gold);">Sign in</div></div>
+      <div class="feed-right"><div class="feed-time" style="color:var(--teal2);font-weight:600;">Tap to Sign In →</div></div>
     </div>`);
   });
-  allVisits.filter(v => v.visit_date !== today).slice(0, 4).forEach(v => {
+  allVisits.filter(v => v.visit_date !== today).slice(0, 4).forEach((v, vi) => {
     const hrs = parseFloat(v.hours_worked||0);
-    rows.push(`<div class="feed-row">
+    const _vid = 'feedv' + vi;
+    window['_feedVisit_'+_vid] = v;
+    rows.push(`<div class="feed-row" onclick="openVisitDetail('${_vid}')" style="cursor:pointer;">
       <div class="feed-dot past"></div>
       <div class="feed-body"><div class="feed-client">${v.client_name||'—'}</div><div class="feed-meta">${fmtd(v.visit_date)} · ${v.time_in||'—'}${v.time_out?' – '+v.time_out:''}</div></div>
-      <div class="feed-right"><div class="feed-hrs" style="color:var(--muted2);">${hrs.toFixed(1)}h</div></div>
+      <div class="feed-right"><div class="feed-hrs" style="color:var(--muted2);">${hrs.toFixed(1)}h</div><div style="font-family:var(--mono);font-size:8px;color:var(--muted);margin-top:2px;">Details ›</div></div>
     </div>`);
   });
   el.innerHTML = rows.length ? rows.join('') : '<div class="empty-state" style="padding:24px;">No visits yet — sign in to your first shift</div>';
@@ -1243,21 +1350,22 @@ function renderWeek() {
       if (isToday && !activeVisit) {
         const safeName = (b.client_name||'').replace(/"/g,'&quot;');
         rows += `<div class="sched-shift" style="background:rgba(61,138,122,.03);">
-          <div style="flex:1;min-width:0;">
-            <div class="shift-client">${b.client_name||'—'}</div>
+          <div style="flex:1;min-width:0;" onclick="openClientSheetByName('${safeName}')" class="shift-client-tap">
+            <div class="shift-client" style="display:flex;align-items:center;gap:5px;">${b.client_name||'—'}<span style="font-family:var(--mono);font-size:8px;color:var(--teal2);letter-spacing:1px;">Info ›</span></div>
             <div class="shift-time">${b.scheduled_time||'TBD'}</div>
           </div>
           <button class="sched-signin-btn" data-checkin="${safeName}"
             style="font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:#fff;background:var(--teal);border:none;border-radius:6px;padding:7px 14px;cursor:pointer;min-height:34px;white-space:nowrap;touch-action:manipulation;flex-shrink:0;">Sign In</button>
         </div>`;
       } else {
-        rows += `<div class="sched-shift"><div style="flex:1;min-width:0;"><div class="shift-client">${b.client_name||'—'}</div><div class="shift-time">${b.scheduled_time||'TBD'} · ${fmtd(b.scheduled_date)}</div></div><div style="display:flex;gap:6px;align-items:center;"><div class="shift-badge upcoming">Upcoming</div><button onclick="openCancelShift('${b.id}','${(b.client_name||'').replace(/'/g,'')}','${b.scheduled_date}','${b.scheduled_time||''}')" style="font-family:var(--mono);font-size:8px;letter-spacing:1px;text-transform:uppercase;padding:5px 9px;border-radius:5px;border:1px solid rgba(224,85,85,.3);background:rgba(224,85,85,.06);color:var(--red);cursor:pointer;min-height:28px;touch-action:manipulation;">Cancel</button></div></div>`;
+        const _safeFC = (b.client_name||'').replace(/'/g,'').replace(/"/g,'');
+      rows += `<div class="sched-shift"><div style="flex:1;min-width:0;" onclick="openClientSheetByName('${_safeFC}')" ><div class="shift-client" style="display:flex;align-items:center;gap:5px;">${b.client_name||'—'}<span style="font-family:var(--mono);font-size:8px;color:var(--teal2);letter-spacing:1px;">Info ›</span></div><div class="shift-time">${b.scheduled_time||'TBD'} · ${fmtd(b.scheduled_date)}</div></div><div style="display:flex;gap:6px;align-items:center;"><div class="shift-badge upcoming">Upcoming</div><button onclick="openCancelShift('${b.id}','${(b.client_name||'').replace(/'/g,'')}','${b.scheduled_date}','${b.scheduled_time||''}')" style="font-family:var(--mono);font-size:8px;letter-spacing:1px;text-transform:uppercase;padding:5px 9px;border-radius:5px;border:1px solid rgba(224,85,85,.3);background:rgba(224,85,85,.06);color:var(--red);cursor:pointer;min-height:28px;touch-action:manipulation;">Cancel</button></div></div>`;
       }
     });
     if (!rows) rows = `<div class="sched-empty">No shifts</div>`;
     // Week separator between day 7 and 8
     const weekBreak = i === 6 ? `<div style="margin:8px 12px 0;font-family:var(--mono);font-size:8px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);padding:6px 0;border-top:1px solid var(--border);">Week 2</div>` : '';
-    return weekBreak + `<div class="sched-day"><div class="sched-day-hdr"><div class="sched-day-lbl ${isToday?'today':''}">${dayLabel}${isToday?' · Today':''}</div></div>${rows}</div>`;
+    return weekBreak + `<div class="sched-day${isToday?' today-day':''}" id="${isToday?'today-day-block':''}" ><div class="sched-day-hdr${isToday?' today-hdr':''}" ><div class="sched-day-lbl ${isToday?'today':''}">${isToday?'⬤ ':''}${dayLabel}${isToday?' — TODAY':''}</div></div>${rows}</div>`;
   }).join('');
 }
 function shiftWeek(dir) { weekOffset += dir; renderWeek(); }
@@ -1705,25 +1813,30 @@ function updateClCount() {
   const done = document.querySelectorAll('#sect-checklist .cl-item.done').length;
   document.getElementById('cl-count').textContent = `${done} / ${total}`;
 }
+function _clKey(suffix) {
+  // Key by active visit ID so checklist survives app restarts mid-shift
+  const vid = activeVisit?.id || 'global';
+  return 'cl_' + vid + '_' + suffix;
+}
 function saveChecklist() {
   try {
-    sessionStorage.setItem('cl-state', JSON.stringify(
+    localStorage.setItem(_clKey('state'), JSON.stringify(
       Array.from(document.querySelectorAll('#sect-checklist .cl-item.done'))
         .map(el => el.querySelector('.cl-label').textContent)
     ));
-    sessionStorage.setItem('cl-obs', document.getElementById('cl-obs').value);
-    sessionStorage.setItem('cl-supplies', document.getElementById('cl-supplies').value);
+    localStorage.setItem(_clKey('obs'), document.getElementById('cl-obs').value);
+    localStorage.setItem(_clKey('sup'), document.getElementById('cl-supplies').value);
   } catch {}
 }
 function restoreChecklist() {
   try {
-    const done = JSON.parse(sessionStorage.getItem('cl-state') || '[]');
+    const done = JSON.parse(localStorage.getItem(_clKey('state')) || '[]');
     document.querySelectorAll('#sect-checklist .cl-item').forEach(el => {
       const lbl = el.querySelector('.cl-label').textContent;
       if (done.includes(lbl)) { el.classList.add('done'); el.querySelector('.cl-box').textContent = '✓'; }
     });
-    const obs = sessionStorage.getItem('cl-obs');
-    const sup = sessionStorage.getItem('cl-supplies');
+    const obs = localStorage.getItem(_clKey('obs'));
+    const sup = localStorage.getItem(_clKey('sup'));
     if (obs) document.getElementById('cl-obs').value = obs;
     if (sup) document.getElementById('cl-supplies').value = sup;
     updateClCount();
@@ -1736,7 +1849,9 @@ function resetChecklist() {
   document.getElementById('cl-obs').value = '';
   document.getElementById('cl-supplies').value = '';
   updateClCount();
-  try { ['cl-state','cl-obs','cl-supplies'].forEach(k => sessionStorage.removeItem(k)); } catch {}
+  try {
+    ['state','obs','sup'].forEach(k => localStorage.removeItem(_clKey(k)));
+  } catch {}
 }
 function selectMood(el, mood) {
   document.querySelectorAll('#co-mood-row .mood-opt').forEach(o => o.classList.remove('sel'));
@@ -1753,23 +1868,24 @@ async function loadClients() {
     window._pswClients = clients; // C3 — store for DNR lookup at checkin
     if (!clients.length) { el.innerHTML = '<div class="empty-state">No clients assigned yet</div>'; return; }
     el.innerHTML = clients.map((c,i) => {
-      const name = c.full_name || c.client_name;
+      const name = ((c.first_name||'') + ' ' + (c.last_name||'')).trim() || c.full_name || c.client_name || '—';
       const ini = name.split(' ').map(w=>w[0]||'').join('').toUpperCase().slice(0,2);
-      const cid = 'cl'+i;
-      return `<div class="card">
-        <div class="card-header" onclick="toggleDetail('${cid}')">
+      const safeName = name.replace(/'/g,'').replace(/"/g,'');
+      const today = new Date().toISOString().slice(0,10);
+      const todayShift = (scheduleData?.bookings||[]).find(b => b.scheduled_date === today && (b.client_name||'').toLowerCase().includes((c.first_name||name).toLowerCase()));
+      return `<div class="card" onclick="openClientSheetByName('${safeName}')" style="cursor:pointer;">
+        <div class="card-header">
           <div style="display:flex;align-items:center;gap:10px;flex:1;">
             <div style="width:36px;height:36px;border-radius:50%;background:var(--bg3);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:11px;color:var(--teal2);flex-shrink:0;">${ini}</div>
-            <div><div class="card-name">${name}</div><div class="card-sub">${c.hours_per_week||'?'}h/wk · Since ${c.start_date?fmtd(c.start_date):'—'}</div></div>
+            <div>
+              <div class="card-name">${name}</div>
+              <div class="card-sub">${todayShift ? 'Today ' + (todayShift.scheduled_time||'') : (c.status||'Active')}</div>
+            </div>
           </div>
-          <div class="card-right"><span class="badge b-active">${c.status||'Active'}</span><div style="font-size:10px;color:var(--muted);" id="chev-${cid}">▼</div></div>
-        </div>
-        <div id="${cid}" style="display:none;padding:14px;border-top:1px solid var(--border);font-size:12px;line-height:1.8;">
-          ${c.goals?`<div style="margin-bottom:10px;"><div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:4px;">Goals</div><div style="color:var(--muted2);">${c.goals}</div></div>`:''}
-          ${c.daily_routine?`<div style="margin-bottom:10px;"><div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:4px;">Daily Routine</div><div style="color:var(--muted2);">${c.daily_routine}</div></div>`:''}
-          ${c.preferences?`<div style="margin-bottom:10px;"><div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:4px;">Preferences</div><div style="color:var(--muted2);">${c.preferences}</div></div>`:''}
-          ${c.medications?`<div style="margin-bottom:10px;"><div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:4px;">Medications</div><div style="color:var(--text);font-weight:500;">${c.medications}</div></div>`:''}
-          ${(c.emergency_contact_1_name||c.emergency_contact_name)?`<div><div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:4px;">Emergency Contact</div><div style="color:var(--text);">${c.emergency_contact_1_name||c.emergency_contact_name}${(c.emergency_contact_1_phone||c.emergency_contact_phone)?' · <a href="tel:'+(c.emergency_contact_1_phone||c.emergency_contact_phone)+'" style="color:var(--teal2);">'+(c.emergency_contact_1_phone||c.emergency_contact_phone)+'</a>':''}</div></div>`:''}
+          <div class="card-right">
+            ${c.dnr ? '<span style="font-family:var(--mono);font-size:8px;color:var(--red);border:1px solid rgba(224,85,85,.3);border-radius:4px;padding:2px 6px;letter-spacing:1px;">DNR</span>' : '<span class="badge b-active">' + (c.status||'Active') + '</span>'}
+            <div style="font-size:12px;color:var(--teal2);">›</div>
+          </div>
         </div>
       </div>`;
     }).join('');
@@ -2143,20 +2259,17 @@ async function loadPaySummary() {
 // ── NAV ──
 function showSect(name) {
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.bnav-item').forEach(b => b.classList.remove('active'));
   const s = document.getElementById('sect-'+name); if (s) s.classList.add('active');
-  const tabs = document.querySelectorAll('.nav-tab');
-  const tm = ['home','schedule','checklist','clients','messages','documents','pay'];
-  const ti = tm.indexOf(name); if (ti >= 0 && tabs[ti]) tabs[ti].classList.add('active');
   const bm = ['home','schedule','checklist','messages','clients'];
   const bi = bm.indexOf(name);
   const bnavs = document.querySelectorAll('.bnav-item');
   if (bi >= 0 && bnavs[bi]) bnavs[bi].classList.add('active');
   if (name === 'messages') loadMessages();
-  if (name === 'schedule') loadSchedule();
+  if (name === 'schedule') { loadSchedule(); }
   if (name === 'pay') loadPaySummary();
   if (name === 'home') { loadHomeData(); if (scheduleData) renderHomeFeed(); }
+  if (name === 'live') renderLiveOps();
   if (name === 'checklist') {
     updateClCount();
     const noShift = document.getElementById('cl-no-shift');
@@ -2193,6 +2306,240 @@ window.addEventListener('popstate', () => {
   if (cur && cur !== 'home') { history.pushState(null,'',window.location.href); showSect('home'); }
 });
 
+
+
+// ── DRAWER ──
+function openDrawer() {
+  document.getElementById('drawer-overlay').classList.add('open');
+  document.getElementById('drawer').classList.add('open');
+}
+function closeDrawer() {
+  document.getElementById('drawer-overlay').classList.remove('open');
+  document.getElementById('drawer').classList.remove('open');
+}
+
+// ── CLIENT DETAIL SHEET ──
+function openClientSheetByName(clientName) {
+  if (!clientName) return;
+  // Pull from scheduleData.clients (populated by schedule-upcoming)
+  const clients = scheduleData?.clients || window._pswClients || [];
+  const today = new Date().toISOString().slice(0,10);
+  // Try to match by first name or full name
+  let c = clients.find(cl => {
+    const full = ((cl.first_name||'') + ' ' + (cl.last_name||'')).trim();
+    const careName = cl.client_name || cl.full_name || '';
+    return full.toLowerCase() === clientName.toLowerCase() ||
+           careName.toLowerCase() === clientName.toLowerCase() ||
+           (cl.first_name||'').toLowerCase() === clientName.split(' ')[0].toLowerCase();
+  });
+  if (!c) {
+    // Fallback: show name only with whatever we have
+    c = { first_name: clientName.split(' ')[0], last_name: clientName.split(' ').slice(1).join(' ') };
+  }
+  const name = ((c.first_name||'') + ' ' + (c.last_name||'')).trim() || c.client_name || c.full_name || clientName;
+  document.getElementById('cs-name').textContent = name;
+  document.getElementById('cs-status').textContent = (c.status || 'Active').toUpperCase() + ' CLIENT';
+
+  // Today's shift time
+  const todayBookings = (scheduleData?.bookings || []).filter(b =>
+    b.scheduled_date === today && (b.client_name||'').toLowerCase().includes((c.first_name||clientName).toLowerCase())
+  );
+  const shiftDiv = document.getElementById('cs-today-shift');
+  const shiftTime = document.getElementById('cs-shift-time');
+  if (todayBookings.length > 0) {
+    shiftDiv.style.display = 'block';
+    const b = todayBookings[0];
+    shiftTime.textContent = b.scheduled_time || '—';
+  } else {
+    shiftDiv.style.display = 'none';
+  }
+
+  // Build body sections
+  const field = (lbl, val, hi=false) => val
+    ? `<div class="cs-row"><div style="font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);width:100px;flex-shrink:0;">${lbl}</div><div class="cs-val${hi?' hi':''}">${val}</div></div>`
+    : '';
+  const section = (lbl, inner) => inner
+    ? `<div class="cs-section"><div class="cs-section-lbl">${lbl}</div>${inner}</div>`
+    : '';
+
+  let body = '';
+
+  // Care info
+  const careFields = [
+    field('Care notes', c.care_notes || c.care_plan),
+    field('Mobility', c.mobility_level),
+    field('Cognitive', c.cognitive_status),
+    field('Care type', c.care_type),
+  ].filter(Boolean).join('');
+  body += section('Care Profile', careFields);
+
+  // Medications
+  if (c.medications) {
+    body += `<div class="cs-section"><div class="cs-section-lbl">Medications</div>
+      <div style="background:rgba(200,169,110,.06);border:1px solid rgba(200,169,110,.2);border-radius:8px;padding:10px 12px;font-size:13px;color:var(--text);line-height:1.7;">${c.medications}</div></div>`;
+  }
+
+  // Directives / DNR
+  if (c.care_directives || c.dnr) {
+    const dnrText = c.dnr ? '<div style="color:var(--red);font-weight:600;margin-bottom:6px;">⚠ DNR ON FILE — Do Not Resuscitate</div>' : '';
+    body += `<div class="cs-section"><div class="cs-section-lbl">Directives</div>${dnrText}${c.care_directives ? `<div style="font-size:13px;color:var(--muted2);line-height:1.7;">${c.care_directives}</div>` : ''}</div>`;
+  }
+
+  // Emergency contacts
+  let contactsHtml = '';
+  if (c.emergency_contact_1_name || c.emergency_contact_name) {
+    const n1 = c.emergency_contact_1_name || c.emergency_contact_name;
+    const p1 = c.emergency_contact_1_phone || c.emergency_contact_phone;
+    const r1 = c.emergency_contact_1_relation || '';
+    contactsHtml += `<div class="cs-row" style="align-items:center;justify-content:space-between;">
+      <div><div style="font-size:13px;color:var(--text);font-weight:500;">${n1}${r1?' <span style=\'font-size:11px;color:var(--muted);\'>('+r1+')</span>':''}</div></div>
+      ${p1 ? `<a href="tel:${p1}" class="cs-call-btn">📞 Call</a>` : ''}
+    </div>`;
+  }
+  if (c.emergency_contact_2_name) {
+    const n2 = c.emergency_contact_2_name;
+    const p2 = c.emergency_contact_2_phone;
+    const r2 = c.emergency_contact_2_relation || '';
+    contactsHtml += `<div class="cs-row" style="align-items:center;justify-content:space-between;margin-top:8px;">
+      <div><div style="font-size:13px;color:var(--text);font-weight:500;">${n2}${r2?' <span style=\'font-size:11px;color:var(--muted);\'>('+r2+')</span>':''}</div></div>
+      ${p2 ? `<a href="tel:${p2}" class="cs-call-btn">📞 Call</a>` : ''}
+    </div>`;
+  }
+  // Family contact as fallback
+  if (!contactsHtml && (c.family_contact_name || c.family_phone)) {
+    const fn = c.family_contact_name || 'Family';
+    const fp = c.family_phone;
+    contactsHtml = `<div class="cs-row" style="align-items:center;justify-content:space-between;">
+      <div style="font-size:13px;color:var(--text);">${fn}</div>
+      ${fp ? `<a href="tel:${fp}" class="cs-call-btn">📞 Call</a>` : ''}
+    </div>`;
+  }
+  body += section('Emergency Contacts', contactsHtml);
+
+  document.getElementById('cs-body').innerHTML = body || '<div class="empty-state" style="padding:20px;">Care details will appear here once the care plan is set up in HQ.</div>';
+
+  // Open sheet
+  document.getElementById('client-sheet-overlay').classList.add('open');
+  document.getElementById('client-sheet').classList.add('open');
+}
+
+function closeClientSheet() {
+  document.getElementById('client-sheet-overlay').classList.remove('open');
+  document.getElementById('client-sheet').classList.remove('open');
+}
+
+// ── VISIT DETAIL SHEET ──
+function openVisitDetail(vid) {
+  const v = window['_feedVisit_' + vid];
+  if (!v) return;
+  document.getElementById('vd-client').textContent = v.client_name || '—';
+  document.getElementById('vd-date').textContent = fmtd(v.visit_date) + (v.time_in ? ' · ' + fmtTime(v.time_in) + (v.time_out ? ' – ' + fmtTime(v.time_out) : '') : '');
+  const hrs = parseFloat(v.hours_worked||0).toFixed(1);
+  const tasks = Array.isArray(v.tasks_completed) ? v.tasks_completed.join(', ') : (v.tasks_completed||'');
+  const meds = Array.isArray(v.meds_given) ? v.meds_given.join(', ') : (v.meds_given||'');
+  let body = `<div class="cs-section">
+    <div class="cs-section-lbl">Visit Summary</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">
+      <div style="background:var(--bg3);border-radius:8px;padding:10px 12px;text-align:center;">
+        <div style="font-family:var(--mono);font-size:18px;color:var(--teal2);">${hrs}h</div>
+        <div style="font-family:var(--mono);font-size:8px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-top:2px;">Hours</div>
+      </div>
+      <div style="background:var(--bg3);border-radius:8px;padding:10px 12px;text-align:center;">
+        <div style="font-size:18px;">${v.client_mood ? {'Great':'😊','Good':'🙂','Neutral':'😐','Low':'😔','Agitated':'😤'}[v.client_mood]||v.client_mood : '—'}</div>
+        <div style="font-family:var(--mono);font-size:8px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-top:2px;">Mood</div>
+      </div>
+    </div>
+    ${tasks ? `<div style="font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;">Tasks Completed</div><div style="font-size:13px;color:var(--muted2);line-height:1.7;margin-bottom:10px;">${tasks}</div>` : ''}
+    ${meds ? `<div style="font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;">Medications Given</div><div style="font-size:13px;color:var(--text);margin-bottom:10px;">${meds}</div>` : ''}
+    ${v.visit_summary ? `<div style="font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;">AI Care Summary</div><div style="font-size:13px;color:var(--muted2);line-height:1.8;background:var(--bg3);border-radius:8px;padding:10px 12px;">${v.visit_summary}</div>` : ''}
+    ${v.observations ? `<div style="font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-top:10px;margin-bottom:6px;">Observations</div><div style="font-size:13px;color:var(--muted2);line-height:1.8;">${v.observations}</div>` : ''}
+  </div>`;
+  document.getElementById('vd-body').innerHTML = body;
+  document.getElementById('visit-detail-overlay').classList.add('open');
+  document.getElementById('visit-detail-sheet').classList.add('open');
+}
+
+function closeVisitDetail() {
+  document.getElementById('visit-detail-overlay').classList.remove('open');
+  document.getElementById('visit-detail-sheet').classList.remove('open');
+}
+
+// ── LIVE OPS ──
+function renderLiveOps() {
+  if (!scheduleData) { loadSchedule().then(renderLiveOps); return; }
+  const today = new Date().toISOString().slice(0,10);
+  const visits = scheduleData.completed_visits || [];
+  const bookings = scheduleData.bookings || [];
+
+  // On shift now
+  const onShiftEl = document.getElementById('live-on-shift-list');
+  if (activeVisit) {
+    const ini = (activeVisit.client_name||'?').split(' ').map(w=>w[0]||'').join('').toUpperCase().slice(0,2);
+    const mins = Math.round((Date.now() - new Date(activeVisit.checkin_time||Date.now())) / 60000);
+    const elapsed = mins >= 60 ? `${Math.floor(mins/60)}h ${mins%60}m` : `${mins}m`;
+    onShiftEl.innerHTML = `<div class="live-row">
+      <div class="live-ini">${ini}</div>
+      <div class="live-info">
+        <div class="live-name">${activeVisit.client_name||'—'}</div>
+        <div class="live-meta">Checked in ${activeVisit.time_in ? fmtTime(activeVisit.time_in) : '—'}</div>
+      </div>
+      <div class="live-time">${elapsed}</div>
+    </div>`;
+    const badge = document.getElementById('drawer-live-badge');
+    if (badge) badge.style.display = '';
+  } else {
+    onShiftEl.innerHTML = '<div class="empty-state" style="padding:14px;font-size:13px;">No active visit right now</div>';
+  }
+
+  // Today completed
+  const completedEl = document.getElementById('live-completed-list');
+  const todayVisits = visits.filter(v => v.visit_date === today);
+  if (todayVisits.length) {
+    completedEl.innerHTML = todayVisits.map(v => {
+      const hrs = parseFloat(v.hours_worked||0).toFixed(1);
+      return `<div class="live-row">
+        <div class="live-ini" style="background:rgba(74,154,110,.12);border-color:rgba(74,154,110,.3);color:var(--green2);">✓</div>
+        <div class="live-info">
+          <div class="live-name">${v.client_name||'—'}</div>
+          <div class="live-meta">${fmtTime(v.time_in)} – ${fmtTime(v.time_out)} · ${v.client_mood||'—'}</div>
+        </div>
+        <div style="font-family:var(--mono);font-size:12px;color:var(--green2);">${hrs}h</div>
+      </div>`;
+    }).join('');
+  } else {
+    completedEl.innerHTML = '<div class="empty-state" style="padding:14px;font-size:13px;">No visits completed today yet</div>';
+  }
+
+  // Upcoming today
+  const upcomingEl = document.getElementById('live-upcoming-list');
+  const todayBookings = bookings.filter(b => b.scheduled_date === today);
+  const pendingBookings = todayBookings.filter(b => {
+    const done = todayVisits.some(v => v.client_name === b.client_name);
+    const active = activeVisit && activeVisit.client_name === b.client_name;
+    return !done && !active;
+  });
+  if (pendingBookings.length) {
+    upcomingEl.innerHTML = pendingBookings.map(b => `<div class="live-row">
+      <div class="live-ini" style="background:rgba(200,169,110,.08);border-color:rgba(200,169,110,.2);color:var(--gold);">◷</div>
+      <div class="live-info">
+        <div class="live-name">${b.client_name||'—'}</div>
+        <div class="live-meta">Scheduled ${b.scheduled_time||'TBD'}</div>
+      </div>
+    </div>`).join('');
+  } else {
+    upcomingEl.innerHTML = '<div class="empty-state" style="padding:14px;font-size:13px;">All shifts covered for today</div>';
+  }
+}
+
+// ── fmtTime helper (converts HH:MM:SS to 12hr) ──
+function fmtTime(str) {
+  if (!str) return '—';
+  try {
+    const [h, m] = str.split(':');
+    const d = new Date(); d.setHours(parseInt(h),parseInt(m),0,0);
+    return d.toLocaleTimeString('en-CA',{hour:'2-digit',minute:'2-digit',hour12:true});
+  } catch { return str; }
+}
 
 // ── SESSION RESTORE — skip PIN if already authenticated ──
 (function() {
@@ -2246,11 +2593,16 @@ async function toggleVoiceRecord() {
       secs++;
       const remaining = 30 - secs;
       if (remaining <= 5 && remaining > 0) {
-        status.textContent = secs + 's / 30s — ' + remaining + 's left';
-        status.style.color = 'var(--amber)';
+        status.textContent = '⚠ ' + remaining + 's remaining!';
+        status.style.color = 'var(--red)';
+        status.style.fontWeight = '600';
+        status.style.fontSize = '13px';
+        if (window.navigator.vibrate) window.navigator.vibrate(50);
       } else {
         status.textContent = secs + 's / 30s';
-        status.style.color = '';
+        status.style.color = secs > 20 ? 'var(--amber)' : '';
+        status.style.fontWeight = '';
+        status.style.fontSize = '';
       }
       if (secs >= 30) {
         window._mediaRecorder.stop(); clearInterval(window._recordTimer); window._recordTimer = null;
