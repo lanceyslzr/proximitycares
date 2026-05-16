@@ -733,7 +733,7 @@ let pswOperatorId = (function() {
   } catch { return 'proximity-care'; }
 })();
 let activeVisit = null;
-let selectedMood = 'Great';
+let selectedMood = null; // reset to null — never pre-select a mood
 let weekOffset = 0;
 let scheduleData = null;
 let elapsedTimer = null;
@@ -973,7 +973,7 @@ function updateDots() { for (let i = 0; i < 4; i++) document.getElementById('ld'
 
 async function verifyPin() {
   try {
-    const res = await fetch(`${API}/psw/notes/${encodeURIComponent(pswName)}?pin=${pswPin}`);
+    const res = await fetch(`${API}/psw/notes/${encodeURIComponent(pswName)}?pin=${pswPin}&operator_id=${pswOperatorId}`);
     return res.ok;
   } catch { return false; }
 }
@@ -1017,7 +1017,7 @@ function unlockApp() {
 // pswEmail fetched for future use in email-based features
 async function fetchPSWEmail() {
   try {
-    const res = await fetch(`${API}/psw/notes/${encodeURIComponent(pswName)}?pin=${pswPin}`);
+    const res = await fetch(`${API}/psw/notes/${encodeURIComponent(pswName)}?pin=${pswPin}&operator_id=${pswOperatorId}`);
     const d = await res.json();
     if (d.psw_email) pswEmail = d.psw_email;
     // Show PSW email in topbar if available
@@ -1776,7 +1776,7 @@ function toggleDetail(id) {
 async function loadMessages(scroll=true) {
   const el = document.getElementById('msg-thread');
   try {
-    const res = await fetch(`${API}/psw/notes/${encodeURIComponent(pswName)}?pin=${pswPin}`);
+    const res = await fetch(`${API}/psw/notes/${encodeURIComponent(pswName)}?pin=${pswPin}&operator_id=${pswOperatorId}`);
     const d = await res.json();
     const notes = d.notes || [];
     const unreadNotes = notes.filter(n => n.sender === 'lance' && !n.read_at);
@@ -1796,7 +1796,7 @@ async function sendMsg() {
   const msg = document.getElementById('msg-input').value.trim();
   if (!msg) return;
   try {
-    const res = await fetch(`${API}/psw/note`, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({psw_name:pswName,sender:'psw',message:msg,pin:pswPin})});
+    const res = await fetch(`${API}/psw/note`, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({psw_name:pswName,sender:'psw',message:msg,pin:pswPin,operator_id:pswOperatorId})});
     const d = await res.json();
     if (!d.success) throw new Error();
     document.getElementById('msg-input').value = '';
@@ -1809,7 +1809,7 @@ async function sendMsg() {
 async function loadDocuments() {
   const el = document.getElementById('docs-list');
   try {
-    const res = await fetch(`${API}/psw/notes/${encodeURIComponent(pswName)}?pin=${pswPin}`);
+    const res = await fetch(`${API}/psw/notes/${encodeURIComponent(pswName)}?pin=${pswPin}&operator_id=${pswOperatorId}`);
     const d = await res.json();
     const rec = d.psw_record;
     if (!rec) { el.innerHTML = '<div class="empty-state" style="padding:20px;">No documents on file</div>'; return; }
