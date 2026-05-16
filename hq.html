@@ -619,6 +619,33 @@ button:active{transform:scale(0.98);}
 .lead-swipe-inner.swiped{transform:translateX(-80px);}
 .lead-swipe-delete.visible{transform:translateX(0);}
 
+/* ── TODAY SHIFT ROW UPGRADES ── */
+.tsr-expand{display:none;padding:10px 14px 12px;border-top:1px solid var(--border);background:var(--bg3);}
+.tsr-expand.open{display:block;}
+.tsr-action-row{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;}
+.tsr-act{font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;padding:8px 14px;border-radius:6px;border:1px solid var(--border2);color:var(--teal2);cursor:pointer;min-height:40px;display:flex;align-items:center;touch-action:manipulation;}
+.tsr-act:active{background:rgba(61,138,122,.1);}
+.tsr-act.warn{color:var(--amber);border-color:rgba(224,154,61,.3);}
+.today-shift-row{cursor:pointer;}
+.today-shift-row:active{background:var(--bg3);}
+/* ── CLIENT CARD UPGRADES ── */
+.card-info-strip{display:flex;align-items:center;gap:8px;padding:6px 14px 10px;flex-wrap:wrap;}
+.card-info-chip{font-family:var(--mono);font-size:9px;letter-spacing:1px;padding:3px 8px;border-radius:100px;border:1px solid var(--border);color:var(--muted2);white-space:nowrap;}
+.card-info-chip.active{color:var(--teal2);border-color:rgba(61,138,122,.3);}
+.card-info-chip.warn{color:var(--amber);border-color:rgba(224,154,61,.3);}
+.card-info-chip.err{color:var(--red);border-color:rgba(224,85,85,.3);}
+/* ── PSW CARD UPGRADES ── */
+.psw-on-shift-bar{display:flex;align-items:center;gap:8px;padding:6px 14px;background:rgba(61,138,122,.06);border-top:1px solid rgba(61,138,122,.12);}
+.psw-shift-dot{width:7px;height:7px;border-radius:50%;background:var(--green2);animation:livepulse 1.5s infinite;flex-shrink:0;}
+/* ── VISIT PSW FILTER ── */
+.psw-filter-select{font-family:var(--mono);font-size:10px;padding:7px 10px;border-radius:6px;border:1px solid var(--border2);background:var(--bg3);color:var(--text);min-height:38px;cursor:pointer;max-width:160px;}
+/* ── STAFF STATUS ELAPSED ── */
+.att-elapsed{font-family:var(--mono);font-size:10px;color:var(--amber);margin-left:auto;}
+/* ── MOBILE CARD POLISH ── */
+.card{transition:background .12s;}
+.card-header{min-height:52px;}
+.card-actions{padding:8px 14px 10px;gap:8px;}
+.card-act{min-height:36px;padding:7px 12px;font-size:9px;}
 @media(max-width:1024px){
   .section{padding:0 8px;}
   .sect-head-row{flex-wrap:wrap;gap:6px;}
@@ -1137,9 +1164,12 @@ button:active{transform:scale(0.98);}
     <div style="background:var(--bg2);padding:10px 6px;text-align:center;"><div style="font-family:var(--mono);font-size:16px;font-weight:500;color:var(--text);" id="vmt-hours">—</div><div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-top:3px;">Hours</div></div>
     <div style="background:var(--bg2);padding:10px 6px;text-align:center;"><div style="font-family:var(--mono);font-size:16px;font-weight:500;color:var(--text);" id="vmt-psws">—</div><div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-top:3px;">PSWs</div></div>
   </div>
-  <div class="list-search-wrap" style="display:flex;gap:8px;align-items:center;">
+  <div class="list-search-wrap" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
     <span class="list-search-icon" style="font-size:14px;">⌕</span>
-    <input class="list-search" id="visits-search" placeholder="Search by PSW or client..." oninput="filterList('visits-list','visits-search')" autocomplete="off" style="flex:1;">
+    <input class="list-search" id="visits-search" placeholder="Search by PSW or client..." oninput="filterList('visits-list','visits-search')" autocomplete="off" style="flex:1;min-width:120px;">
+    <select id="visits-psw-filter" class="psw-filter-select" onchange="visitPswFilter=this.value;renderVisits()">
+      <option value="">All PSWs</option>
+    </select>
     <button onclick="openManualVisitSheet()" style="flex-shrink:0;font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;padding:6px 12px;border-radius:6px;border:1px solid rgba(200,169,110,.3);background:rgba(200,169,110,.08);color:var(--gold);cursor:pointer;min-height:34px;white-space:nowrap;">+ Manual Visit</button>
   </div>
   <div id="visits-list"><div class="empty-state">Loading visits...</div></div>
@@ -2134,15 +2164,27 @@ function renderClients() {
       : '';
     // C8 — referral source
     const refSource = c.referral_source ? `<span style="font-family:var(--mono);font-size:9px;color:var(--muted);margin-left:4px;">· ${c.referral_source}</span>` : '';
+    // Last visit for this client
+    const clientVisits = (D.visits||[]).filter(v => v.client_name === name).sort((a,b) => (b.visit_date||'').localeCompare(a.visit_date||''));
+    const lastV = clientVisits[0];
+    const lastVisitChip = lastV
+      ? `<span class="card-info-chip active">Last visit ${fmtd(lastV.visit_date)}${lastV.client_mood?' · '+lastV.client_mood:''}</span>`
+      : `<span class="card-info-chip">No visits yet</span>`;
+    const pswChip = c.assigned_psw
+      ? `<span class="card-info-chip">PSW: ${c.assigned_psw.split(' ')[0]}</span>`
+      : `<span class="card-info-chip warn">⚑ Unassigned</span>`;
+    const onShiftNow = (D.visits||[]).some(v => v.client_name===name && v.visit_date===new Date().toISOString().slice(0,10) && v.time_in && !v.time_out);
+    const onShiftChip = onShiftNow ? `<span class="card-info-chip active" style="color:var(--green2);border-color:rgba(74,154,110,.3);">⬤ On Shift</span>` : '';
     return `
     <div class="card">
       <div class="card-header" onclick="openClientDetail('${c.id}')">
         <div style="display:flex;align-items:center;gap:11px;flex:1;">
           <div class="avatar">${ini}</div>
-          <div><div class="card-name">${name}</div><div class="card-sub">${c.client_code?'<span style="font-family:var(--mono);color:var(--teal3);">'+c.client_code+'</span> · ':''} ${c.portal_slug||c.email||'—'}${refSource}</div><div class="card-meta">Since ${fmtd(c.created_at)}</div></div>
+          <div><div class="card-name">${name}</div><div class="card-sub">${c.client_code?'<span style="font-family:var(--mono);color:var(--teal3);">'+c.client_code+'</span> · ':''} ${c.portal_slug||c.email||'—'}${refSource}</div></div>
         </div>
-        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;"><span class="badge b-active">Active</span>${sentBadge}${overdueBadge}${consentBadge}</div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">${onShiftChip||'<span class="badge b-active">Active</span>'}${sentBadge}${overdueBadge}${consentBadge}</div>
       </div>
+      <div class="card-info-strip">${lastVisitChip}${pswChip}</div>
       <div class="card-actions">
         <div class="card-act" data-cn="${name.replace(/"/g,'&quot;')}" data-em="${(c.family_email||c.email||'').replace(/"/g,'&quot;')}" data-pw="${(c.assigned_psw||'').replace(/"/g,'&quot;')}" data-cr="${c.client_rate||22}" data-pr="${c.psw_rate||19}" onclick="genInvoice(this.dataset.cn,this.dataset.em,this.dataset.pw,parseFloat(this.dataset.cr),parseFloat(this.dataset.pr))">Invoice</div>
         <div class="card-act primary" onclick="openClientSchedule('${name}')">Schedule</div>
@@ -2514,6 +2556,28 @@ function renderPSWs() {
     const probationBadge = onProbation
       ? `<span style="font-family:var(--mono);font-size:8px;letter-spacing:1px;padding:2px 6px;border-radius:100px;border:1px solid ${probationSoon?'rgba(224,85,85,.4)':'rgba(224,154,61,.4)'};color:${probationSoon?'var(--red)':'var(--amber)'};margin-left:4px;">PROBATION${probationSoon?' ⚠':''}</span>`
       : '';
+    // On-shift status
+    const todayStr2 = new Date().toISOString().slice(0,10);
+    const activeShift = (D.visits||[]).find(v => v.psw_name===p.name && v.visit_date===todayStr2 && v.time_in && !v.time_out);
+    const doneToday = (D.visits||[]).find(v => v.psw_name===p.name && v.visit_date===todayStr2 && v.time_out);
+    const pswVisits = (D.visits||[]).filter(v => v.psw_name===p.name).sort((a,b) => (b.visit_date||'').localeCompare(a.visit_date||''));
+    const lastPswV = pswVisits[0];
+    let shiftBar = '';
+    if (activeShift) {
+      let pswElapsed = '';
+      try {
+        const [hh,mm] = (activeShift.time_in||'').split(':');
+        const cdt = new Date(); cdt.setHours(parseInt(hh),parseInt(mm),0,0);
+        const mins = Math.round((new Date() - cdt) / 60000);
+        pswElapsed = mins >= 60 ? `${Math.floor(mins/60)}h ${mins%60}m` : `${mins}m`;
+      } catch {}
+      shiftBar = `<div class="psw-on-shift-bar"><div class="psw-shift-dot"></div><div style="flex:1;font-family:var(--mono);font-size:10px;color:var(--green2);">On Shift — ${activeShift.client_name||'—'}</div>${pswElapsed?`<div style="font-family:var(--mono);font-size:10px;color:var(--amber);">${pswElapsed}</div>`:''}</div>`;
+    } else if (doneToday) {
+      shiftBar = `<div class="psw-on-shift-bar" style="background:rgba(61,138,122,.04);"><div style="width:7px;height:7px;border-radius:50%;background:var(--teal2);flex-shrink:0;"></div><div style="flex:1;font-family:var(--mono);font-size:10px;color:var(--teal2);">Done today — ${doneToday.client_name||'—'}</div></div>`;
+    }
+    const lastVisitInfo = lastPswV && lastPswV.visit_date !== todayStr2
+      ? `<div class="card-info-strip"><span class="card-info-chip">Last visit ${fmtd(lastPswV.visit_date)}</span>${lastPswV.client_mood?`<span class="card-info-chip active">${lastPswV.client_mood}</span>`:''}</div>`
+      : '';
     return `
     <div class="card">
       <div class="card-header" data-psw-id="${p.id||''}" data-psw-name="${p.name}" data-psw-source="${p.source||'live'}" onclick="if(this.dataset.pswSource==='live'){openPSWDetail(this.dataset.pswId||this.dataset.pswName);}else{showToast('PSW not yet activated in Supabase','err');}" style="cursor:pointer;">
@@ -2521,8 +2585,10 @@ function renderPSWs() {
           <div class="avatar">${ini}</div>
           <div><div class="card-name">${p.name}${probationBadge}</div><div class="card-sub">${p.psw_code||p.id?'<span style="font-family:var(--mono);font-size:10px;color:var(--teal3);">'+(p.psw_code||'')+'</span> · ':''} ${email||'No email on file'}</div></div>
         </div>
-        ${statusBadge}
+        ${activeShift ? '<span class="badge" style="background:rgba(74,154,110,.15);color:var(--green2);border:1px solid rgba(74,154,110,.3);">On Shift</span>' : statusBadge}
       </div>
+      ${shiftBar}
+      ${lastVisitInfo}
       <div class="card-actions">
         ${email?`<div class="card-act call" onclick="window.location.href='mailto:${email}'">Email</div>`:''}
         <div class="card-act" onclick="openPSWMsg('${p.name}')">Message</div>
@@ -2823,6 +2889,7 @@ async function sendBroadcast() {
 
 // ── VISITS ──
 let visitRangeMode = 'month';
+let visitPswFilter = ''; // PSW filter on visits tab — '' = all
 let visitCustomFrom = '';
 let visitCustomTo = '';
 
@@ -2857,6 +2924,9 @@ function getVisitDateRange() {
 
 function setVisitRange(mode) {
   visitRangeMode = mode;
+  visitPswFilter = ''; // Reset PSW filter when date range changes
+  const psfEl = document.getElementById('visits-psw-filter');
+  if (psfEl) psfEl.value = '';
   if (mode !== 'custom') { visitCustomFrom = ''; visitCustomTo = ''; }
   document.querySelectorAll('.vr-chip').forEach(c => {
     const active = c.dataset.range === mode;
@@ -2903,10 +2973,22 @@ async function renderVisits() {
 
     // Filter by selected range
     const allVisits = d.visits || [];
-    const visits = allVisits.filter(v => {
+    const rangeFiltered = allVisits.filter(v => {
       if (!v.visit_date) return false;
       return v.visit_date >= range.from && v.visit_date <= range.to;
     });
+    // Populate PSW dropdown
+    const pswFilterEl = document.getElementById('visits-psw-filter');
+    if (pswFilterEl) {
+      const pswNames = [...new Set(rangeFiltered.map(v=>v.psw_name).filter(Boolean))].sort();
+      const curVal = pswFilterEl.value;
+      pswFilterEl.innerHTML = '<option value="">All PSWs</option>' +
+        pswNames.map(n => `<option value="${n}"${n===curVal?' selected':''}>${n}</option>`).join('');
+    }
+    // Apply PSW filter
+    const visits = visitPswFilter
+      ? rangeFiltered.filter(v => v.psw_name === visitPswFilter)
+      : rangeFiltered;
 
     // Range totals
     const totalHours = visits.reduce((sum,v) => sum + parseFloat(v.hours_worked||0), 0);
@@ -2929,10 +3011,11 @@ async function renderVisits() {
         .sort((a,b) => b[1].hours - a[1].hours)
         .map(([name, s]) => {
           const ini = name.split(' ').map(w=>w[0]||'').join('').toUpperCase().slice(0,2);
-          return `<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--border);">
+          const _safeName = name.replace(/'/g,'').replace(/"/g,'');
+          return `<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--border);cursor:pointer;" onclick="visitPswFilter=visitPswFilter==='${_safeName}'?'':'${_safeName}';document.getElementById('visits-psw-filter').value=visitPswFilter;renderVisits();" title="Filter by ${_safeName}">
             <div style="width:30px;height:30px;border-radius:50%;background:rgba(61,138,122,.15);border:1px solid rgba(61,138,122,.3);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:10px;color:var(--teal2);flex-shrink:0;">${ini}</div>
             <div style="flex:1;min-width:0;"><div style="font-size:13px;color:var(--text);font-weight:500;">${name}</div><div style="font-family:var(--mono);font-size:9px;color:var(--muted);margin-top:1px;">${s.visits} visit${s.visits!==1?'s':''}</div></div>
-            <div style="text-align:right;"><div style="font-family:var(--mono);font-size:13px;color:var(--teal2);">${s.hours.toFixed(1)}h</div></div>
+            <div style="text-align:right;"><div style="font-family:var(--mono);font-size:13px;color:var(--teal2);">${s.hours.toFixed(1)}h</div><div style="font-family:var(--mono);font-size:8px;color:var(--muted);margin-top:2px;">tap to filter</div></div>
           </div>`;
         }).join('');
       pswBreakdownEl.style.display = 'block';
@@ -3098,7 +3181,18 @@ function showSect(name) {
   const bnavs=document.querySelectorAll('.bnav-item');
   if(bi>=0&&bnavs[bi]) bnavs[bi].classList.add('active');
   if(name==='onboard') populateOnboardSelects();
-  if(name==='messages') { window._dirtyMessages=false; renderMessages(); loadFamilyNotes(); }
+  if(name==='messages') {
+    window._dirtyMessages=false; renderMessages(); loadFamilyNotes();
+    // Auto-refresh messages every 30s while active
+    if (window._msgRefreshInterval) clearInterval(window._msgRefreshInterval);
+    window._msgRefreshInterval = setInterval(() => {
+      if (document.querySelector('.section.active')?.id === 'sect-messages') {
+        loadAll(false).then(() => renderMessages()).catch(() => {});
+      } else {
+        clearInterval(window._msgRefreshInterval); window._msgRefreshInterval = null;
+      }
+    }, 30000);
+  }
   if(name==='activity') { window._dirtyActivity=false; renderActivity(); }
   if(name==='revenue') { window._dirtyRevenue=false; renderRevenue().catch(e=>showToast('Revenue load failed','err')); }
   if(name==='crm') { window._dirtyCRM=false; renderCRM(); }
@@ -4109,7 +4203,7 @@ async function _patchBooking(id, updates, fcInfo) {
     });
     const d = await res.json();
     if (!d.success) throw new Error(d.error||'Failed');
-    showToast('Shift updated', 'ok');
+    showToast('Shift updated ✓', 'ok'); // PSW toast fires below after pswToNotify resolved
     const freshRes = await fetch(`${API}/hq/overview?operator_id=${currentOp}`);
     const freshD = await freshRes.json();
     if (freshD.success) { D = freshD; _mergedPSWCache = null; }
@@ -4129,6 +4223,8 @@ async function _patchBooking(id, updates, fcInfo) {
         method: 'POST', headers: {'Content-Type':'application/json'},
         body: JSON.stringify({ psw_name: pswToNotify, sender: 'lance', message: _pmsg, operator_id: currentOp })
       }).catch(() => {});
+      // Update toast to confirm notification
+      setTimeout(() => showToast(`Notified ${pswToNotify.split(' ')[0]} ✓`, 'ok'), 400);
     }
   } catch(e) {
     showToast(e.message, 'err');
@@ -5473,8 +5569,8 @@ function renderOverview() {
     psws.forEach(p => { pswStatuses[p.full_name||p.name] = {name:p.full_name||p.name, status:'off', client:'—'}; });
     visits.filter(v => v.visit_date===today).forEach(v => {
       const n = v.psw_name;
-      if (!pswStatuses[n]) pswStatuses[n] = {name:n, status:'off', client:'—'};
-      if (v.time_in && !v.time_out) { pswStatuses[n].status='active'; pswStatuses[n].client=v.client_name||'—'; }
+      if (!pswStatuses[n]) pswStatuses[n] = {name:n, status:'off', client:'—', time_in:null};
+      if (v.time_in && !v.time_out) { pswStatuses[n].status='active'; pswStatuses[n].client=v.client_name||'—'; pswStatuses[n].time_in=v.time_in; }
       else if (v.time_out) { pswStatuses[n].status='done'; pswStatuses[n].client=v.client_name||'—'; }
     });
     const rows = Object.values(pswStatuses).filter(r => r.status!=='off').slice(0,8);
@@ -5482,13 +5578,26 @@ function renderOverview() {
     if (!rows.length) {
       attEl.innerHTML = '<div class="empty-state" style="padding:14px;">No PSWs on shift today</div>';
     } else {
-      attEl.innerHTML = rows.map(r => `
-        <div style="display:flex;align-items:center;gap:10px;padding:9px 14px;border-bottom:1px solid var(--border);">
+      attEl.innerHTML = rows.map(r => {
+        let elapsedStr = '';
+        if (r.status === 'active' && r.time_in) {
+          try {
+            const [hh, mm] = r.time_in.split(':');
+            const cdt = new Date(); cdt.setHours(parseInt(hh), parseInt(mm), 0, 0);
+            const mins = Math.round((now - cdt) / 60000);
+            elapsedStr = mins >= 60 ? `${Math.floor(mins/60)}h ${mins%60}m` : `${mins}m`;
+          } catch {}
+        }
+        return `<div style="display:flex;align-items:center;gap:10px;padding:9px 14px;border-bottom:1px solid var(--border);">
           <div style="width:8px;height:8px;border-radius:50%;background:${dotColor[r.status]||'var(--muted)'};flex-shrink:0;${r.status==='active'?'animation:livepulse 2s infinite':''}"></div>
-          <div style="flex:1;font-size:12px;font-weight:500;color:var(--text);">${r.name}</div>
-          <div style="font-family:var(--mono);font-size:10px;color:var(--muted2);">${r.client}</div>
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:12px;font-weight:500;color:var(--text);">${r.name}</div>
+            <div style="font-family:var(--mono);font-size:10px;color:var(--muted2);">${r.client}</div>
+          </div>
+          ${elapsedStr ? `<div class="att-elapsed">${elapsedStr}</div>` : ''}
           <div style="font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:${r.status==='active'?'var(--green2)':'var(--teal2)'};">${r.status==='active'?'On Shift':'Done'}</div>
-        </div>`).join('');
+        </div>`;
+      }).join('');
     }
   }
 
@@ -6097,10 +6206,43 @@ function renderToday() {
         const isActive = visits.some(v => v.client_name===b.client_name && v.visit_date===today && v.time_in && !v.time_out);
         const status = isActive ? 'On Shift' : hasVisit ? 'Done' : !b.assigned_to ? 'Unassigned' : 'Scheduled';
         const col = isActive?'var(--green2)':hasVisit?'var(--teal2)':!b.assigned_to?'var(--amber)':'var(--muted2)';
-        return `<div class="today-shift-row" onclick="showSect('schedule')">
-          <span class="tsr-time">${b.scheduled_time||'—'}</span>
-          <div style="flex:1;min-width:0;"><div class="tsr-client">${b.client_name||'—'}</div><div class="tsr-psw">${b.assigned_to||'⚑ Unassigned'}</div></div>
-          <span class="tsr-status" style="color:${col};">${status}</span>
+        const _tsrId = 'tsr_' + b.id;
+        const _safePSW = (b.assigned_to||'').replace(/'/g,'').replace(/"/g,'');
+        const _safeClient = (b.client_name||'').replace(/'/g,'').replace(/"/g,'');
+        const activeV = visits.find(v => v.client_name===b.client_name && v.visit_date===today && v.time_in && !v.time_out);
+        const checkinTime = activeV?.time_in || activeV?.checkin_time;
+        let elapsedStr = '';
+        if (activeV && checkinTime) {
+          const [hh, mm] = checkinTime.split(':');
+          const cdt = new Date(); cdt.setHours(parseInt(hh),parseInt(mm),0,0);
+          const mins = Math.round((now - cdt) / 60000);
+          elapsedStr = mins >= 60 ? `${Math.floor(mins/60)}h ${mins%60}m` : `${mins}m`;
+        }
+        const gps = activeV?.checkin_distance_m != null ? `📍 ${activeV.checkin_distance_m}m` : '';
+        return `<div>
+          <div class="today-shift-row" onclick="document.getElementById('${_tsrId}').classList.toggle('open')">
+            <span class="tsr-time">${b.scheduled_time||'—'}</span>
+            <div style="flex:1;min-width:0;"><div class="tsr-client">${b.client_name||'—'}</div><div class="tsr-psw">${b.assigned_to||'⚑ Unassigned'}</div></div>
+            <div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px;">
+              <span class="tsr-status" style="color:${col};">${status}</span>
+              ${elapsedStr ? `<span style="font-family:var(--mono);font-size:9px;color:var(--amber);">${elapsedStr}</span>` : ''}
+              ${gps ? `<span style="font-family:var(--mono);font-size:9px;color:var(--teal2);">${gps}</span>` : ''}
+            </div>
+          </div>
+          <div class="tsr-expand" id="${_tsrId}">
+            <div style="font-size:12px;color:var(--muted2);line-height:1.7;">
+              ${b.client_name ? `<div><span style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;">Client</span> · ${b.client_name}</div>` : ''}
+              ${b.assigned_to ? `<div><span style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;">PSW</span> · ${b.assigned_to}</div>` : ''}
+              ${b.duration_minutes ? `<div><span style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;">Duration</span> · ${(b.duration_minutes/60).toFixed(1)}h scheduled</div>` : ''}
+              ${elapsedStr ? `<div><span style="font-family:var(--mono);font-size:9px;color:var(--amber);letter-spacing:1px;text-transform:uppercase;">Elapsed</span> · ${elapsedStr}</div>` : ''}
+              ${gps ? `<div><span style="font-family:var(--mono);font-size:9px;color:var(--teal2);letter-spacing:1px;text-transform:uppercase;">GPS</span> · ${gps} from client address</div>` : ''}
+            </div>
+            <div class="tsr-action-row">
+              ${_safePSW ? `<div class="tsr-act" onclick="event.stopPropagation();openPSWMsg('${_safePSW}')">💬 Message ${_safePSW.split(' ')[0]}</div>` : ''}
+              <div class="tsr-act" onclick="event.stopPropagation();showSect('schedule')">📅 Schedule</div>
+              ${isActive && _safeClient ? `<div class="tsr-act warn" onclick="event.stopPropagation();showSect('visits')">📋 Visit Log</div>` : ''}
+            </div>
+          </div>
         </div>`;
       }).join('');
     }
@@ -6249,6 +6391,7 @@ function lockHQ() {
   if (window._pollInterval) { clearInterval(window._pollInterval); window._pollInterval = null; }
   if (window._mapInterval) { clearInterval(window._mapInterval); window._mapInterval = null; }
   if (attendanceTimer) { clearInterval(attendanceTimer); attendanceTimer = null; }
+  if (window._msgRefreshInterval) { clearInterval(window._msgRefreshInterval); window._msgRefreshInterval = null; }
   // Clear state so data is not accessible via console
   _mergedPSWCache = null;
   _hqFetching = false;
