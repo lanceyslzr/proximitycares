@@ -454,8 +454,8 @@ a{color:inherit;text-decoration:none;}
 .vf-submit-btn:disabled{opacity:.4;pointer-events:none;}
 .vf-submitted-chip{display:inline-flex;align-items:center;gap:4px;font-family:var(--mono);font-size:9px;letter-spacing:1px;padding:4px 10px;border-radius:100px;background:rgba(61,138,122,.08);border:1px solid rgba(61,138,122,.25);color:var(--teal2);}
 /* ── MINI CAL DAY POPUP ── */
-.cal-day-overlay{display:none;position:fixed;inset:0;z-index:410;background:rgba(0,0,0,.6);}
-.cal-day-overlay.open{display:block;}
+.cal-day-overlay{position:fixed;inset:0;z-index:410;background:rgba(0,0,0,.6);opacity:0;pointer-events:none;transition:opacity .28s;}
+.cal-day-overlay.open{opacity:1;pointer-events:all;}
 .cal-day-popup{position:fixed;bottom:0;left:0;right:0;background:var(--bg2);border-radius:18px 18px 0 0;max-height:70vh;overflow-y:auto;z-index:411;transform:translateY(100%);transition:transform .28s cubic-bezier(.4,0,.2,1);}
 .cal-day-popup.open{transform:translateY(0);}
 .cal-popup-hdr{padding:16px 16px 10px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);}
@@ -3143,7 +3143,7 @@ function renderMiniCal() {
     let cls = 'mini-cal-day';
     if (hasShift) cls += ' has-shift';
     if (isToday) cls += ' today-cal';
-    html += `<div class="${cls}" onclick="miniCalSelectDay('${dateStr}')">${d}</div>`;
+    html += `<div class="${cls}" data-date="${dateStr}" onclick="miniCalSelectDay('${dateStr}')">${d}</div>`;
   }
 
   gridEl.innerHTML = html;
@@ -3154,7 +3154,8 @@ function miniCalNext() { _miniCalMonth++; if (_miniCalMonth > 11) { _miniCalMont
 function miniCalSelectDay(dateStr) {
   // Mark selected state on calendar
   document.querySelectorAll('.mini-cal-day.selected').forEach(d => d.classList.remove('selected'));
-  const calDay = document.querySelector(`.mini-cal-day[onclick="miniCalSelectDay('${dateStr}')"]`);
+  // Use data-date attribute instead of fragile onclick selector
+  const calDay = document.querySelector(`.mini-cal-day[data-date="${dateStr}"]`);
   if (calDay) calDay.classList.add('selected');
   openCalPopup(dateStr);
 }
@@ -3388,12 +3389,16 @@ function headingToNextClient() {
 }
 
 // ── SHIFT OFFERS ──
+// Track declined offer IDs locally — prevents re-appearance on auto-refresh
+if (!window._declinedOfferIds) window._declinedOfferIds = new Set();
+
 async function loadShiftOffers() {
   try {
     const r = await fetch(`${API}/psw/shift-offers?psw_name=${encodeURIComponent(pswName)}&pin=${pswPin}&operator_id=${pswOperatorId}`);
     if (!r.ok) return;
     const d = await r.json();
-    const offers = d.offers || [];
+    // Filter out locally declined offers
+    const offers = (d.offers || []).filter(o => !window._declinedOfferIds.has(o.id));
     const section = document.getElementById('shift-offers-section');
     const list = document.getElementById('shift-offers-list');
     if (!section || !list) return;
@@ -3425,12 +3430,19 @@ async function respondToOffer(offerId, response) {
       haptic([50,30,50]);
       await loadSchedule();
     } else {
-      showToast('Declined', 'ok');
+      // Track decline locally so auto-refresh doesn't re-show the offer
+      if (!window._declinedOfferIds) window._declinedOfferIds = new Set();
+      window._declinedOfferIds.add(offerId);
+      showToast('Shift declined', 'ok');
     }
     const el = document.getElementById('offer-' + offerId);
     if (el) el.remove();
+    // Hide section if no offers left
+    const remaining = document.querySelectorAll('.shift-offer-card').length;
+    if (!remaining) { const s = document.getElementById('shift-offers-section'); if (s) s.style.display = 'none'; }
   } catch {
     if (response === 'accept') showToast('Request sent', 'ok');
+    else { if (!window._declinedOfferIds) window._declinedOfferIds = new Set(); window._declinedOfferIds.add(offerId); }
     const el = document.getElementById('offer-' + offerId);
     if (el) el.remove();
   }
