@@ -453,6 +453,26 @@ a{color:inherit;text-decoration:none;}
 .vf-submit-btn{width:100%;margin-top:10px;padding:11px;background:rgba(61,138,122,.12);border:1px solid rgba(61,138,122,.3);border-radius:8px;color:var(--teal2);font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;min-height:42px;touch-action:manipulation;}
 .vf-submit-btn:disabled{opacity:.4;pointer-events:none;}
 .vf-submitted-chip{display:inline-flex;align-items:center;gap:4px;font-family:var(--mono);font-size:9px;letter-spacing:1px;padding:4px 10px;border-radius:100px;background:rgba(61,138,122,.08);border:1px solid rgba(61,138,122,.25);color:var(--teal2);}
+/* ── MINI CAL DAY POPUP ── */
+.cal-day-overlay{display:none;position:fixed;inset:0;z-index:410;background:rgba(0,0,0,.6);}
+.cal-day-overlay.open{display:block;}
+.cal-day-popup{position:fixed;bottom:0;left:0;right:0;background:var(--bg2);border-radius:18px 18px 0 0;max-height:70vh;overflow-y:auto;z-index:411;transform:translateY(100%);transition:transform .28s cubic-bezier(.4,0,.2,1);}
+.cal-day-popup.open{transform:translateY(0);}
+.cal-popup-hdr{padding:16px 16px 10px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);}
+.cal-popup-date{font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--teal2);}
+.cal-popup-close{font-size:18px;color:var(--muted2);cursor:pointer;padding:4px 8px;min-height:36px;display:flex;align-items:center;touch-action:manipulation;}
+.cal-popup-row{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--border);}
+.cal-popup-row:last-child{border-bottom:none;}
+.cal-popup-time{font-family:var(--mono);font-size:11px;color:var(--teal2);min-width:44px;flex-shrink:0;}
+.cal-popup-client{flex:1;min-width:0;}
+.cal-popup-name{font-size:13px;font-weight:500;color:var(--text);}
+.cal-popup-dur{font-family:var(--mono);font-size:10px;color:var(--muted2);margin-top:2px;}
+.cal-popup-status{font-family:var(--mono);font-size:8px;letter-spacing:1px;text-transform:uppercase;padding:3px 8px;border-radius:100px;border:1px solid;flex-shrink:0;}
+.cal-popup-status.done{color:var(--teal2);border-color:rgba(61,138,122,.3);background:rgba(61,138,122,.06);}
+.cal-popup-status.active{color:var(--amber);border-color:rgba(224,154,61,.3);background:rgba(224,154,61,.06);}
+.cal-popup-status.upcoming{color:var(--gold);border-color:rgba(200,169,110,.3);background:rgba(200,169,110,.06);}
+.cal-popup-empty{padding:20px 16px;text-align:center;font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px;}
+.cal-popup-go-btn{width:calc(100% - 32px);margin:12px 16px;padding:12px;background:rgba(61,138,122,.1);border:1px solid rgba(61,138,122,.3);border-radius:8px;color:var(--teal2);font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;min-height:42px;touch-action:manipulation;}
 @media(max-width:768px){
   .week-nav{padding:8px 12px 10px;}
   .sched-day{margin:0 8px 6px;}
@@ -1598,7 +1618,7 @@ function renderWeek() {
         </div>`;
       } else {
         const _safeFC = (b.client_name||'').replace(/'/g,'').replace(/"/g,'');
-      rows += `<div class="sched-shift"><div style="flex:1;min-width:0;" onclick="openClientSheetByName('${_safeFC}')" ><div class="shift-client" style="display:flex;align-items:center;gap:5px;">${b.client_name||'—'}<span style="font-family:var(--mono);font-size:8px;color:var(--teal2);letter-spacing:1px;">Info ›</span></div><div class="shift-time">${b.scheduled_time||'TBD'} · ${fmtd(b.scheduled_date)}</div></div><div style="display:flex;gap:6px;align-items:center;"><div class="shift-badge upcoming">Upcoming</div><button onclick="openCancelShift('${b.id}','${(b.client_name||'').replace(/'/g,'')}','${b.scheduled_date}','${b.scheduled_time||''}')" style="font-family:var(--mono);font-size:8px;letter-spacing:1px;text-transform:uppercase;padding:5px 9px;border-radius:5px;border:1px solid rgba(224,85,85,.3);background:rgba(224,85,85,.06);color:var(--red);cursor:pointer;min-height:28px;touch-action:manipulation;">Cancel</button></div></div>`;
+      rows += `<div class="sched-shift"><div style="flex:1;min-width:0;" onclick="openClientSheetByName('${_safeFC}')" ><div class="shift-client" style="display:flex;align-items:center;gap:5px;">${b.client_name||'—'}<span style="font-family:var(--mono);font-size:8px;color:var(--teal2);letter-spacing:1px;">Info ›</span></div><div class="shift-time">${b.scheduled_time||'TBD'} · ${fmtd(b.scheduled_date)}</div></div><div style="display:flex;gap:6px;align-items:center;"><div class="shift-badge upcoming">Upcoming</div><button onclick="openCancelShift('${b.id}','${(b.client_name||'').replace(/'/g,'')}','${b.scheduled_date}','${b.scheduled_time||''}')" style="font-family:var(--mono);font-size:8px;letter-spacing:1px;text-transform:uppercase;padding:5px 9px;border-radius:5px;border:1px solid rgba(224,154,61,.3);background:rgba(224,154,61,.04);color:var(--amber);cursor:pointer;min-height:28px;touch-action:manipulation;">Can't Make</button></div></div>`;
       }
     });
     if (!rows) rows = `<div class="sched-empty">No shifts</div>`;
@@ -3132,9 +3152,102 @@ function renderMiniCal() {
 function miniCalPrev() { _miniCalMonth--; if (_miniCalMonth < 0) { _miniCalMonth = 11; _miniCalYear--; } renderMiniCal(); }
 function miniCalNext() { _miniCalMonth++; if (_miniCalMonth > 11) { _miniCalMonth = 0; _miniCalYear++; } renderMiniCal(); }
 function miniCalSelectDay(dateStr) {
-  // Scroll to that day in the schedule list
-  const dayEl = document.getElementById('sched-day-' + dateStr);
-  if (dayEl) { dayEl.scrollIntoView({ behavior: 'smooth', block: 'start' }); showSect('schedule'); }
+  // Mark selected state on calendar
+  document.querySelectorAll('.mini-cal-day.selected').forEach(d => d.classList.remove('selected'));
+  const calDay = document.querySelector(`.mini-cal-day[onclick="miniCalSelectDay('${dateStr}')"]`);
+  if (calDay) calDay.classList.add('selected');
+  openCalPopup(dateStr);
+}
+
+function openCalPopup(dateStr) {
+  const overlay = document.getElementById('cal-day-overlay');
+  const popup = document.getElementById('cal-day-popup');
+  const dateEl = document.getElementById('cal-popup-date');
+  const body = document.getElementById('cal-popup-body');
+  if (!overlay || !popup || !body) return;
+
+  // Format the date nicely
+  const d = new Date(dateStr + 'T12:00:00');
+  const dayName = d.toLocaleDateString('en-CA', { weekday: 'long' });
+  const monthDay = d.toLocaleDateString('en-CA', { month: 'long', day: 'numeric' });
+  const isToday = dateStr === new Date().toISOString().slice(0,10);
+  if (dateEl) dateEl.textContent = (isToday ? 'Today · ' : '') + dayName + ', ' + monthDay;
+
+  // Get shifts for this day
+  const bookings = (scheduleData?.bookings || []).filter(b => b.scheduled_date === dateStr);
+  const completed = (scheduleData?.completed_visits || []).filter(v => v.visit_date === dateStr);
+  const today = new Date().toISOString().slice(0,10);
+
+  if (!bookings.length && !completed.length) {
+    body.innerHTML = '<div class="cal-popup-empty">No shifts scheduled</div>';
+  } else {
+    // Merge bookings + completed visits
+    const rows = [];
+
+    completed.forEach(v => {
+      rows.push({
+        time: v.time_in ? v.time_in.slice(0,5) : '—',
+        client: v.client_name || '—',
+        dur: v.hours_worked ? parseFloat(v.hours_worked).toFixed(1) + 'h worked' : '',
+        status: v.time_out ? 'done' : 'active',
+        statusLabel: v.time_out ? 'Done' : 'Active',
+        bookingId: null
+      });
+    });
+
+    bookings.forEach(b => {
+      const isDone = completed.some(v => v.client_name === b.client_name);
+      const isActive = activeVisit && activeVisit.client_name === b.client_name && dateStr === today;
+      if (!isDone && !isActive) {
+        rows.push({
+          time: b.scheduled_time ? b.scheduled_time.slice(0,5) : 'TBD',
+          client: b.client_name || '—',
+          dur: b.duration_minutes ? (b.duration_minutes/60).toFixed(1) + 'h scheduled' : '',
+          status: 'upcoming',
+          statusLabel: 'Upcoming',
+          bookingId: b.id
+        });
+      }
+    });
+
+    rows.sort((a,b) => (a.time||'').localeCompare(b.time||''));
+
+    body.innerHTML = rows.map(r => `
+      <div class="cal-popup-row" onclick="${r.status === 'upcoming' && dateStr === today ? `openCalPopup._signin('${(r.client||'').replace(/'/g,'')}')` : 'void(0)'}" style="${r.status === 'upcoming' && dateStr === today ? 'cursor:pointer;' : ''}">
+        <div class="cal-popup-time">${r.time}</div>
+        <div class="cal-popup-client">
+          <div class="cal-popup-name">${r.client}</div>
+          ${r.dur ? `<div class="cal-popup-dur">${r.dur}</div>` : ''}
+        </div>
+        <span class="cal-popup-status ${r.status}">${r.statusLabel}</span>
+      </div>`).join('');
+  }
+
+  // Add "View Schedule" button
+  const goBtn = document.createElement('button');
+  goBtn.className = 'cal-popup-go-btn';
+  goBtn.textContent = 'View Full Schedule';
+  goBtn.onclick = () => {
+    closeCalPopup();
+    showSect('schedule');
+    setTimeout(() => {
+      const dayEl = document.getElementById('sched-day-' + dateStr);
+      if (dayEl) dayEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 100);
+  };
+  body.appendChild(goBtn);
+
+  // Open
+  overlay.classList.add('open');
+  popup.classList.add('open');
+  haptic(30);
+}
+
+function closeCalPopup() {
+  const overlay = document.getElementById('cal-day-overlay');
+  const popup = document.getElementById('cal-day-popup');
+  if (overlay) overlay.classList.remove('open');
+  if (popup) popup.classList.remove('open');
 }
 
 // ── TIME REMAINING ON ACTIVE VISIT ──
@@ -3559,5 +3672,15 @@ if ('serviceWorker' in navigator) {
   });
 }
 </script>
+<!-- MINI CAL DAY POPUP -->
+<div class="cal-day-overlay" id="cal-day-overlay" onclick="closeCalPopup()"></div>
+<div class="cal-day-popup" id="cal-day-popup">
+  <div class="cal-popup-hdr">
+    <div class="cal-popup-date" id="cal-popup-date">—</div>
+    <div class="cal-popup-close" onclick="closeCalPopup()">✕</div>
+  </div>
+  <div id="cal-popup-body"></div>
+</div>
+
 </body>
 </html>
