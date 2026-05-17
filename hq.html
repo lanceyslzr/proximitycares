@@ -656,25 +656,25 @@ button:active{transform:scale(0.98);}
 /* Today tab — completion tracker */
 .completion-bar{height:4px;background:var(--bg3);border-radius:2px;overflow:hidden;margin-top:4px;}
 .completion-fill{height:100%;background:var(--teal2);border-radius:2px;transition:width .4s;}
-.psw-completion-row{display:flex;align-items:center;gap:10px;padding:8px 14px;border-bottom:1px solid var(--border);}
-.psw-completion-name{flex:1;font-size:12px;font-weight:500;color:var(--text);}
-.psw-completion-count{font-family:var(--mono);font-size:10px;color:var(--muted2);}
+
+
+
 /* Cancellation requests badge */
-.cancel-req-badge{display:inline-flex;align-items:center;gap:4px;font-family:var(--mono);font-size:8px;padding:2px 7px;border-radius:100px;background:rgba(224,154,61,.1);border:1px solid rgba(224,154,61,.3);color:var(--amber);}
+
 .cancel-req-card{margin:0 12px 8px;padding:12px 14px;background:rgba(224,154,61,.04);border:1px solid rgba(224,154,61,.2);border-radius:8px;}
 .cancel-req-actions{display:flex;gap:6px;margin-top:8px;}
 .cancel-approve-btn{flex:1;padding:8px;background:rgba(61,138,122,.1);border:1px solid rgba(61,138,122,.3);border-radius:6px;color:var(--teal2);font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;min-height:36px;touch-action:manipulation;}
 .cancel-reject-btn{flex:1;padding:8px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;color:var(--muted2);font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;min-height:36px;touch-action:manipulation;}
 /* Vitals dashboard */
-.vitals-card{margin:0 12px 8px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;overflow:hidden;}
-.vitals-reading{display:flex;align-items:center;gap:10px;padding:8px 14px;border-bottom:1px solid var(--border);}
+
+
 .vitals-reading:last-child{border-bottom:none;}
-.vitals-val{font-family:var(--mono);font-size:12px;color:var(--text);}
-.vitals-flag{font-family:var(--mono);font-size:8px;color:var(--red);background:rgba(224,85,85,.1);border:1px solid rgba(224,85,85,.3);padding:2px 6px;border-radius:4px;letter-spacing:1px;}
+
+
 .vitals-alert-banner{margin:0 12px 8px;padding:10px 14px;background:rgba(224,85,85,.06);border:1px solid rgba(224,85,85,.2);border-radius:8px;}
 /* Shift broadcast UI */
-.broadcast-card{margin:0 12px 12px;padding:14px;background:rgba(200,169,110,.04);border:1px solid rgba(200,169,110,.2);border-radius:8px;}
-.broadcast-lbl{font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);margin-bottom:10px;}
+
+
 .broadcast-btn{width:100%;padding:12px;background:rgba(200,169,110,.1);border:1px solid rgba(200,169,110,.3);border-radius:8px;color:var(--gold);font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;min-height:42px;touch-action:manipulation;}
 .broadcast-btn:active{background:rgba(200,169,110,.2);}
 /* Shift offer history */
@@ -686,17 +686,17 @@ button:active{transform:scale(0.98);}
 /* Forms submitted chip */
 .form-chip{display:inline-flex;align-items:center;gap:4px;font-family:var(--mono);font-size:8px;letter-spacing:1px;padding:2px 8px;border-radius:100px;color:var(--teal2);border:1px solid rgba(61,138,122,.3);background:rgba(61,138,122,.06);}
 /* Handoff badge */
-.handoff-badge{display:inline-flex;align-items:center;gap:3px;font-family:var(--mono);font-size:8px;padding:2px 6px;border-radius:100px;background:rgba(200,169,110,.1);border:1px solid rgba(200,169,110,.3);color:var(--gold);cursor:pointer;}
+
 /* UI Consistency pass */
 .card{transition:background .12s;}
 .card-header{min-height:52px;}
 /* ── SESSION 6 POLISH ── */
 /* Standardize all section panels */
-.hq-panel{margin:0 12px 12px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;overflow:hidden;}
-.hq-panel-hdr{padding:10px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
-.hq-panel-title{font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted2);}
+
+
+
 /* Demo mode indicator */
-.demo-banner{position:fixed;bottom:0;left:0;right:0;background:rgba(200,169,110,.12);border-top:1px solid rgba(200,169,110,.3);padding:6px 16px;font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--gold);text-align:center;z-index:500;display:none;}
+
 /* Help section */
 .help-track{margin:0 12px 12px;}
 .help-track-hdr{padding:10px 14px;background:var(--bg3);border:1px solid var(--border);border-radius:8px 8px 0 0;display:flex;align-items:center;justify-content:space-between;cursor:pointer;}
@@ -3309,6 +3309,23 @@ function buildIncidentBadge(v) {
   return `<div style="font-size:11px;color:var(--red);margin-top:4px;display:flex;align-items:center;gap:6px;">⚠ Incident <button onclick="event.stopPropagation();openIncidentResolve('${vJson}')" style="font-family:var(--mono);font-size:8px;background:rgba(224,85,85,.1);border:1px solid rgba(224,85,85,.3);color:var(--red);padding:2px 8px;border-radius:3px;cursor:pointer;min-height:24px;">Resolve</button></div>`;
 }
 
+// ── LOAD VISIT FORMS — wired into visit card expand ──
+async function loadVisitForms(visitId, clientName, container) {
+  if (!visitId || !container) return;
+  try {
+    const r = await fetch(`${API}/hq/forms?operator_id=${currentOp}&visit_id=${encodeURIComponent(visitId)}`);
+    if (!r.ok) return;
+    const d = await r.json();
+    const submitted = (d.forms || []).filter(f => f.submitted);
+    if (!submitted.length) return;
+    const chips = submitted.map(f => {
+      const ts = f.submitted_at ? new Date(f.submitted_at).toLocaleTimeString('en-CA',{hour:'2-digit',minute:'2-digit',hour12:true}) : '';
+      return `<span class="form-chip">✓ ${f.form_name}${ts?' · '+ts:''}</span>`;
+    }).join(' ');
+    container.innerHTML = `<div style="font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:4px;">Visit Forms</div><div style="padding-bottom:6px;">${chips}</div>`;
+  } catch {}
+}
+
 async function renderVisits() {
   const el = document.getElementById('visits-list');
   el.innerHTML = '<div class="empty-state">Loading visits...</div>';
@@ -3418,6 +3435,7 @@ async function renderVisits() {
           ${satHtml}
           ${v.incident_notes?`<div style="margin-bottom:10px;"><div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--red);margin-bottom:4px;">Incident Notes</div><div style="color:var(--text);">${v.incident_notes}</div></div>`:''}
           ${v.notes?`<div style="margin-bottom:10px;"><div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:4px;">Notes</div><div style="color:var(--muted2);">${v.notes}</div></div>`:''}
+          <div id="vforms-${vid}" data-visit-id="${v.id||''}" data-client="${v.client_name||''}" style="padding-bottom:4px;"></div>
         </div>
       </div>`;
     }).join('');
@@ -3433,6 +3451,14 @@ function toggleVisit(id) {
   const open = el.style.display !== 'none';
   el.style.display = open ? 'none' : 'block';
   if (chev) chev.textContent = open ? '+' : '−';
+  // Load visit forms when expanding
+  if (!open) {
+    const formsEl = document.getElementById('vforms-' + id);
+    if (formsEl && formsEl.dataset.visitId && !formsEl.dataset.loaded) {
+      formsEl.dataset.loaded = '1';
+      loadVisitForms(formsEl.dataset.visitId, formsEl.dataset.client, formsEl);
+    }
+  }
 }
 
 // ── ACTIVITY ──
