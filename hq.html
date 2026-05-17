@@ -297,7 +297,7 @@ button:active{transform:scale(0.98);}
 .nav-tabs::-webkit-scrollbar{display:none;}
 .nav-tab{flex-shrink:0;padding:11px 14px;font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted2);border-bottom:2px solid transparent;cursor:pointer;white-space:nowrap;min-height:44px;display:flex;align-items:center;gap:5px;touch-action:manipulation;-webkit-tap-highlight-color:transparent;}
 .nav-tab:active{color:var(--teal3);}
-.nav-tab.active{color:var(--teal2);border-bottom-color:var(--teal2);}
+
 .nbadge{background:var(--teal);color:#fff;border-radius:100px;font-size:8px;min-width:15px;height:15px;padding:0 3px;display:inline-flex;align-items:center;justify-content:center;}
 
 /* SECTIONS */
@@ -690,6 +690,34 @@ button:active{transform:scale(0.98);}
 /* UI Consistency pass */
 .card{transition:background .12s;}
 .card-header{min-height:52px;}
+/* ── SESSION 6 POLISH ── */
+/* Standardize all section panels */
+.hq-panel{margin:0 12px 12px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;overflow:hidden;}
+.hq-panel-hdr{padding:10px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.hq-panel-title{font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted2);}
+/* Demo mode indicator */
+.demo-banner{position:fixed;bottom:0;left:0;right:0;background:rgba(200,169,110,.12);border-top:1px solid rgba(200,169,110,.3);padding:6px 16px;font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--gold);text-align:center;z-index:500;display:none;}
+/* Help section */
+.help-track{margin:0 12px 12px;}
+.help-track-hdr{padding:10px 14px;background:var(--bg3);border:1px solid var(--border);border-radius:8px 8px 0 0;display:flex;align-items:center;justify-content:space-between;cursor:pointer;}
+.help-track-title{font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--teal2);}
+.help-track-body{background:var(--bg2);border:1px solid var(--border);border-top:none;border-radius:0 0 8px 8px;overflow:hidden;display:none;}
+.help-track-body.open{display:block;}
+.help-item{padding:12px 14px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;gap:10px;}
+.help-item:last-child{border-bottom:none;}
+.help-item-num{font-family:var(--mono);font-size:9px;color:var(--teal2);min-width:20px;padding-top:2px;}
+.help-item-content{flex:1;}
+.help-item-title{font-size:13px;font-weight:500;color:var(--text);margin-bottom:3px;}
+.help-item-desc{font-size:12px;color:var(--muted2);line-height:1.6;}
+.help-search{width:100%;padding:10px 14px;background:var(--bg3);border:none;border-bottom:1px solid var(--border);color:var(--text);font-size:13px;font-family:var(--sans);outline:none;}
+.help-search::placeholder{color:var(--muted);}
+/* Nav tab active state fix */
+.nav-tab{cursor:pointer;padding:8px 12px;font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--muted2);white-space:nowrap;border-bottom:2px solid transparent;transition:color .15s,border-color .15s;}
+.nav-tab:hover{color:var(--text);}
+.nav-tab.active{color:var(--teal2);border-bottom-color:var(--teal2);}
+/* Demo walkthrough tooltip */
+.demo-tip{position:fixed;bottom:60px;left:50%;transform:translateX(-50%);background:var(--bg2);border:1px solid var(--border2);border-radius:10px;padding:10px 16px;font-family:var(--mono);font-size:10px;color:var(--text);z-index:600;white-space:nowrap;box-shadow:0 8px 32px rgba(0,0,0,.4);display:none;}
+.demo-tip.visible{display:block;}
 @media(max-width:1024px){
   .section{padding:0 8px;}
   .sect-head-row{flex-wrap:wrap;gap:6px;}
@@ -747,6 +775,7 @@ button:active{transform:scale(0.98);}
       <div class="bell-badge" id="bell-badge"></div>
     </div>
     <div class="icon-btn" id="refresh-btn" onclick="loadAll(true)" title="Refresh"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg></div>
+    <button onclick="startDemo()" title="Demo walkthrough" style="font-family:var(--mono);font-size:8px;letter-spacing:1px;padding:5px 8px;border-radius:6px;border:1px solid rgba(200,169,110,.3);color:var(--gold);background:rgba(200,169,110,.06);cursor:pointer;min-height:30px;touch-action:manipulation;white-space:nowrap;">▷ Demo</button>
   </div>
 </div>
 
@@ -761,7 +790,7 @@ button:active{transform:scale(0.98);}
 <div class="nav-tabs" style="display:none;" aria-hidden="true">
   <div class="nav-tab" onclick="showSect('today')">Today</div>
   <div class="nav-tab" onclick="showSect('overview')">Overview</div>
-  <div class="nav-tab active" onclick="showSect('leads')">Leads <span class="nbadge" id="leads-badge">0</span></div>
+  <div class="nav-tab" onclick="showSect('leads')">Leads <span class="nbadge" id="leads-badge">0</span></div>
   <div class="nav-tab" onclick="showSect('clients')">Clients</div>
   <div class="nav-tab" onclick="showSect('psws')">PSWs</div>
   <div class="nav-tab" onclick="showSect('onboard')">Onboard</div>
@@ -773,6 +802,7 @@ button:active{transform:scale(0.98);}
   <div class="nav-tab" onclick="showSect('crm')">CRM <span class="nbadge" id="crm-badge">0</span></div>
   <div class="nav-tab" onclick="showSect('applicants')">Applicants <span class="nbadge" id="app-badge">0</span></div>
   <div class="nav-tab" onclick="showSect('revenue')">Revenue</div>
+  <div class="nav-tab" onclick="showSect('help')">Help</div>
 </div>
 
 <!-- TODAY — Default home (Batch 3) -->
@@ -1293,6 +1323,75 @@ button:active{transform:scale(0.98);}
 </div>
 
 <!-- ACTIVITY -->
+<!-- HELP + SOPs SECTION -->
+<div class="section" id="sect-help">
+  <div class="section-header" style="padding-bottom:4px;">
+    <span class="section-title">Help + SOPs</span>
+    <div class="sect-action" onclick="document.getElementById('help-search-input').focus()">Search</div>
+  </div>
+  <div style="margin:0 12px 10px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;overflow:hidden;">
+    <input class="help-search" id="help-search-input" placeholder="Search SOPs..." oninput="filterHelp(this.value)">
+  </div>
+  <div id="help-content">
+
+    <!-- OPERATOR TRACK -->
+    <div class="help-track">
+      <div class="help-track-hdr" onclick="toggleHelpTrack('op-track')">
+        <span class="help-track-title">⬡ Operator Guide</span>
+        <span style="font-family:var(--mono);font-size:9px;color:var(--muted);">12 SOPs ›</span>
+      </div>
+      <div class="help-track-body open" id="op-track">
+        <div class="help-item"><div class="help-item-num">01</div><div class="help-item-content"><div class="help-item-title">Add a new client</div><div class="help-item-desc">Go to Onboard tab → Fill in client name, address, care notes, medications, family email → Generate PIN → Send intake link. Client appears in Clients tab within 60 seconds.</div></div></div>
+        <div class="help-item"><div class="help-item-num">02</div><div class="help-item-content"><div class="help-item-title">Add a new PSW</div><div class="help-item-desc">Go to Onboard tab → Enter PSW name, email, hourly rate → Assign to client → Generate PIN → PSW installs portal at proximitycares.ca/psw and enters their PIN.</div></div></div>
+        <div class="help-item"><div class="help-item-num">03</div><div class="help-item-content"><div class="help-item-title">Schedule a shift</div><div class="help-item-desc">Go to Schedule tab → Drag the time slot to assign a PSW to a client → Set duration → Save. PSW gets a notification automatically.</div></div></div>
+        <div class="help-item"><div class="help-item-num">04</div><div class="help-item-content"><div class="help-item-title">Broadcast an open shift</div><div class="help-item-desc">Go to Schedule tab → Tap "Broadcast Open Shift" → Select client, date, time → Send. All active PSWs get a notification. First to accept is confirmed. No screenshots, no email threads.</div></div></div>
+        <div class="help-item"><div class="help-item-num">05</div><div class="help-item-content"><div class="help-item-title">Handle a PSW cancellation request</div><div class="help-item-desc">When a PSW taps "Cannot Make This Shift" you see it in the Today tab under Cancellation Requests. Tap Approve to auto-broadcast the shift, or Reject to keep the shift assigned.</div></div></div>
+        <div class="help-item"><div class="help-item-num">06</div><div class="help-item-content"><div class="help-item-title">Read the health console</div><div class="help-item-desc">Visit proximitysystems.ca/health. Green = OK, Amber = Warning (non-urgent), Red = Critical (needs attention). 0 critical means your platform is fully operational.</div></div></div>
+        <div class="help-item"><div class="help-item-num">07</div><div class="help-item-content"><div class="help-item-title">Handle a GPS exception</div><div class="help-item-desc">Go to Overview tab → GPS Exceptions panel. Out-of-range means PSW checked in more than 300m from the client address. Tap Map to see where they actually were. Review with PSW.</div></div></div>
+        <div class="help-item"><div class="help-item-num">08</div><div class="help-item-content"><div class="help-item-title">Resolve an open incident</div><div class="help-item-desc">Go to Visits tab → Filter by Incidents → Tap the visit → Tap Resolve Incident → Add resolution note. Family is NOT automatically notified — contact them directly for serious incidents.</div></div></div>
+        <div class="help-item"><div class="help-item-num">09</div><div class="help-item-content"><div class="help-item-title">Read an AI care summary</div><div class="help-item-desc">Go to Visits tab → Tap any completed visit → Expand. The AI summary is generated automatically at checkout from the PSW's voice note and checklist. It describes what was done and any flags.</div></div></div>
+        <div class="help-item"><div class="help-item-num">10</div><div class="help-item-content"><div class="help-item-title">Generate an invoice</div><div class="help-item-desc">Go to Revenue tab → Invoices auto-generate on the 1st of each month. To generate manually tap "Generate Invoice" on a client card. Mark paid when received.</div></div></div>
+        <div class="help-item"><div class="help-item-num">11</div><div class="help-item-content"><div class="help-item-title">Handle a PSW no-show</div><div class="help-item-desc">If a PSW misses a shift the no-show check fires automatically within 15 minutes. You get an alert. Go to Today tab → find the shift → tap Message PSW → if no response use Broadcast Open Shift to find coverage.</div></div></div>
+        <div class="help-item"><div class="help-item-num">12</div><div class="help-item-content"><div class="help-item-title">Kill a PSW session remotely</div><div class="help-item-desc">If a PSW loses their phone go to Overview tab → Active Sessions panel → find the PSW → tap Kill Session. Their portal will lock immediately and require re-PIN on next open.</div></div></div>
+      </div>
+    </div>
+
+    <!-- PSW TRACK -->
+    <div class="help-track">
+      <div class="help-track-hdr" onclick="toggleHelpTrack('psw-track')">
+        <span class="help-track-title">📱 PSW Guide</span>
+        <span style="font-family:var(--mono);font-size:9px;color:var(--muted);">8 SOPs ›</span>
+      </div>
+      <div class="help-track-body" id="psw-track">
+        <div class="help-item"><div class="help-item-num">01</div><div class="help-item-content"><div class="help-item-title">Install the PSW portal</div><div class="help-item-desc">iPhone: Open Safari → go to proximitycares.ca/psw → tap the Share button → "Add to Home Screen" → Done. Android: Open Chrome → go to the URL → tap the 3 dots → "Add to Home Screen".</div></div></div>
+        <div class="help-item"><div class="help-item-num">02</div><div class="help-item-content"><div class="help-item-title">First login</div><div class="help-item-desc">Open the app → enter your 4-digit PIN → your schedule loads automatically. If you forget your PIN contact your coordinator.</div></div></div>
+        <div class="help-item"><div class="help-item-num">03</div><div class="help-item-content"><div class="help-item-title">Check in to a visit</div><div class="help-item-desc">From the Today tab tap the next visit card → tap Sign In. Allow location access when prompted. GPS is captured once at checkin — this verifies you are at the client address.</div></div></div>
+        <div class="help-item"><div class="help-item-num">04</div><div class="help-item-content"><div class="help-item-title">Check out of a visit</div><div class="help-item-desc">Tap Check Out → complete the mood selector, task checklist, MAR medications → record a 30-second voice note describing the visit → tap Complete Checkout. AI summary is generated automatically.</div></div></div>
+        <div class="help-item"><div class="help-item-num">05</div><div class="help-item-content"><div class="help-item-title">Emergency during a visit</div><div class="help-item-desc">Tap the 🚨 SOS button on the active visit card → all emergency contacts appear with tap-to-call buttons. For life-threatening emergencies call 911 first, then notify your coordinator.</div></div></div>
+        <div class="help-item"><div class="help-item-num">06</div><div class="help-item-content"><div class="help-item-title">No internet during a shift</div><div class="help-item-desc">The portal works offline. Checkin and checkout actions queue locally and sync automatically when you reconnect. The sync status in the drawer shows when data was last synced.</div></div></div>
+        <div class="help-item"><div class="help-item-num">07</div><div class="help-item-content"><div class="help-item-title">Accept an open shift</div><div class="help-item-desc">Open the Schedule tab → scroll down to Open Shifts Available → tap Accept on any shift you can cover. Your coordinator is notified immediately. The shift appears on your schedule.</div></div></div>
+        <div class="help-item"><div class="help-item-num">08</div><div class="help-item-content"><div class="help-item-title">Cannot make a shift</div><div class="help-item-desc">On the shift card in Schedule tap "Cannot Make This Shift" → select a reason → Send Request. Your shift stays assigned until your coordinator approves. Do NOT assume the shift is cancelled.</div></div></div>
+      </div>
+    </div>
+
+    <!-- COMPLIANCE TRACK -->
+    <div class="help-track">
+      <div class="help-track-hdr" onclick="toggleHelpTrack('comp-track')">
+        <span class="help-track-title">📋 Compliance</span>
+        <span style="font-family:var(--mono);font-size:9px;color:var(--muted);">5 SOPs ›</span>
+      </div>
+      <div class="help-track-body" id="comp-track">
+        <div class="help-item"><div class="help-item-num">01</div><div class="help-item-content"><div class="help-item-title">Ontario documentation requirements</div><div class="help-item-desc">Every visit requires: PSW name, client name, time in, time out, tasks completed, client mood, medications given, and an AI-generated care summary. Incidents must be documented at checkout.</div></div></div>
+        <div class="help-item"><div class="help-item-num">02</div><div class="help-item-content"><div class="help-item-title">Refusal of care protocol</div><div class="help-item-desc">If a client refuses care: use the GPA approach (Gentle, Persuade, Allow to settle). If they still refuse, log it at checkout using the Refusal of Care checkboxes. Notify family. Document everything.</div></div></div>
+        <div class="help-item"><div class="help-item-num">03</div><div class="help-item-content"><div class="help-item-title">Incident escalation</div><div class="help-item-desc">HIGH severity (fall, injury, medical emergency, elopement): call 911 first, then coordinator, then family. Document in checkout incident report. LOW severity (minor behavioral, environmental): document at checkout, notify coordinator within 2 hours.</div></div></div>
+        <div class="help-item"><div class="help-item-num">04</div><div class="help-item-content"><div class="help-item-title">MAR requirements</div><div class="help-item-desc">Every medication administered must be logged at checkout under Medications Given. Include medication name and time given. Missed medications must be noted in observations.</div></div></div>
+        <div class="help-item"><div class="help-item-num">05</div><div class="help-item-content"><div class="help-item-title">Care plan acknowledgement</div><div class="help-item-desc">PSWs must acknowledge the care plan before their first visit with each client every 30 days. This is prompted automatically in the portal. The acknowledgement is logged with timestamp.</div></div></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
 <div class="section" id="sect-activity">
   <div class="section-header">
     <span class="section-title">System Activity</span>
@@ -1545,6 +1644,11 @@ button:active{transform:scale(0.98);}
     <div class="sn-item" id="sn-activity" onclick="showSect('activity');toggleSidebar()">
       <div class="sn-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
       <span class="sn-label">Activity Log</span>
+    </div>
+  </div>
+    <div class="sn-item" id="sn-help" onclick="showSect('help');toggleSidebar()">
+      <div class="sn-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
+      <span class="sn-label">Help + SOPs</span>
     </div>
   </div>
   <div class="sidebar-footer">
@@ -3405,6 +3509,16 @@ async function triggerSequences() {
 
 // ── NAV ──
 function showSect(name) {
+  // Update nav tab active states
+  document.querySelectorAll('.nav-tab').forEach(t => {
+    const sn = t.getAttribute('onclick') || '';
+    t.classList.toggle('active', sn.includes("'"+name+"'") || sn.includes('"'+name+'"'));
+  });
+  // Update sidebar active states
+  document.querySelectorAll('.sn-item').forEach(t => {
+    const sn = t.getAttribute('onclick') || '';
+    t.classList.toggle('active', sn.includes("'"+name+"'") || sn.includes('"'+name+'"'));
+  });
   try { localStorage.setItem('hq_tab', name); } catch(e) {}
   clearSearches();
   document.querySelectorAll('.section').forEach(s=>s.classList.remove('active','visible'));
@@ -6711,6 +6825,77 @@ function resetIdleTimer() {
   _hqIdleTimer = setTimeout(lockHQ, 15 * 60 * 1000); // 15 minutes
 }
 
+
+// ── HELP + SOPs FUNCTIONS ──
+function toggleHelpTrack(id) {
+  const body = document.getElementById(id);
+  if (!body) return;
+  body.classList.toggle('open');
+}
+
+function filterHelp(q) {
+  const items = document.querySelectorAll('.help-item');
+  const tracks = document.querySelectorAll('.help-track');
+  q = q.toLowerCase().trim();
+  if (!q) {
+    items.forEach(i => i.style.display = '');
+    tracks.forEach(t => {
+      const body = t.querySelector('.help-track-body');
+      if (body) body.classList.remove('open');
+    });
+    return;
+  }
+  tracks.forEach(t => {
+    const body = t.querySelector('.help-track-body');
+    if (body) body.classList.add('open');
+  });
+  items.forEach(item => {
+    const text = item.textContent.toLowerCase();
+    item.style.display = text.includes(q) ? '' : 'none';
+  });
+}
+
+// ── DEMO MODE ──
+let _demoMode = false;
+const _demoSteps = [
+  { sect: 'today', tip: 'Today tab — live shift status, staff progress, cancellation requests' },
+  { sect: 'overview', tip: 'Overview — KPIs, GPS exceptions, flagged vitals, live attendance' },
+  { sect: 'schedule', tip: 'Schedule — drag-to-assign, broadcast open shifts, shift offer history' },
+  { sect: 'clients', tip: 'Clients — care plans, alert badges, family contacts, vitals history' },
+  { sect: 'psws', tip: 'PSWs — certifications, police checks, on-shift status, messaging' },
+  { sect: 'visits', tip: 'Visits — AI care summaries, MAR logs, incident reports, GPS distance' },
+  { sect: 'revenue', tip: 'Revenue — auto-invoicing, outstanding AR, PSW pay summaries' },
+  { sect: 'help', tip: 'Help + SOPs — operator guide, PSW guide, compliance track' },
+];
+let _demoIdx = 0;
+
+function startDemo() {
+  _demoMode = true;
+  _demoIdx = 0;
+  document.getElementById('demo-tip').classList.add('visible');
+  runDemoStep();
+}
+
+function runDemoStep() {
+  if (_demoIdx >= _demoSteps.length) { endDemo(); return; }
+  const step = _demoSteps[_demoIdx];
+  showSect(step.sect);
+  const tipEl = document.getElementById('demo-tip');
+  if (tipEl) {
+    tipEl.innerHTML = `<span style="color:var(--teal2);">Step ${_demoIdx+1}/${_demoSteps.length}</span> · ${step.tip} · <span onclick="runDemoStep()" style="color:var(--gold);cursor:pointer;">Next →</span> · <span onclick="endDemo()" style="color:var(--muted);cursor:pointer;">Exit</span>`;
+    _demoIdx++;
+  }
+}
+
+function endDemo() {
+  _demoMode = false;
+  const tipEl = document.getElementById('demo-tip');
+  if (tipEl) tipEl.classList.remove('visible');
+}
+
+// ── WORKFLOW FIX: renderAll wires — make sure all sections re-render correctly ──
+const _origRenderAll = typeof renderAll === 'function' ? renderAll : null;
+
 function lockHQ() {
   try { sessionStorage.removeItem('hq_auth'); } catch(e) {}
   lockIn = '';
@@ -6758,5 +6943,6 @@ function startHQIdleTimer() {
 })();
 
 </script>
+<div class="demo-tip" id="demo-tip"></div>
 </body>
 </html>
