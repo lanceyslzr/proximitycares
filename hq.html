@@ -683,6 +683,7 @@ button:active{transform:scale(0.98);}
 .offer-status-chip{font-family:var(--mono);font-size:8px;letter-spacing:1px;padding:2px 8px;border-radius:100px;border:1px solid;}
 .offer-status-chip.filled{color:var(--teal2);border-color:rgba(61,138,122,.3);background:rgba(61,138,122,.06);}
 .offer-status-chip.open{color:var(--amber);border-color:rgba(224,154,61,.3);background:rgba(224,154,61,.06);}
+.offer-status-chip.cancelled{color:var(--muted2);border-color:var(--border);background:var(--bg3);}
 /* Forms submitted chip */
 .form-chip{display:inline-flex;align-items:center;gap:4px;font-family:var(--mono);font-size:8px;letter-spacing:1px;padding:2px 8px;border-radius:100px;color:var(--teal2);border:1px solid rgba(61,138,122,.3);background:rgba(61,138,122,.06);}
 /* Handoff badge */
@@ -2097,21 +2098,47 @@ async function loadShiftOffersHQ() {
     if (!section || !list) return;
     if (!offers.length) { section.style.display = 'none'; return; }
     section.style.display = 'block';
-    list.innerHTML = offers.slice(0,5).map(o => `
-      <div class="offer-history-row">
+    list.innerHTML = offers.slice(0,10).map(o => `
+      <div class="offer-history-row" id="hq-offer-${o.id}">
         <div style="flex:1;min-width:0;">
           <div style="font-size:12px;font-weight:500;color:var(--text);">${o.client_name||'—'}</div>
           <div style="font-family:var(--mono);font-size:9px;color:var(--muted2);">${o.scheduled_date} · ${o.scheduled_time||'TBD'} · ${o.duration_minutes?(o.duration_minutes/60).toFixed(1)+'h':'—'}</div>
         </div>
-        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;">
-          <span class="offer-status-chip ${o.status}">${o.status==='filled'?'✓ Filled':'Open'}</span>
-          ${o.accepted_by ? `<span style="font-family:var(--mono);font-size:8px;color:var(--muted);">${o.accepted_by.split(' ')[0]}</span>` : `<span style="font-family:var(--mono);font-size:8px;color:var(--muted);">${(o.broadcast_to||[]).length} notified</span>`}
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
+          <span class="offer-status-chip ${o.status}">${o.status==='filled'?'✓ Filled':o.status==='cancelled'?'Cancelled':'Open'}</span>
+          ${o.accepted_by
+            ? `<span style="font-family:var(--mono);font-size:8px;color:var(--muted);">${o.accepted_by.split(' ')[0]}</span>`
+            : o.status==='open'
+              ? `<span style="font-family:var(--mono);font-size:8px;color:var(--muted);">${(o.broadcast_to||[]).length} notified</span>`
+              : ''}
+          ${o.status === 'open' ? `<button onclick="cancelShiftOffer('${o.id}')" style="font-family:var(--mono);font-size:8px;letter-spacing:1px;text-transform:uppercase;padding:3px 8px;border-radius:4px;border:1px solid rgba(224,85,85,.3);color:var(--red);background:rgba(224,85,85,.06);cursor:pointer;min-height:26px;touch-action:manipulation;">✕ Cancel</button>` : ''}
         </div>
       </div>`).join('');
   } catch {}
 }
 
 // ── VITALS DASHBOARD ──
+async function cancelShiftOffer(offerId) {
+  if (!confirm('Cancel this open shift broadcast? PSWs will no longer see it.')) return;
+  try {
+    const r = await fetch(`${API}/hq/shift-offer/${offerId}/cancel`, {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ operator_id: currentOp })
+    });
+    const d = await r.json();
+    if (!d.success) throw new Error(d.error || 'Failed');
+    showToast('Shift offer cancelled', 'ok');
+    // Update UI immediately — change chip to Cancelled, remove button
+    const row = document.getElementById('hq-offer-' + offerId);
+    if (row) {
+      const chip = row.querySelector('.offer-status-chip');
+      if (chip) { chip.textContent = 'Cancelled'; chip.className = 'offer-status-chip cancelled'; }
+      const btn = row.querySelector('button');
+      if (btn) btn.remove();
+    }
+  } catch (e) { showToast(e.message || 'Could not cancel offer', 'err'); }
+}
+
 async function loadFlaggedVitals() {
   try {
     const r = await fetch(`${API}/hq/vitals?operator_id=${currentOp}&flagged_only=true`);
