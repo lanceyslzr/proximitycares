@@ -652,6 +652,44 @@ button:active{transform:scale(0.98);}
 .gps-badge{font-family:var(--mono);font-size:8px;letter-spacing:1px;padding:3px 7px;border-radius:100px;border:1px solid rgba(224,85,85,.4);color:var(--red);white-space:nowrap;}
 .gps-badge.warn{border-color:rgba(224,154,61,.4);color:var(--amber);}
 .gps-badge.missing{border-color:rgba(168,191,196,.3);color:var(--muted2);}
+/* ── SESSION 3 NEW FEATURES ── */
+/* Today tab — completion tracker */
+.completion-bar{height:4px;background:var(--bg3);border-radius:2px;overflow:hidden;margin-top:4px;}
+.completion-fill{height:100%;background:var(--teal2);border-radius:2px;transition:width .4s;}
+.psw-completion-row{display:flex;align-items:center;gap:10px;padding:8px 14px;border-bottom:1px solid var(--border);}
+.psw-completion-name{flex:1;font-size:12px;font-weight:500;color:var(--text);}
+.psw-completion-count{font-family:var(--mono);font-size:10px;color:var(--muted2);}
+/* Cancellation requests badge */
+.cancel-req-badge{display:inline-flex;align-items:center;gap:4px;font-family:var(--mono);font-size:8px;padding:2px 7px;border-radius:100px;background:rgba(224,154,61,.1);border:1px solid rgba(224,154,61,.3);color:var(--amber);}
+.cancel-req-card{margin:0 12px 8px;padding:12px 14px;background:rgba(224,154,61,.04);border:1px solid rgba(224,154,61,.2);border-radius:8px;}
+.cancel-req-actions{display:flex;gap:6px;margin-top:8px;}
+.cancel-approve-btn{flex:1;padding:8px;background:rgba(61,138,122,.1);border:1px solid rgba(61,138,122,.3);border-radius:6px;color:var(--teal2);font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;min-height:36px;touch-action:manipulation;}
+.cancel-reject-btn{flex:1;padding:8px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;color:var(--muted2);font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;min-height:36px;touch-action:manipulation;}
+/* Vitals dashboard */
+.vitals-card{margin:0 12px 8px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;overflow:hidden;}
+.vitals-reading{display:flex;align-items:center;gap:10px;padding:8px 14px;border-bottom:1px solid var(--border);}
+.vitals-reading:last-child{border-bottom:none;}
+.vitals-val{font-family:var(--mono);font-size:12px;color:var(--text);}
+.vitals-flag{font-family:var(--mono);font-size:8px;color:var(--red);background:rgba(224,85,85,.1);border:1px solid rgba(224,85,85,.3);padding:2px 6px;border-radius:4px;letter-spacing:1px;}
+.vitals-alert-banner{margin:0 12px 8px;padding:10px 14px;background:rgba(224,85,85,.06);border:1px solid rgba(224,85,85,.2);border-radius:8px;}
+/* Shift broadcast UI */
+.broadcast-card{margin:0 12px 12px;padding:14px;background:rgba(200,169,110,.04);border:1px solid rgba(200,169,110,.2);border-radius:8px;}
+.broadcast-lbl{font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);margin-bottom:10px;}
+.broadcast-btn{width:100%;padding:12px;background:rgba(200,169,110,.1);border:1px solid rgba(200,169,110,.3);border-radius:8px;color:var(--gold);font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;min-height:42px;touch-action:manipulation;}
+.broadcast-btn:active{background:rgba(200,169,110,.2);}
+/* Shift offer history */
+.offer-history-row{display:flex;align-items:center;gap:10px;padding:9px 14px;border-bottom:1px solid var(--border);}
+.offer-history-row:last-child{border-bottom:none;}
+.offer-status-chip{font-family:var(--mono);font-size:8px;letter-spacing:1px;padding:2px 8px;border-radius:100px;border:1px solid;}
+.offer-status-chip.filled{color:var(--teal2);border-color:rgba(61,138,122,.3);background:rgba(61,138,122,.06);}
+.offer-status-chip.open{color:var(--amber);border-color:rgba(224,154,61,.3);background:rgba(224,154,61,.06);}
+/* Forms submitted chip */
+.form-chip{display:inline-flex;align-items:center;gap:4px;font-family:var(--mono);font-size:8px;letter-spacing:1px;padding:2px 8px;border-radius:100px;color:var(--teal2);border:1px solid rgba(61,138,122,.3);background:rgba(61,138,122,.06);}
+/* Handoff badge */
+.handoff-badge{display:inline-flex;align-items:center;gap:3px;font-family:var(--mono);font-size:8px;padding:2px 6px;border-radius:100px;background:rgba(200,169,110,.1);border:1px solid rgba(200,169,110,.3);color:var(--gold);cursor:pointer;}
+/* UI Consistency pass */
+.card{transition:background .12s;}
+.card-header{min-height:52px;}
 @media(max-width:1024px){
   .section{padding:0 8px;}
   .sect-head-row{flex-wrap:wrap;gap:6px;}
@@ -777,6 +815,12 @@ button:active{transform:scale(0.98);}
     </div>
   </div>
 
+  <!-- Cancellation Requests Alert -->
+  <div id="cancel-req-alert" style="display:none;margin:0 12px 8px;">
+    <div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--amber);margin-bottom:6px;">⚑ Cancellation Requests</div>
+    <div id="cancel-req-list"></div>
+  </div>
+
   <!-- Today's shifts -->
   <div class="section-header" style="padding-bottom:4px;">
     <span class="section-title">Today's Shifts</span>
@@ -894,6 +938,12 @@ button:active{transform:scale(0.98);}
   </div>
   <div style="margin:0 12px 12px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;overflow:hidden;" id="ov-gps-exceptions">
     <div class="empty-state" style="padding:14px;">Loading GPS data...</div>
+  </div>
+
+  <!-- Vitals alert banner -->
+  <div id="ov-vitals-alert" style="display:none;" class="vitals-alert-banner">
+    <div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--red);margin-bottom:4px;">⚠ Flagged Vitals</div>
+    <div style="font-size:12px;color:var(--muted2);" id="ov-vitals-msg">—</div>
   </div>
 
   <!-- Recent activity feed -->
@@ -1067,6 +1117,27 @@ button:active{transform:scale(0.98);}
 </div>
 
 <!-- BOOKINGS -->
+<!-- SHIFT BROADCAST SHEET -->
+<div id="broadcast-overlay" style="display:none;position:fixed;inset:0;z-index:400;background:rgba(0,0,0,.7);" onclick="closeBroadcastSheet()"></div>
+<div id="broadcast-sheet" style="display:none;position:fixed;bottom:0;left:0;right:0;background:var(--bg2);border-radius:18px 18px 0 0;padding:20px;max-height:80vh;overflow-y:auto;z-index:401;">
+  <div style="width:36px;height:4px;background:var(--border2);border-radius:2px;margin:0 auto 16px;"></div>
+  <div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);margin-bottom:12px;">Broadcast Open Shift</div>
+  <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px;">
+    <div><label style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;display:block;margin-bottom:4px;">Client</label>
+      <select id="bs-client" style="width:100%;padding:10px;background:var(--bg3);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-size:13px;min-height:40px;"></select></div>
+    <div style="display:flex;gap:8px;">
+      <div style="flex:1;"><label style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;display:block;margin-bottom:4px;">Date</label>
+        <input type="date" id="bs-date" style="width:100%;padding:10px;background:var(--bg3);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-size:13px;min-height:40px;"></div>
+      <div style="flex:1;"><label style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;display:block;margin-bottom:4px;">Time</label>
+        <input type="time" id="bs-time" style="width:100%;padding:10px;background:var(--bg3);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-size:13px;min-height:40px;"></div>
+    </div>
+    <div><label style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;display:block;margin-bottom:4px;">Duration (hours)</label>
+      <input type="number" id="bs-duration" min="1" max="12" step="0.5" value="4" style="width:100%;padding:10px;background:var(--bg3);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-size:13px;min-height:40px;"></div>
+  </div>
+  <button onclick="submitBroadcast()" style="width:100%;padding:14px;background:var(--gold);color:#000;border:none;border-radius:8px;font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;cursor:pointer;min-height:48px;margin-bottom:8px;">Broadcast to All PSWs</button>
+  <button onclick="closeBroadcastSheet()" style="width:100%;padding:12px;background:none;border:1px solid var(--border);border-radius:8px;color:var(--muted2);font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;min-height:40px;">Cancel</button>
+</div>
+
 <div class="section" id="sect-bookings">
   <div class="section-header">
     <span class="section-title">Appointments</span>
@@ -1257,6 +1328,17 @@ button:active{transform:scale(0.98);}
 <!-- CREATE OPERATOR — Tab 10 -->
 <!-- SCHEDULE TAB -->
 <div class="section" id="sect-schedule">
+  <!-- Broadcast button at top of schedule -->
+  <div style="margin:10px 12px 0;display:flex;gap:8px;align-items:center;">
+    <button onclick="openBroadcastSheet()" class="broadcast-btn">⚡ Broadcast Open Shift</button>
+  </div>
+  <!-- Shift offers history -->
+  <div id="shift-offers-hq-section" style="display:none;margin-top:10px;">
+    <div style="padding:8px 12px 4px;font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);">Recent Shift Offers</div>
+    <div style="margin:0 12px 8px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;overflow:hidden;" id="shift-offers-hq-list">
+      <div class="empty-state" style="padding:12px;">Loading offers...</div>
+    </div>
+  </div>
   <div style="padding:12px 12px 0;">
     <div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--amber);margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;"><span>⚑ Vacant Shifts</span><span id="vacant-count" style="font-family:var(--mono);font-size:9px;padding:2px 6px;background:rgba(224,154,61,.1);border:1px solid rgba(224,154,61,.25);border-radius:4px;color:var(--amber);">0</span></div>
     <div id="vacant-list" style="margin-bottom:12px;"><div style="font-family:var(--mono);font-size:10px;color:var(--muted);text-align:center;padding:8px;">All shifts assigned</div></div>
@@ -1824,6 +1906,153 @@ function switchOp(id, name) {
 
 // ── DATA ──
 let _hqFetching = false;
+
+// ── CANCELLATION REQUESTS ──
+async function loadCancellationRequests() {
+  try {
+    const r = await fetch(`${API}/hq/cancellation-requests?operator_id=${currentOp}&status=pending`);
+    const d = await r.json();
+    const requests = d.requests || [];
+    const alertEl = document.getElementById('cancel-req-alert');
+    const listEl = document.getElementById('cancel-req-list');
+    if (!alertEl || !listEl) return;
+    if (!requests.length) { alertEl.style.display = 'none'; return; }
+    alertEl.style.display = 'block';
+    listEl.innerHTML = requests.map(req => `
+      <div class="cancel-req-card" id="cancel-req-${req.id}">
+        <div style="font-size:13px;font-weight:500;color:var(--text);">${req.psw_name} · ${req.client_name||'Unknown client'}</div>
+        <div style="font-family:var(--mono);font-size:10px;color:var(--muted2);margin-top:2px;">${req.scheduled_date||'—'}${req.scheduled_time?' · '+req.scheduled_time:''}</div>
+        <div style="font-size:12px;color:var(--muted2);margin-top:4px;">Reason: ${req.reason}</div>
+        <div class="cancel-req-actions">
+          <button class="cancel-approve-btn" onclick="respondCancelRequest('${req.id}','approve')">✓ Approve + Broadcast</button>
+          <button class="cancel-reject-btn" onclick="respondCancelRequest('${req.id}','reject')">Reject</button>
+        </div>
+      </div>`).join('');
+  } catch {}
+}
+
+async function respondCancelRequest(id, action) {
+  try {
+    const r = await fetch(`${API}/hq/cancellation-requests/${id}/respond`, {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ operator_id: currentOp, action, note: action === 'reject' ? 'Please attend your scheduled shift.' : '' })
+    });
+    const d = await r.json();
+    showToast(action === 'approve' ? 'Approved — shift broadcast sent' : 'Rejected — PSW notified', 'ok');
+    document.getElementById('cancel-req-' + id)?.remove();
+    const remaining = document.querySelectorAll('[id^="cancel-req-"]:not(#cancel-req-alert):not(#cancel-req-list)').length;
+    if (!remaining) document.getElementById('cancel-req-alert').style.display = 'none';
+  } catch { showToast('Could not process request', 'err'); }
+}
+
+// ── SHIFT BROADCAST ──
+function openBroadcastSheet() {
+  const overlay = document.getElementById('broadcast-overlay');
+  const sheet = document.getElementById('broadcast-sheet');
+  if (!overlay || !sheet) return;
+  // Populate client dropdown
+  const sel = document.getElementById('bs-client');
+  if (sel) {
+    const clients = D.clients || [];
+    sel.innerHTML = '<option value="">Select client...</option>' +
+      clients.map(c => {
+        const name = ((c.first_name||'') + ' ' + (c.last_name||'')).trim();
+        return `<option value="${name}">${name}</option>`;
+      }).join('');
+  }
+  // Default date to today
+  const dateEl = document.getElementById('bs-date');
+  if (dateEl) dateEl.value = new Date().toISOString().slice(0,10);
+  overlay.style.display = 'block';
+  sheet.style.display = 'block';
+}
+
+function closeBroadcastSheet() {
+  document.getElementById('broadcast-overlay').style.display = 'none';
+  document.getElementById('broadcast-sheet').style.display = 'none';
+}
+
+async function submitBroadcast() {
+  const clientName = document.getElementById('bs-client')?.value;
+  const date = document.getElementById('bs-date')?.value;
+  const time = document.getElementById('bs-time')?.value;
+  const duration = parseFloat(document.getElementById('bs-duration')?.value || 4);
+  if (!clientName || !date) { showToast('Client and date required', 'err'); return; }
+  try {
+    const r = await fetch(`${API}/hq/shift-offer/broadcast`, {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({
+        operator_id: currentOp,
+        client_name: clientName,
+        scheduled_date: date,
+        scheduled_time: time || null,
+        duration_minutes: Math.round(duration * 60),
+        broadcast_all: true
+      })
+    });
+    const d = await r.json();
+    closeBroadcastSheet();
+    showToast(`Open shift broadcast to ${d.notified_count||0} PSWs`, 'ok');
+    loadShiftOffersHQ();
+  } catch { showToast('Broadcast failed', 'err'); }
+}
+
+async function loadShiftOffersHQ() {
+  try {
+    const today = new Date().toISOString().slice(0,10);
+    const r = await fetch(`${API}/hq/shift-offers?operator_id=${currentOp}&from_date=${today}`);
+    const d = await r.json();
+    const offers = d.offers || [];
+    const section = document.getElementById('shift-offers-hq-section');
+    const list = document.getElementById('shift-offers-hq-list');
+    if (!section || !list) return;
+    if (!offers.length) { section.style.display = 'none'; return; }
+    section.style.display = 'block';
+    list.innerHTML = offers.slice(0,5).map(o => `
+      <div class="offer-history-row">
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:12px;font-weight:500;color:var(--text);">${o.client_name||'—'}</div>
+          <div style="font-family:var(--mono);font-size:9px;color:var(--muted2);">${o.scheduled_date} · ${o.scheduled_time||'TBD'} · ${o.duration_minutes?(o.duration_minutes/60).toFixed(1)+'h':'—'}</div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;">
+          <span class="offer-status-chip ${o.status}">${o.status==='filled'?'✓ Filled':'Open'}</span>
+          ${o.accepted_by ? `<span style="font-family:var(--mono);font-size:8px;color:var(--muted);">${o.accepted_by.split(' ')[0]}</span>` : `<span style="font-family:var(--mono);font-size:8px;color:var(--muted);">${(o.broadcast_to||[]).length} notified</span>`}
+        </div>
+      </div>`).join('');
+  } catch {}
+}
+
+// ── VITALS DASHBOARD ──
+async function loadFlaggedVitals() {
+  try {
+    const r = await fetch(`${API}/hq/vitals?operator_id=${currentOp}&flagged_only=true`);
+    const d = await r.json();
+    const flagged = d.vitals || [];
+    const alertEl = document.getElementById('ov-vitals-alert');
+    const msgEl = document.getElementById('ov-vitals-msg');
+    if (!alertEl || !msgEl) return;
+    if (!flagged.length) { alertEl.style.display = 'none'; return; }
+    alertEl.style.display = 'block';
+    const recent = flagged.filter(v => new Date(v.created_at) > new Date(Date.now() - 24*3600000));
+    if (recent.length) {
+      msgEl.textContent = `${recent.length} flagged reading${recent.length!==1?'s':''} in last 24h — ${[...new Set(recent.map(v=>v.client_name))].join(', ')}`;
+    } else {
+      msgEl.textContent = `${flagged.length} total flagged vitals on record — tap to review`;
+    }
+  } catch {}
+}
+
+async function loadClientVitals(clientName) {
+  try {
+    const r = await fetch(`${API}/hq/vitals?operator_id=${currentOp}&client_name=${encodeURIComponent(clientName)}`);
+    const d = await r.json();
+    return d.vitals || [];
+  } catch { return []; }
+}
+
+// ── WIRE INTO showSect ──
+const _origShowSect = showSect;
+
 async function loadAll(spin=false) {
   if (_hqFetching) return;
   _hqFetching = true;
@@ -3211,11 +3440,11 @@ function showSect(name) {
   if(name==='activity') { window._dirtyActivity=false; renderActivity(); }
   if(name==='revenue') { window._dirtyRevenue=false; renderRevenue().catch(e=>showToast('Revenue load failed','err')); }
   if(name==='crm') { window._dirtyCRM=false; renderCRM(); }
-  if(name==='overview') { window._dirtyOverview=false; renderOverview(); }
+  if(name==='overview') { window._dirtyOverview=false; renderOverview(); loadFlaggedVitals(); }
   if(name==='applicants') loadApplicants();
-  if(name==='schedule') { renderSchedule(); renderVacantVisits(); }
+  if(name==='schedule') { renderSchedule(); renderVacantVisits(); loadShiftOffersHQ(); }
   if(name==='visits') { renderVisits(); }
-  if(name==='today') renderToday();
+  if(name==='today') { renderToday(); loadCancellationRequests(); }
   window.scrollTo(0,0);
 }
 
@@ -6331,13 +6560,52 @@ function renderToday() {
     if (!rows.length) {
       attEl.innerHTML = '<div class="empty-state" style="padding:14px;">No PSWs on shift yet today</div>';
     } else {
-      attEl.innerHTML = rows.map(r => `
-        <div style="display:flex;align-items:center;gap:10px;padding:9px 14px;border-bottom:1px solid var(--border);">
-          <div style="width:8px;height:8px;border-radius:50%;background:${dotColor[r.status]||'var(--muted)'};flex-shrink:0;${r.status==='active'?'animation:livepulse 2s infinite':''}"></div>
-          <div style="flex:1;font-size:12px;font-weight:500;color:var(--text);">${r.name}</div>
-          <div style="font-family:var(--mono);font-size:10px;color:var(--muted2);">${r.client}</div>
-          <div style="font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:${r.status==='active'?'var(--green2)':'var(--teal2)'};">${r.status==='active'?'On Shift':'Done'}</div>
-        </div>`).join('');
+      // Completion tracker per PSW
+      const pswDoneCount = {};
+      const pswTotalCount = {};
+      visits.filter(v => v.visit_date===today).forEach(v => {
+        if (!pswDoneCount[v.psw_name]) pswDoneCount[v.psw_name] = 0;
+        if (v.time_out) pswDoneCount[v.psw_name]++;
+      });
+      bookings.filter(b => b.scheduled_date===today).forEach(b => {
+        const n = b.assigned_to;
+        if (!n) return;
+        if (!pswTotalCount[n]) pswTotalCount[n] = 0;
+        pswTotalCount[n]++;
+      });
+
+      attEl.innerHTML = rows.map(r => {
+        let elapsedStr = '';
+        if (r.status === 'active' && r.time_in) {
+          try {
+            const [hh, mm] = r.time_in.split(':');
+            const cdt = new Date(); cdt.setHours(parseInt(hh), parseInt(mm), 0, 0);
+            const mins = Math.round((now - cdt) / 60000);
+            elapsedStr = mins >= 60 ? `${Math.floor(mins/60)}h ${mins%60}m` : `${mins}m`;
+          } catch {}
+        }
+        const done = pswDoneCount[r.name] || 0;
+        const total = pswTotalCount[r.name] || 0;
+        const pct = total > 0 ? Math.round((done/total)*100) : 0;
+        return `<div style="padding:9px 14px;border-bottom:1px solid var(--border);">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div style="width:8px;height:8px;border-radius:50%;background:${dotColor[r.status]||'var(--muted)'};flex-shrink:0;${r.status==='active'?'animation:livepulse 2s infinite':''}"></div>
+            <div style="flex:1;min-width:0;">
+              <div style="font-size:12px;font-weight:500;color:var(--text);">${r.name}</div>
+              <div style="font-family:var(--mono);font-size:10px;color:var(--muted2);">${r.client}</div>
+            </div>
+            ${elapsedStr ? `<div style="font-family:var(--mono);font-size:10px;color:var(--amber);">${elapsedStr}</div>` : ''}
+            <div style="font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:${r.status==='active'?'var(--green2)':'var(--teal2)'};">${r.status==='active'?'On Shift':'Done'}</div>
+          </div>
+          ${total > 0 ? `<div style="margin-top:6px;padding-left:18px;">
+            <div style="display:flex;justify-content:space-between;margin-bottom:3px;">
+              <span style="font-family:var(--mono);font-size:9px;color:var(--muted);">${done}/${total} visits done</span>
+              <span style="font-family:var(--mono);font-size:9px;color:var(--muted);">${pct}%</span>
+            </div>
+            <div class="completion-bar"><div class="completion-fill" style="width:${pct}%"></div></div>
+          </div>` : ''}
+        </div>`;
+      }).join('');
     }
   }
 
