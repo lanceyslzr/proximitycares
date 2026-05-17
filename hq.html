@@ -5269,6 +5269,50 @@ async function renderRevenue() {
     html += '</div></div>';
   }
 
+  // PSW Payroll section
+  const now2 = new Date();
+  const curMonth = ['January','February','March','April','May','June','July','August','September','October','November','December'][now2.getMonth()];
+  const curYear = now2.getFullYear();
+  html += `<div style="margin:0 12px 16px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+      <div style="font-family:var(--mono);font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--muted2);">PSW Payroll — ${curMonth} ${curYear}</div>
+    </div>`;
+
+  // Get unique PSWs with visits this month
+  const pswPayMap = {};
+  monthVisits.forEach(v => {
+    if (!v.psw_name) return;
+    const p = (D.psws||[]).find(x => (x.full_name||'').toLowerCase() === v.psw_name.toLowerCase());
+    const rate = parseFloat(p?.psw_rate || 19);
+    const hrs = parseFloat(v.hours_worked||0);
+    if (!pswPayMap[v.psw_name]) pswPayMap[v.psw_name] = { hours: 0, pay: 0, email: p?.email||'', visits: 0 };
+    pswPayMap[v.psw_name].hours += hrs;
+    pswPayMap[v.psw_name].pay += hrs * rate;
+    pswPayMap[v.psw_name].visits++;
+    if (p?.email) pswPayMap[v.psw_name].email = p.email;
+  });
+
+  if (Object.keys(pswPayMap).length) {
+    Object.entries(pswPayMap).sort((a,b) => b[1].pay - a[1].pay).forEach(([pswName, pd]) => {
+      const safeName = pswName.replace(/'/g,'').replace(/"/g,'');
+      const safeEmail = pd.email.replace(/'/g,'').replace(/"/g,'');
+      html += `<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--bg2);border:1px solid var(--border);border-radius:6px;margin-bottom:4px;">
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:12px;font-weight:500;color:var(--text);">${pswName}</div>
+          <div style="font-family:var(--mono);font-size:9px;color:var(--muted);margin-top:2px;">${pd.visits} visit${pd.visits!==1?'s':''} · ${pd.hours.toFixed(1)}h · $${pd.pay.toFixed(0)} owing</div>
+          ${pd.email ? `<div style="font-family:var(--mono);font-size:9px;color:var(--muted2);">${pd.email}</div>` : '<div style="font-family:var(--mono);font-size:9px;color:var(--red);">No email on file</div>'}
+        </div>
+        <div style="display:flex;gap:6px;align-items:center;">
+          <div style="font-family:var(--mono);font-size:13px;color:var(--teal2);">$${pd.pay.toFixed(0)}</div>
+          ${pd.email ? `<button onclick="sendPSWPayStub('${safeName}','${safeEmail}','${curMonth}','${curYear}')" style="font-family:var(--mono);font-size:8px;letter-spacing:1px;text-transform:uppercase;padding:5px 9px;border-radius:4px;border:1px solid rgba(61,138,122,.4);background:rgba(61,138,122,.08);color:var(--teal2);cursor:pointer;min-height:30px;touch-action:manipulation;">Send Pay Stub</button>` : ''}
+        </div>
+      </div>`;
+    });
+  } else {
+    html += `<div style="font-family:var(--mono);font-size:10px;color:var(--muted);padding:12px 0;">No PSW visits logged this month yet</div>`;
+  }
+  html += '</div>';
+
   el.innerHTML = html;
 
   // BUILD 29 — AR section: load and append outstanding invoices
@@ -5312,17 +5356,37 @@ async function renderRevenue() {
   } catch(e) { console.error('AR load error:', e.message); }
 }
 
+// ── PSW PAY STUB ──
+async function sendPSWPayStub(pswName, pswEmail, month, year) {
+  if (!pswEmail) { showToast('No email on file for this PSW', 'err'); return; }
+  if (!confirm(`Send ${month} ${year} pay stub to ${pswName} at ${pswEmail}?`)) return;
+  try {
+    showToast('Sending pay stub...', 'ok');
+    const r = await fetch(`${API}/hq/psw/send-paystub`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ operator_id: currentOp, psw_name: pswName, psw_email: pswEmail, month, year: parseInt(year) })
+    });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error || 'Failed');
+    showToast(`Pay stub sent to ${pswName} ✓ — ${d.hours}h · $${parseFloat(d.total_pay).toFixed(0)}`, 'ok');
+    haptic([30, 20, 30]);
+  } catch (e) { showToast(e.message || 'Could not send pay stub', 'err'); }
+}
+
 // ── BUILD 29 — MARK INVOICE PAID ──
 async function markInvoicePaid(id) {
+  if (!confirm('Mark this invoice as paid? A thank you email will be sent to the family automatically.')) return;
   try {
     const res = await fetch(`${API}/hq/ar/mark-paid/${id}`, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ operator_id: currentOp })
     });
-    if (!res.ok) throw new Error();
-    showToast('Invoice marked paid ✓', 'ok');
+    const d = await res.json();
+    if (!res.ok) throw new Error(d.error || 'Failed');
+    showToast(d.thank_you_sent ? 'Paid ✓ — thank you email sent to family' : 'Invoice marked paid ✓', 'ok');
+    haptic([30, 20, 30]);
     renderRevenue();
-  } catch { showToast('Could not mark paid', 'err'); }
+  } catch (e) { showToast(e.message || 'Could not mark paid', 'err'); }
 }
 
 // ── PSW PROFILE DRAWER ──
