@@ -3390,7 +3390,27 @@ function headingToNextClient() {
 
 // ── SHIFT OFFERS ──
 // Track declined offer IDs locally — prevents re-appearance on auto-refresh
-if (!window._declinedOfferIds) window._declinedOfferIds = new Set();
+// Declined offer IDs — persisted to localStorage so refresh doesn't bring them back
+function _getDeclinedIds() {
+  try {
+    const stored = localStorage.getItem('psw_declined_offers');
+    const parsed = stored ? JSON.parse(stored) : [];
+    // Auto-expire after 7 days
+    const cutoff = Date.now() - 7 * 24 * 3600000;
+    const fresh = parsed.filter(e => e.ts > cutoff);
+    return new Set(fresh.map(e => e.id));
+  } catch { return new Set(); }
+}
+function _addDeclinedId(id) {
+  try {
+    const stored = localStorage.getItem('psw_declined_offers');
+    const parsed = stored ? JSON.parse(stored) : [];
+    const cutoff = Date.now() - 7 * 24 * 3600000;
+    const fresh = parsed.filter(e => e.ts > cutoff);
+    fresh.push({ id, ts: Date.now() });
+    localStorage.setItem('psw_declined_offers', JSON.stringify(fresh));
+  } catch {}
+}
 
 async function loadShiftOffers() {
   try {
@@ -3398,7 +3418,8 @@ async function loadShiftOffers() {
     if (!r.ok) return;
     const d = await r.json();
     // Filter out locally declined offers
-    const offers = (d.offers || []).filter(o => !window._declinedOfferIds.has(o.id));
+    const declinedIds = _getDeclinedIds();
+    const offers = (d.offers || []).filter(o => !declinedIds.has(o.id));
     const section = document.getElementById('shift-offers-section');
     const list = document.getElementById('shift-offers-list');
     if (!section || !list) return;
@@ -3431,8 +3452,7 @@ async function respondToOffer(offerId, response) {
       await loadSchedule();
     } else {
       // Track decline locally so auto-refresh doesn't re-show the offer
-      if (!window._declinedOfferIds) window._declinedOfferIds = new Set();
-      window._declinedOfferIds.add(offerId);
+      _addDeclinedId(offerId);
       showToast('Shift declined', 'ok');
     }
     const el = document.getElementById('offer-' + offerId);
@@ -3442,7 +3462,7 @@ async function respondToOffer(offerId, response) {
     if (!remaining) { const s = document.getElementById('shift-offers-section'); if (s) s.style.display = 'none'; }
   } catch {
     if (response === 'accept') showToast('Request sent', 'ok');
-    else { if (!window._declinedOfferIds) window._declinedOfferIds = new Set(); window._declinedOfferIds.add(offerId); }
+    else { _addDeclinedId(offerId); }
     const el = document.getElementById('offer-' + offerId);
     if (el) el.remove();
   }
