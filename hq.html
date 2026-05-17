@@ -1723,26 +1723,7 @@ button:active{transform:scale(0.98);}
 <!-- APPLICANT SHEET -->
 <div class="sheet" id="app-sheet">
   <div class="sheet-handle"></div>
-  <div class="sheet-body" style="padding-top:8px;">
-    <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px;">
-      <div>
-        <div style="font-size:17px;font-weight:500;color:var(--text);" id="app-sheet-name">—</div>
-        <div style="font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;margin-top:3px;" id="app-sheet-status">—</div>
-        <div style="font-size:11px;color:var(--muted2);margin-top:4px;" id="app-sheet-meta">—</div>
-      </div>
-      <button onclick="closeSheet('app-sheet')" style="font-size:18px;color:var(--muted2);background:none;border:none;padding:4px;line-height:1;">✕</button>
-    </div>
-    <div style="font-family:var(--mono);font-size:8px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:4px;">AVAILABILITY</div>
-    <div style="font-size:12px;color:var(--muted2);margin-bottom:16px;" id="app-sheet-avail">—</div>
-    <div style="font-family:var(--mono);font-size:8px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:2px;">DOCUMENTS</div>
-    <div id="app-sheet-docs"></div>
-    <div style="display:flex;flex-direction:column;gap:8px;margin-top:16px;" id="app-sheet-acts"></div>
-    <!-- PSW Intake AI result panel -->
-    <div id="app-sheet-ai-result" style="display:none;margin-top:16px;padding:14px;background:rgba(61,138,122,.06);border:1px solid rgba(61,138,122,.2);border-radius:8px;"></div>
-  </div>
-</div>
-<div class="sheet" id="op-sheet">
-  <div class="sheet-handle"></div>
+  <button class="sheet-close" onclick="closeSheet('app-sheet')" style="position:absolute;top:12px;right:16px;font-size:18px;color:var(--muted2);background:none;border:none;cursor:pointer;padding:4px 8px;min-height:36px;touch-action:manipulation;z-index:1;">✕</button>
   <div class="sheet-title">Switch Operator</div>
   <div class="sheet-body">
     <div class="op-item" onclick="switchOp('proximity-care','Proximity Care')">
@@ -1766,6 +1747,7 @@ button:active{transform:scale(0.98);}
 <!-- STATUS SHEET -->
 <div class="sheet" id="status-sheet">
   <div class="sheet-handle"></div>
+  <button class="sheet-close" onclick="closeSheet('status-sheet')" style="position:absolute;top:12px;right:16px;font-size:18px;color:var(--muted2);background:none;border:none;cursor:pointer;padding:4px 8px;min-height:36px;touch-action:manipulation;z-index:1;">✕</button>
   <div class="sheet-title">Update Lead Status</div>
   <div class="sheet-body">
     <div class="sopt" onclick="setStatus('new')"><span class="sopt-lbl">New</span><span class="badge b-new">new</span></div>
@@ -1787,6 +1769,7 @@ button:active{transform:scale(0.98);}
 <div class="sheet" id="client-sheet">
   <div class="sheet-handle"></div>
   <div class="sheet-title" id="client-sheet-title">Client</div>
+  <div id="client-sheet-badges" style="padding:0 16px 8px;display:flex;flex-wrap:wrap;gap:4px;"></div>
   <div class="sheet-body" id="client-sheet-body"></div>
 </div>
 
@@ -1843,6 +1826,7 @@ button:active{transform:scale(0.98);}
 
 <div class="sheet" id="booking-sheet">
   <div class="sheet-handle"></div>
+  <button class="sheet-close" onclick="closeSheet('booking-sheet')" style="position:absolute;top:12px;right:16px;font-size:18px;color:var(--muted2);background:none;border:none;cursor:pointer;padding:4px 8px;min-height:36px;touch-action:manipulation;z-index:1;">✕</button>
   <div class="sheet-title">Add Appointment</div>
   <div class="sheet-body">
     <div class="sheet-row"><div class="slbl">Client Name</div><input class="sinput" id="bf-name" placeholder="Full name"></div>
@@ -1875,6 +1859,7 @@ button:active{transform:scale(0.98);}
 
 <div class="sheet" id="psw-msg-sheet">
   <div class="sheet-handle"></div>
+  <button class="sheet-close" onclick="closeSheet('psw-msg-sheet')" style="position:absolute;top:12px;right:16px;font-size:18px;color:var(--muted2);background:none;border:none;cursor:pointer;padding:4px 8px;min-height:36px;touch-action:manipulation;z-index:1;">✕</button>
   <div class="sheet-title" id="psw-msg-title">Message PSW</div>
   <div class="sheet-body" id="psw-msg-body" style="padding-bottom:70px;min-height:200px;"></div>
   <div class="msend-wrap">
@@ -5401,11 +5386,27 @@ async function openPSWDetail(pswId) {
 
 // ── EXPANDED CLIENT DETAIL ──
 // Override existing openClientDetail with full profile version
+
+// ── ALERT BADGES — ported from PSW portal ──
+function getAlertBadges(c) {
+  const text = ((c.care_notes||'') + ' ' + (c.care_directives||'')).toLowerCase();
+  let badges = '';
+  if (/dnr|do not resuscitate/.test(text)) badges += '<span style="display:inline-flex;align-items:center;gap:4px;font-family:var(--mono);font-size:8px;letter-spacing:1px;text-transform:uppercase;padding:3px 8px;border-radius:100px;border:1px solid;margin-right:4px;color:var(--red);border-color:rgba(224,85,85,.5);background:rgba(224,85,85,.1);font-weight:700;">⚠ DNR</span>';
+  if (/fall|falls|fall risk/.test(text)) badges += '<span style="display:inline-flex;align-items:center;gap:4px;font-family:var(--mono);font-size:8px;letter-spacing:1px;text-transform:uppercase;padding:3px 8px;border-radius:100px;border:1px solid;margin-right:4px;color:var(--amber);border-color:rgba(224,154,61,.4);">⚠ Fall Risk</span>';
+  if (/allerg|anaphyl/.test(text)) badges += '<span style="display:inline-flex;align-items:center;gap:4px;font-family:var(--mono);font-size:8px;letter-spacing:1px;text-transform:uppercase;padding:3px 8px;border-radius:100px;border:1px solid;margin-right:4px;color:var(--red);border-color:rgba(224,85,85,.4);">⚠ Allergy</span>';
+  if (/environment|latex|pet |smoke/.test(text)) badges += '<span style="display:inline-flex;align-items:center;gap:4px;font-family:var(--mono);font-size:8px;letter-spacing:1px;text-transform:uppercase;padding:3px 8px;border-radius:100px;border:1px solid;margin-right:4px;color:#6dbdd4;border-color:rgba(109,189,212,.3);">⚠ Environment</span>';
+  return badges;
+}
+
 function openClientDetail(id) {
   const c = (D.clients||[]).find(x=>x.id===id); if(!c) return;
   const name = `${c.first_name||''} ${c.last_name||''}`.trim();
   const slug = c.portal_slug || '';
   document.getElementById('client-sheet-title').textContent = name;
+  // Alert badges
+  const alertBadges = getAlertBadges(c);
+  const existingBadges = document.getElementById('client-sheet-badges');
+  if (existingBadges) existingBadges.innerHTML = alertBadges || '';
   document.getElementById('client-sheet-body').innerHTML = `
     <div style="display:flex;gap:8px;margin-bottom:16px;">
       <button style="flex:1;background:rgba(61,138,122,.12);color:var(--teal2);border:1px solid var(--border2);padding:10px;font-family:var(--mono);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;border-radius:6px;cursor:pointer;min-height:40px;touch-action:manipulation;" onclick="closeSheet('client-sheet');openClientSchedule('${name}')">+ Schedule Shift</button>
@@ -6658,7 +6659,8 @@ function renderToday() {
         return `<div>
           <div class="today-shift-row" onclick="document.getElementById('${_tsrId}').classList.toggle('open')">
             <span class="tsr-time">${b.scheduled_time||'—'}</span>
-            <div style="flex:1;min-width:0;"><div class="tsr-client">${b.client_name||'—'}</div><div class="tsr-psw">${b.assigned_to||'⚑ Unassigned'}</div></div>
+            <div style="flex:1;min-width:0;"><div class="tsr-client">${b.client_name||'—'}</div><div class="tsr-psw">${b.assigned_to||'⚑ Unassigned'}</div>
+            ${(() => { const c = (D.clients||[]).find(cl => ((cl.first_name||'')+' '+(cl.last_name||'')).trim() === b.client_name); return c ? getAlertBadges(c) : ''; })()}</div>
             <div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px;">
               <span class="tsr-status" style="color:${col};">${status}</span>
               ${elapsedStr ? `<span style="font-family:var(--mono);font-size:9px;color:var(--amber);">${elapsedStr}</span>` : ''}
