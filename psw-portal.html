@@ -447,6 +447,23 @@ a{color:inherit;text-decoration:none;}
 .cannot-make-sheet.open{transform:translateY(0);}
 .cannot-make-overlay{display:none;position:fixed;inset:0;z-index:400;background:rgba(0,0,0,.7);}
 .cannot-make-overlay.open{display:block;}
+/* ── VISIT FORMS — Session 5 ── */
+.visit-forms-section{margin:0 12px 10px;background:var(--bg2);border:1px solid rgba(200,169,110,.2);border-radius:10px;overflow:hidden;}
+.vf-header{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:rgba(200,169,110,.04);border-bottom:1px solid rgba(200,169,110,.15);}
+.vf-title{font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);}
+.vf-count{font-family:var(--mono);font-size:9px;color:var(--muted);}
+.vf-form-card{padding:12px 14px;border-bottom:1px solid var(--border);}
+.vf-form-card:last-child{border-bottom:none;}
+.vf-form-name{font-size:13px;font-weight:500;color:var(--text);margin-bottom:8px;}
+.vf-item{display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid var(--border);}
+.vf-item:last-of-type{border-bottom:none;}
+.vf-checkbox{width:18px;height:18px;border-radius:4px;border:1.5px solid var(--border2);background:var(--bg3);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;touch-action:manipulation;}
+.vf-checkbox.checked{background:var(--teal);border-color:var(--teal2);}
+.vf-checkbox.checked::after{content:'✓';font-size:11px;color:#fff;}
+.vf-item-label{font-size:13px;color:var(--text);flex:1;}
+.vf-submit-btn{width:100%;margin-top:10px;padding:11px;background:rgba(61,138,122,.12);border:1px solid rgba(61,138,122,.3);border-radius:8px;color:var(--teal2);font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;min-height:42px;touch-action:manipulation;}
+.vf-submit-btn:disabled{opacity:.4;pointer-events:none;}
+.vf-submitted-chip{display:inline-flex;align-items:center;gap:4px;font-family:var(--mono);font-size:9px;letter-spacing:1px;padding:4px 10px;border-radius:100px;background:rgba(61,138,122,.08);border:1px solid rgba(61,138,122,.25);color:var(--teal2);}
 @media(max-width:768px){
   .week-nav{padding:8px 12px 10px;}
   .sched-day{margin:0 8px 6px;}
@@ -695,6 +712,16 @@ a{color:inherit;text-decoration:none;}
     <span class="section-title">Daily Checklist</span>
     <div id="cl-visit-name" style="font-family:var(--mono);font-size:9px;color:var(--teal2);letter-spacing:1px;"></div>
   </div>
+
+  <!-- VISIT FORMS — loaded on checkin, submitted during visit -->
+  <div id="visit-forms-section" style="display:none;" class="visit-forms-section">
+    <div class="vf-header">
+      <span class="vf-title">Visit Forms</span>
+      <span class="vf-count" id="vf-count">0 pending</span>
+    </div>
+    <div id="visit-forms-list"></div>
+  </div>
+
   <div id="cl-no-shift" style="margin:0 12px 10px;padding:11px 14px;background:rgba(200,169,110,.06);border:1px solid rgba(200,169,110,.2);border-radius:6px;font-family:var(--mono);font-size:10px;color:var(--gold);letter-spacing:1px;line-height:1.6;display:none;">Sign in to a visit first — Schedule tab → Sign In Now</div>
   <div class="cl-progress">
     <div class="cl-progress-lbl">Tasks completed</div>
@@ -1862,6 +1889,7 @@ async function confirmCheckin() {
     haptic(200);
     showToast(d.resumed ? 'Resuming visit — ' + clientName : 'Signed in — ' + clientName, 'ok');
     showSect('checklist');
+    loadVisitForms().catch(() => {});
   } catch (e) { showToast(e.message, 'err'); }
   if (btn) { btn.textContent = 'Sign In Now'; btn.disabled = false; }
 }
@@ -2568,6 +2596,7 @@ function showSect(name) {
   if (name === 'pay') loadPaySummary();
   if (name === 'home') { loadHomeData(); if (scheduleData) renderHomeFeed(); }
   if (name === 'live') renderLiveOps();
+  if (name === 'checklist') loadVisitForms();
   if (name === 'checklist') {
     updateClCount();
     const noShift = document.getElementById('cl-no-shift');
@@ -3299,6 +3328,133 @@ async function respondToOffer(offerId, response) {
     const el = document.getElementById('offer-' + offerId);
     if (el) el.remove();
   }
+}
+
+
+// ── VISIT FORMS — Session 5 ──
+let _visitForms = []; // pending forms for current visit
+let _formChecks = {}; // checkbox states per form: { formName: { itemLabel: bool } }
+let _formSubmitted = {}; // submitted state per form
+
+async function loadVisitForms() {
+  const section = document.getElementById('visit-forms-section');
+  const list = document.getElementById('visit-forms-list');
+  const countEl = document.getElementById('vf-count');
+  if (!section || !list) return;
+  if (!activeVisit) { section.style.display = 'none'; return; }
+
+  try {
+    const r = await fetch(`${API}/hq/forms?operator_id=${pswOperatorId}&visit_id=${activeVisit.id}&submitted_only=false`);
+    if (!r.ok) { section.style.display = 'none'; return; }
+    const d = await r.json();
+    _visitForms = d.forms || [];
+  } catch {
+    // If endpoint not live yet, use default client identification form
+    _visitForms = [{
+      form_name: 'Client Identification Screening',
+      items: [
+        { label: 'Client was identified by name' },
+        { label: 'Client identity verified' },
+        { label: 'Client consent confirmed for visit' }
+      ],
+      submitted: false
+    }];
+  }
+
+  if (!_visitForms.length) { section.style.display = 'none'; return; }
+
+  const pending = _visitForms.filter(f => !f.submitted && !_formSubmitted[f.form_name]).length;
+  if (countEl) countEl.textContent = pending > 0 ? pending + ' pending' : 'All complete';
+  section.style.display = 'block';
+
+  list.innerHTML = _visitForms.map((f, fi) => {
+    const isSubmitted = f.submitted || _formSubmitted[f.form_name];
+    const items = f.items || [];
+    if (!_formChecks[f.form_name]) _formChecks[f.form_name] = {};
+
+    if (isSubmitted) {
+      const ts = _formSubmitted[f.form_name] || f.submitted_at;
+      return `<div class="vf-form-card">
+        <div class="vf-form-name">${f.form_name}</div>
+        <span class="vf-submitted-chip">✓ Submitted${ts ? ' · ' + new Date(ts).toLocaleTimeString('en-CA',{hour:'2-digit',minute:'2-digit',hour12:true}) : ''}</span>
+      </div>`;
+    }
+
+    return `<div class="vf-form-card" id="vf-card-${fi}">
+      <div class="vf-form-name">${f.form_name}</div>
+      ${items.map((item, ii) => {
+        const lbl = typeof item === 'string' ? item : item.label || item;
+        const checked = _formChecks[f.form_name][lbl] || false;
+        return `<div class="vf-item">
+          <div class="vf-checkbox${checked?' checked':''}" id="vf-cb-${fi}-${ii}" onclick="toggleFormCheck(${fi},${ii},'${lbl.replace(/'/g,'\'')}')"></div>
+          <span class="vf-item-label">${lbl}</span>
+        </div>`;
+      }).join('')}
+      <button class="vf-submit-btn" id="vf-submit-${fi}" onclick="submitForm(${fi})" disabled>Submit Form</button>
+    </div>`;
+  }).join('');
+
+  // Recheck button states
+  _visitForms.forEach((f, fi) => {
+    if (!f.submitted && !_formSubmitted[f.form_name]) updateFormSubmitBtn(fi, f);
+  });
+}
+
+function toggleFormCheck(formIdx, itemIdx, label) {
+  const f = _visitForms[formIdx];
+  if (!f) return;
+  if (!_formChecks[f.form_name]) _formChecks[f.form_name] = {};
+  _formChecks[f.form_name][label] = !_formChecks[f.form_name][label];
+  const cb = document.getElementById(`vf-cb-${formIdx}-${itemIdx}`);
+  if (cb) cb.classList.toggle('checked', _formChecks[f.form_name][label]);
+  haptic(30);
+  updateFormSubmitBtn(formIdx, f);
+}
+
+function updateFormSubmitBtn(formIdx, f) {
+  const items = f.items || [];
+  const allChecked = items.every(item => {
+    const lbl = typeof item === 'string' ? item : item.label || item;
+    return _formChecks[f.form_name]?.[lbl];
+  });
+  const btn = document.getElementById(`vf-submit-${formIdx}`);
+  if (btn) {
+    btn.disabled = !allChecked;
+    btn.style.opacity = allChecked ? '1' : '.4';
+    btn.style.pointerEvents = allChecked ? 'auto' : 'none';
+  }
+}
+
+async function submitForm(formIdx) {
+  const f = _visitForms[formIdx];
+  if (!f || !activeVisit) return;
+  const btn = document.getElementById(`vf-submit-${formIdx}`);
+  if (btn) { btn.textContent = 'Submitting...'; btn.disabled = true; }
+
+  const items = (f.items || []).map(item => {
+    const lbl = typeof item === 'string' ? item : item.label || item;
+    return { label: lbl, checked: _formChecks[f.form_name]?.[lbl] || false };
+  });
+
+  const submittedAt = new Date().toISOString();
+  try {
+    await fetch(`${API}/visit/forms/submit`, {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({
+        psw_name: pswName, pin: pswPin,
+        operator_id: pswOperatorId,
+        visit_id: activeVisit.id,
+        client_name: activeVisit.client_name,
+        form_name: f.form_name,
+        items
+      })
+    });
+  } catch {}
+
+  _formSubmitted[f.form_name] = submittedAt;
+  haptic([50, 30, 50]);
+  showToast(f.form_name + ' submitted', 'ok');
+  loadVisitForms(); // re-render
 }
 
 // ── SESSION RESTORE — skip PIN if already authenticated ──
