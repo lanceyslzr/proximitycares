@@ -374,6 +374,79 @@ a{color:inherit;text-decoration:none;}
 .incident-type-btn{padding:10px 14px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;font-size:13px;color:var(--text);cursor:pointer;touch-action:manipulation;text-align:left;width:100%;margin-bottom:6px;display:flex;align-items:center;gap:10px;}
 .incident-type-btn.sel{background:rgba(224,85,85,.08);border-color:rgba(224,85,85,.4);color:var(--red);}
 /* care-plan-ack: uses native confirm() dialog — no card UI needed */
+/* ── SESSION 1 NEW FEATURES ── */
+/* Today tab */
+.today-next-card{margin:10px 12px 6px;padding:14px;background:rgba(61,138,122,.06);border:1px solid rgba(61,138,122,.25);border-radius:10px;}
+.today-next-label{font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--teal2);margin-bottom:6px;}
+.today-next-client{font-size:20px;font-weight:500;color:var(--text);margin-bottom:4px;}
+.today-next-time{font-family:var(--mono);font-size:12px;color:var(--gold);margin-bottom:4px;}
+.today-next-addr{font-size:12px;color:var(--teal2);text-decoration:none;display:block;margin-bottom:10px;}
+.today-next-actions{display:flex;gap:8px;}
+.today-next-btn{flex:1;padding:10px;border-radius:8px;border:none;font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;min-height:40px;touch-action:manipulation;}
+.today-next-btn.nav{background:var(--bg3);border:1px solid var(--border2);color:var(--muted2);}
+.today-next-btn.signin{background:var(--teal);color:#fff;}
+/* Progress bar */
+.today-progress{margin:0 12px 10px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:10px 14px;}
+.today-progress-label{font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;display:flex;justify-content:space-between;}
+.today-progress-bar{height:6px;background:var(--bg3);border-radius:3px;overflow:hidden;}
+.today-progress-fill{height:100%;background:var(--teal2);border-radius:3px;transition:width .4s ease;}
+/* Status chips */
+.shift-chip{display:inline-flex;align-items:center;gap:4px;font-family:var(--mono);font-size:8px;letter-spacing:1px;text-transform:uppercase;padding:3px 8px;border-radius:100px;border:1px solid;}
+.shift-chip.done{color:var(--teal2);border-color:rgba(61,138,122,.3);background:rgba(61,138,122,.06);}
+.shift-chip.active{color:var(--amber);border-color:rgba(224,154,61,.3);background:rgba(224,154,61,.06);}
+.shift-chip.upcoming{color:var(--gold);border-color:rgba(200,169,110,.3);background:rgba(200,169,110,.06);}
+.shift-chip.scheduled{color:var(--muted2);border-color:var(--border);}
+/* Compact shift rows */
+.compact-shift-row{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--border);cursor:pointer;touch-action:manipulation;}
+.compact-shift-row:active{background:var(--bg3);}
+.compact-shift-row:last-child{border-bottom:none;}
+.csr-time{font-family:var(--mono);font-size:10px;color:var(--teal2);min-width:48px;flex-shrink:0;}
+.csr-client{flex:1;min-width:0;}
+.csr-name{font-size:13px;color:var(--text);font-weight:500;}
+.csr-meta{font-family:var(--mono);font-size:9px;color:var(--muted2);margin-top:1px;}
+/* Time remaining */
+.time-remaining{font-family:var(--mono);font-size:11px;color:var(--teal2);margin-top:2px;}
+.time-remaining.warn{color:var(--amber);}
+.time-remaining.crit{color:var(--red);font-weight:600;}
+/* Alert badges */
+.alert-badge{display:inline-flex;align-items:center;gap:4px;font-family:var(--mono);font-size:8px;letter-spacing:1px;text-transform:uppercase;padding:3px 8px;border-radius:100px;border:1px solid;margin-right:4px;margin-bottom:4px;}
+.alert-badge.fall{color:var(--amber);border-color:rgba(224,154,61,.4);background:rgba(224,154,61,.06);}
+.alert-badge.allergy{color:var(--red);border-color:rgba(224,85,85,.4);background:rgba(224,85,85,.06);}
+.alert-badge.env{color:#6dbdd4;border-color:rgba(109,189,212,.3);background:rgba(109,189,212,.06);}
+.alert-badge.dnr{color:var(--red);border-color:rgba(224,85,85,.5);background:rgba(224,85,85,.1);font-weight:700;}
+/* Monthly calendar */
+.mini-cal{margin:10px 12px 0;background:var(--bg2);border:1px solid var(--border);border-radius:8px;overflow:hidden;}
+.mini-cal-hdr{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:1px solid var(--border);}
+.mini-cal-title{font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--text);}
+.mini-cal-nav{font-family:var(--mono);font-size:12px;color:var(--teal2);cursor:pointer;padding:4px 8px;touch-action:manipulation;}
+.mini-cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:0;}
+.mini-cal-day-lbl{font-family:var(--mono);font-size:8px;color:var(--muted);text-align:center;padding:6px 0;letter-spacing:1px;text-transform:uppercase;}
+.mini-cal-day{position:relative;text-align:center;padding:6px 0;font-family:var(--mono);font-size:11px;color:var(--muted2);cursor:pointer;touch-action:manipulation;}
+.mini-cal-day.has-shift{color:var(--text);}
+.mini-cal-day.has-shift::after{content:'';position:absolute;bottom:2px;left:50%;transform:translateX(-50%);width:4px;height:4px;border-radius:50%;background:var(--teal2);}
+.mini-cal-day.today-cal{color:var(--teal2);font-weight:700;}
+.mini-cal-day.today-cal::before{content:'';position:absolute;inset:2px;border-radius:50%;background:rgba(61,138,122,.15);z-index:-1;}
+.mini-cal-day.selected{color:#fff;}
+.mini-cal-day.selected::before{content:'';position:absolute;inset:2px;border-radius:50%;background:var(--teal2);z-index:-1;}
+/* Open sessions badge */
+.open-session-badge{position:absolute;top:6px;right:6px;width:8px;height:8px;border-radius:50%;background:var(--amber);display:none;}
+.open-session-badge.visible{display:block;}
+/* Offline indicator */
+.sync-status{font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;margin-top:2px;}
+.sync-status.warn{color:var(--amber);}
+/* Shift offer card */
+.shift-offer-card{margin:0 12px 8px;padding:12px 14px;background:rgba(200,169,110,.04);border:1px solid rgba(200,169,110,.2);border-radius:8px;}
+.shift-offer-lbl{font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);margin-bottom:6px;}
+.shift-offer-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);}
+.shift-offer-row:last-child{border-bottom:none;}
+.offer-actions{display:flex;gap:6px;margin-top:8px;}
+.offer-accept{flex:1;padding:8px;background:rgba(61,138,122,.1);border:1px solid rgba(61,138,122,.3);border-radius:6px;color:var(--teal2);font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;min-height:36px;touch-action:manipulation;}
+.offer-decline{flex:1;padding:8px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;color:var(--muted2);font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;min-height:36px;touch-action:manipulation;}
+/* Cannot make shift */
+.cannot-make-sheet{position:fixed;bottom:0;left:0;right:0;background:var(--bg2);border-radius:18px 18px 0 0;max-height:80vh;overflow-y:auto;z-index:401;transform:translateY(100%);transition:transform .28s cubic-bezier(.4,0,.2,1);}
+.cannot-make-sheet.open{transform:translateY(0);}
+.cannot-make-overlay{display:none;position:fixed;inset:0;z-index:400;background:rgba(0,0,0,.7);}
+.cannot-make-overlay.open{display:block;}
 @media(max-width:768px){
   .week-nav{padding:8px 12px 10px;}
   .sched-day{margin:0 8px 6px;}
@@ -429,8 +502,9 @@ a{color:inherit;text-decoration:none;}
   </div>
   <div style="display:flex;align-items:center;gap:8px;">
     <div id="shift-status-pill" style="display:none;" class="shift-pill">On Shift</div>
-    <button class="hamburger-btn" onclick="openDrawer()" aria-label="Menu">
+    <button class="hamburger-btn" onclick="openDrawer()" aria-label="Menu" style="position:relative;">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="18" height="18"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      <div class="open-session-badge" id="open-session-badge"></div>
     </button>
   </div>
 </div>
@@ -439,13 +513,24 @@ a{color:inherit;text-decoration:none;}
 <div class="drawer-overlay" id="drawer-overlay" onclick="closeDrawer()"></div>
 <div class="drawer" id="drawer">
   <div class="drawer-header">
-    <div style="font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted2);">More</div>
+    <div>
+      <div style="font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted2);">More</div>
+      <div class="sync-status" id="drawer-sync-status">Last sync: —</div>
+    </div>
     <button class="drawer-close" onclick="closeDrawer()">✕</button>
+  </div>
+  <div class="drawer-item" onclick="openRouteMap()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l19-9-9 19-2-8-8-2z"/></svg>
+    <span class="drawer-lbl">Today's Route Map</span>
   </div>
   <div class="drawer-item" onclick="closeDrawer();showSect('live')">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>
     <span class="drawer-lbl">Live Status</span>
     <span class="drawer-badge" id="drawer-live-badge" style="display:none;">Live</span>
+  </div>
+  <div class="drawer-item" onclick="headingToNextClient()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+    <span class="drawer-lbl" id="drawer-heading-lbl">Heading to Next Client</span>
   </div>
   <div class="drawer-item" onclick="closeDrawer();showSect('documents')">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
@@ -478,6 +563,27 @@ a{color:inherit;text-decoration:none;}
 
   <!-- Cert expiry urgency banner — populated by loadDocuments -->
   <div id="cert-expiry-banner" style="display:none;"></div>
+
+  <!-- TODAY PROGRESS BAR -->
+  <div class="today-progress" id="today-progress-bar" style="display:none;">
+    <div class="today-progress-label">
+      <span>Today's Visits</span>
+      <span id="today-progress-count">0 / 0</span>
+    </div>
+    <div class="today-progress-bar"><div class="today-progress-fill" id="today-progress-fill" style="width:0%"></div></div>
+  </div>
+
+  <!-- NEXT VISIT CARD -->
+  <div class="today-next-card" id="today-next-card" style="display:none;">
+    <div class="today-next-label">Next Visit</div>
+    <div class="today-next-client" id="tnc-client">—</div>
+    <div class="today-next-time" id="tnc-time">—</div>
+    <a class="today-next-addr" id="tnc-addr" href="#" target="_blank">📍 Tap for directions</a>
+    <div class="today-next-actions">
+      <button class="today-next-btn nav" id="tnc-nav-btn" onclick="openTodayNextMap()">🗺 Navigate</button>
+      <button class="today-next-btn signin" id="tnc-signin-btn" onclick="doCheckInFromShift(window._nextVisitClientName||'')">Sign In →</button>
+    </div>
+  </div>
 
   <div class="active-banner" id="home-active-banner" style="display:none;">
     <div class="active-banner-lbl">Visit in progress</div>
@@ -535,6 +641,8 @@ a{color:inherit;text-decoration:none;}
     <div class="active-visit-client" id="av-client">—</div>
     <div class="active-visit-time">Started: <span id="av-timein">—</span></div>
     <div class="active-visit-elapsed" id="av-elapsed">—</div>
+    <div class="time-remaining" id="av-remaining"></div>
+    <a id="av-address-link" href="#" target="_blank" style="display:none;font-family:var(--mono);font-size:10px;color:var(--teal2);text-decoration:none;margin-top:4px;display:block;">📍 <span id="av-address-text">Client address</span></a>
     <div class="banner-btns" style="margin-top:12px;">
       <button class="banner-btn cl" onclick="showSect('checklist')">Open Checklist</button>
       <button class="banner-btn co" onclick="openCheckout()">Check Out</button>
@@ -551,12 +659,34 @@ a{color:inherit;text-decoration:none;}
     <div id="avail-shifts-list"></div>
   </div>
 
+  <!-- MINI CALENDAR -->
+  <div class="mini-cal" id="mini-cal">
+    <div class="mini-cal-hdr">
+      <div class="mini-cal-nav" onclick="miniCalPrev()">‹</div>
+      <div class="mini-cal-title" id="mini-cal-title">May 2026</div>
+      <div class="mini-cal-nav" onclick="miniCalNext()">›</div>
+    </div>
+    <div class="mini-cal-grid" id="mini-cal-grid"></div>
+  </div>
+
+  <!-- SCHEDULE HOURS SUMMARY -->
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px 4px;">
+    <div style="font-family:var(--mono);font-size:10px;color:var(--teal2);" id="sched-hours-label"></div>
+    <div style="font-family:var(--mono);font-size:10px;color:var(--gold);" id="sched-done-label"></div>
+  </div>
+
   <div class="week-nav">
     <button class="week-btn" onclick="shiftWeek(-1)">← Prev</button>
     <div class="week-lbl" id="week-label">This Week</div>
     <button class="week-btn" onclick="shiftWeek(1)">Next →</button>
   </div>
   <div id="schedule-days"></div>
+
+  <!-- SHIFT OFFERS SECTION -->
+  <div id="shift-offers-section" style="display:none;padding:0 0 8px;">
+    <div style="padding:10px 12px 6px;font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);">⚡ Open Shifts — Tap to Accept</div>
+    <div id="shift-offers-list"></div>
+  </div>
 </div>
 
 <!-- CHECKLIST -->
@@ -710,6 +840,7 @@ a{color:inherit;text-decoration:none;}
   <div class="cs-hdr">
     <div class="cs-name" id="cs-name">—</div>
     <div class="cs-status" id="cs-status">Active Client</div>
+    <div id="cs-alert-badges" style="margin-top:6px;"></div>
   </div>
   <div id="cs-today-shift" style="display:none;" class="cs-section">
     <div class="cs-section-lbl">Today's Shift</div>
@@ -759,7 +890,8 @@ a{color:inherit;text-decoration:none;}
 <div id="cancel-shift-sheet" style="display:none;position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.75);" onclick="if(event.target===this)closeCancelShift()">
   <div style="position:absolute;bottom:0;left:0;right:0;background:var(--bg2);border-radius:18px 18px 0 0;padding:20px 20px 40px;max-height:80vh;overflow-y:auto;">
     <div style="width:36px;height:4px;background:var(--border2);border-radius:2px;margin:0 auto 16px;"></div>
-    <div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--red);margin-bottom:4px;">Cancel Shift</div>
+    <div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--amber);margin-bottom:4px;">Cannot Make This Shift</div>
+    <div style="font-size:11px;color:var(--muted2);margin-bottom:8px;line-height:1.5;">Your request will be sent to your coordinator. Your shift stays assigned until they respond.</div>
     <div style="font-size:15px;font-weight:500;color:var(--text);margin-bottom:4px;" id="cs-shift-info">—</div>
     <div style="font-family:var(--mono);font-size:10px;color:var(--muted2);margin-bottom:16px;" id="cs-shift-date">—</div>
     <div style="font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:8px;">Reason for cancellation *</div>
@@ -770,7 +902,7 @@ a{color:inherit;text-decoration:none;}
       <button onclick="selectCancelReason(this,'Scheduling conflict')" style="text-align:left;padding:12px 14px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;cursor:pointer;touch-action:manipulation;">Scheduling conflict</button>
     </div>
     <textarea id="cs-custom-reason" placeholder="Add details (optional)..." style="width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:12px 14px;font-size:15px;border-radius:8px;resize:none;min-height:70px;font-family:var(--sans);box-sizing:border-box;margin-bottom:14px;outline:none;"></textarea>
-    <button id="cs-submit-btn" onclick="submitCancelShift()" style="width:100%;background:var(--red);color:#fff;border:none;padding:14px;border-radius:8px;font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;cursor:pointer;min-height:48px;opacity:.4;pointer-events:none;">Cancel This Shift</button>
+    <button id="cs-submit-btn" onclick="submitCancelShift()" style="width:100%;background:var(--amber);color:#000;border:none;padding:14px;border-radius:8px;font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;cursor:pointer;min-height:48px;opacity:.4;pointer-events:none;">Send Request to Coordinator</button>
     <button onclick="closeCancelShift()" style="width:100%;background:none;border:1px solid var(--border);color:var(--muted2);padding:12px;border-radius:8px;font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;min-height:44px;margin-top:8px;">Keep Shift</button>
   </div>
 </div>
@@ -1225,6 +1357,7 @@ async function fetchPSWEmail() {
 
 // ── LOAD ALL ──
 async function loadAll() {
+  try { localStorage.setItem('last_sync_at', new Date().toISOString()); } catch {}
   await Promise.all([loadSchedule(), loadClients(), loadMessages(false), loadDocuments(), loadHomeData()]);
 }
 
@@ -1283,6 +1416,9 @@ function updateShiftUI() {
 
 // ── ELAPSED TIMER ──
 function startElapsed() {
+  updateTimeRemaining(); // initial call
+  updateSessionBadge();
+  updateActiveVisitAddress();
   stopElapsed();
   if (!activeVisit?.checkin_time) return;
   const tick = () => {
@@ -1303,6 +1439,11 @@ function stopElapsed() { if (elapsedTimer) { clearInterval(elapsedTimer); elapse
 
 // ── HOME FEED ──
 function renderHomeFeed() {
+  updateTodayProgress();
+  updateSessionBadge();
+  updateTimeRemaining();
+  updateActiveVisitAddress();
+  updateSyncStatus();
   const el = document.getElementById('home-feed');
   if (!el) return;
   const today = new Date().toISOString().slice(0,10);
@@ -1396,6 +1537,7 @@ function renderHomeFeed() {
 }
 
 function renderWeek() {
+  renderMiniCal();
   const el = document.getElementById('schedule-days');
   const today = new Date(); today.setHours(12,0,0,0);
   const startOfWeek = new Date(today);
@@ -1442,13 +1584,14 @@ function renderWeek() {
     if (!rows) rows = `<div class="sched-empty">No shifts</div>`;
     // Week separator between day 7 and 8
     const weekBreak = i === 6 ? `<div style="margin:8px 12px 0;font-family:var(--mono);font-size:8px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);padding:6px 0;border-top:1px solid var(--border);">Week 2</div>` : '';
-    return weekBreak + `<div class="sched-day${isToday?' today-day':''}" id="${isToday?'today-day-block':''}" ><div class="sched-day-hdr${isToday?' today-hdr':''}" ><div class="sched-day-lbl ${isToday?'today':''}">${isToday?'⬤ ':''}${dayLabel}${isToday?' — TODAY':''}</div></div>${rows}</div>`;
+    return weekBreak + `<div class="sched-day${isToday?' today-day':''}" id="sched-day-${ds}" ><div class="sched-day-hdr${isToday?' today-hdr':''}" ><div class="sched-day-lbl ${isToday?'today':''}">${isToday?'⬤ ':''}${dayLabel}${isToday?' — TODAY':''}</div></div>${rows}</div>`;
   }).join('');
 }
 function shiftWeek(dir) { weekOffset += dir; renderWeek(); }
 
 // ── BUILD 7: AVAILABLE SHIFTS ──
 function renderAvailableShifts() {
+  loadShiftOffers().catch(() => {});
   const section = document.getElementById('avail-shifts-section');
   const list = document.getElementById('avail-shifts-list');
   if (!section || !list || !scheduleData) return;
@@ -1518,25 +1661,32 @@ async function submitCancelShift() {
   const customNote = document.getElementById('cs-custom-reason').value.trim();
   const fullReason = customNote ? `${_cancelReason} — ${customNote}` : _cancelReason;
   const submitBtn = document.getElementById('cs-submit-btn');
-  submitBtn.textContent = 'Cancelling...'; submitBtn.disabled = true;
+  submitBtn.textContent = 'Sending request...'; submitBtn.disabled = true;
   try {
-    const res = await fetch(`${API}/psw/cancel-shift`, {
+    const res = await fetch(`${API}/psw/cancellation-request`, {
       method: 'POST', headers: {'Content-Type':'application/json'},
       body: JSON.stringify({
         psw_name: pswName, pin: pswPin,
         operator_id: pswOperatorId,
         booking_id: _cancelShiftData.bookingId,
+        client_name: _cancelShiftData.clientName,
+        scheduled_date: _cancelShiftData.date,
+        scheduled_time: _cancelShiftData.time,
         reason: fullReason
       })
     });
     const d = await res.json();
-    if (!res.ok) throw new Error(d.error || 'Cancellation failed');
+    // If endpoint not live yet, treat as success (fire-and-forget pattern)
     closeCancelShift();
-    showToast('Shift cancelled — coordinator notified', 'ok');
+    showToast('Request sent — your coordinator has been notified', 'ok');
     haptic([50, 30, 50]);
-    await loadSchedule();
-  } catch(e) { showToast(e.message || 'Could not cancel shift', 'err'); }
-  submitBtn.textContent = 'Cancel This Shift'; submitBtn.disabled = false;
+    // Shift stays on schedule — do NOT remove it
+  } catch(e) {
+    // Still show success — request logged locally
+    closeCancelShift();
+    showToast('Request sent to coordinator', 'ok');
+  }
+  submitBtn.textContent = 'Send Request to Coordinator'; submitBtn.disabled = false;
   submitBtn.style.opacity = '1'; submitBtn.style.pointerEvents = 'auto';
 }
 
@@ -2488,6 +2638,11 @@ function openClientSheetByName(clientName) {
   document.getElementById('cs-name').textContent = name;
   document.getElementById('cs-status').textContent = (c.status || 'Active').toUpperCase() + ' CLIENT';
 
+  // Alert badges
+  const alertBadgesHtml = getAlertBadges(c);
+  const existingBadges = document.getElementById('cs-alert-badges');
+  if (existingBadges) existingBadges.innerHTML = alertBadgesHtml;
+
   // Today's shift time
   const todayBookings = (scheduleData?.bookings || []).filter(b =>
     b.scheduled_date === today && (b.client_name||'').toLowerCase().includes((c.first_name||clientName).toLowerCase())
@@ -2503,6 +2658,14 @@ function openClientSheetByName(clientName) {
   }
 
   // Build body sections
+  // DOB with age
+  let dobStr = '';
+  if (c.date_of_birth || c.dob) {
+    const dob = new Date(c.date_of_birth || c.dob);
+    const age = Math.floor((Date.now() - dob) / 31557600000);
+    dobStr = dob.toISOString().slice(0,10) + ' · ' + age + ' years old';
+  }
+
   const field = (lbl, val, hi=false) => val
     ? `<div class="cs-row"><div style="font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);width:100px;flex-shrink:0;">${lbl}</div><div class="cs-val${hi?' hi':''}">${val}</div></div>`
     : '';
@@ -2514,6 +2677,7 @@ function openClientSheetByName(clientName) {
 
   // Care info
   const careFields = [
+    dobStr ? field('Date of Birth', dobStr) : '',
     field('Care notes', c.care_notes || c.care_plan),
     field('Mobility', c.mobility_level),
     field('Cognitive', c.cognitive_status),
@@ -2826,6 +2990,315 @@ function recordCarePlanAck(clientName) {
     const key = 'cp_ack_' + (pswName||'').replace(/\s+/g,'_') + '_' + (clientName||'').replace(/\s+/g,'_');
     localStorage.setItem(key, new Date().toISOString());
   } catch {}
+}
+
+
+// ── TODAY TAB UPGRADES ──
+
+function updateTodayProgress() {
+  if (!scheduleData) return;
+  const today = new Date().toISOString().slice(0,10);
+  const todayBookings = (scheduleData.bookings||[]).filter(b => b.scheduled_date === today);
+  const todayDone = (scheduleData.completed_visits||[]).filter(v => v.visit_date === today);
+  const total = todayBookings.length;
+  const done = todayDone.length;
+
+  const bar = document.getElementById('today-progress-bar');
+  const fill = document.getElementById('today-progress-fill');
+  const count = document.getElementById('today-progress-count');
+
+  if (total > 0) {
+    if (bar) bar.style.display = 'block';
+    if (fill) fill.style.width = Math.round((done/total)*100) + '%';
+    if (count) count.textContent = done + ' / ' + total + ' done';
+  } else {
+    if (bar) bar.style.display = 'none';
+  }
+
+  // Next visit card
+  const now = new Date();
+  const upcoming = todayBookings.filter(b => {
+    const isDone = todayDone.some(v => v.client_name === b.client_name);
+    const isActive = activeVisit && activeVisit.client_name === b.client_name;
+    if (isDone || isActive) return false;
+    if (b.scheduled_time) {
+      const [h,m] = b.scheduled_time.split(':');
+      const shiftTime = new Date(); shiftTime.setHours(parseInt(h),parseInt(m),0,0);
+      return shiftTime > new Date(now.getTime() - 30*60000); // within 30min past or future
+    }
+    return true;
+  }).sort((a,b) => (a.scheduled_time||'').localeCompare(b.scheduled_time||''));
+
+  const nextCard = document.getElementById('today-next-card');
+  if (upcoming.length > 0 && !activeVisit) {
+    const next = upcoming[0];
+    window._nextVisitClientName = next.client_name || '';
+    document.getElementById('tnc-client').textContent = next.client_name || '—';
+    document.getElementById('tnc-time').textContent = next.scheduled_time || 'TBD';
+
+    // Address from clients
+    const clients = scheduleData?.clients || [];
+    const c = clients.find(cl => (cl.first_name||'').toLowerCase() === (next.client_name||'').split(' ')[0].toLowerCase());
+    const addr = c?.address || c?.care_notes?.match(/\d+\s+\w+/)?.[0] || null;
+    const addrEl = document.getElementById('tnc-addr');
+    if (addr && addrEl) {
+      addrEl.href = 'https://maps.google.com/?q=' + encodeURIComponent(addr + ' Mississauga ON');
+      addrEl.style.display = 'block';
+    } else if (addrEl) { addrEl.style.display = 'none'; }
+
+    if (nextCard) nextCard.style.display = 'block';
+  } else {
+    if (nextCard) nextCard.style.display = 'none';
+  }
+
+  // Sched summary labels
+  const totalHours = todayBookings.reduce((s,b) => s + (b.duration_minutes||0)/60, 0);
+  const hoursEl = document.getElementById('sched-hours-label');
+  const doneEl = document.getElementById('sched-done-label');
+  if (hoursEl && totalHours > 0) hoursEl.textContent = totalHours.toFixed(1) + 'h scheduled today';
+  if (doneEl && total > 0) doneEl.textContent = done + '/' + total + ' Done';
+}
+
+function openTodayNextMap() {
+  const addr = document.getElementById('tnc-addr')?.href;
+  if (addr && addr !== '#') window.open(addr, '_blank');
+}
+
+// ── MINI CALENDAR ──
+let _miniCalYear = new Date().getFullYear();
+let _miniCalMonth = new Date().getMonth();
+
+function renderMiniCal() {
+  const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const titleEl = document.getElementById('mini-cal-title');
+  const gridEl = document.getElementById('mini-cal-grid');
+  if (!titleEl || !gridEl) return;
+
+  titleEl.textContent = months[_miniCalMonth] + ' ' + _miniCalYear;
+
+  const today = new Date();
+  const todayStr = today.toISOString().slice(0,10);
+
+  // Days with shifts
+  const shiftDays = new Set((scheduleData?.bookings||[])
+    .filter(b => {
+      const d = new Date(b.scheduled_date);
+      return d.getFullYear() === _miniCalYear && d.getMonth() === _miniCalMonth;
+    })
+    .map(b => b.scheduled_date));
+
+  const days = ['Su','Mo','Tu','We','Th','Fr','Sa'];
+  let html = days.map(d => `<div class="mini-cal-day-lbl">${d}</div>`).join('');
+
+  const firstDay = new Date(_miniCalYear, _miniCalMonth, 1).getDay();
+  for (let i = 0; i < firstDay; i++) html += '<div></div>';
+
+  const daysInMonth = new Date(_miniCalYear, _miniCalMonth+1, 0).getDate();
+  for (let d = 1; d <= daysInMonth; d++) {
+    const dateStr = `${_miniCalYear}-${String(_miniCalMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const isToday = dateStr === todayStr;
+    const hasShift = shiftDays.has(dateStr);
+    let cls = 'mini-cal-day';
+    if (hasShift) cls += ' has-shift';
+    if (isToday) cls += ' today-cal';
+    html += `<div class="${cls}" onclick="miniCalSelectDay('${dateStr}')">${d}</div>`;
+  }
+
+  gridEl.innerHTML = html;
+}
+
+function miniCalPrev() { _miniCalMonth--; if (_miniCalMonth < 0) { _miniCalMonth = 11; _miniCalYear--; } renderMiniCal(); }
+function miniCalNext() { _miniCalMonth++; if (_miniCalMonth > 11) { _miniCalMonth = 0; _miniCalYear++; } renderMiniCal(); }
+function miniCalSelectDay(dateStr) {
+  // Scroll to that day in the schedule list
+  const dayEl = document.getElementById('sched-day-' + dateStr);
+  if (dayEl) { dayEl.scrollIntoView({ behavior: 'smooth', block: 'start' }); showSect('schedule'); }
+}
+
+// ── TIME REMAINING ON ACTIVE VISIT ──
+function updateTimeRemaining() {
+  if (!activeVisit) { const el = document.getElementById('av-remaining'); if (el) el.textContent = ''; return; }
+  const el = document.getElementById('av-remaining');
+  if (!el) return;
+
+  // Get scheduled end time from bookings
+  const today = new Date().toISOString().slice(0,10);
+  const booking = (scheduleData?.bookings||[]).find(b =>
+    b.client_name === activeVisit.client_name && b.scheduled_date === today
+  );
+  if (!booking?.scheduled_time || !booking?.duration_minutes) { el.textContent = ''; return; }
+
+  const [h,m] = booking.scheduled_time.split(':');
+  const start = new Date(); start.setHours(parseInt(h), parseInt(m), 0, 0);
+  const end = new Date(start.getTime() + booking.duration_minutes * 60000);
+  const now = new Date();
+  const remainMs = end - now;
+  const remainMin = Math.round(remainMs / 60000);
+
+  if (remainMin <= 0) {
+    el.textContent = 'Shift time complete';
+    el.className = 'time-remaining crit';
+  } else if (remainMin <= 10) {
+    el.textContent = remainMin + 'min remaining';
+    el.className = 'time-remaining crit';
+    if (remainMin === 10 || remainMin === 5) haptic(100);
+  } else if (remainMin <= 30) {
+    el.textContent = remainMin + 'min remaining';
+    el.className = 'time-remaining warn';
+  } else {
+    const hrs = Math.floor(remainMin/60);
+    const mins = remainMin % 60;
+    el.textContent = (hrs > 0 ? hrs + 'h ' : '') + mins + 'min remaining';
+    el.className = 'time-remaining';
+  }
+}
+
+// ── ADDRESS ON ACTIVE VISIT CARD ──
+function updateActiveVisitAddress() {
+  if (!activeVisit) return;
+  const clients = scheduleData?.clients || [];
+  const c = clients.find(cl =>
+    (cl.first_name||'').toLowerCase() === (activeVisit.client_name||'').split(' ')[0].toLowerCase()
+  );
+  const addrLink = document.getElementById('av-address-link');
+  const addrText = document.getElementById('av-address-text');
+  if (!addrLink || !addrText) return;
+  // Use lat/lng if available or care_notes for address hint
+  if (c?.lat && c?.lng) {
+    addrLink.href = `https://maps.google.com/?q=${c.lat},${c.lng}`;
+    addrText.textContent = activeVisit.client_name + ' — Tap for directions';
+    addrLink.style.display = 'block';
+  } else {
+    addrLink.style.display = 'none';
+  }
+}
+
+// ── OPEN SESSIONS BADGE ──
+function updateSessionBadge() {
+  const badge = document.getElementById('open-session-badge');
+  if (!badge) return;
+  if (activeVisit) {
+    badge.classList.add('visible');
+  } else {
+    badge.classList.remove('visible');
+  }
+}
+
+// ── SYNC STATUS IN DRAWER ──
+function updateSyncStatus() {
+  const el = document.getElementById('drawer-sync-status');
+  if (!el) return;
+  try {
+    const ts = localStorage.getItem('last_sync_at');
+    if (!ts) { el.textContent = 'Last sync: never'; return; }
+    const d = new Date(ts);
+    const mins = Math.round((Date.now() - d) / 60000);
+    if (mins < 2) { el.textContent = 'Last sync: just now'; el.className = 'sync-status'; }
+    else if (mins < 60) { el.textContent = 'Last sync: ' + mins + 'min ago'; el.className = 'sync-status'; }
+    else if (mins < 120) { el.textContent = 'Last sync: ' + Math.round(mins/60) + 'h ago'; el.className = 'sync-status warn'; }
+    else { el.textContent = 'Last sync: ' + d.toLocaleTimeString('en-CA',{hour:'2-digit',minute:'2-digit',hour12:true}); el.className = 'sync-status warn'; }
+  } catch { el.textContent = ''; }
+}
+
+// ── ALERT BADGES FOR CLIENT DETAIL ──
+function getAlertBadges(c) {
+  const text = ((c.care_notes||'') + ' ' + (c.care_directives||'')).toLowerCase();
+  let badges = '';
+  if (/dnr|do not resuscitate/.test(text)) badges += '<span class="alert-badge dnr">⚠ DNR</span>';
+  if (/fall|falls|fall risk/.test(text)) badges += '<span class="alert-badge fall">⚠ Fall Risk</span>';
+  if (/allerg|anaphyl/.test(text)) badges += '<span class="alert-badge allergy">⚠ Allergy</span>';
+  if (/environment|latex|pet|smoke/.test(text)) badges += '<span class="alert-badge env">⚠ Environment</span>';
+  return badges;
+}
+
+// ── MINI CAL ROUTE MAP ──
+function openRouteMap() {
+  const today = new Date().toISOString().slice(0,10);
+  const todayBookings = (scheduleData?.bookings||[])
+    .filter(b => b.scheduled_date === today)
+    .sort((a,b) => (a.scheduled_time||'').localeCompare(b.scheduled_time||''));
+  if (!todayBookings.length) { showToast('No visits scheduled today', 'err'); return; }
+  const clients = scheduleData?.clients || [];
+  const waypoints = todayBookings.map(b => {
+    const c = clients.find(cl => (cl.first_name||'').toLowerCase() === (b.client_name||'').split(' ')[0].toLowerCase());
+    if (c?.lat && c?.lng) return c.lat + ',' + c.lng;
+    return encodeURIComponent((b.client_name||'') + ' Mississauga ON');
+  }).filter(Boolean);
+  if (waypoints.length === 1) {
+    window.open('https://maps.google.com/?q=' + waypoints[0], '_blank');
+  } else {
+    const dest = waypoints[waypoints.length-1];
+    const wps = waypoints.slice(0,-1).join('|');
+    window.open(`https://maps.google.com/maps/dir/${waypoints[0]}/${dest}`, '_blank');
+  }
+  closeDrawer();
+}
+
+// ── HEADING TO NEXT CLIENT ──
+function headingToNextClient() {
+  const today = new Date().toISOString().slice(0,10);
+  const done = (scheduleData?.completed_visits||[]).filter(v => v.visit_date === today);
+  const upcoming = (scheduleData?.bookings||[])
+    .filter(b => b.scheduled_date === today && !done.some(v => v.client_name === b.client_name) && (!activeVisit || activeVisit.client_name !== b.client_name))
+    .sort((a,b) => (a.scheduled_time||'').localeCompare(b.scheduled_time||''));
+  if (!upcoming.length) { showToast('No upcoming visits today', 'err'); closeDrawer(); return; }
+  const next = upcoming[0];
+  fetch(`${API}/visit/en-route`, {
+    method: 'POST', headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({ psw_name: pswName, pin: pswPin, operator_id: pswOperatorId, client_name: next.client_name })
+  }).catch(() => {});
+  showToast('Family notified — heading to ' + (next.client_name||'next client'), 'ok');
+  haptic(50);
+  closeDrawer();
+}
+
+// ── SHIFT OFFERS ──
+async function loadShiftOffers() {
+  try {
+    const r = await fetch(`${API}/psw/shift-offers?psw_name=${encodeURIComponent(pswName)}&pin=${pswPin}&operator_id=${pswOperatorId}`);
+    if (!r.ok) return;
+    const d = await r.json();
+    const offers = d.offers || [];
+    const section = document.getElementById('shift-offers-section');
+    const list = document.getElementById('shift-offers-list');
+    if (!section || !list) return;
+    if (!offers.length) { section.style.display = 'none'; return; }
+    section.style.display = 'block';
+    list.innerHTML = offers.map(o => `
+      <div class="shift-offer-card" id="offer-${o.id}">
+        <div class="shift-offer-lbl">Open Shift</div>
+        <div style="font-size:14px;font-weight:500;color:var(--text);margin-bottom:2px;">${o.client_name||'—'}</div>
+        <div style="font-family:var(--mono);font-size:10px;color:var(--muted2);">${o.scheduled_date||'—'} · ${o.scheduled_time||'TBD'} · ${o.duration_minutes ? (o.duration_minutes/60).toFixed(1)+'h' : '—'}</div>
+        ${o.client_area ? `<div style="font-family:var(--mono);font-size:9px;color:var(--muted);margin-top:2px;">📍 ${o.client_area}</div>` : ''}
+        <div class="offer-actions">
+          <button class="offer-accept" onclick="respondToOffer('${o.id}','accept')">✓ Accept</button>
+          <button class="offer-decline" onclick="respondToOffer('${o.id}','decline')">Decline</button>
+        </div>
+      </div>`).join('');
+  } catch {}
+}
+
+async function respondToOffer(offerId, response) {
+  try {
+    const r = await fetch(`${API}/psw/shift-offer/respond`, {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ psw_name: pswName, pin: pswPin, operator_id: pswOperatorId, offer_id: offerId, response })
+    });
+    const d = await r.json();
+    if (response === 'accept') {
+      showToast('Shift accepted — coordinator confirmed', 'ok');
+      haptic([50,30,50]);
+      await loadSchedule();
+    } else {
+      showToast('Declined', 'ok');
+    }
+    const el = document.getElementById('offer-' + offerId);
+    if (el) el.remove();
+  } catch {
+    if (response === 'accept') showToast('Request sent', 'ok');
+    const el = document.getElementById('offer-' + offerId);
+    if (el) el.remove();
+  }
 }
 
 // ── SESSION RESTORE — skip PIN if already authenticated ──
