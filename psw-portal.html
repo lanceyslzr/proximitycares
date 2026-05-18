@@ -17,13 +17,22 @@
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 :root{
+  /* ── PROXIMITY SYSTEMS — Unified Design System ── */
+  /* Base */
   --bg:#07090c;--bg2:#0d1117;--bg3:#111820;--bg4:#161e28;
-  --teal:#3d8a7a;--teal2:#5aada0;--teal3:#7dccc0;
-  --gold:#c8a96e;--amber:#e09a3d;--red:#e05555;
-  --green:#4a9a6e;--green2:#6ac98a;
-  --text:#e8e4dc;--muted:rgba(232,228,220,.35);--muted2:rgba(232,228,220,.55);--muted3:rgba(232,228,220,.75);
-  --border:rgba(61,138,122,.12);--border2:rgba(61,138,122,.25);--border3:rgba(61,138,122,.4);
+  /* PSW accent: teal — active, movement, field */
+  --accent:#6dbdd4;--accent2:#4a9bb3;--accent3:#a8d8e8;
+  /* Shared palette */
+  --teal:#6dbdd4;--teal2:#4a9bb3;--teal3:#a8d8e8;
+  --gold:#c9a96e;--amber:#d4a04a;--red:#e05555;
+  --green:#6db974;--green2:#8dd493;
+  /* Text — minimum contrast enforced */
+  --text:#f0ede8;--muted:#a8bfc4;--muted2:rgba(240,237,232,.65);--muted3:rgba(240,237,232,.85);
+  /* Borders */
+  --border:rgba(109,189,212,.12);--border2:rgba(109,189,212,.25);--border3:rgba(109,189,212,.4);
+  /* Fonts */
   --mono:'DM Mono',monospace;--sans:'DM Sans',sans-serif;--serif:'Cormorant Garamond',serif;
+  /* Safe areas */
   --safe-bottom:env(safe-area-inset-bottom,0px);--safe-top:env(safe-area-inset-top,0px);
 }
 html{height:100%;background:var(--bg);}
@@ -36,10 +45,10 @@ a{color:inherit;text-decoration:none;}
 #lock{position:fixed;inset:0;background:var(--bg);z-index:999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px;padding:0 24px;}
 .lock-logo{font-family:var(--serif);font-size:30px;color:var(--text);font-weight:300;letter-spacing:2px;text-align:center;}
 .lock-logo em{color:var(--teal2);font-style:italic;}
-.lock-sub{font-family:var(--mono);font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--muted2);}
+.lock-sub{font-family:var(--mono);font-size:12px;letter-spacing:3px;text-transform:uppercase;color:var(--muted2);}
 .lock-step{display:none;flex-direction:column;align-items:center;gap:16px;width:100%;max-width:320px;}
 .lock-step.active{display:flex;}
-.lock-label{font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted2);}
+.lock-label{font-family:var(--mono);font-size:12px;letter-spacing:2px;text-transform:uppercase;color:var(--muted2);}
 .lock-input{width:100%;background:var(--bg2);border:1px solid var(--border2);color:var(--text);padding:13px 16px;font-size:16px;border-radius:10px;text-align:center;}
 .lock-input::placeholder{color:var(--muted);}
 .lock-input:focus{outline:none;border-color:var(--teal2);}
@@ -70,12 +79,12 @@ a{color:inherit;text-decoration:none;}
 .drawer-item:active{background:var(--bg3);}
 .drawer-item svg{width:18px;height:18px;color:var(--teal2);}
 .drawer-lbl{flex:1;}
-.drawer-badge{font-family:var(--mono);font-size:10px;background:var(--teal2);color:#000;border-radius:100px;padding:2px 7px;}
+.drawer-badge{font-family:var(--mono);font-size:12px;background:var(--teal2);color:#000;border-radius:100px;padding:2px 7px;}
 .psw-info{display:flex;align-items:center;gap:10px;}
 .psw-avatar{width:32px;height:32px;border-radius:50%;background:var(--bg3);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:11px;color:var(--teal2);font-weight:500;flex-shrink:0;}
 .psw-name-top{font-size:14px;font-weight:500;color:var(--text);}
-.psw-role{font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--teal2);margin-top:1px;}
-.shift-pill{font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;padding:5px 10px;border-radius:100px;background:rgba(224,154,61,.15);color:var(--amber);border:1px solid rgba(224,154,61,.3);}
+.psw-role{font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--teal2);margin-top:1px;}
+.shift-pill{font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;padding:5px 10px;border-radius:100px;background:rgba(224,154,61,.15);color:var(--amber);border:1px solid rgba(224,154,61,.3);}
 
 /* NAV TABS */
 /* nav-tabs removed — using bottom nav + hamburger drawer */
@@ -86,31 +95,31 @@ a{color:inherit;text-decoration:none;}
 .section{display:none;padding-bottom:8px;}
 .section.active{display:block;}
 .section-header{display:flex;align-items:center;justify-content:space-between;padding:12px 14px 8px;}
-.section-title{font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--muted2);}
+.section-title{font-size:12px;letter-spacing:3px;text-transform:uppercase;color:var(--muted2);}
 
 /* STATS STRIP */
 .stats-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);border-bottom:1px solid var(--border);}
 .stat-card{background:var(--bg2);padding:12px 6px;text-align:center;}
 .stat-val{font-family:var(--mono);font-size:18px;font-weight:500;color:var(--text);line-height:1;}
-.stat-lbl{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-top:4px;}
+.stat-lbl{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-top:4px;}
 .stat-card.hi .stat-val{color:var(--teal2);}
 .stat-card.pay .stat-val{color:var(--gold);}
 
 /* HOME PAY CARD */
 .pay-hero{margin:10px 12px 10px;background:var(--bg2);border:1px solid var(--border2);border-radius:10px;overflow:hidden;}
 .pay-hero-hdr{padding:12px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
-.pay-hero-label{font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--teal2);}
-.pay-hero-period{font-family:var(--mono);font-size:9px;color:var(--muted);}
+.pay-hero-label{font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--teal2);}
+.pay-hero-period{font-family:var(--mono);font-size:11px;color:var(--muted);}
 .pay-hero-body{padding:14px;}
 .pay-hero-total{font-family:var(--mono);font-size:34px;font-weight:500;color:var(--gold);line-height:1;margin-bottom:12px;}
 .pay-hero-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border);}
 .pay-hero-row:last-child{border-bottom:none;}
-.pay-hero-key{font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);}
+.pay-hero-key{font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);}
 .pay-hero-val{font-family:var(--mono);font-size:12px;color:var(--text);}
 
 /* HOME FEED */
 .feed-card{margin:0 12px 10px;background:var(--bg2);border:1px solid var(--border);border-radius:10px;overflow:hidden;}
-.feed-row{display:flex;align-items:center;gap:12px;padding:11px 14px;border-bottom:1px solid var(--border);touch-action:manipulation;}
+.feed-row{display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid var(--border);touch-action:manipulation;}
 .feed-row:last-child{border-bottom:none;}
 .feed-row[onclick]{cursor:pointer;}
 .feed-row[onclick]:active{background:var(--bg3);}
@@ -121,27 +130,27 @@ a{color:inherit;text-decoration:none;}
 .feed-dot.past{background:rgba(232,228,220,.15);}
 .feed-body{flex:1;min-width:0;}
 .feed-client{font-size:13px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.feed-meta{font-family:var(--mono);font-size:10px;color:var(--muted2);margin-top:2px;}
+.feed-meta{font-family:var(--mono);font-size:12px;color:var(--muted2);margin-top:2px;}
 .feed-right{flex-shrink:0;text-align:right;}
 .feed-hrs{font-family:var(--mono);font-size:12px;color:var(--teal2);}
-.feed-time{font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:1px;}
+.feed-time{font-family:var(--mono);font-size:12px;color:var(--muted);margin-top:1px;}
 
 /* ACTIVE BANNER */
 .active-banner{margin:10px 12px 4px;background:var(--bg3);border:1px solid var(--border2);border-radius:10px;padding:14px;display:none;}
 .active-banner.show{display:block;}
-.active-banner-lbl{font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--amber);margin-bottom:6px;}
+.active-banner-lbl{font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--amber);margin-bottom:6px;}
 .active-banner-client{font-size:16px;font-weight:500;color:var(--text);margin-bottom:2px;}
 .active-banner-time{font-family:var(--mono);font-size:11px;color:var(--muted2);}
 .active-banner-elapsed{font-family:var(--mono);font-size:14px;color:var(--amber);font-weight:500;margin-top:4px;}
 .banner-btns{display:flex;gap:8px;margin-top:12px;}
-.banner-btn{flex:1;padding:10px;font-family:var(--mono);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;border-radius:8px;cursor:pointer;min-height:40px;touch-action:manipulation;transition:background .15s;}
+.banner-btn{flex:1;padding:10px;font-family:var(--mono);font-size:12px;letter-spacing:1.5px;text-transform:uppercase;border-radius:8px;cursor:pointer;min-height:40px;touch-action:manipulation;transition:background .15s;}
 .banner-btn.cl{background:rgba(61,138,122,.12);color:var(--teal2);border:1px solid var(--border2);}
 .banner-btn.cl:active{background:rgba(61,138,122,.2);}
 .banner-btn.co{background:rgba(224,154,61,.12);color:var(--amber);border:1px solid rgba(224,154,61,.3);}
 .banner-btn.co:active{background:rgba(224,154,61,.2);}
 
 /* OFFLINE BANNER */
-.offline-banner{margin:8px 12px;padding:10px 14px;background:rgba(224,85,85,.08);border:1px solid rgba(224,85,85,.25);border-radius:8px;font-family:var(--mono);font-size:10px;color:var(--red);letter-spacing:1px;display:none;align-items:center;gap:8px;}
+.offline-banner{margin:8px 12px;padding:10px 14px;background:rgba(224,85,85,.08);border:1px solid rgba(224,85,85,.25);border-radius:8px;font-family:var(--mono);font-size:12px;color:var(--red);letter-spacing:1px;display:none;align-items:center;gap:8px;}
 .offline-banner.show{display:flex;}
 
 /* PULL TO REFRESH */
@@ -155,41 +164,41 @@ a{color:inherit;text-decoration:none;}
 .signin-card{margin:10px 12px 8px;background:var(--bg2);border:1px solid var(--border2);border-radius:10px;overflow:hidden;}
 .signin-card-hdr{padding:12px 14px;border-bottom:1px solid var(--border);}
 .signin-card-title{font-family:var(--serif);font-size:17px;color:var(--text);font-weight:300;}
-.signin-card-sub{font-family:var(--mono);font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--teal2);margin-top:3px;}
+.signin-card-sub{font-family:var(--mono);font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--teal2);margin-top:3px;}
 .signin-card-body{padding:14px;}
 
 /* ACTIVE VISIT CARD */
 .active-visit-card{margin:10px 12px 8px;background:rgba(224,154,61,.06);border:1px solid rgba(224,154,61,.3);border-radius:10px;padding:14px;}
-.active-visit-lbl{font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--amber);margin-bottom:8px;}
+.active-visit-lbl{font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--amber);margin-bottom:8px;}
 .active-visit-client{font-size:16px;font-weight:500;color:var(--text);margin-bottom:3px;}
 .active-visit-time{font-family:var(--mono);font-size:11px;color:var(--muted2);}
 .active-visit-elapsed{font-family:var(--mono);font-size:14px;color:var(--amber);font-weight:500;margin-top:5px;}
 
 /* SCHEDULE WEEK */
 .week-nav{display:flex;align-items:center;justify-content:space-between;padding:10px 14px 12px;}
-.week-btn{background:var(--bg2);border:1px solid var(--border);color:var(--text);padding:8px 14px;border-radius:6px;font-family:var(--mono);font-size:10px;cursor:pointer;min-height:34px;touch-action:manipulation;}
+.week-btn{background:var(--bg2);border:1px solid var(--border);color:var(--text);padding:8px 14px;border-radius:6px;font-family:var(--mono);font-size:12px;cursor:pointer;min-height:34px;touch-action:manipulation;}
 .week-btn:active{background:var(--bg3);}
 .week-lbl{font-family:var(--mono);font-size:11px;color:var(--muted2);letter-spacing:1px;}
 .sched-day{margin:0 12px 8px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;overflow:hidden;}
 .sched-day-hdr{padding:9px 14px;background:var(--bg3);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
-.sched-day-lbl{font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted2);}
+.sched-day-lbl{font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted2);}
 .sched-day-lbl.today{color:var(--teal2);}
 .sched-day-hdr.today-hdr{background:rgba(61,138,122,.08);border-bottom:1px solid rgba(61,138,122,.25);}
 .sched-shift{padding:11px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:10px;}
 .sched-shift:last-child{border-bottom:none;}
 .shift-client{font-size:13px;font-weight:500;color:var(--text);}
-.shift-time{font-family:var(--mono);font-size:10px;color:var(--muted2);margin-top:2px;}
-.shift-badge{font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;}
+.shift-time{font-family:var(--mono);font-size:12px;color:var(--muted2);margin-top:2px;}
+.shift-badge{font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;}
 .shift-badge.done{color:var(--teal2);}
 .shift-badge.upcoming{color:var(--gold);}
-.sched-empty{padding:14px;font-family:var(--mono);font-size:10px;color:var(--muted);text-align:center;letter-spacing:1px;}
+.sched-empty{padding:14px;font-family:var(--mono);font-size:12px;color:var(--muted);text-align:center;letter-spacing:1px;}
 
 /* AVAILABLE SHIFTS (Build 7) */
 .avail-shift-card{margin:0 12px 8px;background:rgba(200,169,110,.05);border:1px solid rgba(200,169,110,.2);border-radius:8px;padding:12px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px;}
 .avail-shift-info{flex:1;min-width:0;}
 .avail-shift-client{font-size:13px;font-weight:500;color:var(--text);}
-.avail-shift-time{font-family:var(--mono);font-size:10px;color:var(--muted2);margin-top:2px;}
-.avail-shift-btn{font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;padding:7px 12px;border-radius:6px;border:1px solid rgba(200,169,110,.3);background:rgba(200,169,110,.1);color:var(--gold);cursor:pointer;min-height:34px;white-space:nowrap;touch-action:manipulation;transition:background .15s;}
+.avail-shift-time{font-family:var(--mono);font-size:12px;color:var(--muted2);margin-top:2px;}
+.avail-shift-btn{font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;padding:7px 12px;border-radius:6px;border:1px solid rgba(200,169,110,.3);background:rgba(200,169,110,.1);color:var(--gold);cursor:pointer;min-height:34px;white-space:nowrap;touch-action:manipulation;transition:background .15s;}
 .avail-shift-btn:active{background:rgba(200,169,110,.2);}
 
 /* CARDS */
@@ -203,14 +212,14 @@ a{color:inherit;text-decoration:none;}
 .card-right{display:flex;flex-direction:column;align-items:flex-end;gap:5px;flex-shrink:0;}
 
 /* BADGES */
-.badge{font-family:var(--mono);font-size:9px;letter-spacing:1.5px;text-transform:uppercase;padding:3px 8px;border-radius:100px;display:inline-block;}
+.badge{font-family:var(--mono);font-size:11px;letter-spacing:1.5px;text-transform:uppercase;padding:3px 8px;border-radius:100px;display:inline-block;}
 .b-active{background:rgba(74,154,110,.15);color:var(--green2);border:1px solid rgba(74,154,110,.3);}
 /* removed orphan */
 /* removed orphan */
 
 /* FORM ELEMENTS */
 .form-row{margin-bottom:12px;}
-.form-label{font-family:var(--mono);font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:5px;display:block;}
+.form-label{font-family:var(--mono);font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:5px;display:block;}
 .form-input{width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:11px 13px;font-size:16px;border-radius:6px;}
 .form-input:focus{outline:none;border-color:var(--teal2);}
 .form-select{width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:11px 13px;font-size:16px;border-radius:6px;-webkit-appearance:none;}
@@ -229,22 +238,22 @@ a{color:inherit;text-decoration:none;}
 
 /* CHECKLIST */
 .cl-progress{margin:0 12px 10px;background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;}
-.cl-progress-lbl{font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);}
+.cl-progress-lbl{font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);}
 .cl-progress-count{font-family:var(--mono);font-size:15px;font-weight:500;color:var(--teal2);}
-.cl-section-title{font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--teal2);margin:14px 0 8px;padding-bottom:5px;border-bottom:1px solid var(--border);}
-.cl-item{display:flex;align-items:center;gap:10px;padding:9px 10px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;margin-bottom:5px;cursor:pointer;transition:all .12s;min-height:42px;touch-action:manipulation;}
+.cl-section-title{font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--teal2);margin:14px 0 8px;padding-bottom:5px;border-bottom:1px solid var(--border);}
+.cl-item{display:flex;align-items:center;gap:12px;padding:13px 14px;min-height:48px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;margin-bottom:5px;cursor:pointer;transition:all .12s;min-height:42px;touch-action:manipulation;}
 .cl-item.done{background:rgba(61,138,122,.1);border-color:var(--border2);}
-.cl-box{width:17px;height:17px;border-radius:3px;border:1px solid var(--border2);background:transparent;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:10px;transition:all .12s;}
+.cl-box{width:17px;height:17px;border-radius:3px;border:1px solid var(--border2);background:transparent;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:12px;transition:all .12s;}
 .cl-item.done .cl-box{background:var(--teal2);border-color:var(--teal2);color:#fff;}
 .cl-label{font-size:12px;color:var(--muted3);line-height:1.3;}
 .cl-item.done .cl-label{color:var(--text);}
 
 /* MOOD */
 .mood-row{display:flex;gap:6px;}
-.mood-opt{flex:1;padding:9px 4px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;text-align:center;cursor:pointer;transition:all .15s;touch-action:manipulation;}
+.mood-opt{flex:1;padding:13px 4px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;text-align:center;cursor:pointer;transition:all .15s;touch-action:manipulation;}
 .mood-opt.sel{border-color:var(--teal2);background:rgba(61,138,122,.1);}
 .mood-emoji{font-size:16px;display:block;margin-bottom:2px;}
-.mood-lbl{font-family:var(--mono);font-size:8px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;}
+.mood-lbl{font-family:var(--mono);font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;}
 
 /* MESSAGES */
 .msg-thread{padding:12px 14px;display:flex;flex-direction:column;gap:10px;min-height:200px;}
@@ -252,7 +261,7 @@ a{color:inherit;text-decoration:none;}
 .msg-lance{background:var(--teal);color:#fff;margin-left:auto;border-radius:10px 10px 3px 10px;}
 .msg-psw{background:var(--bg3);color:var(--text);border:1px solid var(--border);border-radius:10px 10px 10px 3px;}
 .msg-text{font-size:13px;line-height:1.5;}
-.msg-time{font-family:var(--mono);font-size:9px;opacity:.55;margin-top:3px;}
+.msg-time{font-family:var(--mono);font-size:11px;opacity:.55;margin-top:3px;}
 .msg-input-wrap{position:sticky;bottom:calc(64px + var(--safe-bottom));background:var(--bg2);border-top:1px solid var(--border);padding:10px 12px;display:flex;gap:8px;align-items:flex-end;}
 .msg-input{flex:1;background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:10px 13px;border-radius:16px;font-size:16px;resize:none;max-height:100px;}
 .msg-input:focus{outline:none;border-color:var(--teal2);}
@@ -262,11 +271,11 @@ a{color:inherit;text-decoration:none;}
 /* DOCUMENTS */
 .doc-row{display:flex;align-items:center;gap:12px;padding:12px 14px;border-bottom:1px solid var(--border);}
 .doc-row:last-child{border-bottom:none;}
-.doc-icon{width:32px;height:32px;border-radius:6px;background:var(--bg3);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:8px;color:var(--teal2);flex-shrink:0;letter-spacing:1px;text-transform:uppercase;}
+.doc-icon{width:32px;height:32px;border-radius:6px;background:var(--bg3);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:11px;color:var(--teal2);flex-shrink:0;letter-spacing:1px;text-transform:uppercase;}
 .doc-info{flex:1;min-width:0;}
 .doc-name{font-size:13px;color:var(--text);}
-.doc-meta{font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:2px;}
-.doc-status{font-family:var(--mono);font-size:9px;padding:2px 7px;border-radius:100px;border:1px solid;flex-shrink:0;}
+.doc-meta{font-family:var(--mono);font-size:12px;color:var(--muted);margin-top:2px;}
+.doc-status{font-family:var(--mono);font-size:11px;padding:2px 7px;border-radius:100px;border:1px solid;flex-shrink:0;}
 .doc-status.valid{color:var(--green2);border-color:rgba(106,201,138,.25);}
 .doc-status.missing{color:var(--red);border-color:rgba(224,85,85,.3);}
 .doc-status.expiring{color:var(--amber);border-color:rgba(224,154,61,.3);}
@@ -275,12 +284,12 @@ a{color:inherit;text-decoration:none;}
 /* PAY HISTORY */
 .pay-period-card{margin:0 12px 8px;background:var(--bg2);border:1px solid var(--border);border-radius:10px;overflow:hidden;}
 .pay-period-hdr{padding:11px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
-.pay-period-lbl{font-family:var(--mono);font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted2);}
+.pay-period-lbl{font-family:var(--mono);font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted2);}
 .pay-period-lbl.current{color:var(--teal2);}
 .pay-period-body{padding:12px 14px;}
 .pay-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border);}
 .pay-row:last-child{border-bottom:none;}
-.pay-row-lbl{font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);}
+.pay-row-lbl{font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);}
 .pay-row-val{font-family:var(--mono);font-size:13px;color:var(--text);}
 .pay-row-val.total{color:var(--gold);font-size:17px;}
 
@@ -291,13 +300,13 @@ a{color:inherit;text-decoration:none;}
 
 /* BOTTOM NAV */
 .bottom-nav{position:fixed;bottom:0;left:0;right:0;z-index:200;background:rgba(7,9,12,.97);border-top:1px solid var(--border);display:flex;padding-bottom:var(--safe-bottom);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);}
-.bnav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:7px 4px;cursor:pointer;min-height:54px;gap:3px;color:var(--muted2);transition:color .2s;touch-action:manipulation;}
+.bnav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px 4px;cursor:pointer;min-height:54px;gap:3px;color:var(--muted2);transition:color .2s;touch-action:manipulation;}
 .bnav-item.active{color:var(--teal2);}
 .bnav-icon{display:flex;align-items:center;justify-content:center;width:24px;height:24px;position:relative;}
 .bnav-icon svg{width:22px;height:22px;}
 .bnav-dot{position:absolute;top:-3px;right:-3px;width:7px;height:7px;border-radius:50%;background:var(--red);display:none;}
 .bnav-dot.show{display:block;}
-.bnav-lbl{font-family:var(--mono);font-size:8px;letter-spacing:1px;text-transform:uppercase;}
+.bnav-lbl{font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;}
 
 /* TOAST */
 .toast{position:fixed;bottom:calc(68px + var(--safe-bottom));left:50%;transform:translateX(-50%) translateY(16px);background:var(--bg2);border:1px solid var(--border2);color:var(--text);font-family:var(--mono);font-size:11px;letter-spacing:1px;padding:10px 18px;border-radius:100px;z-index:500;opacity:0;transition:all .3s;pointer-events:none;white-space:nowrap;max-width:90vw;overflow:hidden;text-overflow:ellipsis;}
@@ -328,27 +337,27 @@ a{color:inherit;text-decoration:none;}
 .cs-drag{width:36px;height:4px;background:var(--border2);border-radius:2px;margin:12px auto 0;}
 .cs-hdr{padding:14px 18px 12px;border-bottom:1px solid var(--border);}
 .cs-name{font-size:18px;font-weight:500;color:var(--text);margin-bottom:2px;}
-.cs-status{font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--teal2);}
+.cs-status{font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--teal2);}
 .cs-section{padding:14px 18px;border-bottom:1px solid var(--border);}
-.cs-section-lbl{font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:8px;}
+.cs-section-lbl{font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:8px;}
 .cs-row{display:flex;align-items:flex-start;gap:10px;margin-bottom:8px;font-size:13px;line-height:1.6;}
 .cs-val{color:var(--muted2);flex:1;}
 .cs-val.hi{color:var(--text);font-weight:500;}
-.cs-call-btn{display:inline-flex;align-items:center;gap:5px;padding:6px 12px;background:rgba(61,138,122,.1);border:1px solid rgba(61,138,122,.3);border-radius:6px;color:var(--teal2);font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;text-decoration:none;min-height:32px;}
+.cs-call-btn{display:inline-flex;align-items:center;gap:5px;padding:6px 12px;background:rgba(61,138,122,.1);border:1px solid rgba(61,138,122,.3);border-radius:6px;color:var(--teal2);font-family:var(--mono);font-size:12px;letter-spacing:1px;text-transform:uppercase;text-decoration:none;min-height:32px;}
 .visit-detail-overlay{display:none;position:fixed;inset:0;z-index:350;background:rgba(0,0,0,.7);}
 .visit-detail-overlay.open{display:block;}
 .visit-detail-sheet{position:fixed;bottom:0;left:0;right:0;background:var(--bg2);border-radius:18px 18px 0 0;max-height:80vh;overflow-y:auto;z-index:351;transform:translateY(100%);transition:transform .3s cubic-bezier(.4,0,.2,1);}
 .visit-detail-sheet.open{transform:translateY(0);}
 .live-card{margin:10px 12px;background:var(--bg2);border:1px solid var(--border2);border-radius:10px;overflow:hidden;}
-.live-card-hdr{padding:10px 14px;background:rgba(61,138,122,.06);border-bottom:1px solid var(--border);font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--teal2);display:flex;align-items:center;gap:6px;}
+.live-card-hdr{padding:10px 14px;background:rgba(61,138,122,.06);border-bottom:1px solid var(--border);font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--teal2);display:flex;align-items:center;gap:6px;}
 .live-dot{width:7px;height:7px;border-radius:50%;background:var(--teal2);animation:pulse 1.5s infinite;}
 @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.4;}}
 .live-row{display:flex;align-items:center;gap:12px;padding:12px 14px;border-bottom:1px solid var(--border);}
 .live-row:last-child{border-bottom:none;}
-.live-ini{width:34px;height:34px;border-radius:50%;background:rgba(61,138,122,.12);border:1px solid rgba(61,138,122,.3);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:10px;color:var(--teal2);flex-shrink:0;}
+.live-ini{width:34px;height:34px;border-radius:50%;background:rgba(61,138,122,.12);border:1px solid rgba(61,138,122,.3);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:12px;color:var(--teal2);flex-shrink:0;}
 .live-info{flex:1;min-width:0;}
 .live-name{font-size:13px;color:var(--text);font-weight:500;}
-.live-meta{font-family:var(--mono);font-size:10px;color:var(--muted2);margin-top:1px;}
+.live-meta{font-family:var(--mono);font-size:12px;color:var(--muted2);margin-top:1px;}
 .live-time{font-family:var(--mono);font-size:12px;color:var(--amber);}
 .sched-day.today-day{border:1px solid rgba(61,138,122,.3);border-radius:8px;overflow:hidden;}
 
@@ -362,8 +371,8 @@ a{color:inherit;text-decoration:none;}
 .sos-contact-row{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--border);}
 .sos-contact-info{flex:1;min-width:0;}
 .sos-contact-name{font-size:14px;font-weight:500;color:var(--text);}
-.sos-contact-role{font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-top:2px;}
-.sos-call-btn{display:flex;align-items:center;gap:6px;padding:10px 16px;background:rgba(61,138,122,.12);border:1px solid rgba(61,138,122,.35);border-radius:8px;color:var(--teal2);font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;text-decoration:none;min-height:42px;touch-action:manipulation;}
+.sos-contact-role{font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-top:2px;}
+.sos-call-btn{display:flex;align-items:center;gap:6px;padding:10px 16px;background:rgba(61,138,122,.12);border:1px solid rgba(61,138,122,.35);border-radius:8px;color:var(--teal2);font-family:var(--mono);font-size:12px;letter-spacing:1px;text-transform:uppercase;text-decoration:none;min-height:42px;touch-action:manipulation;}
 .sos-911{display:block;padding:16px;background:var(--red);color:#fff;border:none;border-radius:10px;font-family:var(--mono);font-size:13px;letter-spacing:2px;text-transform:uppercase;cursor:pointer;min-height:52px;width:100%;text-align:center;touch-action:manipulation;text-decoration:none;}
 /* ── REFUSAL OF CARE ── */
 .refusal-opt{display:flex;align-items:center;gap:10px;padding:12px 14px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;cursor:pointer;margin-bottom:6px;touch-action:manipulation;transition:all .12s;}
@@ -377,21 +386,21 @@ a{color:inherit;text-decoration:none;}
 /* ── SESSION 1 NEW FEATURES ── */
 /* Today tab */
 .today-next-card{margin:10px 12px 6px;padding:14px;background:rgba(61,138,122,.06);border:1px solid rgba(61,138,122,.25);border-radius:10px;}
-.today-next-label{font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--teal2);margin-bottom:6px;}
+.today-next-label{font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--teal2);margin-bottom:6px;}
 .today-next-client{font-size:20px;font-weight:500;color:var(--text);margin-bottom:4px;}
 .today-next-time{font-family:var(--mono);font-size:12px;color:var(--gold);margin-bottom:4px;}
 .today-next-addr{font-size:12px;color:var(--teal2);text-decoration:none;display:block;margin-bottom:10px;}
 .today-next-actions{display:flex;gap:8px;}
-.today-next-btn{flex:1;padding:10px;border-radius:8px;border:none;font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;min-height:40px;touch-action:manipulation;}
+.today-next-btn{flex:1;padding:10px;border-radius:8px;border:none;font-family:var(--mono);font-size:12px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;min-height:40px;touch-action:manipulation;}
 .today-next-btn.nav{background:var(--bg3);border:1px solid var(--border2);color:var(--muted2);}
 .today-next-btn.signin{background:var(--teal);color:#fff;}
 /* Progress bar */
 .today-progress{margin:0 12px 10px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:10px 14px;}
-.today-progress-label{font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;display:flex;justify-content:space-between;}
+.today-progress-label{font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;display:flex;justify-content:space-between;}
 .today-progress-bar{height:6px;background:var(--bg3);border-radius:3px;overflow:hidden;}
 .today-progress-fill{height:100%;background:var(--teal2);border-radius:3px;transition:width .4s ease;}
 /* Status chips */
-.shift-chip{display:inline-flex;align-items:center;gap:4px;font-family:var(--mono);font-size:8px;letter-spacing:1px;text-transform:uppercase;padding:3px 8px;border-radius:100px;border:1px solid;}
+.shift-chip{display:inline-flex;align-items:center;gap:4px;font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;padding:3px 8px;border-radius:100px;border:1px solid;}
 .shift-chip.done{color:var(--teal2);border-color:rgba(61,138,122,.3);background:rgba(61,138,122,.06);}
 .shift-chip.active{color:var(--amber);border-color:rgba(224,154,61,.3);background:rgba(224,154,61,.06);}
 .shift-chip.upcoming{color:var(--gold);border-color:rgba(200,169,110,.3);background:rgba(200,169,110,.06);}
@@ -402,7 +411,7 @@ a{color:inherit;text-decoration:none;}
 .time-remaining.warn{color:var(--amber);}
 .time-remaining.crit{color:var(--red);font-weight:600;}
 /* Alert badges */
-.alert-badge{display:inline-flex;align-items:center;gap:4px;font-family:var(--mono);font-size:8px;letter-spacing:1px;text-transform:uppercase;padding:3px 8px;border-radius:100px;border:1px solid;margin-right:4px;margin-bottom:4px;}
+.alert-badge{display:inline-flex;align-items:center;gap:4px;font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;padding:3px 8px;border-radius:100px;border:1px solid;margin-right:4px;margin-bottom:4px;}
 .alert-badge.fall{color:var(--amber);border-color:rgba(224,154,61,.4);background:rgba(224,154,61,.06);}
 .alert-badge.allergy{color:var(--red);border-color:rgba(224,85,85,.4);background:rgba(224,85,85,.06);}
 .alert-badge.env{color:#6dbdd4;border-color:rgba(109,189,212,.3);background:rgba(109,189,212,.06);}
@@ -410,10 +419,10 @@ a{color:inherit;text-decoration:none;}
 /* Monthly calendar */
 .mini-cal{margin:10px 12px 0;background:var(--bg2);border:1px solid var(--border);border-radius:8px;overflow:hidden;}
 .mini-cal-hdr{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:1px solid var(--border);}
-.mini-cal-title{font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--text);}
+.mini-cal-title{font-family:var(--mono);font-size:12px;letter-spacing:2px;text-transform:uppercase;color:var(--text);}
 .mini-cal-nav{font-family:var(--mono);font-size:14px;color:var(--teal2);cursor:pointer;padding:10px 16px;min-height:44px;display:flex;align-items:center;touch-action:manipulation;}
 .mini-cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:0;}
-.mini-cal-day-lbl{font-family:var(--mono);font-size:8px;color:var(--muted);text-align:center;padding:8px 0;letter-spacing:1px;text-transform:uppercase;}
+.mini-cal-day-lbl{font-family:var(--mono);font-size:11px;color:var(--muted);text-align:center;padding:8px 0;letter-spacing:1px;text-transform:uppercase;}
 .mini-cal-day{position:relative;text-align:center;padding:8px 0;min-height:36px;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:11px;color:var(--muted2);cursor:pointer;touch-action:manipulation;}
 .mini-cal-day.has-shift{color:var(--text);}
 .mini-cal-day.has-shift::after{content:'';position:absolute;bottom:2px;left:50%;transform:translateX(-50%);width:4px;height:4px;border-radius:50%;background:var(--teal2);}
@@ -425,22 +434,22 @@ a{color:inherit;text-decoration:none;}
 .open-session-badge{position:absolute;top:6px;right:6px;width:8px;height:8px;border-radius:50%;background:var(--amber);display:none;}
 .open-session-badge.visible{display:block;}
 /* Offline indicator */
-.sync-status{font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;margin-top:2px;}
+.sync-status{font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:1px;margin-top:2px;}
 .sync-status.warn{color:var(--amber);}
 /* Shift offer card */
 .shift-offer-card{margin:0 12px 8px;padding:12px 14px;background:rgba(200,169,110,.04);border:1px solid rgba(200,169,110,.2);border-radius:8px;}
-.shift-offer-lbl{font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);margin-bottom:6px;}
+.shift-offer-lbl{font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);margin-bottom:6px;}
 /* shift-offer-row removed - using inline styles */
 .shift-offer-row:last-child{border-bottom:none;}
 .offer-actions{display:flex;gap:6px;margin-top:8px;}
-.offer-accept{flex:1;padding:8px;background:rgba(61,138,122,.1);border:1px solid rgba(61,138,122,.3);border-radius:6px;color:var(--teal2);font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;min-height:36px;touch-action:manipulation;}
-.offer-decline{flex:1;padding:8px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;color:var(--muted2);font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;min-height:36px;touch-action:manipulation;}
+.offer-accept{flex:1;padding:8px;background:rgba(61,138,122,.1);border:1px solid rgba(61,138,122,.3);border-radius:6px;color:var(--teal2);font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;min-height:36px;touch-action:manipulation;}
+.offer-decline{flex:1;padding:8px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;color:var(--muted2);font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;min-height:36px;touch-action:manipulation;}
 /* Cannot make shift */
 /* ── VISIT FORMS — Session 5 ── */
 .visit-forms-section{margin:0 12px 10px;background:var(--bg2);border:1px solid rgba(200,169,110,.2);border-radius:10px;overflow:hidden;}
 .vf-header{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:rgba(200,169,110,.04);border-bottom:1px solid rgba(200,169,110,.15);}
-.vf-title{font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);}
-.vf-count{font-family:var(--mono);font-size:9px;color:var(--muted);}
+.vf-title{font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);}
+.vf-count{font-family:var(--mono);font-size:11px;color:var(--muted);}
 .vf-form-card{padding:12px 14px;border-bottom:1px solid var(--border);}
 .vf-form-card:last-child{border-bottom:none;}
 .vf-form-name{font-size:13px;font-weight:500;color:var(--text);margin-bottom:8px;}
@@ -450,29 +459,29 @@ a{color:inherit;text-decoration:none;}
 .vf-checkbox.checked{background:var(--teal);border-color:var(--teal2);}
 .vf-checkbox.checked::after{content:'✓';font-size:11px;color:#fff;}
 .vf-item-label{font-size:13px;color:var(--text);flex:1;}
-.vf-submit-btn{width:100%;margin-top:10px;padding:11px;background:rgba(61,138,122,.12);border:1px solid rgba(61,138,122,.3);border-radius:8px;color:var(--teal2);font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;min-height:42px;touch-action:manipulation;}
+.vf-submit-btn{width:100%;margin-top:10px;padding:11px;background:rgba(61,138,122,.12);border:1px solid rgba(61,138,122,.3);border-radius:8px;color:var(--teal2);font-family:var(--mono);font-size:12px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;min-height:42px;touch-action:manipulation;}
 .vf-submit-btn:disabled{opacity:.4;pointer-events:none;}
-.vf-submitted-chip{display:inline-flex;align-items:center;gap:4px;font-family:var(--mono);font-size:9px;letter-spacing:1px;padding:4px 10px;border-radius:100px;background:rgba(61,138,122,.08);border:1px solid rgba(61,138,122,.25);color:var(--teal2);}
+.vf-submitted-chip{display:inline-flex;align-items:center;gap:4px;font-family:var(--mono);font-size:11px;letter-spacing:1px;padding:4px 10px;border-radius:100px;background:rgba(61,138,122,.08);border:1px solid rgba(61,138,122,.25);color:var(--teal2);}
 /* ── MINI CAL DAY POPUP ── */
 .cal-day-overlay{position:fixed;inset:0;z-index:410;background:rgba(0,0,0,.6);opacity:0;pointer-events:none;transition:opacity .28s;}
 .cal-day-overlay.open{opacity:1;pointer-events:all;}
 .cal-day-popup{position:fixed;bottom:0;left:0;right:0;background:var(--bg2);border-radius:18px 18px 0 0;max-height:70vh;overflow-y:auto;z-index:411;transform:translateY(100%);transition:transform .28s cubic-bezier(.4,0,.2,1);}
 .cal-day-popup.open{transform:translateY(0);}
 .cal-popup-hdr{padding:16px 16px 10px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);}
-.cal-popup-date{font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--teal2);}
+.cal-popup-date{font-family:var(--mono);font-size:12px;letter-spacing:2px;text-transform:uppercase;color:var(--teal2);}
 .cal-popup-close{font-size:18px;color:var(--muted2);cursor:pointer;padding:4px 8px;min-height:36px;display:flex;align-items:center;touch-action:manipulation;}
 .cal-popup-row{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--border);}
 .cal-popup-row:last-child{border-bottom:none;}
 .cal-popup-time{font-family:var(--mono);font-size:11px;color:var(--teal2);min-width:44px;flex-shrink:0;}
 .cal-popup-client{flex:1;min-width:0;}
 .cal-popup-name{font-size:13px;font-weight:500;color:var(--text);}
-.cal-popup-dur{font-family:var(--mono);font-size:10px;color:var(--muted2);margin-top:2px;}
-.cal-popup-status{font-family:var(--mono);font-size:8px;letter-spacing:1px;text-transform:uppercase;padding:3px 8px;border-radius:100px;border:1px solid;flex-shrink:0;}
+.cal-popup-dur{font-family:var(--mono);font-size:12px;color:var(--muted2);margin-top:2px;}
+.cal-popup-status{font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;padding:3px 8px;border-radius:100px;border:1px solid;flex-shrink:0;}
 .cal-popup-status.done{color:var(--teal2);border-color:rgba(61,138,122,.3);background:rgba(61,138,122,.06);}
 .cal-popup-status.active{color:var(--amber);border-color:rgba(224,154,61,.3);background:rgba(224,154,61,.06);}
 .cal-popup-status.upcoming{color:var(--gold);border-color:rgba(200,169,110,.3);background:rgba(200,169,110,.06);}
-.cal-popup-empty{padding:20px 16px;text-align:center;font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px;}
-.cal-popup-go-btn{width:calc(100% - 32px);margin:12px 16px;padding:12px;background:rgba(61,138,122,.1);border:1px solid rgba(61,138,122,.3);border-radius:8px;color:var(--teal2);font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;min-height:42px;touch-action:manipulation;}
+.cal-popup-empty{padding:20px 16px;text-align:center;font-family:var(--mono);font-size:12px;color:var(--muted);letter-spacing:1px;}
+.cal-popup-go-btn{width:calc(100% - 32px);margin:12px 16px;padding:12px;background:rgba(61,138,122,.1);border:1px solid rgba(61,138,122,.3);border-radius:8px;color:var(--teal2);font-family:var(--mono);font-size:12px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;min-height:42px;touch-action:manipulation;}
 @media(max-width:768px){
   .week-nav{padding:8px 12px 10px;}
   .sched-day{margin:0 8px 6px;}
@@ -487,7 +496,7 @@ a{color:inherit;text-decoration:none;}
   .mood-opt{min-width:calc(33% - 4px);}
   .today-next-actions{flex-direction:column;}
   .today-next-btn{width:100%;}
-  .mini-cal-day{font-size:10px;}
+  .mini-cal-day{font-size:12px;}
   .stats-strip{grid-template-columns:repeat(2,1fr);}
 }</style>
 </head>
@@ -581,7 +590,7 @@ a{color:inherit;text-decoration:none;}
   <div class="ptr-spinner" id="ptr-spinner"></div>
 
   <div class="offline-banner" id="offline-banner">
-    <span>⚡</span><span>You're offline — visits will sync when back online</span>
+    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" style="display:inline;vertical-align:middle;margin-right:4px"><path d="M7 1L3 7h4l-2 4 6-6H7L9 1z" fill="#d4a04a"/></svg><span>You're offline — visits will sync when back online</span>
   </div>
 
   <div class="stats-strip">
@@ -608,9 +617,9 @@ a{color:inherit;text-decoration:none;}
     <div class="today-next-label">Next Visit</div>
     <div class="today-next-client" id="tnc-client">—</div>
     <div class="today-next-time" id="tnc-time">—</div>
-    <a class="today-next-addr" id="tnc-addr" href="#" target="_blank">📍 Tap for directions</a>
+    <a class="today-next-addr" id="tnc-addr" href="#" target="_blank"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" style="display:inline;vertical-align:middle;margin-right:4px"><path d="M6 1a3.5 3.5 0 0 0-3.5 3.5C2.5 7.5 6 11 6 11s3.5-3.5 3.5-6.5A3.5 3.5 0 0 0 6 1z" stroke="#6dbdd4" stroke-width="1.2"/><circle cx="6" cy="4.5" r="1.2" fill="#6dbdd4"/></svg>Tap for directions</a>
     <div class="today-next-actions">
-      <button class="today-next-btn nav" id="tnc-nav-btn" onclick="openTodayNextMap()">🗺 Navigate</button>
+      <button class="today-next-btn nav" id="tnc-nav-btn" onclick="openTodayNextMap()"><svg width="13" height="13" viewBox="0 0 13 13" fill="none" style="display:inline;vertical-align:middle;margin-right:5px"><path d="M1 2l4 1.5L8 2l4 1.5v8L8 10l-3 1.5L1 10V2z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><line x1="5" y1="3.5" x2="5" y2="11.5" stroke="currentColor" stroke-width="1.1"/><line x1="8" y1="2" x2="8" y2="10" stroke="currentColor" stroke-width="1.1"/></svg>Navigate</button>
       <button class="today-next-btn signin" id="tnc-signin-btn" onclick="doCheckInFromShift(window._nextVisitClientName||'')">Sign In →</button>
     </div>
   </div>
@@ -641,7 +650,7 @@ a{color:inherit;text-decoration:none;}
 
   <div class="section-header" style="padding-bottom:4px;">
     <span class="section-title">Today &amp; Recent</span>
-    <span style="font-family:var(--mono);font-size:9px;color:var(--muted);" id="home-last-updated">—</span>
+    <span style="font-family:var(--mono);font-size:11px;color:var(--muted);" id="home-last-updated">—</span>
   </div>
   <div class="feed-card" id="home-feed">
     <div class="skeleton-row"></div><div class="skeleton-row"></div><div class="skeleton-row"></div><div class="skeleton-row"></div>
@@ -672,19 +681,19 @@ a{color:inherit;text-decoration:none;}
     <div class="active-visit-time">Started: <span id="av-timein">—</span></div>
     <div class="active-visit-elapsed" id="av-elapsed">—</div>
     <div class="time-remaining" id="av-remaining"></div>
-    <a id="av-address-link" href="#" target="_blank" style="display:none;font-family:var(--mono);font-size:10px;color:var(--teal2);text-decoration:none;margin-top:4px;display:block;">📍 <span id="av-address-text">Client address</span></a>
+    <a id="av-address-link" href="#" target="_blank" style="display:none;font-family:var(--mono);font-size:12px;color:var(--teal2);text-decoration:none;margin-top:4px;display:block;"><svg width="11" height="11" viewBox="0 0 12 12" fill="none" style="display:inline;vertical-align:middle;margin-right:4px"><path d="M6 1a3.5 3.5 0 0 0-3.5 3.5C2.5 7.5 6 11 6 11s3.5-3.5 3.5-6.5A3.5 3.5 0 0 0 6 1z" stroke="#4a9bb3" stroke-width="1.2"/><circle cx="6" cy="4.5" r="1.2" fill="#4a9bb3"/></svg><span id="av-address-text">Client address</span></a>
     <div class="banner-btns" style="margin-top:12px;">
       <button class="banner-btn cl" onclick="showSect('checklist')">Open Checklist</button>
       <button class="banner-btn co" onclick="openCheckout()">Check Out</button>
     </div>
-    <button class="sos-btn" onclick="openSOS()">🚨 Emergency Contacts + SOS</button>
+    <button class="sos-btn" onclick="openSOS()">Emergency Contacts + SOS</button>
   </div>
 
   <!-- Available shifts (Build 7) -->
   <div id="avail-shifts-section" style="display:none;">
     <div class="section-header" style="padding-top:4px;">
       <span class="section-title">Available Shifts</span>
-      <span style="font-family:var(--mono);font-size:9px;color:var(--gold);">Tap to claim</span>
+      <span style="font-family:var(--mono);font-size:11px;color:var(--gold);">Tap to claim</span>
     </div>
     <div id="avail-shifts-list"></div>
   </div>
@@ -701,8 +710,8 @@ a{color:inherit;text-decoration:none;}
 
   <!-- SCHEDULE HOURS SUMMARY -->
   <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px 4px;">
-    <div style="font-family:var(--mono);font-size:10px;color:var(--teal2);" id="sched-hours-label"></div>
-    <div style="font-family:var(--mono);font-size:10px;color:var(--gold);" id="sched-done-label"></div>
+    <div style="font-family:var(--mono);font-size:12px;color:var(--teal2);" id="sched-hours-label"></div>
+    <div style="font-family:var(--mono);font-size:12px;color:var(--gold);" id="sched-done-label"></div>
   </div>
 
   <div class="week-nav">
@@ -714,7 +723,7 @@ a{color:inherit;text-decoration:none;}
 
   <!-- SHIFT OFFERS SECTION -->
   <div id="shift-offers-section" style="display:none;padding:0 0 8px;">
-    <div style="padding:10px 12px 6px;font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);">⚡ Open Shifts — Tap to Accept</div>
+    <div style="padding:10px 12px 6px;font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);"><svg width="11" height="11" viewBox="0 0 12 12" fill="none" style="display:inline;vertical-align:middle;margin-right:5px"><path d="M7 1L3 7h4l-2 4 6-6H7L9 1z" fill="#c9a96e"/></svg>Open Shifts — Tap to Accept</div>
     <div id="shift-offers-list"></div>
   </div>
 </div>
@@ -723,7 +732,7 @@ a{color:inherit;text-decoration:none;}
 <div class="section" id="sect-checklist">
   <div class="section-header">
     <span class="section-title">Daily Checklist</span>
-    <div id="cl-visit-name" style="font-family:var(--mono);font-size:9px;color:var(--teal2);letter-spacing:1px;"></div>
+    <div id="cl-visit-name" style="font-family:var(--mono);font-size:11px;color:var(--teal2);letter-spacing:1px;"></div>
   </div>
 
   <!-- VISIT FORMS — loaded on checkin, submitted during visit -->
@@ -735,7 +744,7 @@ a{color:inherit;text-decoration:none;}
     <div id="visit-forms-list"></div>
   </div>
 
-  <div id="cl-no-shift" style="margin:0 12px 10px;padding:11px 14px;background:rgba(200,169,110,.06);border:1px solid rgba(200,169,110,.2);border-radius:6px;font-family:var(--mono);font-size:10px;color:var(--gold);letter-spacing:1px;line-height:1.6;display:none;">Sign in to a visit first — Schedule tab → Sign In Now</div>
+  <div id="cl-no-shift" style="margin:0 12px 10px;padding:11px 14px;background:rgba(200,169,110,.06);border:1px solid rgba(200,169,110,.2);border-radius:6px;font-family:var(--mono);font-size:12px;color:var(--gold);letter-spacing:1px;line-height:1.6;display:none;">Sign in to a visit first — Schedule tab → Sign In Now</div>
   <div class="cl-progress">
     <div class="cl-progress-lbl">Tasks completed</div>
     <div class="cl-progress-count" id="cl-count">0 / 0</div>
@@ -816,7 +825,7 @@ a{color:inherit;text-decoration:none;}
 <div class="section" id="sect-documents">
   <div class="section-header"><span class="section-title">My Documents</span></div>
   <div class="card"><div id="docs-list"><div class="empty-state" style="padding:20px;">Loading documents...</div></div></div>
-  <div style="margin:8px 12px;padding:10px 14px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px;">
+  <div style="margin:8px 12px;padding:10px 14px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;font-family:var(--mono);font-size:12px;color:var(--muted);letter-spacing:1px;">
     Documents are managed by Lance. Contact him to update your files.
   </div>
 </div>
@@ -825,18 +834,18 @@ a{color:inherit;text-decoration:none;}
 <div class="section" id="sect-pay">
   <div class="section-header"><span class="section-title">My Pay</span></div>
   <div style="display:flex;gap:6px;flex-wrap:wrap;padding:0 12px 10px;">
-    <div class="pay-range-chip" data-range="today" onclick="setPayRange('today')" style="font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;padding:6px 10px;border-radius:6px;border:1px solid var(--border2);color:var(--muted2);cursor:pointer;min-height:30px;display:flex;align-items:center;">Today</div>
-    <div class="pay-range-chip" data-range="week" onclick="setPayRange('week')" style="font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;padding:6px 10px;border-radius:6px;border:1px solid var(--border2);color:var(--muted2);cursor:pointer;min-height:30px;display:flex;align-items:center;">Week</div>
-    <div class="pay-range-chip" data-range="month" onclick="setPayRange('month')" style="font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;padding:6px 10px;border-radius:6px;border:1px solid var(--teal2);color:var(--teal2);background:rgba(61,138,122,.1);cursor:pointer;min-height:30px;display:flex;align-items:center;">Month</div>
-    <div class="pay-range-chip" data-range="lastmonth" onclick="setPayRange('lastmonth')" style="font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;padding:6px 10px;border-radius:6px;border:1px solid var(--border2);color:var(--muted2);cursor:pointer;min-height:30px;display:flex;align-items:center;">Last Mo</div>
-    <div class="pay-range-chip" data-range="year" onclick="setPayRange('year')" style="font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;padding:6px 10px;border-radius:6px;border:1px solid var(--border2);color:var(--muted2);cursor:pointer;min-height:30px;display:flex;align-items:center;">Year</div>
-    <div class="pay-range-chip" data-range="custom" onclick="setPayRange('custom')" style="font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;padding:6px 10px;border-radius:6px;border:1px solid var(--border2);color:var(--muted2);cursor:pointer;min-height:30px;display:flex;align-items:center;">Custom</div>
+    <div class="pay-range-chip" data-range="today" onclick="setPayRange('today')" style="font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;padding:6px 10px;border-radius:6px;border:1px solid var(--border2);color:var(--muted2);cursor:pointer;min-height:30px;display:flex;align-items:center;">Today</div>
+    <div class="pay-range-chip" data-range="week" onclick="setPayRange('week')" style="font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;padding:6px 10px;border-radius:6px;border:1px solid var(--border2);color:var(--muted2);cursor:pointer;min-height:30px;display:flex;align-items:center;">Week</div>
+    <div class="pay-range-chip" data-range="month" onclick="setPayRange('month')" style="font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;padding:6px 10px;border-radius:6px;border:1px solid var(--teal2);color:var(--teal2);background:rgba(61,138,122,.1);cursor:pointer;min-height:30px;display:flex;align-items:center;">Month</div>
+    <div class="pay-range-chip" data-range="lastmonth" onclick="setPayRange('lastmonth')" style="font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;padding:6px 10px;border-radius:6px;border:1px solid var(--border2);color:var(--muted2);cursor:pointer;min-height:30px;display:flex;align-items:center;">Last Mo</div>
+    <div class="pay-range-chip" data-range="year" onclick="setPayRange('year')" style="font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;padding:6px 10px;border-radius:6px;border:1px solid var(--border2);color:var(--muted2);cursor:pointer;min-height:30px;display:flex;align-items:center;">Year</div>
+    <div class="pay-range-chip" data-range="custom" onclick="setPayRange('custom')" style="font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;padding:6px 10px;border-radius:6px;border:1px solid var(--border2);color:var(--muted2);cursor:pointer;min-height:30px;display:flex;align-items:center;">Custom</div>
   </div>
   <div id="pay-custom-range" style="display:none;gap:8px;align-items:center;padding:0 12px 10px;flex-wrap:wrap;">
     <input type="date" id="pay-custom-from" style="font-family:var(--mono);font-size:11px;padding:6px 8px;border-radius:6px;border:1px solid var(--border2);background:var(--bg2);color:var(--text);min-height:34px;">
-    <span style="font-family:var(--mono);font-size:9px;color:var(--muted);">to</span>
+    <span style="font-family:var(--mono);font-size:11px;color:var(--muted);">to</span>
     <input type="date" id="pay-custom-to" style="font-family:var(--mono);font-size:11px;padding:6px 8px;border-radius:6px;border:1px solid var(--border2);background:var(--bg2);color:var(--text);min-height:34px;">
-    <button onclick="applyCustomPayRange()" style="font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;padding:6px 12px;border-radius:6px;border:1px solid rgba(61,138,122,.4);background:rgba(61,138,122,.1);color:var(--teal2);cursor:pointer;min-height:34px;">Apply</button>
+    <button onclick="applyCustomPayRange()" style="font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;padding:6px 12px;border-radius:6px;border:1px solid rgba(61,138,122,.4);background:rgba(61,138,122,.1);color:var(--teal2);cursor:pointer;min-height:34px;">Apply</button>
   </div>
   <div id="pay-content"><div class="empty-state">Loading pay summary...</div></div>
 </div>
@@ -847,27 +856,27 @@ a{color:inherit;text-decoration:none;}
 <div class="sos-sheet" id="sos-sheet">
   <div style="width:36px;height:4px;background:var(--border2);border-radius:2px;margin:12px auto 0;"></div>
   <div style="padding:16px 18px 10px;border-bottom:1px solid var(--border);">
-    <div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--red);margin-bottom:4px;">Emergency Contacts</div>
+    <div style="font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--red);margin-bottom:4px;">Emergency Contacts</div>
     <div style="font-size:15px;font-weight:500;color:var(--text);" id="sos-client-name">—</div>
   </div>
   <div style="padding:14px 18px;">
-    <a href="tel:911" class="sos-911">🚨 Call 911 — Emergency Services</a>
+    <a href="tel:911" class="sos-911">Call 911 — Emergency Services</a>
   </div>
   <div id="sos-contacts-list" style="padding:0 0 calc(20px + var(--safe-bottom));"></div>
 </div>
 
 <!-- LIVE OPS SECTION -->
 <div class="section" id="sect-live">
-  <div style="padding:14px 12px 6px;font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);">Live Activity</div>
+  <div style="padding:14px 12px 6px;font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);">Live Activity</div>
   <div id="live-on-shift-card" class="live-card">
     <div class="live-card-hdr"><span class="live-dot"></span>On Shift Now</div>
     <div id="live-on-shift-list"><div class="empty-state" style="padding:14px;">Loading...</div></div>
   </div>
-  <div style="padding:14px 12px 6px;font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-top:8px;">Today's Completed</div>
+  <div style="padding:14px 12px 6px;font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-top:8px;">Today's Completed</div>
   <div id="live-completed-card" class="live-card">
     <div id="live-completed-list"><div class="empty-state" style="padding:14px;">Loading...</div></div>
   </div>
-  <div style="padding:14px 12px 6px;font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-top:8px;">Upcoming Today</div>
+  <div style="padding:14px 12px 6px;font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-top:8px;">Upcoming Today</div>
   <div id="live-upcoming-card" class="live-card">
     <div id="live-upcoming-list"><div class="empty-state" style="padding:14px;">Loading...</div></div>
   </div>
@@ -930,11 +939,11 @@ a{color:inherit;text-decoration:none;}
 <div id="cancel-shift-sheet" style="display:none;position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.75);" onclick="if(event.target===this)closeCancelShift()">
   <div style="position:absolute;bottom:0;left:0;right:0;background:var(--bg2);border-radius:18px 18px 0 0;padding:20px 20px 40px;max-height:80vh;overflow-y:auto;">
     <div style="width:36px;height:4px;background:var(--border2);border-radius:2px;margin:0 auto 16px;"></div>
-    <div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--amber);margin-bottom:4px;">Cannot Make This Shift</div>
+    <div style="font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--amber);margin-bottom:4px;">Cannot Make This Shift</div>
     <div style="font-size:11px;color:var(--muted2);margin-bottom:8px;line-height:1.5;">Your request will be sent to your coordinator. Your shift stays assigned until they respond.</div>
     <div style="font-size:15px;font-weight:500;color:var(--text);margin-bottom:4px;" id="cs-shift-info">—</div>
-    <div style="font-family:var(--mono);font-size:10px;color:var(--muted2);margin-bottom:16px;" id="cs-shift-date">—</div>
-    <div style="font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:8px;">Reason for cancellation *</div>
+    <div style="font-family:var(--mono);font-size:12px;color:var(--muted2);margin-bottom:16px;" id="cs-shift-date">—</div>
+    <div style="font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:8px;">Reason for cancellation *</div>
     <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;" id="cs-reasons">
       <button onclick="selectCancelReason(this,'I am ill and cannot work today')" style="text-align:left;padding:12px 14px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;cursor:pointer;touch-action:manipulation;">I am ill and cannot work today</button>
       <button onclick="selectCancelReason(this,'Family emergency')" style="text-align:left;padding:12px 14px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;cursor:pointer;touch-action:manipulation;">Family emergency</button>
@@ -943,7 +952,7 @@ a{color:inherit;text-decoration:none;}
     </div>
     <textarea id="cs-custom-reason" placeholder="Add details (optional)..." style="width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:12px 14px;font-size:15px;border-radius:8px;resize:none;min-height:70px;font-family:var(--sans);box-sizing:border-box;margin-bottom:14px;outline:none;"></textarea>
     <button id="cs-submit-btn" onclick="submitCancelShift()" style="width:100%;background:var(--amber);color:#000;border:none;padding:14px;border-radius:8px;font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;cursor:pointer;min-height:48px;opacity:.4;pointer-events:none;">Send Request to Coordinator</button>
-    <button onclick="closeCancelShift()" style="width:100%;background:none;border:1px solid var(--border);color:var(--muted2);padding:12px;border-radius:8px;font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;min-height:44px;margin-top:8px;">Keep Shift</button>
+    <button onclick="closeCancelShift()" style="width:100%;background:none;border:1px solid var(--border);color:var(--muted2);padding:12px;border-radius:8px;font-family:var(--mono);font-size:12px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;min-height:44px;margin-top:8px;">Keep Shift</button>
   </div>
 </div>
 
@@ -951,15 +960,15 @@ a{color:inherit;text-decoration:none;}
   <div style="position:absolute;bottom:0;left:0;right:0;background:var(--bg2);border-radius:18px 18px 0 0;padding:20px 14px calc(24px + var(--safe-bottom));max-height:85vh;overflow-y:auto;">
     <div style="width:36px;height:4px;background:var(--border2);border-radius:2px;margin:0 auto 20px;"></div>
     <div style="font-family:var(--serif);font-size:18px;color:var(--text);font-weight:300;margin-bottom:4px;">Check Out — <span id="co-client-name">—</span></div>
-    <div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px;margin-bottom:20px;">Started <span id="co-timein">—</span> · <span id="co-elapsed-sheet">—</span> elapsed</div>
+    <div style="font-family:var(--mono);font-size:12px;color:var(--muted);letter-spacing:1px;margin-bottom:20px;">Started <span id="co-timein">—</span> · <span id="co-elapsed-sheet">—</span> elapsed</div>
     <div style="margin-bottom:14px;">
       <label class="form-label">Client Mood</label>
       <div class="mood-row" id="co-mood-row">
-        <div class="mood-opt sel" onclick="selectMood(this,'Great')"><span class="mood-emoji">😊</span><span class="mood-lbl">Great</span></div>
-        <div class="mood-opt" onclick="selectMood(this,'Good')"><span class="mood-emoji">🙂</span><span class="mood-lbl">Good</span></div>
-        <div class="mood-opt" onclick="selectMood(this,'Neutral')"><span class="mood-emoji">😐</span><span class="mood-lbl">Neutral</span></div>
-        <div class="mood-opt" onclick="selectMood(this,'Low')"><span class="mood-emoji">😔</span><span class="mood-lbl">Low</span></div>
-        <div class="mood-opt" onclick="selectMood(this,'Agitated')"><span class="mood-emoji">😤</span><span class="mood-lbl">Agit.</span></div>
+        <div class="mood-opt sel" onclick="selectMood(this,'Great')"><span class="mood-emoji" style="font-size:18px;line-height:1;">●</span><span class="mood-lbl">Great</span></div>
+        <div class="mood-opt" onclick="selectMood(this,'Good')"><span class="mood-emoji" style="font-size:18px;line-height:1;color:#6db974;">●</span><span class="mood-lbl">Good</span></div>
+        <div class="mood-opt" onclick="selectMood(this,'Neutral')"><span class="mood-emoji" style="font-size:18px;line-height:1;color:#a8bfc4;">●</span><span class="mood-lbl">Neutral</span></div>
+        <div class="mood-opt" onclick="selectMood(this,'Low')"><span class="mood-emoji" style="font-size:18px;line-height:1;color:#d4a04a;">●</span><span class="mood-lbl">Low</span></div>
+        <div class="mood-opt" onclick="selectMood(this,'Agitated')"><span class="mood-emoji" style="font-size:18px;line-height:1;color:#e05555;">●</span><span class="mood-lbl">Agit.</span></div>
       </div>
     </div>
     <div style="margin-bottom:12px;">
@@ -967,29 +976,29 @@ a{color:inherit;text-decoration:none;}
       <textarea class="form-textarea" id="co-obs" placeholder="Anything to flag from today's visit..."></textarea>
     </div>
     <div style="margin-bottom:14px;">
-      <label class="form-label">Medication Administration <span style="font-family:var(--mono);font-size:9px;color:var(--muted);font-weight:400;letter-spacing:1px;">MAR</span></label>
+      <label class="form-label">Medication Administration <span style="font-family:var(--mono);font-size:11px;color:var(--muted);font-weight:400;letter-spacing:1px;">MAR</span></label>
       <div id="co-mar-boxes" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;"></div>
-      <div id="co-mar-none" style="display:none;font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:6px;">No medications on file for this client</div>
+      <div id="co-mar-none" style="display:none;font-family:var(--mono);font-size:12px;color:var(--muted);margin-top:6px;">No medications on file for this client</div>
     </div>
     <div style="margin-bottom:14px;">
-      <label class="form-label">Task Photos <span style="font-size:10px;color:var(--muted);font-weight:400;">(optional — up to 4)</span></label>
+      <label class="form-label">Task Photos <span style="font-size:12px;color:var(--muted);font-weight:400;">(optional — up to 4)</span></label>
       <div style="display:flex;align-items:center;gap:10px;margin-top:6px;">
         <input type="file" id="co-photos" accept="image/*" multiple style="display:none;" onchange="previewPhotos(this)" capture="environment">
-        <button onclick="document.getElementById('co-photos').click()" style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;padding:8px 14px;border:1px solid var(--border2);background:var(--bg3);color:var(--muted2);border-radius:6px;cursor:pointer;min-height:36px;touch-action:manipulation;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="14" height="14" style="vertical-align:middle;margin-right:4px;"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>Add Photos</button>
+        <button onclick="document.getElementById('co-photos').click()" style="font-family:var(--mono);font-size:12px;letter-spacing:1px;text-transform:uppercase;padding:8px 14px;border:1px solid var(--border2);background:var(--bg3);color:var(--muted2);border-radius:6px;cursor:pointer;min-height:36px;touch-action:manipulation;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="14" height="14" style="vertical-align:middle;margin-right:4px;"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>Add Photos</button>
         <div id="co-photo-preview" style="display:flex;gap:6px;flex-wrap:wrap;"></div>
       </div>
     </div>
     <div style="margin-bottom:14px;">
-      <label class="form-label">Voice Note for Family <span style="font-size:10px;color:var(--muted);font-weight:400;">(optional — 30s max)</span></label>
+      <label class="form-label">Voice Note for Family <span style="font-size:12px;color:var(--muted);font-weight:400;">(optional — 30s max)</span></label>
       <div style="display:flex;gap:8px;align-items:center;margin-top:6px;">
-        <button id="co-record-btn" onclick="toggleVoiceRecord()" style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;padding:8px 14px;border:1px solid var(--border2);background:var(--bg3);color:var(--muted2);border-radius:6px;cursor:pointer;min-height:36px;touch-action:manipulation;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="14" height="14" style="vertical-align:middle;margin-right:4px;"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>Record</button>
-        <div id="co-record-status" style="font-family:var(--mono);font-size:10px;color:var(--muted);"></div>
+        <button id="co-record-btn" onclick="toggleVoiceRecord()" style="font-family:var(--mono);font-size:12px;letter-spacing:1px;text-transform:uppercase;padding:8px 14px;border:1px solid var(--border2);background:var(--bg3);color:var(--muted2);border-radius:6px;cursor:pointer;min-height:36px;touch-action:manipulation;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="14" height="14" style="vertical-align:middle;margin-right:4px;"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>Record</button>
+        <div id="co-record-status" style="font-family:var(--mono);font-size:12px;color:var(--muted);"></div>
         <audio id="co-voice-playback" controls style="display:none;height:32px;flex:1;"></audio>
       </div>
     </div>
     <!-- REFUSAL OF CARE -->
     <div style="margin-bottom:14px;" id="co-refusal-section">
-      <label class="form-label">Client Refused Care? <span style="font-family:var(--mono);font-size:9px;color:var(--muted);font-weight:400;">(select all that apply)</span></label>
+      <label class="form-label">Client Refused Care? <span style="font-family:var(--mono);font-size:11px;color:var(--muted);font-weight:400;">(select all that apply)</span></label>
       <div style="margin-top:8px;" id="co-refusal-list">
         <div class="refusal-opt" onclick="toggleRefusal(this,'Personal hygiene / bathing')"><div class="refusal-box"></div><span style="font-size:13px;">Personal hygiene / bathing</span></div>
         <div class="refusal-opt" onclick="toggleRefusal(this,'Medication administration')"><div class="refusal-box"></div><span style="font-size:13px;">Medication administration</span></div>
@@ -1000,35 +1009,35 @@ a{color:inherit;text-decoration:none;}
       </div>
       <div id="co-refusal-reason-wrap" style="display:none;margin-top:8px;">
         <textarea class="form-textarea" id="co-refusal-reason" placeholder="Client's reason for refusal (document their exact words where possible)..." style="min-height:60px;border-color:rgba(224,85,85,.2);"></textarea>
-        <div style="font-family:var(--mono);font-size:9px;color:var(--muted2);margin-top:4px;line-height:1.5;">Ontario standard: document refusal, offer alternatives, notify coordinator. Do not force care.</div>
+        <div style="font-family:var(--mono);font-size:11px;color:var(--muted2);margin-top:4px;line-height:1.5;">Ontario standard: document refusal, offer alternatives, notify coordinator. Do not force care.</div>
       </div>
     </div>
     <!-- INCIDENT REPORT -->
     <div style="margin-bottom:20px;" id="co-incident-section">
-      <label class="form-label" style="color:var(--red);">Incident Report <span style="font-family:var(--mono);font-size:9px;color:var(--muted);font-weight:400;">Leave blank if none</span></label>
+      <label class="form-label" style="color:var(--red);">Incident Report <span style="font-family:var(--mono);font-size:11px;color:var(--muted);font-weight:400;">Leave blank if none</span></label>
       <div id="co-incident-types" style="margin-top:8px;display:none;">
-        <div class="incident-type-btn" onclick="selectIncidentType(this,'🤕 Fall / injury')">🤕 Fall / injury</div>
-        <div class="incident-type-btn" onclick="selectIncidentType(this,'💊 Medication error')">💊 Medication error</div>
-        <div class="incident-type-btn" onclick="selectIncidentType(this,'🚑 Medical emergency')">🚑 Medical emergency</div>
+        <div class="incident-type-btn" onclick="selectIncidentType(this,'Fall / injury')">Fall / injury</div>
+        <div class="incident-type-btn" onclick="selectIncidentType(this,'Medication error')">Medication error</div>
+        <div class="incident-type-btn" onclick="selectIncidentType(this,'Medical emergency')">Medical emergency</div>
         <div class="incident-type-btn" onclick="selectIncidentType(this,'⚠ Client agitation / aggression')">⚠ Client agitation / aggression</div>
-        <div class="incident-type-btn" onclick="selectIncidentType(this,'🏠 Home safety concern')">🏠 Home safety concern</div>
-        <div class="incident-type-btn" onclick="selectIncidentType(this,'Other')">📋 Other</div>
+        <div class="incident-type-btn" onclick="selectIncidentType(this,'Home safety concern')">Home safety concern</div>
+        <div class="incident-type-btn" onclick="selectIncidentType(this,'Other')">Other</div>
       </div>
       <div style="display:flex;align-items:center;gap:10px;margin-top:6px;margin-bottom:8px;">
         <input type="checkbox" id="co-incident-flag" onchange="toggleIncidentSection()" style="width:18px;height:18px;accent-color:var(--red);flex-shrink:0;">
         <label for="co-incident-flag" style="font-size:13px;color:var(--muted2);cursor:pointer;">Something happened during this visit</label>
       </div>
       <div id="co-incident-detail" style="display:none;">
-        <div style="font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;">Incident type</div>
+        <div style="font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;">Incident type</div>
         <div id="co-incident-types-inner"></div>
-        <div style="font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;margin-top:10px;">What happened</div>
+        <div style="font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;margin-top:10px;">What happened</div>
         <textarea class="form-textarea" id="co-incident" placeholder="Describe exactly what happened, when, and any actions you took..." style="border-color:rgba(224,85,85,.3);min-height:80px;"></textarea>
         <div style="margin-top:8px;display:flex;flex-direction:column;gap:6px;">
           <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted2);cursor:pointer;"><input type="checkbox" id="co-911-called" style="accent-color:var(--red);width:16px;height:16px;"> 911 was called</label>
           <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted2);cursor:pointer;"><input type="checkbox" id="co-family-notified" style="accent-color:var(--teal2);width:16px;height:16px;"> Family was notified</label>
           <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted2);cursor:pointer;"><input type="checkbox" id="co-coordinator-notified" style="accent-color:var(--teal2);width:16px;height:16px;"> Coordinator was notified</label>
         </div>
-        <div style="font-family:var(--mono);font-size:9px;color:var(--amber);margin-top:8px;line-height:1.5;">⚑ Incidents are reported to the coordinator automatically on checkout.</div>
+        <div style="font-family:var(--mono);font-size:11px;color:var(--amber);margin-top:8px;line-height:1.5;">⚑ Incidents are reported to the coordinator automatically on checkout.</div>
       </div>
     </div>
     <button class="sbtn danger" onclick="doCheckOut()" id="co-submit-btn">Check Out + Submit Visit</button>
@@ -1040,24 +1049,24 @@ a{color:inherit;text-decoration:none;}
 <!-- EC-3 — CHECKIN CONFIRMATION OVERLAY -->
 <div class="success-overlay" id="checkin-confirm-overlay" style="display:none;">
   <div style="background:var(--bg2);border:1px solid var(--border2);border-radius:16px;padding:28px 24px;max-width:340px;width:100%;text-align:center;max-height:90vh;overflow-y:auto;">
-    <div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted2);margin-bottom:12px;">Confirm Sign In</div>
+    <div style="font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted2);margin-bottom:12px;">Confirm Sign In</div>
     <div style="font-size:18px;font-weight:500;color:var(--text);margin-bottom:6px;" id="cc-client-name">—</div>
     <div style="font-family:var(--mono);font-size:11px;color:var(--muted2);margin-bottom:4px;" id="cc-scheduled-time">—</div>
-    <div id="cc-gps-warning" style="display:none;margin:12px 0;padding:10px 14px;background:rgba(224,154,61,.08);border:1px solid rgba(224,154,61,.3);border-radius:8px;font-family:var(--mono);font-size:10px;color:var(--amber);line-height:1.5;text-align:left;"></div>
+    <div id="cc-gps-warning" style="display:none;margin:12px 0;padding:10px 14px;background:rgba(224,154,61,.08);border:1px solid rgba(224,154,61,.3);border-radius:8px;font-family:var(--mono);font-size:12px;color:var(--amber);line-height:1.5;text-align:left;"></div>
 
     <!-- C3 — Care Directives & DNR acknowledgement -->
     <div id="cc-directives-panel" style="display:none;margin:14px 0 0;text-align:left;">
-      <div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--teal2);margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--border);">Care Directives</div>
+      <div style="font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--teal2);margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--border);">Care Directives</div>
       <div id="cc-medications" style="display:none;margin-bottom:10px;">
-        <div style="font-family:var(--mono);font-size:8px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:4px;">Medications</div>
+        <div style="font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:4px;">Medications</div>
         <div style="font-size:12px;color:var(--text);line-height:1.6;" id="cc-medications-text"></div>
       </div>
       <div id="cc-care-notes" style="display:none;margin-bottom:10px;">
-        <div style="font-family:var(--mono);font-size:8px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:4px;">Care Notes</div>
+        <div style="font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:4px;">Care Notes</div>
         <div style="font-size:12px;color:var(--muted2);line-height:1.6;" id="cc-care-notes-text"></div>
       </div>
       <div id="cc-dnr-banner" style="display:none;margin-bottom:12px;padding:10px 12px;background:rgba(224,85,85,.08);border:1px solid rgba(224,85,85,.3);border-radius:8px;">
-        <div style="font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--red);margin-bottom:4px;">⚠ DNR — Do Not Resuscitate</div>
+        <div style="font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--red);margin-bottom:4px;">⚠ DNR — Do Not Resuscitate</div>
         <div style="font-size:11px;color:var(--muted2);line-height:1.5;">This client has a Do Not Resuscitate order on file. Do not perform CPR. Call 911 and report DNR status.</div>
       </div>
       <!-- Acknowledgement checkbox -->
@@ -1068,8 +1077,8 @@ a{color:inherit;text-decoration:none;}
     </div>
 
     <div style="display:flex;gap:10px;margin-top:18px;">
-      <button onclick="cancelCheckinConfirm()" style="flex:1;background:var(--bg3);border:1px solid var(--border2);color:var(--muted2);padding:12px;border-radius:8px;font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;min-height:44px;">Cancel</button>
-      <button onclick="confirmCheckin()" id="cc-confirm-btn" style="flex:2;background:var(--teal);color:#fff;border:none;padding:12px;border-radius:8px;font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;min-height:44px;">Confirm Sign In</button>
+      <button onclick="cancelCheckinConfirm()" style="flex:1;background:var(--bg3);border:1px solid var(--border2);color:var(--muted2);padding:12px;border-radius:8px;font-family:var(--mono);font-size:12px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;min-height:44px;">Cancel</button>
+      <button onclick="confirmCheckin()" id="cc-confirm-btn" style="flex:2;background:var(--teal);color:#fff;border:none;padding:12px;border-radius:8px;font-family:var(--mono);font-size:12px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;min-height:44px;">Confirm Sign In</button>
     </div>
   </div>
 </div>
@@ -1283,7 +1292,7 @@ function lockApp() {
   appUnlocked = false;
   pswPin = '';
   lockIn = '';
-  try { localStorage.removeItem('psw_pin'); } catch {}
+  try { sessionStorage.removeItem('psw_pin'); } catch {}
   // Clear auto-refresh interval so it doesn't fire while locked
   if (window._autoRefreshInterval) {
     clearInterval(window._autoRefreshInterval);
@@ -1350,7 +1359,7 @@ async function verifyPin() {
 
 function unlockApp() {
   appUnlocked = true;
-  try { localStorage.setItem('psw_name', pswName); localStorage.setItem('psw_pin', pswPin); } catch {}
+  try { sessionStorage.setItem('psw_name', pswName); sessionStorage.setItem('psw_pin', pswPin); } catch {}
   history.pushState(null, '', window.location.href);
   document.getElementById('lock').style.display = 'none';
   document.getElementById('app').style.display = 'block';
@@ -1510,7 +1519,7 @@ function renderHomeFeed() {
           <div class="feed-client" style="color:var(--teal2);">Schedule Update</div>
           <div class="feed-meta" style="color:var(--text2);">${n.message.slice(0,80)}${n.message.length>80?'…':''}</div>
         </div>
-        <div class="feed-right"><div class="feed-time" style="color:var(--teal2);font-size:9px;">Tap →</div></div>
+        <div class="feed-right"><div class="feed-time" style="color:var(--teal2);font-size:11px;">Tap →</div></div>
       </div>`);
     });
   }
@@ -1522,7 +1531,7 @@ function renderHomeFeed() {
       <div class="feed-body"><div class="feed-client">${activeVisit.client_name||'—'}</div><div class="feed-meta">In progress · Started ${tin}</div></div>
       <div class="feed-right">
         <div class="feed-hrs" id="feed-elapsed" style="color:var(--amber);">— elapsed</div>
-        <button onclick="openCheckout()" style="font-family:var(--mono);font-size:8px;letter-spacing:1px;text-transform:uppercase;color:var(--amber);background:rgba(224,154,61,.1);border:1px solid rgba(224,154,61,.3);border-radius:4px;padding:4px 8px;cursor:pointer;margin-top:4px;touch-action:manipulation;">Check Out</button>
+        <button onclick="openCheckout()" style="font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--amber);background:rgba(224,154,61,.1);border:1px solid rgba(224,154,61,.3);border-radius:4px;padding:4px 8px;cursor:pointer;margin-top:4px;touch-action:manipulation;">Check Out</button>
       </div>
     </div>`);
   }
@@ -1542,8 +1551,8 @@ function renderHomeFeed() {
     const lastVisit = allVisits.filter(v => v.client_name === b.client_name && v.visit_date !== today)
       .sort((a,z) => (z.visit_date||'').localeCompare(a.visit_date||''))[0];
     const handoff = lastVisit
-      ? `<div style="margin-top:6px;padding:6px 8px;background:var(--bg3);border:1px solid var(--border);border-radius:5px;font-size:10px;color:var(--muted2);line-height:1.5;">
-          <span style="color:var(--teal2);font-family:var(--mono);font-size:9px;">Last visit ${fmtd(lastVisit.visit_date)}</span>
+      ? `<div style="margin-top:6px;padding:6px 8px;background:var(--bg3);border:1px solid var(--border);border-radius:5px;font-size:12px;color:var(--muted2);line-height:1.5;">
+          <span style="color:var(--teal2);font-family:var(--mono);font-size:11px;">Last visit ${fmtd(lastVisit.visit_date)}</span>
           ${lastVisit.client_mood ? ` · Mood: ${lastVisit.client_mood}` : ''}
           ${lastVisit.visit_summary ? `<br>${lastVisit.visit_summary.slice(0,80)}${lastVisit.visit_summary.length>80?'…':''}` : ''}
         </div>`
@@ -1562,7 +1571,7 @@ function renderHomeFeed() {
     rows.push(`<div class="feed-row" onclick="openVisitDetail('${_vid}')" style="cursor:pointer;">
       <div class="feed-dot past"></div>
       <div class="feed-body"><div class="feed-client">${v.client_name||'—'}</div><div class="feed-meta">${fmtd(v.visit_date)} · ${v.time_in||'—'}${v.time_out?' – '+v.time_out:''}</div></div>
-      <div class="feed-right"><div class="feed-hrs" style="color:var(--muted2);">${hrs.toFixed(1)}h</div><div style="font-family:var(--mono);font-size:8px;color:var(--muted);margin-top:2px;">Details ›</div></div>
+      <div class="feed-right"><div class="feed-hrs" style="color:var(--muted2);">${hrs.toFixed(1)}h</div><div style="font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:2px;">Details ›</div></div>
     </div>`);
   });
   el.innerHTML = rows.length ? rows.join('') : '<div class="empty-state" style="padding:24px;">No visits yet — sign in to your first shift</div>';
@@ -1600,7 +1609,7 @@ function renderWeek() {
     });
     if (isToday && activeVisit) {
       const tin = activeVisit.time_in || (activeVisit.checkin_time||'').slice(11,16) || '—';
-      rows += `<div class="sched-shift" style="background:rgba(224,154,61,.04);"><div><div class="shift-client">${activeVisit.client_name}</div><div class="shift-time">Started ${tin} · In progress</div></div><button onclick="openCheckout()" style="font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--amber);background:rgba(224,154,61,.1);border:1px solid rgba(224,154,61,.3);border-radius:5px;padding:5px 10px;cursor:pointer;min-height:30px;touch-action:manipulation;">Check Out</button></div>`;
+      rows += `<div class="sched-shift" style="background:rgba(224,154,61,.04);"><div><div class="shift-client">${activeVisit.client_name}</div><div class="shift-time">Started ${tin} · In progress</div></div><button onclick="openCheckout()" style="font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--amber);background:rgba(224,154,61,.1);border:1px solid rgba(224,154,61,.3);border-radius:5px;padding:5px 10px;cursor:pointer;min-height:30px;touch-action:manipulation;">Check Out</button></div>`;
     }
     dayBookings.forEach(b => {
       const done = dayVisits.some(v => v.client_name === b.client_name);
@@ -1610,20 +1619,20 @@ function renderWeek() {
         const safeName = (b.client_name||'').replace(/"/g,'&quot;');
         rows += `<div class="sched-shift" style="background:rgba(61,138,122,.03);">
           <div style="flex:1;min-width:0;" onclick="openClientSheetByName('${safeName}')" class="shift-client-tap">
-            <div class="shift-client" style="display:flex;align-items:center;gap:5px;">${b.client_name||'—'}<span style="font-family:var(--mono);font-size:8px;color:var(--teal2);letter-spacing:1px;">Info ›</span></div>
+            <div class="shift-client" style="display:flex;align-items:center;gap:5px;">${b.client_name||'—'}<span style="font-family:var(--mono);font-size:11px;color:var(--teal2);letter-spacing:1px;">Info ›</span></div>
             <div class="shift-time">${b.scheduled_time||'TBD'}</div>
           </div>
           <button class="sched-signin-btn" data-checkin="${safeName}"
-            style="font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:#fff;background:var(--teal);border:none;border-radius:6px;padding:7px 14px;cursor:pointer;min-height:34px;white-space:nowrap;touch-action:manipulation;flex-shrink:0;">Sign In</button>
+            style="font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#fff;background:var(--teal);border:none;border-radius:6px;padding:7px 14px;cursor:pointer;min-height:34px;white-space:nowrap;touch-action:manipulation;flex-shrink:0;">Sign In</button>
         </div>`;
       } else {
         const _safeFC = (b.client_name||'').replace(/'/g,'').replace(/"/g,'');
-      rows += `<div class="sched-shift"><div style="flex:1;min-width:0;" onclick="openClientSheetByName('${_safeFC}')" ><div class="shift-client" style="display:flex;align-items:center;gap:5px;">${b.client_name||'—'}<span style="font-family:var(--mono);font-size:8px;color:var(--teal2);letter-spacing:1px;">Info ›</span></div><div class="shift-time">${b.scheduled_time||'TBD'} · ${fmtd(b.scheduled_date)}</div></div><div style="display:flex;gap:6px;align-items:center;"><div class="shift-badge upcoming">Upcoming</div><button onclick="openCancelShift('${b.id}','${(b.client_name||'').replace(/'/g,'')}','${b.scheduled_date}','${b.scheduled_time||''}')" style="font-family:var(--mono);font-size:8px;letter-spacing:1px;text-transform:uppercase;padding:5px 9px;border-radius:5px;border:1px solid rgba(224,154,61,.3);background:rgba(224,154,61,.04);color:var(--amber);cursor:pointer;min-height:28px;touch-action:manipulation;">Can't Make</button></div></div>`;
+      rows += `<div class="sched-shift"><div style="flex:1;min-width:0;" onclick="openClientSheetByName('${_safeFC}')" ><div class="shift-client" style="display:flex;align-items:center;gap:5px;">${b.client_name||'—'}<span style="font-family:var(--mono);font-size:11px;color:var(--teal2);letter-spacing:1px;">Info ›</span></div><div class="shift-time">${b.scheduled_time||'TBD'} · ${fmtd(b.scheduled_date)}</div></div><div style="display:flex;gap:6px;align-items:center;"><div class="shift-badge upcoming">Upcoming</div><button onclick="openCancelShift('${b.id}','${(b.client_name||'').replace(/'/g,'')}','${b.scheduled_date}','${b.scheduled_time||''}')" style="font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;padding:5px 9px;border-radius:5px;border:1px solid rgba(224,154,61,.3);background:rgba(224,154,61,.04);color:var(--amber);cursor:pointer;min-height:28px;touch-action:manipulation;">Can't Make</button></div></div>`;
       }
     });
     if (!rows) rows = `<div class="sched-empty">No shifts</div>`;
     // Week separator between day 7 and 8
-    const weekBreak = i === 6 ? `<div style="margin:8px 12px 0;font-family:var(--mono);font-size:8px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);padding:6px 0;border-top:1px solid var(--border);">Week 2</div>` : '';
+    const weekBreak = i === 6 ? `<div style="margin:8px 12px 0;font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);padding:6px 0;border-top:1px solid var(--border);">Week 2</div>` : '';
     return weekBreak + `<div class="sched-day${isToday?' today-day':''}" id="sched-day-${ds}" ><div class="sched-day-hdr${isToday?' today-hdr':''}" ><div class="sched-day-lbl ${isToday?'today':''}">${isToday?'⬤ ':''}${dayLabel}${isToday?' — TODAY':''}</div></div>${rows}</div>`;
   }).join('');
 }
@@ -2222,7 +2231,7 @@ async function loadClients() {
             </div>
           </div>
           <div class="card-right">
-            ${c.dnr ? '<span style="font-family:var(--mono);font-size:8px;color:var(--red);border:1px solid rgba(224,85,85,.3);border-radius:4px;padding:2px 6px;letter-spacing:1px;">DNR</span>' : '<span class="badge b-active">' + (c.status||'Active') + '</span>'}
+            ${c.dnr ? '<span style="font-family:var(--mono);font-size:11px;color:var(--red);border:1px solid rgba(224,85,85,.3);border-radius:4px;padding:2px 6px;letter-spacing:1px;">DNR</span>' : '<span class="badge b-active">' + (c.status||'Active') + '</span>'}
             <div style="font-size:12px;color:var(--teal2);">›</div>
           </div>
         </div>
@@ -2455,7 +2464,7 @@ function buildMAR() {
     wrap.style.cssText = 'display:flex;align-items:center;gap:8px;padding:9px 12px;background:var(--bg3);border:1px solid var(--border2);border-radius:8px;cursor:pointer;font-size:12px;color:var(--text);touch-action:manipulation;min-width:120px;flex:1;max-width:calc(50% - 4px);';
     wrap.innerHTML = `
       <input type="checkbox" id="${id}" value="${med}" style="width:18px;height:18px;accent-color:var(--teal2);cursor:pointer;flex-shrink:0;">
-      <span style="font-family:var(--mono);font-size:10px;letter-spacing:.5px;">${med}</span>`;
+      <span style="font-family:var(--mono);font-size:12px;letter-spacing:.5px;">${med}</span>`;
     wrap.querySelector('input').addEventListener('change', function() {
       wrap.style.background = this.checked ? 'rgba(61,138,122,.12)' : 'var(--bg3)';
       wrap.style.borderColor = this.checked ? 'rgba(61,138,122,.5)' : 'var(--border2)';
@@ -2466,7 +2475,7 @@ function buildMAR() {
   // Show dispenser note if applicable
   if (isDispenser) {
     const note = document.createElement('div');
-    note.style.cssText = 'width:100%;font-family:var(--mono);font-size:9px;color:var(--muted);margin-top:4px;letter-spacing:.5px;';
+    note.style.cssText = 'width:100%;font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:4px;letter-spacing:.5px;';
     note.textContent = medsRaw;
     box.appendChild(note);
   }
@@ -2551,12 +2560,12 @@ async function loadPaySummary() {
       html += `<div class="pay-period-card" style="border-color:rgba(200,169,110,.2);background:rgba(200,169,110,.04);">
         <div class="pay-period-hdr">
           <div class="pay-period-lbl" style="color:var(--gold);">Projected This Month</div>
-          <div style="font-family:var(--mono);font-size:8px;color:var(--muted);">${daysRemaining}d remaining</div>
+          <div style="font-family:var(--mono);font-size:11px;color:var(--muted);">${daysRemaining}d remaining</div>
         </div>
         <div class="pay-period-body">
           <div class="pay-row"><div class="pay-row-lbl">Projected hours</div><div class="pay-row-val" style="color:var(--gold);">${projectedHours}h</div></div>
           <div class="pay-row"><div class="pay-row-lbl">Projected pay</div><div class="pay-row-val total" style="color:var(--gold);">$${projectedPay}</div></div>
-          <div class="pay-row" style="margin-top:4px;padding-top:8px;border-top:1px solid var(--border);"><div class="pay-row-lbl" style="font-size:9px;color:var(--muted);">Based on pace so far</div></div>
+          <div class="pay-row" style="margin-top:4px;padding-top:8px;border-top:1px solid var(--border);"><div class="pay-row-lbl" style="font-size:11px;color:var(--muted);">Based on pace so far</div></div>
         </div>
       </div>`;
     }
@@ -2577,7 +2586,7 @@ async function loadPaySummary() {
     const curMonthKey = now.toISOString().slice(0, 7);
     const pastMonths = months.filter(m => m.month_key !== curMonthKey).slice(0, 3);
     if (pastMonths.length) {
-      html += `<div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);padding:12px 0 6px;">Past Months</div>`;
+      html += `<div style="font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);padding:12px 0 6px;">Past Months</div>`;
       pastMonths.forEach(m => {
         html += `<div class="pay-period-card">
           <div class="pay-period-hdr">
@@ -2709,7 +2718,7 @@ function openClientSheetByName(clientName) {
   }
 
   const field = (lbl, val, hi=false) => val
-    ? `<div class="cs-row"><div style="font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);width:100px;flex-shrink:0;">${lbl}</div><div class="cs-val${hi?' hi':''}">${val}</div></div>`
+    ? `<div class="cs-row"><div style="font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);width:100px;flex-shrink:0;">${lbl}</div><div class="cs-val${hi?' hi':''}">${val}</div></div>`
     : '';
   const section = (lbl, inner) => inner
     ? `<div class="cs-section"><div class="cs-section-lbl">${lbl}</div>${inner}</div>`
@@ -2747,7 +2756,7 @@ function openClientSheetByName(clientName) {
     const r1 = c.emergency_contact_1_relation || '';
     contactsHtml += `<div class="cs-row" style="align-items:center;justify-content:space-between;">
       <div><div style="font-size:13px;color:var(--text);font-weight:500;">${n1}${r1?' <span style=\'font-size:11px;color:var(--muted);\'>('+r1+')</span>':''}</div></div>
-      ${p1 ? `<a href="tel:${p1}" class="cs-call-btn">📞 Call</a>` : ''}
+      ${p1 ? `<a href="tel:${p1}" class="cs-call-btn"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" style="display:inline;vertical-align:middle;margin-right:4px"><path d="M2 2h2.5l1 2.5-1.5 1a6 6 0 0 0 3 3l1-1.5L10.5 8V10c-5 .5-9-4-8.5-8z" stroke="#6dbdd4" stroke-width="1.2" stroke-linejoin="round"/></svg>Call</a>` : ''}
     </div>`;
   }
   if (c.emergency_contact_2_name) {
@@ -2756,7 +2765,7 @@ function openClientSheetByName(clientName) {
     const r2 = c.emergency_contact_2_relation || '';
     contactsHtml += `<div class="cs-row" style="align-items:center;justify-content:space-between;margin-top:8px;">
       <div><div style="font-size:13px;color:var(--text);font-weight:500;">${n2}${r2?' <span style=\'font-size:11px;color:var(--muted);\'>('+r2+')</span>':''}</div></div>
-      ${p2 ? `<a href="tel:${p2}" class="cs-call-btn">📞 Call</a>` : ''}
+      ${p2 ? `<a href="tel:${p2}" class="cs-call-btn"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" style="display:inline;vertical-align:middle;margin-right:4px"><path d="M2 2h2.5l1 2.5-1.5 1a6 6 0 0 0 3 3l1-1.5L10.5 8V10c-5 .5-9-4-8.5-8z" stroke="#6dbdd4" stroke-width="1.2" stroke-linejoin="round"/></svg>Call</a>` : ''}
     </div>`;
   }
   // Family contact as fallback
@@ -2765,7 +2774,7 @@ function openClientSheetByName(clientName) {
     const fp = c.family_phone;
     contactsHtml = `<div class="cs-row" style="align-items:center;justify-content:space-between;">
       <div style="font-size:13px;color:var(--text);">${fn}</div>
-      ${fp ? `<a href="tel:${fp}" class="cs-call-btn">📞 Call</a>` : ''}
+      ${fp ? `<a href="tel:${fp}" class="cs-call-btn"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" style="display:inline;vertical-align:middle;margin-right:4px"><path d="M2 2h2.5l1 2.5-1.5 1a6 6 0 0 0 3 3l1-1.5L10.5 8V10c-5 .5-9-4-8.5-8z" stroke="#6dbdd4" stroke-width="1.2" stroke-linejoin="round"/></svg>Call</a>` : ''}
     </div>`;
   }
   body += section('Emergency Contacts', contactsHtml);
@@ -2796,17 +2805,17 @@ function openVisitDetail(vid) {
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">
       <div style="background:var(--bg3);border-radius:8px;padding:10px 12px;text-align:center;">
         <div style="font-family:var(--mono);font-size:18px;color:var(--teal2);">${hrs}h</div>
-        <div style="font-family:var(--mono);font-size:8px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-top:2px;">Hours</div>
+        <div style="font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-top:2px;">Hours</div>
       </div>
       <div style="background:var(--bg3);border-radius:8px;padding:10px 12px;text-align:center;">
-        <div style="font-size:18px;">${v.client_mood ? {'Great':'😊','Good':'🙂','Neutral':'😐','Low':'😔','Agitated':'😤'}[v.client_mood]||v.client_mood : '—'}</div>
-        <div style="font-family:var(--mono);font-size:8px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-top:2px;">Mood</div>
+        <div style="font-size:18px;">${v.client_mood ? {'Great':'●','Good':'●','Neutral':'●','Low':'●','Agitated':'●'}[v.client_mood]||v.client_mood : '—'}</div>
+        <div style="font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-top:2px;">Mood</div>
       </div>
     </div>
-    ${tasks ? `<div style="font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;">Tasks Completed</div><div style="font-size:13px;color:var(--muted2);line-height:1.7;margin-bottom:10px;">${tasks}</div>` : ''}
-    ${meds ? `<div style="font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;">Medications Given</div><div style="font-size:13px;color:var(--text);margin-bottom:10px;">${meds}</div>` : ''}
-    ${v.visit_summary ? `<div style="font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;">AI Care Summary</div><div style="font-size:13px;color:var(--muted2);line-height:1.8;background:var(--bg3);border-radius:8px;padding:10px 12px;">${v.visit_summary}</div>` : ''}
-    ${v.observations ? `<div style="font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-top:10px;margin-bottom:6px;">Observations</div><div style="font-size:13px;color:var(--muted2);line-height:1.8;">${v.observations}</div>` : ''}
+    ${tasks ? `<div style="font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;">Tasks Completed</div><div style="font-size:13px;color:var(--muted2);line-height:1.7;margin-bottom:10px;">${tasks}</div>` : ''}
+    ${meds ? `<div style="font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;">Medications Given</div><div style="font-size:13px;color:var(--text);margin-bottom:10px;">${meds}</div>` : ''}
+    ${v.visit_summary ? `<div style="font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;">AI Care Summary</div><div style="font-size:13px;color:var(--muted2);line-height:1.8;background:var(--bg3);border-radius:8px;padding:10px 12px;">${v.visit_summary}</div>` : ''}
+    ${v.observations ? `<div style="font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-top:10px;margin-bottom:6px;">Observations</div><div style="font-size:13px;color:var(--muted2);line-height:1.8;">${v.observations}</div>` : ''}
   </div>`;
   document.getElementById('vd-body').innerHTML = body;
   document.getElementById('visit-detail-overlay').classList.add('open');
@@ -2920,7 +2929,7 @@ function openSOS() {
         <div class="sos-contact-name">${name || 'Emergency Contact'}</div>
         <div class="sos-contact-role">${role}</div>
       </div>
-      ${phone ? `<a href="tel:${phone}" class="sos-call-btn">📞 Call</a>` : '<div style="font-family:var(--mono);font-size:10px;color:var(--muted);">No phone</div>'}
+      ${phone ? `<a href="tel:${phone}" class="sos-call-btn"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" style="display:inline;vertical-align:middle;margin-right:4px"><path d="M2 2h2.5l1 2.5-1.5 1a6 6 0 0 0 3 3l1-1.5L10.5 8V10c-5 .5-9-4-8.5-8z" stroke="#6dbdd4" stroke-width="1.2" stroke-linejoin="round"/></svg>Call</a>` : '<div style="font-family:var(--mono);font-size:12px;color:var(--muted);">No phone</div>'}
     </div>`;
   };
 
@@ -2945,7 +2954,7 @@ function openSOS() {
       <div class="sos-contact-name">Proximity Care Coordinator</div>
       <div class="sos-contact-role">AGENCY</div>
     </div>
-    <a href="tel:+16474180000" class="sos-call-btn">📞 Call</a>
+    <a href="tel:+16474180000" class="sos-call-btn"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" style="display:inline;vertical-align:middle;margin-right:4px"><path d="M2 2h2.5l1 2.5-1.5 1a6 6 0 0 0 3 3l1-1.5L10.5 8V10c-5 .5-9-4-8.5-8z" stroke="#6dbdd4" stroke-width="1.2" stroke-linejoin="round"/></svg>Call</a>
   </div>`;
 
   el.innerHTML = html;
@@ -3429,8 +3438,8 @@ async function loadShiftOffers() {
       <div class="shift-offer-card" id="offer-${o.id}">
         <div class="shift-offer-lbl">Open Shift</div>
         <div style="font-size:14px;font-weight:500;color:var(--text);margin-bottom:2px;">${o.client_name||'—'}</div>
-        <div style="font-family:var(--mono);font-size:10px;color:var(--muted2);">${o.scheduled_date||'—'} · ${o.scheduled_time||'TBD'} · ${o.duration_minutes ? (o.duration_minutes/60).toFixed(1)+'h' : '—'}</div>
-        ${o.client_area ? `<div style="font-family:var(--mono);font-size:9px;color:var(--muted);margin-top:2px;">📍 ${o.client_area}</div>` : ''}
+        <div style="font-family:var(--mono);font-size:12px;color:var(--muted2);">${o.scheduled_date||'—'} · ${o.scheduled_time||'TBD'} · ${o.duration_minutes ? (o.duration_minutes/60).toFixed(1)+'h' : '—'}</div>
+        ${o.client_area ? `<div style="font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:2px;"><svg width="11" height="11" viewBox="0 0 12 12" fill="none" style="display:inline;vertical-align:middle;margin-right:3px"><path d="M6 1a3.5 3.5 0 0 0-3.5 3.5C2.5 7.5 6 11 6 11s3.5-3.5 3.5-6.5A3.5 3.5 0 0 0 6 1z" stroke="#a8bfc4" stroke-width="1.2"/><circle cx="6" cy="4.5" r="1.2" fill="#a8bfc4"/></svg>${o.client_area}</div>` : ''}
         <div class="offer-actions">
           <button class="offer-accept" onclick="respondToOffer('${o.id}','accept')">✓ Accept</button>
           <button class="offer-decline" onclick="respondToOffer('${o.id}','decline')">Decline</button>
@@ -3598,12 +3607,12 @@ async function submitForm(formIdx) {
 // ── SESSION RESTORE — skip PIN if already authenticated ──
 (function() {
   try {
-    const savedName = localStorage.getItem('psw_name');
-    const savedPin = localStorage.getItem('psw_pin');
+    const savedName = sessionStorage.getItem('psw_name');
+    const savedPin = sessionStorage.getItem('psw_pin');
     if (savedName && savedPin) {
       pswName = savedName; pswPin = savedPin;
       fetch(`${API}/psw/notes/${encodeURIComponent(savedName)}?pin=${savedPin}&operator_id=${pswOperatorId}`)
-        .then(r => { if (r.ok) { unlockApp(); } else { localStorage.removeItem('psw_name'); localStorage.removeItem('psw_pin'); } })
+        .then(r => { if (r.ok) { unlockApp(); } else { sessionStorage.removeItem('psw_name'); sessionStorage.removeItem('psw_pin'); } })
         .catch(() => { unlockApp(); }); // offline — restore anyway
     }
   } catch(e) {}
