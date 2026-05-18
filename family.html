@@ -20,16 +20,16 @@
   --border:rgba(255,255,255,.06);
   --border2:rgba(255,255,255,.1);
   --text:#f0ede8;
-  --muted:#5a6a7a;
+  --muted:#a8bfc4;
   --muted2:#a8bfc4;
-  --accent:#3d8a7a;
-  --teal:#2d7a6a;
-  --teal2:#3d8a7a;
-  --teal3:#4d9a8a;
-  --gold:#c8a96e;
+  --accent:#6dbdd4;
+  --teal:#6dbdd4;
+  --teal2:#4a9bb3;
+  --teal3:#a8d8e8;
+  --gold:#c9a96e;
   --red:#e05555;
-  --amber:#e09a3d;
-  --green2:#4a9a6e;
+  --amber:#d4a04a;
+  --green2:#6db974;
   --mono:'DM Mono',monospace;
   --sans:'DM Sans',sans-serif;
   --serif:'Cormorant Garamond',serif;
@@ -271,7 +271,7 @@ button:active{transform:scale(0.98);}
   --border:rgba(255,255,255,.06);
   --border2:rgba(255,255,255,.1);
   --text:#f0ede8;
-  --muted:#5a6a7a;
+  --muted:#a8bfc4;
   --muted2:#a8bfc4;
   --accent:#3d8a7a;
   --teal:#2d7a6a;
@@ -493,7 +493,7 @@ button:active{transform:scale(0.98);}
     <div class="gate-card" id="gateCard">
       <div class="gate-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5L12 3l9 7.5"/><path d="M5 9.5V20a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V9.5"/><path d="M10 21v-6h4v6"/></svg></div>
       <div class="gate-title">Welcome back.</div>
-      <div class="gate-hint">Enter your 4-digit access code to view your care portal.</div>
+      <div class="gate-hint">Enter your 4-digit access code to view your care portal.<br><span style="font-size:13px;color:var(--muted);margin-top:6px;display:block;">Your code was included in the welcome email from Lance. Need help? Call 647-382-8047.</span></div>
       <div class="pin-dots">
         <div class="pin-dot" id="d0"></div>
         <div class="pin-dot" id="d1"></div>
@@ -525,7 +525,7 @@ button:active{transform:scale(0.98);}
     <div class="tb-brand" id="agency-logo"><span id="agency-name">Proximity <em>Care</em></span></div>
     <div class="tb-right">
       <span class="tb-name" id="tbName"></span>
-      <button class="tb-signout" onclick="signOut()">Sign out</button>
+      <button class="tb-signout" onclick="signOut()">Log out</button>
     </div>
   </div>
 
@@ -872,7 +872,7 @@ function showTab(tab) {
         <div class="status-badge"><span class="status-dot"></span>${statusMsg}</div>
       </div>
       ${today_visit?.voice_note_url ? `<div style="margin-bottom:16px;padding:14px 16px;background:rgba(58,170,138,0.06);border:1px solid rgba(58,170,138,0.2);border-radius:12px;">
-        <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;color:var(--accent);margin-bottom:8px;">🎙 Voice message from ${(today_visit.psw_name||'your caregiver').split(' ')[0]}</div>
+        <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;color:var(--accent);margin-bottom:8px;"><svg width="13" height="13" viewBox="0 0 14 14" fill="none" style="display:inline;vertical-align:middle;margin-right:3px"><rect x="4.5" y="1" width="5" height="7" rx="2.5" stroke="#6dbdd4" stroke-width="1.3"/><path d="M2.5 7a4.5 4.5 0 0 0 9 0" stroke="#6dbdd4" stroke-width="1.3"/><line x1="7" y1="11.5" x2="7" y2="13" stroke="#6dbdd4" stroke-width="1.3"/></svg> Voice message from ${(today_visit.psw_name||'your caregiver').split(' ')[0]}</div>
         <audio controls src="${today_visit.voice_note_url}" style="width:100%;height:36px;border-radius:6px;"></audio>
       </div>` : ''}
       <a href="tel:6473828047" style="display:flex;align-items:center;justify-content:center;gap:10px;padding:13px;background:var(--accent);border-radius:12px;text-decoration:none;margin-bottom:16px;">

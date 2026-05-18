@@ -5401,19 +5401,25 @@ async function openPSWDetail(pswId) {
 
       <div style="margin:16px 0 10px;font-family:var(--mono);font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--teal2);">Documents</div>
       <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:16px;">
-        <div style="display:flex;justify-content:space-between;padding:8px 12px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;">
-          <div style="font-size:12px;color:var(--text);">PSW Certificate</div>${docSt(rec.psw_cert_url,rec.psw_cert_expiry)}
-        </div>
-        <div style="display:flex;justify-content:space-between;padding:8px 12px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;">
-          <div style="font-size:12px;color:var(--text);">Police Check</div>${docSt(rec.police_check_url,rec.police_check_expiry)}
-        </div>
-        <div style="display:flex;justify-content:space-between;padding:8px 12px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;">
-          <div style="font-size:12px;color:var(--text);">CPR Certification</div>${docSt(rec.cpr_cert_url,rec.cpr_cert_expiry)}
-        </div>
-        <div style="display:flex;justify-content:space-between;padding:8px 12px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;">
-          <div style="font-size:12px;color:var(--text);">First Aid</div>${docSt(rec.first_aid_url,rec.first_aid_expiry)}
-        </div>
-      </div>
+        ${[
+          {label:'PSW Certificate', field:'psw_cert', url:rec.psw_cert_url, expiry:rec.psw_cert_expiry},
+          {label:'Police Check',    field:'police_check', url:rec.police_check_url, expiry:rec.police_check_expiry},
+          {label:'CPR Certification', field:'cpr_cert', url:rec.cpr_cert_url, expiry:rec.cpr_cert_expiry},
+          {label:'First Aid',       field:'first_aid', url:rec.first_aid_url, expiry:rec.first_aid_expiry}
+        ].map(d => `
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;">
+            <div style="font-size:12px;color:var(--text);flex:1;">${d.label}</div>
+            <div style="display:flex;align-items:center;gap:8px;">
+              ${d.url
+                ? `<a href="${d.url}" target="_blank" style="font-family:var(--mono);font-size:11px;color:var(--green2);text-decoration:none;">VALID${d.expiry?' · '+fmtd(d.expiry):''}</a>`
+                : `<span style="color:var(--red);font-family:var(--mono);font-size:11px;">MISSING</span>`}
+              <label style="cursor:pointer;padding:4px 8px;background:rgba(109,189,212,.1);border:1px solid rgba(109,189,212,.25);border-radius:4px;font-family:var(--mono);font-size:10px;color:var(--teal);letter-spacing:1px;">
+                UPLOAD<input type="file" accept=".pdf,.jpg,.jpeg,.png" style="display:none;" onchange="uploadPSWDoc(event,'${name}','${d.field}')">
+              </label>
+            </div>
+          </div>
+        `).join('')}
+      </div></div>
 
       <div style="margin-bottom:10px;font-family:var(--mono);font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--teal2);">Assigned Clients</div>
       ${assignedClients.length
@@ -7042,6 +7048,31 @@ function startHQIdleTimer() {
     }
   } catch(e) {}
 })();
+
+
+// Upload PSW compliance document from HQ
+async function uploadPSWDoc(event, pswName, docType) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const labels = {psw_cert:'PSW Certificate',police_check:'Police Check',cpr_cert:'CPR Certification',first_aid:'First Aid'};
+  const label = labels[docType] || docType;
+  showToast('Uploading ' + label + '...', 'ok');
+  try {
+    const fd = new FormData();
+    fd.append('file', file);
+    fd.append('operator_id', currentOp);
+    fd.append('doc_type', docType);
+    const r = await hqFetch(`${API}/hq/psw/${encodeURIComponent(pswName)}/docs`, { method: 'POST', body: fd });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error || 'Upload failed');
+    showToast(label + ' uploaded. PSW notified.', 'ok');
+    const pswRec = (D.psws||[]).find(p => p.name === pswName);
+    if (pswRec) await openPSWDetail(pswRec.id || pswRec.name);
+    await loadAll(false);
+  } catch(e) {
+    showToast('Upload failed: ' + e.message, 'err');
+  }
+}
 
 </script>
 <div class="demo-tip" id="demo-tip"></div>
