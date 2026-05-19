@@ -252,7 +252,7 @@ button:active{transform:scale(0.98);}
 .crm-card-agency{font-size:12px;color:var(--muted2);margin-bottom:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .crm-card-meta{font-family:var(--mono);font-size:11px;color:var(--muted);margin-bottom:8px;}
 .crm-card-acts{display:flex;gap:4px;flex-wrap:wrap;}
-.crm-card-btn{font-family:var(--mono);font-size:11px;letter-spacing:1px;padding:4px 7px;border:1px solid var(--border2);color:var(--muted2);background:none;border-radius:3px;cursor:pointer;white-space:nowrap;min-height:28px;display:inline-flex;align-items:center;touch-action:manipulation;}
+.crm-card-btn{font-family:var(--mono);font-size:11px;letter-spacing:1px;padding:4px 7px;border:1px solid var(--border2);color:var(--muted2);background:none;border-radius:3px;cursor:pointer;white-space:nowrap;min-height:36px;display:inline-flex;align-items:center;touch-action:manipulation;}
 .crm-card-btn:hover,.crm-card-btn:active{border-color:var(--teal2);color:var(--teal2);}
 .crm-card-btn.call{color:var(--teal3);border-color:rgba(90,173,160,.3);}
 .crm-card-btn.demo{color:var(--blue2);border-color:rgba(106,172,240,.3);}
@@ -411,6 +411,8 @@ button:active{transform:scale(0.98);}
 .sheet-handle{width:36px;height:4px;background:var(--border2);border-radius:2px;margin:12px auto 0;}
 .sheet-title{font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted2);padding:14px 18px 12px;border-bottom:1px solid var(--border);}
 .sheet-body{padding:16px 18px;}
+.sheet-header{display:flex;align-items:center;justify-content:space-between;padding:14px 18px 12px;border-bottom:1px solid var(--border);}
+.sheet-close{font-size:18px;color:var(--muted2);background:none;border:none;cursor:pointer;padding:4px 8px;min-height:36px;touch-action:manipulation;line-height:1;}
 .sheet-row{margin-bottom:13px;}
 .slbl{font-family:var(--mono);font-size:12px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;}
 .sinput{width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:12px 13px;font-size:16px;border-radius:8px;}
@@ -780,7 +782,7 @@ button:active{transform:scale(0.98);}
   <div class="tl">
     <button class="icon-btn" onclick="toggleSidebar()" title="Menu" style="flex-shrink:0;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
     <div class="logo">Proximity <em>HQ</em></div>
-    <div class="op-pill" onclick="openSheet('op-sheet')">
+    <div class="op-pill" onclick="openSheet('app-sheet')">
       <div class="op-live"></div>
       <span class="op-name-text" id="op-label">Proximity Care</span>
     </div>
@@ -1676,7 +1678,7 @@ button:active{transform:scale(0.98);}
       Sign Out
     </button>
     <div style="font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;">Operator</div>
-    <div class="op-pill" onclick="toggleSidebar();setTimeout(()=>openSheet('op-sheet'),200)" style="width:fit-content;">
+    <div class="op-pill" onclick="toggleSidebar();setTimeout(()=>openSheet('app-sheet'),200)" style="width:fit-content;">
       <div class="op-live"></div>
       <span class="op-name-text" id="sidebar-op-label">Proximity Care</span>
     </div>
@@ -1967,6 +1969,18 @@ button:active{transform:scale(0.98);}
 
 <script>
 const API = 'https://proximity-agent-production.up.railway.app';
+
+// ── XSS GUARD ──
+// Use escHtml() for any user-supplied string rendered via innerHTML
+function escHtml(str) {
+  if (str == null) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
 
 // ── HQ AUTHENTICATED FETCH ──
 // Attaches session token to all HQ API calls
@@ -2465,7 +2479,7 @@ async function deleteLeadFromSwipe(id) {
   const inner = document.getElementById('swipe-inner-'+id);
   const del = document.getElementById('swipe-del-'+id);
   try {
-    const res = await fetch(`${API}/hq/lead/${id}?operator_id=${currentOp}`, { method: 'DELETE' });
+    const res = await fetch(`${API}/hq/lead/${id}?operator_id=${currentOp}`, { method: 'DELETE', headers: { 'x-hq-token': window._hqToken || sessionStorage.getItem('hq_token') || '' } });
     const d = await res.json().catch(() => ({}));
     if (!res.ok) throw new Error(d.error || 'Delete failed');
     // Animate out
@@ -2642,7 +2656,7 @@ async function saveCarePlan(clientId, slug, clientName) {
   const reason = (document.getElementById('cp-reason')||{}).value?.trim() || 'Care plan updated';
   try {
     const res = await fetch(`${API}/client/care-plan`, {
-      method:'PATCH', headers:{'Content-Type':'application/json'},
+      method:'PATCH', headers:{'Content-Type':'application/json','x-hq-token': window._hqToken || sessionStorage.getItem('hq_token') || ''},
       body: JSON.stringify({ operator_id: currentOp, client_slug: slug, client_name: clientName, summary, goals, daily_routine, preferences, reason_for_change: reason, updated_by: 'lance' })
     });
     const d = await res.json();
@@ -3032,7 +3046,7 @@ async function openPSWMsg(name) {
     if(!notes.length) { document.getElementById('psw-msg-body').innerHTML='<div class="empty-state" style="padding:16px;">No messages yet</div>'; return; }
     document.getElementById('psw-msg-body').innerHTML = notes.map(n=>`
       <div class="msg-bubble ${n.sender==='lance'?'msg-lance':'msg-psw'}">
-        <div style="font-size:13px;line-height:1.5;">${n.message}</div>
+        <div style="font-size:13px;line-height:1.5;">${escHtml(n.message)}</div>
         <div class="msg-time">${ago(n.created_at)}</div>
       </div>`).join('');
     const b=document.getElementById('psw-msg-body'); b.scrollTop=b.scrollHeight;
@@ -3187,7 +3201,7 @@ async function openFamilyThread(slug, name) {
     if (!msgs.length) { body.innerHTML = '<div class="empty-state" style="padding:16px;">No messages yet</div>'; return; }
     body.innerHTML = msgs.map(m => `
       <div class="msg-bubble ${m.sender==='hq'?'msg-lance':'msg-psw'}">
-        <div style="font-size:13px;line-height:1.5;">${m.message||''}</div>
+        <div style="font-size:13px;line-height:1.5;">${escHtml(m.message||'')}</div>
         <div class="msg-time">${ago(m.created_at)}</div>
       </div>`).join('');
     body.scrollTop = body.scrollHeight;
@@ -3274,7 +3288,7 @@ async function openThread(name) {
     if (!notes.length) { body.innerHTML = '<div class="empty-state" style="padding:16px;">No messages yet</div>'; return; }
     body.innerHTML = notes.map(n => `
       <div class="msg-bubble ${n.sender==='lance'?'msg-lance':'msg-psw'}">
-        <div style="font-size:13px;line-height:1.5;">${n.message}</div>
+        <div style="font-size:13px;line-height:1.5;">${escHtml(n.message)}</div>
         <div class="msg-time">${ago(n.created_at)}</div>
       </div>`).join('');
     body.scrollTop = body.scrollHeight;
@@ -3844,7 +3858,7 @@ async function crmDelete(id, type, name, e) {
     return;
   }
   try {
-    const res = await fetch(`${API}/hq/lead/${id}?operator_id=${currentOp}`, { method:'DELETE' });
+    const res = await fetch(`${API}/hq/lead/${id}?operator_id=${currentOp}`, { method:'DELETE', headers: { 'x-hq-token': window._hqToken || sessionStorage.getItem('hq_token') || '' } });
     if(!res.ok) throw new Error();
     D.leads = (D.leads||[]).filter(l => l.id !== id);
     renderCRM();
@@ -5107,7 +5121,7 @@ async function saveShift(addAnother = false) {
 
 async function deleteShift(id) {
   try {
-    const res = await fetch(`${API}/hq/booking/${id}?operator_id=${currentOp}`, { method: 'DELETE' });
+    const res = await fetch(`${API}/hq/booking/${id}?operator_id=${currentOp}`, { method: 'DELETE', headers: { 'x-hq-token': window._hqToken || sessionStorage.getItem('hq_token') || '' } });
     const d = await res.json();
     if (!d.success) throw new Error(d.error);
     showToast('Shift removed', 'ok');
@@ -5805,7 +5819,7 @@ async function removeFamilyContact(id, name, clientId, slug) {
   const confirmed = window.confirm ? window.confirm('Remove ' + name + '?') : true;
   if (!confirmed) return;
   try {
-    const res = await fetch(`${API}/hq/family-contacts/${id}?operator_id=${currentOp}`, { method: 'DELETE' });
+    const res = await fetch(`${API}/hq/family-contacts/${id}?operator_id=${currentOp}`, { method: 'DELETE', headers: { 'x-hq-token': window._hqToken || sessionStorage.getItem('hq_token') || '' } });
     if (!res.ok) throw new Error();
     showToast(name + ' removed', 'ok');
     loadFamilyContactsForClient(clientId, slug);
@@ -6438,7 +6452,7 @@ async function confirmImportBookings() {
     const formData = new FormData();
     formData.append('file', fileEl.files[0]);
     formData.append('operator_id', currentOp);
-    const res = await fetch(`${API}/hq/import-bookings`, { method: 'POST', body: formData });
+    const res = await fetch(`${API}/hq/import-bookings`, { method: 'POST', body: formData, headers: { 'x-hq-token': window._hqToken || sessionStorage.getItem('hq_token') || '' } });
     const d = await res.json();
     if (!d.success) throw new Error(d.error || 'Import failed');
     result.style.display = 'block';
