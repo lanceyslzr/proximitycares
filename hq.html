@@ -230,9 +230,9 @@ button:active{transform:scale(0.98);}
 @keyframes spin{to{transform:rotate(360deg);}}
 
 /* STATS */
-.stats-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);border-bottom:1px solid var(--border);}
+.stats-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border2);border-bottom:2px solid var(--border);var(--border);}
 .stat-card{background:var(--bg2);padding:12px 6px;text-align:center;}
-.stat-val{font-family:var(--mono);font-size:20px;font-weight:500;color:var(--text);line-height:1;}
+.stat-val{font-family:var(--mono);font-size:22px;font-weight:700;color:var(--text);line-height:1;letter-spacing:-0.5px;}
 .stat-lbl{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-top:4px;}
 .stat-card.hi .stat-val{color:var(--teal2);}
 
@@ -329,8 +329,8 @@ button:active{transform:scale(0.98);}
 .card-meta{font-size:11px;color:var(--muted);margin-top:3px;}
 .card-right{display:flex;flex-direction:column;align-items:flex-end;gap:5px;flex-shrink:0;}
 .card-age{font-family:var(--mono);font-size:12px;color:var(--muted);}
-.card-actions{display:flex;border-top:1px solid var(--border);}
-.card-act{flex:1;padding:10px 6px;text-align:center;font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--muted2);border-right:1px solid var(--border);cursor:pointer;min-height:44px;display:flex;align-items:center;justify-content:center;gap:3px;transition:background .12s,color .12s;}
+.card-actions{display:flex;border-top:1px solid var(--border);padding:0;gap:0;}
+.card-act{flex:1;padding:11px 6px;min-height:44px;display:flex;align-items:center;justify-content:center;text-align:center;font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--muted2);border-right:1px solid var(--border);cursor:pointer;min-height:44px;display:flex;align-items:center;justify-content:center;gap:3px;transition:background .12s,color .12s;}
 .card-act:last-child{border-right:none;}
 .card-act:active{background:var(--bg3);}
 .card-act.call{color:var(--teal2);}
@@ -427,7 +427,7 @@ button:active{transform:scale(0.98);}
 
 /* MSG */
 .msg-avatar-chip{flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;min-width:52px;}
-.msg-avatar-circle{width:42px;height:42px;border-radius:50%;background:var(--bg3);border:2px solid var(--border2);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:12px;color:var(--teal2);position:relative;transition:border-color .2s;}
+.msg-avatar-circle{width:44px;height:44px;border-radius:50%;background:rgba(61,138,122,.12);border:1.5px solid rgba(61,138,122,.35);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:12px;font-weight:600;color:var(--teal2);position:relative;transition:border-color .2s;}
 .msg-avatar-circle.active{border-color:var(--teal2);background:rgba(61,138,122,.12);}
 .msg-avatar-circle.has-unread{border-color:var(--red);}
 .msg-unread-dot{position:absolute;top:-1px;right:-1px;width:10px;height:10px;border-radius:50%;background:var(--red);border:2px solid var(--bg2);display:none;}
@@ -461,7 +461,7 @@ button:active{transform:scale(0.98);}
 /* BOTTOM NAV */
 .bottom-nav{position:fixed;bottom:0;left:0;right:0;z-index:200;background:rgba(13,17,23,.97);border-top:1px solid var(--border);display:flex;padding-bottom:var(--safe-bottom);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);}
 .bnav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:7px 4px;cursor:pointer;min-height:54px;gap:3px;color:var(--muted2);transition:color .2s;position:relative;}
-.bnav-item.active{color:var(--teal2);}
+.bnav-item.active{color:var(--teal2);border-top:2px solid var(--teal2);margin-top:-2px;}
 .bnav-icon{display:flex;align-items:center;justify-content:center;margin-bottom:2px;}
 .bnav-icon svg{width:20px;height:20px;}
 .bnav-lbl{font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;}
@@ -531,8 +531,8 @@ button:active{transform:scale(0.98);}
 .sidebar-body{padding:8px 0;flex:1;}
 .sidebar-section{font-family:var(--mono);font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--muted);padding:14px 18px 6px;}
 .sn-item{display:flex;align-items:center;gap:12px;padding:11px 18px;cursor:pointer;transition:background .12s;position:relative;}
-.sn-item:active,.sn-item:hover{background:rgba(61,138,122,.07);}
-.sn-item.active{background:rgba(61,138,122,.1);}
+.sn-item:active,.sn-item:hover{background:rgba(61,138,122,.07);}.sn-item{border-left:3px solid transparent;}
+.sn-item.active{background:rgba(61,138,122,.1);border-left:3px solid var(--teal2);}
 .sn-item.active .sn-label{color:var(--teal2);}
 .sn-item.active .sn-icon{color:var(--teal2);}
 .sn-icon{width:20px;height:20px;display:flex;align-items:center;justify-content:center;color:var(--muted2);flex-shrink:0;}
@@ -595,10 +595,10 @@ button:active{transform:scale(0.98);}
 .bell-badge.show{display:block;}
 
 /* ── TODAY SECTION ── */
-.today-time-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:0 12px 10px;}
-.today-time-card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:14px 12px;}
-.ttc-val{font-family:var(--mono);font-size:22px;font-weight:500;color:var(--teal2);}
-.ttc-lbl{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-top:4px;}
+.today-time-row{display:flex;gap:8px;margin:0 12px 10px;flex-wrap:wrap;}
+.today-time-card{display:flex;align-items:center;gap:10px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:10px 14px;flex:1;min-width:130px;}
+.ttc-val{font-family:var(--mono);font-size:26px;font-weight:600;color:var(--teal2);line-height:1;}
+.ttc-lbl{font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);}
 .today-shift-row{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--border);}
 .tsr-time{font-family:var(--mono);font-size:11px;color:var(--teal2);min-width:44px;}
 .tsr-client{font-size:13px;font-weight:500;color:var(--text);flex:1;}
@@ -652,8 +652,8 @@ button:active{transform:scale(0.98);}
 /* ── MOBILE CARD POLISH ── */
 .card{transition:background .12s;}
 .card-header{min-height:52px;}
-.card-actions{padding:8px 14px 10px;gap:8px;}
-.card-act{min-height:36px;padding:7px 12px;font-size:11px;}
+/* card-actions consolidated above */
+
 /* ── GPS EXCEPTIONS PANEL ── */
 .gps-exc-row{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--border);}
 .gps-exc-row:last-child{border-bottom:none;}
@@ -826,18 +826,18 @@ button:active{transform:scale(0.98);}
 <div class="section active" id="sect-today">
   <div class="section-header" style="padding-bottom:4px;">
     <span class="section-title">Today</span>
-    <span style="font-family:var(--mono);font-size:11px;color:var(--muted);" id="today-updated">—</span>
+    <span style="font-family:var(--mono);font-size:11px;color:var(--muted2);letter-spacing:1px;" id="today-updated">—</span>
   </div>
 
   <!-- Live time cards -->
   <div class="today-time-row">
     <div class="today-time-card">
-      <div class="ttc-val" id="today-on-shift">—</div>
-      <div class="ttc-lbl">On Shift Now</div>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="20" height="20" style="color:var(--teal2);flex-shrink:0;"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      <div><div class="ttc-val" id="today-on-shift">—</div><div class="ttc-lbl">On Shift</div></div>
     </div>
     <div class="today-time-card" style="cursor:pointer;" onclick="showSect('schedule')">
-      <div class="ttc-val" id="today-shifts-count">—</div>
-      <div class="ttc-lbl">Shifts Today</div>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="20" height="20" style="color:var(--gold);flex-shrink:0;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      <div><div class="ttc-val" id="today-shifts-count" style="color:var(--gold);">—</div><div class="ttc-lbl">Shifts</div></div>
     </div>
   </div>
 
@@ -1222,8 +1222,8 @@ button:active{transform:scale(0.98);}
   <div style="padding:0 12px 10px;">
     <div style="font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted2);margin-bottom:8px;">Broadcast to All PSWs</div>
     <div style="display:flex;gap:8px;align-items:flex-end;">
-      <textarea id="broadcast-input" class="minput" rows="2" placeholder="Schedule update, training date, policy change..." style="flex:1;border-radius:8px;min-height:60px;"></textarea>
-      <button class="msend" onclick="sendBroadcast()" style="align-self:flex-end;" title="Broadcast to all PSWs"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.65 3.55 2 2 0 0 1 3.62 1.37h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 9a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg></button>
+      <textarea id="broadcast-input" class="minput" rows="2" placeholder="Type a message to all PSWs..." style="flex:1;border-radius:8px;min-height:60px;"></textarea>
+      <button class="msend" onclick="sendBroadcast()" style="align-self:flex-end;" title="Broadcast to all PSWs"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></button>
     </div>
     <div style="margin-top:6px;font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:1px;">Sends to all active PSWs — they see it in their portal Messages tab</div>
   </div>
@@ -2581,7 +2581,7 @@ function renderClients() {
       : '';
     // C2 — consent badge
     const consentBadge = !c.consent_given
-      ? `<div style="font-family:var(--mono);font-size:11px;letter-spacing:1px;padding:2px 6px;border-radius:100px;border:1px solid rgba(224,85,85,.4);color:var(--red);margin-top:2px;">NO CONSENT</div>`
+      ? `<div style="font-family:var(--mono);font-size:11px;letter-spacing:1px;padding:2px 6px;border-radius:100px;border:1px solid rgba(212,160,61,.4);color:var(--amber);background:rgba(212,160,61,.08);margin-top:2px;">CONSENT NEEDED</div>`
       : '';
     // C8 — referral source
     const refSource = c.referral_source ? `<span style="font-family:var(--mono);font-size:11px;color:var(--muted);margin-left:4px;">· ${c.referral_source}</span>` : '';
@@ -3638,6 +3638,13 @@ function showSect(name) {
   if (name === 'messages') {
     const _mb = document.getElementById('bn-msg-badge');
     if (_mb) _mb.style.display = 'none';
+  }
+  // Highlight relevant stat card for active section
+  const _statMap = { leads:'s-leads', clients:'s-clients', visits:'s-visits', schedule:'s-upcoming' };
+  document.querySelectorAll('.stat-card').forEach(c => c.classList.remove('hi'));
+  if (_statMap[name]) {
+    const _sc = document.getElementById(_statMap[name])?.closest('.stat-card');
+    if (_sc) _sc.classList.add('hi');
   }
   clearSearches();
   document.querySelectorAll('.section').forEach(s=>s.classList.remove('active','visible'));
