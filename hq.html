@@ -2311,17 +2311,40 @@ function lk(k) {
           showSect('today');
           startPollInterval();
         } else {
-          // Wrong PIN
-          document.getElementById('lock-err').classList.add('show');
+          // Wrong PIN — show server error message if available
+          const errEl = document.getElementById('lock-err');
+          // Rate limit = d.error contains 'too many'
+          if (d.error && d.error.toLowerCase().includes('too many')) {
+            errEl.textContent = 'Too many attempts — wait 1 hour';
+          } else if (d.error && d.error.toLowerCase().includes('not found')) {
+            errEl.textContent = 'Operator not found in DB';
+          } else if (d.error && d.error.toLowerCase().includes('inactive')) {
+            errEl.textContent = 'Account inactive — check Supabase';
+          } else {
+            errEl.textContent = 'Incorrect PIN';
+          }
+          errEl.classList.add('show');
           for (let i=0;i<4;i++) document.getElementById('d'+i).classList.remove('filled');
           lockIn = '';
-          setTimeout(() => document.getElementById('lock-err').classList.remove('show'), 1500);
+          setTimeout(() => {
+            errEl.classList.remove('show');
+            errEl.textContent = 'Incorrect PIN';
+          }, 4000);
         }
       } catch (e) {
-        document.getElementById('lock-err').classList.add('show');
+        // Distinguish network error from wrong PIN
+        const errEl = document.getElementById('lock-err');
+        const isNetwork = e instanceof TypeError || e.message?.includes('fetch') || e.message?.includes('network');
+        errEl.textContent = isNetwork
+          ? 'Connection error — check Railway'
+          : 'Incorrect PIN';
+        errEl.classList.add('show');
         for (let i=0;i<4;i++) document.getElementById('d'+i).classList.remove('filled');
         lockIn = '';
-        setTimeout(() => document.getElementById('lock-err').classList.remove('show'), 1500);
+        setTimeout(() => {
+          errEl.classList.remove('show');
+          errEl.textContent = 'Incorrect PIN';
+        }, 3000);
       }
     }, 120);
   }
