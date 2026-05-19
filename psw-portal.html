@@ -18,11 +18,11 @@
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 :root{
   --bg:#07090c;--bg2:#0d1117;--bg3:#111820;--bg4:#161e28;
-  --teal:#3d8a7a;--teal2:#5aada0;--teal3:#7dccc0;
-  --gold:#c8a96e;--amber:#e09a3d;--red:#e05555;
-  --green:#4a9a6e;--green2:#6ac98a;
-  --text:#e8e4dc;--muted:rgba(232,228,220,.35);--muted2:rgba(232,228,220,.55);--muted3:rgba(232,228,220,.75);
-  --border:rgba(61,138,122,.12);--border2:rgba(61,138,122,.25);--border3:rgba(61,138,122,.4);
+  --accent:#6dbdd4;--teal:#6dbdd4;--teal2:#4a9bb3;--teal3:#a8d8e8;
+  --gold:#c9a96e;--amber:#d4a04a;--red:#e05555;
+  --green:#6db974;--green2:#8dd493;
+  --text:#f0ede8;--muted:#a8bfc4;--muted2:rgba(240,237,232,.65);--muted3:rgba(240,237,232,.85);
+  --border:rgba(109,189,212,.12);--border2:rgba(109,189,212,.25);--border3:rgba(109,189,212,.4);
   --mono:'DM Mono',monospace;--sans:'DM Sans',sans-serif;--serif:'Cormorant Garamond',serif;
   --safe-bottom:env(safe-area-inset-bottom,0px);--safe-top:env(safe-area-inset-top,0px);
 }
@@ -1049,11 +1049,11 @@ a{color:inherit;text-decoration:none;}
     <div id="cc-directives-panel" style="display:none;margin:14px 0 0;text-align:left;">
       <div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--teal2);margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--border);">Care Directives</div>
       <div id="cc-medications" style="display:none;margin-bottom:10px;">
-        <div style="font-family:var(--mono);font-size:8px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:4px;">Medications</div>
+        <div style="font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:4px;">Medications</div>
         <div style="font-size:12px;color:var(--text);line-height:1.6;" id="cc-medications-text"></div>
       </div>
       <div id="cc-care-notes" style="display:none;margin-bottom:10px;">
-        <div style="font-family:var(--mono);font-size:8px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:4px;">Care Notes</div>
+        <div style="font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:4px;">Care Notes</div>
         <div style="font-size:12px;color:var(--muted2);line-height:1.6;" id="cc-care-notes-text"></div>
       </div>
       <div id="cc-dnr-banner" style="display:none;margin-bottom:12px;padding:10px 12px;background:rgba(224,85,85,.08);border:1px solid rgba(224,85,85,.3);border-radius:8px;">
@@ -1522,7 +1522,7 @@ function renderHomeFeed() {
       <div class="feed-body"><div class="feed-client">${activeVisit.client_name||'—'}</div><div class="feed-meta">In progress · Started ${tin}</div></div>
       <div class="feed-right">
         <div class="feed-hrs" id="feed-elapsed" style="color:var(--amber);">— elapsed</div>
-        <button onclick="openCheckout()" style="font-family:var(--mono);font-size:8px;letter-spacing:1px;text-transform:uppercase;color:var(--amber);background:rgba(224,154,61,.1);border:1px solid rgba(224,154,61,.3);border-radius:4px;padding:4px 8px;cursor:pointer;margin-top:4px;touch-action:manipulation;">Check Out</button>
+        <button onclick="openCheckout()" style="font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--amber);background:rgba(224,154,61,.1);border:1px solid rgba(224,154,61,.3);border-radius:4px;padding:4px 8px;cursor:pointer;margin-top:4px;touch-action:manipulation;">Check Out</button>
       </div>
     </div>`);
   }
@@ -1562,7 +1562,7 @@ function renderHomeFeed() {
     rows.push(`<div class="feed-row" onclick="openVisitDetail('${_vid}')" style="cursor:pointer;">
       <div class="feed-dot past"></div>
       <div class="feed-body"><div class="feed-client">${v.client_name||'—'}</div><div class="feed-meta">${fmtd(v.visit_date)} · ${v.time_in||'—'}${v.time_out?' – '+v.time_out:''}</div></div>
-      <div class="feed-right"><div class="feed-hrs" style="color:var(--muted2);">${hrs.toFixed(1)}h</div><div style="font-family:var(--mono);font-size:8px;color:var(--muted);margin-top:2px;">Details ›</div></div>
+      <div class="feed-right"><div class="feed-hrs" style="color:var(--muted2);">${hrs.toFixed(1)}h</div><div style="font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:2px;">Details ›</div></div>
     </div>`);
   });
   el.innerHTML = rows.length ? rows.join('') : '<div class="empty-state" style="padding:24px;">No visits yet — sign in to your first shift</div>';
@@ -1610,7 +1610,7 @@ function renderWeek() {
         const safeName = (b.client_name||'').replace(/"/g,'&quot;');
         rows += `<div class="sched-shift" style="background:rgba(61,138,122,.03);">
           <div style="flex:1;min-width:0;" onclick="openClientSheetByName('${safeName}')" class="shift-client-tap">
-            <div class="shift-client" style="display:flex;align-items:center;gap:5px;">${b.client_name||'—'}<span style="font-family:var(--mono);font-size:8px;color:var(--teal2);letter-spacing:1px;">Info ›</span></div>
+            <div class="shift-client" style="display:flex;align-items:center;gap:5px;">${b.client_name||'—'}<span style="font-family:var(--mono);font-size:11px;color:var(--teal2);letter-spacing:1px;">Info ›</span></div>
             <div class="shift-time">${b.scheduled_time||'TBD'}</div>
           </div>
           <button class="sched-signin-btn" data-checkin="${safeName}"
@@ -1618,12 +1618,12 @@ function renderWeek() {
         </div>`;
       } else {
         const _safeFC = (b.client_name||'').replace(/'/g,'').replace(/"/g,'');
-      rows += `<div class="sched-shift"><div style="flex:1;min-width:0;" onclick="openClientSheetByName('${_safeFC}')" ><div class="shift-client" style="display:flex;align-items:center;gap:5px;">${b.client_name||'—'}<span style="font-family:var(--mono);font-size:8px;color:var(--teal2);letter-spacing:1px;">Info ›</span></div><div class="shift-time">${b.scheduled_time||'TBD'} · ${fmtd(b.scheduled_date)}</div></div><div style="display:flex;gap:6px;align-items:center;"><div class="shift-badge upcoming">Upcoming</div><button onclick="openCancelShift('${b.id}','${(b.client_name||'').replace(/'/g,'')}','${b.scheduled_date}','${b.scheduled_time||''}')" style="font-family:var(--mono);font-size:8px;letter-spacing:1px;text-transform:uppercase;padding:5px 9px;border-radius:5px;border:1px solid rgba(224,154,61,.3);background:rgba(224,154,61,.04);color:var(--amber);cursor:pointer;min-height:28px;touch-action:manipulation;">Can't Make</button></div></div>`;
+      rows += `<div class="sched-shift"><div style="flex:1;min-width:0;" onclick="openClientSheetByName('${_safeFC}')" ><div class="shift-client" style="display:flex;align-items:center;gap:5px;">${b.client_name||'—'}<span style="font-family:var(--mono);font-size:11px;color:var(--teal2);letter-spacing:1px;">Info ›</span></div><div class="shift-time">${b.scheduled_time||'TBD'} · ${fmtd(b.scheduled_date)}</div></div><div style="display:flex;gap:6px;align-items:center;"><div class="shift-badge upcoming">Upcoming</div><button onclick="openCancelShift('${b.id}','${(b.client_name||'').replace(/'/g,'')}','${b.scheduled_date}','${b.scheduled_time||''}')" style="font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;padding:5px 9px;border-radius:5px;border:1px solid rgba(224,154,61,.3);background:rgba(224,154,61,.04);color:var(--amber);cursor:pointer;min-height:28px;touch-action:manipulation;">Can't Make</button></div></div>`;
       }
     });
     if (!rows) rows = `<div class="sched-empty">No shifts</div>`;
     // Week separator between day 7 and 8
-    const weekBreak = i === 6 ? `<div style="margin:8px 12px 0;font-family:var(--mono);font-size:8px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);padding:6px 0;border-top:1px solid var(--border);">Week 2</div>` : '';
+    const weekBreak = i === 6 ? `<div style="margin:8px 12px 0;font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);padding:6px 0;border-top:1px solid var(--border);">Week 2</div>` : '';
     return weekBreak + `<div class="sched-day${isToday?' today-day':''}" id="sched-day-${ds}" ><div class="sched-day-hdr${isToday?' today-hdr':''}" ><div class="sched-day-lbl ${isToday?'today':''}">${isToday?'⬤ ':''}${dayLabel}${isToday?' — TODAY':''}</div></div>${rows}</div>`;
   }).join('');
 }
@@ -2222,7 +2222,7 @@ async function loadClients() {
             </div>
           </div>
           <div class="card-right">
-            ${c.dnr ? '<span style="font-family:var(--mono);font-size:8px;color:var(--red);border:1px solid rgba(224,85,85,.3);border-radius:4px;padding:2px 6px;letter-spacing:1px;">DNR</span>' : '<span class="badge b-active">' + (c.status||'Active') + '</span>'}
+            ${c.dnr ? '<span style="font-family:var(--mono);font-size:11px;color:var(--red);border:1px solid rgba(224,85,85,.3);border-radius:4px;padding:2px 6px;letter-spacing:1px;">DNR</span>' : '<span class="badge b-active">' + (c.status||'Active') + '</span>'}
             <div style="font-size:12px;color:var(--teal2);">›</div>
           </div>
         </div>
@@ -2551,7 +2551,7 @@ async function loadPaySummary() {
       html += `<div class="pay-period-card" style="border-color:rgba(200,169,110,.2);background:rgba(200,169,110,.04);">
         <div class="pay-period-hdr">
           <div class="pay-period-lbl" style="color:var(--gold);">Projected This Month</div>
-          <div style="font-family:var(--mono);font-size:8px;color:var(--muted);">${daysRemaining}d remaining</div>
+          <div style="font-family:var(--mono);font-size:11px;color:var(--muted);">${daysRemaining}d remaining</div>
         </div>
         <div class="pay-period-body">
           <div class="pay-row"><div class="pay-row-lbl">Projected hours</div><div class="pay-row-val" style="color:var(--gold);">${projectedHours}h</div></div>
@@ -2796,11 +2796,11 @@ function openVisitDetail(vid) {
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">
       <div style="background:var(--bg3);border-radius:8px;padding:10px 12px;text-align:center;">
         <div style="font-family:var(--mono);font-size:18px;color:var(--teal2);">${hrs}h</div>
-        <div style="font-family:var(--mono);font-size:8px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-top:2px;">Hours</div>
+        <div style="font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-top:2px;">Hours</div>
       </div>
       <div style="background:var(--bg3);border-radius:8px;padding:10px 12px;text-align:center;">
         <div style="font-size:18px;">${v.client_mood ? {'Great':'●','Good':'●','Neutral':'●','Low':'●','Agitated':'●'}[v.client_mood]||v.client_mood : '—'}</div>
-        <div style="font-family:var(--mono);font-size:8px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-top:2px;">Mood</div>
+        <div style="font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-top:2px;">Mood</div>
       </div>
     </div>
     ${tasks ? `<div style="font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;">Tasks Completed</div><div style="font-size:13px;color:var(--muted2);line-height:1.7;margin-bottom:10px;">${tasks}</div>` : ''}
@@ -3598,7 +3598,7 @@ async function submitForm(formIdx) {
 // ── SESSION RESTORE — skip PIN if already authenticated ──
 (function() {
   try {
-    const savedName = localStorage.getItem('psw_name');
+    const savedName = sessionStorage.getItem('psw_name');
     const savedPin = sessionStorage.getItem('psw_pin');
     if (savedName && savedPin) {
       pswName = savedName; pswPin = savedPin;
