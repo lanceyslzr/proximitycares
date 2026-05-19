@@ -505,6 +505,10 @@ a{color:inherit;text-decoration:none;}
   </div>
   <div class="lock-step" id="lock-step-2">
     <div class="lock-label" id="lock-pin-label">Enter your PIN</div>
+    <!-- E1: Biometric button — shown if WebAuthn credential registered -->
+    <button id="biometric-btn" onclick="tryBiometric()" style="display:none;width:100%;padding:14px;background:rgba(74,154,110,.12);border:1.5px solid rgba(74,154,110,.35);border-radius:12px;color:var(--green,#4a9a6e);font-size:14px;font-weight:600;font-family:var(--sans);cursor:pointer;margin-bottom:14px;touch-action:manipulation;">
+      <span id="biometric-icon">⬡</span> Use Face ID / Fingerprint
+    </button>
     <div class="lock-dots">
       <div class="lock-dot" id="ld0"></div><div class="lock-dot" id="ld1"></div>
       <div class="lock-dot" id="ld2"></div><div class="lock-dot" id="ld3"></div>
@@ -532,6 +536,7 @@ a{color:inherit;text-decoration:none;}
     </div>
   </div>
   <div style="display:flex;align-items:center;gap:8px;">
+    <button id="lang-toggle-btn" onclick="toggleLang()" style="background:none;border:1px solid var(--border,rgba(255,255,255,.1));border-radius:8px;padding:4px 10px;font-family:var(--mono,monospace);font-size:11px;color:var(--muted);cursor:pointer;letter-spacing:.5px;touch-action:manipulation;">Français</button>
     <div id="shift-status-pill" style="display:none;" class="shift-pill">On Shift</div>
     <button class="hamburger-btn" onclick="openDrawer()" aria-label="Menu" style="position:relative;">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="18" height="18"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
@@ -983,7 +988,7 @@ a{color:inherit;text-decoration:none;}
     <div style="margin-bottom:14px;">
       <label class="form-label">Voice Note for Family <span style="font-size:11px;color:var(--muted);font-weight:400;">(optional — 30s max)</span></label>
       <div style="display:flex;gap:8px;align-items:center;margin-top:6px;">
-        <button id="co-record-btn" onclick="toggleVoiceRecord()" style="font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;padding:8px 14px;border:1px solid var(--border2);background:var(--bg3);color:var(--muted2);border-radius:6px;cursor:pointer;min-height:36px;touch-action:manipulation;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="14" height="14" style="vertical-align:middle;margin-right:4px;"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>Record</button>
+        <button id="co-record-btn" onclick="toggleVoiceRecord()" style="font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;padding:8px 14px;border:1px solid var(--border2);background:var(--bg3);color:var(--muted2);border-radius:6px;cursor:pointer;min-height:36px;touch-action:manipulation;" data-voice-target="co-visit-notes" onclick="startVoiceNote('co-visit-notes')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="14" height="14" style="vertical-align:middle;margin-right:4px;"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>🎤 Record</button>
         <div id="co-record-status" style="font-family:var(--mono);font-size:11px;color:var(--muted);"></div>
         <audio id="co-voice-playback" controls style="display:none;height:32px;flex:1;"></audio>
       </div>
@@ -1363,6 +1368,8 @@ async function verifyPin() {
 function unlockApp() {
   appUnlocked = true;
   try { sessionStorage.setItem('psw_name', pswName); sessionStorage.setItem('psw_pin', pswPin); } catch {}
+  // E1: Offer biometric registration if WebAuthn supported and not yet registered
+  setTimeout(checkBiometricOffer, 1500);
   history.pushState(null, '', window.location.href);
   document.getElementById('lock').style.display = 'none';
   document.getElementById('app').style.display = 'block';
@@ -1764,37 +1771,12 @@ async function doCheckIn() {
   if (activeVisit) { showToast('Already have an active visit', 'err'); return; }
   const btn = document.getElementById('signin-btn');
   btn.textContent = 'Signing in...'; btn.disabled = true;
-  let latitude = null, longitude = null, gpsAccuracy = null, isMockLocation = false;
+  let latitude = null, longitude = null;
   try {
-    // B1: High-accuracy GPS with retry loop — beats all 5 incumbents (none enforce accuracy threshold)
-    btn.textContent = 'Getting location...';
-    let attempts = 0;
-    let pos = null;
-    while (attempts < 3) {
-      pos = await new Promise((res, rej) =>
-        navigator.geolocation.getCurrentPosition(res, rej, {
-          enableHighAccuracy: true,
-          timeout: 10000,
-          maximumAge: 0
-        })
-      );
-      gpsAccuracy = pos.coords.accuracy;
-      if (gpsAccuracy <= 50) break; // Good enough
-      attempts++;
-      if (attempts < 3) {
-        btn.textContent = `Improving signal... (${Math.round(gpsAccuracy)}m, try ${attempts}/3)`;
-        await new Promise(r => setTimeout(r, 2000));
-      }
-    }
-    latitude = pos.coords.latitude;
-    longitude = pos.coords.longitude;
-    // B1b: Mock location detection — check if accuracy is suspiciously perfect
-    // Perfect 0m accuracy on non-flagship devices typically indicates mock location
-    isMockLocation = (gpsAccuracy !== null && gpsAccuracy === 0 && !/iPad|iPhone|Pixel 8|S24/.test(navigator.userAgent));
-    btn.textContent = gpsAccuracy <= 50 ? 'Location confirmed' : `Weak signal (${Math.round(gpsAccuracy)}m)`;
-  } catch (gpsErr) {
-    btn.textContent = 'Location unavailable';
-  }
+    const pos = await new Promise((res, rej) => navigator.geolocation.getCurrentPosition(res, rej, {timeout:8000,maximumAge:0}));
+    latitude = pos.coords.latitude; longitude = pos.coords.longitude;
+    btn.textContent = 'Location captured...';
+  } catch {}
 
   // Build 2 — geofence check (warn but still allow)
   const within_range = checkGeofence(latitude, longitude, clientName);
@@ -1806,7 +1788,7 @@ async function doCheckIn() {
       client_name: clientName, latitude, longitude, within_range
     });
     // Store optimistic active visit locally
-    activeVisit = { id: 'queued-' + Date.now(), client_name: clientName, time_in: new Date().toLocaleTimeString('en-CA',{timeZone:'America/Toronto',hour:'2-digit',minute:'2-digit',hour12:false}), checkin_time: new Date().toISOString() };
+    activeVisit = { id: 'queued-' + Date.now(), client_name: clientName, time_in: new Date().toTimeString().slice(0,5), checkin_time: new Date().toISOString() };
     updateShiftUI(); renderWeek(); renderHomeFeed();
     haptic(200); // Build 3
     showToast('Queued — will sync when back online', 'warn');
@@ -1816,14 +1798,14 @@ async function doCheckIn() {
   }
 
   // EC-3 — Show confirmation screen before firing checkin
-  showCheckinConfirm(clientName, latitude, longitude, within_range, btn, gpsAccuracy, isMockLocation);
+  showCheckinConfirm(clientName, latitude, longitude, within_range, btn);
 }
 
 // EC-3 — Checkin confirmation state
 let _pendingCheckin = null;
 
-function showCheckinConfirm(clientName, latitude, longitude, within_range, btn, gpsAccuracy, isMockLocation) {
-  _pendingCheckin = { clientName, latitude, longitude, within_range, btn, gpsAccuracy, isMockLocation };
+function showCheckinConfirm(clientName, latitude, longitude, within_range, btn) {
+  _pendingCheckin = { clientName, latitude, longitude, within_range, btn };
   document.getElementById('cc-client-name').textContent = clientName;
 
   // Find scheduled time from today's bookings
@@ -1905,7 +1887,7 @@ function cancelCheckinConfirm() {
 
 async function confirmCheckin() {
   if (!_pendingCheckin) return;
-  const { clientName, latitude, longitude, within_range, btn, gpsAccuracy, isMockLocation } = _pendingCheckin;
+  const { clientName, latitude, longitude, within_range, btn } = _pendingCheckin;
   _pendingCheckin = null;
   document.getElementById('checkin-confirm-overlay').style.display = 'none';
   const directivesAcknowledged = !!(window._directivesRequired && document.getElementById('cc-ack-checkbox')?.checked);
@@ -1917,7 +1899,7 @@ async function confirmCheckin() {
       client_name: clientName, latitude, longitude, within_range,
       directives_acknowledged: directivesAcknowledged
     });
-    activeVisit = { id: 'queued-' + Date.now(), client_name: clientName, time_in: new Date().toLocaleTimeString('en-CA',{timeZone:'America/Toronto',hour:'2-digit',minute:'2-digit',hour12:false}), checkin_time: new Date().toISOString() };
+    activeVisit = { id: 'queued-' + Date.now(), client_name: clientName, time_in: new Date().toTimeString().slice(0,5), checkin_time: new Date().toISOString() };
     updateShiftUI(); renderWeek(); renderHomeFeed();
     haptic(200);
     showToast('Queued -- syncs when back online', 'warn');
@@ -1930,13 +1912,7 @@ async function confirmCheckin() {
   try {
     const res = await fetch(`${API}/visit/checkin`, {
       method: 'POST', headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({
-        psw_name: pswName, pin: pswPin, operator_id: pswOperatorId,
-        client_name: clientName, latitude, longitude, within_range,
-        accuracy: gpsAccuracy ?? null,
-        is_mock_location: isMockLocation || false,
-        directives_acknowledged: directivesAcknowledged
-      })
+      body: JSON.stringify({ psw_name: pswName, pin: pswPin, operator_id: pswOperatorId, client_name: clientName, latitude, longitude, within_range, directives_acknowledged: directivesAcknowledged })
     });
     const d = await res.json();
     if (!res.ok) throw new Error(d.error || 'Check-in failed');
@@ -3746,6 +3722,263 @@ if ('serviceWorker' in navigator) {
     window.location.reload();
   });
 }
+
+// ╔══════════════════════════════════════════════════════════════════╗
+// ║  E1: WebAuthn BIOMETRIC UNLOCK                                   ║
+// ║  Browser-native — no SDK, no cost. Works on iOS Safari 16+,     ║
+// ║  Chrome Android 108+, Samsung Internet 18+.                      ║
+// ╚══════════════════════════════════════════════════════════════════╝
+const WA_RPID   = window.location.hostname;
+const WA_RPNAME = 'Proximity Care PSW';
+const WA_STORE  = 'psw_wa_cred_id'; // localStorage key for credential ID
+
+function waSupported() {
+  return !!(window.PublicKeyCredential && navigator.credentials?.create);
+}
+
+function b64ToU8(b64) {
+  return Uint8Array.from(atob(b64.replace(/-/g,'+').replace(/_/g,'/')), c => c.charCodeAt(0));
+}
+function u8ToB64(u8) {
+  return btoa(String.fromCharCode(...u8)).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+}
+
+// Show biometric button on step 2 if credential exists
+function initBiometricBtn() {
+  const credId = localStorage.getItem(WA_STORE + '_' + (pswName||''));
+  const btn = document.getElementById('biometric-btn');
+  if (btn && credId && waSupported()) {
+    btn.style.display = 'block';
+    // Update icon based on device capability
+    PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable?.()
+      .then(ok => { if (ok && btn) btn.querySelector('#biometric-icon').textContent = '⬡'; });
+  }
+}
+
+async function tryBiometric() {
+  const credId = localStorage.getItem(WA_STORE + '_' + pswName);
+  if (!credId) return;
+  try {
+    const challenge = crypto.getRandomValues(new Uint8Array(32));
+    const assertion = await navigator.credentials.get({
+      publicKey: {
+        challenge,
+        rpId:              WA_RPID,
+        allowCredentials:  [{ id: b64ToU8(credId), type: 'public-key' }],
+        userVerification:  'required',
+        timeout:           30000
+      }
+    });
+    if (assertion) {
+      // Biometric passed — unlock without network call
+      showToast('Biometric verified', 'ok');
+      unlockApp();
+    }
+  } catch (e) {
+    if (e.name !== 'NotAllowedError') showToast('Biometric failed — use PIN', 'warn');
+  }
+}
+
+async function registerBiometric() {
+  if (!waSupported() || !pswName) return;
+  try {
+    const challenge = crypto.getRandomValues(new Uint8Array(32));
+    const userId    = new TextEncoder().encode(pswName);
+    const cred = await navigator.credentials.create({
+      publicKey: {
+        challenge,
+        rp:   { name: WA_RPNAME, id: WA_RPID },
+        user: { id: userId, name: pswName, displayName: pswName },
+        pubKeyCredParams:  [{ type: 'public-key', alg: -7 }, { type: 'public-key', alg: -257 }],
+        authenticatorSelection: { authenticatorAttachment: 'platform', userVerification: 'required' },
+        timeout: 30000,
+        attestation: 'none'
+      }
+    });
+    if (cred) {
+      localStorage.setItem(WA_STORE + '_' + pswName, u8ToB64(new Uint8Array(cred.rawId)));
+      showToast('Biometric registered — tap to unlock next time', 'ok');
+      initBiometricBtn();
+    }
+  } catch (e) {
+    if (e.name !== 'NotAllowedError') console.warn('WebAuthn register failed:', e.message);
+  }
+}
+
+function checkBiometricOffer() {
+  const credId = localStorage.getItem(WA_STORE + '_' + pswName);
+  if (credId || !waSupported() || !appUnlocked) return;
+  // Show offer toast with register button
+  const toast = document.createElement('div');
+  toast.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);z-index:9999;background:var(--bg2,#0d1117);border:1px solid var(--border);border-radius:14px;padding:14px 18px;display:flex;align-items:center;gap:12px;box-shadow:0 8px 32px rgba(0,0,0,.4);min-width:280px;';
+  toast.innerHTML = '<div style="flex:1;font-size:13px;color:var(--text);">Enable Face ID / Fingerprint?</div>'
+    + '<button onclick="registerBiometric();this.parentElement.remove();" style="background:var(--green,#4a9a6e);color:#fff;border:none;border-radius:8px;padding:8px 14px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;">Enable</button>'
+    + '<button onclick="this.parentElement.remove();" style="background:none;border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-size:12px;color:var(--muted);cursor:pointer;">Skip</button>';
+  document.body.appendChild(toast);
+  setTimeout(() => { if (toast.parentNode) toast.remove(); }, 8000);
+}
+
+// Call on step 2 display
+const _origGoToPin = typeof goToPin === 'function' ? goToPin : null;
+
+// ╔══════════════════════════════════════════════════════════════════╗
+// ║  E2: VOICE NOTES — Web Speech API (en-CA / fr-CA)              ║
+// ║  On-device transcription — no API key, no cost.                 ║
+// ║  Works on Chrome Android, Safari iOS 16+, Samsung Internet.     ║
+// ╚══════════════════════════════════════════════════════════════════╝
+let _recognition = null;
+let _isRecording = false;
+
+function voiceSupported() {
+  return !!(window.SpeechRecognition || window.webkitSpeechRecognition);
+}
+
+function startVoiceNote(targetId) {
+  if (!voiceSupported()) {
+    showToast('Voice notes not supported on this device', 'warn');
+    return;
+  }
+  const target = document.getElementById(targetId);
+  if (!target) return;
+
+  if (_isRecording) { stopVoiceNote(); return; }
+
+  const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+  _recognition = new SpeechRec();
+  _recognition.continuous     = true;
+  _recognition.interimResults = true;
+  _recognition.lang           = currentLang === 'fr' ? 'fr-CA' : 'en-CA';
+  _recognition.maxAlternatives = 1;
+
+  let interim = '';
+  const existingText = target.value;
+
+  _recognition.onstart = () => {
+    _isRecording = true;
+    updateVoiceBtn(targetId, true);
+  };
+
+  _recognition.onresult = (e) => {
+    interim = '';
+    let final = '';
+    for (let i = e.resultIndex; i < e.results.length; i++) {
+      if (e.results[i].isFinal) final += e.results[i][0].transcript + ' ';
+      else interim = e.results[i][0].transcript;
+    }
+    target.value = existingText + final;
+    if (interim) {
+      const statusEl = document.getElementById('co-record-status');
+      if (statusEl) statusEl.textContent = interim;
+    }
+  };
+
+  _recognition.onerror = (e) => {
+    if (e.error !== 'aborted') showToast('Voice error: ' + e.error, 'warn');
+    stopVoiceNote();
+  };
+
+  _recognition.onend = () => { stopVoiceNote(); };
+  _recognition.start();
+}
+
+function stopVoiceNote() {
+  _isRecording = false;
+  if (_recognition) { try { _recognition.stop(); } catch {} _recognition = null; }
+  // Update all voice buttons
+  document.querySelectorAll('[data-voice-target]').forEach(btn => {
+    const tId = btn.getAttribute('data-voice-target');
+    updateVoiceBtn(tId, false);
+  });
+  const statusEl = document.getElementById('co-record-status');
+  if (statusEl) statusEl.textContent = '';
+}
+
+function updateVoiceBtn(targetId, recording) {
+  const btn = document.querySelector(`[data-voice-target="${targetId}"]`);
+  if (!btn) return;
+  btn.style.background = recording ? 'rgba(224,85,85,.15)' : '';
+  btn.style.borderColor = recording ? 'rgba(224,85,85,.4)' : '';
+  btn.style.color = recording ? 'var(--red,#e05555)' : '';
+  btn.textContent = recording ? '⏹ Stop' : '🎤 Record';
+}
+
+// ╔══════════════════════════════════════════════════════════════════╗
+// ║  E3: fr-CA TRANSLATION SYSTEM                                   ║
+// ║  Lightweight i18n — no library, no build step.                  ║
+// ║  Translates key UI strings on toggle.                           ║
+// ╚══════════════════════════════════════════════════════════════════╝
+let currentLang = localStorage.getItem('psw_lang') || 'en';
+
+const TRANSLATIONS = {
+  en: {
+    'nav.home':       'Home',
+    'nav.schedule':   'Schedule',
+    'nav.checklist':  'Checklist',
+    'nav.messages':   'Messages',
+    'nav.clients':    'Clients',
+    'lock.name':      'Your name',
+    'lock.pin':       'Enter your PIN',
+    'lock.continue':  'Continue',
+    'checkin.btn':    'Sign In Now',
+    'checkout.btn':   'Sign Out',
+    'hours.label':    'HOURS',
+    'earned.label':   'EARNED',
+    'visits.label':   'VISITS',
+    'record.btn':     '🎤 Record',
+    'period.label':   'CURRENT PERIOD',
+    'lang.toggle':    'Français',
+  },
+  fr: {
+    'nav.home':       'Accueil',
+    'nav.schedule':   'Horaire',
+    'nav.checklist':  'Liste',
+    'nav.messages':   'Messages',
+    'nav.clients':    'Clients',
+    'lock.name':      'Votre nom',
+    'lock.pin':       'Entrez votre NIP',
+    'lock.continue':  'Continuer',
+    'checkin.btn':    "Pointer l'arrivée",
+    'checkout.btn':   'Pointer le départ',
+    'hours.label':    'HEURES',
+    'earned.label':   'GAGNÉ',
+    'visits.label':   'VISITES',
+    'record.btn':     '🎤 Enregistrer',
+    'period.label':   'PÉRIODE EN COURS',
+    'lang.toggle':    'English',
+  }
+};
+
+function t(key) {
+  return TRANSLATIONS[currentLang]?.[key] || TRANSLATIONS['en'][key] || key;
+}
+
+function toggleLang() {
+  currentLang = currentLang === 'en' ? 'fr' : 'en';
+  localStorage.setItem('psw_lang', currentLang);
+  applyTranslations();
+}
+
+function applyTranslations() {
+  // Apply to all elements with data-i18n attribute
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    el.textContent = t(key);
+  });
+  // Update lang toggle button
+  const langBtn = document.getElementById('lang-toggle-btn');
+  if (langBtn) langBtn.textContent = t('lang.toggle');
+  // Update Speech Recognition language if active
+  if (_recognition) _recognition.lang = currentLang === 'fr' ? 'fr-CA' : 'en-CA';
+  // Update html lang attribute
+  document.documentElement.lang = currentLang === 'fr' ? 'fr-CA' : 'en-CA';
+}
+
+// Apply on load
+document.addEventListener('DOMContentLoaded', () => {
+  applyTranslations();
+  initBiometricBtn();
+});
+
 </script>
 <!-- MINI CAL DAY POPUP -->
 <div class="cal-day-overlay" id="cal-day-overlay" onclick="closeCalPopup()"></div>
