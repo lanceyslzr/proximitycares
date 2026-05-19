@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -8,480 +7,146 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default"/>
 <meta name="theme-color" content="#1a6b5a"/>
 <title>Family Portal — Proximity Care</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;1,400&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet"/>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 :root{
-  /* Dark theme — matches PSW portal + HQ design system */
-  --bg:#07090c;
-  --bg2:#0d1117;
-  --bg3:#161c24;
-  --surface:#0d1117;
-  --border:rgba(255,255,255,.06);
-  --border2:rgba(255,255,255,.1);
-  --text:#f0ede8;
-  --muted:#a8bfc4;
-  --muted2:#a8bfc4;
-  --accent:#6dbdd4;
-  --teal:#6dbdd4;
-  --teal2:#4a9bb3;
-  --teal3:#a8d8e8;
-  --gold:#c9a96e;
-  --red:#e05555;
-  --amber:#d4a04a;
-  --green2:#6db974;
-  --mono:'DM Mono',monospace;
-  --sans:'DM Sans',sans-serif;
-  --serif:'Cormorant Garamond',serif;
-  /* Legacy aliases */
-  --success:#4a9a6e;
-  --warning:#e09a3d;
-  --error:#e05555;
-  --green:#4a9a6e;
-  --green-l:rgba(74,154,110,.1);
-  --green-b:rgba(74,154,110,.2);
-  --green-d:#2a6a4a;
-  --shadow:rgba(0,0,0,.3);
+  --bg:#f6f3ee;--white:#ffffff;--dark:#1a1a18;
+  --green:#1a6b5a;--green-l:#e8f5f1;--green-b:#c8e6dc;--green-d:#0f4a3d;
+  --muted:#7a7a72;--border:#e2ddd4;--shadow:rgba(0,0,0,0.06);
+  --teal:#3d7a8a;--teal-l:#e8f3f5;
 }
-html,body{min-height:100vh;font-family:var(--sans),sans-serif;background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased;}
+html,body{min-height:100vh;font-family:'Poppins',sans-serif;background:var(--bg);color:var(--dark);-webkit-font-smoothing:antialiased;}
 
 /* PIN GATE */
-.gate{position:fixed;inset:0;background:var(--surface);z-index:100;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;}
+.gate{position:fixed;inset:0;background:var(--bg);z-index:100;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;}
 .gate.hide{display:none;}
 .gate-inner{width:100%;max-width:380px;}
-.gate-brand{font-family:'Inter',sans-serif;font-size:22px;font-weight:600;color:var(--text);text-align:center;margin-bottom:4px;}
-.gate-brand em{color:var(--green);font-style:normal;}
+.gate-brand{font-family:'Lora',serif;font-size:22px;font-weight:500;color:var(--dark);text-align:center;margin-bottom:4px;}
+.gate-brand em{color:var(--green);font-style:italic;}
 .gate-sub{text-align:center;font-size:13px;color:var(--muted);margin-bottom:40px;}
-.gate-card{background:var(--bg2);border-radius:16px;padding:36px 28px;border:1px solid var(--border2);}
-.gate-icon{width:56px;height:56px;background:var(--green-l);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;color:var(--green);}
-.gate-icon svg{width:28px;height:28px;}
-.gate-title{font-family:'Inter',sans-serif;font-size:20px;font-weight:600;text-align:center;margin-bottom:6px;color:var(--text);}
+.gate-card{background:var(--white);border-radius:20px;padding:36px 28px;box-shadow:0 8px 40px var(--shadow);}
+.gate-icon{width:56px;height:56px;background:var(--green-l);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;font-size:24px;}
+.gate-title{font-family:'Lora',serif;font-size:22px;text-align:center;margin-bottom:6px;}
 .gate-hint{font-size:13px;color:var(--muted);text-align:center;margin-bottom:28px;line-height:1.6;}
 .pin-dots{display:flex;gap:14px;justify-content:center;margin-bottom:32px;}
-.pin-dot{width:14px;height:14px;border-radius:50%;border:2px solid var(--border2);transition:all 0.15s;}
+.pin-dot{width:16px;height:16px;border-radius:50%;border:2px solid var(--border);transition:all 0.2s;}
 .pin-dot.filled{background:var(--green);border-color:var(--green);}
 .pin-pad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
-.pin-btn{background:var(--bg3);border:1px solid var(--border2);border-radius:14px;padding:16px;font-size:20px;font-weight:500;font-family:'Inter',sans-serif;color:var(--text);cursor:pointer;transition:background 0.15s,border-color 0.15s;text-align:center;min-height:56px;touch-action:manipulation;-webkit-tap-highlight-color:transparent;}
-.pin-btn:hover{background:var(--green-l);border-color:var(--accent);}
-.pin-btn:active{transform:scale(0.96);}
+.pin-btn{background:var(--bg);border:1px solid var(--border);border-radius:14px;padding:16px;font-size:20px;font-weight:500;font-family:'Poppins',sans-serif;color:var(--dark);cursor:pointer;transition:all 0.15s;text-align:center;}
+.pin-btn:hover{background:var(--green-l);border-color:var(--green);}
+.pin-btn:active{transform:scale(0.95);}
 .pin-btn.del{font-size:16px;color:var(--muted);}
-.pin-btn.del svg{width:20px;height:20px;display:block;margin:0 auto;}
 .pin-btn.empty{background:none;border:none;cursor:default;}
-.pin-error{text-align:center;font-size:13px;color:var(--error);margin-top:16px;opacity:0;transition:opacity 0.2s;min-height:20px;}
+.pin-error{text-align:center;font-size:13px;color:#e05a6a;margin-top:16px;opacity:0;transition:opacity 0.2s;min-height:20px;}
 .pin-error.show{opacity:1;}
-@keyframes pin-shake{0%,100%{transform:translateX(0);}20%{transform:translateX(-6px);}40%{transform:translateX(6px);}60%{transform:translateX(-4px);}80%{transform:translateX(4px);}}
-.gate-card.shake{animation:pin-shake 0.35s ease;}
 
 /* APP */
 .app{display:none;flex-direction:column;min-height:100vh;}
 .app.show{display:flex;}
 
 /* TOPBAR */
-.topbar{background:rgba(7,9,12,.96);border-bottom:1px solid var(--border);padding:14px 16px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);}
-.tb-brand{font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--teal2);}
-.tb-brand em{color:var(--green);font-style:normal;}
+.topbar{background:var(--white);border-bottom:1px solid var(--border);padding:16px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10;}
+.tb-brand{font-family:'Lora',serif;font-size:17px;font-weight:500;}
+.tb-brand em{color:var(--green);font-style:italic;}
 .tb-right{display:flex;align-items:center;gap:10px;}
-.tb-name{font-size:13px;color:var(--muted);font-weight:500;}
-.tb-signout{background:none;border:none;font-size:12px;color:var(--muted);cursor:pointer;padding:6px 10px;border-radius:6px;font-family:'Inter',sans-serif;transition:color 0.15s;touch-action:manipulation;-webkit-tap-highlight-color:transparent;}
-.tb-signout:hover{color:var(--text);}
+.tb-name{font-size:13px;color:var(--muted);}
+.tb-signout{background:none;border:none;font-size:12px;color:var(--muted);cursor:pointer;padding:6px 10px;border-radius:6px;font-family:'Poppins',sans-serif;transition:color 0.15s;}
+.tb-signout:hover{color:var(--dark);}
 
 /* CONTENT */
-.content{flex:1;padding:24px 20px;padding-bottom:calc(88px + env(safe-area-inset-bottom));max-width:560px;margin:0 auto;width:100%;transition:opacity 150ms ease;}
+.content{flex:1;padding:20px;max-width:560px;margin:0 auto;width:100%;}
 
 /* STATUS CARD */
-.status-card{background:var(--green);border-radius:20px;padding:28px 24px;margin-bottom:24px;color:white;position:relative;overflow:hidden;}
+.status-card{background:var(--green);border-radius:18px;padding:24px;margin-bottom:16px;color:white;position:relative;overflow:hidden;}
 .status-card::after{content:'';position:absolute;top:-30px;right:-30px;width:120px;height:120px;border-radius:50%;background:rgba(255,255,255,0.06);}
-.status-eyebrow{font-size:11px;letter-spacing:0.1em;text-transform:uppercase;opacity:0.65;margin-bottom:8px;font-weight:500;}
-.status-name{font-family:'Inter',sans-serif;font-size:26px;font-weight:600;margin-bottom:4px;}
+.status-eyebrow{font-size:11px;letter-spacing:0.1em;text-transform:uppercase;opacity:0.7;margin-bottom:6px;}
+.status-name{font-family:'Lora',serif;font-size:24px;font-weight:500;margin-bottom:4px;}
 .status-detail{font-size:13px;opacity:0.8;line-height:1.5;}
-.status-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,0.15);border-radius:100px;padding:5px 12px;font-size:12px;margin-top:14px;font-weight:500;}
-.status-dot{width:6px;height:6px;border-radius:50%;background:#7dffb3;animation:pulse-dot 2s infinite;}
-@keyframes pulse-dot{0%,100%{opacity:1;}50%{opacity:0.4;}}
+.status-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,0.15);border-radius:100px;padding:5px 12px;font-size:12px;margin-top:12px;}
+.status-dot{width:6px;height:6px;border-radius:50%;background:#7dffb3;animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.4;}}
 
 /* SECTION */
-.section{margin-bottom:24px;}
-.section-title{font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);margin-bottom:12px;padding:0 2px;font-weight:600;}
+.section{margin-bottom:16px;}
+.section-title{font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin-bottom:10px;padding:0 2px;}
 
 /* CARDS */
-.card{background:var(--bg2);border-radius:12px;overflow:hidden;border:1px solid var(--border);}
-.card-row{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--border);transition:background .12s;}
+.card{background:var(--white);border-radius:16px;overflow:hidden;box-shadow:0 2px 12px var(--shadow);}
+.card-row{display:flex;align-items:center;justify-content:space-between;padding:16px 18px;border-bottom:1px solid var(--border);}
 .card-row:last-child{border:none;}
-.card-row:hover{background:var(--surface);}
 .card-row-label{font-size:13px;color:var(--muted);}
-.card-row-value{font-size:14px;font-weight:500;text-align:right;color:var(--text);}
+.card-row-value{font-size:14px;font-weight:500;text-align:right;}
 .card-row-value.green{color:var(--green);}
 
 /* PSW CARD */
-.psw-card{background:var(--bg2);border-radius:12px;padding:20px;border:1px solid var(--border);display:flex;align-items:center;gap:16px;margin-bottom:24px;transition:background 0.15s;}
-.psw-card:hover{background:var(--surface);}
-.psw-avatar{width:56px;height:56px;border-radius:50%;background:var(--green-l);border:2px solid var(--green-b);display:flex;align-items:center;justify-content:center;font-family:'Inter',sans-serif;font-size:20px;color:var(--green);font-weight:600;flex-shrink:0;}
+.psw-card{background:var(--white);border-radius:16px;padding:20px;box-shadow:0 2px 12px var(--shadow);display:flex;align-items:center;gap:16px;margin-bottom:16px;}
+.psw-avatar{width:56px;height:56px;border-radius:50%;background:var(--green-l);border:2px solid var(--green-b);display:flex;align-items:center;justify-content:center;font-family:'Lora',serif;font-size:20px;color:var(--green);font-weight:500;flex-shrink:0;}
 .psw-info{flex:1;}
-.psw-name{font-size:16px;font-weight:600;margin-bottom:2px;color:var(--text);}
+.psw-name{font-size:16px;font-weight:600;margin-bottom:2px;}
 .psw-title{font-size:12px;color:var(--muted);}
-.psw-schedule{font-size:12px;color:var(--accent);margin-top:4px;font-weight:500;}
+.psw-schedule{font-size:12px;color:var(--green);margin-top:4px;}
 
 /* VISIT ROWS */
-.visit-row{display:flex;align-items:center;padding:14px 16px;border-bottom:1px solid var(--border);gap:12px;transition:background .12s;cursor:pointer;}
+.visit-row{display:flex;align-items:center;padding:14px 18px;border-bottom:1px solid var(--border);gap:14px;}
 .visit-row:last-child{border:none;}
-.visit-row:hover{background:var(--surface);}
 .visit-date-box{width:44px;text-align:center;flex-shrink:0;}
-.visit-date-day{font-size:10px;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);font-weight:500;}
-.visit-date-num{font-family:'Inter',sans-serif;font-size:22px;color:var(--text);line-height:1;font-weight:600;}
+.visit-date-day{font-size:10px;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);}
+.visit-date-num{font-family:'Lora',serif;font-size:22px;color:var(--dark);line-height:1;}
 .visit-info{flex:1;}
-.visit-psw{font-size:14px;font-weight:500;color:var(--text);}
+.visit-psw{font-size:14px;font-weight:500;}
 .visit-time{font-size:12px;color:var(--muted);margin-top:2px;}
-.visit-hours{font-size:13px;font-weight:600;color:var(--accent);}
+.visit-hours{font-size:13px;font-weight:600;color:var(--green);}
 
 /* DOCS */
-.doc-row{display:flex;align-items:center;padding:16px 20px;border-bottom:1px solid var(--border);gap:12px;text-decoration:none;color:inherit;transition:background 0.15s;}
+.doc-row{display:flex;align-items:center;padding:14px 18px;border-bottom:1px solid var(--border);gap:12px;text-decoration:none;color:inherit;}
 .doc-row:last-child{border:none;}
-.doc-row:hover{background:var(--surface);}
-.doc-icon{width:36px;height:36px;border-radius:10px;background:var(--green-l);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--green);}
-.doc-icon svg{width:18px;height:18px;}
+.doc-icon{width:36px;height:36px;border-radius:10px;background:var(--green-l);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
 .doc-info{flex:1;}
-.doc-name{font-size:14px;font-weight:500;color:var(--text);}
+.doc-name{font-size:14px;font-weight:500;}
 .doc-type{font-size:12px;color:var(--muted);margin-top:1px;}
-.doc-arrow{color:var(--muted);}
-.doc-arrow svg{width:16px;height:16px;display:block;}
+.doc-arrow{font-size:16px;color:var(--muted);}
 
 /* INVOICE ROWS */
-.inv-row{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--border);transition:background 0.15s;}
+.inv-row{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--border);}
 .inv-row:last-child{border:none;}
-.inv-row:hover{background:var(--surface);}
-.inv-month{font-size:14px;font-weight:500;color:var(--text);}
+.inv-month{font-size:14px;font-weight:500;}
 .inv-right{text-align:right;}
-.inv-amount{font-size:14px;font-weight:600;color:var(--accent);}
+.inv-amount{font-size:14px;font-weight:600;color:var(--green);}
 .inv-status{font-size:11px;color:var(--muted);margin-top:2px;}
 
-/* MESSAGE THREAD */
-.msg-thread-wrap{background:var(--bg);border-radius:16px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,0.06);border:1px solid var(--border);margin-bottom:24px;}
-.msg-thread-body{padding:16px 20px;display:flex;flex-direction:column;gap:10px;max-height:320px;overflow-y:auto;}
-.msg-bubble-out{background:var(--green);color:#fff;padding:10px 14px;border-radius:14px 14px 3px 14px;max-width:85%;margin-left:auto;font-size:13px;line-height:1.5;}
-.msg-bubble-in{background:var(--surface);color:var(--text);padding:10px 14px;border-radius:14px 14px 14px 3px;max-width:85%;border:1px solid var(--border);font-size:13px;line-height:1.5;}
-.msg-bubble-time{font-size:10px;opacity:.55;margin-top:3px;}
-.msg-input-row{display:flex;gap:8px;padding:14px 20px;border-top:1px solid var(--border);align-items:flex-end;}
-.msg-input-field{flex:1;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:10px 13px;font-size:16px;font-family:'Inter',sans-serif;color:var(--text);outline:none;resize:none;transition:border-color 0.15s;}
-.msg-input-field:focus{border-color:var(--accent);}
-.msg-send-btn{width:44px;height:44px;border-radius:50%;background:var(--green);color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;border:none;flex-shrink:0;touch-action:manipulation;-webkit-tap-highlight-color:transparent;transition:background 0.15s;}
-.msg-send-btn:hover{background:var(--green-d);}
-.msg-send-btn svg{width:18px;height:18px;}
-.msg-char-count{font-size:11px;color:var(--muted);text-align:right;padding:0 20px 8px;font-family:'Inter',sans-serif;}
-.msg-char-count.near{color:var(--warning);}
-.msg-char-count.over{color:var(--error);}
-
-/* VISIT DETAIL */
-.visit-detail{padding:12px 20px 16px;border-top:1px solid var(--border);background:var(--surface);}
-.visit-detail-lbl{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:4px;margin-top:10px;font-weight:600;}
-.visit-detail-val{font-size:13px;color:var(--text);line-height:1.6;}
-.visit-expand-btn{font-size:11px;color:var(--accent);cursor:pointer;text-decoration:underline;margin-top:4px;display:inline-block;font-weight:500;}
-
-/* UPCOMING */
-.upcoming-row{display:flex;align-items:center;padding:14px 20px;border-bottom:1px solid var(--border);gap:12px;transition:background 0.15s;}
-.upcoming-row:last-child{border:none;}
-.upcoming-row:hover{background:var(--surface);}
-.upcoming-date{width:40px;text-align:center;flex-shrink:0;}
-.upcoming-date-dow{font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:500;}
-.upcoming-date-num{font-family:'Inter',sans-serif;font-size:20px;color:var(--text);line-height:1;font-weight:600;}
-.upcoming-info{flex:1;}
-.upcoming-psw{font-size:13px;font-weight:500;color:var(--text);}
-.upcoming-time{font-size:12px;color:var(--muted);margin-top:2px;}
-.upcoming-badge{font-size:10px;padding:3px 10px;border-radius:100px;background:var(--green-l);color:var(--green);font-weight:600;flex-shrink:0;}
+/* MESSAGE */
+.msg-card{background:var(--white);border-radius:16px;padding:20px;box-shadow:0 2px 12px var(--shadow);}
+.msg-label{font-size:13px;color:var(--muted);margin-bottom:10px;}
+.msg-ta{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px 14px;font-size:14px;font-family:'Poppins',sans-serif;color:var(--dark);outline:none;resize:none;min-height:80px;transition:border-color 0.2s;}
+.msg-ta:focus{border-color:var(--green);}
+.msg-btn{margin-top:10px;background:var(--green);border:none;border-radius:10px;padding:12px 20px;color:white;font-size:13px;font-weight:500;font-family:'Poppins',sans-serif;cursor:pointer;transition:all 0.2s;width:100%;}
+.msg-btn:hover{background:var(--green-d);}
+.msg-sent{font-size:13px;color:var(--green);text-align:center;margin-top:8px;display:none;}
 
 /* CARE PLAN */
-.plan-text{padding:20px;font-size:14px;color:var(--text);line-height:1.8;}
+.plan-text{padding:18px;font-size:14px;color:var(--dark);line-height:1.75;font-family:'Lora',serif;}
 
-/* EMPTY STATES */
-.empty-state{padding:40px 24px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:10px;}
-.empty-state-icon{color:var(--muted);opacity:0.45;}
-.empty-state-icon svg{width:48px;height:48px;}
-.empty-state-title{font-size:16px;font-weight:500;color:var(--text);}
-.empty-state-sub{font-size:14px;color:var(--muted);line-height:1.5;max-width:240px;}
+/* EMPTY */
+.empty{padding:32px;text-align:center;color:var(--muted);font-size:13px;}
 
 /* LOADING */
-.spinner{width:28px;height:28px;border:2.5px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto;}
+.loading{display:flex;align-items:center;justify-content:center;min-height:60vh;flex-direction:column;gap:12px;}
+.spinner{width:32px;height:32px;border:3px solid var(--border);border-top-color:var(--green);border-radius:50%;animation:spin 0.8s linear infinite;}
 @keyframes spin{to{transform:rotate(360deg);}}
+.loading-text{font-size:13px;color:var(--muted);}
 
 /* NAV */
-.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:var(--bg);border-top:1px solid var(--border);display:flex;z-index:10;padding-bottom:env(safe-area-inset-bottom);}
-.nav-btn{flex:1;padding:12px 4px 14px;background:none;border:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;font-family:'Inter',sans-serif;transition:color 0.15s;color:var(--muted);touch-action:manipulation;-webkit-tap-highlight-color:transparent;}
-.nav-icon{display:flex;align-items:center;justify-content:center;color:var(--muted);transition:color 0.15s;}
-.nav-icon svg{width:22px;height:22px;}
-.nav-label{font-size:10px;letter-spacing:0.02em;color:var(--muted);transition:color 0.15s;font-weight:500;}
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:var(--white);border-top:1px solid var(--border);display:flex;z-index:10;}
+.nav-btn{flex:1;padding:12px 4px 16px;background:none;border:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;font-family:'Poppins',sans-serif;transition:color 0.15s;}
+.nav-icon{font-size:20px;line-height:1;}
+.nav-label{font-size:10px;letter-spacing:0.02em;color:var(--muted);}
 .nav-btn.on .nav-label{color:var(--green);}
-.nav-btn.on .nav-icon{color:var(--green);}
+.nav-btn.on .nav-icon{filter:none;}
 
-/* SATISFACTION STARS */
-.visit-stars{display:flex;align-items:center;gap:4px;margin-top:6px;flex-wrap:wrap;}
-.visit-stars.rated{font-size:14px;color:#c8a040;letter-spacing:1px;}
-.visit-stars.unrated .star-btn{background:none;border:none;font-size:18px;color:#c8d0c8;cursor:pointer;padding:0 1px;min-height:32px;min-width:28px;line-height:1;transition:color .15s;}
-.visit-stars.unrated .star-btn:hover,.visit-stars.unrated .star-btn:focus{color:#c8a040;}
-.stars-label{font-size:10px;color:var(--muted);letter-spacing:0.5px;margin-left:4px;}
-
-/* SKELETON */
-.skeleton-wrap{padding:24px 20px;}
-.skeleton-block{border-radius:14px;background:linear-gradient(90deg,#f0f0f0 25%,#f8f8f8 50%,#f0f0f0 75%);background-size:200% 100%;animation:fam-shimmer 1.4s infinite;margin-bottom:14px;}
-@keyframes fam-shimmer{0%{background-position:200% 0;}100%{background-position:-200% 0;}}
-.skeleton-status{height:120px;border-radius:20px;margin-bottom:24px;}
-.skeleton-card-sm{height:80px;}
-.skeleton-card-md{height:120px;}
-.skeleton-card-lg{height:200px;}
-
-button{transition:transform 50ms ease;touch-action:manipulation;-webkit-tap-highlight-color:transparent;}
-button:active{transform:scale(0.98);}
-.pin-btn:active{transform:scale(0.96);}
-
-/* ── FAMILY PORTAL DARK THEME NEW FEATURES ── */
-.fam-alert-banner{margin:16px 16px 0;padding:12px 14px;border-radius:10px;}
-.fam-alert-banner.info{background:rgba(61,138,122,.06);border:1px solid rgba(61,138,122,.2);}
-.fam-alert-banner.warn{background:rgba(224,154,61,.06);border:1px solid rgba(224,154,61,.2);}
-.fam-alert-banner.crit{background:rgba(224,85,85,.06);border:1px solid rgba(224,85,85,.2);}
-.fam-alert-lbl{font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;margin-bottom:4px;}
-.fam-alert-lbl.info{color:var(--teal2);}
-.fam-alert-lbl.warn{color:var(--amber);}
-.fam-alert-lbl.crit{color:var(--red);}
-.fam-alert-msg{font-size:13px;color:var(--muted2);line-height:1.6;}
-/* Vitals row in visit detail */
-.vitals-compact{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;}
-.vitals-pill{font-family:var(--mono);font-size:10px;padding:4px 10px;border-radius:100px;background:var(--bg3);border:1px solid var(--border2);color:var(--muted2);}
-.vitals-pill.ok{color:var(--teal2);border-color:rgba(61,138,122,.3);}
-.vitals-pill.flag{color:var(--amber);border-color:rgba(224,154,61,.3);}
-/* ETA banner */
-.eta-banner{margin:12px 16px 0;padding:12px 14px;background:rgba(61,138,122,.06);border:1px solid rgba(61,138,122,.2);border-radius:10px;display:flex;align-items:center;gap:10px;}
-.eta-dot{width:8px;height:8px;border-radius:50%;background:var(--teal2);animation:livepulse 1.5s infinite;flex-shrink:0;}
-@keyframes livepulse{0%,100%{opacity:1;}50%{opacity:.3;}}
-.eta-text{font-size:13px;color:var(--text);}
-.eta-time{font-family:var(--mono);font-size:11px;color:var(--teal2);margin-top:2px;}
-/* Care plan ack */
-.care-ack-chip{display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;padding:4px 10px;border-radius:100px;background:rgba(61,138,122,.06);border:1px solid rgba(61,138,122,.2);color:var(--teal2);margin-top:6px;}
-/* Alert badges on client header */
-.client-alert-chip{display:inline-flex;align-items:center;gap:4px;font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;padding:3px 8px;border-radius:100px;border:1px solid;margin-right:4px;}
-.client-alert-chip.fall{color:var(--amber);border-color:rgba(224,154,61,.3);}
-.client-alert-chip.allergy{color:var(--red);border-color:rgba(224,85,85,.3);}
-.client-alert-chip.env{color:#6dbdd4;border-color:rgba(109,189,212,.3);}
-/* Section headers dark style */
-.section-title{font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:10px;}
-
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-:root{
-  /* Dark theme — matches PSW portal + HQ design system */
-  --bg:#07090c;
-  --bg2:#0d1117;
-  --bg3:#161c24;
-  --surface:#0d1117;
-  --border:rgba(255,255,255,.06);
-  --border2:rgba(255,255,255,.1);
-  --text:#f0ede8;
-  --muted:#a8bfc4;
-  --muted2:#a8bfc4;
-  --accent:#3d8a7a;
-  --teal:#2d7a6a;
-  --teal2:#3d8a7a;
-  --teal3:#4d9a8a;
-  --gold:#c8a96e;
-  --red:#e05555;
-  --amber:#e09a3d;
-  --green2:#4a9a6e;
-  --mono:'DM Mono',monospace;
-  --sans:'DM Sans',sans-serif;
-  --serif:'Cormorant Garamond',serif;
-  /* Legacy aliases */
-  --success:#4a9a6e;
-  --warning:#e09a3d;
-  --error:#e05555;
-  --green:#4a9a6e;
-  --green-l:rgba(74,154,110,.1);
-  --green-b:rgba(74,154,110,.2);
-  --green-d:#2a6a4a;
-  --shadow:rgba(0,0,0,.3);
-}
-html,body{min-height:100vh;font-family:var(--sans),sans-serif;background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased;}
-
-/* PIN GATE */
-.gate{position:fixed;inset:0;background:var(--surface);z-index:100;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;}
-.gate.hide{display:none;}
-.gate-inner{width:100%;max-width:380px;}
-.gate-brand{font-family:'Inter',sans-serif;font-size:22px;font-weight:600;color:var(--text);text-align:center;margin-bottom:4px;}
-.gate-brand em{color:var(--green);font-style:normal;}
-.gate-sub{text-align:center;font-size:13px;color:var(--muted);margin-bottom:40px;}
-.gate-card{background:var(--bg2);border-radius:16px;padding:36px 28px;border:1px solid var(--border2);}
-.gate-icon{width:56px;height:56px;background:var(--green-l);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;color:var(--green);}
-.gate-icon svg{width:28px;height:28px;}
-.gate-title{font-family:'Inter',sans-serif;font-size:20px;font-weight:600;text-align:center;margin-bottom:6px;color:var(--text);}
-.gate-hint{font-size:13px;color:var(--muted);text-align:center;margin-bottom:28px;line-height:1.6;}
-.pin-dots{display:flex;gap:14px;justify-content:center;margin-bottom:32px;}
-.pin-dot{width:14px;height:14px;border-radius:50%;border:2px solid var(--border2);transition:all 0.15s;}
-.pin-dot.filled{background:var(--green);border-color:var(--green);}
-.pin-pad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
-.pin-btn{background:var(--bg3);border:1px solid var(--border2);border-radius:14px;padding:16px;font-size:20px;font-weight:500;font-family:'Inter',sans-serif;color:var(--text);cursor:pointer;transition:background 0.15s,border-color 0.15s;text-align:center;min-height:56px;touch-action:manipulation;-webkit-tap-highlight-color:transparent;}
-.pin-btn:hover{background:var(--green-l);border-color:var(--accent);}
-.pin-btn:active{transform:scale(0.96);}
-.pin-btn.del{font-size:16px;color:var(--muted);}
-.pin-btn.del svg{width:20px;height:20px;display:block;margin:0 auto;}
-.pin-btn.empty{background:none;border:none;cursor:default;}
-.pin-error{text-align:center;font-size:13px;color:var(--error);margin-top:16px;opacity:0;transition:opacity 0.2s;min-height:20px;}
-.pin-error.show{opacity:1;}
-@keyframes pin-shake{0%,100%{transform:translateX(0);}20%{transform:translateX(-6px);}40%{transform:translateX(6px);}60%{transform:translateX(-4px);}80%{transform:translateX(4px);}}
-.gate-card.shake{animation:pin-shake 0.35s ease;}
-
-/* APP */
-.app{display:none;flex-direction:column;min-height:100vh;}
-.app.show{display:flex;}
-
-/* TOPBAR */
-.topbar{background:rgba(7,9,12,.96);border-bottom:1px solid var(--border);padding:14px 16px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);}
-.tb-brand{font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--teal2);}
-.tb-brand em{color:var(--green);font-style:normal;}
-.tb-right{display:flex;align-items:center;gap:10px;}
-.tb-name{font-size:13px;color:var(--muted);font-weight:500;}
-.tb-signout{background:none;border:none;font-size:12px;color:var(--muted);cursor:pointer;padding:6px 10px;border-radius:6px;font-family:'Inter',sans-serif;transition:color 0.15s;touch-action:manipulation;-webkit-tap-highlight-color:transparent;}
-.tb-signout:hover{color:var(--text);}
-
-/* CONTENT */
-.content{flex:1;padding:24px 20px;padding-bottom:calc(88px + env(safe-area-inset-bottom));max-width:560px;margin:0 auto;width:100%;transition:opacity 150ms ease;}
-
-/* STATUS CARD */
-.status-card{background:var(--green);border-radius:20px;padding:28px 24px;margin-bottom:24px;color:white;position:relative;overflow:hidden;}
-.status-card::after{content:'';position:absolute;top:-30px;right:-30px;width:120px;height:120px;border-radius:50%;background:rgba(255,255,255,0.06);}
-.status-eyebrow{font-size:11px;letter-spacing:0.1em;text-transform:uppercase;opacity:0.65;margin-bottom:8px;font-weight:500;}
-.status-name{font-family:'Inter',sans-serif;font-size:26px;font-weight:600;margin-bottom:4px;}
-.status-detail{font-size:13px;opacity:0.8;line-height:1.5;}
-.status-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,0.15);border-radius:100px;padding:5px 12px;font-size:12px;margin-top:14px;font-weight:500;}
-.status-dot{width:6px;height:6px;border-radius:50%;background:#7dffb3;animation:pulse-dot 2s infinite;}
-@keyframes pulse-dot{0%,100%{opacity:1;}50%{opacity:0.4;}}
-
-/* SECTION */
-.section{margin-bottom:24px;}
-.section-title{font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);margin-bottom:12px;padding:0 2px;font-weight:600;}
-
-/* CARDS */
-.card{background:var(--bg2);border-radius:12px;overflow:hidden;border:1px solid var(--border);}
-.card-row{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--border);transition:background .12s;}
-.card-row:last-child{border:none;}
-.card-row:hover{background:var(--surface);}
-.card-row-label{font-size:13px;color:var(--muted);}
-.card-row-value{font-size:14px;font-weight:500;text-align:right;color:var(--text);}
-.card-row-value.green{color:var(--green);}
-
-/* PSW CARD */
-.psw-card{background:var(--bg2);border-radius:12px;padding:20px;border:1px solid var(--border);display:flex;align-items:center;gap:16px;margin-bottom:24px;transition:background 0.15s;}
-.psw-card:hover{background:var(--surface);}
-.psw-avatar{width:56px;height:56px;border-radius:50%;background:var(--green-l);border:2px solid var(--green-b);display:flex;align-items:center;justify-content:center;font-family:'Inter',sans-serif;font-size:20px;color:var(--green);font-weight:600;flex-shrink:0;}
-.psw-info{flex:1;}
-.psw-name{font-size:16px;font-weight:600;margin-bottom:2px;color:var(--text);}
-.psw-title{font-size:12px;color:var(--muted);}
-.psw-schedule{font-size:12px;color:var(--accent);margin-top:4px;font-weight:500;}
-
-/* VISIT ROWS */
-.visit-row{display:flex;align-items:center;padding:14px 16px;border-bottom:1px solid var(--border);gap:12px;transition:background .12s;cursor:pointer;}
-.visit-row:last-child{border:none;}
-.visit-row:hover{background:var(--surface);}
-.visit-date-box{width:44px;text-align:center;flex-shrink:0;}
-.visit-date-day{font-size:10px;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);font-weight:500;}
-.visit-date-num{font-family:'Inter',sans-serif;font-size:22px;color:var(--text);line-height:1;font-weight:600;}
-.visit-info{flex:1;}
-.visit-psw{font-size:14px;font-weight:500;color:var(--text);}
-.visit-time{font-size:12px;color:var(--muted);margin-top:2px;}
-.visit-hours{font-size:13px;font-weight:600;color:var(--accent);}
-
-/* DOCS */
-.doc-row{display:flex;align-items:center;padding:16px 20px;border-bottom:1px solid var(--border);gap:12px;text-decoration:none;color:inherit;transition:background 0.15s;}
-.doc-row:last-child{border:none;}
-.doc-row:hover{background:var(--surface);}
-.doc-icon{width:36px;height:36px;border-radius:10px;background:var(--green-l);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--green);}
-.doc-icon svg{width:18px;height:18px;}
-.doc-info{flex:1;}
-.doc-name{font-size:14px;font-weight:500;color:var(--text);}
-.doc-type{font-size:12px;color:var(--muted);margin-top:1px;}
-.doc-arrow{color:var(--muted);}
-.doc-arrow svg{width:16px;height:16px;display:block;}
-
-/* INVOICE ROWS */
-.inv-row{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--border);transition:background 0.15s;}
-.inv-row:last-child{border:none;}
-.inv-row:hover{background:var(--surface);}
-.inv-month{font-size:14px;font-weight:500;color:var(--text);}
-.inv-right{text-align:right;}
-.inv-amount{font-size:14px;font-weight:600;color:var(--accent);}
-.inv-status{font-size:11px;color:var(--muted);margin-top:2px;}
-
-/* MESSAGE THREAD */
-.msg-thread-wrap{background:var(--bg);border-radius:16px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,0.06);border:1px solid var(--border);margin-bottom:24px;}
-.msg-thread-body{padding:16px 20px;display:flex;flex-direction:column;gap:10px;max-height:320px;overflow-y:auto;}
-.msg-bubble-out{background:var(--green);color:#fff;padding:10px 14px;border-radius:14px 14px 3px 14px;max-width:85%;margin-left:auto;font-size:13px;line-height:1.5;}
-.msg-bubble-in{background:var(--surface);color:var(--text);padding:10px 14px;border-radius:14px 14px 14px 3px;max-width:85%;border:1px solid var(--border);font-size:13px;line-height:1.5;}
-.msg-bubble-time{font-size:10px;opacity:.55;margin-top:3px;}
-.msg-input-row{display:flex;gap:8px;padding:14px 20px;border-top:1px solid var(--border);align-items:flex-end;}
-.msg-input-field{flex:1;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:10px 13px;font-size:16px;font-family:'Inter',sans-serif;color:var(--text);outline:none;resize:none;transition:border-color 0.15s;}
-.msg-input-field:focus{border-color:var(--accent);}
-.msg-send-btn{width:44px;height:44px;border-radius:50%;background:var(--green);color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;border:none;flex-shrink:0;touch-action:manipulation;-webkit-tap-highlight-color:transparent;transition:background 0.15s;}
-.msg-send-btn:hover{background:var(--green-d);}
-.msg-send-btn svg{width:18px;height:18px;}
-.msg-char-count{font-size:11px;color:var(--muted);text-align:right;padding:0 20px 8px;font-family:'Inter',sans-serif;}
-.msg-char-count.near{color:var(--warning);}
-.msg-char-count.over{color:var(--error);}
-
-/* VISIT DETAIL */
-.visit-detail{padding:12px 20px 16px;border-top:1px solid var(--border);background:var(--surface);}
-.visit-detail-lbl{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:4px;margin-top:10px;font-weight:600;}
-.visit-detail-val{font-size:13px;color:var(--text);line-height:1.6;}
-.visit-expand-btn{font-size:11px;color:var(--accent);cursor:pointer;text-decoration:underline;margin-top:4px;display:inline-block;font-weight:500;}
-
-/* UPCOMING */
-.upcoming-row{display:flex;align-items:center;padding:14px 20px;border-bottom:1px solid var(--border);gap:12px;transition:background 0.15s;}
-.upcoming-row:last-child{border:none;}
-.upcoming-row:hover{background:var(--surface);}
-.upcoming-date{width:40px;text-align:center;flex-shrink:0;}
-.upcoming-date-dow{font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:500;}
-.upcoming-date-num{font-family:'Inter',sans-serif;font-size:20px;color:var(--text);line-height:1;font-weight:600;}
-.upcoming-info{flex:1;}
-.upcoming-psw{font-size:13px;font-weight:500;color:var(--text);}
-.upcoming-time{font-size:12px;color:var(--muted);margin-top:2px;}
-.upcoming-badge{font-size:10px;padding:3px 10px;border-radius:100px;background:var(--green-l);color:var(--green);font-weight:600;flex-shrink:0;}
-
-/* CARE PLAN */
-.plan-text{padding:20px;font-size:14px;color:var(--text);line-height:1.8;}
-
-/* EMPTY STATES */
-.empty-state{padding:40px 24px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:10px;}
-.empty-state-icon{color:var(--muted);opacity:0.45;}
-.empty-state-icon svg{width:48px;height:48px;}
-.empty-state-title{font-size:16px;font-weight:500;color:var(--text);}
-.empty-state-sub{font-size:14px;color:var(--muted);line-height:1.5;max-width:240px;}
-
-/* LOADING */
-.spinner{width:28px;height:28px;border:2.5px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto;}
-@keyframes spin{to{transform:rotate(360deg);}}
-
-/* NAV */
-.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:var(--bg);border-top:1px solid var(--border);display:flex;z-index:10;padding-bottom:env(safe-area-inset-bottom);}
-.nav-btn{flex:1;padding:12px 4px 14px;background:none;border:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;font-family:'Inter',sans-serif;transition:color 0.15s;color:var(--muted);touch-action:manipulation;-webkit-tap-highlight-color:transparent;}
-.nav-icon{display:flex;align-items:center;justify-content:center;color:var(--muted);transition:color 0.15s;}
-.nav-icon svg{width:22px;height:22px;}
-.nav-label{font-size:10px;letter-spacing:0.02em;color:var(--muted);transition:color 0.15s;font-weight:500;}
-.nav-btn.on .nav-label{color:var(--green);}
-.nav-btn.on .nav-icon{color:var(--green);}
-
-/* SATISFACTION STARS */
-.visit-stars{display:flex;align-items:center;gap:4px;margin-top:6px;flex-wrap:wrap;}
-.visit-stars.rated{font-size:14px;color:#c8a040;letter-spacing:1px;}
-.visit-stars.unrated .star-btn{background:none;border:none;font-size:18px;color:#c8d0c8;cursor:pointer;padding:0 1px;min-height:32px;min-width:28px;line-height:1;transition:color .15s;}
-.visit-stars.unrated .star-btn:hover,.visit-stars.unrated .star-btn:focus{color:#c8a040;}
-.stars-label{font-size:10px;color:var(--muted);letter-spacing:0.5px;margin-left:4px;}
-
-/* SKELETON */
-.skeleton-wrap{padding:24px 20px;}
-.skeleton-block{border-radius:14px;background:linear-gradient(90deg,#f0f0f0 25%,#f8f8f8 50%,#f0f0f0 75%);background-size:200% 100%;animation:fam-shimmer 1.4s infinite;margin-bottom:14px;}
-@keyframes fam-shimmer{0%{background-position:200% 0;}100%{background-position:-200% 0;}}
-.skeleton-status{height:120px;border-radius:20px;margin-bottom:24px;}
-.skeleton-card-sm{height:80px;}
-.skeleton-card-md{height:120px;}
-.skeleton-card-lg{height:200px;}
-
-button{transition:transform 50ms ease;touch-action:manipulation;-webkit-tap-highlight-color:transparent;}
-button:active{transform:scale(0.98);}
-.pin-btn:active{transform:scale(0.96);}
+.tab{display:none;padding-bottom:80px;}
+.tab.on{display:block;}
 </style>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 </head>
 <body>
 
@@ -490,10 +155,10 @@ button:active{transform:scale(0.98);}
   <div class="gate-inner">
     <div class="gate-brand">Proximity <em>Care</em></div>
     <div class="gate-sub">Family Portal</div>
-    <div class="gate-card" id="gateCard">
-      <div class="gate-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5L12 3l9 7.5"/><path d="M5 9.5V20a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V9.5"/><path d="M10 21v-6h4v6"/></svg></div>
+    <div class="gate-card">
+      <div class="gate-icon">🏠</div>
       <div class="gate-title">Welcome back.</div>
-      <div class="gate-hint">Enter your 4-digit access code to view your care portal.<br><span style="font-size:13px;color:var(--muted);margin-top:6px;display:block;">Your code was included in the welcome email from Lance. Need help? Call 647-382-8047.</span></div>
+      <div class="gate-hint">Enter your 4-digit access code to view your care portal.</div>
       <div class="pin-dots">
         <div class="pin-dot" id="d0"></div>
         <div class="pin-dot" id="d1"></div>
@@ -512,7 +177,7 @@ button:active{transform:scale(0.98);}
         <button class="pin-btn" onclick="pinPress('9')">9</button>
         <button class="pin-btn empty"></button>
         <button class="pin-btn" onclick="pinPress('0')">0</button>
-        <button class="pin-btn del" onclick="pinDel()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"/><line x1="18" y1="9" x2="12" y2="15"/><line x1="12" y1="9" x2="18" y2="15"/></svg></button>
+        <button class="pin-btn del" onclick="pinDel()">⌫</button>
       </div>
       <div class="pin-error" id="pinError">Wrong code. Try again.</div>
     </div>
@@ -522,53 +187,39 @@ button:active{transform:scale(0.98);}
 <!-- APP -->
 <div class="app" id="app">
   <div class="topbar">
-    <div class="tb-brand" id="agency-logo"><span id="agency-name">Proximity <em>Care</em></span></div>
+    <div class="tb-brand">Proximity <em>Care</em></div>
     <div class="tb-right">
       <span class="tb-name" id="tbName"></span>
-      <button class="tb-signout" onclick="signOut()">Log out</button>
+      <button class="tb-signout" onclick="signOut()">Sign out</button>
     </div>
   </div>
-
-  <!-- ETA banner — shows when PSW is en route -->
-  <div id="eta-banner" class="eta-banner" style="display:none;">
-    <div class="eta-dot"></div>
-    <div>
-      <div class="eta-text" id="eta-text">Your PSW is on the way</div>
-      <div class="eta-time" id="eta-time"></div>
-    </div>
-  </div>
-
-  <!-- Client alert badges -->
-  <div id="alert-badges-banner" style="display:none;padding:10px 16px 0;"></div>
 
   <div class="content" id="contentArea">
-    <div class="skeleton-wrap">
-      <div class="skeleton-block skeleton-status"></div>
-      <div class="skeleton-block skeleton-card-sm"></div>
-      <div class="skeleton-block skeleton-card-md"></div>
-      <div class="skeleton-block skeleton-card-lg"></div>
+    <div class="loading">
+      <div class="spinner"></div>
+      <div class="loading-text">Loading your portal...</div>
     </div>
   </div>
 
   <nav class="bottom-nav">
     <button class="nav-btn on" id="nav-home" onclick="showTab('home')">
-      <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5L12 3l9 7.5"/><path d="M5 9.5V20a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V9.5"/><path d="M10 21v-6h4v6"/></svg></span>
+      <span class="nav-icon">🏠</span>
       <span class="nav-label">Home</span>
     </button>
     <button class="nav-btn" id="nav-visits" onclick="showTab('visits')">
-      <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="5" width="16" height="16" rx="2"/><path d="M8 3v4M16 3v4M4 11h16M9 15h2M9 18h6"/></svg></span>
+      <span class="nav-icon">📋</span>
       <span class="nav-label">Visits</span>
     </button>
     <button class="nav-btn" id="nav-care" onclick="showTab('care')">
-      <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78z"/></svg></span>
+      <span class="nav-icon">💚</span>
       <span class="nav-label">Care Plan</span>
     </button>
-    <button class="nav-btn" id="nav-ask" onclick="showTab('ask')">
-      <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>
-      <span class="nav-label">Ask</span>
+    <button class="nav-btn" id="nav-docs" onclick="showTab('docs')">
+      <span class="nav-icon">📄</span>
+      <span class="nav-label">Documents</span>
     </button>
     <button class="nav-btn" id="nav-billing" onclick="showTab('billing')">
-      <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18"/><path d="M7 15h3"/></svg></span>
+      <span class="nav-icon">💳</span>
       <span class="nav-label">Billing</span>
     </button>
   </nav>
@@ -576,15 +227,13 @@ button:active{transform:scale(0.98);}
 
 <script>
 const R = 'https://proximity-agent-production.up.railway.app';
-let slug = '', pinVal = '', portalData = null, clientSlug = '';
-let famVisitRange = 'month';
-let famCustomFrom = '';
-let famCustomTo = '';
+let slug = '', pinVal = '', portalData = null;
 
+// Get slug from URL
 const params = new URLSearchParams(window.location.search);
-slug = params.get('c') || ''; clientSlug = slug;
+slug = params.get('c') || '';
 
-// ── PIN LOGIC ──
+// PIN LOGIC
 function pinPress(d) {
   if (pinVal.length >= 4) return;
   pinVal += d;
@@ -612,12 +261,10 @@ async function verifyPin() {
     });
     const d = await r.json();
     if (d.success) {
-      try { sessionStorage.setItem('family_pin_' + slug, pinVal); } catch(e) {}
       document.getElementById('gate').classList.add('hide');
       document.getElementById('app').classList.add('show');
       document.getElementById('tbName').textContent = d.client.first_name + ' ' + d.client.last_name;
       loadPortal();
-      setTimeout(requestPushPermission, 2000);
     } else {
       showPinError();
     }
@@ -628,18 +275,12 @@ async function verifyPin() {
 
 function showPinError() {
   document.getElementById('pinError').classList.add('show');
-  const card = document.getElementById('gateCard');
-  card.classList.remove('shake');
-  void card.offsetWidth;
-  card.classList.add('shake');
-  setTimeout(() => card.classList.remove('shake'), 400);
   pinVal = '';
   updateDots();
   setTimeout(() => document.getElementById('pinError').classList.remove('show'), 2500);
 }
 
 function signOut() {
-  try { sessionStorage.removeItem('family_pin_' + slug); } catch(e) {}
   pinVal = '';
   updateDots();
   portalData = null;
@@ -647,473 +288,105 @@ function signOut() {
   document.getElementById('app').classList.remove('show');
 }
 
-// ── LOAD PORTAL ──
-
-// ── ETA BANNER — shows when PSW is en route ──
-async function loadETABanner() {
-  try {
-    if (!clientSlug) return;
-    // Check system_logs for recent en_route event for this client
-    const API_BASE = window.API || '';
-    const r = await fetch(`${API_BASE}/family/portal/${clientSlug}?pin=${window.clientPin||''}`);
-    if (!r.ok) return;
-    const d = await r.json();
-    // Check if any recent en_route in last 2 hours
-    const logs = d.recent_activity || d.system_logs || [];
-    const enRoute = logs.find(l => l.event_type === 'en_route' || l.event_type === 'visit.en-route.sent');
-    const banner = document.getElementById('eta-banner');
-    const etaText = document.getElementById('eta-text');
-    const etaTime = document.getElementById('eta-time');
-    if (!banner) return;
-    // If active visit exists, hide ETA
-    const hasActive = (d.visits||[]).some(v => v.time_in && !v.time_out);
-    if (hasActive) { banner.style.display = 'none'; return; }
-    if (enRoute && enRoute.created_at) {
-      const age = (Date.now() - new Date(enRoute.created_at)) / 60000;
-      if (age < 120) { // within 2 hours
-        const pswFirst = (enRoute.psw_name || 'Your PSW').split(' ')[0];
-        if (etaText) etaText.textContent = pswFirst + ' is on the way to you';
-        if (etaTime) etaTime.textContent = 'Notified ' + Math.round(age) + ' min ago';
-        banner.style.display = 'flex';
-        return;
-      }
-    }
-    banner.style.display = 'none';
-  } catch { }
-}
-
-// ── ALERT BADGES — fall risk, allergy, environment from care notes ──
-function loadAlertBadges() {
-  const bannerEl = document.getElementById('alert-badges-banner');
-  if (!bannerEl || !portalData) return;
-  const client = portalData.client || {};
-  const careText = ((client.care_notes||'') + ' ' + (client.care_directives||'')).toLowerCase();
-  let badges = '';
-  if (/fall|falls|fall risk/.test(careText)) badges += '<span class="client-alert-chip fall">⚠ Fall Risk</span>';
-  if (/allerg|anaphyl/.test(careText)) badges += '<span class="client-alert-chip allergy">⚠ Allergy</span>';
-  if (/environment|latex|pet |smoke/.test(careText)) badges += '<span class="client-alert-chip env">⚠ Environment</span>';
-  if (badges) {
-    bannerEl.innerHTML = '<div style="font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;">Safety Alerts on File · Your PSW is Aware</div>' + badges;
-    bannerEl.style.display = 'block';
-  }
-}
-
-// ── CARE PLAN ACKNOWLEDGEMENT ──
-function loadCarePlanAck() {
-  // Check localStorage for care plan ack by assigned PSW
-  const pswName = portalData?.psw?.name || '';
-  const clientName = portalData?.client?.first_name || '';
-  if (!pswName || !clientName) return;
-  try {
-    const key = 'cp_ack_' + pswName.replace(/\s+/g,'_') + '_' + clientName.replace(/\s+/g,'_');
-    const stored = localStorage.getItem(key);
-    if (stored) {
-      const d = new Date(stored);
-      const daysSince = Math.floor((Date.now() - d) / 86400000);
-      // Find a good place to show this — add to PSW card area
-      const pswCard = document.querySelector('.psw-card');
-      if (pswCard && !document.getElementById('care-ack-chip')) {
-        const chip = document.createElement('div');
-        chip.id = 'care-ack-chip';
-        chip.className = 'care-ack-chip';
-        chip.innerHTML = '✓ Care plan reviewed ' + (daysSince === 0 ? 'today' : daysSince + ' days ago');
-        pswCard.appendChild(chip);
-      }
-    }
-  } catch {}
-}
-
-// ── VITALS FORMATTING ──
-window._visitVitals = {};
-
-function formatVitalsCompact(v) {
-  if (!v) return '';
-  const pills = [];
-  if (v.blood_pressure_systolic && v.blood_pressure_diastolic) {
-    const flag = v.blood_pressure_systolic > 140 || v.blood_pressure_diastolic > 90;
-    pills.push(`<span class="vitals-pill ${flag?'flag':'ok'}">BP ${v.blood_pressure_systolic}/${v.blood_pressure_diastolic}</span>`);
-  }
-  if (v.pulse) pills.push(`<span class="vitals-pill ok">Pulse ${v.pulse}</span>`);
-  if (v.oxygen_saturation) {
-    const flag = v.oxygen_saturation < 95;
-    pills.push(`<span class="vitals-pill ${flag?'flag':'ok'}">O₂ ${v.oxygen_saturation}%</span>`);
-  }
-  if (v.temperature) {
-    const flag = v.temperature > 38.5;
-    pills.push(`<span class="vitals-pill ${flag?'flag':'ok'}">${v.temperature}°C</span>`);
-  }
-  if (!pills.length) return '';
-  const allNormal = !v.flagged;
-  return pills.join('') + (allNormal ? '<div style="font-family:var(--mono);font-size:11px;color:var(--teal2);margin-top:4px;">✓ All readings within normal range</div>' : '<div style="font-family:var(--mono);font-size:11px;color:var(--amber);margin-top:4px;">⚠ Some readings flagged — coordinator notified</div>');
-}
-
+// LOAD PORTAL
 async function loadPortal() {
   try {
     const r = await fetch(`${R}/family/portal/${slug}`);
     portalData = await r.json();
-    // WHITE LABEL — inject operator branding
-    if (portalData.branding) {
-      const b = portalData.branding;
-      const root = document.documentElement;
-      if (b.brand_accent) root.style.setProperty('--accent', b.brand_accent);
-      if (b.brand_primary) root.style.setProperty('--accent', b.brand_primary);
-      // Update header agency name
-      const agencyEl = document.getElementById('agency-name');
-      if (agencyEl && b.agency_name) agencyEl.textContent = b.agency_name;
-      // Logo if provided
-      const logoEl = document.getElementById('agency-logo');
-      if (logoEl && b.logo_url) {
-        logoEl.innerHTML = `<img src="${b.logo_url}" alt="${b.agency_name||''}" style="height:24px;max-width:120px;object-fit:contain;vertical-align:middle;">`;
-      }
-    }
     renderAll();
   } catch (e) {
-    document.getElementById('contentArea').innerHTML = emptyState(
-      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>',
-      'Could not load portal',
-      'Please check your connection and try again.'
-    );
+    document.getElementById('contentArea').innerHTML = '<div class="empty">Could not load portal. Please try again.</div>';
   }
 }
 
 function renderAll() {
-  loadETABanner();
-  loadAlertBadges();
-  loadCarePlanAck();
-  try {
-    const saved = localStorage.getItem('family_tab_'+slug);
-    showTab(saved && ['home','visits','care','ask','billing'].includes(saved) ? saved : 'home');
-  } catch(e) { showTab('home'); }
-  setTimeout(loadFamilyMessages, 100);
+  showTab('home');
 }
 
-// ── TABS ──
-// ── FAMILY VISIT RANGE HELPERS ──
-function getFamDateRange() {
-  const now = new Date();
-  const toISO = d => d.toISOString().slice(0, 10);
-  const y = now.getFullYear(), m = now.getMonth(), day = now.getDate();
-  if (famVisitRange === 'today') {
-    const d = toISO(now); return { from: d, to: d, label: 'Today' };
-  }
-  if (famVisitRange === 'week') {
-    const dow = now.getDay() === 0 ? 6 : now.getDay() - 1;
-    const start = new Date(now); start.setDate(day - dow); start.setHours(0,0,0,0);
-    return { from: toISO(start), to: toISO(now), label: 'This Week' };
-  }
-  if (famVisitRange === 'month') {
-    return { from: toISO(new Date(y, m, 1)), to: toISO(now), label: now.toLocaleString('en-CA', { month: 'long', year: 'numeric' }) };
-  }
-  if (famVisitRange === 'lastmonth') {
-    const start = new Date(y, m - 1, 1);
-    const end = new Date(y, m, 0);
-    return { from: toISO(start), to: toISO(end), label: start.toLocaleString('en-CA', { month: 'long', year: 'numeric' }) };
-  }
-  if (famVisitRange === 'year') {
-    return { from: toISO(new Date(y, 0, 1)), to: toISO(now), label: String(y) };
-  }
-  if (famVisitRange === 'custom' && famCustomFrom && famCustomTo) {
-    return { from: famCustomFrom, to: famCustomTo, label: famCustomFrom + ' to ' + famCustomTo };
-  }
-  return { from: toISO(new Date(y, m, 1)), to: toISO(now), label: now.toLocaleString('en-CA', { month: 'long', year: 'numeric' }) };
-}
-
-function setFamRange(mode) {
-  famVisitRange = mode;
-  if (mode !== 'custom') { famCustomFrom = ''; famCustomTo = ''; }
-  showTab('visits');
-}
-
-function applyFamCustomRange() {
-  const f = document.getElementById('fam-custom-from')?.value;
-  const t = document.getElementById('fam-custom-to')?.value;
-  if (!f || !t) return;
-  if (f > t) return;
-  famCustomFrom = f; famCustomTo = t;
-  showTab('visits');
-}
-
+// TABS
 function showTab(tab) {
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('on'));
   document.getElementById('nav-' + tab).classList.add('on');
-  try { localStorage.setItem('family_tab_'+slug, tab); } catch(e) {}
   if (!portalData) return;
 
   const c = document.getElementById('contentArea');
-  c.style.opacity = '0';
-
-  let html = '';
 
   if (tab === 'home') {
     const { client, psw, today_visit, visits } = portalData;
     const lastVisit = visits && visits.length > 0 ? visits[0] : null;
     const statusMsg = today_visit
-      ? `Visit in progress — ${today_visit.time_in ? fmtTime(today_visit.time_in) : ''} to ${today_visit.time_out ? fmtTime(today_visit.time_out) : 'ongoing'}`
+      ? `Visit in progress today — ${today_visit.time_in ? today_visit.time_in.slice(0,5) : ''} to ${today_visit.time_out ? today_visit.time_out.slice(0,5) : 'ongoing'}`
       : lastVisit
       ? `Last visit: ${fmtDate(lastVisit.visit_date)}`
       : 'No visits logged yet';
 
-    // Incident banner — show if any recent visit has unresolved incident
-    const recentIncident = (visits||[]).slice(0,5).find(v => v.incident_reported && !v.incident_resolved);
-    const incidentBanner = recentIncident ? `
-      <div style="margin:0 0 16px;padding:14px 16px;background:rgba(224,154,61,0.08);border:1px solid rgba(224,154,61,0.3);border-radius:12px;display:flex;align-items:flex-start;gap:12px;">
-        <svg viewBox="0 0 24 24" fill="none" stroke="#e09a3d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18" style="flex-shrink:0;margin-top:1px;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-        <div>
-          <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:2px;">A note was logged during a recent visit</div>
-          <div style="font-size:12px;color:var(--muted);">Your care coordinator has been notified and will follow up if needed.</div>
-        </div>
-      </div>` : '';
-
-    html = renderPushPrompt() + incidentBanner + `
+    c.innerHTML = `
       <div class="status-card">
         <div class="status-eyebrow">Your loved one</div>
         <div class="status-name">${client.first_name} ${client.last_name}</div>
         <div class="status-detail">${client.schedule || 'Schedule on file'}</div>
         <div class="status-badge"><span class="status-dot"></span>${statusMsg}</div>
       </div>
-      ${today_visit?.voice_note_url ? `<div style="margin-bottom:16px;padding:14px 16px;background:rgba(58,170,138,0.06);border:1px solid rgba(58,170,138,0.2);border-radius:12px;">
-        <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;color:var(--accent);margin-bottom:8px;"><svg width="13" height="13" viewBox="0 0 14 14" fill="none" style="display:inline;vertical-align:middle;margin-right:3px"><rect x="4.5" y="1" width="5" height="7" rx="2.5" stroke="#6dbdd4" stroke-width="1.3"/><path d="M2.5 7a4.5 4.5 0 0 0 9 0" stroke="#6dbdd4" stroke-width="1.3"/><line x1="7" y1="11.5" x2="7" y2="13" stroke="#6dbdd4" stroke-width="1.3"/></svg> Voice message from ${(today_visit.psw_name||'your caregiver').split(' ')[0]}</div>
-        <audio controls src="${today_visit.voice_note_url}" style="width:100%;height:36px;border-radius:6px;"></audio>
-      </div>` : ''}
-      <a href="tel:6473828047" style="display:flex;align-items:center;justify-content:center;gap:10px;padding:13px;background:var(--accent);border-radius:12px;text-decoration:none;margin-bottom:16px;">
-        <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.39 2 2 0 0 1 3.6 1.22h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L7.91 8.96a16 16 0 0 0 6 6l.96-.96a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-        <span style="color:#fff;font-size:13px;font-weight:600;font-family:'Inter',sans-serif;">Call Coordinator — 647-382-8047</span>
-      </a>
-      ${(portalData.upcoming_bookings||[]).length ? `<div class="section"><div class="section-title">Upcoming Visits</div><div class="card">${(portalData.upcoming_bookings||[]).slice(0,3).map(b => {
-        const bd = new Date((b.scheduled_date||'')+'T12:00:00');
-        const dow = bd.toLocaleDateString('en-CA',{weekday:'short'});
-        const num = bd.getDate();
-        const mon = bd.toLocaleDateString('en-CA',{month:'short'});
-        const time = b.scheduled_time?b.scheduled_time.slice(0,5):'';
-        return '<div class="upcoming-row"><div class="upcoming-date"><div class="upcoming-date-dow">'+dow+'</div><div class="upcoming-date-num">'+num+'</div></div><div class="upcoming-info"><div class="upcoming-psw">'+(b.assigned_to||psw.name)+'</div><div class="upcoming-time">'+mon+' '+num+(time?' · '+time:'')+'</div></div><div class="upcoming-badge">Scheduled</div></div>';
-      }).join('')}</div></div>` : ''}
+
       <div class="section">
-        <div class="section-title">Your Care Team</div>
-        ${(() => {
-          const cutoff = new Date(); cutoff.setDate(cutoff.getDate() - 30);
-          const recentNames = new Set();
-          (visits || []).forEach(v => { if (v.psw_name && new Date(v.visit_date) >= cutoff) recentNames.add(v.psw_name); });
-          if (psw && psw.name) recentNames.add(psw.name);
-          const teamNames = [...recentNames];
-          if (!teamNames.length) teamNames.push(psw.name || 'Your PSW');
-          return teamNames.map(name => {
-            const isAssigned = psw && psw.name === name;
-            const initials = name.split(' ').map(w=>w[0]||'').join('').toUpperCase().slice(0,2);
-            return '<div class="psw-card" onclick="showPSWProfile(\'' + name + '\',\'' + initials + '\')" style="cursor:pointer;">'
-              + '<div class="psw-avatar">' + initials + '</div>'
-              + '<div class="psw-info">'
-              + '<div class="psw-name">' + name + '</div>'
-              + '<div class="psw-title">' + (isAssigned ? (psw.title || 'Personal Support Worker') : 'Personal Support Worker') + '</div>'
-              + (isAssigned && client.schedule ? '<div class="psw-schedule">' + client.schedule + '</div>' : '')
-              + '</div>'
-              + '<div style="margin-left:auto;color:var(--muted);display:flex;align-items:center;gap:8px;">'
-              + (isAssigned && psw.email ? '<a href="mailto:' + psw.email + '" onclick="event.stopPropagation()" style="display:flex;align-items:center;padding:4px 8px;border:1px solid var(--border);border-radius:6px;color:var(--accent);text-decoration:none;" title="Email your PSW"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\" width=\"14\" height=\"14\"><path d=\"M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z\"/><polyline points=\"22,6 12,13 2,6\"/></svg></a>' : '')
-              + '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><polyline points="9 18 15 12 9 6"/></svg>'
-              + '</div>'
-              + '</div>';
-          }).join('');
-        })()}
+        <div class="section-title">Your Caregiver</div>
+        <div class="psw-card">
+          <div class="psw-avatar">${(psw.name || 'C').charAt(0)}</div>
+          <div class="psw-info">
+            <div class="psw-name">${psw.name}</div>
+            <div class="psw-title">${psw.title}</div>
+            <div class="psw-schedule">${client.schedule || ''}</div>
+          </div>
+        </div>
       </div>
+
       <div class="section">
         <div class="section-title">Recent Visits</div>
         <div class="card">
-          ${(visits || []).slice(0, 3).map(v => visitRow(v)).join('') || emptyState(
-            '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="5" width="16" height="16" rx="2"/><path d="M8 3v4M16 3v4M4 11h16"/></svg>',
-            'No visits yet',
-            'Visits will appear here after your first care session.'
-          )}
+          ${(visits || []).slice(0, 3).map(v => visitRow(v)).join('') || '<div class="empty">No visits yet</div>'}
         </div>
       </div>
+
       <div class="section">
-        <div class="section-title">Message Your Coordinator</div>
-        <div class="msg-thread-wrap">
-          <div class="msg-thread-body" id="home-msg-thread"></div>
-          <div class="msg-input-row">
-            <textarea class="msg-input-field" id="msgTa" placeholder="Message your coordinator..." rows="1" maxlength="500" oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,80)+'px';updateCharCount(this);"></textarea>
-            <button class="msg-send-btn" onclick="sendMsg()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></button>
-          </div>
-          <div class="msg-char-count" id="msgCharCount" style="display:none;">0 / 500</div>
+        <div class="section-title">Send a Message</div>
+        <div class="msg-card">
+          <div class="msg-label">Message Lance directly</div>
+          <textarea class="msg-ta" id="msgTa" placeholder="Type your message here..."></textarea>
+          <button class="msg-btn" onclick="sendMsg()">Send Message</button>
+          <div class="msg-sent" id="msgSent">✓ Message sent. Lance will reply shortly.</div>
         </div>
       </div>`;
   }
 
   else if (tab === 'visits') {
     const { visits } = portalData;
-    const all = visits || [];
-    const range = getFamDateRange();
-    // Filter by selected range
-    const filtered = all.filter(v => v.visit_date && v.visit_date >= range.from && v.visit_date <= range.to);
-    const shown = filtered.slice(0, 8);
-    const rest = filtered.slice(8);
-
-    // Filter chips HTML
-    const chips = ['today','week','month','lastmonth','year','custom'].map(r => {
-      const labels = {today:'Today',week:'This Week',month:'This Month',lastmonth:'Last Month',year:'This Year',custom:'Custom'};
-      const active = r === famVisitRange;
-      return `<button onclick="setFamRange('${r}')" style="font-family:'Inter',sans-serif;font-size:11px;font-weight:${active?'600':'400'};padding:6px 12px;border-radius:20px;border:1.5px solid ${active?'var(--accent)':'var(--border)'};color:${active?'var(--accent)':'var(--muted)'};background:${active?'rgba(61,138,122,.08)':'transparent'};cursor:pointer;white-space:nowrap;">${labels[r]}</button>`;
-    }).join('');
-    const customInputs = famVisitRange === 'custom' ? `
-      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:8px;">
-        <input type="date" id="fam-custom-from" value="${famCustomFrom}" style="font-size:13px;padding:6px 10px;border-radius:8px;border:1px solid var(--border);color:var(--text);font-family:'Inter',sans-serif;">
-        <span style="font-size:12px;color:var(--muted);">to</span>
-        <input type="date" id="fam-custom-to" value="${famCustomTo}" style="font-size:13px;padding:6px 10px;border-radius:8px;border:1px solid var(--border);color:var(--text);font-family:'Inter',sans-serif;">
-        <button onclick="applyFamCustomRange()" style="font-size:12px;font-weight:600;padding:6px 14px;border-radius:8px;border:none;background:var(--accent);color:#fff;cursor:pointer;font-family:'Inter',sans-serif;">Apply</button>
-      </div>` : '';
-
-    // PSW panel — who visited in this range
-    const pswMap = {};
-    filtered.forEach(v => {
-      const n = v.psw_name || 'PSW';
-      if (!pswMap[n]) pswMap[n] = { visits: [], days: new Set() };
-      pswMap[n].visits.push(v);
-      if (v.visit_date) pswMap[n].days.add(v.visit_date);
-    });
-    const pswPanel = Object.keys(pswMap).length ? `
+    c.innerHTML = `
       <div class="section">
-        <div class="section-title">Care Team — ${range.label}</div>
-        <div class="card" style="overflow:hidden;">
-          ${Object.entries(pswMap).map(([name, s]) => {
-            const ini = name.split(' ').map(w=>w[0]||'').join('').toUpperCase().slice(0,2);
-            const lastV = s.visits[0];
-            const lastIn = lastV && lastV.time_in ? fmtTime(lastV.time_in) : '';
-            const lastDate = lastV ? fmtDate(lastV.visit_date) : '';
-            const totalHrs = s.visits.reduce((sum,v) => sum + parseFloat(v.hours_worked||0), 0).toFixed(1);
-            return `<div style="display:flex;align-items:center;gap:12px;padding:14px 20px;border-bottom:1px solid var(--border);">
-              <div style="width:38px;height:38px;border-radius:50%;background:var(--green-l);border:1.5px solid var(--green-b);display:flex;align-items:center;justify-content:center;font-weight:600;font-size:13px;color:var(--green);flex-shrink:0;">${ini}</div>
-              <div style="flex:1;min-width:0;">
-                <div style="font-size:14px;font-weight:600;color:var(--text);">${name}</div>
-                <div style="font-size:12px;color:var(--muted);margin-top:2px;">${s.visits.length} visit${s.visits.length!==1?'s':''} · ${s.days.size} day${s.days.size!==1?'s':''} · ${totalHrs}h total</div>
-                ${lastDate ? '<div style="font-size:11px;color:var(--muted);margin-top:1px;">Last visit ' + lastDate + (lastIn ? ' at ' + lastIn : '') + '</div>' : ''}
-              </div>
-            </div>`;
-          }).join('')}
-        </div>
-      </div>` : '';
-
-    // Mood trend chart
-    const moodMap = {'Great':5,'Good':4,'Neutral':3,'Low':2,'Agitated':1};
-    const moodData = all.filter(v => v.client_mood && moodMap[v.client_mood]).slice(0,20).reverse();
-    const moodChart = moodData.length >= 3 ? (() => {
-      const W = 300, H = 56, pad = 8;
-      const vals = moodData.map(v => moodMap[v.client_mood]);
-      const pts = vals.map((v,i) => {
-        const x = pad + (i/(vals.length-1))*(W-pad*2);
-        const y = H - pad - ((v-1)/4)*(H-pad*2);
-        return `${x.toFixed(1)},${y.toFixed(1)}`;
-      });
-      const lastVal = vals[vals.length-1];
-      const lastColor = lastVal>=4?'#3aaa8a':lastVal===3?'#c8a96e':'#e05555';
-      const lastMood = moodData[moodData.length-1].client_mood;
-      return `<div class="section"><div class="section-title">Wellbeing Trend — Last ${moodData.length} Visits</div><div class="card" style="padding:16px;">
-        <div style="display:flex;justify-content:space-between;margin-bottom:8px;"><span style="font-size:12px;color:var(--muted);">${fmtDate(moodData[0].visit_date)}</span><span style="font-size:13px;font-weight:600;color:${lastColor};">Most recent: ${lastMood}</span></div>
-        <svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;">
-          <polyline points="${pts.join(' ')}" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
-          ${pts.map((pt,i)=>`<circle cx="${pt.split(',')[0]}" cy="${pt.split(',')[1]}" r="3" fill="${vals[i]>=4?'#3aaa8a':vals[i]===3?'#c8a96e':'#e05555'}"/>`).join('')}
-        </svg>
-        <div style="display:flex;justify-content:space-between;margin-top:4px;font-size:10px;color:var(--muted);"><span>Low</span><span>Neutral</span><span>Great</span></div>
-      </div></div>`;
-    })() : '';
-
-    // Photo gallery
-    const allPhotos = all.flatMap(v => Array.isArray(v.task_photos)?v.task_photos.map(url=>({url,date:v.visit_date})):[]);
-    const photoGallery = allPhotos.length ? `<div class="section"><div class="section-title">Visit Photos</div><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:3px;border-radius:12px;overflow:hidden;">${allPhotos.slice(0,9).map(p=>`<a href="${p.url}" target="_blank" style="display:block;aspect-ratio:1;overflow:hidden;"><img src="${p.url}" alt="Visit photo" style="width:100%;height:100%;object-fit:cover;" loading="lazy"></a>`).join('')}</div>${allPhotos.length>9?`<div style="text-align:center;padding:8px;font-size:12px;color:var(--muted);">${allPhotos.length-9} more photos</div>`:''}</div>` : '';
-
-    html = `<div class="section" style="padding-bottom:0;">
-        <div style="display:flex;gap:6px;flex-wrap:wrap;padding:4px 0 12px;">${chips}</div>
-        ${customInputs}
-      </div>` + pswPanel + moodChart + photoGallery + `
-      <div class="section">
-        <div class="section-title">Visits — ${range.label}</div>
+        <div class="section-title">All Visits</div>
         <div class="card">
-          ${filtered.length > 0
-            ? shown.map(v => visitRow(v)).join('') +
-              (rest.length > 0
-                ? '<div id="visits-hidden" style="display:none;">' + rest.map(v => visitRow(v)).join('') + '</div>' +
-                  '<div style="padding:14px 20px;text-align:center;border-top:1px solid var(--border);">' +
-                  '<button onclick="var h=document.getElementById(\'visits-hidden\');if(h)h.style.display=\'block\';this.parentElement.style.display=\'none\';" style="background:none;border:none;color:var(--accent);font-size:13px;font-weight:500;cursor:pointer;font-family:Inter,sans-serif;">Show all ' + filtered.length + ' visits</button>' +
-                  '</div>'
-                : '')
-            : emptyState(
-                '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="5" width="16" height="16" rx="2"/><path d="M8 3v4M16 3v4M4 11h16M9 15h2M9 18h6"/></svg>',
-                'No visits in this period',
-                'Try a different date range to see visit history.'
-              )}
-        </div>
-      </div>
-      <div class="section">
-        <div class="section-title">Leave Feedback on a Visit</div>
-        <div class="card" style="padding:16px;">
-          <p style="font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:14px;">Share private feedback about any visit or caregiver. Only your coordinator sees this — it helps us maintain quality care.</p>
-
-          <div style="margin-bottom:12px;">
-            <div style="font-size:11px;font-weight:600;color:var(--text-secondary);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px;font-size:10px;">Which caregiver?</div>
-            <select id="feedback-psw-select" style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 12px;font-size:14px;color:var(--text);font-family:'Inter',sans-serif;outline:none;-webkit-appearance:none;">
-              <option value="">Select caregiver...</option>
-              ${(() => {
-                const visits = portalData?.visits || [];
-                const names = [...new Set(visits.map(v => v.psw_name).filter(Boolean))];
-                return names.map(n => `<option value="${n}">${n}</option>`).join('');
-              })()}
-            </select>
-          </div>
-
-          <div style="margin-bottom:12px;">
-            <div style="font-size:10px;font-weight:600;color:var(--text-secondary);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.5px;">Performance Rating</div>
-            <div style="display:flex;gap:8px;" id="perf-stars">
-              ${[1,2,3,4,5].map(n => `<button onclick="setPerfRating(${n})" data-rating="${n}" style="font-size:24px;background:none;border:none;cursor:pointer;padding:2px;touch-action:manipulation;line-height:1;">☆</button>`).join('')}
-            </div>
-          </div>
-
-          <div style="margin-bottom:12px;">
-            <div style="font-size:10px;font-weight:600;color:var(--text-secondary);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px;">Your Notes</div>
-            <textarea id="private-note-input" placeholder="e.g. Carolina was wonderful today, Mom seemed much happier. Or: the timing felt rushed..." rows="3" style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px;font-size:14px;color:var(--text);resize:none;font-family:'Inter',sans-serif;line-height:1.5;outline:none;box-sizing:border-box;" maxlength="600" oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,120)+'px';updateNoteCount(this)"></textarea>
-          </div>
-
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-top:4px;">
-            <span style="font-size:11px;color:var(--muted);" id="note-char-count">0 / 600</span>
-            <button onclick="submitPrivateNote()" style="background:var(--accent);color:#fff;border:none;border-radius:10px;padding:10px 20px;font-size:13px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;touch-action:manipulation;">Send to Coordinator</button>
-          </div>
-          <div id="note-success" style="display:none;margin-top:10px;padding:10px 14px;background:rgba(58,170,138,0.1);border:1px solid rgba(58,170,138,0.25);border-radius:8px;font-size:13px;color:#3aaa8a;">✓ Sent privately to your coordinator.</div>
+          ${(visits || []).length > 0
+            ? visits.map(v => visitRow(v)).join('')
+            : '<div class="empty">No visits logged yet</div>'}
         </div>
       </div>`;
   }
 
   else if (tab === 'care') {
-    const { client, psw } = portalData;
-    html = `
+    const { client } = portalData;
+    c.innerHTML = `
       <div class="section">
         <div class="section-title">Care Plan</div>
         <div class="card">
-          <div class="plan-text">${client.care_plan || '<span style="color:var(--muted);">Care plan not set yet. Lance will update this shortly.</span>'}</div>
+          <div class="plan-text">${client.care_plan || 'Care plan not set yet. Lance will update this shortly.'}</div>
         </div>
       </div>
       <div class="section">
-        <div class="section-title">Upcoming Schedule</div>
+        <div class="section-title">Schedule</div>
         <div class="card">
-          ${(() => {
-            const upcoming = (portalData.upcoming_bookings||[]).slice(0,7);
-            if (!upcoming.length) {
-              return `<div class="card-row"><span class="card-row-label">Caregiver</span><span class="card-row-value green">${psw.name}</span></div>
-              <div class="card-row"><span class="card-row-label">Schedule</span><span class="card-row-value">${client.schedule||'On file'}</span></div>
-              <div class="card-row"><span class="card-row-label">Since</span><span class="card-row-value">${client.start_date ? fmtDate(client.start_date) : 'On file'}</span></div>`;
-            }
-            return upcoming.map(b => {
-              const bd = new Date((b.scheduled_date||'') + 'T12:00:00');
-              const dow = bd.toLocaleDateString('en-CA',{weekday:'short'});
-              const num = bd.getDate();
-              const mon = bd.toLocaleDateString('en-CA',{month:'short'});
-              const time = b.scheduled_time ? b.scheduled_time.slice(0,5) : '';
-              const dur = b.duration_minutes ? (b.duration_minutes/60)+'h' : '';
-              return `<div class="upcoming-row">
-                <div class="upcoming-date"><div class="upcoming-date-dow">${dow}</div><div class="upcoming-date-num">${num}</div></div>
-                <div class="upcoming-info">
-                  <div class="upcoming-psw">${b.assigned_to || psw.name}</div>
-                  <div class="upcoming-time">${mon} ${num}${time?' · '+time:''}${dur?' · '+dur:''}</div>
-                </div>
-                <div class="upcoming-badge">Scheduled</div>
-              </div>`;
-            }).join('');
-          })()}
+          <div class="card-row"><span class="card-row-label">Days</span><span class="card-row-value">Monday to Friday</span></div>
+          <div class="card-row"><span class="card-row-label">Hours</span><span class="card-row-value">9:00 AM to 5:00 PM</span></div>
+          <div class="card-row"><span class="card-row-label">Caregiver</span><span class="card-row-value green">Carolina Hermida</span></div>
+          <div class="card-row"><span class="card-row-label">Since</span><span class="card-row-value">${client.start_date ? fmtDate(client.start_date) : 'On file'}</span></div>
         </div>
       </div>
       <div class="section">
@@ -1127,7 +400,7 @@ function showTab(tab) {
 
   else if (tab === 'docs') {
     const { documents, psw } = portalData;
-    html = `
+    c.innerHTML = `
       <div class="section">
         <div class="section-title">${psw.name} — Documents</div>
         <div class="card">
@@ -1139,44 +412,16 @@ function showTab(tab) {
                   <div class="doc-name">${d.file_name || d.document_type}</div>
                   <div class="doc-type">${d.document_type || 'Document'}</div>
                 </div>
-                <div class="doc-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></div>
+                <div class="doc-arrow">→</div>
               </a>`).join('')
-            : emptyState(
-                '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h6"/></svg>',
-                'No documents yet',
-                'Caregiver credentials and certifications will appear here once uploaded.'
-              )}
-        </div>
-      </div>`;
-  }
-
-  else if (tab === 'ask') {
-    const clientName = portalData.client?.first_name || 'your loved one';
-    const recentVisit = (portalData.visits||[])[0];
-    const visitCtx = recentVisit
-      ? `Last visit ${recentVisit.visit_date} with ${recentVisit.psw_name||'PSW'}. Mood: ${recentVisit.client_mood||'not recorded'}. Summary: ${(recentVisit.visit_summary||'').slice(0,200)}. Tasks: ${Array.isArray(recentVisit.tasks_completed)?recentVisit.tasks_completed.join(', '):'not listed'}.`
-      : 'No recent visits on file.';
-    window._askCtx = { visitCtx, clientName, phone: portalData.branding?.owner_phone || '647-382-8047' };
-    html = `
-      <div class="section">
-        <div class="section-title">Ask About Care</div>
-        <p style="font-size:13px;color:var(--muted);line-height:1.6;margin:0 0 16px;">Ask anything about recent visits, how ${clientName} is doing, or what the care team has been working on.</p>
-        <div id="ask-msgs" style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px;"></div>
-        <div style="display:flex;gap:8px;align-items:flex-end;">
-          <textarea id="ask-input" placeholder='e.g. "Did she eat today?" or "How has her mood been?"' rows="2" style="flex:1;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px;font-size:14px;color:var(--text);resize:none;font-family:'Inter',sans-serif;line-height:1.5;outline:none;box-sizing:border-box;" maxlength="300"></textarea>
-          <button onclick="sendAskMessage()" style="background:var(--accent);color:#fff;border:none;border-radius:10px;padding:12px 16px;font-size:14px;cursor:pointer;touch-action:manipulation;flex-shrink:0;">Ask</button>
-        </div>
-        <div style="margin-top:12px;display:flex;flex-wrap:wrap;gap:6px;">
-          ${['Did she eat today?','How was her mood?','What did the caregiver do?','Any concerns this week?'].map(q =>
-            `<button onclick="document.getElementById('ask-input').value='${q}'" style="background:var(--surface);border:1px solid var(--border);border-radius:100px;padding:6px 12px;font-size:12px;color:var(--muted);cursor:pointer;font-family:'Inter',sans-serif;touch-action:manipulation;">${q}</button>`
-          ).join('')}
+            : '<div class="empty">Documents will appear here once uploaded by Lance.</div>'}
         </div>
       </div>`;
   }
 
   else if (tab === 'billing') {
     const { invoices } = portalData;
-    html = `
+    c.innerHTML = `
       <div class="section">
         <div class="section-title">Invoice History</div>
         <div class="card">
@@ -1192,11 +437,7 @@ function showTab(tab) {
                   <div class="inv-status">${inv.status === 'sent' ? 'Invoice sent' : inv.status}</div>
                 </div>
               </div>`).join('')
-            : emptyState(
-                '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18"/><path d="M7 15h3"/></svg>',
-                'No invoices yet',
-                'Your first invoice will arrive at the end of the month.'
-              )}
+            : '<div class="empty">No invoices yet. First invoice arrives end of month.</div>'}
         </div>
       </div>
       <div class="section">
@@ -1208,465 +449,57 @@ function showTab(tab) {
         </div>
       </div>`;
   }
-
-  c.innerHTML = html;
-  requestAnimationFrame(() => { c.style.opacity = '1'; });
 }
 
-// ── HELPERS ──
-// AI CHAT — Ask about visits
-async function sendAskMessage() {
-  const input = document.getElementById('ask-input');
-  const msgs = document.getElementById('ask-msgs');
-  if (!input || !msgs) return;
-  const q = input.value.trim();
-  if (!q) return;
-  input.value = '';
-
-  // User bubble
-  msgs.innerHTML += `<div style="align-self:flex-end;background:var(--accent);color:#fff;border-radius:14px 14px 4px 14px;padding:10px 14px;max-width:80%;font-size:14px;line-height:1.5;">${q}</div>`;
-  const thinking = document.createElement('div');
-  thinking.style.cssText = 'align-self:flex-start;background:var(--surface);border:1px solid var(--border);border-radius:14px 14px 14px 4px;padding:10px 14px;max-width:80%;font-size:14px;color:var(--muted);';
-  thinking.textContent = 'Checking visit notes…';
-  msgs.appendChild(thinking);
-  msgs.scrollTop = msgs.scrollHeight;
-
-  const ctx = window._askCtx || {};
-  const systemPrompt = `You are a helpful care assistant for a home care agency. A family member is asking about their loved one's care. Answer warmly and concisely based only on the visit information provided. If you don't have information to answer the question, say so honestly and suggest they contact their coordinator at ${ctx.phone||'647-382-8047'}. Never make up information.`;
-  const userMsg = `Visit context: ${ctx.visitCtx||'No visits on file.'}\n\nFamily question: ${q}`;
-
-  try {
-    const res = await fetch(`${R}/family/chat`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        slug,
-        question: q,
-        visit_context: ctx.visitCtx || '',
-        coordinator_phone: ctx.phone || '647-382-8047'
-      })
-    });
-    const d = await res.json();
-    const reply = d.reply || 'I wasn\'t able to retrieve that information right now. Please contact your coordinator directly.';
-    thinking.style.color = 'var(--text)';
-    thinking.textContent = reply;
-  } catch {
-    thinking.style.color = 'var(--muted)';
-    thinking.textContent = `I'm having trouble connecting right now. Please call your coordinator at ${ctx.phone||'647-382-8047'}.`;
-  }
-  msgs.scrollTop = msgs.scrollHeight;
-}
-
-function emptyState(iconSvg, title, sub) {
-  return `<div class="empty-state"><div class="empty-state-icon">${iconSvg}</div><div class="empty-state-title">${title}</div><div class="empty-state-sub">${sub}</div></div>`;
-}
-
-function updateCharCount(ta) {
-  const el = document.getElementById('msgCharCount');
-  if (!el) return;
-  const len = (ta.value || '').length;
-  el.style.display = len > 0 ? 'block' : 'none';
-  el.textContent = `${len} / 500`;
-  el.className = 'msg-char-count' + (len > 450 ? ' near' : '') + (len >= 500 ? ' over' : '');
-}
-
+// HELPERS
 function visitRow(v) {
   const d = new Date((v.visit_date || '') + 'T12:00:00');
   const day = d.toLocaleDateString('en-CA', { weekday: 'short' });
   const num = d.getDate();
   const hrs = parseFloat(v.hours_worked || 0).toFixed(1);
-  const tin = v.time_in ? fmtTime(v.time_in) : '';
-  const tout = v.time_out ? fmtTime(v.time_out) : '';
-  const fallbackPSW = (portalData && portalData.psw && portalData.psw.name) ? portalData.psw.name : 'PSW';
-  const rated = v.satisfaction_rating;
-  const summary = v.visit_summary || '';
-  const tasks = Array.isArray(v.tasks_completed) ? v.tasks_completed.join(', ') : (v.tasks_completed || '');
-  const mood = v.client_mood || '';
-  const vid = 'vd_' + (v.id || Math.random().toString(36).slice(2));
-
-  const starsHtml = rated
-    ? `<div class="visit-stars rated">${'★'.repeat(rated)}${'☆'.repeat(5 - rated)}<span class="stars-label">Rated ${rated}/5</span></div>`
-    : `<div class="visit-stars unrated">${[1,2,3,4,5].map(s =>
-        `<button class="star-btn" onclick="rateVisit('${v.id}','${(clientSlug||'')}',${s},this)" aria-label="${s} star">☆</button>`
-      ).join('')}<span class="stars-label">Rate this visit</span></div>`;
-
-  const hasDetail = summary || tasks || mood || v.notes;
-  const detailHtml = hasDetail ? `
-    <div id="${vid}" style="display:none;">
-      <div class="visit-detail">
-        ${summary ? `<div class="visit-detail-lbl">Care Summary</div><div class="visit-detail-val">${summary}</div>` : ''}
-        ${mood ? `<div class="visit-detail-lbl">Client Mood</div><div class="visit-detail-val">${mood}</div>` : ''}
-        ${tasks ? `<div class="visit-detail-lbl">Tasks Completed</div><div class="visit-detail-val">${tasks}</div>` : ''}
-        ${v.notes ? `<div class="visit-detail-lbl">Notes</div><div class="visit-detail-val">${v.notes}</div>` : ''}
-        ${v.incident_reported ? `<div class="visit-detail-lbl" style="color:var(--error);">Incident Reported</div><div class="visit-detail-val" style="color:var(--error);">An incident was reported during this visit. Your coordinator has been notified.</div>` : ''}
-        ${v.meds_given && Array.isArray(v.meds_given) && v.meds_given.length ? `<div class="visit-detail-lbl">Medications Given</div><div class="visit-detail-val">${v.meds_given.join(', ')}</div>` : ''}
-        ${(window._visitVitals && window._visitVitals[v.id]) ? `<div class="visit-detail-lbl">Health Readings</div><div class="vitals-compact">${formatVitalsCompact(window._visitVitals[v.id])}</div>` : ''}
-        ${starsHtml}
-      </div>
-    </div>` : '';
-
-  return `<div class="visit-row" ${hasDetail ? `onclick="toggleVisitDetail('${vid}',this)" style="cursor:pointer;"` : ''}>
+  const tin = v.time_in ? String(v.time_in).slice(0,5) : '';
+  const tout = v.time_out ? String(v.time_out).slice(0,5) : '';
+  return `<div class="visit-row">
     <div class="visit-date-box">
       <div class="visit-date-day">${day}</div>
       <div class="visit-date-num">${num}</div>
     </div>
-    <div class="visit-info" style="flex:1;min-width:0;">
-      <div class="visit-psw">${v.psw_name || fallbackPSW}</div>
-      <div class="visit-time">${tin}${tout ? ' \u2013 ' + tout : ''}</div>
-      ${!hasDetail ? starsHtml : '<div class="visit-expand-btn">View details \u203a</div>'}
+    <div class="visit-info">
+      <div class="visit-psw">${v.psw_name || 'Carolina'}</div>
+      <div class="visit-time">${tin}${tout ? ' – ' + tout : ''}</div>
     </div>
     <div class="visit-hours">${hrs} hrs</div>
-  </div>${detailHtml}`;
-}
-
-function toggleVisitDetail(id, row) {
-  const el = document.getElementById(id);
-  if (!el) return;
-  const open = el.style.display !== 'none';
-  el.style.display = open ? 'none' : 'block';
-  const btn = row.querySelector('.visit-expand-btn');
-  if (btn) btn.textContent = open ? 'View details \u203a' : 'Hide details \u02c4';
-}
-
-async function rateVisit(visitId, slug, rating, btn) {
-  const row = btn.closest('.visit-stars');
-  if (!row) return;
-  const btns = row.querySelectorAll('.star-btn');
-  btns.forEach((b, i) => { b.textContent = i < rating ? '★' : '☆'; b.disabled = true; });
-  try {
-    const res = await fetch(`${R}/family/rate-visit`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ slug: (slug||clientSlug||''), visit_id: visitId, rating })
-    });
-    const d = await res.json();
-    if (!d.success) throw new Error(d.error || 'Rating failed');
-    row.innerHTML = `${'★'.repeat(rating)}${'☆'.repeat(5-rating)} <span class="stars-label">Rated ${rating}/5 — thank you</span>`;
-    row.classList.replace('unrated','rated');
-  } catch(e) {
-    btns.forEach(b => { b.textContent = '☆'; b.disabled = false; });
-    alert('Could not save rating. Please try again.');
-  }
+  </div>`;
 }
 
 function docIcon(type) {
   const t = (type || '').toLowerCase();
-  if (t.includes('resume') || t.includes('cv')) {
-    return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h4"/></svg>';
-  }
-  if (t.includes('cpr') || t.includes('cert')) {
-    return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L4 6v6c0 5 3.5 9 8 10 4.5-1 8-5 8-10V6l-8-4z"/><path d="M9 12l2 2 4-4"/></svg>';
-  }
-  if (t.includes('photo') || t.includes('id')) {
-    return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="11" r="2"/><path d="M14 10h4M14 13h3M5 17c1-2 3-3 4-3s3 1 4 3"/></svg>';
-  }
-  return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11l-9 9a5 5 0 0 1-7-7l9-9a3.5 3.5 0 0 1 5 5l-8.5 8.5a2 2 0 0 1-3-3l7-7"/></svg>';
+  if (t.includes('resume') || t.includes('cv')) return '📄';
+  if (t.includes('cpr') || t.includes('cert')) return '🏥';
+  if (t.includes('photo') || t.includes('id')) return '🪪';
+  return '📎';
 }
 
 function fmtDate(d) {
   if (!d) return '';
-  return new Date(d + 'T12:00:00').toLocaleDateString('en-CA', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'America/Toronto' });
-}
-
-// ── MESSAGING ──
-function renderMsgThread(messages) {
-  if (!messages || !messages.length) {
-    return '<div style="text-align:center;padding:24px 16px;font-size:13px;color:var(--muted);">No messages yet. Send us a note below.</div>';
-  }
-  return messages.map(m => {
-    const isOut = m.sender === 'family' || m.sender === 'client';
-    const time = m.created_at ? new Date(m.created_at).toLocaleDateString('en-CA',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit',timeZone:'America/Toronto'}) : '';
-    return `<div class="${isOut ? 'msg-bubble-out' : 'msg-bubble-in'}">
-      <div>${m.message||m.body||''}</div>
-      <div class="msg-bubble-time">${time}</div>
-    </div>`;
-  }).join('');
-}
-
-async function loadFamilyMessages() {
-  try {
-    const res = await fetch(`${R}/family/portal/${slug}`);
-    const d = await res.json();
-    if (d.messages) {
-      const thread = document.getElementById('home-msg-thread');
-      if (thread) {
-        thread.innerHTML = renderMsgThread(d.messages);
-        thread.scrollTop = thread.scrollHeight;
-      }
-    }
-  } catch {}
+  return new Date(d + 'T12:00:00').toLocaleDateString('en-CA', { month: 'short', day: 'numeric', year: 'numeric' });
 }
 
 async function sendMsg() {
   const ta = document.getElementById('msgTa');
   const msg = ta?.value?.trim();
   if (!msg) return;
-  ta.value = ''; ta.style.height = 'auto';
-  const cc = document.getElementById('msgCharCount');
-  if (cc) cc.style.display = 'none';
   try {
-    await fetch(`${R}/family/message`, {
+    await fetch('https://formspree.io/f/xdoqgbqg', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ slug, message: msg })
+      body: JSON.stringify({ message: msg, from: 'Family Portal — ' + slug })
     });
-    await loadFamilyMessages();
   } catch (e) {}
+  ta.value = '';
+  const s = document.getElementById('msgSent');
+  if (s) { s.style.display = 'block'; setTimeout(() => s.style.display = 'none', 3000); }
 }
-
-// Auto-refresh every 60s
-setInterval(async () => {
-  try {
-    if (!slug || !portalData) return;
-    const res = await fetch(`${R}/family/portal/${slug}`);
-    const d = await res.json();
-    if (d.success) {
-      portalData = d;
-      const activeTab = document.querySelector('.nav-btn.on')?.id?.replace('nav-','');
-      if (activeTab) showTab(activeTab);
-      loadFamilyMessages();
-    }
-  } catch {}
-}, 60000);
-
-// ── WEB PUSH NOTIFICATIONS ──
-const VAPID_PUBLIC_KEY = 'BD9E2x87i80k-Yt8Ye09irrQQD3Xlf3EtCUIbbjwlwnYoPS6AHaX2_12rZ-7aKQs13WmXfKMx5A4aUuqr3M8wIk';
-
-function urlBase64ToUint8Array(base64String) {
-  const padding = '='.repeat((4 - base64String.length % 4) % 4);
-  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
-  const raw = atob(base64);
-  return new Uint8Array([...raw].map(c => c.charCodeAt(0)));
-}
-
-async function requestPushPermission() {
-  if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
-  try {
-    const permission = await Notification.requestPermission();
-    if (permission === 'granted') { await subscribeToPush(); }
-  } catch (e) { console.log('Push permission error:', e); }
-}
-
-async function subscribeToPush() {
-  try {
-    const reg = await navigator.serviceWorker.ready;
-    let sub = await reg.pushManager.getSubscription();
-    if (!sub) {
-      sub = await reg.pushManager.subscribe({
-        userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
-      });
-    }
-    await sendSubscriptionToServer(sub);
-  } catch (e) { console.log('Push subscribe error:', e); }
-}
-
-async function sendSubscriptionToServer(subscription) {
-  try {
-    await fetch(`${R}/family/push-subscribe`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ slug, subscription: subscription.toJSON() })
-    });
-  } catch (e) { console.log('Push server save error:', e); }
-}
-
-function renderPushPrompt() {
-  if (!('Notification' in window)) return '';
-  if (localStorage.getItem('push_dismissed_' + slug)) return '';
-  if (Notification.permission === 'granted') return '';
-  return `<div id="push-prompt" style="background:#fffbeb;border:1px solid #fde68a;border-radius:16px;padding:16px 18px;margin-bottom:24px;display:flex;align-items:flex-start;gap:12px;">
-    <div style="flex-shrink:0;color:#d97706;margin-top:1px;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></div>
-    <div style="flex:1;">
-      <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:4px;">Get notified when your caregiver arrives</div>
-      <div style="font-size:12px;color:var(--muted);margin-bottom:12px;line-height:1.5;">Instant alerts when visits start and end.</div>
-      <div style="display:flex;gap:8px;">
-        <button onclick="requestPushPermission();document.getElementById('push-prompt')?.remove();" style="background:var(--green);color:#fff;border:none;border-radius:8px;padding:8px 16px;font-size:12px;font-weight:500;font-family:'Inter',sans-serif;cursor:pointer;">Enable</button>
-        <button onclick="localStorage.setItem('push_dismissed_'+slug,'1');document.getElementById('push-prompt')?.remove();" style="background:none;border:1px solid var(--border);border-radius:8px;padding:8px 14px;font-size:12px;color:var(--muted);font-family:'Inter',sans-serif;cursor:pointer;">Not now</button>
-      </div>
-    </div>
-  </div>`;
-}
-
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/family-sw.js').catch(() => {});
-}
-
-// Build 12+13 — Session restore
-(function() {
-  try {
-    if (!slug) return;
-    const savedPin = sessionStorage.getItem('family_pin_' + slug);
-    if (savedPin) {
-      pinVal = savedPin;
-      document.getElementById('gate').classList.add('hide');
-      document.getElementById('app').classList.add('show');
-      loadPortal();
-      setTimeout(requestPushPermission, 2000);
-    }
-  } catch(e) {}
-})();
-
-
-// ── PSW PROFILE MODAL ──
-function showPSWProfile(name, initials) {
-  const overlay = document.getElementById('psw-modal-overlay');
-  const modal = document.getElementById('psw-modal');
-  const avatarEl = document.getElementById('psw-modal-avatar');
-  const nameEl = document.getElementById('psw-modal-name');
-  const bodyEl = document.getElementById('psw-modal-body');
-  if (!overlay || !modal) return;
-
-  avatarEl.textContent = initials || (name||'').charAt(0).toUpperCase();
-  nameEl.textContent = name;
-
-  const visits = (portalData && portalData.visits) || [];
-  const pswVisits = visits.filter(v => v.psw_name === name);
-  const totalVisits = pswVisits.length;
-  const rated = pswVisits.filter(v => v.satisfaction_rating);
-  const avgRating = rated.length ? (rated.reduce((s,v) => s + v.satisfaction_rating, 0) / rated.length).toFixed(1) : null;
-  const isAssigned = portalData && portalData.psw && portalData.psw.name === name;
-  const recentVisits = pswVisits.slice(0, 5);
-
-  bodyEl.innerHTML = `
-    <div style="display:flex;gap:12px;margin-bottom:20px;">
-      <div style="flex:1;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center;">
-        <div style="font-size:22px;font-weight:700;color:var(--accent);">${totalVisits}</div>
-        <div style="font-size:11px;color:var(--muted);margin-top:2px;">Visits</div>
-      </div>
-      ${avgRating ? `<div style="flex:1;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center;"><div style="font-size:22px;font-weight:700;color:var(--accent);">${avgRating}</div><div style="font-size:11px;color:var(--muted);margin-top:2px;">Avg Rating</div></div>` : ''}
-      ${isAssigned ? `<div style="flex:1;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center;"><div style="font-size:12px;font-weight:700;color:var(--accent);">Primary</div><div style="font-size:11px;color:var(--muted);margin-top:2px;">Assigned PSW</div></div>` : ''}
-    </div>
-    ${recentVisits.length ? `
-    <div style="font-size:11px;font-weight:600;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:10px;">Recent Visits</div>
-    ${recentVisits.map(v => `
-      <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);">
-        <div style="font-size:13px;color:var(--text);">${fmtDate(v.visit_date)}</div>
-        <div style="font-size:12px;color:var(--muted);">${parseFloat(v.hours_worked||0).toFixed(1)}h</div>
-        ${v.satisfaction_rating ? `<div style="color:var(--accent);">${'★'.repeat(v.satisfaction_rating)}${'☆'.repeat(5-v.satisfaction_rating)}</div>` : '<div style="font-size:12px;color:var(--muted);">Not rated</div>'}
-      </div>`).join('')}
-    ` : '<div style="color:var(--muted);font-size:13px;">No visit history yet.</div>'}
-  `;
-
-  overlay.style.display = 'block';
-  modal.style.display = 'block';
-}
-
-function closePSWProfile() {
-  const overlay = document.getElementById('psw-modal-overlay');
-  const modal = document.getElementById('psw-modal');
-  if (overlay) overlay.style.display = 'none';
-  if (modal) modal.style.display = 'none';
-}
-
-// ── CARE PLAN PDF DOWNLOAD ──
-async function downloadCarePlanPDF() {
-  if (!portalData || !clientSlug) return;
-  try {
-    showToast('Generating PDF...');
-    const res = await fetch(`${R}/family/care-plan-pdf/${clientSlug}`);
-    if (!res.ok) throw new Error('Could not generate PDF');
-    const blob = await res.blob();
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `care-plan-${clientSlug}.pdf`;
-    a.click();
-    URL.revokeObjectURL(url);
-  } catch(e) {
-    showToast('PDF not available yet', 'err');
-  }
-}
-
-
-// ── PRIVATE NOTE ──
-function updateNoteCount(el) {
-  const count = el.value.length;
-  const countEl = document.getElementById('note-char-count');
-  if (countEl) { countEl.textContent = count + ' / 600'; countEl.style.color = count > 550 ? 'var(--error)' : 'var(--muted)'; }
-}
-
-let _perfRating = 0;
-
-function setPerfRating(n) {
-  _perfRating = n;
-  const stars = document.querySelectorAll('#perf-stars button');
-  stars.forEach((btn, i) => { btn.textContent = i < n ? '★' : '☆'; });
-}
-
-async function submitPrivateNote(visitDate, pswName) {
-  const input = document.getElementById('private-note-input');
-  const successEl = document.getElementById('note-success');
-  if (!input || !input.value.trim()) return;
-  const note = input.value.trim();
-
-  // Get PSW from dropdown if present
-  const pswSelect = document.getElementById('feedback-psw-select');
-  const selectedPSW = pswSelect ? pswSelect.value : (pswName || '');
-  const rating = _perfRating > 0 ? `[Rating: ${_perfRating}/5] ` : '';
-  const pswTag = selectedPSW ? `[Re: ${selectedPSW}] ` : (visitDate && pswName ? `[Re: ${pswName} on ${visitDate}] ` : '');
-  const contextNote = `${pswTag}${rating}${note}`;
-
-  try {
-    const res = await fetch(`${R}/family/private-note`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ slug: clientSlug || slug, pin: pinVal, note: contextNote })
-    });
-    const d = await res.json();
-    if (!d.success) throw new Error(d.error || 'Failed');
-    input.value = '';
-    if (pswSelect) pswSelect.value = '';
-    _perfRating = 0;
-    document.querySelectorAll('#perf-stars button').forEach(b => b.textContent = '☆');
-    const countEl = document.getElementById('note-char-count');
-    if (countEl) countEl.textContent = '0 / 600';
-    if (successEl) { successEl.style.display = 'block'; setTimeout(() => { if(successEl) successEl.style.display = 'none'; }, 5000); }
-  } catch(e) {
-    alert('Could not send note. Please try again.');
-  }
-}
-
-
-function scrollToNoteWithContext(visitDate, pswName) {
-  const input = document.getElementById('private-note-input');
-  if (!input) { showTab('visits'); setTimeout(() => scrollToNoteWithContext(visitDate, pswName), 200); return; }
-  // Pre-fill with context
-  if (visitDate || pswName) {
-    const ctx = pswName ? `Re: ${pswName}${visitDate ? ' on ' + visitDate : ''} — ` : '';
-    if (!input.value) { input.value = ctx; input.selectionStart = input.selectionEnd = ctx.length; }
-  }
-  input.scrollIntoView({ behavior: 'smooth', block: 'center' });
-  input.focus();
-}
-
-
-function fmtTime(str) {
-  if (!str) return '';
-  if (str.includes('T') || str.includes('Z') || str.includes('+')) {
-    return new Date(str).toLocaleTimeString('en-CA',{hour:'2-digit',minute:'2-digit',timeZone:'America/Toronto'});
-  }
-  const [h,m] = str.split(':');
-  const d = new Date(); d.setUTCHours(parseInt(h), parseInt(m), 0, 0);
-  return d.toLocaleTimeString('en-CA',{hour:'2-digit',minute:'2-digit',timeZone:'America/Toronto'});
-}
-
 </script>
-
-<!-- PSW PROFILE MODAL -->
-<div id="psw-modal-overlay" onclick="closePSWProfile()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:400;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);"></div>
-<div id="psw-modal" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:401;background:var(--bg);border-radius:20px 20px 0 0;padding:24px 24px calc(24px + env(safe-area-inset-bottom));max-height:75vh;overflow-y:auto;box-shadow:0 -4px 24px rgba(0,0,0,0.1);">
-  <div style="width:36px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 20px;"></div>
-  <div style="display:flex;align-items:center;gap:16px;margin-bottom:20px;">
-    <div class="psw-avatar" id="psw-modal-avatar" style="width:56px;height:56px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:600;color:#fff;flex-shrink:0;">C</div>
-    <div>
-      <div style="font-size:17px;font-weight:600;color:var(--text);" id="psw-modal-name">—</div>
-      <div style="font-size:13px;color:var(--muted);">Personal Support Worker</div>
-    </div>
-  </div>
-  <div id="psw-modal-body"></div>
-  <button onclick="closePSWProfile()" style="width:100%;margin-top:20px;padding:14px;background:var(--surface);border:1px solid var(--border);border-radius:12px;font-size:14px;font-weight:500;color:var(--text);cursor:pointer;">Close</button>
-</div>
-
 </body>
 </html>
