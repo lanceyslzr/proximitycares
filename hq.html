@@ -1467,6 +1467,7 @@ button:active{transform:scale(0.98);}
       <div class="sect-action" onclick="openImportBookings()" style="color:var(--teal3);border-color:rgba(125,202,189,.3);">↑ Import CSV</div>
       <div class="sect-action" onclick="openSwapSheet()" style="color:var(--purple2);border-color:rgba(160,96,224,.3);">⇄ Swap</div>
       <div class="sect-action" id="map-toggle-btn" onclick="toggleLiveMap()" style="color:var(--teal2);border-color:rgba(61,138,122,.3);">⬤ Live Map</div>
+      <div class="sect-action" id="resource-toggle-btn" onclick="toggleResourceView()" style="color:var(--gold);border-color:rgba(201,169,110,.3);">⊞ Resource</div>
       <div class="sect-action" onclick="renderSchedule()">↻</div>
     </div>
   </div>
@@ -1480,6 +1481,7 @@ button:active{transform:scale(0.98);}
     <div id="map-legend" style="margin-top:8px;display:flex;gap:12px;flex-wrap:wrap;"></div>
   </div>
   <div id="schedule-board"></div>
+<div id="resource-board" style="display:none;"></div>
 </div>
 
 <div class="section" id="sect-revenue">
@@ -1732,7 +1734,7 @@ button:active{transform:scale(0.98);}
   <div class="bnav-item active" onclick="showSect('today')" id="bn-today"><div class="bnav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div><div class="bnav-lbl">Today</div></div>
   <div class="bnav-item" onclick="showSect('clients')" id="bn-clients"><div class="bnav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78z"/></svg></div><div class="bnav-lbl">Clients</div></div>
   <div class="bnav-item" onclick="showSect('schedule')" id="bn-schedule"><div class="bnav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="5" width="16" height="16" rx="2"/><path d="M8 3v4M16 3v4M4 11h16"/></svg></div><div class="bnav-lbl">Schedule</div></div>
-  <div class="bnav-item" onclick="showSect('visits')" id="bn-visits"><div class="bnav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div><div class="bnav-lbl">Visits</div></div>
+  <div class="bnav-item" onclick="showSect('messages')" id="bn-messages"><div class="bnav-icon" style="position:relative;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span id="bn-msg-badge" style="display:none;position:absolute;top:-3px;right:-4px;min-width:16px;height:16px;background:var(--red);color:#fff;border-radius:8px;font-family:var(--mono);font-size:9px;font-weight:700;line-height:16px;text-align:center;padding:0 3px;"></span></div><div class="bnav-lbl">Messages</div></div>
   <div class="bnav-item" onclick="toggleSidebar()" id="bn-menu"><div class="bnav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></div><div class="bnav-lbl">Menu</div></div>
 </div>
 
@@ -1746,7 +1748,15 @@ button:active{transform:scale(0.98);}
   <div class="sheet-handle"></div>
   <button class="sheet-close" onclick="closeSheet('app-sheet')" style="position:absolute;top:12px;right:16px;font-size:18px;color:var(--muted2);background:none;border:none;cursor:pointer;padding:4px 8px;min-height:36px;touch-action:manipulation;z-index:1;">✕</button>
   <div class="sheet-title">Switch Operator</div>
-  <div class="sheet-body">
+  <!-- Applicant detail placeholders — populated by openApplicantSheet() -->
+  <div id="app-sheet-name" style="display:none;font-size:18px;font-weight:500;color:var(--text);padding:12px 16px 0;"></div>
+  <div id="app-sheet-status" style="display:none;font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;padding:4px 16px;"></div>
+  <div id="app-sheet-meta" style="display:none;font-size:12px;color:var(--muted);padding:4px 16px 12px;border-bottom:1px solid var(--border);"></div>
+  <div id="app-sheet-avail" style="display:none;padding:8px 16px;font-size:12px;color:var(--muted2);"></div>
+  <div id="app-sheet-docs" style="display:none;padding:0 12px 8px;display:flex;flex-direction:column;gap:6px;"></div>
+  <div id="app-sheet-acts" style="display:none;padding:8px 12px;display:flex;flex-direction:column;gap:8px;"></div>
+  <div id="app-sheet-ai-result" style="display:none;padding:12px;margin:8px 12px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;"></div>
+  <div class="sheet-body" id="app-sheet-op-body">
     <div class="op-item" onclick="switchOp('proximity-care','Proximity Care')">
       <div class="op-dot-big"></div>
       <div><div class="op-item-name">Proximity Care</div><div class="op-item-id">proximity-care</div></div>
@@ -1831,9 +1841,10 @@ button:active{transform:scale(0.98);}
   <div class="sheet-row"><div class="slbl" style="color:var(--muted2);font-size:12px;">Hours</div>
     <div id="ss-hours-display" style="font-family:var(--mono);font-size:11px;color:var(--teal2);padding:8px 0;">8.0 hrs</div>
   </div>
-  <div class="sheet-row"><div class="slbl">Repeat</div>
-    <select class="sselect" id="ss-recurring">
-      <option value="none">No repeat</option>
+  <div class="sheet-row" style="background:rgba(201,169,110,.04);border:1px solid rgba(201,169,110,.15);border-radius:8px;margin:4px 0;padding:4px 12px;">
+    <div class="slbl" style="color:var(--gold);font-weight:500;">Repeat</div>
+    <select class="sselect" id="ss-recurring" style="border-color:rgba(201,169,110,.3);background:var(--bg3);">
+      <option value="none">One-time shift</option>
       <option value="weekdays">Weekdays (Mon–Fri)</option>
       <option value="daily">Daily</option>
       <option value="4w">Weekly × 4 weeks</option>
@@ -3136,6 +3147,13 @@ function renderMessages() {
     if (match) byClient[key].slug = match.portal_slug;
   });
   const rows = Object.values(byClient).sort((a,b) => new Date(b.last.created_at) - new Date(a.last.created_at));
+  // Update bottom nav badge
+  const _unreadMsgCount = rows.filter(r => r.last && !r.last.read_by_hq).length;
+  const _msgBadge = document.getElementById('bn-msg-badge');
+  if (_msgBadge) {
+    if (_unreadMsgCount > 0) { _msgBadge.textContent = _unreadMsgCount; _msgBadge.style.display = 'block'; }
+    else { _msgBadge.style.display = 'none'; }
+  }
   el.innerHTML = rows.slice(0,50).map(r => {
     const preview = (r.last.payload&&r.last.payload.message) ? r.last.payload.message : '—';
     const slugAttr = r.slug ? `data-fslug="${r.slug}"` : '';
@@ -3616,6 +3634,11 @@ function showSect(name) {
     t.classList.toggle('active', sn.includes("'"+name+"'") || sn.includes('"'+name+'"'));
   });
   try { localStorage.setItem('hq_tab', name); } catch(e) {}
+  // Clear messages badge when entering messages section
+  if (name === 'messages') {
+    const _mb = document.getElementById('bn-msg-badge');
+    if (_mb) _mb.style.display = 'none';
+  }
   clearSearches();
   document.querySelectorAll('.section').forEach(s=>s.classList.remove('active','visible'));
   document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
@@ -4469,7 +4492,7 @@ function _initFC() {
   }
 
   window._fc = new FullCalendar.Calendar(calEl, {
-    initialView: window.innerWidth < 768 ? 'listWeek' : 'timeGridWeek',
+    initialView: window.innerWidth < 600 ? 'listWeek' : window.innerWidth < 1024 ? 'timeGridDay' : 'timeGridWeek',
     headerToolbar: {
       left:   'prev,next today',
       center: 'title',
@@ -4483,6 +4506,9 @@ function _initFC() {
     editable: true,
     selectable: true,
     selectMirror: true,
+    snapDuration: '00:15:00',
+    longPressDelay: 300,
+    selectLongPressDelay: 300,
     events: _buildFCEvents(),
     eventSources: [],
 
@@ -5239,7 +5265,7 @@ async function renderRevenue() {
   const kpis = [
     { label: 'Month Billed', val: '$'+totalBilled.toFixed(0), sub: monthHours.toFixed(1)+'h worked', color: 'var(--teal2)' },
     { label: 'Month Cost', val: '$'+totalCost.toFixed(0), sub: 'PSW wages', color: 'var(--text)' },
-    { label: 'Month Margin', val: '$'+totalMargin.toFixed(0), sub: monthVisits.length+' visits', color: 'var(--green2)' },
+    { label: 'Month Margin', val: '$'+totalMargin.toFixed(0), sub: (totalBilled>0?(totalMargin/totalBilled*100).toFixed(1):0)+'% margin · '+monthVisits.length+' visits', color: totalMargin>0?'var(--green2)':'var(--red)' },
     { label: 'Active Clients', val: clients.length, sub: 'on service', color: 'var(--text)' },
     { label: 'Shifts This Week', val: weekBookings.length, sub: 'upcoming', color: 'var(--gold)' },
     { label: 'Active PSWs', val: pswCount, sub: 'on roster', color: 'var(--text)' },
@@ -5686,7 +5712,13 @@ function openClientDetail(id) {
       <div><div class="slbl">PSW Rate $/hr</div><input class="sinput" id="ce-psw-rate" type="number" value="${c.psw_rate||19}" min="15" max="80" style="font-size:16px;"></div>
     </div>
     <div class="sheet-row"><div class="slbl">Care Notes</div><textarea class="sinput" id="ce-care-notes" rows="3" style="min-height:80px;resize:none;" placeholder="Internal care notes...">${c.care_notes||''}</textarea></div>
-    <button class="sbtn" style="margin-top:4px;background:rgba(200,169,110,.12);color:var(--gold);border:1px solid rgba(200,169,110,.3);" onclick="saveClientEdits('${id}')">Save Changes</button>
+    <div class="sheet-row"><div class="slbl">Care Directives</div><textarea class="sinput" id="ce-care-directives" rows="2" style="min-height:64px;resize:none;" placeholder="DNR, allergies, special instructions...">${c.care_directives||''}</textarea></div>
+<div class="srow2" style="padding:0;">
+  <div><div class="slbl">Mobility</div><input class="sinput" id="ce-mobility" type="text" value="${c.mobility_level||''}" placeholder="e.g. Walker, Independent" style="font-size:15px;"></div>
+  <div><div class="slbl">Cognitive</div><input class="sinput" id="ce-cognitive" type="text" value="${c.cognitive_status||''}" placeholder="e.g. Mild dementia" style="font-size:15px;"></div>
+</div>
+<div class="sheet-row"><div class="slbl">Medications</div><textarea class="sinput" id="ce-medications" rows="2" style="min-height:64px;resize:none;" placeholder="List current medications...">${c.medications||''}</textarea></div>
+<button class="sbtn" style="margin-top:4px;background:rgba(200,169,110,.12);color:var(--gold);border:1px solid rgba(200,169,110,.3);" onclick="saveClientEdits('${id}')">Save Changes</button>
 
     <button class="sbtn" style="margin-top:8px;" onclick="genInvoice('${name}','${c.family_email||c.email||''}','${c.assigned_psw||''}',${c.client_rate||22},${c.psw_rate||19});closeSheet('client-sheet');">Generate Invoice</button>
     <button class="sbtn ghost" style="margin-top:8px;" onclick="triggerOnboardClient('${slug}');closeSheet('client-sheet');">Resend Welcome Email</button>
@@ -6898,6 +6930,7 @@ function renderToday() {
             <div class="tsr-action-row">
               ${_safePSW ? `<div class="tsr-act" onclick="event.stopPropagation();openPSWMsg('${_safePSW}')"><svg width="11" height="11" viewBox="0 0 12 12" fill="none" style="display:inline;vertical-align:middle;margin-right:3px"><path d="M1 1h10v7H7l-3 3V8H1V1z" stroke="#6dbdd4" stroke-width="1.2" stroke-linejoin="round"/></svg>Message ${_safePSW.split(' ')[0]}</div>` : ''}
               <div class="tsr-act" onclick="event.stopPropagation();showSect('schedule')"><svg width="11" height="11" viewBox="0 0 12 12" fill="none" style="display:inline;vertical-align:middle;margin-right:3px"><rect x="1" y="2" width="10" height="9" rx="1" stroke="#a8bfc4" stroke-width="1.2"/><line x1="1" y1="5" x2="11" y2="5" stroke="#a8bfc4" stroke-width="1.1"/><line x1="4" y1="1" x2="4" y2="3" stroke="#a8bfc4" stroke-width="1.2"/><line x1="8" y1="1" x2="8" y2="3" stroke="#a8bfc4" stroke-width="1.2"/></svg>Schedule</div>
+              ${hasVisit && _safeClient ? `<div class="tsr-act ok" onclick="event.stopPropagation();(() => { const _c = (D.clients||[]).find(c => ((c.first_name||'')+' '+(c.last_name||'')).trim()==='${_safeClient}'); if(_c) genInvoice('${_safeClient}', _c.family_email||_c.email||'', _c.assigned_psw||'', _c.client_rate||22, _c.psw_rate||19); else showToast('Client not found', 'err'); })()"><svg width="11" height="11" viewBox="0 0 12 12" fill="none" style="display:inline;vertical-align:middle;margin-right:3px"><rect x="1" y="1" width="10" height="10" rx="1" stroke="#6db974" stroke-width="1.2"/><line x1="3" y1="4" x2="9" y2="4" stroke="#6db974" stroke-width="1.1"/><line x1="3" y1="6" x2="9" y2="6" stroke="#6db974" stroke-width="1.1"/><line x1="3" y1="8" x2="7" y2="8" stroke="#6db974" stroke-width="1.1"/></svg>Invoice</div>` : ''}
               ${isActive && _safeClient ? `<div class="tsr-act warn" onclick="event.stopPropagation();showSect('visits')"><svg width="11" height="11" viewBox="0 0 12 12" fill="none" style="display:inline;vertical-align:middle;margin-right:3px"><rect x="2" y="1" width="8" height="10" rx="1" stroke="#a8bfc4" stroke-width="1.2"/><line x1="4" y1="4" x2="8" y2="4" stroke="#a8bfc4" stroke-width="1.1"/><line x1="4" y1="6.5" x2="8" y2="6.5" stroke="#a8bfc4" stroke-width="1.1"/><line x1="4" y1="9" x2="6" y2="9" stroke="#a8bfc4" stroke-width="1.1"/></svg>Visit Log</div>` : ''}
             </div>
           </div>
@@ -7201,6 +7234,18 @@ if (sessionStorage.getItem('hq_auth') === '1' && sessionStorage.getItem('hq_toke
       document.getElementById('app').style.display = 'block';
       loadAll(false);
       startHQIdleTimer();
+      // Auto-refresh Today section every 60s when active
+      setInterval(() => {
+        if (document.hidden) return;
+        const active = document.querySelector('.section.active');
+        if (active && active.id === 'sect-today') renderToday();
+        // Update messages badge from D.messages
+        const _mb = document.getElementById('bn-msg-badge');
+        if (_mb) {
+          const _uc = (D.messages||[]).filter(m => !m.read_by_hq).length;
+          _mb.textContent = _uc; _mb.style.display = _uc > 0 ? 'block' : 'none';
+        }
+      }, 60000);
       // Restore last active tab
       try {
         const lastTab = localStorage.getItem('hq_tab') || 'today';
@@ -7323,6 +7368,318 @@ async function verifyVisit(visitId) {
   } catch(e) { showToast(e.message, 'err'); }
 }
 
+
+// ══════════════════════════════════════════════════════════════
+// RESOURCE VIEW — PSW columns × time rows (FC Pro style, in-house)
+// ══════════════════════════════════════════════════════════════
+
+const _RV_COLORS = [
+  '#1e5a4e','#2a6b8a','#6b2a8a','#8a6b2a',
+  '#8a2a2a','#2a8a6b','#5a4e1e','#1e4e5a',
+  '#4e1e5a','#5a1e4e','#1e5a2a','#4e5a1e'
+];
+const _RV_SLOT_H  = 44;   // px per 30-min slot
+const _RV_COL_W   = 130;  // px per PSW column
+const _RV_TIME_W  = 52;   // px for time label
+const _RV_START   = 6;    // 06:00
+const _RV_END     = 22;   // 22:00
+let   _rvActive   = false;
+let   _rvDate     = new Date().toISOString().slice(0,10);
+let   _rvDragSrc  = null; // { bookingId, pswName }
+
+function toggleResourceView() {
+  _rvActive = !_rvActive;
+  const btn = document.getElementById('resource-toggle-btn');
+  const rb  = document.getElementById('resource-board');
+  const sb  = document.getElementById('schedule-board');
+  const mp  = document.getElementById('live-map-panel');
+  if (_rvActive) {
+    sb.style.display  = 'none';
+    if (mp) mp.style.display = 'none';
+    rb.style.display  = 'block';
+    btn.style.background = 'rgba(201,169,110,.18)';
+    btn.style.color  = 'var(--gold)';
+    renderResourceView();
+  } else {
+    rb.style.display  = 'none';
+    sb.style.display  = 'block';
+    btn.style.background = '';
+    btn.style.color  = 'var(--gold)';
+    _refreshFC();
+  }
+}
+
+function _rvSlots() {
+  const slots = [];
+  for (let h = _RV_START; h < _RV_END; h++) {
+    slots.push(`${String(h).padStart(2,'0')}:00`);
+    slots.push(`${String(h).padStart(2,'0')}:30`);
+  }
+  return slots;
+}
+
+function _rvFmtDate(d) {
+  const dt = new Date(d + 'T12:00:00');
+  return dt.toLocaleDateString('en-CA', { weekday:'short', month:'short', day:'numeric' });
+}
+
+function _rvAddDay(d, n) {
+  const dt = new Date(d + 'T12:00:00');
+  dt.setDate(dt.getDate() + n);
+  return dt.toISOString().slice(0,10);
+}
+
+function _rvPSWColor(name, psws) {
+  const idx = psws.findIndex(p => (p.name||p.full_name) === name);
+  return _RV_COLORS[idx >= 0 ? idx % _RV_COLORS.length : 0];
+}
+
+function renderResourceView() {
+  const el = document.getElementById('resource-board');
+  if (!el) return;
+
+  const psws     = (D.psws || []).filter(p => (p.status||'active') === 'active');
+  const bookings = (D.bookings || []).filter(b =>
+    b.scheduled_date === _rvDate && b.status !== 'cancelled'
+  );
+  const visits   = (D.visits || []).filter(v => v.visit_date === _rvDate);
+  const liveSet  = new Set(visits.filter(v => v.status === 'in_progress').map(v => v.psw_name));
+  const slots    = _rvSlots();
+  const today    = new Date().toISOString().slice(0,10);
+  const isToday  = _rvDate === today;
+
+  // Conflict detection for this day
+  const conflicts = new Set();
+  const pswMap = {};
+  bookings.forEach(b => {
+    if (!b.assigned_to) return;
+    if (!pswMap[b.assigned_to]) pswMap[b.assigned_to] = [];
+    pswMap[b.assigned_to].push(b);
+  });
+  Object.values(pswMap).forEach(group => {
+    if (group.length < 2) return;
+    group.sort((a,b) => toMins(a.scheduled_time) - toMins(b.scheduled_time));
+    for (let i = 0; i < group.length - 1; i++) {
+      const a = group[i], b2 = group[i+1];
+      if (toMins(b2.scheduled_time) < toMins(a.scheduled_time) + (a.duration_minutes||480)) {
+        conflicts.add(a.id); conflicts.add(b2.id);
+      }
+    }
+  });
+
+  // Build PSW column list — active PSWs + Unassigned
+  const pswCols = [...psws.map(p => ({ name: p.name||p.full_name, source:'live' }))];
+  // Add PSWs from bookings not in live list
+  bookings.forEach(b => {
+    if (b.assigned_to && !pswCols.find(p => p.name === b.assigned_to)) {
+      pswCols.push({ name: b.assigned_to, source:'booking' });
+    }
+  });
+  const unassigned = bookings.filter(b => !b.assigned_to);
+
+  // Current time indicator
+  const nowMins = isToday ? (new Date().getHours()*60 + new Date().getMinutes()) : -1;
+  const nowTop  = nowMins >= 0 ? ((nowMins - _RV_START*60) / 30 * _RV_SLOT_H) : -1;
+
+  // ── Build HTML ──
+  const totalW = _RV_TIME_W + (pswCols.length + (unassigned.length ? 1 : 0)) * _RV_COL_W;
+
+  let html = `
+  <div style="padding:0 12px 12px;">
+
+    <!-- DATE NAV -->
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap;">
+      <button onclick="_rvDate=_rvAddDay(_rvDate,-1);renderResourceView()" style="font-family:var(--mono);font-size:12px;padding:6px 12px;background:var(--bg3);border:1px solid var(--border);border-radius:5px;color:var(--text);cursor:pointer;min-height:36px;">‹ Prev</button>
+      <div style="font-family:var(--sans);font-size:15px;font-weight:500;color:var(--text);flex:1;text-align:center;">${_rvFmtDate(_rvDate)}${isToday?' <span style="font-family:var(--mono);font-size:10px;color:var(--teal2);background:rgba(61,138,122,.1);border:1px solid rgba(61,138,122,.2);border-radius:3px;padding:2px 6px;margin-left:6px;">TODAY</span>':''}</div>
+      <button onclick="_rvDate=_rvAddDay(_rvDate,1);renderResourceView()" style="font-family:var(--mono);font-size:12px;padding:6px 12px;background:var(--bg3);border:1px solid var(--border);border-radius:5px;color:var(--text);cursor:pointer;min-height:36px;">Next ›</button>
+      <button onclick="_rvDate=new Date().toISOString().slice(0,10);renderResourceView()" style="font-family:var(--mono);font-size:11px;letter-spacing:1px;padding:6px 10px;background:rgba(61,138,122,.1);border:1px solid rgba(61,138,122,.3);border-radius:5px;color:var(--teal2);cursor:pointer;min-height:36px;">Today</button>
+    </div>
+
+    <!-- GRID WRAPPER -->
+    <div style="overflow-x:auto;overflow-y:auto;max-height:600px;border:1px solid var(--border);border-radius:8px;position:relative;">
+      <div style="min-width:${totalW}px;position:relative;">
+
+        <!-- HEADER ROW -->
+        <div style="display:flex;position:sticky;top:0;z-index:10;background:var(--bg2);border-bottom:1px solid var(--border2);">
+          <div style="width:${_RV_TIME_W}px;flex-shrink:0;"></div>`;
+
+  // PSW column headers
+  pswCols.forEach((p, i) => {
+    const color  = _RV_COLORS[i % _RV_COLORS.length];
+    const isLive = liveSet.has(p.name);
+    const hrsToday = bookings.filter(b=>b.assigned_to===p.name)
+      .reduce((s,b) => s + (b.duration_minutes||480)/60, 0);
+    html += `
+          <div style="width:${_RV_COL_W}px;flex-shrink:0;padding:8px 6px;border-left:1px solid var(--border);text-align:center;">
+            <div style="display:flex;align-items:center;justify-content:center;gap:5px;">
+              ${isLive ? '<span style="width:7px;height:7px;border-radius:50%;background:#4a9a6e;display:inline-block;box-shadow:0 0 5px #4a9a6e;flex-shrink:0;"></span>' : ''}
+              <div style="font-family:var(--mono);font-size:11px;color:${color};font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:${_RV_COL_W-24}px;" title="${p.name}">${p.name.split(' ')[0]}</div>
+            </div>
+            <div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:2px;">${hrsToday > 0 ? hrsToday.toFixed(1)+'h' : '—'}</div>
+          </div>`;
+  });
+  if (unassigned.length) {
+    html += `<div style="width:${_RV_COL_W}px;flex-shrink:0;padding:8px 6px;border-left:1px solid var(--border);text-align:center;">
+      <div style="font-family:var(--mono);font-size:11px;color:var(--amber);">UNASSIGNED</div>
+      <div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:2px;">${unassigned.length} shift${unassigned.length>1?'s':''}</div>
+    </div>`;
+  }
+  html += `</div>`;
+
+  // ── TIME ROWS ──
+  html += `<div style="position:relative;">`;
+
+  // Now indicator line
+  if (nowTop >= 0) {
+    html += `<div style="position:absolute;left:0;right:0;top:${nowTop}px;height:2px;background:rgba(109,189,212,.7);z-index:5;pointer-events:none;">
+      <div style="position:absolute;left:0;top:-4px;width:8px;height:8px;border-radius:50%;background:#6dbdd4;"></div>
+    </div>`;
+  }
+
+  slots.forEach((slot, si) => {
+    const [sh, sm] = slot.split(':').map(Number);
+    const slotMins = sh*60+sm;
+    const isHour   = sm === 0;
+    const isAlt    = si % 2 !== 0;
+
+    html += `<div style="display:flex;min-height:${_RV_SLOT_H}px;border-bottom:1px solid ${isHour?'var(--border)':'rgba(255,255,255,.03)'};background:${isAlt?'rgba(255,255,255,.01)':'transparent'};">`;
+
+    // Time label
+    html += `<div style="width:${_RV_TIME_W}px;flex-shrink:0;padding:${isHour?'3px 6px':0};font-family:var(--mono);font-size:10px;color:${isHour?'var(--muted)':'transparent'};position:relative;top:-6px;">${isHour?slot:''}</div>`;
+
+    // PSW cells
+    pswCols.forEach((p, ci) => {
+      const color = _RV_COLORS[ci % _RV_COLORS.length];
+      // Find bookings that START in this slot
+      const cellBookings = bookings.filter(b => {
+        if (b.assigned_to !== p.name) return false;
+        const bMins = toMins(b.scheduled_time||'09:00');
+        return bMins === slotMins;
+      });
+
+      // Check if a booking from an earlier slot spans into this cell
+      const spanning = bookings.filter(b => {
+        if (b.assigned_to !== p.name) return false;
+        const bStart = toMins(b.scheduled_time||'09:00');
+        const bEnd   = bStart + (b.duration_minutes||480);
+        return bStart < slotMins && bEnd > slotMins;
+      });
+
+      const _rvEmpty = !cellBookings.length && !spanning.length;
+      html += `<div style="width:${_RV_COL_W}px;flex-shrink:0;border-left:1px solid var(--border);position:relative;${_rvEmpty?'cursor:pointer;':''}" ` + (_rvEmpty ? `onclick="openAddShift('${p.name.replace(/'/g,'\\\'')}','${_rvDate}')"` : '') + `>`;
+      // (cell click handled above)
+
+      cellBookings.forEach(b => {
+        const durSlots = Math.max(1, Math.round((b.duration_minutes||480)/30));
+        const chipH    = durSlots * _RV_SLOT_H - 4;
+        const isConf   = conflicts.has(b.id);
+        const isLv     = liveSet.has(p.name);
+        const bData    = JSON.stringify(b).replace(/"/g,'&quot;');
+        html += `<div
+          draggable="true"
+          ondragstart="_rvDragStart(event,'${b.id}','${p.name}')"
+          ondragend="_rvDragEnd(event)"
+          onclick="event.stopPropagation();_showShiftDetail(${bData},{isConflict:${isConf},isLive:${isLv},isCancelled:false})"
+          style="position:absolute;left:3px;right:3px;top:2px;height:${chipH}px;z-index:4;
+            background:${isConf?'rgba(224,85,85,.15)':isLv?'rgba(74,154,110,.15)':'rgba('+_hexToRgb(color)+', .15)'};
+            border:1px solid ${isConf?'var(--red)':isLv?'var(--green2)':color};
+            border-radius:5px;padding:3px 6px;cursor:pointer;overflow:hidden;
+            box-shadow:${isLv?'0 0 6px rgba(74,154,110,.25)':'none'};">
+          ${isLv?'<div style="width:6px;height:6px;border-radius:50%;background:#4a9a6e;display:inline-block;margin-right:3px;box-shadow:0 0 4px #4a9a6e;vertical-align:middle;"></div>':''}
+          ${isConf?'<span style="font-family:var(--mono);font-size:9px;color:var(--red);">⚠ </span>':''}
+          <span style="font-family:var(--mono);font-size:10px;color:${isConf?'var(--red)':isLv?'var(--green2)':color};font-weight:600;">${b.client_name||'—'}</span>
+          <div style="font-family:var(--mono);font-size:9px;color:var(--muted);margin-top:1px;">${b.scheduled_time?b.scheduled_time.slice(0,5):'—'} · ${((b.duration_minutes||480)/60).toFixed(1)}h</div>
+        </div>`;
+      });
+
+      html += '</div>';
+    });
+
+    // Unassigned column
+    if (unassigned.length) {
+      const uCell = unassigned.filter(b => {
+        const bMins = toMins(b.scheduled_time||'09:00');
+        return bMins === slotMins;
+      });
+      html += `<div style="width:${_RV_COL_W}px;flex-shrink:0;border-left:1px solid var(--border);position:relative;">`;
+      uCell.forEach(b => {
+        const durSlots = Math.max(1, Math.round((b.duration_minutes||480)/30));
+        const chipH = durSlots * _RV_SLOT_H - 4;
+        const bData = JSON.stringify(b).replace(/"/g,'&quot;');
+        html += `<div onclick="event.stopPropagation();_showShiftDetail(${bData},{isConflict:false,isLive:false,isCancelled:false})"
+          style="position:absolute;left:3px;right:3px;top:2px;height:${chipH}px;z-index:4;
+            background:rgba(212,160,61,.1);border:1px solid var(--amber);border-radius:5px;
+            padding:3px 6px;cursor:pointer;overflow:hidden;">
+          <div style="font-family:var(--mono);font-size:10px;color:var(--amber);">${b.client_name||'—'}</div>
+          <div style="font-family:var(--mono);font-size:9px;color:var(--muted);">${b.scheduled_time?b.scheduled_time.slice(0,5):'—'} · ${((b.duration_minutes||480)/60).toFixed(1)}h</div>
+        </div>`;
+      });
+      html += '</div>';
+    }
+
+    html += '</div>'; // time row
+  });
+
+  html += '</div></div></div></div>'; // relative, grid wrapper, padding
+
+  el.innerHTML = html;
+
+  // Delegated click for empty cells (rv-add attribute)
+  el.addEventListener('click', e => {
+    const cell = e.target.closest('[data-rv-add]');
+    if (cell) {
+      const psw = cell.getAttribute('data-rv-psw');
+      const date = cell.getAttribute('data-rv-date');
+      if (psw && date) openAddShift(psw, date);
+    }
+  });
+
+  // Add drag-over / drop handlers
+  el.querySelectorAll('[ondragstart]').length; // just touch
+  el.querySelectorAll('div[style*="cursor:pointer"]').forEach(cell => {
+    cell.addEventListener('dragover', e => { e.preventDefault(); cell.style.background = 'rgba(61,138,122,.08)'; });
+    cell.addEventListener('dragleave', e => { cell.style.background = ''; });
+    cell.addEventListener('drop', e => {
+      e.preventDefault();
+      cell.style.background = '';
+      if (!_rvDragSrc) return;
+      // Figure out what PSW this cell belongs to and what time slot
+      // Cell onclick already has the PSW name encoded — reparse from parent header
+      const colIdx = Array.from(cell.parentElement.children).indexOf(cell);
+      const headers = el.querySelectorAll('.rv-header-col');
+      const newPSW = headers[colIdx-1]?.dataset.psw || '';
+      // Time from row
+      const rowEl = cell.closest('[data-slot]');
+      const newSlot = rowEl?.dataset.slot || '';
+      if (newPSW && newSlot) {
+        _patchBooking(_rvDragSrc.bookingId, {
+          assigned_to: newPSW,
+          scheduled_date: _rvDate,
+          scheduled_time: newSlot + ':00'
+        }, null);
+        setTimeout(() => renderResourceView(), 500);
+      }
+    });
+  });
+}
+
+function _rvDragStart(ev, bookingId, pswName) {
+  _rvDragSrc = { bookingId, pswName };
+  ev.dataTransfer.effectAllowed = 'move';
+  ev.dataTransfer.setData('text/plain', bookingId);
+  ev.currentTarget.style.opacity = '0.5';
+}
+function _rvDragEnd(ev) {
+  ev.currentTarget.style.opacity = '1';
+  _rvDragSrc = null;
+}
+
+function _hexToRgb(hex) {
+  const r = parseInt(hex.slice(1,3),16);
+  const g = parseInt(hex.slice(3,5),16);
+  const b = parseInt(hex.slice(5,7),16);
+  return r+','+g+','+b;
+}
 </script>
 <div class="demo-tip" id="demo-tip"></div>
 
