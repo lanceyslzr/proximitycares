@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -172,6 +172,22 @@ async function loadFamilyNotes() {
 <link href='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.css' rel='stylesheet' />
 <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js'></script>
 <style>
+
+/* ── MOBILE RESET: Android overflow, box-sizing, safe-area ── */
+*,*::before,*::after{box-sizing:border-box;min-width:0}
+html{overflow-x:clip;overflow-y:auto;overscroll-behavior-y:contain;
+     -webkit-text-size-adjust:100%;text-size-adjust:100%;max-width:100%}
+html,body{overflow-x:clip}
+body{overflow-x:clip;min-height:100vh;min-height:100dvh;margin:0;
+     -webkit-tap-highlight-color:transparent;overflow-wrap:anywhere;word-break:break-word}
+img,picture,video,canvas,svg{max-width:100%;height:auto;display:block}
+table{width:100%;max-width:100%;table-layout:fixed}
+pre,code{max-width:100%;white-space:pre-wrap;word-break:break-word}
+input,select,textarea,button{font:inherit;font-size:max(16px,1em);max-width:100%}
+.map-wrapper{position:relative;width:100%;overflow:hidden}
+.leaflet-container{width:100%!important;height:100%!important;max-width:100%}
+/* ── END MOBILE RESET ── */
+
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 :root{
   /* ── PROXIMITY SYSTEMS — Unified Design System ── */
@@ -729,17 +745,31 @@ button:active{transform:scale(0.98);}
 /* Demo walkthrough tooltip */
 .demo-tip{position:fixed;bottom:60px;left:50%;transform:translateX(-50%);background:var(--bg2);border:1px solid var(--border2);border-radius:10px;padding:10px 16px;font-family:var(--mono);font-size:12px;color:var(--text);z-index:600;white-space:nowrap;box-shadow:0 8px 32px rgba(0,0,0,.4);display:none;}
 .demo-tip.visible{display:block;}
-@media(max-width:1024px){
+
+/* ── MOBILE BUTTON ROW FIX ── */
+.action-row,.btn-row,.sheet-actions,[class*="action-bar"]{
+  display:flex!important;flex-wrap:wrap!important;gap:8px!important
+}
+.action-row>*,.btn-row>*{
+  min-width:0!important;flex:1 1 auto!important;min-height:44px!important
+}
+/* Touch target floor */
+button,.sbtn,.btn,.bnav-item,.nav-tab,.icon-btn{
+  min-height:44px;touch-action:manipulation
+}
+.sbtn{min-height:44px!important;padding:10px 16px!important}
+/* Font floor */
+@media(max-width:min(1024px,100%)){
   .section{padding:0 8px;}
   .sect-head-row{flex-wrap:wrap;gap:6px;}
   .fc-toolbar-chunk{flex-wrap:wrap;}
 }
-@media(max-width:900px){
+@media(max-width:min(900px,100%)){
   .sidebar{width:260px;}
   .card-header{flex-wrap:wrap;gap:8px;}
   .sheet{width:100%;max-width:100%;border-radius:20px 20px 0 0;}
 }
-@media(max-width:768px){
+@media(max-width:min(768px,100%)){
   .crm-board{grid-template-columns:1fr;}
   .crm-col{min-height:auto;}
   .crm-col-head{position:static;}
@@ -764,6 +794,13 @@ button:active{transform:scale(0.98);}
 .break-glass-select{width:100%;padding:10px 12px;background:var(--surface,#0d1117);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;margin-bottom:12px;}
 .break-glass-confirm{width:100%;padding:12px;background:var(--amber,#e09a3d);color:#000;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;letter-spacing:.5px;}
 .break-glass-cancel{width:100%;padding:10px;background:none;border:1px solid var(--border);border-radius:8px;color:var(--muted);font-size:13px;cursor:pointer;margin-top:8px;}
+
+@media(max-width:360px){
+  .bnav-lbl{font-size:9px}
+  .bnav-item{padding:4px 2px}
+  .topbar{padding:0 8px}
+  .today-time-row{gap:6px}
+}
 </style>
 </head>
 <body>
@@ -1677,21 +1714,19 @@ button:active{transform:scale(0.98);}
       <span class="sn-label">Activity Log</span>
     </div>
   </div>
-    <div class="sn-item" id="sn-help" onclick="showSect('help');toggleSidebar()">
+<div class="sn-item" id="sn-help" onclick="showSect('help');toggleSidebar()">
       <div class="sn-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
       <span class="sn-label">Help + SOPs</span>
     </div>
-  </div>
-  <div class="sidebar-footer">
-    <button onclick="if(confirm('Sign out?')){signOut()}" style="width:100%;padding:10px 14px;background:rgba(224,85,85,.08);border:1px solid rgba(224,85,85,.18);border-radius:6px;font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--red);cursor:pointer;margin-bottom:12px;display:flex;align-items:center;justify-content:center;gap:8px;min-height:40px;">
-      <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M4.5 2H2v8h2.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><path d="M7.5 4L10 6l-2.5 2" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/><line x1="5" y1="6" x2="10" y2="6" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
-      Sign Out
+  <div class="sidebar-footer" style="padding:12px;display:flex;flex-direction:column;gap:8px;border-top:1px solid rgba(255,255,255,.07);">
+    <button onclick="lockHQ();toggleSidebar()" style="width:100%;padding:10px 14px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:8px;color:var(--muted);font-family:var(--mono);font-size:12px;cursor:pointer;display:flex;align-items:center;gap:8px;min-height:44px;">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="16" height="16"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      Lock
     </button>
-    <div style="font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;">Operator</div>
-    <div class="op-pill" onclick="toggleSidebar();setTimeout(()=>openSheet('app-sheet'),200)" style="width:fit-content;">
-      <div class="op-live"></div>
-      <span class="op-name-text" id="sidebar-op-label">Proximity Care</span>
-    </div>
+    <button onclick="signOutHQ()" style="width:100%;padding:10px 14px;background:rgba(224,85,85,.08);border:1px solid rgba(224,85,85,.15);border-radius:8px;color:var(--red,#e05555);font-family:var(--mono);font-size:12px;cursor:pointer;display:flex;align-items:center;gap:8px;min-height:44px;">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="16" height="16"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      Sign out
+    </button>
   </div>
 </div>
 
@@ -7209,7 +7244,33 @@ function endDemo() {
 const _origRenderAll = typeof renderAll === 'function' ? renderAll : null;
 
 function lockHQ() {
-  // Invalidate server-side session
+  // LOCK — keeps server session token alive, just hides the app behind PIN
+  // PSW-style: show lock screen, require PIN re-entry to resume
+  // Does NOT call /hq/logout — session stays valid
+  lockIn = '';
+  for (let i = 0; i < 4; i++) {
+    const d = document.getElementById('d'+i);
+    if (d) d.classList.remove('filled');
+  }
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('lock').style.display = 'flex';
+  clearTimeout(_hqIdleTimer);
+  _hqIdleTimer = null;
+  if (window._pollInterval) { clearInterval(window._pollInterval); window._pollInterval = null; }
+  // Log lock event to audit
+  const tok = window._hqToken || sessionStorage.getItem('hq_token');
+  if (tok) {
+    fetch(`${API}/hq/break-glass`, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json','x-hq-token':tok},
+      body: JSON.stringify({client_slug:'__system__',reason:'clinical_emergency',client_name:'Session Lock'})
+    }).catch(()=>{});
+  }
+}
+
+function signOutHQ() {
+  // SIGN OUT — destroys token, clears all storage, full re-auth required
+  if (!confirm('Sign out? You will need to re-enter your operator ID and PIN.')) return;
   const _tok = window._hqToken || sessionStorage.getItem('hq_token');
   if (_tok) { fetch(`${API}/hq/logout`, { method: 'POST', headers: { 'x-hq-token': _tok } }).catch(() => {}); }
   window._hqToken = null;
@@ -7225,16 +7286,12 @@ function lockHQ() {
   document.getElementById('lock').style.display = 'flex';
   clearTimeout(_hqIdleTimer);
   _hqIdleTimer = null;
-  // Stop all polling intervals when locked
   if (window._pollInterval) { clearInterval(window._pollInterval); window._pollInterval = null; }
   if (window._mapInterval) { clearInterval(window._mapInterval); window._mapInterval = null; }
-  if (attendanceTimer) { clearInterval(attendanceTimer); attendanceTimer = null; }
-  if (window._msgRefreshInterval) { clearInterval(window._msgRefreshInterval); window._msgRefreshInterval = null; }
-  // Clear state so data is not accessible via console
-  _mergedPSWCache = null;
-  _hqFetching = false;
-  D = {};
 }
+
+
+function signOut() { signOutHQ(); }
 
 function startHQIdleTimer() {
   ['mousemove','mousedown','keydown','touchstart','click'].forEach(ev =>
@@ -7789,6 +7846,8 @@ async function confirmBreakGlass() {
     <button class="break-glass-confirm" onclick="confirmBreakGlass()">Confirm Access — This Will Be Logged</button>
     <button class="break-glass-cancel" onclick="closeBreakGlass()">Cancel</button>
   </div>
+</div>
+
 </div>
 
 </body>
