@@ -301,7 +301,7 @@ button:active{transform:scale(0.98);}
 
 
 /* NAV TABS */
-.nav-tabs{display:flex;background:var(--bg2);border-bottom:1px solid var(--border);overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
+.nav-tabs{display:flex;background:var(--bg2);border-bottom:1px solid var(--border);overflow-x:auto;-webkit-overflow-scrolling:touch;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
 .nav-tabs::-webkit-scrollbar{display:none;}
 .nav-tab{flex-shrink:0;padding:11px 14px;font-family:var(--mono);font-size:12px;letter-spacing:2px;text-transform:uppercase;color:var(--muted2);border-bottom:2px solid transparent;cursor:pointer;white-space:nowrap;min-height:44px;display:flex;align-items:center;gap:5px;touch-action:manipulation;-webkit-tap-highlight-color:transparent;}
 .nav-tab:active{color:var(--teal3);}
@@ -721,9 +721,9 @@ button:active{transform:scale(0.98);}
 .help-search{width:100%;padding:10px 14px;background:var(--bg3);border:none;border-bottom:1px solid var(--border);color:var(--text);font-size:13px;font-family:var(--sans);outline:none;}
 .help-search::placeholder{color:var(--muted);}
 /* Nav tab active state fix */
-.nav-tab{cursor:pointer;padding:8px 12px;font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--muted2);white-space:nowrap;border-bottom:2px solid transparent;transition:color .15s,border-color .15s;}
-.nav-tab:hover{color:var(--text);}
-.nav-tab.active{color:var(--teal2);border-bottom-color:var(--teal2);}
+
+
+
 /* Demo walkthrough tooltip */
 .demo-tip{position:fixed;bottom:60px;left:50%;transform:translateX(-50%);background:var(--bg2);border:1px solid var(--border2);border-radius:10px;padding:10px 16px;font-family:var(--mono);font-size:12px;color:var(--text);z-index:600;white-space:nowrap;box-shadow:0 8px 32px rgba(0,0,0,.4);display:none;}
 .demo-tip.visible{display:block;}
@@ -744,6 +744,14 @@ button:active{transform:scale(0.98);}
   .notif-panel{width:100%;}
 }
 @media(max-width:600px){.op-form-grid{grid-template-columns:1fr;}}
+
+@media(max-width:600px){
+  .sbtn{min-height:44px!important;padding:11px 16px!important;}
+  .nav-tab{min-height:44px;display:flex;align-items:center;}
+  .bnav-item{min-height:52px;}
+  .sinput,.sselect{min-height:44px;font-size:16px!important;}
+  .sheet-row,.srow2{padding:0 0 10px!important;}
+}
 </style>
 </head>
 <body>
@@ -1661,6 +1669,10 @@ button:active{transform:scale(0.98);}
     </div>
   </div>
   <div class="sidebar-footer">
+    <button onclick="if(confirm('Sign out?')){signOut()}" style="width:100%;padding:10px 14px;background:rgba(224,85,85,.08);border:1px solid rgba(224,85,85,.18);border-radius:6px;font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--red);cursor:pointer;margin-bottom:12px;display:flex;align-items:center;justify-content:center;gap:8px;min-height:40px;">
+      <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M4.5 2H2v8h2.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><path d="M7.5 4L10 6l-2.5 2" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/><line x1="5" y1="6" x2="10" y2="6" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+      Sign Out
+    </button>
     <div style="font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;">Operator</div>
     <div class="op-pill" onclick="toggleSidebar();setTimeout(()=>openSheet('op-sheet'),200)" style="width:fit-content;">
       <div class="op-live"></div>
@@ -1724,7 +1736,7 @@ button:active{transform:scale(0.98);}
   <div class="bnav-item" onclick="toggleSidebar()" id="bn-menu"><div class="bnav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></div><div class="bnav-lbl">Menu</div></div>
 </div>
 
-</div><!-- /app -->
+
 
 <!-- SHEETS -->
 <div class="sheet-overlay" id="sheet-overlay" onclick="closeAllSheets()"></div>
@@ -3585,6 +3597,10 @@ async function triggerSequences() {
 
 // ── NAV ──
 function showSect(name) {
+  // Push state so back button stays in-app
+  if (history.state?.hqSect !== name) {
+    history.pushState({ hqSect: name }, '', '#' + name);
+  }
   // Update nav tab active states
   document.querySelectorAll('.nav-tab').forEach(t => {
     const sn = t.getAttribute('onclick') || '';
@@ -5419,7 +5435,7 @@ async function openPSWDetail(pswId) {
             </div>
           </div>
         `).join('')}
-      </div></div>
+      </div>
 
       <div style="margin-bottom:10px;font-family:var(--mono);font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--teal2);">Assigned Clients</div>
       ${assignedClients.length
@@ -5447,11 +5463,34 @@ async function openPSWDetail(pswId) {
       <div class="sheet-row"><div class="slbl">Internal Notes</div><textarea class="sinput" id="pe-notes" rows="2" style="min-height:60px;resize:none;" placeholder="Notes about this PSW...">${p.notes||rec.notes||''}</textarea></div>
       <button class="sbtn" style="background:rgba(200,169,110,.12);color:var(--gold);border:1px solid rgba(200,169,110,.3);margin-bottom:8px;" onclick="savePSWEdits('${p.id}','${name}')">Save Changes</button>
 
-      <div style="display:flex;gap:8px;">
+      <div style="display:flex;gap:8px;margin-bottom:8px;">
         <button class="sbtn" style="flex:1;" onclick="openPSWMsg('${name}');closeSheet('psw-detail-sheet');">Message ${name.split(' ')[0]}</button>
+        <button class="sbtn" style="flex:1;background:rgba(109,185,116,.1);color:var(--green2);border:1px solid rgba(109,185,116,.25);" onclick="sendPSWPaystub('${name}')">Send Paystub</button>
       </div>`;
   } catch {
     body.innerHTML = '<div class="empty-state">Could not load profile</div>';
+  }
+}
+
+// Send PSW pay summary email with PDF
+async function sendPSWPaystub(pswName) {
+  const now = new Date();
+  const month = now.getMonth() + 1;
+  const year = now.getFullYear();
+  const monthName = now.toLocaleString('en-CA', { month: 'long' });
+  if (!confirm(`Send ${monthName} ${year} pay summary to ${pswName}?`)) return;
+  try {
+    showToast('Sending pay summary...', 'ok');
+    const r = await hqFetch(`${API}/hq/psw/send-paystub`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ operator_id: currentOp, psw_name: pswName, month, year })
+    });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error || 'Failed');
+    showToast(`Pay summary sent — ${d.hours}h · $${d.total}`, 'ok');
+  } catch(e) {
+    showToast('Error: ' + e.message, 'err');
   }
 }
 
@@ -7033,7 +7072,19 @@ function startHQIdleTimer() {
 // Build 12 — Session persistence: skip PIN if already authenticated this session
 (function() {
   try {
-    if (sessionStorage.getItem('hq_auth') === '1' && sessionStorage.getItem('hq_token')) {
+    // Back button stays in-app — intercept popstate
+window.addEventListener('popstate', (e) => {
+  const sect = e.state?.hqSect || 'today';
+  showSect(sect);
+});
+// Prevent back button from leaving the app when on login screen
+window.addEventListener('popstate', (e) => {
+  if (!sessionStorage.getItem('hq_auth')) {
+    history.pushState({}, '', window.location.pathname);
+  }
+});
+
+if (sessionStorage.getItem('hq_auth') === '1' && sessionStorage.getItem('hq_token')) {
       window._hqToken = sessionStorage.getItem('hq_token');
       if (sessionStorage.getItem('hq_op')) currentOp = sessionStorage.getItem('hq_op');
       document.getElementById('lock').style.display = 'none';
