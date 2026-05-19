@@ -235,7 +235,7 @@ button:active{transform:scale(0.98);}
 .fam-alert-banner.info{background:rgba(61,138,122,.06);border:1px solid rgba(61,138,122,.2);}
 .fam-alert-banner.warn{background:rgba(224,154,61,.06);border:1px solid rgba(224,154,61,.2);}
 .fam-alert-banner.crit{background:rgba(224,85,85,.06);border:1px solid rgba(224,85,85,.2);}
-.fam-alert-lbl{font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;margin-bottom:4px;}
+.fam-alert-lbl{font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;margin-bottom:4px;}
 .fam-alert-lbl.info{color:var(--teal2);}
 .fam-alert-lbl.warn{color:var(--amber);}
 .fam-alert-lbl.crit{color:var(--red);}
@@ -252,14 +252,14 @@ button:active{transform:scale(0.98);}
 .eta-text{font-size:13px;color:var(--text);}
 .eta-time{font-family:var(--mono);font-size:11px;color:var(--teal2);margin-top:2px;}
 /* Care plan ack */
-.care-ack-chip{display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;padding:4px 10px;border-radius:100px;background:rgba(61,138,122,.06);border:1px solid rgba(61,138,122,.2);color:var(--teal2);margin-top:6px;}
+.care-ack-chip{display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;padding:4px 10px;border-radius:100px;background:rgba(61,138,122,.06);border:1px solid rgba(61,138,122,.2);color:var(--teal2);margin-top:6px;}
 /* Alert badges on client header */
-.client-alert-chip{display:inline-flex;align-items:center;gap:4px;font-family:var(--mono);font-size:8px;letter-spacing:1px;text-transform:uppercase;padding:3px 8px;border-radius:100px;border:1px solid;margin-right:4px;}
+.client-alert-chip{display:inline-flex;align-items:center;gap:4px;font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;padding:3px 8px;border-radius:100px;border:1px solid;margin-right:4px;}
 .client-alert-chip.fall{color:var(--amber);border-color:rgba(224,154,61,.3);}
 .client-alert-chip.allergy{color:var(--red);border-color:rgba(224,85,85,.3);}
 .client-alert-chip.env{color:#6dbdd4;border-color:rgba(109,189,212,.3);}
 /* Section headers dark style */
-.section-title{font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:10px;}
+.section-title{font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:10px;}
 
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 :root{
@@ -693,7 +693,7 @@ function loadAlertBadges() {
   if (/allerg|anaphyl/.test(careText)) badges += '<span class="client-alert-chip allergy">⚠ Allergy</span>';
   if (/environment|latex|pet |smoke/.test(careText)) badges += '<span class="client-alert-chip env">⚠ Environment</span>';
   if (badges) {
-    bannerEl.innerHTML = '<div style="font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;">Safety Alerts on File · Your PSW is Aware</div>' + badges;
+    bannerEl.innerHTML = '<div style="font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;">Safety Alerts on File · Your PSW is Aware</div>' + badges;
     bannerEl.style.display = 'block';
   }
 }
@@ -744,7 +744,7 @@ function formatVitalsCompact(v) {
   }
   if (!pills.length) return '';
   const allNormal = !v.flagged;
-  return pills.join('') + (allNormal ? '<div style="font-family:var(--mono);font-size:9px;color:var(--teal2);margin-top:4px;">✓ All readings within normal range</div>' : '<div style="font-family:var(--mono);font-size:9px;color:var(--amber);margin-top:4px;">⚠ Some readings flagged — coordinator notified</div>');
+  return pills.join('') + (allNormal ? '<div style="font-family:var(--mono);font-size:11px;color:var(--teal2);margin-top:4px;">✓ All readings within normal range</div>' : '<div style="font-family:var(--mono);font-size:11px;color:var(--amber);margin-top:4px;">⚠ Some readings flagged — coordinator notified</div>');
 }
 
 async function loadPortal() {
