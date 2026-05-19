@@ -3499,6 +3499,10 @@ async function renderVisits() {
           ${v.notes?`<div style="margin-bottom:10px;"><div style="font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:4px;">Notes</div><div style="color:var(--muted2);">${v.notes}</div></div>`:''}
           <div id="vforms-${vid}" data-visit-id="${v.id||''}" data-client="${v.client_name||''}" style="padding-bottom:4px;"></div>
         </div>
+        <div style="display:flex;gap:8px;padding:8px 14px;border-top:1px solid var(--border);background:var(--bg2);">
+          <button onclick="openVisitEdit(${JSON.stringify({id:v.id,psw_name:v.psw_name,client_name:v.client_name,visit_date:v.visit_date,time_in:v.time_in,time_out:v.time_out,hours_worked:v.hours_worked}).replace(/"/g,'&quot;')})" style="padding:6px 14px;background:rgba(201,169,110,.1);border:1px solid rgba(201,169,110,.25);border-radius:5px;font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--gold);cursor:pointer;min-height:36px;">Edit Times</button>
+          ${v.verified ? '<span style="font-family:var(--mono);font-size:10px;color:var(--green2);letter-spacing:1px;padding:6px 8px;">VERIFIED</span>' : `<button onclick="verifyVisit('${v.id}')" style="padding:6px 14px;background:rgba(109,185,116,.08);border:1px solid rgba(109,185,116,.2);border-radius:5px;font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--green2);cursor:pointer;min-height:36px;">Verify</button>`}
+        </div>
       </div>`;
     }).join('');
   } catch (err) {
@@ -5342,10 +5346,14 @@ async function renderRevenue() {
         </div>
       </div>`;
 
-    if (!invoices.length) {
+    // Split into unpaid and paid
+    const unpaidInvs = invoices.filter(i => !i.paid);
+    const paidInvs   = invoices.filter(i =>  i.paid);
+
+    if (!unpaidInvs.length) {
       arHtml += `<div style="font-family:var(--mono);font-size:12px;color:var(--muted);padding:12px 0;">All invoices paid ✓</div>`;
     } else {
-      invoices.forEach(inv => {
+      unpaidInvs.forEach(inv => {
         const isOverdue = inv.overdue || inv.days_outstanding >= 30;
         arHtml += `<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:${isOverdue ? 'rgba(224,85,85,.04)' : 'var(--bg2)'};border:1px solid ${isOverdue ? 'rgba(224,85,85,.25)' : 'var(--border)'};border-radius:6px;margin-bottom:4px;">
           <div>
@@ -5360,6 +5368,23 @@ async function renderRevenue() {
       });
     }
     arHtml += '</div>';
+
+    // ── PAID INVOICE HISTORY ──
+    if (paidInvs.length) {
+      arHtml += `<div style="margin:0 12px 16px;">
+        <div style="font-family:var(--mono);font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--muted2);margin-bottom:10px;">Payment History</div>`;
+      paidInvs.forEach(inv => {
+        const paidDate = inv.paid_at ? new Date(inv.paid_at).toLocaleDateString('en-CA',{month:'short',day:'numeric',year:'numeric'}) : '—';
+        arHtml += `<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:rgba(109,185,116,.03);border:1px solid rgba(109,185,116,.15);border-radius:6px;margin-bottom:4px;">
+          <div>
+            <div style="font-size:12px;font-weight:500;color:var(--text);">${inv.client_name||'—'}</div>
+            <div style="font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:2px;">${inv.month||''} ${inv.year||''} · Paid ${paidDate}</div>
+          </div>
+          <div style="font-family:var(--mono);font-size:13px;color:var(--green2);">$${parseFloat(inv.total_amount||0).toFixed(0)} ✓</div>
+        </div>`;
+      });
+      arHtml += '</div>';
+    }
 
     const revEl = document.getElementById('revenue-content');
     if (revEl) revEl.innerHTML += arHtml;
@@ -5465,7 +5490,7 @@ async function openPSWDetail(pswId) {
 
       <div style="display:flex;gap:8px;margin-bottom:8px;">
         <button class="sbtn" style="flex:1;" onclick="openPSWMsg('${name}');closeSheet('psw-detail-sheet');">Message ${name.split(' ')[0]}</button>
-        <button class="sbtn" style="flex:1;background:rgba(109,185,116,.1);color:var(--green2);border:1px solid rgba(109,185,116,.25);" onclick="sendPSWPaystub('${name}')">Send Paystub</button>
+        <button class="sbtn" style="flex:1;background:rgba(109,185,116,.1);color:var(--green2);border:1px solid rgba(109,185,116,.25);" onclick="openPaystubModal('${name}','${p.email||rec.email||''}',${p.psw_rate||rec.psw_rate||19})">Send Paystub</button>
       </div>`;
   } catch {
     body.innerHTML = '<div class="empty-state">Could not load profile</div>';
@@ -5473,22 +5498,99 @@ async function openPSWDetail(pswId) {
 }
 
 // Send PSW pay summary email with PDF
-async function sendPSWPaystub(pswName) {
+function openPaystubModal(pswName, pswEmail, defaultRate) {
   const now = new Date();
-  const month = now.getMonth() + 1;
-  const year = now.getFullYear();
   const monthName = now.toLocaleString('en-CA', { month: 'long' });
-  if (!confirm(`Send ${monthName} ${year} pay summary to ${pswName}?`)) return;
+  const year = now.getFullYear();
+  // Build modal HTML
+  const modal = document.createElement('div');
+  modal.id = 'paystub-modal';
+  modal.style.cssText = 'position:fixed;inset:0;z-index:999;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;padding:20px;';
+  modal.innerHTML = `
+    <div style="background:var(--bg2);border:1px solid var(--border2);border-radius:10px;padding:28px;width:100%;max-width:420px;position:relative;">
+      <div style="font-family:var(--mono);font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--gold);margin-bottom:6px;">Pay Summary</div>
+      <div style="font-family:var(--serif);font-size:22px;color:var(--text);margin-bottom:20px;">${pswName} — ${monthName} ${year}</div>
+
+      <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:20px;">
+        <div>
+          <div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);margin-bottom:5px;">Hours Worked</div>
+          <input id="ps-hours" type="number" step="0.25" min="0" max="400" placeholder="e.g. 32.5"
+            style="width:100%;padding:11px 13px;background:var(--bg4);border:1px solid var(--border);border-radius:6px;font-family:var(--mono);font-size:15px;color:var(--text);outline:none;">
+        </div>
+        <div>
+          <div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);margin-bottom:5px;">Hourly Rate ($/hr)</div>
+          <input id="ps-rate" type="number" step="0.25" min="0" value="${defaultRate}"
+            style="width:100%;padding:11px 13px;background:var(--bg4);border:1px solid var(--border);border-radius:6px;font-family:var(--mono);font-size:15px;color:var(--text);outline:none;">
+        </div>
+        <div>
+          <div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);margin-bottom:5px;">Period</div>
+          <input id="ps-period" type="text" value="${monthName} ${year}" placeholder="e.g. May 2026"
+            style="width:100%;padding:11px 13px;background:var(--bg4);border:1px solid var(--border);border-radius:6px;font-family:var(--sans);font-size:14px;color:var(--text);outline:none;">
+        </div>
+        <div>
+          <div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);margin-bottom:5px;">Send to</div>
+          <input id="ps-email" type="email" value="${pswEmail}"
+            style="width:100%;padding:11px 13px;background:var(--bg4);border:1px solid var(--border);border-radius:6px;font-family:var(--sans);font-size:14px;color:var(--text);outline:none;">
+        </div>
+        <div id="ps-total-preview" style="padding:14px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;font-family:var(--mono);font-size:13px;color:var(--green2);display:none;"></div>
+      </div>
+
+      <div style="display:flex;gap:10px;">
+        <button onclick="document.getElementById('paystub-modal').remove()"
+          style="flex:1;padding:12px;background:none;border:1px solid var(--border);border-radius:6px;font-family:var(--mono);font-size:11px;color:var(--muted);cursor:pointer;letter-spacing:1px;">Cancel</button>
+        <button onclick="submitPaystub('${pswName}')"
+          style="flex:2;padding:12px;background:rgba(109,185,116,.15);border:1px solid rgba(109,185,116,.3);border-radius:6px;font-family:var(--mono);font-size:11px;color:var(--green2);cursor:pointer;letter-spacing:1px;">Generate & Send PDF</button>
+      </div>
+    </div>`;
+  document.body.appendChild(modal);
+
+  // Live total preview
+  const calcTotal = () => {
+    const h = parseFloat(document.getElementById('ps-hours')?.value) || 0;
+    const r = parseFloat(document.getElementById('ps-rate')?.value) || 0;
+    const total = Math.round(h * r * 100) / 100;
+    const prev = document.getElementById('ps-total-preview');
+    if (h > 0 && r > 0) {
+      prev.style.display = 'block';
+      prev.textContent = `${h}h × $${r}/hr = $${total.toFixed(2)}`;
+    } else {
+      prev.style.display = 'none';
+    }
+  };
+  setTimeout(() => {
+    document.getElementById('ps-hours')?.addEventListener('input', calcTotal);
+    document.getElementById('ps-rate')?.addEventListener('input', calcTotal);
+  }, 100);
+}
+
+async function submitPaystub(pswName) {
+  const hours = parseFloat(document.getElementById('ps-hours')?.value);
+  const rate  = parseFloat(document.getElementById('ps-rate')?.value);
+  const period = document.getElementById('ps-period')?.value.trim();
+  const email = document.getElementById('ps-email')?.value.trim();
+  if (!hours || hours <= 0) { showToast('Enter hours worked', 'err'); return; }
+  if (!rate  || rate  <= 0) { showToast('Enter hourly rate', 'err'); return; }
+  if (!email) { showToast('Email required', 'err'); return; }
+  const total = Math.round(hours * rate * 100) / 100;
   try {
-    showToast('Sending pay summary...', 'ok');
+    showToast('Generating PDF and sending...', 'ok');
     const r = await hqFetch(`${API}/hq/psw/send-paystub`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ operator_id: currentOp, psw_name: pswName, month, year })
+      body: JSON.stringify({
+        operator_id: currentOp,
+        psw_name: pswName,
+        email_override: email,
+        manual_hours: hours,
+        manual_rate: rate,
+        manual_total: total,
+        period_label: period
+      })
     });
     const d = await r.json();
     if (!r.ok) throw new Error(d.error || 'Failed');
-    showToast(`Pay summary sent — ${d.hours}h · $${d.total}`, 'ok');
+    document.getElementById('paystub-modal')?.remove();
+    showToast(`Paystub sent — ${hours}h · $${total.toFixed(2)}`, 'ok');
   } catch(e) {
     showToast('Error: ' + e.message, 'err');
   }
@@ -7133,7 +7235,120 @@ async function uploadPSWDoc(event, pswName, docType) {
   }
 }
 
+
+// ── VISIT EDIT ──
+let _vemVisitId = null;
+
+function openVisitEdit(visitData) {
+  if (typeof visitData === 'string') { try { visitData = JSON.parse(visitData); } catch(e) { return; } }
+  _vemVisitId = visitData.id;
+  const modal = document.getElementById('visit-edit-modal');
+  document.getElementById('vem-meta').textContent =
+    `${visitData.psw_name||'—'} → ${visitData.client_name||'—'} · ${visitData.visit_date||''}`;
+  // Pre-fill current times (HH:MM format)
+  const fmtT = t => t ? String(t).slice(0,5) : '';
+  document.getElementById('vem-time-in').value  = fmtT(visitData.time_in);
+  document.getElementById('vem-time-out').value = fmtT(visitData.time_out);
+  document.getElementById('vem-hours-preview').style.display = 'none';
+  modal.style.display = 'flex';
+
+  // Live hours preview
+  const calcHours = () => {
+    const tin  = document.getElementById('vem-time-in').value;
+    const tout = document.getElementById('vem-time-out').value;
+    if (!tin || !tout) return;
+    const [h1,m1] = tin.split(':').map(Number);
+    const [h2,m2] = tout.split(':').map(Number);
+    const mins = (h2*60+m2) - (h1*60+m1);
+    if (mins <= 0) return;
+    const hrs = (mins/60).toFixed(2);
+    const prev = document.getElementById('vem-hours-preview');
+    prev.style.display = 'block';
+    prev.textContent = `${tin} → ${tout} = ${hrs}h`;
+  };
+  document.getElementById('vem-time-in').oninput  = calcHours;
+  document.getElementById('vem-time-out').oninput = calcHours;
+}
+
+function closeVisitEdit() {
+  document.getElementById('visit-edit-modal').style.display = 'none';
+  _vemVisitId = null;
+}
+
+async function saveVisitEdit() {
+  if (!_vemVisitId) return;
+  const timeIn  = document.getElementById('vem-time-in').value;
+  const timeOut = document.getElementById('vem-time-out').value;
+  if (!timeIn || !timeOut) { showToast('Both times required', 'err'); return; }
+  const [h1,m1] = timeIn.split(':').map(Number);
+  const [h2,m2] = timeOut.split(':').map(Number);
+  if ((h2*60+m2) <= (h1*60+m1)) { showToast('Time out must be after time in', 'err'); return; }
+
+  const btn = document.getElementById('vem-save-btn');
+  btn.textContent = 'Saving...'; btn.disabled = true;
+  try {
+    const r = await hqFetch(`${API}/hq/visit/${_vemVisitId}/verify`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        operator_id: currentOp,
+        verified_by: 'lance',
+        corrected_time_in: timeIn + ':00',
+        corrected_time_out: timeOut + ':00'
+      })
+    });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error || 'Save failed');
+    closeVisitEdit();
+    showToast('Visit updated — PSW and family notified', 'ok');
+    await renderVisits();
+    await loadAll(false);
+  } catch(e) {
+    btn.textContent = 'Save & Notify'; btn.disabled = false;
+    showToast('Error: ' + e.message, 'err');
+  }
+}
+
+async function verifyVisit(visitId) {
+  try {
+    const r = await hqFetch(`${API}/hq/visit/${visitId}/verify`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ operator_id: currentOp, verified_by: 'lance' })
+    });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error || 'Verify failed');
+    showToast('Visit verified', 'ok');
+    await renderVisits();
+  } catch(e) { showToast(e.message, 'err'); }
+}
+
 </script>
 <div class="demo-tip" id="demo-tip"></div>
+
+<!-- VISIT EDIT MODAL -->
+<div id="visit-edit-modal" style="display:none;position:fixed;inset:0;z-index:999;background:rgba(0,0,0,.75);align-items:center;justify-content:center;padding:20px;">
+  <div style="background:var(--bg2);border:1px solid var(--border2);border-radius:10px;padding:28px;width:100%;max-width:400px;position:relative;">
+    <div style="font-family:var(--mono);font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--gold);margin-bottom:4px;">Edit Visit Times</div>
+    <div id="vem-meta" style="font-size:14px;color:var(--text);margin-bottom:20px;"></div>
+    <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:20px;">
+      <div>
+        <div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);margin-bottom:5px;">Time In</div>
+        <input id="vem-time-in" type="time" style="width:100%;padding:11px 13px;background:var(--bg4);border:1px solid var(--border);border-radius:6px;font-family:var(--mono);font-size:15px;color:var(--text);outline:none;">
+      </div>
+      <div>
+        <div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);margin-bottom:5px;">Time Out</div>
+        <input id="vem-time-out" type="time" style="width:100%;padding:11px 13px;background:var(--bg4);border:1px solid var(--border);border-radius:6px;font-family:var(--mono);font-size:15px;color:var(--text);outline:none;">
+      </div>
+      <div id="vem-hours-preview" style="padding:12px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;font-family:var(--mono);font-size:13px;color:var(--teal);display:none;"></div>
+      <div style="font-size:12px;color:var(--muted);line-height:1.5;">Original times are saved for audit. PSW and family will be notified of the correction.</div>
+    </div>
+    <div style="display:flex;gap:10px;">
+      <button onclick="closeVisitEdit()" style="flex:1;padding:12px;background:none;border:1px solid var(--border);border-radius:6px;font-family:var(--mono);font-size:11px;color:var(--muted);cursor:pointer;letter-spacing:1px;">Cancel</button>
+      <button id="vem-save-btn" onclick="saveVisitEdit()" style="flex:2;padding:12px;background:rgba(201,169,110,.12);border:1px solid rgba(201,169,110,.3);border-radius:6px;font-family:var(--mono);font-size:11px;color:var(--gold);cursor:pointer;letter-spacing:1px;">Save & Notify</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
