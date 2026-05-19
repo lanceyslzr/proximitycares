@@ -118,7 +118,7 @@ async function refreshMapLocations() {
 
       const marker = L.marker([lat, lng], { icon })
         .addTo(_leafletMap)
-        .bindPopup(`<b>${loc.psw_name}</b><br>${loc.client_name}<br>Checked in ${loc.time_in?fmtTime(loc.time_in):''}${elapsed?' · '+elapsed+' ago':''}`);
+        .bindPopup(`<b>${escHtml(loc.psw_name)}</b><br>${escHtml(loc.client_name)}<br>Checked in ${loc.time_in?fmtTime(loc.time_in):''}${elapsed?' · '+elapsed+' ago':''}`);
       _mapMarkers.push(marker);
       bounds.push([lat, lng]);
     });
@@ -130,7 +130,7 @@ async function refreshMapLocations() {
         const initials = (loc.psw_name||'').split(' ').map(w=>w[0]||'').join('').toUpperCase().slice(0,2);
         return `<div style="display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;color:var(--muted2);">
           <div style="width:20px;height:20px;border-radius:50%;background:var(--teal);display:flex;align-items:center;justify-content:center;font-size:11px;color:#fff;">${initials}</div>
-          ${loc.psw_name} → ${loc.client_name}${loc.elapsed_minutes?' · '+loc.elapsed_minutes+'m':''}
+          ${escHtml(loc.psw_name)} → ${escHtml(loc.client_name)}${loc.elapsed_minutes?' · '+loc.elapsed_minutes+'m':''}
         </div>`;
       }).join('');
     }
@@ -155,7 +155,7 @@ async function loadFamilyNotes() {
       <div class="card" style="margin:0 0 8px;border-color:rgba(200,169,110,.2);">
         <div class="card-header">
           <div style="flex:1;min-width:0;">
-            <div class="card-name" style="color:var(--gold);">${n.client_name||'—'}</div>
+            <div class="card-name" style="color:var(--gold);">${escHtml(n.client_name)||'—'}</div>
             <div class="card-sub" style="margin-top:4px;">${n.from_name||'Family'}</div>
             <div style="font-size:13px;color:var(--muted2);margin-top:8px;line-height:1.6;">${n.note||''}</div>
           </div>
@@ -2084,9 +2084,9 @@ async function loadCancellationRequests() {
     alertEl.style.display = 'block';
     listEl.innerHTML = requests.map(req => `
       <div class="cancel-req-card" id="cancel-req-${req.id}">
-        <div style="font-size:13px;font-weight:500;color:var(--text);">${req.psw_name} · ${req.client_name||'Unknown client'}</div>
+        <div style="font-size:13px;font-weight:500;color:var(--text);">${escHtml(req.psw_name||"")} · ${escHtml(req.client_name||'Unknown client')}</div>
         <div style="font-family:var(--mono);font-size:12px;color:var(--muted2);margin-top:2px;">${req.scheduled_date||'—'}${req.scheduled_time?' · '+req.scheduled_time:''}</div>
-        <div style="font-size:12px;color:var(--muted2);margin-top:4px;">Reason: ${req.reason}</div>
+        <div style="font-size:12px;color:var(--muted2);margin-top:4px;">Reason: ${escHtml(req.reason||"")}</div>
         <div class="cancel-req-actions">
           <button class="cancel-approve-btn" onclick="respondCancelRequest('${req.id}','approve')">✓ Approve + Broadcast</button>
           <button class="cancel-reject-btn" onclick="respondCancelRequest('${req.id}','reject')">Reject</button>
@@ -2175,7 +2175,7 @@ async function loadShiftOffersHQ() {
     list.innerHTML = offers.slice(0,10).map(o => `
       <div class="offer-history-row" id="hq-offer-${o.id}">
         <div style="flex:1;min-width:0;">
-          <div style="font-size:12px;font-weight:500;color:var(--text);">${o.client_name||'—'}</div>
+          <div style="font-size:12px;font-weight:500;color:var(--text);">${escHtml(o.client_name||'—')}</div>
           <div style="font-family:var(--mono);font-size:11px;color:var(--muted2);">${o.scheduled_date} · ${o.scheduled_time||'TBD'} · ${o.duration_minutes?(o.duration_minutes/60).toFixed(1)+'h':'—'}</div>
         </div>
         <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
@@ -2381,7 +2381,7 @@ function renderLeads() {
         <div class="card-header" onclick="openLeadDetail('${l.id}')">
           <div style="flex:1;min-width:0;">
             <div class="card-name">${name}</div>
-            <div class="card-sub">${l.phone?`<a href="tel:${l.phone}" onclick="event.stopPropagation()">${l.phone}</a>`:l.email||'—'}</div>
+            <div class="card-sub">${escHtml(l.phone)?`<a href="tel:${l.phone}" onclick="event.stopPropagation()">${escHtml(l.phone)}</a>`:l.email||'—'}</div>
             <div class="card-meta">${[l.care_type_interest,l.urgency,l.city].filter(Boolean).join(' · ')}</div>
             <div class="seq-row">
               <div class="sdot ${l.day1_sent?'done':'pending'}"></div>
@@ -2396,11 +2396,11 @@ function renderLeads() {
           </div>
         </div>
         <div class="card-actions">
-          ${l.phone?`<div class="card-act call" onclick="window.location.href='tel:${l.phone}'">Call</div>`:''}
-          ${l.phone?`<div class="card-act" onclick="window.location.href='sms:${l.phone}'">Text</div>`:''}
+          ${escHtml(l.phone)?`<div class="card-act call" onclick="window.location.href='tel:${l.phone}'">Call</div>`:''}
+          ${escHtml(l.phone)?`<div class="card-act" onclick="window.location.href='sms:${l.phone}'">Text</div>`:''}
           <div class="card-act warn" onclick="openStatusSheet('${l.id}')">Status</div>
-          <div class="card-act ok" onclick="convertLead('${l.id}','${l.email||''}')">✓ Convert</div>
-          ${l.email?`<div class="card-act" onclick="sendIntakeLinkFromLead('${l.email}','${(l.first_name||'')+' '+(l.last_name||'')}'.trim(),'')" style="font-size:11px;min-height:34px;touch-action:manipulation;">Intake Link</div>`:''}
+          <div class="card-act ok" onclick="convertLead('${l.id}','${escHtml(l.email)||''}')">✓ Convert</div>
+          ${escHtml(l.email)?`<div class="card-act" onclick="sendIntakeLinkFromLead('${l.email}','${(l.first_name||'')+' '+(l.last_name||'')}'.trim(),'')" style="font-size:11px;min-height:34px;touch-action:manipulation;">Intake Link</div>`:''}
         </div>
       </div>
       <div class="lead-swipe-delete" id="swipe-del-${l.id}" data-lead-id="${l.id}" onclick="deleteLeadFromSwipe('${l.id}')">
@@ -2497,16 +2497,16 @@ async function deleteLeadFromSwipe(id) {
 
 function openLeadDetail(id) {
   const l = (D.leads||[]).find(x=>x.id===id); if(!l) return;
-  const name = `${l.first_name||''} ${l.last_name||''}`.trim();
+  const name = `${escHtml(l.first_name)||''} ${escHtml(l.last_name)||''}`.trim();
   document.getElementById('lead-sheet-title').textContent = name;
   document.getElementById('lead-sheet-body').innerHTML = `
-    <div class="cpf"><div class="cpf-lbl">Email</div><div class="cpf-val">${l.email?`<a href="mailto:${l.email}">${l.email}</a>`:'—'}</div></div>
-    <div class="cpf"><div class="cpf-lbl">Phone</div><div class="cpf-val">${l.phone?`<a href="tel:${l.phone}">${l.phone}</a>`:'—'}</div></div>
-    <div class="cpf"><div class="cpf-lbl">City</div><div class="cpf-val">${l.city||'—'}</div></div>
-    <div class="cpf"><div class="cpf-lbl">Care for</div><div class="cpf-val">${l.care_needed_for||'—'}</div></div>
-    <div class="cpf"><div class="cpf-lbl">Care type</div><div class="cpf-val">${l.care_type_interest||'—'}</div></div>
-    <div class="cpf"><div class="cpf-lbl">Urgency</div><div class="cpf-val">${l.urgency||'—'}</div></div>
-    <div class="cpf"><div class="cpf-lbl">Preferred time</div><div class="cpf-val">${l.preferred_time||'—'}</div></div>
+    <div class="cpf"><div class="cpf-lbl">Email</div><div class="cpf-val">${escHtml(l.email)?`<a href="mailto:${l.email}">${escHtml(l.email)}</a>`:'—'}</div></div>
+    <div class="cpf"><div class="cpf-lbl">Phone</div><div class="cpf-val">${escHtml(l.phone)?`<a href="tel:${l.phone}">${escHtml(l.phone)}</a>`:'—'}</div></div>
+    <div class="cpf"><div class="cpf-lbl">City</div><div class="cpf-val">${escHtml(l.city||'')||'—'}</div></div>
+    <div class="cpf"><div class="cpf-lbl">Care for</div><div class="cpf-val">${escHtml(l.care_needed_for||'')||'—'}</div></div>
+    <div class="cpf"><div class="cpf-lbl">Care type</div><div class="cpf-val">${escHtml(l.care_type_interest||'')||'—'}</div></div>
+    <div class="cpf"><div class="cpf-lbl">Urgency</div><div class="cpf-val">${escHtml(l.urgency||'')||'—'}</div></div>
+    <div class="cpf"><div class="cpf-lbl">Preferred time</div><div class="cpf-val">${escHtml(l.preferred_time||'')||'—'}</div></div>
     <div class="cpf"><div class="cpf-lbl">Source</div><div class="cpf-val">${l.source||'—'}</div></div>
     <div class="cpf"><div class="cpf-lbl">Status</div><div class="cpf-val"><span class="badge b-${l.status||'new'}">${l.status||'new'}</span></div></div>
     <div class="cpf"><div class="cpf-lbl">Follow-ups</div><div class="cpf-val" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;">
@@ -2514,10 +2514,10 @@ function openLeadDetail(id) {
       <span class="badge ${l.day3_sent?'b-converted':'b-dead'}">Day 3 ${l.day3_sent?'✓':'pending'}</span>
       <span class="badge ${l.day7_sent?'b-converted':'b-dead'}">Day 7 ${l.day7_sent?'✓':'pending'}</span>
     </div></div>
-    <div class="cpf"><div class="cpf-lbl">Notes</div><div class="cpf-val">${l.notes||'<span class="cpf-empty">No notes</span>'}</div></div>
+    <div class="cpf"><div class="cpf-lbl">Notes</div><div class="cpf-val">${escHtml(l.notes)||'<span class="cpf-empty">No notes</span>'}</div></div>
     <div class="cpf"><div class="cpf-lbl">Created</div><div class="cpf-val">${fmtdt(l.created_at)}</div></div>
     <button class="sbtn" style="margin-top:12px;" onclick="openStatusSheet('${l.id}');closeSheet('lead-sheet');">Update Status</button>
-    <button class="sbtn ghost" style="margin-top:8px;" onclick="convertLead('${l.id}','${l.email||''}');closeSheet('lead-sheet');">Mark Converted + Stop Emails</button>`;
+    <button class="sbtn ghost" style="margin-top:8px;" onclick="convertLead('${l.id}','${escHtml(l.email)||''}');closeSheet('lead-sheet');">Mark Converted + Stop Emails</button>`;
   openSheet('lead-sheet');
 }
 
@@ -2581,7 +2581,7 @@ function renderClients() {
   if (!el.querySelector('.card')) showSkeleton('clients-list', 4, true);
   if(!clients.length) { el.innerHTML='<div class="empty-state"><div class="empty-state-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78z"/></svg></div><div class="empty-state-title">No active clients</div><div class="empty-state-sub">Onboard your first client to get started.</div></div>'; return; }
   el.innerHTML = clients.map(c => {
-    const name = `${c.first_name||''} ${c.last_name||''}`.trim();
+    const name = `${escHtml(c.first_name)||''} ${escHtml(c.last_name)||''}`.trim();
     const ini = name.split(' ').map(w=>w[0]||'').join('').toUpperCase().slice(0,2);
     // Sentiment badge
     const sentData = (window._sentimentData||[]).find(s => s.client_name === name);
@@ -2683,7 +2683,7 @@ async function loadCarePlanVersions(slug) {
           <div style="font-family:var(--mono);font-size:12px;color:var(--teal2);">v${v.version_number}</div>
           <div style="font-family:var(--mono);font-size:11px;color:var(--muted);">${v.updated_at?new Date(v.updated_at).toLocaleDateString('en-CA'):''}</div>
         </div>
-        <div style="font-size:11px;color:var(--muted2);margin-top:3px;">${v.reason_for_change||'—'} · ${v.updated_by||'—'}</div>
+        <div style="font-size:11px;color:var(--muted2);margin-top:3px;">${escHtml(v.reason_for_change||'—')} · ${v.updated_by||'—'}</div>
       </div>`).join('');
   } catch { el.innerHTML = '<div style="font-family:var(--mono);font-size:12px;color:var(--red);">Could not load history</div>'; }
 }
@@ -3006,19 +3006,19 @@ function renderPSWs() {
         const mins = Math.round((new Date() - cdt) / 60000);
         pswElapsed = mins >= 60 ? `${Math.floor(mins/60)}h ${mins%60}m` : `${mins}m`;
       } catch {}
-      shiftBar = `<div class="psw-on-shift-bar"><div class="psw-shift-dot"></div><div style="flex:1;font-family:var(--mono);font-size:12px;color:var(--green2);">On Shift — ${activeShift.client_name||'—'}</div>${pswElapsed?`<div style="font-family:var(--mono);font-size:12px;color:var(--amber);">${pswElapsed}</div>`:''}</div>`;
+      shiftBar = `<div class="psw-on-shift-bar"><div class="psw-shift-dot"></div><div style="flex:1;font-family:var(--mono);font-size:12px;color:var(--green2);">On Shift — ${escHtml(activeShift.client_name)||'—'}</div>${pswElapsed?`<div style="font-family:var(--mono);font-size:12px;color:var(--amber);">${pswElapsed}</div>`:''}</div>`;
     } else if (doneToday) {
-      shiftBar = `<div class="psw-on-shift-bar" style="background:rgba(61,138,122,.04);"><div style="width:7px;height:7px;border-radius:50%;background:var(--teal2);flex-shrink:0;"></div><div style="flex:1;font-family:var(--mono);font-size:12px;color:var(--teal2);">Done today — ${doneToday.client_name||'—'}</div></div>`;
+      shiftBar = `<div class="psw-on-shift-bar" style="background:rgba(61,138,122,.04);"><div style="width:7px;height:7px;border-radius:50%;background:var(--teal2);flex-shrink:0;"></div><div style="flex:1;font-family:var(--mono);font-size:12px;color:var(--teal2);">Done today — ${escHtml(doneToday.client_name)||'—'}</div></div>`;
     }
     const lastVisitInfo = lastPswV && lastPswV.visit_date !== todayStr2
       ? `<div class="card-info-strip"><span class="card-info-chip">Last visit ${fmtd(lastPswV.visit_date)}</span>${lastPswV.client_mood?`<span class="card-info-chip active">${lastPswV.client_mood}</span>`:''}</div>`
       : '';
     return `
     <div class="card">
-      <div class="card-header" data-psw-id="${p.id||''}" data-psw-name="${p.name}" data-psw-source="${p.source||'live'}" onclick="if(this.dataset.pswSource==='live'){openPSWDetail(this.dataset.pswId||this.dataset.pswName);}else{showToast('PSW not yet activated in Supabase','err');}" style="cursor:pointer;">
+      <div class="card-header" data-psw-id="${p.id||''}" data-psw-name="${escHtml(p.name)}" data-psw-source="${p.source||'live'}" onclick="if(this.dataset.pswSource==='live'){openPSWDetail(this.dataset.pswId||this.dataset.pswName);}else{showToast('PSW not yet activated in Supabase','err');}" style="cursor:pointer;">
         <div style="display:flex;align-items:center;gap:11px;flex:1;">
           <div class="avatar">${ini}</div>
-          <div><div class="card-name">${p.name}${probationBadge}</div><div class="card-sub">${p.psw_code||p.id?'<span style="font-family:var(--mono);font-size:12px;color:var(--teal3);">'+(p.psw_code||'')+'</span> · ':''} ${email||'No email on file'}</div></div>
+          <div><div class="card-name">${escHtml(p.name)}${probationBadge}</div><div class="card-sub">${p.psw_code||p.id?'<span style="font-family:var(--mono);font-size:12px;color:var(--teal3);">'+(p.psw_code||'')+'</span> · ':''} ${email||'No email on file'}</div></div>
         </div>
         ${activeShift ? '<span class="badge" style="background:rgba(74,154,110,.15);color:var(--green2);border:1px solid rgba(74,154,110,.3);">On Shift</span>' : statusBadge}
       </div>
@@ -3026,9 +3026,9 @@ function renderPSWs() {
       ${lastVisitInfo}
       <div class="card-actions">
         ${email?`<div class="card-act call" onclick="window.location.href='mailto:${email}'">Email</div>`:''}
-        <div class="card-act" onclick="openPSWMsg('${p.name}')">Message</div>
+        <div class="card-act" onclick="openPSWMsg('${escHtml(p.name)}')">Message</div>
         <div class="card-act" onclick="showSect('schedule');setTimeout(()=>openAddShift(this.closest('.card').querySelector('[data-psw-name]')?.dataset.pswName||'',''),150);">+ Shift</div>
-        <div class="card-act ok" data-psw-id="${p.id||''}" data-psw-name="${p.name}" data-psw-source="${p.source||'live'}" onclick="if(this.dataset.pswSource==='live'){openPSWDetail(this.dataset.pswId||this.dataset.pswName);}else{showToast('PSW not yet activated in Supabase','err');}">View</div>
+        <div class="card-act ok" data-psw-id="${p.id||''}" data-psw-name="${escHtml(p.name)}" data-psw-source="${p.source||'live'}" onclick="if(this.dataset.pswSource==='live'){openPSWDetail(this.dataset.pswId||this.dataset.pswName);}else{showToast('PSW not yet activated in Supabase','err');}">View</div>
       </div>
     </div>`;
   }).join('');
@@ -3103,10 +3103,10 @@ function filterBookingsByDate(iso) {
   const filtered = activeCalDate ? bookings.filter(b => b.scheduled_date === activeCalDate) : bookings;
   if (!filtered.length) { el.innerHTML='<div class="empty-state">'+(activeCalDate?'No bookings on '+fmtd(activeCalDate):'No upcoming appointments')+'</div>'; return; }
   el.innerHTML = filtered.map(b=>`
-    <div class="card" style="cursor:pointer;" onclick="openAddShift('${b.assigned_to||''}','${b.scheduled_date}','${b.client_name||''}')">
+    <div class="card" style="cursor:pointer;" onclick="openAddShift('${b.assigned_to||''}','${b.scheduled_date}','${escHtml(b.client_name)||''}')">
       <div class="card-header">
         <div>
-          <div class="card-name">${b.client_name}</div>
+          <div class="card-name">${escHtml(b.client_name)}</div>
           <div class="card-sub">${b.booking_type}${b.assigned_to?' · '+b.assigned_to:' · <span style="color:var(--amber);">Unassigned</span>'}</div>
           <div class="card-meta">${b.location||''}</div>
         </div>
@@ -3171,10 +3171,10 @@ function renderMessages() {
   el.innerHTML = rows.slice(0,50).map(r => {
     const preview = (r.last.payload&&r.last.payload.message) ? r.last.payload.message : '—';
     const slugAttr = r.slug ? `data-fslug="${r.slug}"` : '';
-    return `<div class="card" style="cursor:pointer;margin:0 12px 8px;" ${slugAttr} onclick="openFamilyThread(this.dataset.fslug,'${r.name.replace(/'/g,'&#39;')}')">
+    return `<div class="card" style="cursor:pointer;margin:0 12px 8px;" ${slugAttr} onclick="openFamilyThread(this.dataset.fslug,'${escHtml(r.name).replace(/'/g,'&#39;')}')">
       <div class="card-header">
         <div style="flex:1;min-width:0;">
-          <div class="card-name">${r.name}</div>
+          <div class="card-name">${escHtml(r.name)}</div>
           <div class="card-sub" style="margin-top:4px;font-size:12px;color:var(--muted2);line-height:1.4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${preview}</div>
         </div>
         <div class="card-age">${ago(r.last.created_at)}</div>
@@ -3261,12 +3261,12 @@ function renderPSWThreadRow() {
   el.innerHTML = psws.map(p => {
     const ini = p.name.split(' ').map(w=>w[0]||'').join('').toUpperCase().slice(0,2);
     const isActive = activeThread === p.name;
-    return `<div class="msg-avatar-chip" onclick="openThread('${p.name}')">
+    return `<div class="msg-avatar-chip" onclick="openThread('${escHtml(p.name)}')">
       <div class="msg-avatar-circle${isActive?' active':''}">
         ${ini}
-        <div class="msg-unread-dot" id="udot-${p.name.split(' ').join('_')}"></div>
+        <div class="msg-unread-dot" id="udot-${escHtml(p.name).split(' ').join('_')}"></div>
       </div>
-      <div class="msg-avatar-name">${p.name.split(' ')[0]}</div>
+      <div class="msg-avatar-name">${escHtml(p.name).split(' ')[0]}</div>
     </div>`;
   }).join('');
 }
@@ -3503,8 +3503,8 @@ async function renderVisits() {
       <div class="card" style="${v.sub_8_min?'border-color:rgba(224,85,85,.25);':''}">
         <div class="card-header" onclick="toggleVisit('${vid}')" style="cursor:pointer;">
           <div style="flex:1;min-width:0;">
-            <div class="card-name">${v.psw_name||'—'}${sub8Badge}${entryBadge}</div>
-            <div class="card-sub">${v.client_name||'—'} · ${fmtTime(v.time_in)} ${v.time_out?'to '+fmtTime(v.time_out):''}</div>
+            <div class="card-name">${escHtml(v.psw_name)||'—'}${sub8Badge}${entryBadge}</div>
+            <div class="card-sub">${escHtml(v.client_name)||'—'} · ${fmtTime(v.time_in)} ${v.time_out?'to '+fmtTime(v.time_out):''}</div>
             <div class="card-meta">${tasks ? tasks.slice(0,60)+(tasks.length>60?'...':'') : 'No tasks logged'}</div>
             ${gpsBadge}
             ${v.incident_reported ? buildIncidentBadge(v) : ''}
@@ -3528,8 +3528,8 @@ async function renderVisits() {
           ${photosHtml}
           ${satHtml}
           ${v.incident_notes?`<div style="margin-bottom:10px;"><div style="font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--red);margin-bottom:4px;">Incident Notes</div><div style="color:var(--text);">${v.incident_notes}</div></div>`:''}
-          ${v.notes?`<div style="margin-bottom:10px;"><div style="font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:4px;">Notes</div><div style="color:var(--muted2);">${v.notes}</div></div>`:''}
-          <div id="vforms-${vid}" data-visit-id="${v.id||''}" data-client="${v.client_name||''}" style="padding-bottom:4px;"></div>
+          ${escHtml(v.notes)?`<div style="margin-bottom:10px;"><div style="font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:4px;">Notes</div><div style="color:var(--muted2);">${v.notes}</div></div>`:''}
+          <div id="vforms-${vid}" data-visit-id="${v.id||''}" data-client="${escHtml(v.client_name)||''}" style="padding-bottom:4px;"></div>
         </div>
         <div style="display:flex;gap:8px;padding:8px 14px;border-top:1px solid var(--border);background:var(--bg2);">
           <button onclick="openVisitEdit(${JSON.stringify({id:v.id,psw_name:v.psw_name,client_name:v.client_name,visit_date:v.visit_date,time_in:v.time_in,time_out:v.time_out,hours_worked:v.hours_worked}).replace(/"/g,'&quot;')})" style="padding:6px 14px;background:rgba(201,169,110,.1);border:1px solid rgba(201,169,110,.25);border-radius:5px;font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--gold);cursor:pointer;min-height:36px;">Edit Times</button>
@@ -3833,10 +3833,10 @@ function renderCRM() {
           </div>
           <button data-del-id="${l.id}" data-del-type="${isSeed?'seed':'db'}" data-del-name="${name.replace(/"/g,'&quot;')}" onclick="crmDelete(this.dataset.delId,this.dataset.delType,this.dataset.delName,event)" style="flex-shrink:0;font-size:13px;color:var(--muted);background:none;border:none;padding:2px 4px;line-height:1;cursor:pointer;touch-action:manipulation;" title="Delete">✕</button>
         </div>
-        ${l.notes?`<div style="font-size:11px;color:var(--muted);margin-bottom:6px;line-height:1.4;">${l.notes.slice(0,80)}${l.notes.length>80?'...':''}</div>`:''}
+        ${escHtml(l.notes)?`<div style="font-size:11px;color:var(--muted);margin-bottom:6px;line-height:1.4;">${l.notes.slice(0,80)}${escHtml(l.notes).length>80?'...':''}</div>`:''}
         <div class="crm-card-acts">
-          ${l.phone?`<a href="tel:${l.phone}" class="crm-card-btn call" onclick="event.stopPropagation()"><svg width="11" height="11" viewBox="0 0 12 12" fill="none" style="display:inline;vertical-align:middle;margin-right:3px"><path d="M2 2h2.5l1 2.5-1.5 1a6 6 0 0 0 3 3l1-1.5L10.5 8V10c-5 .5-9-4-8.5-8z" stroke="#6dbdd4" stroke-width="1.2" stroke-linejoin="round"/></svg>Call</a>`:''}
-          ${l.email?`<a href="mailto:${l.email}" class="crm-card-btn demo" onclick="event.stopPropagation()">✉ Email</a>`:''}
+          ${escHtml(l.phone)?`<a href="tel:${l.phone}" class="crm-card-btn call" onclick="event.stopPropagation()"><svg width="11" height="11" viewBox="0 0 12 12" fill="none" style="display:inline;vertical-align:middle;margin-right:3px"><path d="M2 2h2.5l1 2.5-1.5 1a6 6 0 0 0 3 3l1-1.5L10.5 8V10c-5 .5-9-4-8.5-8z" stroke="#6dbdd4" stroke-width="1.2" stroke-linejoin="round"/></svg>Call</a>`:''}
+          ${escHtml(l.email)?`<a href="mailto:${l.email}" class="crm-card-btn demo" onclick="event.stopPropagation()">✉ Email</a>`:''}
           <a href="https://proximitysystems.ca/${demoSlug}-premium.html" target="_blank" class="crm-card-btn demo" onclick="event.stopPropagation()">Demo</a>
           ${canFwd?`<button class="crm-card-btn move" onclick="crmMove('${l.id}','${isSeed?'seed':'db'}','${stages[si+1]}',event)">→ ${CRM_STAGE_LABELS[stages[si+1]]}</button>`:''}
           ${canBack?`<button class="crm-card-btn" onclick="crmMove('${l.id}','${isSeed?'seed':'db'}','${stages[si-1]}',event)" style="font-size:11px;opacity:.5;">← Back</button>`:''}
@@ -3975,7 +3975,7 @@ async function loadApplicants() {
         <div class="card-header">
           <div style="flex:1;min-width:0">
             <div class="card-name">${name}</div>
-            <div class="card-sub">${a.phone?`${a.phone}`:a.email||'—'}</div>
+            <div class="card-sub">${escHtml(a.phone)?`${a.phone}`:a.email||'—'}</div>
             <div class="card-meta">${[a.city,a.availability,a.years_experience?a.years_experience+' yrs exp':''].filter(Boolean).join(' · ')}</div>
             <div class="card-meta" style="margin-top:3px;">${certs}</div>
           </div>
@@ -3984,17 +3984,17 @@ async function loadApplicants() {
             <div style="font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:4px;">${ago(a.created_at)}</div>
           </div>
         </div>
-        ${a.message?`<div style="font-size:11px;color:var(--muted2);padding:0 0 8px;line-height:1.5;">"${a.message.slice(0,120)}${a.message.length>120?'...':''}"</div>`:''}
+        ${escHtml(a.message)?`<div style="font-size:11px;color:var(--muted2);padding:0 0 8px;line-height:1.5;">"${a.message.slice(0,120)}${escHtml(a.message).length>120?'...':''}"</div>`:''}
         <div style="display:flex;gap:6px;flex-wrap:wrap;padding-top:4px;" onclick="event.stopPropagation()">
-          ${a.phone?`<a href="tel:${a.phone}" class="card-act call">Call</a>`:''}
-          ${a.email?`<a href="mailto:${a.email}" class="card-act call">Email</a>`:''}
+          ${escHtml(a.phone)?`<a href="tel:${a.phone}" class="card-act call">Call</a>`:''}
+          ${escHtml(a.email)?`<a href="mailto:${a.email}" class="card-act call">Email</a>`:''}
           ${st==='applied'?`<button class="card-act ok" onclick="qualifyApplicant('${a.id}')">Qualify →</button>`:''}
           ${st==='qualified'?`<span class="card-act" style="color:var(--muted);font-size:11px;letter-spacing:1px;">AWAITING DOCS</span>`:''}
-          ${st==='documents_complete'?`<button class="card-act ok" onclick="hireAndActivate('${a.id}','${name}','${a.email||''}','${a.phone||''}')">Hire + Activate →</button>`:''}
+          ${st==='documents_complete'?`<button class="card-act ok" onclick="hireAndActivate('${a.id}','${name}','${escHtml(a.email)||''}','${escHtml(a.phone)||''}')">Hire + Activate →</button>`:''}
           ${st==='onboarding'?`<span class="card-act" style="color:var(--muted);font-size:11px;letter-spacing:1px;">AWAITING DOCS</span>`:''}
-          ${st==='hired'?`<button class="card-act ok" onclick="activateApplicantAsStaff('${a.id}','${name}','${a.email||''}','${a.phone||''}')">Send Portal Access →</button>`:''}
+          ${st==='hired'?`<button class="card-act ok" onclick="activateApplicantAsStaff('${a.id}','${name}','${escHtml(a.email)||''}','${escHtml(a.phone)||''}')">Send Portal Access →</button>`:''}
           ${st==='active'?`<span class="card-act" style="color:var(--teal2);font-size:11px;letter-spacing:1px;">ACTIVE ✓</span>`:''}
-          <button class="card-act" style="font-size:11px;background:none;border:1px solid var(--border2);cursor:pointer;" onclick="resendOnboardLink('${a.id}','${a.first_name}',this)">↻ Resend Link</button>
+          <button class="card-act" style="font-size:11px;background:none;border:1px solid var(--border2);cursor:pointer;" onclick="resendOnboardLink('${a.id}','${escHtml(a.first_name)}',this)">↻ Resend Link</button>
           <button class="card-act" style="font-size:11px;background:none;border:1px solid rgba(224,85,85,.3);color:var(--red);cursor:pointer;" data-dismiss-id="${a.id}" data-dismiss-name="${name.replace(/"/g,'&quot;')}" onclick="dismissApplicant(this.dataset.dismissId,this.dataset.dismissName)">✕ Dismiss</button>
         </div>
       </div>`;
@@ -4050,8 +4050,8 @@ async function openApplicantSheet(id) {
   const acts = document.getElementById('app-sheet-acts');
   acts.innerHTML = '';
   if(st === 'applied') acts.innerHTML += `<button class="sbtn ok" onclick="qualifyApplicant('${a.id}');closeSheet('app-sheet')">Qualify →</button>`;
-  if(st === 'documents_complete') acts.innerHTML += `<button class="sbtn ok" onclick="hireAndActivate('${a.id}','${name}','${a.email||''}','${a.phone||''}');closeSheet('app-sheet')">Hire + Activate →</button>`;
-  if(st === 'hired') acts.innerHTML += `<button class="sbtn ok" onclick="activateApplicantAsStaff('${a.id}','${name}','${a.email||''}','${a.phone||''}');closeSheet('app-sheet')">Send Portal Access →</button>`;
+  if(st === 'documents_complete') acts.innerHTML += `<button class="sbtn ok" onclick="hireAndActivate('${a.id}','${name}','${escHtml(a.email)||''}','${escHtml(a.phone)||''}');closeSheet('app-sheet')">Hire + Activate →</button>`;
+  if(st === 'hired') acts.innerHTML += `<button class="sbtn ok" onclick="activateApplicantAsStaff('${a.id}','${name}','${escHtml(a.email)||''}','${escHtml(a.phone)||''}');closeSheet('app-sheet')">Send Portal Access →</button>`;
   // PSW Intake AI — available at any stage after qualified
   if(['qualified','documents_complete','hired'].includes(st)) {
     acts.innerHTML += `<button class="sbtn" style="background:rgba(61,138,122,.1);border-color:rgba(61,138,122,.3);color:var(--teal2);" onclick="runPSWIntakeAI('${a.id}','${name}')">✦ Generate PSW Profile with AI</button>`;
@@ -4059,7 +4059,7 @@ async function openApplicantSheet(id) {
   if(st === 'documents_complete') {
     acts.innerHTML += `<button class="sbtn" style="background:rgba(74,222,128,.08);border-color:rgba(74,222,128,.35);color:var(--green2);" onclick="approveDocsAndSendInterviewPicker('${a.id}','${name}')">✓ Docs Approved — Send Interview Picker</button>`;
   }
-  acts.innerHTML += `<button class="sbtn" onclick="resendOnboardLink('${a.id}','${a.first_name}',this)">↻ Resend Link</button>`;
+  acts.innerHTML += `<button class="sbtn" onclick="resendOnboardLink('${a.id}','${escHtml(a.first_name)}',this)">↻ Resend Link</button>`;
   acts.innerHTML += `<button class="sbtn" style="border-color:rgba(224,85,85,.3);color:var(--red);" data-dismiss-id="${a.id}" data-dismiss-name="${name.replace(/"/g,'&quot;')}" onclick="dismissApplicant(this.dataset.dismissId,this.dataset.dismissName);closeSheet('app-sheet')">✕ Dismiss</button>`;
 
   openSheet('app-sheet');
@@ -4225,7 +4225,7 @@ async function runPSWIntakeAI(applicantId, name) {
       </div>`;
     showToast('PSW profile generated ✓', 'ok');
   } catch(e) {
-    if (resultEl) resultEl.innerHTML = `<div style="font-size:12px;color:var(--red);">${e.message || 'Failed'}</div>`;
+    if (resultEl) resultEl.innerHTML = `<div style="font-size:12px;color:var(--red);">${escHtml(e.message) || 'Failed'}</div>`;
     showToast(e.message || 'AI profile failed', 'err');
   }
 }
@@ -4283,7 +4283,7 @@ async function bulkImportPSWs() {
     const data = await res.json();
     if (!res.ok || !data.success) throw new Error(data.error || 'Failed');
     result.innerHTML = `✓ ${data.activated.length} PSWs activated · ${data.failed.length} failed · ${data.skipped.length} skipped`;
-    if (data.activated.length) result.innerHTML += '<br>' + data.activated.map(p => `${p.name} → PIN:${p.pin}`).join('<br>');
+    if (data.activated.length) result.innerHTML += '<br>' + data.activated.map(p => `${escHtml(p.name)} → PIN:${p.pin}`).join('<br>');
     showToast(data.activated.length + ' PSWs activated ✓', 'ok');
     loadAll(false);
   } catch(e) { result.textContent = 'Error: ' + e.message; showToast('Import failed', 'err'); }
@@ -4302,7 +4302,7 @@ async function bulkImportClients() {
     const data = await res.json();
     if (!res.ok || !data.success) throw new Error(data.error || 'Failed');
     result.innerHTML = `✓ ${data.onboarded.length} clients onboarded · ${data.failed.length} failed · ${data.skipped.length} skipped`;
-    if (data.onboarded.length) result.innerHTML += '<br>' + data.onboarded.map(c => `${c.name} → ${c.client_code}`).join('<br>');
+    if (data.onboarded.length) result.innerHTML += '<br>' + data.onboarded.map(c => `${escHtml(c.name)} → ${c.client_code}`).join('<br>');
     showToast(data.onboarded.length + ' clients onboarded ✓', 'ok');
     loadAll(false);
   } catch(e) { result.textContent = 'Error: ' + e.message; showToast('Import failed', 'err'); }
@@ -4322,7 +4322,7 @@ async function importPSWs() {
     const data = await res.json();
     if(!res.ok || !data.success) throw new Error(data.error||'Failed');
     result.innerHTML = `✓ ${data.activated.length} PSWs activated · ${data.failed.length} failed · ${data.skipped.length} skipped`;
-    if(data.activated.length) result.innerHTML += '<br>' + data.activated.map(p=>`${p.name} → ${p.psw_code} PIN:${p.pin}`).join('<br>');
+    if(data.activated.length) result.innerHTML += '<br>' + data.activated.map(p=>`${escHtml(p.name)} → ${p.psw_code} PIN:${p.pin}`).join('<br>');
     showToast(data.activated.length + ' PSWs activated ✓','ok');
     loadAll(false);
   } catch(e) { result.textContent = 'Error: '+e.message; showToast('Import failed','err'); }
@@ -4342,7 +4342,7 @@ async function importClients() {
     const data = await res.json();
     if(!res.ok || !data.success) throw new Error(data.error||'Failed');
     result.innerHTML = `✓ ${data.onboarded.length} clients onboarded · ${data.failed.length} failed · ${data.skipped.length} skipped`;
-    if(data.onboarded.length) result.innerHTML += '<br>' + data.onboarded.map(c=>`${c.name} → ${c.client_code}`).join('<br>');
+    if(data.onboarded.length) result.innerHTML += '<br>' + data.onboarded.map(c=>`${escHtml(c.name)} → ${c.client_code}`).join('<br>');
     showToast(data.onboarded.length + ' clients onboarded ✓','ok');
     loadAll(false);
   } catch(e) { result.textContent = 'Error: '+e.message; showToast('Import failed','err'); }
@@ -4578,7 +4578,7 @@ function _initFC() {
         info.el.style.boxShadow = '0 0 0 2px #e05555';
       }
       // Tooltip
-      info.el.title = `${b.client_name||''} · ${b.assigned_to||'Unassigned'}\n${b.scheduled_date} ${b.scheduled_time}\n${(b.duration_minutes||480)/60}h`;
+      info.el.title = `${escHtml(b.client_name)||''} · ${b.assigned_to||'Unassigned'}\n${b.scheduled_date} ${b.scheduled_time}\n${(b.duration_minutes||480)/60}h`;
     },
 
     // FullCalendar theme
@@ -4670,7 +4670,7 @@ function _detectDropConflict(bookingId, pswName, newDate, newTime, durMins) {
     const bs = toMins(b.scheduled_time);
     const be = bs + (b.duration_minutes||480);
     if (newStart<be && bs<newEnd) {
-      return { conflictingBooking: b, reason: `${pswName} is already assigned to ${b.client_name||'another client'} from ${b.scheduled_time} (${(b.duration_minutes||480)/60}h)` };
+      return { conflictingBooking: b, reason: `${pswName} is already assigned to ${escHtml(b.client_name)||'another client'} from ${b.scheduled_time} (${(b.duration_minutes||480)/60}h)` };
     }
   }
   return null;
@@ -4680,7 +4680,7 @@ function _showConflictModal(conflict, booking, newDate, newTime, fcInfo) {
   const m = document.getElementById('conflict-modal');
   if (!m) { fcInfo.revert(); return; }
   document.getElementById('cm-reason').textContent   = conflict.reason;
-  document.getElementById('cm-booking').textContent  = `Moving: ${booking.client_name} · ${newDate} ${newTime}`;
+  document.getElementById('cm-booking').textContent  = `Moving: ${escHtml(booking.client_name)} · ${newDate} ${newTime}`;
   document.getElementById('cm-conflict').textContent = `Conflict: ${conflict.conflictingBooking.client_name} · ${conflict.conflictingBooking.scheduled_time}`;
   m.style.display = 'flex';
   // Override button — save anyway
@@ -4901,7 +4901,7 @@ function openAddShift(pswName, date, clientName) {
   const clients = D.clients || [];
   sel.innerHTML = '<option value="">Select client...</option>' +
     clients.map(c => {
-      const n = `${c.first_name||''} ${c.last_name||''}`.trim();
+      const n = `${escHtml(c.first_name)||''} ${escHtml(c.last_name)||''}`.trim();
       return `<option value="${n}" ${n===(clientName||'')?'selected':''}>${n}</option>`;
     }).join('');
   // Populate PSW dropdown from live roster — with compatibility scores
@@ -4933,7 +4933,7 @@ function openAddShift(pswName, date, clientName) {
         const badge = s && s.count > 0
           ? ` — ${s.count} visit${s.count!==1?'s':''}${s.avg?' · ★'+s.avg:''}`
           : '';
-        return `<option value="${p.name}" ${p.name===pswName?'selected':''}>${p.name}${badge}</option>`;
+        return `<option value="${escHtml(p.name)}" ${escHtml(p.name)===pswName?'selected':''}>${escHtml(p.name)}${badge}</option>`;
       }).join('');
   const rec = document.getElementById('ss-recurring');
   if(rec) rec.value = 'none';
@@ -4961,7 +4961,7 @@ function openEditShift(id, clientName, pswName, date, time, duration) {
   const clients = D.clients || [];
   sel.innerHTML = '<option value="">Select client...</option>' +
     clients.map(c => {
-      const name = `${c.first_name||''} ${c.last_name||''}`.trim();
+      const name = `${escHtml(c.first_name)||''} ${escHtml(c.last_name)||''}`.trim();
       return `<option value="${name}" ${name===clientName?'selected':''}>${name}</option>`;
     }).join('');
   const pswSel = document.getElementById('ss-psw');
@@ -4969,7 +4969,7 @@ function openEditShift(id, clientName, pswName, date, time, duration) {
   // Only show active PSWs in edit dropdown — filter out roster-only entries
   const activePSWs = psws.filter(p => p.source === 'live' ? (p.status === 'active' || p.status === 'on_leave') : true);
   pswSel.innerHTML = '<option value="">Unassigned</option>' +
-    activePSWs.map(p => `<option value="${p.name}" ${p.name===pswName?'selected':''}>${p.name}${p.source==='roster'?' (roster)':''}</option>`).join('');
+    activePSWs.map(p => `<option value="${escHtml(p.name)}" ${escHtml(p.name)===pswName?'selected':''}>${escHtml(p.name)}${p.source==='roster'?' (roster)':''}</option>`).join('');
   openSheet('shift-sheet');
 }
 
@@ -5191,8 +5191,8 @@ function openSwapSheet(preselectPSW) {
   const psws = getMergedPSWList();
   const fromSel = document.getElementById('swap-from');
   const toSel = document.getElementById('swap-to');
-  fromSel.innerHTML = '<option value="">Select PSW...</option>' + psws.map(p => `<option value="${p.name}" ${p.name===preselectPSW?'selected':''}>${p.name}</option>`).join('');
-  toSel.innerHTML = '<option value="">Select replacement PSW...</option>' + psws.map(p => `<option value="${p.name}">${p.name}</option>`).join('');
+  fromSel.innerHTML = '<option value="">Select PSW...</option>' + psws.map(p => `<option value="${escHtml(p.name)}" ${escHtml(p.name)===preselectPSW?'selected':''}>${escHtml(p.name)}</option>`).join('');
+  toSel.innerHTML = '<option value="">Select replacement PSW...</option>' + psws.map(p => `<option value="${escHtml(p.name)}">${escHtml(p.name)}</option>`).join('');
   const today = new Date().toISOString().slice(0,10);
   document.getElementById('swap-from-date').value = today;
   document.getElementById('swap-to-date').value = '';
@@ -5256,7 +5256,7 @@ async function renderRevenue() {
   const clientRevMap = {};
   monthVisits.forEach(v => {
     const c = clients.find(cl => {
-      const n = `${cl.first_name||''} ${cl.last_name||''}`.trim();
+      const n = `${escHtml(cl.first_name)||''} ${escHtml(cl.last_name)||''}`.trim();
       return n === v.client_name;
     });
     const rate = c?.client_rate || 22;
@@ -5307,7 +5307,7 @@ async function renderRevenue() {
     <div style="font-family:var(--mono);font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--muted2);margin-bottom:10px;">This Month — Per Client</div>`;
   if (Object.keys(clientRevMap).length) {
     Object.entries(clientRevMap).filter(([name]) => name && name !== 'null' && name.trim()).forEach(([name, r]) => {
-      const c = clients.find(cl => `${cl.first_name||''} ${cl.last_name||''}`.trim() === name);
+      const c = clients.find(cl => `${escHtml(cl.first_name)||''} ${escHtml(cl.last_name)||''}`.trim() === name);
       html += `<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--bg2);border:1px solid var(--border);border-radius:6px;margin-bottom:4px;cursor:pointer;" onclick="openClientDetail('${c?.id||''}')">
         <div>
           <div style="font-size:12px;font-weight:500;color:var(--text);">${name}</div>
@@ -5326,7 +5326,7 @@ async function renderRevenue() {
   // All clients rates reference
   html += `<div style="margin-top:12px;font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:8px;">All Clients — Rates</div>`;
   clients.forEach(c => {
-    const name = `${c.first_name||''} ${c.last_name||''}`.trim();
+    const name = `${escHtml(c.first_name)||''} ${escHtml(c.last_name)||''}`.trim();
     const margin = (c.client_rate||22) - (c.psw_rate||19);
     html += `<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:var(--bg2);border:1px solid var(--border);border-radius:6px;margin-bottom:4px;">
       <div><div style="font-size:12px;font-weight:500;color:var(--text);">${name}</div><div style="font-family:var(--mono);font-size:12px;color:var(--muted);">${c.assigned_psw||'Unassigned'} · ${c.client_code||''}</div></div>
@@ -5404,7 +5404,7 @@ async function renderRevenue() {
         const isOverdue = inv.overdue || inv.days_outstanding >= 30;
         arHtml += `<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:${isOverdue ? 'rgba(224,85,85,.04)' : 'var(--bg2)'};border:1px solid ${isOverdue ? 'rgba(224,85,85,.25)' : 'var(--border)'};border-radius:6px;margin-bottom:4px;">
           <div>
-            <div style="font-size:12px;font-weight:500;color:var(--text);">${inv.client_name||'—'}</div>
+            <div style="font-size:12px;font-weight:500;color:var(--text);">${escHtml(inv.client_name)||'—'}</div>
             <div style="font-family:var(--mono);font-size:11px;color:${isOverdue ? 'var(--red)' : 'var(--muted)'};margin-top:2px;">${inv.month||''} ${inv.year||''} · ${inv.days_outstanding}d outstanding${isOverdue ? ' · OVERDUE' : ''}</div>
           </div>
           <div style="display:flex;align-items:center;gap:8px;">
@@ -5424,7 +5424,7 @@ async function renderRevenue() {
         const paidDate = inv.paid_at ? new Date(inv.paid_at).toLocaleDateString('en-CA',{month:'short',day:'numeric',year:'numeric'}) : '—';
         arHtml += `<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:rgba(109,185,116,.03);border:1px solid rgba(109,185,116,.15);border-radius:6px;margin-bottom:4px;">
           <div>
-            <div style="font-size:12px;font-weight:500;color:var(--text);">${inv.client_name||'—'}</div>
+            <div style="font-size:12px;font-weight:500;color:var(--text);">${escHtml(inv.client_name)||'—'}</div>
             <div style="font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:2px;">${inv.month||''} ${inv.year||''} · Paid ${paidDate}</div>
           </div>
           <div style="font-family:var(--mono);font-size:13px;color:var(--green2);">$${parseFloat(inv.total_amount||0).toFixed(0)} ✓</div>
@@ -5481,11 +5481,11 @@ async function openPSWDetail(pswId) {
     };
 
     body.innerHTML = `
-      <div class="cpf"><div class="cpf-lbl">Email</div><div class="cpf-val">${p.email?`<a href="mailto:${p.email}">${p.email}</a>`:'—'}</div></div>
-      <div class="cpf"><div class="cpf-lbl">Phone</div><div class="cpf-val">${p.phone?`<a href="tel:${p.phone}">${p.phone}</a>`:'—'}</div></div>
+      <div class="cpf"><div class="cpf-lbl">Email</div><div class="cpf-val">${escHtml(p.email)?`<a href="mailto:${p.email}">${escHtml(p.email)}</a>`:'—'}</div></div>
+      <div class="cpf"><div class="cpf-lbl">Phone</div><div class="cpf-val">${escHtml(p.phone)?`<a href="tel:${p.phone}">${escHtml(p.phone)}</a>`:'—'}</div></div>
       <div class="cpf"><div class="cpf-lbl">PSW Code</div><div class="cpf-val" style="font-family:var(--mono);">${rec.psw_code||p.psw_code||'—'}</div></div>
       <div class="cpf"><div class="cpf-lbl">Status</div><div class="cpf-val"><span class="badge b-${p.status||'active'}">${p.status||'active'}</span></div></div>
-      <div class="cpf"><div class="cpf-lbl">Availability</div><div class="cpf-val">${rec.availability_days||'Not set'} · ${rec.availability_shifts||''}</div></div>
+      <div class="cpf"><div class="cpf-lbl">Availability</div><div class="cpf-val">${escHtml(rec.availability_days||'Not set')} · ${rec.availability_shifts||''}</div></div>
 
       <div style="margin:16px 0 10px;font-family:var(--mono);font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--teal2);">Documents</div>
       <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:16px;">
@@ -5511,14 +5511,14 @@ async function openPSWDetail(pswId) {
 
       <div style="margin-bottom:10px;font-family:var(--mono);font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--teal2);">Assigned Clients</div>
       ${assignedClients.length
-        ? assignedClients.map(c => `<div style="padding:8px 12px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;margin-bottom:4px;font-size:12px;color:var(--text);">${c.first_name||''} ${c.last_name||''}</div>`).join('')
+        ? assignedClients.map(c => `<div style="padding:8px 12px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;margin-bottom:4px;font-size:12px;color:var(--text);">${escHtml(c.first_name)||''} ${escHtml(c.last_name)||''}</div>`).join('')
         : '<div style="font-size:12px;color:var(--muted);margin-bottom:12px;">No clients assigned</div>'
       }
 
       <div style="margin:16px 0 10px;font-family:var(--mono);font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--gold);">Edit PSW</div>
       <div class="srow2" style="padding:0;">
-        <div><div class="slbl">Phone</div><input class="sinput" id="pe-phone" type="tel" value="${p.phone||rec.phone||''}" style="font-size:16px;" placeholder="+1 416 555 0000"></div>
-        <div><div class="slbl">Email</div><input class="sinput" id="pe-email" type="email" value="${p.email||rec.email||''}" style="font-size:16px;"></div>
+        <div><div class="slbl">Phone</div><input class="sinput" id="pe-phone" type="tel" value="${escHtml(p.phone)||rec.phone||''}" style="font-size:16px;" placeholder="+1 416 555 0000"></div>
+        <div><div class="slbl">Email</div><input class="sinput" id="pe-email" type="email" value="${escHtml(p.email)||rec.email||''}" style="font-size:16px;"></div>
       </div>
       <div class="sheet-row"><div class="slbl">Availability</div><input class="sinput" id="pe-availability" type="text" value="${p.availability||rec.availability||''}" placeholder="e.g. Mon-Fri 7am-4pm, weekends" style="font-size:16px;"></div>
       <div class="srow2" style="padding:0;">
@@ -5532,12 +5532,12 @@ async function openPSWDetail(pswId) {
         </div>
       </div>
       <div class="sheet-row"><div class="slbl">Probation End Date <span style="font-size:11px;color:var(--muted);">(leave blank if not on probation)</span></div><input class="sinput" id="pe-probation-end" type="date" value="${p.probation_end||''}" style="font-size:16px;"></div>
-      <div class="sheet-row"><div class="slbl">Internal Notes</div><textarea class="sinput" id="pe-notes" rows="2" style="min-height:60px;resize:none;" placeholder="Notes about this PSW...">${p.notes||rec.notes||''}</textarea></div>
+      <div class="sheet-row"><div class="slbl">Internal Notes</div><textarea class="sinput" id="pe-notes" rows="2" style="min-height:60px;resize:none;" placeholder="Notes about this PSW...">${escHtml(p.notes)||rec.notes||''}</textarea></div>
       <button class="sbtn" style="background:rgba(200,169,110,.12);color:var(--gold);border:1px solid rgba(200,169,110,.3);margin-bottom:8px;" onclick="savePSWEdits('${p.id}','${name}')">Save Changes</button>
 
       <div style="display:flex;gap:8px;margin-bottom:8px;">
         <button class="sbtn" style="flex:1;" onclick="openPSWMsg('${name}');closeSheet('psw-detail-sheet');">Message ${name.split(' ')[0]}</button>
-        <button class="sbtn" style="flex:1;background:rgba(109,185,116,.1);color:var(--green2);border:1px solid rgba(109,185,116,.25);" onclick="openPaystubModal('${name}','${p.email||rec.email||''}',${p.psw_rate||rec.psw_rate||19})">Send Paystub</button>
+        <button class="sbtn" style="flex:1;background:rgba(109,185,116,.1);color:var(--green2);border:1px solid rgba(109,185,116,.25);" onclick="openPaystubModal('${name}','${escHtml(p.email)||rec.email||''}',${p.psw_rate||rec.psw_rate||19})">Send Paystub</button>
       </div>`;
   } catch {
     body.innerHTML = '<div class="empty-state">Could not load profile</div>';
@@ -5659,7 +5659,7 @@ function getAlertBadges(c) {
 
 function openClientDetail(id) {
   const c = (D.clients||[]).find(x=>x.id===id); if(!c) return;
-  const name = `${c.first_name||''} ${c.last_name||''}`.trim();
+  const name = `${escHtml(c.first_name)||''} ${escHtml(c.last_name)||''}`.trim();
   const slug = c.portal_slug || '';
   document.getElementById('client-sheet-title').textContent = name;
   // Alert badges
@@ -5714,11 +5714,11 @@ function openClientDetail(id) {
 
     <div style="margin:18px 0 10px;font-family:var(--mono);font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--gold);">Edit Client</div>
     <div class="srow2">
-      <div><div class="slbl">First Name</div><input class="sinput" id="ce-first-name" type="text" value="${c.first_name||''}" style="font-size:16px;"></div>
-      <div><div class="slbl">Last Name</div><input class="sinput" id="ce-last-name" type="text" value="${c.last_name||''}" style="font-size:16px;"></div>
+      <div><div class="slbl">First Name</div><input class="sinput" id="ce-first-name" type="text" value="${escHtml(c.first_name)||''}" style="font-size:16px;"></div>
+      <div><div class="slbl">Last Name</div><input class="sinput" id="ce-last-name" type="text" value="${escHtml(c.last_name)||''}" style="font-size:16px;"></div>
     </div>
     <div class="srow2">
-      <div><div class="slbl">Phone</div><input class="sinput" id="ce-phone" type="tel" value="${c.phone||''}" style="font-size:16px;"></div>
+      <div><div class="slbl">Phone</div><input class="sinput" id="ce-phone" type="tel" value="${escHtml(c.phone)||''}" style="font-size:16px;"></div>
       <div><div class="slbl">Family Email</div><input class="sinput" id="ce-email" type="email" value="${c.family_email||c.email||''}" style="font-size:16px;"></div>
     </div>
     <div class="srow2">
@@ -5726,7 +5726,7 @@ function openClientDetail(id) {
       <div><div class="slbl">Care Type</div><input class="sinput" id="ce-care-type" type="text" value="${c.care_type||''}" placeholder="e.g. Personal Support" style="font-size:16px;"></div>
     </div>
     <div class="sheet-row"><div class="slbl">Assigned PSW</div>
-      <select class="sselect" id="ce-psw">${getMergedPSWList().filter(p=>p.source==='live').map(p=>`<option value="${p.name}" ${p.name===c.assigned_psw?'selected':''}>${p.name}</option>`).join('')}</select>
+      <select class="sselect" id="ce-psw">${getMergedPSWList().filter(p=>p.source==='live').map(p=>`<option value="${escHtml(p.name)}" ${escHtml(p.name)===c.assigned_psw?'selected':''}>${escHtml(p.name)}</option>`).join('')}</select>
     </div>
     <div class="srow2">
       <div><div class="slbl">Client Rate $/hr</div><input class="sinput" id="ce-client-rate" type="number" value="${c.client_rate||22}" min="15" max="100" style="font-size:16px;"></div>
@@ -5782,8 +5782,8 @@ async function loadFamilyContactsForClient(clientId, slug) {
     el.innerHTML = contacts.map(fc => `
       <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--bg2);border:1px solid var(--border);border-radius:6px;margin-bottom:4px;">
         <div>
-          <div style="font-size:12px;font-weight:500;color:var(--text);">${fc.name} <span style="font-family:var(--mono);font-size:11px;color:var(--muted);">${fc.relationship||''}</span></div>
-          <div style="font-size:11px;color:var(--muted2);margin-top:2px;">${fc.email}${fc.phone?' · '+fc.phone:''}</div>
+          <div style="font-size:12px;font-weight:500;color:var(--text);">${escHtml(fc.name)} <span style="font-family:var(--mono);font-size:11px;color:var(--muted);">${fc.relationship||''}</span></div>
+          <div style="font-size:11px;color:var(--muted2);margin-top:2px;">${escHtml(fc.email)}${escHtml(fc.phone)?' · '+fc.phone:''}</div>
           <div style="display:flex;gap:8px;margin-top:6px;">
             ${['checkin','summary','missed_visit'].map(type => `
               <label style="display:flex;align-items:center;gap:4px;font-family:var(--mono);font-size:11px;letter-spacing:1px;color:${fc['receives_'+type]!==false?'var(--teal2)':'var(--muted)'};cursor:pointer;">
@@ -5792,7 +5792,7 @@ async function loadFamilyContactsForClient(clientId, slug) {
               </label>`).join('')}
           </div>
         </div>
-        <button data-del-id="${fc.id}" data-del-name="${fc.name.replace(/"/g,'&quot;')}" onclick="removeFamilyContact(this.dataset.delId,this.dataset.delName,'${clientId}','${slug}')" style="font-size:13px;color:var(--muted);background:none;border:none;padding:4px;cursor:pointer;flex-shrink:0;">✕</button>
+        <button data-del-id="${fc.id}" data-del-name="${escHtml(fc.name).replace(/"/g,'&quot;')}" onclick="removeFamilyContact(this.dataset.delId,this.dataset.delName,'${clientId}','${slug}')" style="font-size:13px;color:var(--muted);background:none;border:none;padding:4px;cursor:pointer;flex-shrink:0;">✕</button>
       </div>`).join('');
   } catch { el.innerHTML = `<div style="font-family:var(--mono);font-size:12px;color:var(--red);">Could not load contacts</div>`; }
 }
@@ -5890,8 +5890,8 @@ function renderIncidents() {
     <div class="card" style="border-color:rgba(224,85,85,.3);margin:8px 12px;">
       <div class="card-header">
         <div style="flex:1;min-width:0;">
-          <div class="card-name" style="color:var(--red);">⚠ ${v.client_name||'—'}</div>
-          <div class="card-sub">${v.psw_name||'—'} · ${fmtd(v.visit_date)}</div>
+          <div class="card-name" style="color:var(--red);">⚠ ${escHtml(v.client_name)||'—'}</div>
+          <div class="card-sub">${escHtml(v.psw_name)||'—'} · ${fmtd(v.visit_date)}</div>
           <div class="card-meta" style="color:var(--muted2);margin-top:4px;">${v.incident_notes||'No details'}</div>
         </div>
         <div class="card-right">
@@ -5908,7 +5908,7 @@ function openIncidentResolve(visit) {
   if (typeof visit === 'string') { try { visit = JSON.parse(visit); } catch(e) { return; } }
   const m = document.getElementById('incident-modal');
   if (!m) return;
-  document.getElementById('im-meta').textContent = `${visit.psw_name||'—'} → ${visit.client_name||'—'} · ${fmtd(visit.visit_date)}`;
+  document.getElementById('im-meta').textContent = `${escHtml(visit.psw_name)||'—'} → ${escHtml(visit.client_name)||'—'} · ${fmtd(visit.visit_date)}`;
   document.getElementById('im-notes').textContent = visit.incident_notes || 'No details provided';
   document.getElementById('im-resolve-note').value = '';
   document.getElementById('im-resolve').onclick = () => resolveIncident(visit.id);
@@ -5953,7 +5953,7 @@ async function broadcastShift(bookingId) {
   const bookings = D.bookings || [];
   const b = bookings.find(x => x.id === bookingId);
   if (!b) { showToast('Booking not found', 'err'); return; }
-  if (!confirm(`Broadcast open shift to all available PSWs?\n\nClient: ${b.client_name||''}\nDate: ${b.scheduled_date} ${b.scheduled_time}\n\nFirst to accept gets it.`)) return;
+  if (!confirm(`Broadcast open shift to all available PSWs?\n\nClient: ${escHtml(b.client_name)||''}\nDate: ${b.scheduled_date} ${b.scheduled_time}\n\nFirst to accept gets it.`)) return;
   showToast('Broadcasting to PSWs...', 'ok');
   try {
     const res = await fetch(`${API}/hq/broadcast-shift`, {
@@ -6014,7 +6014,7 @@ async function runVisitFlags() {
       </div>`).join('');
     showToast(`${d.flags.length} flag${d.flags.length!==1?'s':''} found`, 'warn');
   } catch(e) {
-    list.innerHTML = `<div style="font-family:var(--mono);font-size:12px;color:var(--red);">${e.message}</div>`;
+    list.innerHTML = `<div style="font-family:var(--mono);font-size:12px;color:var(--red);">${escHtml(e.message)}</div>`;
     showToast(e.message, 'err');
   }
 }
@@ -6095,7 +6095,7 @@ async function renderAttendance() {
     const order = { checkedin:0, late:1, missed:2, off:3 };
     const rows = Object.values(pswStatus).sort((a,b) => order[a.status]-order[b.status]);
     if (!rows.length) { el.innerHTML = '<div class="empty-state" style="padding:14px;">No PSW data</div>'; return; }
-    el.innerHTML = rows.map(r => `<div class="att-row"><div class="att-dot ${r.status}"></div><div class="att-name">${r.name}</div><div class="att-client">${r.client}</div><div class="att-badge ${r.status}">${r.status === 'checkedin' ? 'On Shift' : r.status === 'late' ? 'Late' : r.status === 'missed' ? 'Missed' : 'Off'}</div></div>`).join('');
+    el.innerHTML = rows.map(r => `<div class="att-row"><div class="att-dot ${r.status}"></div><div class="att-name">${escHtml(r.name)}</div><div class="att-client">${r.client}</div><div class="att-badge ${r.status}">${r.status === 'checkedin' ? 'On Shift' : r.status === 'late' ? 'Late' : r.status === 'missed' ? 'Missed' : 'Off'}</div></div>`).join('');
     if (updEl) updEl.textContent = 'Updated ' + new Date().toLocaleTimeString('en-CA',{hour:'2-digit',minute:'2-digit'});
   } catch { el.innerHTML = '<div class="empty-state" style="padding:14px;">Could not load</div>'; }
 }
@@ -6111,7 +6111,7 @@ function renderVacantVisits() {
   const vacant = (D?.bookings||[]).filter(b => (!b.assigned_to||b.assigned_to.trim()==='') && b.scheduled_date >= today && b.scheduled_date <= cutoffStr && b.status !== 'cancelled');
   if (countEl) countEl.textContent = vacant.length;
   if (!vacant.length) { el.innerHTML = '<div style="font-family:var(--mono);font-size:12px;color:var(--muted);text-align:center;padding:8px;">All shifts assigned</div>'; return; }
-  el.innerHTML = vacant.map(b => `<div class="vacant-card"><div class="vacant-info"><div class="vacant-client">${b.client_name||'—'}</div><div class="vacant-time">${b.scheduled_date ? fmtd(b.scheduled_date) : '—'}${b.scheduled_time ? ' · '+b.scheduled_time : ''}</div></div><button class="vacant-btn" onclick="broadcastShift('${b.id}')"><svg width="12" height="12" viewBox="0 0 14 14" fill="none" style="display:inline;vertical-align:middle;margin-right:3px"><circle cx="7" cy="7" r="6" stroke="#c9a96e" stroke-width="1.2"/><circle cx="7" cy="7" r="3.5" stroke="#c9a96e" stroke-width="1" opacity="0.6"/><circle cx="7" cy="7" r="1.2" fill="#c9a96e"/></svg>Broadcast</button></div>`).join('');
+  el.innerHTML = vacant.map(b => `<div class="vacant-card"><div class="vacant-info"><div class="vacant-client">${escHtml(b.client_name)||'—'}</div><div class="vacant-time">${b.scheduled_date ? fmtd(b.scheduled_date) : '—'}${b.scheduled_time ? ' · '+b.scheduled_time : ''}</div></div><button class="vacant-btn" onclick="broadcastShift('${b.id}')"><svg width="12" height="12" viewBox="0 0 14 14" fill="none" style="display:inline;vertical-align:middle;margin-right:3px"><circle cx="7" cy="7" r="6" stroke="#c9a96e" stroke-width="1.2"/><circle cx="7" cy="7" r="3.5" stroke="#c9a96e" stroke-width="1" opacity="0.6"/><circle cx="7" cy="7" r="1.2" fill="#c9a96e"/></svg>Broadcast</button></div>`).join('');
 }
 
 
@@ -6178,8 +6178,8 @@ async function renderGPSExceptions() {
         const mapUrl = v.checkin_lat && v.checkin_lng ? `https://maps.google.com/?q=${v.checkin_lat},${v.checkin_lng}` : null;
         return `<div class="gps-exc-row">
           <div style="flex:1;min-width:0;">
-            <div style="font-size:12px;font-weight:500;color:var(--text);">${v.psw_name}</div>
-            <div style="font-family:var(--mono);font-size:12px;color:var(--muted2);">${v.client_name} · ${fmtd(v.visit_date)} · ${v.time_in||'—'}</div>
+            <div style="font-size:12px;font-weight:500;color:var(--text);">${escHtml(v.psw_name)}</div>
+            <div style="font-family:var(--mono);font-size:12px;color:var(--muted2);">${escHtml(v.client_name)} · ${fmtd(v.visit_date)} · ${v.time_in||'—'}</div>
           </div>
           <div style="display:flex;align-items:center;gap:6px;">
             <span class="gps-badge">${v.checkin_distance_m}m away</span>
@@ -6193,8 +6193,8 @@ async function renderGPSExceptions() {
       html += `<div style="font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);padding:8px 14px;background:var(--bg3);border-top:1px solid var(--border);">Missing GPS (client has address on file)</div>`;
       html += d.missing_gps.map(v => `<div class="gps-exc-row">
         <div style="flex:1;min-width:0;">
-          <div style="font-size:12px;font-weight:500;color:var(--text);">${v.psw_name}</div>
-          <div style="font-family:var(--mono);font-size:12px;color:var(--muted2);">${v.client_name} · ${fmtd(v.visit_date)}</div>
+          <div style="font-size:12px;font-weight:500;color:var(--text);">${escHtml(v.psw_name)}</div>
+          <div style="font-family:var(--mono);font-size:12px;color:var(--muted2);">${escHtml(v.client_name)} · ${fmtd(v.visit_date)}</div>
         </div>
         <span class="gps-badge missing">No GPS</span>
       </div>`).join('');
@@ -6225,7 +6225,7 @@ function renderOverview() {
   const newLeads = leads.filter(l => (l.created_at||'').startsWith(today)).length;
   const monthVisits = visits.filter(v => (v.visit_date||'').startsWith(monthStr));
   const monthBilled = monthVisits.reduce((s,v) => {
-    const c = clients.find(cl => `${cl.first_name||''} ${cl.last_name||''}`.trim() === v.client_name);
+    const c = clients.find(cl => `${escHtml(cl.first_name)||''} ${escHtml(cl.last_name)||''}`.trim() === v.client_name);
     return s + parseFloat(v.hours_worked||0) * (c?.client_rate||22);
   }, 0);
 
@@ -6290,7 +6290,7 @@ function renderOverview() {
         return `<div style="display:flex;align-items:center;gap:10px;padding:9px 14px;border-bottom:1px solid var(--border);">
           <div style="width:8px;height:8px;border-radius:50%;background:${dotColor[r.status]||'var(--muted)'};flex-shrink:0;${r.status==='active'?'animation:livepulse 2s infinite':''}"></div>
           <div style="flex:1;min-width:0;">
-            <div style="font-size:12px;font-weight:500;color:var(--text);">${r.name}</div>
+            <div style="font-size:12px;font-weight:500;color:var(--text);">${escHtml(r.name)}</div>
             <div style="font-family:var(--mono);font-size:12px;color:var(--muted2);">${r.client}</div>
           </div>
           ${elapsedStr ? `<div class="att-elapsed">${elapsedStr}</div>` : ''}
@@ -6340,7 +6340,7 @@ function renderOverview() {
         return `<div style="display:flex;align-items:center;gap:10px;padding:9px 14px;border-bottom:1px solid var(--border);cursor:pointer;" onclick="showSect('schedule');setTimeout(()=>{ if(window._fc) window._fc.gotoDate('${b.scheduled_date}'); },200);">
           <div style="font-family:var(--mono);font-size:11px;color:var(--teal2);min-width:40px;">${b.scheduled_time||'—'}</div>
           <div style="flex:1;">
-            <div style="font-size:12px;font-weight:500;color:var(--text);">${b.client_name||'—'}</div>
+            <div style="font-size:12px;font-weight:500;color:var(--text);">${escHtml(b.client_name)||'—'}</div>
             <div style="font-family:var(--mono);font-size:12px;color:var(--muted2);">${b.assigned_to||'⚑ Unassigned'}</div>
           </div>
           <div style="font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:${col};">${status}</div>
@@ -6428,8 +6428,8 @@ function previewImportBookings() {
     preview.innerHTML = `<table style="width:100%;border-collapse:collapse;font-family:var(--mono);font-size:11px;">
       <thead><tr style="background:var(--bg3);">${['PSW','Client','Date','Time','Mins'].map(h=>`<th style="padding:6px 8px;text-align:left;color:var(--muted);letter-spacing:1px;">${h}</th>`).join('')}</tr></thead>
       <tbody>${_ibParsedRows.map((r,i)=>`<tr style="border-top:1px solid var(--border);${i%2===0?'background:var(--bg2);':''}">
-        <td style="padding:5px 8px;color:var(--text);">${r.psw_name}</td>
-        <td style="padding:5px 8px;color:var(--text);">${r.client_name}</td>
+        <td style="padding:5px 8px;color:var(--text);">${escHtml(r.psw_name)}</td>
+        <td style="padding:5px 8px;color:var(--text);">${escHtml(r.client_name)}</td>
         <td style="padding:5px 8px;color:var(--teal2);">${r.date}</td>
         <td style="padding:5px 8px;color:var(--gold);">${r.time_in}</td>
         <td style="padding:5px 8px;color:var(--muted2);">${r.duration_minutes}m</td>
@@ -6463,7 +6463,7 @@ async function confirmImportBookings() {
     if (d.skipped > 0) html += `<br><span style="color:var(--amber);">⚠ ${d.skipped} skipped (conflicts)</span>`;
     if (d.errors > 0) {
       html += `<br><span style="color:var(--red);">✕ ${d.errors} errors:</span>`;
-      d.details.errors.slice(0,5).forEach(e => { html += `<br><span style="color:var(--muted2);font-size:11px;">Row ${e.row}: ${e.reason}</span>`; });
+      d.details.errors.slice(0,5).forEach(e => { html += `<br><span style="color:var(--muted2);font-size:11px;">Row ${e.row}: ${escHtml(e.reason)}</span>`; });
       if (d.errors > 5) html += `<br><span style="color:var(--muted);font-size:11px;">...and ${d.errors-5} more</span>`;
     }
     result.innerHTML = html;
@@ -6601,10 +6601,10 @@ function openBulkSchedule() {
   const psws = getMergedPSWList();
   const clients = D.clients || [];
   pswSel.innerHTML = '<option value="">Select PSW</option>' +
-    psws.map(p => `<option value="${p.name}">${p.name}</option>`).join('');
+    psws.map(p => `<option value="${escHtml(p.name)}">${escHtml(p.name)}</option>`).join('');
   cliSel.innerHTML = '<option value="">Select client</option>' +
     clients.map(c => {
-      const n = `${c.first_name||''} ${c.last_name||''}`.trim();
+      const n = `${escHtml(c.first_name)||''} ${escHtml(c.last_name)||''}`.trim();
       return `<option value="${n}">${n}</option>`;
     }).join('');
   openSheet('bulk-sheet');
@@ -6769,7 +6769,7 @@ function runGlobalSearch(q) {
       const ini = (p.name||'?').split(' ').map(w=>w[0]||'').join('').toUpperCase().slice(0,2);
       return `<div class="search-result-item" onclick="toggleSearch();showSect('psws');setTimeout(()=>openPSWDetail('${p.id||p.name}'),200)">
         <div class="search-result-icon sri-psw">${ini}</div>
-        <div class="search-result-main"><div class="search-result-name">${p.name}</div><div class="search-result-sub">${p.email||'No email'} · ${p.status||'active'}</div></div>
+        <div class="search-result-main"><div class="search-result-name">${escHtml(p.name)}</div><div class="search-result-sub">${escHtml(p.email)||'No email'} · ${p.status||'active'}</div></div>
       </div>`;
     }).join('');
   }
@@ -6778,7 +6778,7 @@ function runGlobalSearch(q) {
     html += '<div class="search-result-group">Visits</div>';
     html += matchVisits.map(v => `<div class="search-result-item" onclick="toggleSearch();showSect('visits')">
       <div class="search-result-icon sri-visit">✓</div>
-      <div class="search-result-main"><div class="search-result-name">${v.psw_name||'—'} → ${v.client_name||'—'}</div><div class="search-result-sub">${fmtd(v.visit_date)} · ${parseFloat(v.hours_worked||0).toFixed(1)}h</div></div>
+      <div class="search-result-main"><div class="search-result-name">${escHtml(v.psw_name)||'—'} → ${escHtml(v.client_name)||'—'}</div><div class="search-result-sub">${fmtd(v.visit_date)} · ${parseFloat(v.hours_worked||0).toFixed(1)}h</div></div>
     </div>`).join('');
   }
 
@@ -6788,7 +6788,7 @@ function runGlobalSearch(q) {
       const name = ((l.first_name||'')+' '+(l.last_name||'')).trim() || l.email?.split('@')[0] || 'Lead';
       return `<div class="search-result-item" onclick="toggleSearch();showSect('leads');setTimeout(()=>openLeadDetail('${l.id}'),200)">
         <div class="search-result-icon sri-lead">L</div>
-        <div class="search-result-main"><div class="search-result-name">${name}</div><div class="search-result-sub">${l.phone||l.email||'—'} · ${l.status||'new'}</div></div>
+        <div class="search-result-main"><div class="search-result-name">${name}</div><div class="search-result-sub">${escHtml(l.phone)||l.email||'—'} · ${l.status||'new'}</div></div>
       </div>`;
     }).join('');
   }
@@ -6844,7 +6844,7 @@ function updateNotifications() {
     return `<div class="notif-item" id="${id}">
       <div class="notif-dot ${a.dot}"></div>
       <div onclick="(${a.action.toString()})()">
-        <div class="notif-text">${a.text}</div>
+        <div class="notif-text">${escHtml(a.text)}</div>
         <div class="notif-sub">${a.sub}</div>
       </div>
     </div>`;
@@ -6932,7 +6932,7 @@ function renderToday() {
         return `<div>
           <div class="today-shift-row" onclick="document.getElementById('${_tsrId}').classList.toggle('open')">
             <span class="tsr-time">${b.scheduled_time||'—'}</span>
-            <div style="flex:1;min-width:0;"><div class="tsr-client">${b.client_name||'—'}</div><div class="tsr-psw">${b.assigned_to||'⚑ Unassigned'}</div>
+            <div style="flex:1;min-width:0;"><div class="tsr-client">${escHtml(b.client_name)||'—'}</div><div class="tsr-psw">${b.assigned_to||'⚑ Unassigned'}</div>
             ${(() => { const c = (D.clients||[]).find(cl => ((cl.first_name||'')+' '+(cl.last_name||'')).trim() === b.client_name); return c ? getAlertBadges(c) : ''; })()}</div>
             <div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px;">
               <span class="tsr-status" style="color:${col};">${status}</span>
@@ -6942,7 +6942,7 @@ function renderToday() {
           </div>
           <div class="tsr-expand" id="${_tsrId}">
             <div style="font-size:12px;color:var(--muted2);line-height:1.7;">
-              ${b.client_name ? `<div><span style="font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;">Client</span> · ${b.client_name}</div>` : ''}
+              ${escHtml(b.client_name) ? `<div><span style="font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;">Client</span> · ${b.client_name}</div>` : ''}
               ${b.assigned_to ? `<div><span style="font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;">PSW</span> · ${b.assigned_to}</div>` : ''}
               ${b.duration_minutes ? `<div><span style="font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;">Duration</span> · ${(b.duration_minutes/60).toFixed(1)}h scheduled</div>` : ''}
               ${elapsedStr ? `<div><span style="font-family:var(--mono);font-size:11px;color:var(--amber);letter-spacing:1px;text-transform:uppercase;">Elapsed</span> · ${elapsedStr}</div>` : ''}
@@ -7007,7 +7007,7 @@ function renderToday() {
           <div style="display:flex;align-items:center;gap:10px;">
             <div style="width:8px;height:8px;border-radius:50%;background:${dotColor[r.status]||'var(--muted)'};flex-shrink:0;${r.status==='active'?'animation:livepulse 2s infinite':''}"></div>
             <div style="flex:1;min-width:0;">
-              <div style="font-size:12px;font-weight:500;color:var(--text);">${r.name}</div>
+              <div style="font-size:12px;font-weight:500;color:var(--text);">${escHtml(r.name)}</div>
               <div style="font-family:var(--mono);font-size:12px;color:var(--muted2);">${r.client}</div>
             </div>
             ${elapsedStr ? `<div style="font-family:var(--mono);font-size:12px;color:var(--amber);">${elapsedStr}</div>` : ''}
@@ -7114,7 +7114,7 @@ Generate exactly 3 to 5 prioritized action items for the operator. Each item mus
       </div>`;
     }).join('');
   } catch(e) {
-    cosEl.innerHTML = `<div class="cos-loading" style="color:var(--muted2);">Could not load — ${e.message}</div>`;
+    cosEl.innerHTML = `<div class="cos-loading" style="color:var(--muted2);">Could not load — ${escHtml(e.message)}</div>`;
   }
 }
 
@@ -7310,7 +7310,7 @@ function openVisitEdit(visitData) {
   _vemVisitId = visitData.id;
   const modal = document.getElementById('visit-edit-modal');
   document.getElementById('vem-meta').textContent =
-    `${visitData.psw_name||'—'} → ${visitData.client_name||'—'} · ${visitData.visit_date||''}`;
+    `${escHtml(visitData.psw_name)||'—'} → ${escHtml(visitData.client_name)||'—'} · ${visitData.visit_date||''}`;
   // Pre-fill current times (HH:MM format)
   const fmtT = t => t ? String(t).slice(0,5) : '';
   document.getElementById('vem-time-in').value  = fmtT(visitData.time_in);
@@ -7534,7 +7534,7 @@ function renderResourceView() {
           <div style="width:${_RV_COL_W}px;flex-shrink:0;padding:8px 6px;border-left:1px solid var(--border);text-align:center;">
             <div style="display:flex;align-items:center;justify-content:center;gap:5px;">
               ${isLive ? '<span style="width:7px;height:7px;border-radius:50%;background:#4a9a6e;display:inline-block;box-shadow:0 0 5px #4a9a6e;flex-shrink:0;"></span>' : ''}
-              <div style="font-family:var(--mono);font-size:11px;color:${color};font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:${_RV_COL_W-24}px;" title="${p.name}">${p.name.split(' ')[0]}</div>
+              <div style="font-family:var(--mono);font-size:11px;color:${color};font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:${_RV_COL_W-24}px;" title="${escHtml(p.name)}">${escHtml(p.name).split(' ')[0]}</div>
             </div>
             <div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:2px;">${hrsToday > 0 ? hrsToday.toFixed(1)+'h' : '—'}</div>
           </div>`;
@@ -7587,7 +7587,7 @@ function renderResourceView() {
       });
 
       const _rvEmpty = !cellBookings.length && !spanning.length;
-      html += `<div style="width:${_RV_COL_W}px;flex-shrink:0;border-left:1px solid var(--border);position:relative;${_rvEmpty?'cursor:pointer;':''}" ` + (_rvEmpty ? `onclick="openAddShift('${p.name.replace(/'/g,'\\\'')}','${_rvDate}')"` : '') + `>`;
+      html += `<div style="width:${_RV_COL_W}px;flex-shrink:0;border-left:1px solid var(--border);position:relative;${_rvEmpty?'cursor:pointer;':''}" ` + (_rvEmpty ? `onclick="openAddShift('${escHtml(p.name).replace(/'/g,'\\\'')}','${_rvDate}')"` : '') + `>`;
       // (cell click handled above)
 
       cellBookings.forEach(b => {
@@ -7598,7 +7598,7 @@ function renderResourceView() {
         const bData    = JSON.stringify(b).replace(/"/g,'&quot;');
         html += `<div
           draggable="true"
-          ondragstart="_rvDragStart(event,'${b.id}','${p.name}')"
+          ondragstart="_rvDragStart(event,'${b.id}','${escHtml(p.name)}')"
           ondragend="_rvDragEnd(event)"
           onclick="event.stopPropagation();_showShiftDetail(${bData},{isConflict:${isConf},isLive:${isLv},isCancelled:false})"
           style="position:absolute;left:3px;right:3px;top:2px;height:${chipH}px;z-index:4;
@@ -7608,7 +7608,7 @@ function renderResourceView() {
             box-shadow:${isLv?'0 0 6px rgba(74,154,110,.25)':'none'};">
           ${isLv?'<div style="width:6px;height:6px;border-radius:50%;background:#4a9a6e;display:inline-block;margin-right:3px;box-shadow:0 0 4px #4a9a6e;vertical-align:middle;"></div>':''}
           ${isConf?'<span style="font-family:var(--mono);font-size:9px;color:var(--red);">⚠ </span>':''}
-          <span style="font-family:var(--mono);font-size:10px;color:${isConf?'var(--red)':isLv?'var(--green2)':color};font-weight:600;">${b.client_name||'—'}</span>
+          <span style="font-family:var(--mono);font-size:10px;color:${isConf?'var(--red)':isLv?'var(--green2)':color};font-weight:600;">${escHtml(b.client_name)||'—'}</span>
           <div style="font-family:var(--mono);font-size:9px;color:var(--muted);margin-top:1px;">${b.scheduled_time?b.scheduled_time.slice(0,5):'—'} · ${((b.duration_minutes||480)/60).toFixed(1)}h</div>
         </div>`;
       });
@@ -7631,7 +7631,7 @@ function renderResourceView() {
           style="position:absolute;left:3px;right:3px;top:2px;height:${chipH}px;z-index:4;
             background:rgba(212,160,61,.1);border:1px solid var(--amber);border-radius:5px;
             padding:3px 6px;cursor:pointer;overflow:hidden;">
-          <div style="font-family:var(--mono);font-size:10px;color:var(--amber);">${b.client_name||'—'}</div>
+          <div style="font-family:var(--mono);font-size:10px;color:var(--amber);">${escHtml(b.client_name)||'—'}</div>
           <div style="font-family:var(--mono);font-size:9px;color:var(--muted);">${b.scheduled_time?b.scheduled_time.slice(0,5):'—'} · ${((b.duration_minutes||480)/60).toFixed(1)}h</div>
         </div>`;
       });
