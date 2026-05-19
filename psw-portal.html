@@ -915,7 +915,7 @@ a{color:inherit;text-decoration:none;}
     <div class="bnav-lbl">Checklist</div>
   </div>
   <div class="bnav-item" onclick="showSect('messages')" id="bn-messages">
-    <div class="bnav-icon" style="position:relative;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><div class="bnav-dot" id="bnav-msg-dot"></div></div>
+    <div class="bnav-icon" style="position:relative;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><div class="bnav-dot" id="bnav-msg-dot"></div><span id="msg-badge" style="display:none;position:absolute;top:-4px;right:-6px;background:var(--red);color:#fff;font-family:var(--mono);font-size:10px;font-weight:600;min-width:16px;height:16px;border-radius:8px;padding:0 3px;align-items:center;justify-content:center;line-height:16px;text-align:center;"></span></div>
     <div class="bnav-lbl">Messages</div>
   </div>
   <div class="bnav-item" onclick="showSect('clients')" id="bn-clients">
@@ -1086,6 +1086,17 @@ a{color:inherit;text-decoration:none;}
 
 <script>
 const API = 'https://proximity-agent-production.up.railway.app';
+
+// ── XSS GUARD ──
+function escHtml(str) {
+  if (str == null) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
 let pswName = '', pswPin = '', pswEmail = '';
 let lockIn = '', appUnlocked = false;
 
@@ -2256,11 +2267,11 @@ async function loadMessages(scroll=true) {
     const unread = unreadNotes.length;
     const badge = document.getElementById('msg-badge');
     const dot = document.getElementById('bnav-msg-dot');
-    if (unread > 0) { badge.textContent = unread; badge.classList.add('show'); dot.classList.add('show'); }
-    else { badge.classList.remove('show'); dot.classList.remove('show'); }
+    if (unread > 0) { badge.textContent = unread; badge.style.display = 'inline-flex'; dot.classList.add('show'); }
+    else { badge.style.display = 'none'; dot.classList.remove('show'); }
     renderHomeFeed(); // re-render home feed to show/hide schedule alerts
     if (!notes.length) { el.innerHTML = '<div class="empty-state">No messages yet</div>'; return; }
-    el.innerHTML = notes.map(n => `<div class="msg-bubble ${n.sender==='lance'?'msg-lance':'msg-psw'}"><div class="msg-text">${n.message}</div><div class="msg-time">${ago(n.created_at)}</div></div>`).join('');
+    el.innerHTML = notes.map(n => `<div class="msg-bubble ${n.sender==='lance'?'msg-lance':'msg-psw'}"><div class="msg-text">${escHtml(n.message)}</div><div class="msg-time">${ago(n.created_at)}</div></div>`).join('');
     if (scroll) el.scrollTop = el.scrollHeight;
   } catch { el.innerHTML = '<div class="empty-state">Could not load messages</div>'; }
 }
