@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1456,7 +1455,32 @@ button,.sbtn,.btn,.bnav-item,.nav-tab,.icon-btn{
       </div>
     </div>
 
+  
+<!-- ── WATCHDOG / SYSTEM SCAN ─────────────────────────────── -->
+<div class="help-track" id="watchdog-track" style="margin-bottom:0;">
+  <div class="help-track-hdr" onclick="toggleHelpTrack('watchdog-body')" style="cursor:pointer;">
+    <span class="help-track-title">⬡ System Watchdog</span>
+    <span style="font-family:var(--mono);font-size:11px;color:var(--muted);" id="watchdog-badge">Run full scan →</span>
   </div>
+  <div class="help-track-body open" id="watchdog-body">
+    <div style="padding:8px 0 12px;">
+      <button onclick="startWatchdogScan()" id="watchdog-run-btn"
+        style="width:100%;padding:12px 16px;background:rgba(74,154,110,.12);border:1.5px solid rgba(74,154,110,.35);border-radius:10px;color:var(--teal2,#4a9a6e);font-family:var(--mono);font-size:12px;font-weight:600;letter-spacing:1px;cursor:pointer;min-height:44px;display:flex;align-items:center;justify-content:center;gap:8px;touch-action:manipulation;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="16" height="16"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        Run System Scan
+      </button>
+      <div id="watchdog-progress" style="display:none;margin-top:8px;">
+        <div style="height:3px;background:var(--bg3);border-radius:2px;overflow:hidden;">
+          <div id="watchdog-bar" style="height:100%;background:var(--teal2,#4a9a6e);width:0%;transition:width .3s ease;border-radius:2px;"></div>
+        </div>
+        <div id="watchdog-status-line" style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:4px;letter-spacing:.5px;">Starting...</div>
+      </div>
+      <div id="watchdog-results" style="margin-top:10px;display:none;"></div>
+      <div id="watchdog-summary" style="display:none;margin-top:8px;padding:10px 12px;border-radius:8px;font-family:var(--mono);font-size:11px;"></div>
+    </div>
+  </div>
+</div>
+</div>
 </div>
 
 <div class="section" id="sect-activity">
@@ -7801,6 +7825,163 @@ async function confirmBreakGlass() {
   } catch {}
   if (typeof callback === 'function') callback();
 }
+
+
+// ── WATCHDOG SCAN ────────────────────────────────────────────────
+let _wdRunning = false;
+
+async function startWatchdogScan() {
+  if (_wdRunning) return;
+  _wdRunning = true;
+
+  const btn      = document.getElementById('watchdog-run-btn');
+  const progress = document.getElementById('watchdog-progress');
+  const bar      = document.getElementById('watchdog-bar');
+  const statusLn = document.getElementById('watchdog-status-line');
+  const results  = document.getElementById('watchdog-results');
+  const summary  = document.getElementById('watchdog-summary');
+  const badge    = document.getElementById('watchdog-badge');
+
+  btn.disabled = true;
+  btn.style.opacity = '0.5';
+  btn.querySelector('svg').style.animation = 'spin 1s linear infinite';
+  progress.style.display = 'block';
+  results.style.display  = 'block';
+  results.innerHTML = '';
+  summary.style.display = 'none';
+  badge.textContent = 'Running...';
+
+  // Add spin keyframe if missing
+  if (!document.getElementById('wd-spin-style')) {
+    const st = document.createElement('style');
+    st.id = 'wd-spin-style';
+    st.textContent = '@keyframes spin{to{transform:rotate(360deg)}}';
+    document.head.appendChild(st);
+  }
+
+  const counts = { ok: 0, warn: 0, crit: 0, total: 0 };
+  let currentGroup = null;
+  let groupEl = null;
+
+  const colorMap = {
+    ok:   { bg: 'rgba(74,154,110,.08)',  border: 'rgba(74,154,110,.25)',  text: 'var(--teal2,#4a9a6e)', icon: '✓' },
+    warn: { bg: 'rgba(224,154,61,.08)',  border: 'rgba(224,154,61,.25)',  text: 'var(--gold,#e09a3d)',  icon: '⚠' },
+    crit: { bg: 'rgba(224,85,85,.08)',   border: 'rgba(224,85,85,.25)',   text: 'var(--red,#e05555)',   icon: '✕' },
+    info: { bg: 'rgba(106,172,240,.06)', border: 'rgba(106,172,240,.2)',  text: 'var(--blue2,#6aacf0)', icon: '·' },
+  };
+
+  function addResult(item) {
+    if (item.id === '__start' || item.id === '__done') return;
+    const col = colorMap[item.status] || colorMap.info;
+
+    // Group header
+    if (item.group && item.group !== currentGroup) {
+      currentGroup = item.group;
+      groupEl = document.createElement('div');
+      groupEl.style.cssText = 'font-family:var(--mono);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted2);padding:10px 0 4px;border-top:1px solid var(--border);margin-top:6px;';
+      groupEl.textContent = item.group;
+      results.appendChild(groupEl);
+    }
+
+    const row = document.createElement('div');
+    row.style.cssText = `display:flex;align-items:flex-start;gap:8px;padding:6px 8px;margin-bottom:3px;border-radius:6px;background:${col.bg};border:1px solid ${col.border};`;
+    row.innerHTML = `
+      <span style="font-family:var(--mono);font-size:12px;color:${col.text};flex-shrink:0;margin-top:1px;">${col.icon}</span>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:12px;color:var(--text);font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escHtml(item.name||'')}</div>
+        <div style="font-size:11px;color:var(--muted);font-family:var(--mono);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${escHtml(item.detail||'')}">${escHtml(item.detail||'')}</div>
+      </div>
+      <span style="font-family:var(--mono);font-size:10px;color:var(--muted2);flex-shrink:0;">${item.latency||0}ms</span>
+    `;
+    results.appendChild(row);
+    row.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  try {
+    const res = await fetch(`${API}/system/run-tests`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ pin: WATCHDOG_PIN, operator_id: operatorId })
+    });
+
+    if (!res.ok) {
+      const d = await res.json().catch(() => ({}));
+      throw new Error(d.error || `HTTP ${res.status}`);
+    }
+
+    const reader  = res.body.getReader();
+    const decoder = new TextDecoder();
+    let   buf     = '';
+    // Approximate total tests from scan handler (adjust if needed)
+    const TOTAL_TESTS = 85;
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      buf += decoder.decode(value, { stream: true });
+      const lines = buf.split('\n');;
+      buf = lines.pop(); // keep incomplete line in buffer
+
+      for (const line of lines) {
+        const trimmed = line.trim();
+        if (!trimmed) continue;
+        try {
+          const item = JSON.parse(trimmed);
+
+          if (item.id === '__done') {
+            bar.style.width = '100%';
+            statusLn.textContent = `Completed in ${((item.total_ms||0)/1000).toFixed(1)}s`;
+            continue;
+          }
+          if (item.id === '__start') {
+            statusLn.textContent = item.detail || 'Running...';
+            continue;
+          }
+
+          counts.total++;
+          if (item.status === 'ok')   counts.ok++;
+          if (item.status === 'warn') counts.warn++;
+          if (item.status === 'crit') counts.crit++;
+
+          const pct = Math.min(99, Math.round((counts.total / TOTAL_TESTS) * 100));
+          bar.style.width = pct + '%';
+          statusLn.textContent = `${counts.total}/${TOTAL_TESTS} · ${item.group || ''}: ${item.name || ''}`;
+          badge.textContent = `${counts.ok}ok ${counts.warn}warn ${counts.crit}crit`;
+
+          addResult(item);
+        } catch {}
+      }
+    }
+
+    // Show summary
+    const allOk = counts.crit === 0 && counts.warn === 0;
+    const hasCrit = counts.crit > 0;
+    summary.style.display = 'block';
+    summary.style.background = hasCrit ? 'rgba(224,85,85,.08)' : allOk ? 'rgba(74,154,110,.08)' : 'rgba(224,154,61,.08)';
+    summary.style.border = hasCrit ? '1px solid rgba(224,85,85,.25)' : allOk ? '1px solid rgba(74,154,110,.25)' : '1px solid rgba(224,154,61,.25)';
+    summary.style.color = hasCrit ? 'var(--red,#e05555)' : allOk ? 'var(--teal2,#4a9a6e)' : 'var(--gold,#e09a3d)';
+    summary.textContent = hasCrit
+      ? `${counts.crit} CRITICAL · ${counts.warn} warnings · ${counts.ok} passing`
+      : allOk
+        ? `All ${counts.ok} checks passed`
+        : `${counts.warn} warnings · ${counts.ok} passing`;
+
+    badge.textContent = hasCrit ? `${counts.crit} CRIT` : allOk ? 'All clear' : `${counts.warn} warn`;
+
+  } catch (err) {
+    results.innerHTML = `<div style="padding:12px;background:rgba(224,85,85,.08);border:1px solid rgba(224,85,85,.25);border-radius:8px;font-family:var(--mono);font-size:12px;color:var(--red,#e05555);">Scan failed: ${escHtml(err.message)}</div>`;
+    badge.textContent = 'Failed';
+  } finally {
+    _wdRunning = false;
+    btn.disabled = false;
+    btn.style.opacity = '1';
+    btn.querySelector('svg').style.animation = '';
+  }
+}
+
+// WATCHDOG_PIN from existing HQ constants — falls back to proximity-watchdog-2026
+const WATCHDOG_PIN = 'proximity-watchdog-2026';
 
 </script>
 <div class="demo-tip" id="demo-tip"></div>
