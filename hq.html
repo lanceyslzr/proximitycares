@@ -6407,14 +6407,22 @@ async function saveClientEdits(clientId) {
   const careType = document.getElementById('ce-care-type')?.value.trim() || '';
   const city = document.getElementById('ce-city')?.value.trim() || '';
   try {
+    const careDirectives = document.getElementById('ce-care-directives')?.value.trim() || '';
+    const mobilityLevel = document.getElementById('ce-mobility')?.value.trim() || '';
+    const cognitiveStatus = document.getElementById('ce-cognitive')?.value.trim() || '';
+    const medications = document.getElementById('ce-medications')?.value.trim() || '';
     const payload = { operator_id: currentOp, assigned_psw: psw, client_rate: clientRate,
       psw_rate: pswRate, care_notes: careNotes };
-    if (firstName) payload.first_name = firstName;
-    if (lastName) payload.last_name = lastName;
-    if (phone) payload.phone = phone;
-    if (email) payload.family_email = email;
-    if (careType) payload.care_type = careType;
-    if (city) payload.city = city;
+    if (firstName)      payload.first_name       = firstName;
+    if (lastName)       payload.last_name        = lastName;
+    if (phone)          payload.phone            = phone;
+    if (email)          payload.family_email     = email;
+    if (careType)       payload.care_type        = careType;
+    if (city)           payload.city             = city;
+    if (careDirectives) payload.care_directives  = careDirectives;
+    if (mobilityLevel)  payload.mobility_level   = mobilityLevel;
+    if (cognitiveStatus) payload.cognitive_status = cognitiveStatus;
+    if (medications)    payload.medications      = medications;
     const res = await fetch(`${API}/hq/client/${clientId}`, {
       method: 'PATCH',
       headers: {'Content-Type': 'application/json', 'x-hq-token': window._hqToken || sessionStorage.getItem('hq_token') || ''},
