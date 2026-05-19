@@ -191,6 +191,7 @@ textarea::placeholder,input::placeholder{color:rgba(184,207,212,.4);}
 /* SKELETON */
 .skeleton-wrap{padding:24px 20px;}
 .skeleton-block{border-radius:14px;background:linear-gradient(90deg,#0d1117 25%,#161c24 50%,#0d1117 75%);background-size:200% 100%;animation:fam-shimmer 1.4s infinite;margin-bottom:14px;}
+@keyframes fadeInDown{from{opacity:0;transform:translateX(-50%) translateY(-12px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
 @keyframes fam-shimmer{0%{background-position:200% 0;}100%{background-position:-200% 0;}}
 .skeleton-status{height:120px;border-radius:20px;margin-bottom:24px;}
 .skeleton-card-sm{height:80px;}
@@ -482,6 +483,7 @@ button:active{transform:scale(0.98);}
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 </head>
 <body>
 
@@ -575,7 +577,24 @@ button:active{transform:scale(0.98);}
 </div>
 
 <script>
-const R = 'https://proximity-agent-production.up.railway.app';
+const R = 'https://proximity-agent-production.up.railway.app'
+
+// ── C1: Supabase Realtime client (anon key — read-only, safe for client) ──
+// Populated after PIN verify — server returns supabase config securely
+let   SUPA_URL    = '';
+let   SUPA_ANON   = '';
+let   _supaClient = null;
+let   _realtimeCh = null;   // active channel ref for cleanup
+
+function getSupaClient() {
+  if (!SUPA_URL || !SUPA_ANON) return null;
+  if (!_supaClient) {
+    _supaClient = window.supabase?.createClient(SUPA_URL, SUPA_ANON, {
+      realtime: { params: { eventsPerSecond: 2 } }
+    });
+  }
+  return _supaClient;
+};
 
 // ── XSS GUARD ──
 function escHtml(str) {
@@ -624,6 +643,8 @@ async function verifyPin() {
     const d = await r.json();
     if (d.success) {
       try { sessionStorage.setItem('family_pin_' + slug, pinVal); } catch(e) {}
+      // C1: Store supabase config from server response
+      if (d.supabase) { SUPA_URL = d.supabase.url || ''; SUPA_ANON = d.supabase.anon_key || ''; }
       document.getElementById('gate').classList.add('hide');
       document.getElementById('app').classList.add('show');
       document.getElementById('tbName').textContent = d.client.first_name + ' ' + d.client.last_name;
@@ -1429,19 +1450,104 @@ async function sendMsg() {
 }
 
 // Auto-refresh every 60s
-setInterval(async () => {
-  try {
-    if (!slug || !portalData) return;
-    const res = await fetch(`${R}/family/portal/${slug}`);
-    const d = await res.json();
-    if (d.success) {
-      portalData = d;
-      const activeTab = document.querySelector('.nav-btn.on')?.id?.replace('nav-','');
-      if (activeTab) showTab(activeTab);
+// ── C1: Supabase Realtime — replaces 60s polling with instant events ──
+// Falls back to 60s polling if Realtime unavailable
+function initRealtime() {
+  const sb = getSupaClient();
+  if (!sb) {
+    // No supabase client yet — use polling fallback
+    startPollingFallback();
+    return;
+  }
+
+  // Clean up existing channel if reconnecting
+  if (_realtimeCh) { try { sb.removeChannel(_realtimeCh); } catch {} _realtimeCh = null; }
+
+  _realtimeCh = sb
+    .channel(`family_${slug}`)
+    .on('postgres_changes', {
+      event:  '*',
+      schema: 'public',
+      table:  'visits',
+      filter: `client_name=eq.${encodeURIComponent(portalData?.client?.first_name + ' ' + (portalData?.client?.last_name || '')).replace(/%20/g, ' ')}`
+    }, async (payload) => {
+      // C1: Visit changed — refresh portal data and show live toast
+      try {
+        const res = await fetch(`${R}/family/portal/${slug}`);
+        const d   = await res.json();
+        if (d.success) {
+          const wasActive = portalData?.today_visit?.status === 'in_progress';
+          const isActive  = d.today_visit?.status === 'in_progress';
+          portalData = d;
+
+          // Show arrival toast if PSW just checked in
+          if (!wasActive && isActive) {
+            const pswFirst = (d.today_visit?.psw_name || 'Your caregiver').split(' ')[0];
+            showLiveToast(`${pswFirst} has arrived`, 'arrival');
+          }
+          // Show departure toast if PSW just checked out
+          if (wasActive && !isActive && payload.eventType === 'UPDATE') {
+            showLiveToast('Visit completed', 'departure');
+          }
+
+          const activeTab = document.querySelector('.nav-btn.on')?.id?.replace('nav-','');
+          if (activeTab) showTab(activeTab);
+        }
+      } catch {}
+    })
+    .on('postgres_changes', {
+      event:  'INSERT',
+      schema: 'public',
+      table:  'messages',
+      filter: `client_slug=eq.${slug}`
+    }, () => {
+      // C2: New message — reload message thread instantly
       loadFamilyMessages();
-    }
-  } catch {}
-}, 60000);
+    })
+    .subscribe((status) => {
+      if (status === 'SUBSCRIBED') {
+        console.log('[Realtime] Connected to family channel');
+      } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+        console.warn('[Realtime] Channel error — falling back to polling');
+        startPollingFallback();
+      }
+    });
+}
+
+// Polling fallback — 60s if Realtime unavailable
+let _pollTimer = null;
+function startPollingFallback() {
+  if (_pollTimer) return; // already running
+  _pollTimer = setInterval(async () => {
+    try {
+      if (!slug || !portalData) return;
+      const res = await fetch(`${R}/family/portal/${slug}`);
+      const d   = await res.json();
+      if (d.success) {
+        portalData = d;
+        const activeTab = document.querySelector('.nav-btn.on')?.id?.replace('nav-','');
+        if (activeTab) showTab(activeTab);
+        loadFamilyMessages();
+      }
+    } catch {}
+  }, 60000);
+}
+
+// C1: Live toast for arrival/departure events
+function showLiveToast(msg, type) {
+  const el = document.createElement('div');
+  el.style.cssText = `
+    position:fixed;top:20px;left:50%;transform:translateX(-50%);z-index:9999;
+    background:${type==='arrival' ? 'var(--green)' : 'var(--teal2)'};
+    color:#fff;padding:12px 22px;border-radius:100px;
+    font-size:14px;font-weight:600;font-family:var(--sans);
+    box-shadow:0 4px 20px rgba(0,0,0,.35);
+    animation:fadeInDown .3s ease;
+  `;
+  el.textContent = type === 'arrival' ? '🟢 ' + msg : '✓ ' + msg;
+  document.body.appendChild(el);
+  setTimeout(() => { el.style.opacity = '0'; el.style.transition = 'opacity .4s'; setTimeout(() => el.remove(), 400); }, 4000);
+}
 
 // ── WEB PUSH NOTIFICATIONS ──
 const VAPID_PUBLIC_KEY = 'BD9E2x87i80k-Yt8Ye09irrQQD3Xlf3EtCUIbbjwlwnYoPS6AHaX2_12rZ-7aKQs13WmXfKMx5A4aUuqr3M8wIk';
