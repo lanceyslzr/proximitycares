@@ -62,10 +62,10 @@ html,body{min-height:100vh;font-family:var(--sans),sans-serif;background:var(--b
 
 /* TOPBAR */
 .topbar{background:rgba(7,9,12,.96);border-bottom:1px solid var(--border);padding:14px 16px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);}
-.tb-brand{font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--teal2);}
+.tb-brand{font-family:var(--mono);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--teal2);flex:1;min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
 .tb-brand em{color:var(--green);font-style:normal;}
-.tb-right{display:flex;align-items:center;gap:10px;}
-.tb-name{font-size:13px;color:var(--muted);font-weight:500;}
+.tb-right{display:flex;align-items:center;gap:8px;flex-shrink:0;}
+.tb-name{font-size:13px;color:var(--muted);font-weight:500;max-width:90px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;font-size:11px;}
 .tb-signout{background:none;border:none;font-size:12px;color:var(--muted);cursor:pointer;padding:6px 10px;border-radius:6px;font-family:'Inter',sans-serif;transition:color 0.15s;touch-action:manipulation;-webkit-tap-highlight-color:transparent;}
 .tb-signout:hover{color:var(--text);}
 
@@ -1030,20 +1030,43 @@ function showTab(tab) {
         <div style="font-size:12px;color:var(--muted);line-height:1.5;">A note was flagged during a recent visit. Your coordinator has been notified.</div>
       </div>` : '';
 
-    // ── PSW CONTACT ROW ── (compact, not dominating)
+    // ── PSW CARD ── shows current PSW info + message + call
+    const todayPsw = portalData.today_psw || psw;
     const pswName = today_visit?.psw_name || psw?.name || '';
-    const pswFirst = pswName.split(' ')[0] || 'Caregiver';
-    const contactRow = `
-      <div style="display:flex;gap:10px;margin-bottom:20px;">
-        ${pswName ? `<a href="tel:${psw?.phone||''}" style="flex:1;display:flex;align-items:center;justify-content:center;gap:7px;min-height:48px;background:var(--green);border-radius:12px;text-decoration:none;">
-          <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.39 2 2 0 0 1 3.6 1.22h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L7.91 8.96a16 16 0 0 0 6 6l.96-.96a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-          <span style="color:#fff;font-size:13px;font-weight:600;">Call ${pswFirst}</span>
-        </a>` : ''}
-        <a href="tel:6473828047" style="flex:1;display:flex;align-items:center;justify-content:center;gap:7px;min-height:48px;background:var(--bg2);border:1px solid var(--border2);border-radius:12px;text-decoration:none;">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14" style="color:var(--accent);"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.39 2 2 0 0 1 3.6 1.22h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L7.91 8.96a16 16 0 0 0 6 6l.96-.96a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-          <span style="color:var(--text);font-size:13px;font-weight:600;">Call Agency</span>
-        </a>
-      </div>`;
+    const pswPhone = (todayPsw?.phone || psw?.phone || '').replace(/[^0-9+]/g,'');
+    const pswFirst = pswName.split(' ')[0] || 'Your Caregiver';
+    const pswInitials = pswName.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+    const agencyPhone = (portalData?.branding?.owner_phone||'647-382-8047').replace(/[^0-9+]/g,'');
+    const shiftLabel = isActive ? 'On shift now' : isComplete ? 'Completed today' : 'Your caregiver';
+    const contactRow = pswName ? `
+      <div style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:14px 16px;margin-bottom:20px;">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+          <div style="width:42px;height:42px;border-radius:50%;background:rgba(61,138,122,.15);border:1px solid rgba(61,138,122,.3);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <span style="font-family:var(--mono,monospace);font-size:14px;color:var(--teal2);font-weight:600;">${pswInitials}</span>
+          </div>
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:14px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${pswName}</div>
+            <div style="font-size:11px;color:var(--muted);font-family:var(--mono,monospace);letter-spacing:1px;text-transform:uppercase;margin-top:2px;">${shiftLabel}</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button onclick="showTab('ask')" style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;min-height:44px;background:rgba(61,138,122,.1);border:1px solid rgba(61,138,122,.25);border-radius:10px;cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14" style="color:var(--teal2)"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            <span style="font-size:12px;font-weight:600;color:var(--teal2);">Message PSW</span>
+          </button>
+          ${pswPhone ? `<a href="tel:${pswPhone}" style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;min-height:44px;background:rgba(74,154,110,.1);border:1px solid rgba(74,154,110,.25);border-radius:10px;text-decoration:none;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14" style="color:var(--green2)"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.39 2 2 0 0 1 3.6 1.22h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L7.91 8.96a16 16 0 0 0 6 6l.96-.96a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+            <span style="font-size:12px;font-weight:600;color:var(--green2);">Call ${pswFirst}</span>
+          </a>` : `<a href="tel:${agencyPhone}" style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;min-height:44px;background:var(--bg3);border:1px solid var(--border);border-radius:10px;text-decoration:none;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.39 2 2 0 0 1 3.6 1.22h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L7.91 8.96a16 16 0 0 0 6 6l.96-.96a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+            <span style="font-size:12px;font-weight:600;color:var(--muted2);">Call Agency</span>
+          </a>`}
+        </div>
+      </div>` : `
+      <a href="tel:${agencyPhone}" style="display:flex;align-items:center;justify-content:center;gap:8px;min-height:48px;background:var(--bg2);border:1px solid var(--border2);border-radius:12px;text-decoration:none;margin-bottom:16px;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.39 2 2 0 0 1 3.6 1.22h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L7.91 8.96a16 16 0 0 0 6 6l.96-.96a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+        <span style="font-size:13px;font-weight:600;color:var(--text);">Call Agency</span>
+      </a>`;
 
     // ── RECENT VISITS (last 5) ──
     const recentVisitsHtml = (visits||[]).slice(0,5).length
@@ -1174,11 +1197,34 @@ function showTab(tab) {
   }
 
     else if (tab === 'visits') {
-    const { visits } = portalData;
+    const { visits, upcoming_bookings } = portalData;
     const all = visits || [];
+    // Add scheduled future bookings to the top of the list
     const range = getFamDateRange();
     // Filter by selected range
     const filtered = all.filter(v => v.visit_date && v.visit_date >= range.from && v.visit_date <= range.to);
+    // Build scheduled upcoming rows (future visits from bookings)
+    const today = new Date().toLocaleDateString('en-CA', {timeZone:'America/Toronto'});
+    const scheduledUpcoming = (upcoming_bookings || [])
+      .filter(b => b.visit_date >= range.from && b.visit_date >= today)
+      .map(b => {
+        const bDate = new Date(b.visit_date + 'T12:00:00');
+        const bDay = bDate.toLocaleDateString('en-CA', {weekday:'short'});
+        const bNum = bDate.getDate();
+        return `<div style="display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--border);align-items:flex-start;">
+          <div style="text-align:center;min-width:36px;flex-shrink:0;">
+            <div style="font-size:10px;color:var(--muted);font-family:var(--mono);text-transform:uppercase;">${bDay}</div>
+            <div style="font-size:22px;font-weight:700;color:var(--teal2);line-height:1;">${bNum}</div>
+          </div>
+          <div style="flex:1;min-width:0;">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;flex-wrap:wrap;">
+              <span style="font-size:13px;font-weight:600;color:var(--text);">${b.psw_name || 'PSW Assigned'}</span>
+              <span style="font-family:var(--mono);font-size:10px;letter-spacing:1px;padding:2px 7px;border-radius:100px;border:1px solid rgba(61,138,122,.3);color:var(--teal2);">SCHEDULED</span>
+            </div>
+            <div style="font-size:12px;color:var(--muted);">${b.time_in ? fmtTime(b.time_in) : 'Time TBD'}</div>
+          </div>
+        </div>`;
+      }).join('');
     const shown = filtered.slice(0, 8);
     const rest = filtered.slice(8);
 
@@ -1262,7 +1308,7 @@ function showTab(tab) {
         <div class="section-title">Visits — ${range.label}</div>
         <div class="card">
           ${filtered.length > 0
-            ? shown.map(v => visitRow(v)).join('') +
+            ? scheduledUpcoming + shown.map(v => visitRow(v)).join('') +
               (rest.length > 0
                 ? '<div id="visits-hidden" style="display:none;">' + rest.map(v => visitRow(v)).join('') + '</div>' +
                   '<div style="padding:14px 20px;text-align:center;border-top:1px solid var(--border);">' +
@@ -1964,12 +2010,18 @@ function scrollToNoteWithContext(visitDate, pswName) {
 
 function fmtTime(str) {
   if (!str) return '';
+  // ISO timestamps (from DB with timezone) — convert to Toronto time
   if (str.includes('T') || str.includes('Z') || str.includes('+')) {
-    return new Date(str).toLocaleTimeString('en-CA',{hour:'2-digit',minute:'2-digit',timeZone:'America/Toronto'});
+    return new Date(str).toLocaleTimeString('en-CA',{hour:'2-digit',minute:'2-digit',timeZone:'America/Toronto',hour12:false});
   }
-  const [h,m] = str.split(':');
-  const d = new Date(); d.setUTCHours(parseInt(h), parseInt(m), 0, 0);
-  return d.toLocaleTimeString('en-CA',{hour:'2-digit',minute:'2-digit',timeZone:'America/Toronto'});
+  // HH:MM strings — already stored as Toronto local time, display as-is
+  const parts = str.split(':');
+  if (parts.length >= 2) {
+    const h = parseInt(parts[0]), m = parseInt(parts[1]);
+    const pad = n => String(n).padStart(2,'0');
+    return pad(h) + ':' + pad(m);
+  }
+  return str;
 }
 
 
@@ -2027,7 +2079,8 @@ async function initVisitMap() {
   }
 
   // Build visit pins from recent visits
-  const today = new Date().toISOString().slice(0,10);
+  // Toronto-aware today — avoids UTC date being "tomorrow" after 8pm ET
+  const today = new Date().toLocaleDateString('en-CA', {timeZone:'America/Toronto'});
   const visits = (portalData.visits || []).slice(0, 10);
   const todayVisit = portalData.today_visit || null;
 
