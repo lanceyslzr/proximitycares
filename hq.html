@@ -4869,17 +4869,18 @@ function _buildFCEvents() {
     visits.filter(v=>v.status==='in_progress').map(v=>v.client_slug||v.client_name)
   );
 
-  return bookings.map(b => {
+  // Build booking events
+  const bookingEvents = bookings.map(b => {
     const isConflict = conflicts.has(b.id);
     const clientName = b.client_name || '';
     const pswName    = b.assigned_to  || b.psw_name || '';
     const isLive     = activeVisitClients.has(clientName) || activeVisitClients.has(b.client_slug);
     const isCancelled= b.status === 'cancelled';
 
-    let color = '#1e5a4e'; // default teal-dark
-    if (isConflict)  color = '#8b2020';
-    if (isLive)      color = '#1a6b3a';
-    if (isCancelled) color = '#2a2a2a';
+    let color = '#1e5a4e'; // scheduled — teal dark
+    if (isConflict)  color = '#8b2020'; // conflict — red
+    if (isLive)      color = '#1a6b3a'; // on shift now — bright green
+    if (isCancelled) color = '#2a2a2a'; // cancelled — dark grey
 
     const startDT = `${b.scheduled_date}T${b.scheduled_time||'09:00'}`;
     const durMins = b.duration_minutes || 480;
@@ -4896,6 +4897,53 @@ function _buildFCEvents() {
       extendedProps: { booking: b, isConflict, isLive, isCancelled }
     };
   });
+
+  // Build visit events — visits table (manual entries + completed/active visits)
+  // Skip visits that have a matching booking (already shown above — avoids duplicates)
+  const bookingIds = new Set(bookings.map(b => b.id));
+  const visitEvents = visits
+    .filter(v => {
+      if (!v.visit_date) return false;
+      if (v.visit_date < _ws || v.visit_date > _we) return false;
+      // Skip if this visit belongs to a booking already on calendar
+      if (v.booking_id && bookingIds.has(v.booking_id)) return false;
+      return true;
+    })
+    .map(v => {
+      const clientName = v.client_name || '';
+      const pswName    = v.psw_name    || '';
+      const isManual   = !v.booking_id; // no booking = manually added
+      const isActive   = v.status === 'in_progress';
+      const isComplete = v.status === 'completed';
+
+      // Colour coding for visits:
+      // Manual (no booking_id) = amber/gold — stands out clearly
+      // Active (in progress)   = bright green
+      // Completed              = muted blue-teal
+      let color       = '#4a3a1a'; // manual — amber dark
+      let borderColor = '#c9a96e'; // amber border
+      if (isActive)   { color = '#1a6b3a'; borderColor = '#4a9a6e'; }
+      if (isComplete && !isManual) { color = '#1a3a5a'; borderColor = '#3d6a8a'; }
+
+      const startDT = `${v.visit_date}T${v.time_in||'09:00'}`;
+      const endDT   = v.time_out
+        ? `${v.visit_date}T${v.time_out}`
+        : _addMins(startDT, Math.round((parseFloat(v.hours_worked)||8)*60));
+
+      const label = isManual ? '✎ ' : isActive ? '● ' : '';
+      return {
+        id:         'visit-' + v.id,
+        title:      label + (pswName ? `${clientName} · ${pswName}` : clientName || 'Visit'),
+        start:      startDT,
+        end:        endDT,
+        color,
+        borderColor,
+        textColor:  '#e8e4dc',
+        extendedProps: { visit: v, isManual, isActive, isComplete }
+      };
+    });
+
+  return [...bookingEvents, ...visitEvents];
 }
 
 function _addMins(dtStr, mins) {
@@ -4987,8 +5035,15 @@ function _initFC() {
     // Click event → show detail / edit
     eventClick(info) {
       const b = info.event.extendedProps.booking;
-      if (!b) return;
-      _showShiftDetail(b, info.event.extendedProps);
+      const v = info.event.extendedProps.visit;
+      if (b) {
+        _showShiftDetail(b, info.event.extendedProps);
+      } else if (v) {
+        // Visit event (manual or completed) — show a simple toast with details
+        const label = v.status === 'in_progress' ? 'Active visit' : v.booking_id ? 'Completed visit' : 'Manual visit';
+        const hrs = parseFloat(v.hours_worked||0).toFixed(1);
+        showToast(`${label}: ${v.client_name||'Client'} · ${v.psw_name||'PSW'} · ${v.visit_date} · ${hrs}h`, 'ok');
+      }
     },
 
     // Drag to reschedule
@@ -5010,8 +5065,9 @@ function _initFC() {
     // Style events
     eventDidMount(info) {
       const b = info.event.extendedProps.booking;
-      if (!b) return;
-      if (info.event.extendedProps.isLive) {
+      const v = info.event.extendedProps.visit;
+      if (!b && !v) return;
+      if (b && info.event.extendedProps.isLive) {
         info.el.style.boxShadow = '0 0 0 2px #4a9a6e, 0 0 8px rgba(74,154,110,0.4)';
         info.el.style.animation = 'livepulse 2s infinite';
       }
@@ -5019,7 +5075,12 @@ function _initFC() {
         info.el.style.boxShadow = '0 0 0 2px #e05555';
       }
       // Tooltip
-      info.el.title = `${b.client_name||''} · ${b.assigned_to||'Unassigned'}\n${b.scheduled_date} ${b.scheduled_time}\n${(b.duration_minutes||480)/60}h`;
+      if (b) {
+        info.el.title = `${b.client_name||''} · ${b.assigned_to||'Unassigned'}\n${b.scheduled_date} ${b.scheduled_time}\n${(b.duration_minutes||480)/60}h`;
+      } else if (v) {
+        const vType = v.booking_id ? 'Completed' : 'Manual';
+        info.el.title = `${vType}: ${v.client_name||''} · ${v.psw_name||''}\n${v.visit_date} ${v.time_in||''}–${v.time_out||''}\n${parseFloat(v.hours_worked||0).toFixed(1)}h`;
+      }
     },
 
     // FullCalendar theme
