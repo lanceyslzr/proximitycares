@@ -234,12 +234,12 @@ button:active{transform:scale(0.98);}
 /* TOPBAR */
 .topbar{position:sticky;top:0;z-index:100;height:54px;display:flex;align-items:center;justify-content:space-between;padding:0 14px;background:rgba(7,9,12,.96);border-bottom:1px solid var(--border);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);}
 .tl{display:flex;align-items:center;gap:10px;}
-.logo{font-family:var(--serif);font-size:18px;color:var(--text);font-weight:300;letter-spacing:1px;}
+.logo{font-family:var(--serif);font-size:18px;color:var(--text);font-weight:300;flex:none;letter-spacing:1px;}
 .logo em{color:var(--teal2);font-style:italic;}
-.op-pill{display:flex;align-items:center;gap:6px;background:var(--bg3);border:1px solid var(--border2);padding:5px 10px;border-radius:100px;cursor:default;min-height:44px;}
+.op-pill{display:flex;align-items:center;gap:6px;background:var(--bg3);border:1px solid var(--border2);padding:5px 10px;border-radius:100px;cursor:default;min-height:44px;max-width:160px;overflow:hidden;}
 .op-live{width:6px;height:6px;border-radius:50%;background:var(--teal2);animation:livepulse 2s infinite;}
 @keyframes livepulse{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(90,173,160,.4);}50%{opacity:.7;box-shadow:0 0 0 5px rgba(90,173,160,0);}}
-.op-name-text{font-family:var(--mono);font-size:12px;letter-spacing:1px;text-transform:uppercase;color:var(--teal2);}
+.op-name-text{font-family:var(--mono);font-size:12px;letter-spacing:1px;text-transform:uppercase;color:var(--teal2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:120px;}
 .icon-btn{width:36px;height:36px;display:flex;align-items:center;justify-content:center;background:var(--bg3);border:1px solid var(--border);border-radius:8px;color:var(--muted2);font-size:17px;cursor:pointer;transition:all .2s;}
 .icon-btn:active{background:var(--bg4);color:var(--teal2);}
 .refresh-spin{animation:spin .6s linear infinite;}
@@ -540,13 +540,14 @@ button:active{transform:scale(0.98);}
 /* ── SIDEBAR NAV ── */
 .sidebar-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:400;opacity:0;pointer-events:none;transition:opacity .25s;}
 .sidebar-overlay.open{opacity:1;pointer-events:all;}
-.sidebar{position:fixed;top:0;left:0;bottom:0;width:280px;background:var(--bg2);border-right:1px solid var(--border2);z-index:500;transform:translateX(-100%);transition:transform .25s cubic-bezier(.4,0,.2,1);overflow-y:auto;display:flex;flex-direction:column;}
+.sidebar{position:fixed;top:0;left:0;bottom:0;width:240px;background:var(--bg2);border-right:1px solid var(--border2);z-index:500;transform:translateX(-100%);transition:transform .25s cubic-bezier(.4,0,.2,1);overflow-y:auto;display:flex;flex-direction:column;}
 .sidebar.open{transform:translateX(0);}
 .sidebar-head{padding:20px 18px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
 .sidebar-logo{font-family:var(--serif);font-size:18px;color:var(--text);font-weight:300;letter-spacing:1px;}
 .sidebar-logo em{color:var(--teal2);font-style:italic;}
 .sidebar-close{width:32px;height:32px;display:flex;align-items:center;justify-content:center;color:var(--muted2);font-size:18px;cursor:pointer;border-radius:6px;border:1px solid var(--border);}
 .sidebar-body{padding:8px 0;flex:1;}
+.sidebar-collapse-btn{display:none;}
 .sidebar-section{font-family:var(--mono);font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--muted);padding:14px 18px 6px;}
 .sn-item{display:flex;align-items:center;gap:12px;padding:11px 18px;cursor:pointer;transition:background .12s;position:relative;}
 .sn-item:active,.sn-item:hover{background:rgba(61,138,122,.07);}.sn-item{border-left:3px solid transparent;}
@@ -1019,7 +1020,7 @@ button,.sbtn,.btn,.bnav-item,.nav-tab,.icon-btn{
   /* Overlay doesn't show on desktop */
   #sidebar-overlay{ display:none !important; }
   /* Hide hamburger on desktop */
-  .icon-btn[onclick="toggleSidebar()"]{display:none;}
+  .hamburger-btn{display:none;}
   /* Show collapse toggle on desktop, hide X close */
   .sidebar-collapse-btn{display:flex !important;}
   .sidebar-close{display:none;}
@@ -1028,13 +1029,8 @@ button,.sbtn,.btn,.bnav-item,.nav-tab,.icon-btn{
     margin-left:240px;
     transition:margin-left .25s cubic-bezier(.4,0,.2,1);
   }
-  body.desktop-sidebar-open .topbar{
-    left:240px;
-    transition:left .25s cubic-bezier(.4,0,.2,1);
-  }
-  body:not(.desktop-sidebar-open) .topbar{
-    left:0;
-  }
+  
+  
   /* Hide bottom nav on desktop */
   .bottom-nav{ display:none !important; }
   /* Show sidebar close chevron on desktop */
@@ -1048,7 +1044,6 @@ button,.sbtn,.btn,.bnav-item,.nav-tab,.icon-btn{
 }
 @media(min-width:1200px){
   .sidebar{width:260px;}
-  body.desktop-sidebar-open .topbar{left:260px;}
   body.desktop-sidebar-open .section{
     margin-left:260px;
   }
@@ -1080,7 +1075,7 @@ button,.sbtn,.btn,.bnav-item,.nav-tab,.icon-btn{
 
 <div class="topbar">
   <div class="tl">
-    <button class="icon-btn" onclick="toggleSidebar()" title="Menu" style="flex-shrink:0;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
+    <button class="icon-btn hamburger-btn" onclick="toggleSidebar()" title="Menu" style="flex-shrink:0;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
     <div class="logo">Proximity <em>HQ</em></div>
     <div class="op-pill" style="cursor:default;">
       <div class="op-live"></div>
@@ -1984,7 +1979,7 @@ button,.sbtn,.btn,.bnav-item,.nav-tab,.icon-btn{
   <div style="margin:8px 14px 0;padding:10px 12px;background:rgba(224,154,61,.06);border:1px solid rgba(224,154,61,.2);border-radius:6px;font-family:var(--mono);font-size:11px;color:var(--amber);line-height:1.6;">Leave "To Date" blank to swap all future shifts with no end date.</div>
   <button class="sbtn" onclick="executeSwap()" style="margin:12px 14px 8px;width:calc(100% - 28px);" id="swap-execute-btn">Execute Swap</button>
     <!-- Desktop collapse toggle -->
-    <div class="sidebar-collapse-btn" onclick="toggleSidebar()" title="Collapse sidebar" style="display:none;align-items:center;justify-content:center;padding:14px 18px;cursor:pointer;border-top:1px solid var(--border);color:var(--muted2);transition:color .2s;gap:8px;">
+    <div class="sidebar-collapse-btn" onclick="toggleSidebar()" title="Collapse sidebar" style="align-items:center;justify-content:center;padding:14px 18px;cursor:pointer;border-top:1px solid var(--border);color:var(--muted2);transition:color .2s;gap:8px;">
       <svg id="collapse-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><polyline points="15 18 9 12 15 6"/></svg>
       <span style="font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;">Collapse</span>
     </div>
@@ -2362,6 +2357,16 @@ function hqFetch(url, opts = {}) {
 const PSWS = [];
 const PSW_EMAILS = {};
 let lockIn = '';
+// Read operator_id from URL ?op= param (used in welcome email links)
+(function() {
+  try {
+    const urlOp = new URLSearchParams(window.location.search).get('op');
+    if (urlOp) {
+      sessionStorage.setItem('hq_operator_id', urlOp);
+      window._hqOperatorId = urlOp;
+    }
+  } catch(e) {}
+})();
 let currentOp = window._hqOperatorId || sessionStorage.getItem('hq_operator_id') || 'proximity-care';
 let currentOpName = window._hqOperatorName || sessionStorage.getItem('hq_operator_name') || 'My Agency';
 let D = {};
