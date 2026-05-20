@@ -2022,6 +2022,7 @@ button,.sbtn,.btn,.bnav-item,.nav-tab,.icon-btn{
 <div class="sidebar" id="sidebar">
   <div class="sidebar-head">
     <div class="sidebar-logo">Proximity <em>HQ</em></div>
+    <span id="sidebar-op-label" style="font-family:var(--mono);font-size:9px;letter-spacing:1px;color:var(--muted);text-transform:uppercase;display:block;margin-top:2px;"></span>
     <div class="sidebar-close" onclick="toggleSidebar()">✕</div>
   </div>
   <div class="sidebar-body">
@@ -6888,7 +6889,7 @@ function openImportBookings() {
 
 function downloadBookingTemplate(e) {
   e.preventDefault();
-  const csv = 'psw_name,client_name,date,time_in,duration_minutes\nCarolina Hermida,Rosetta Ferrari,2026-05-20,09:00,480\n';
+  const csv = 'psw_name,client_name,date,time_in,duration_minutes\nMaria Chen,Eleanor Brooks,2026-05-20,09:00,480\n';
   const blob = new Blob([csv], { type: 'text/csv' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
@@ -7235,18 +7236,15 @@ function closeSidebar() {
 
 function initSidebar() {
   if (_isDesktop()) {
-    // Restore rail preference from localStorage (default: full sidebar)
-    const saved = localStorage.getItem('hq_sidebar_rail');
-    const isRail = saved === '1';
-    if (isRail) {
-      document.body.classList.add('sidebar-rail');
-      document.getElementById('sidebar').classList.add('rail');
-    } else {
-      document.body.classList.remove('sidebar-rail');
-      document.getElementById('sidebar').classList.remove('rail');
-    }
-    // Clear old broken key that was hiding the sidebar
-    try { localStorage.removeItem('hq_sidebar_open'); } catch {}
+    // Always start with full sidebar — rail is opt-in per click, not restored across sessions
+    // This prevents "sidebar disappeared" when resizing or loading after a previous collapse
+    document.body.classList.remove('sidebar-rail');
+    document.getElementById('sidebar').classList.remove('rail');
+    // Clear legacy broken keys
+    try {
+      localStorage.removeItem('hq_sidebar_open');
+      localStorage.removeItem('hq_sidebar_rail');
+    } catch {}
   }
 }
 // Run on load
@@ -7254,12 +7252,15 @@ document.addEventListener('DOMContentLoaded', initSidebar);
 // Also handle resize (going from mobile to desktop)
 window.addEventListener('resize', () => {
   if (_isDesktop()) {
+    // Transitioning to desktop: always start full sidebar (not rail)
+    // User must explicitly click Collapse to enter rail mode
     _sidebarOpen = false;
     document.getElementById('sidebar').classList.remove('open');
     document.getElementById('sidebar-overlay').classList.remove('open');
-    initSidebar();
+    document.body.classList.remove('sidebar-rail');
+    document.getElementById('sidebar').classList.remove('rail');
   } else {
-    // Going to mobile: remove desktop classes
+    // Going to mobile: remove desktop sidebar classes
     document.body.classList.remove('sidebar-rail');
     document.getElementById('sidebar').classList.remove('rail');
   }
@@ -8656,6 +8657,32 @@ function autoVscExpiry(checkDate) {
 
   <button class="sbtn" id="inv-btn" onclick="sendPSWInvite()" disabled style="touch-action:manipulation;">Send Invite Email</button>
   <button onclick="closeInvitePSWSheet()" style="width:100%;padding:12px;background:none;border:1px solid var(--border);border-radius:8px;color:var(--muted2);font-family:var(--mono);font-size:12px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;min-height:44px;margin-top:8px;">Cancel</button>
+</div>
+
+<!-- APPLICANT DETAIL SHEET -->
+<div class="sheet-overlay" id="app-sheet-overlay" onclick="closeSheet('app-sheet')"></div>
+<div class="sheet" id="app-sheet">
+  <div class="sheet-header">
+    <div class="sheet-title">PSW Applicant</div>
+    <div class="sheet-close" onclick="closeSheet('app-sheet')">✕</div>
+  </div>
+  <div style="padding:20px 18px;border-bottom:1px solid var(--border);">
+    <div id="app-sheet-name" style="font-size:18px;font-weight:600;color:var(--text);margin-bottom:4px;"></div>
+    <div id="app-sheet-status" style="font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;"></div>
+    <div id="app-sheet-meta" style="font-size:12px;color:var(--muted);"></div>
+  </div>
+  <div style="padding:16px 18px;border-bottom:1px solid var(--border);">
+    <div style="font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:8px;">AVAILABILITY</div>
+    <div id="app-sheet-avail" style="font-size:13px;color:var(--text);"></div>
+  </div>
+  <div style="padding:16px 18px;border-bottom:1px solid var(--border);">
+    <div style="font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:8px;">DOCUMENTS</div>
+    <div id="app-sheet-docs"></div>
+  </div>
+  <div id="app-sheet-ai-result" style="display:none;margin:16px 18px;padding:14px;background:rgba(61,138,122,.06);border:1px solid rgba(61,138,122,.2);border-radius:10px;font-size:13px;color:var(--text);line-height:1.6;"></div>
+  <div style="padding:16px 18px;display:flex;flex-direction:column;gap:8px;">
+    <div id="app-sheet-acts"></div>
+  </div>
 </div>
 
 </body>
