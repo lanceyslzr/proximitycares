@@ -236,7 +236,7 @@ button:active{transform:scale(0.98);}
 .tl{display:flex;align-items:center;gap:10px;}
 .logo{font-family:var(--serif);font-size:18px;color:var(--text);font-weight:300;letter-spacing:1px;}
 .logo em{color:var(--teal2);font-style:italic;}
-.op-pill{display:flex;align-items:center;gap:6px;background:var(--bg3);border:1px solid var(--border2);padding:5px 10px;border-radius:100px;cursor:pointer;min-height:44px;}
+.op-pill{display:flex;align-items:center;gap:6px;background:var(--bg3);border:1px solid var(--border2);padding:5px 10px;border-radius:100px;cursor:default;min-height:44px;}
 .op-live{width:6px;height:6px;border-radius:50%;background:var(--teal2);animation:livepulse 2s infinite;}
 @keyframes livepulse{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(90,173,160,.4);}50%{opacity:.7;box-shadow:0 0 0 5px rgba(90,173,160,0);}}
 .op-name-text{font-family:var(--mono);font-size:12px;letter-spacing:1px;text-transform:uppercase;color:var(--teal2);}
@@ -1049,7 +1049,7 @@ button,.sbtn,.btn,.bnav-item,.nav-tab,.icon-btn{
 <!-- LOCK -->
 <div id="lock">
   <div class="lock-logo">Proximity <em>HQ</em></div>
-  <div class="lock-sub">Operator Dashboard</div>
+  <div class="lock-sub">Agency Dashboard</div>
   <div class="lock-dots" id="lock-dots">
     <div class="lock-dot" id="d0"></div><div class="lock-dot" id="d1"></div>
     <div class="lock-dot" id="d2"></div><div class="lock-dot" id="d3"></div>
@@ -1070,9 +1070,9 @@ button,.sbtn,.btn,.bnav-item,.nav-tab,.icon-btn{
   <div class="tl">
     <button class="icon-btn" onclick="toggleSidebar()" title="Menu" style="flex-shrink:0;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
     <div class="logo">Proximity <em>HQ</em></div>
-    <div class="op-pill" onclick="openSheet('app-sheet')">
+    <div class="op-pill" style="cursor:default;">
       <div class="op-live"></div>
-      <span class="op-name-text" id="op-label">Proximity Care</span>
+      <span class="op-name-text" id="op-label">My Agency</span>
     </div>
   </div>
   <div style="display:flex;gap:6px;">
@@ -2115,36 +2115,7 @@ button,.sbtn,.btn,.bnav-item,.nav-tab,.icon-btn{
 <div class="sheet-overlay" id="sheet-overlay" onclick="closeAllSheets()"></div>
 
 <!-- APPLICANT SHEET -->
-<div class="sheet" id="app-sheet">
-  <div class="sheet-handle"></div>
-  <button class="sheet-close" onclick="closeSheet('app-sheet')" style="position:absolute;top:12px;right:16px;font-size:18px;color:var(--muted2);background:none;border:none;cursor:pointer;padding:4px 8px;min-height:44px;touch-action:manipulation;z-index:1;">✕</button>
-  <div class="sheet-title">Switch Operator</div>
-  <!-- Applicant detail placeholders — populated by openApplicantSheet() -->
-  <div id="app-sheet-name" style="display:none;font-size:18px;font-weight:500;color:var(--text);padding:12px 16px 0;"></div>
-  <div id="app-sheet-status" style="display:none;font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;padding:4px 16px;"></div>
-  <div id="app-sheet-meta" style="display:none;font-size:12px;color:var(--muted);padding:4px 16px 12px;border-bottom:1px solid var(--border);"></div>
-  <div id="app-sheet-avail" style="display:none;padding:8px 16px;font-size:12px;color:var(--muted2);"></div>
-  <div id="app-sheet-docs" style="display:none;padding:0 12px 8px;display:flex;flex-direction:column;gap:6px;"></div>
-  <div id="app-sheet-acts" style="display:none;padding:8px 12px;display:flex;flex-direction:column;gap:8px;"></div>
-  <div id="app-sheet-ai-result" style="display:none;padding:12px;margin:8px 12px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;"></div>
-  <div class="sheet-body" id="app-sheet-op-body">
-    <div class="op-item" onclick="switchOp('proximity-care','Proximity Care')">
-      <div class="op-dot-big"></div>
-      <div><div class="op-item-name">Proximity Care</div><div class="op-item-id">proximity-care</div></div>
-      <div class="op-check" id="oc-proximity-care">✓</div>
-    </div>
-    <div class="op-item" onclick="switchOp('lcm-experts','LCM Experts')">
-      <div class="op-dot-big" style="background:var(--gold);"></div>
-      <div><div class="op-item-name">LCM Experts</div><div class="op-item-id">lcm-experts</div></div>
-      <div class="op-check" id="oc-lcm-experts" style="display:none;">✓</div>
-    </div>
-    <div class="op-item" onclick="switchOp('proximity-systems','Proximity Systems')">
-      <div class="op-dot-big" style="background:var(--blue2);"></div>
-      <div><div class="op-item-name">Proximity Systems</div><div class="op-item-id">proximity-systems</div></div>
-      <div class="op-check" id="oc-proximity-systems" style="display:none;">✓</div>
-    </div>
-  </div>
-</div>
+
 
 <!-- STATUS SHEET -->
 <div class="sheet" id="status-sheet">
@@ -2369,8 +2340,8 @@ function hqFetch(url, opts = {}) {
 const PSWS = [];
 const PSW_EMAILS = {};
 let lockIn = '';
-let currentOp = 'proximity-care';
-let currentOpName = 'Proximity Care';
+let currentOp = window._hqOperatorId || sessionStorage.getItem('hq_operator_id') || 'proximity-care';
+let currentOpName = window._hqOperatorName || sessionStorage.getItem('hq_operator_name') || 'My Agency';
 let D = {};
 let activeLead = null;
 let activePSW = null;
@@ -2445,20 +2416,8 @@ function ld() { lockIn = lockIn.slice(0,-1); updateDots(); }
 function updateDots() { for(let i=0;i<4;i++) document.getElementById('d'+i).classList.toggle('filled', i < lockIn.length); }
 
 // ── OPERATOR ──
-function switchOp(id, name) {
-  currentOp = id; currentOpName = name;
-  window._sentimentData = null;
-  window._arData = null;
-  // Destroy FC so old operator schedule doesn't persist
-  if (window._fc) { try { window._fc.destroy(); } catch(e) {} window._fc = null; }
-  window._fcInitialized = false;
-  document.getElementById('op-label').textContent = name;
-  ['proximity-care','lcm-experts','proximity-systems'].forEach(op => {
-    const el = document.getElementById('oc-'+op);
-    if(el) el.style.display = op===id?'block':'none';
-  });
-  closeAllSheets(); loadAll(true);
-}
+
+// switchOp removed — single-operator HQ
 
 // ── DATA ──
 let _hqFetching = false;
