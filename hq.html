@@ -998,6 +998,50 @@ button,.sbtn,.btn,.bnav-item,.nav-tab,.icon-btn{
   .section-header > div:not(.section-title){gap:4px !important;}
   .sect-action{font-size:10px !important;padding:7px 8px !important;}
 }
+
+/* ═══ DESKTOP LAYOUT: sidebar pinned left, content offset ═══ */
+@media(min-width:900px){
+  .sidebar{
+    transform:translateX(0) !important;
+    position:fixed;
+    top:0;left:0;bottom:0;
+    width:240px;
+    z-index:200;
+    overflow-y:auto;
+  }
+  /* Offset topbar and all content */
+  .topbar{
+    left:240px !important;
+    padding-left:24px;
+  }
+  /* Overlay doesn't show on desktop */
+  #sidebar-overlay{ display:none !important; }
+  /* Hide hamburger on desktop */
+  .icon-btn[onclick="toggleSidebar()"]{display:none;}
+  /* Push all section content right of sidebar */
+  .section, #sect-today, #sect-clients, #sect-schedule,
+  #sect-psw, #sect-leads, #sect-revenue, #sect-crm,
+  #sect-payroll, #sect-settings, #sect-activity{
+    margin-left:240px;
+  }
+  /* KPI row 4 cols on desktop */
+  .kpi-row{
+    display:grid !important;
+    grid-template-columns:repeat(4,1fr) !important;
+    gap:12px;
+  }
+  .kpi-grid{display:grid !important;}
+}
+@media(min-width:1200px){
+  .sidebar{width:260px;}
+  .topbar{left:260px !important;}
+  .section, #sect-today, #sect-clients, #sect-schedule,
+  #sect-psw, #sect-leads, #sect-revenue, #sect-crm,
+  #sect-payroll, #sect-settings, #sect-activity{
+    margin-left:260px;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -2520,7 +2564,7 @@ async function loadShiftOffersHQ() {
     if (!section || !list) return;
     if (!offers.length) { section.style.display = 'none'; return; }
     section.style.display = 'block';
-    list.innerHTML = offers.slice(0,10).map(o => `
+    list.innerHTML = offers.filter(o => o.client_name !== 'Test' && o.client_name !== 'test' && (o.scheduled_date||'') < '2090-01-01').slice(0,10).map(o => `
       <div class="offer-history-row" id="hq-offer-${o.id}">
         <div style="flex:1;min-width:0;">
           <div style="font-size:12px;font-weight:500;color:var(--text);">${escHtml(o.client_name||'—')}</div>
@@ -3046,7 +3090,25 @@ async function recordConsent(slug) {
     const d = await res.json();
     if (!d.success) throw new Error(d.error);
     showToast('Consent recorded ✓', 'ok');
-    await loadAll(false);
+    // Optimistically update D.clients so sheet re-renders immediately
+    const clientIdx = (D.clients||[]).findIndex(c => c.portal_slug === slug);
+    if (clientIdx >= 0) {
+      D.clients[clientIdx].consent_given = true;
+      D.clients[clientIdx].consent_date  = new Date().toISOString();
+      D.clients[clientIdx].consent_version = '1.0';
+      // Re-render the open sheet with updated data
+      const updatedClient = D.clients[clientIdx];
+      openClientDetail(updatedClient.id);
+    }
+    // Also log to recent activity
+    try {
+      await fetch(`${API}/hq/audit-log`, {
+        method: 'POST',
+        headers: {'Content-Type':'application/json','x-hq-token':window._hqToken||sessionStorage.getItem('hq_token')||''},
+        body: JSON.stringify({ operator_id: currentOp, action: 'consent_recorded', entity: slug, actor: 'coordinator' })
+      });
+    } catch {}
+    loadAll(false); // background refresh
   } catch(e) { showToast(e.message || 'Could not record consent', 'err'); }
 }
 
