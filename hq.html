@@ -3358,7 +3358,14 @@ function renderPSWs() {
   el.innerHTML = merged.map(p => {
     const ini = p.name.split(' ').map(w=>w[0]).join('').toUpperCase();
     const email = p.email || null;
-    const statusBadge = p.source === 'live' ? '<span class="badge b-active">Active</span>' : '<span class="badge b-pending">Not activated</span>';
+    const pStatus = p.status || (p.source === 'live' ? 'active' : 'inactive');
+    const statusBadge = pStatus === 'active'
+      ? '<span class="badge b-active">Active</span>'
+      : pStatus === 'pending_review'
+      ? '<span style="font-family:var(--mono);font-size:10px;letter-spacing:1px;padding:2px 8px;border-radius:100px;border:1px solid rgba(224,154,61,.4);color:var(--amber);">PENDING REVIEW</span>'
+      : pStatus === 'invited'
+      ? '<span style="font-family:var(--mono);font-size:10px;letter-spacing:1px;padding:2px 8px;border-radius:100px;border:1px solid rgba(61,138,122,.4);color:var(--teal2);">INVITED</span>'
+      : '<span class="badge b-pending">Not activated</span>';
     // C6 — probation badge
     const onProbation = p.probation_end && p.probation_end >= today;
     const probationSoon = onProbation && p.probation_end <= in90;
@@ -3403,6 +3410,7 @@ function renderPSWs() {
         <div class="card-act" onclick="openPSWMsg('${p.name}')">Message</div>
         <div class="card-act" onclick="showSect('schedule');setTimeout(()=>openAddShift(this.closest('.card').querySelector('[data-psw-name]')?.dataset.pswName||'',''),150);">+ Shift</div>
         ${(pStatus === 'pending_review' || pStatus === 'invited') ? `<div class="card-act" style="color:var(--green2);border-color:rgba(74,154,110,.3);background:rgba(74,154,110,.06);" onclick="approvePSW('${p.name}')">✓ Approve</div>` : ''}
+        ${(pStatus==='pending_review'||pStatus==='invited')?`<div class="card-act" style="color:var(--green2);border-color:rgba(74,154,110,.3);" onclick="approvePSW('${p.name}')">✓ Approve</div>`:''}
         <div class="card-act ok" data-psw-id="${p.id||''}" data-psw-name="${p.name}" data-psw-source="${p.source||'live'}" onclick="if(this.dataset.pswSource==='live'){openPSWDetail(this.dataset.pswId||this.dataset.pswName);}else{showToast('PSW not yet activated in Supabase','err');}">View</div>
       </div>
     </div>`;
@@ -5890,6 +5898,63 @@ async function openPSWDetail(pswId) {
         : '<div style="font-size:12px;color:var(--muted);margin-bottom:12px;">No clients assigned</div>'
       }
 
+      <!-- BUILD 2: ONTARIO CREDENTIALS -->
+      <div style="margin:16px 0 10px;font-family:var(--mono);font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--teal2);">Ontario Credentials</div>
+
+      <div style="margin-bottom:10px;padding:10px 12px;background:rgba(200,169,110,.06);border:1px solid rgba(200,169,110,.25);border-radius:8px;display:flex;gap:8px;align-items:flex-start;">
+        <span style="color:var(--gold);flex-shrink:0;">⚠</span>
+        <div style="font-size:11px;color:var(--muted2);line-height:1.5;"><strong style="color:var(--gold);">HSCPOA registration mandatory Dec 1, 2027.</strong> Track every PSW — no competitor does this.</div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:16px;">
+
+        <div style="padding:10px 12px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+            <div style="font-size:12px;font-weight:600;color:var(--text);">NACC Certification</div>
+            <span style="font-family:var(--mono);font-size:10px;color:${p.nacc_expiry&&Math.round((new Date(p.nacc_expiry)-new Date())/86400000)<30?'var(--amber)':p.nacc_number?'var(--green2)':'var(--muted2)'};">${p.nacc_expiry&&Math.round((new Date(p.nacc_expiry)-new Date())/86400000)<30?'EXP SOON':p.nacc_number?'ON FILE':'NOT SET'}</span>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+            <div><div class="slbl" style="font-size:10px;margin-bottom:4px;">Registration #</div>
+              <input class="sinput" id="pe-nacc-number" value="${p.nacc_number||''}" placeholder="NACC-12345" style="font-size:14px;padding:8px 10px;"></div>
+            <div><div class="slbl" style="font-size:10px;margin-bottom:4px;">Expiry Date</div>
+              <input class="sinput" id="pe-nacc-expiry" type="date" value="${p.nacc_expiry||''}" style="font-size:14px;padding:8px 10px;"></div>
+          </div>
+        </div>
+
+        <div style="padding:10px 12px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+            <div style="font-size:12px;font-weight:600;color:var(--text);">HSCPOA Registration</div>
+            <span style="font-family:var(--mono);font-size:10px;color:${p.hscpoa_status==='active'?'var(--green2)':p.hscpoa_status==='pending'?'var(--amber)':p.hscpoa_number?'var(--teal2)':'var(--muted2)'};">${p.hscpoa_status==='active'?'ACTIVE':p.hscpoa_status==='pending'?'PENDING':p.hscpoa_number?'ON FILE':'NOT SET'}</span>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+            <div><div class="slbl" style="font-size:10px;margin-bottom:4px;">Registration #</div>
+              <input class="sinput" id="pe-hscpoa-number" value="${p.hscpoa_number||''}" placeholder="HSCPOA reg #" style="font-size:14px;padding:8px 10px;"></div>
+            <div><div class="slbl" style="font-size:10px;margin-bottom:4px;">Status</div>
+              <select class="sselect" id="pe-hscpoa-status" style="padding:8px 10px;font-size:14px;">
+                <option value="" ${!p.hscpoa_status?'selected':''}>Not set</option>
+                <option value="active" ${p.hscpoa_status==='active'?'selected':''}>Active</option>
+                <option value="pending" ${p.hscpoa_status==='pending'?'selected':''}>Pending</option>
+                <option value="expired" ${p.hscpoa_status==='expired'?'selected':''}>Expired</option>
+              </select></div>
+          </div>
+        </div>
+
+        <div style="padding:10px 12px;background:var(--bg3);border:1px solid ${p.vsc_expiry&&Math.round((new Date(p.vsc_expiry)-new Date())/86400000)<0?'rgba(224,85,85,.4)':p.vsc_expiry&&Math.round((new Date(p.vsc_expiry)-new Date())/86400000)<30?'rgba(224,154,61,.4)':'var(--border)'};border-radius:8px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+            <div style="font-size:12px;font-weight:600;color:var(--text);">Vulnerable Sector Check (VSC)</div>
+            <span style="font-family:var(--mono);font-size:10px;font-weight:${p.vsc_expiry&&Math.round((new Date(p.vsc_expiry)-new Date())/86400000)<0?'700':'400'};color:${p.vsc_expiry&&Math.round((new Date(p.vsc_expiry)-new Date())/86400000)<0?'var(--red)':p.vsc_expiry&&Math.round((new Date(p.vsc_expiry)-new Date())/86400000)<30?'var(--amber)':p.vsc_date?'var(--green2)':'var(--muted2)'};">${p.vsc_expiry&&Math.round((new Date(p.vsc_expiry)-new Date())/86400000)<0?'EXPIRED':p.vsc_expiry&&Math.round((new Date(p.vsc_expiry)-new Date())/86400000)<30?'EXP SOON':p.vsc_date?'VALID':'NOT SET'}</span>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+            <div><div class="slbl" style="font-size:10px;margin-bottom:4px;">Check Date</div>
+              <input class="sinput" id="pe-vsc-date" type="date" value="${p.vsc_date||''}" style="font-size:14px;padding:8px 10px;" oninput="autoVscExpiry(this.value)"></div>
+            <div><div class="slbl" style="font-size:10px;margin-bottom:4px;">Expiry <span style="color:var(--muted);font-size:9px;">(12 mo)</span></div>
+              <input class="sinput" id="pe-vsc-expiry" type="date" value="${p.vsc_expiry||''}" style="font-size:14px;padding:8px 10px;"></div>
+          </div>
+        </div>
+
+      </div>
+      <!-- END BUILD 2 -->
+
       <div style="margin:16px 0 10px;font-family:var(--mono);font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--gold);">Edit PSW</div>
       <div class="srow2" style="padding:0;">
         <div><div class="slbl">Phone</div><input class="sinput" id="pe-phone" type="tel" value="${p.phone||rec.phone||''}" style="font-size:16px;" placeholder="+1 416 555 0000"></div>
@@ -6909,6 +6974,20 @@ async function savePSWEdits(pswId, pswName) {
     if (phone) payload.phone = phone;
     if (email) payload.email = email;
     if (availability) payload.availability = availability;
+    // BUILD 2 — Ontario credentials
+    const naccNum  = document.getElementById('pe-nacc-number')?.value?.trim()  ?? undefined;
+    const naccExp  = document.getElementById('pe-nacc-expiry')?.value          ?? undefined;
+    const hscNum   = document.getElementById('pe-hscpoa-number')?.value?.trim()?? undefined;
+    const hscStat  = document.getElementById('pe-hscpoa-status')?.value        ?? undefined;
+    const vscDt    = document.getElementById('pe-vsc-date')?.value             ?? undefined;
+    let   vscExp   = document.getElementById('pe-vsc-expiry')?.value           ?? undefined;
+    if (naccNum  !== undefined) payload.nacc_number   = naccNum   || null;
+    if (naccExp  !== undefined) payload.nacc_expiry   = naccExp   || null;
+    if (hscNum   !== undefined) payload.hscpoa_number = hscNum    || null;
+    if (hscStat  !== undefined) payload.hscpoa_status = hscStat   || null;
+    if (vscDt    !== undefined) payload.vsc_date      = vscDt     || null;
+    if (vscDt && !vscExp) { const d=new Date(vscDt); d.setFullYear(d.getFullYear()+1); vscExp=d.toISOString().slice(0,10); }
+    if (vscExp   !== undefined) payload.vsc_expiry    = vscExp    || null;
     const res = await fetch(`${API}/hq/psw/${encodeURIComponent(pswName)}`, {
       method: 'PATCH',
       headers: {'Content-Type': 'application/json', 'x-hq-token': window._hqToken || sessionStorage.getItem('hq_token') || ''},
@@ -8384,6 +8463,18 @@ async function approvePSW(name) {
   }
 }
 // ── END BUILD 1 ──────────────────────────────────────────────
+
+
+// ── BUILD 2: autoVscExpiry ────────────────────────────────────
+function autoVscExpiry(checkDate) {
+  if (!checkDate) return;
+  const expEl = document.getElementById('pe-vsc-expiry');
+  if (!expEl || expEl.value) return;
+  const d = new Date(checkDate);
+  d.setFullYear(d.getFullYear() + 1);
+  expEl.value = d.toISOString().slice(0, 10);
+}
+// ── END BUILD 2 ───────────────────────────────────────────────
 
 </script>
 <div class="demo-tip" id="demo-tip"></div>
