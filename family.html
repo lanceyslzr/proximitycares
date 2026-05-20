@@ -1,6 +1,5 @@
 
 
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -538,6 +537,36 @@ button:active{transform:scale(0.98);}
   .nav-btn{padding:8px 4px;font-size:11px}
   #visit-map{height:260px}
 }
+
+/* ═══ FAMILY: hide hero decoration in empty/no-visit state ═══ */
+.status-card.status-none::after{display:none;}
+.status-card.status-none{background:var(--bg2);border:1px solid var(--border);padding:20px 22px;}
+.status-card.status-none .hero-status-line1{color:var(--text);font-size:1.25rem;font-weight:600;}
+.status-card.status-none .hero-status-line2{color:var(--muted);font-size:.9rem;}
+
+/* ═══ FAMILY MOBILE POLISH ═══ */
+@media(max-width:768px){
+  /* Hero card: tighter on mobile */
+  .status-card{padding:20px 18px;border-radius:18px;}
+  .hero-status-line1{font-size:1.35rem !important;}
+  .hero-status-line2{font-size:.95rem !important;}
+  
+  /* Hero buttons: stack on tiny screens */
+  .hero-actions{gap:8px;}
+  .hero-btn{min-height:48px;font-size:14px;}
+  
+  /* Bottom nav: roomier */
+  .nav-bar{padding:6px 0 max(6px,var(--safe-bottom));}
+  
+  /* Recent visits: cleaner cards */
+  .visit-row{padding:14px;}
+}
+
+@media(max-width:480px){
+  .hero-actions{flex-direction:column;}
+  .hero-btn{width:100%;}
+  .status-card{padding:18px 14px;}
+}
 </style>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
@@ -1005,7 +1034,7 @@ function showTab(tab) {
             ? `Arrived ${today_visit.time_in ? fmtTime(today_visit.time_in) : ''} · ends about ${today_visit.time_out ? fmtTime(today_visit.time_out) : 'later today'}`
             : today_visit && today_visit.time_out
             ? `${today_visit.psw_name||'Caregiver'} · ${fmtDate(today_visit.visit_date)}`
-            : client.schedule || 'Schedule on file'
+            : client.next_visit_date ? `Next visit ${fmtDate(client.next_visit_date)}` : client.schedule || 'No upcoming visits scheduled'
         }</p>
         <div class="hero-actions">
           ${(today_visit?.psw_name || psw?.name) ? `<a class="hero-btn hero-btn-primary" href="tel:${psw?.phone||''}">📞 Call ${(today_visit?.psw_name||psw?.name||'Caregiver').split(' ')[0]}</a>` : ''}
