@@ -815,7 +815,7 @@ button,.sbtn,.btn,.bnav-item,.nav-tab,.icon-btn{
 .kpi-tile.kpi-alert{background:rgba(224,85,85,.06);border-color:rgba(224,85,85,.2);}
 .kpi-tile.kpi-warn{background:rgba(224,154,61,.06);border-color:rgba(224,154,61,.2);}
 .kpi-val{font-family:var(--mono);font-size:26px;font-weight:600;font-variant-numeric:tabular-nums;line-height:1.1;}
-.kpi-lbl{font-family:var(--mono);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-top:2px;}
+.kpi-lbl{font-family:var(--mono);font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-top:2px;}
 .kpi-sub{font-size:11px;color:var(--muted2);margin-top:1px;}
 
 /* ── QUICK ACTIONS BAR — sticky above bottom nav ── */
@@ -834,7 +834,7 @@ button,.sbtn,.btn,.bnav-item,.nav-tab,.icon-btn{
 .vcm-main{flex:1;min-width:0;}
 .vcm-name{font-size:14px;font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .vcm-meta{font-family:var(--mono);font-size:11px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:2px;}
-.vcm-badge{font-family:var(--mono);font-size:10px;font-weight:700;padding:2px 8px;border-radius:6px;white-space:nowrap;flex-shrink:0;}
+.vcm-badge{font-family:var(--mono);font-size:11px;font-weight:700;padding:2px 8px;border-radius:6px;white-space:nowrap;flex-shrink:0;}
 .vcm-badge.ok{background:rgba(74,154,110,.15);color:var(--teal2);}
 .vcm-badge.late{background:rgba(224,154,61,.15);color:var(--gold);}
 .vcm-badge.miss{background:rgba(224,85,85,.15);color:var(--red);}
@@ -888,7 +888,7 @@ button,.sbtn,.btn,.bnav-item,.nav-tab,.icon-btn{
   .resp-table td::before {
     content:attr(data-label);
     font-family:var(--mono);
-    font-size:10px;
+    font-size:11px;
     letter-spacing:1px;
     text-transform:uppercase;
     color:var(--muted);
@@ -8085,7 +8085,7 @@ async function confirmBreakGlass() {
     await fetch(`${HQ_API}/hq/break-glass`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'x-hq-token': hqToken },
-      body: JSON.stringify({ client_slug: clientSlug, client_name: clientName, reason, operator_id: operatorId })
+      body: JSON.stringify({ client_slug: clientSlug, client_name: clientName, reason, operator_id: currentOp })
     });
   } catch {}
   if (typeof callback === 'function') callback();
