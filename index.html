@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Proximity Care Services — In-Home Senior Care in Mississauga & Brampton</title>
 <meta name="description" content="Same PSW every visit. Real home care for families in Mississauga, Brampton, and Caledon. First 6 hours free. Founded and run by a PSW. Book a free in-home assessment today.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -57,7 +57,8 @@
   }
 }
 </script>
-<style>
+<style>*{overflow-wrap:anywhere;word-break:break-word;}
+
 /* ══════════════════════════════════════
    RESET & ROOT
 ══════════════════════════════════════ */
@@ -519,7 +520,7 @@ footer{background:var(--navy);padding:60px 48px 32px;border-top:1px solid rgba(2
 .chat-cal-label{font-size:9px;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,.35);margin-bottom:8px;margin-top:12px;}
 .chat-cal-month{font-size:11px;color:rgba(255,255,255,.5);text-align:center;margin-bottom:6px;letter-spacing:1px;}
 .chat-cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:10px;touch-action:manipulation;}
-.chat-cal-dow{font-size:8px;color:rgba(255,255,255,.2);text-align:center;padding:3px 0;letter-spacing:.5px;}
+.chat-cal-dow{font-size:11px;color:rgba(255,255,255,.2);text-align:center;padding:3px 0;letter-spacing:.5px;}
 .chat-cal-day{position:relative;aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:11px;cursor:pointer;border-radius:50%;border:1px solid transparent;transition:all .15s;color:rgba(255,255,255,.55);}
 .chat-cal-day.empty,.chat-cal-day.past{color:rgba(255,255,255,.12);cursor:default;}
 .chat-cal-day.booked{color:rgba(255,255,255,.2);cursor:not-allowed;}
@@ -773,7 +774,7 @@ body::after{content:'';position:fixed;inset:0;background-image:url("data:image/s
 
   /* Stat strip slightly smaller */
   .hms-val{font-size:18px;}
-  .hms-lbl{font-size:8px;}
+  .hms-lbl{font-size:11px;}
 
   /* Sticky CTA padding */
   #mobile-sticky-cta{padding:10px 14px;}
@@ -807,6 +808,11 @@ body::after{content:'';position:fixed;inset:0;background-image:url("data:image/s
 }
 </style>
 <script src="https://unpkg.com/lenis@1.1.14/dist/lenis.min.js"></script>
+  <meta property="og:title" content="Proximity Systems — AI OS for Home Care Agencies">
+  <meta property="og:description" content="The only done-for-you AI OS for small private pay home care agencies in Canada. Lead capture, scheduling, billing, PSW recruitment — all automated.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://proximitysystems.ca">
+  <link rel="canonical" href="https://proximitysystems.ca">
 </head>
 <body>
 <div class="pc-cursor" id="pcCursor"></div>
@@ -2225,8 +2231,18 @@ async function submitPlanForm() {
     else monthly = 3000 + Math.round(((plan.hours - 40) / 40) * (5000 - 3000));
   }
 
+  // Hide form fields
+  document.getElementById('pf-submit').style.display = 'none';
+  var inputs = document.querySelectorAll('#plan-inline-form input');
+  inputs.forEach(function(el){ el.style.display = 'none'; });
+  var firstChild = document.querySelector('#plan-inline-form div:first-child');
+  if (firstChild) firstChild.style.display = 'none';
+  var confirmEl = document.getElementById('pf-confirm');
+  confirmEl.style.display = 'block';
+  confirmEl.className = 'slot-picker';
+
   try {
-    await fetch('https://proximity-agent-production.up.railway.app/webhook/lead', {
+    var r = await fetch('https://proximity-agent-production.up.railway.app/webhook/lead', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -2244,17 +2260,120 @@ async function submitPlanForm() {
         notes: 'Built via care plan builder. Hours: ' + (plan.hours || 0) + '/wk. Est monthly: $' + monthly
       })
     });
-  } catch(e) { console.error('Plan form submit error:', e); }
-
-  // Show confirmation
-  document.getElementById('pf-submit').style.display = 'none';
-  var inputs = document.querySelectorAll('#plan-inline-form input');
-  inputs.forEach(function(el){ el.style.display = 'none'; });
-  document.querySelector('#plan-inline-form div:first-child').style.display = 'none';
-  var confirm = document.getElementById('pf-confirm');
-  confirm.style.display = 'block';
-  confirm.innerHTML = '<strong style="color:#fff;font-size:15px">You are all set, ' + (name.split(' ')[0]) + '.</strong><br><br>Lance will call you at ' + phone + ' within 2 hours. He does every first call personally — expect a real conversation, not a sales pitch.<br><br><span style="color:rgba(255,255,255,0.5);font-size:11px">First 6 hours are completely free. No obligation.</span>';
+    var d = await r.json();
+    var leadId = d.lead_id || null;
+    var firstName = name.split(' ')[0];
+    if (leadId) {
+      await showSlotPicker(leadId, firstName, confirmEl, btn);
+    } else {
+      confirmEl.innerHTML = '<strong style="color:#fff;font-size:15px">You are all set, ' + firstName + '.</strong><br><br>Lance will call you at ' + phone + ' within 2 hours. He does every first call personally.<br><br><span style="color:rgba(255,255,255,0.5);font-size:11px">First 6 hours are completely free. No obligation.</span>';
+    }
+  } catch(e) {
+    confirmEl.innerHTML = '<strong style="color:#fff;font-size:15px">You are all set.</strong><br><br>Lance will call you at ' + phone + ' within 2 hours.';
+  }
 }
+
+
+// ── IN-HOUSE SLOT PICKER — replaces Calendly ──────────────────────────────
+// Called after webhook/lead returns lead_id
+// Fetches /leads/call-slots, renders picker, POSTs /leads/book-call
+
+async function showSlotPicker(leadId, firstName, confirmEl, submitBtn) {
+  if (!confirmEl) return; // guard null
+  confirmEl.style.display = 'block';
+  confirmEl.innerHTML = '<div style="text-align:center;padding:20px;color:rgba(255,255,255,0.6);font-family:\'DM Mono\',monospace;font-size:12px;letter-spacing:1px;">LOADING AVAILABLE TIMES...</div>';
+
+  let slots = [];
+  try {
+    const r = await fetch('https://proximity-agent-production.up.railway.app/leads/call-slots');
+    const d = await r.json();
+    slots = d.slots || [];
+  } catch(e) {
+    confirmEl.innerHTML = '<strong style="color:#fff;">You\'re on the list, ' + firstName + '.</strong><br><br><span style="color:rgba(255,255,255,0.6);font-size:13px;">Lance will reach out within 2 hours to confirm a time.</span>';
+    return;
+  }
+
+  if (!slots.length) {
+    confirmEl.innerHTML = '<strong style="color:#fff;">You\'re booked, ' + firstName + '.</strong><br><br><span style="color:rgba(255,255,255,0.6);font-size:13px;">Lance will call you within 2 hours.</span>';
+    return;
+  }
+
+  // Group slots by date
+  const byDate = {};
+  slots.forEach(s => {
+    const date = s.label.split(' at ')[0];
+    if (!byDate[date]) byDate[date] = [];
+    byDate[date].push(s);
+  });
+
+  const dateKeys = Object.keys(byDate).slice(0, 5);
+
+  let html = '<div style="margin-bottom:14px;">'
+    + '<strong style="color:#fff;font-size:15px;">Pick a time for your call</strong>'
+    + '<p style="color:rgba(255,255,255,0.55);font-size:12px;margin:4px 0 0;font-family:\'DM Mono\',monospace;letter-spacing:.5px;">15 min · Lance calls you</p>'
+    + '</div>';
+
+  dateKeys.forEach((date, di) => {
+    html += '<div style="margin-bottom:12px;">'
+      + '<div style="font-family:\'DM Mono\',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.4);margin-bottom:6px;">' + date + '</div>'
+      + '<div style="display:flex;gap:8px;flex-wrap:wrap;">';
+    byDate[date].forEach(slot => {
+      const time = slot.label.split(' at ')[1] || slot.label;
+      html += '<button onclick="bookSlot(\'' + leadId + '\',\'' + slot.value + '\',\'' + firstName + '\',this)" '
+        + 'style="min-height:44px;padding:8px 16px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.15);'
+        + 'border-radius:8px;color:rgba(255,255,255,0.85);font-family:\'DM Mono\',monospace;font-size:12px;'
+        + 'cursor:pointer;transition:all .2s;touch-action:manipulation;"'
+        + ' onmouseover="this.style.background=\'rgba(61,138,122,0.2)\';this.style.borderColor=\'rgba(61,138,122,0.5)\'"'
+        + ' onmouseout="this.style.background=\'rgba(255,255,255,0.06)\';this.style.borderColor=\'rgba(255,255,255,0.15)\'">'
+        + time + '</button>';
+    });
+    html += '</div></div>';
+  });
+
+  confirmEl.innerHTML = html;
+}
+
+async function bookSlot(leadId, slotValue, firstName, btn) {
+  // Safely disable sibling slot buttons without crashing
+  try {
+    const wrap = btn.closest('.slot-picker');
+    if (wrap) { wrap.querySelectorAll('button').forEach(b => { b.disabled = true; }); }
+    else { btn.disabled = true; }
+  } catch(e) { try { btn.disabled = true; } catch(e2){} }
+  try { btn.textContent = 'Booking...'; btn.style.background = 'rgba(61,138,122,0.3)'; } catch(e){}
+
+  try {
+    const r = await fetch('https://proximity-agent-production.up.railway.app/leads/book-call', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ lead_id: leadId, slot: slotValue, operator_id: 'proximity-care' })
+    });
+    const d = await r.json();
+    const slotLabel = slotValue.replace(/_/g, ' ');
+    // Find container safely
+    let container = null;
+    try { container = btn.closest('.slot-picker'); } catch(e) {}
+    if (!container) {
+      let el = btn;
+      for (let i = 0; i < 6; i++) {
+        if (!el || !el.parentElement) break;
+        el = el.parentElement;
+        if (el.classList && el.classList.contains('slot-picker')) { container = el; break; }
+        if (el.id) { container = el; break; }
+      }
+    }
+    const target = container || (btn.parentElement ? btn.parentElement.parentElement || btn.parentElement : document.body);
+    if (target) target.innerHTML = '<strong style="color:#fff;font-size:15px;">You\'re booked, ' + firstName + '.</strong>'
+      + '<br><br><div style="background:rgba(61,138,122,0.15);border:1px solid rgba(61,138,122,0.3);border-radius:10px;padding:14px 16px;margin-top:4px;">'
+      + '<div style="font-family:\'DM Mono\',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:rgba(61,138,122,0.8);margin-bottom:6px;">CONFIRMED</div>'
+      + '<div style="color:#fff;font-size:14px;">' + slotLabel + '</div>'
+      + '<div style="color:rgba(255,255,255,0.5);font-size:12px;margin-top:4px;">Lance calls you · check your email for confirmation</div>'
+      + '</div>';
+  } catch(e) {
+    try { btn.textContent = 'Error — try again'; btn.disabled = false; } catch(e2){}
+  }
+}
+// ── END SLOT PICKER ───────────────────────────────────────────────────────
 
 </script>
 </body>
