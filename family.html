@@ -1000,64 +1000,109 @@ function showTab(tab) {
   if (tab === 'home') {
     const { client, psw, today_visit, visits } = portalData;
     const lastVisit = visits && visits.length > 0 ? visits[0] : null;
-    const statusMsg = today_visit
-      ? `Visit in progress — ${today_visit.time_in ? fmtTime(today_visit.time_in) : ''} to ${today_visit.time_out ? fmtTime(today_visit.time_out) : 'ongoing'}`
+
+    // ── STATUS STATE ──
+    const isActive    = today_visit && !today_visit.time_out;
+    const isComplete  = today_visit && today_visit.time_out;
+    const stateClass  = isActive ? 'status-active' : isComplete ? 'status-complete' : 'status-none';
+
+    const line1 = isActive
+      ? `${(today_visit.psw_name||'Your caregiver').split(' ')[0]} is with ${client.first_name} right now`
+      : isComplete
+      ? `Visit completed · ${fmtTime(today_visit.time_out)}`
       : lastVisit
       ? `Last visit: ${fmtDate(lastVisit.visit_date)}`
       : 'No visits logged yet';
 
-    // Incident banner — show if any recent visit has unresolved incident
+    const line2 = isActive
+      ? `Arrived ${today_visit.time_in ? fmtTime(today_visit.time_in) : ''} · ending about ${today_visit.time_out ? fmtTime(today_visit.time_out) : 'later today'}`
+      : isComplete
+      ? `${today_visit.psw_name||'Caregiver'} · ${fmtDate(today_visit.visit_date)}`
+      : client.next_visit_date
+      ? `Next visit ${fmtDate(client.next_visit_date)}`
+      : client.schedule || 'No upcoming visits scheduled';
+
+    // Incident banner
     const recentIncident = (visits||[]).slice(0,5).find(v => v.incident_reported && !v.incident_resolved);
     const incidentBanner = recentIncident ? `
-      <div style="margin:0 0 16px;padding:14px 16px;background:rgba(224,154,61,0.08);border:1px solid rgba(224,154,61,0.3);border-radius:12px;display:flex;align-items:flex-start;gap:12px;">
-        <svg viewBox="0 0 24 24" fill="none" stroke="#e09a3d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18" style="flex-shrink:0;margin-top:1px;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-        <div>
-          <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:2px;">A note was logged during a recent visit</div>
-          <div style="font-size:12px;color:var(--muted);">Your care coordinator has been notified and will follow up if needed.</div>
-        </div>
+      <div style="margin:0 0 14px;padding:12px 14px;background:rgba(224,154,61,0.08);border:1px solid rgba(224,154,61,0.3);border-radius:12px;display:flex;align-items:flex-start;gap:10px;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#e09a3d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" style="flex-shrink:0;margin-top:1px;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        <div style="font-size:12px;color:var(--muted);line-height:1.5;">A note was flagged during a recent visit. Your coordinator has been notified.</div>
+      </div>` : '';
+
+    // ── PSW CONTACT ROW ── (compact, not dominating)
+    const pswName = today_visit?.psw_name || psw?.name || '';
+    const pswFirst = pswName.split(' ')[0] || 'Caregiver';
+    const contactRow = `
+      <div style="display:flex;gap:10px;margin-bottom:20px;">
+        ${pswName ? `<a href="tel:${psw?.phone||''}" style="flex:1;display:flex;align-items:center;justify-content:center;gap:7px;min-height:48px;background:var(--green);border-radius:12px;text-decoration:none;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.39 2 2 0 0 1 3.6 1.22h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L7.91 8.96a16 16 0 0 0 6 6l.96-.96a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+          <span style="color:#fff;font-size:13px;font-weight:600;">Call ${pswFirst}</span>
+        </a>` : ''}
+        <a href="tel:6473828047" style="flex:1;display:flex;align-items:center;justify-content:center;gap:7px;min-height:48px;background:var(--bg2);border:1px solid var(--border2);border-radius:12px;text-decoration:none;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14" style="color:var(--accent);"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.39 2 2 0 0 1 3.6 1.22h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L7.91 8.96a16 16 0 0 0 6 6l.96-.96a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+          <span style="color:var(--text);font-size:13px;font-weight:600;">Call Agency</span>
+        </a>
+      </div>`;
+
+    // ── RECENT VISITS (last 5) ──
+    const recentVisitsHtml = (visits||[]).slice(0,5).length
+      ? (visits||[]).slice(0,5).map(v => visitRow(v)).join('')
+      : emptyState(
+          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="5" width="16" height="16" rx="2"/><path d="M8 3v4M16 3v4M4 11h16"/></svg>',
+          'No visits yet',
+          'Visits will appear here after your first care session.'
+        );
+
+    // ── VOICE NOTE ──
+    const voiceNote = today_visit?.voice_note_url ? `
+      <div style="margin-bottom:16px;padding:14px 16px;background:rgba(58,170,138,0.06);border:1px solid rgba(58,170,138,0.2);border-radius:12px;">
+        <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;color:var(--accent);margin-bottom:8px;">Voice message from ${(today_visit.psw_name||'your caregiver').split(' ')[0]}</div>
+        <audio controls src="${today_visit.voice_note_url}" style="width:100%;height:36px;border-radius:6px;"></audio>
       </div>` : '';
 
     html = renderPushPrompt() + incidentBanner + `
-      <div class="status-card ${today_visit && !today_visit.time_out ? 'status-active' : today_visit ? 'status-complete' : 'status-none'}">
-        ${today_visit && !today_visit.time_out ? '<div class="hero-status-dot" aria-hidden="true"></div>' : ''}
-        <p class="hero-status-line1">${
-          today_visit && !today_visit.time_out
-            ? `${(today_visit.psw_name||'Your caregiver').split(' ')[0]} is with ${client.first_name} now`
-            : today_visit && today_visit.time_out
-            ? `Visit completed at ${fmtTime(today_visit.time_out)}`
-            : lastVisit
-            ? `Last visit: ${fmtDate(lastVisit.visit_date)}`
-            : `No visits scheduled yet`
-        }</p>
-        <p class="hero-status-line2">${
-          today_visit && !today_visit.time_out
-            ? `Arrived ${today_visit.time_in ? fmtTime(today_visit.time_in) : ''} · ends about ${today_visit.time_out ? fmtTime(today_visit.time_out) : 'later today'}`
-            : today_visit && today_visit.time_out
-            ? `${today_visit.psw_name||'Caregiver'} · ${fmtDate(today_visit.visit_date)}`
-            : client.next_visit_date ? `Next visit ${fmtDate(client.next_visit_date)}` : client.schedule || 'No upcoming visits scheduled'
-        }</p>
-        <div class="hero-actions">
-          ${(today_visit?.psw_name || psw?.name) ? `<a class="hero-btn hero-btn-primary" href="tel:${psw?.phone||''}">📞 Call ${(today_visit?.psw_name||psw?.name||'Caregiver').split(' ')[0]}</a>` : ''}
-          <a class="hero-btn hero-btn-ghost" href="tel:6473828047">Call Agency</a>
+
+      <!-- STATUS CARD — minimal, no decorative circle in empty state -->
+      <div class="status-card ${stateClass}" style="margin-bottom:16px;">
+        ${isActive ? '<div class="hero-status-dot" aria-hidden="true"></div>' : ''}
+        <p class="hero-status-line1">${line1}</p>
+        <p class="hero-status-line2">${line2}</p>
+      </div>
+
+      ${voiceNote}
+
+      <!-- CONTACT ROW — compact side by side -->
+      ${contactRow}
+
+      <!-- LIVE MAP — inline, always visible -->
+      <div style="margin-bottom:20px;">
+        <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--accent);margin-bottom:10px;display:flex;align-items:center;gap:6px;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="13" height="13"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          Live map
+        </div>
+        <div id="home-map-container" style="width:100%;height:220px;border-radius:14px;border:1px solid var(--border);overflow:hidden;background:var(--bg2);position:relative;">
+          <div id="home-map" style="width:100%;height:100%;"></div>
+          <div id="home-map-placeholder" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:var(--muted);">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" width="28" height="28"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            <span style="font-size:12px;font-family:'DM Mono',monospace;letter-spacing:1px;">Loading map...</span>
+          </div>
+        </div>
+        <div style="display:flex;gap:12px;margin-top:8px;flex-wrap:wrap;">
+          <span style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted);"><span style="width:8px;height:8px;border-radius:50%;background:var(--green);display:inline-block;"></span>Active visit</span>
+          <span style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted);"><span style="width:8px;height:8px;border-radius:50%;background:#5ab4d4;display:inline-block;"></span>Completed visit</span>
+          <span style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted);"><span style="width:8px;height:8px;border-radius:50%;background:#c8a96e;display:inline-block;"></span>Client home</span>
         </div>
       </div>
-      ${today_visit?.voice_note_url ? `<div style="margin-bottom:16px;padding:14px 16px;background:rgba(58,170,138,0.06);border:1px solid rgba(58,170,138,0.2);border-radius:12px;">
-        <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;color:var(--accent);margin-bottom:8px;"><svg width="13" height="13" viewBox="0 0 14 14" fill="none" style="display:inline;vertical-align:middle;margin-right:3px"><rect x="4.5" y="1" width="5" height="7" rx="2.5" stroke="#6dbdd4" stroke-width="1.3"/><path d="M2.5 7a4.5 4.5 0 0 0 9 0" stroke="#6dbdd4" stroke-width="1.3"/><line x1="7" y1="11.5" x2="7" y2="13" stroke="#6dbdd4" stroke-width="1.3"/></svg> Voice message from ${(today_visit.psw_name||'your caregiver').split(' ')[0]}</div>
-        <audio controls src="${today_visit.voice_note_url}" style="width:100%;height:36px;border-radius:6px;"></audio>
-      </div>` : ''}
-      <a href="tel:6473828047" style="display:flex;align-items:center;justify-content:center;gap:10px;padding:13px;background:var(--green);border-radius:12px;text-decoration:none;margin-bottom:16px;">
-        <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.39 2 2 0 0 1 3.6 1.22h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L7.91 8.96a16 16 0 0 0 6 6l.96-.96a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-        <span style="color:#fff;font-size:13px;font-weight:600;font-family:'Inter',sans-serif;">Call Coordinator — 647-382-8047</span>
-      </a>
-      ${(portalData.upcoming_bookings||[]).length ? `<div class="section"><div class="section-title">Upcoming Visits</div><div class="card">${(portalData.upcoming_bookings||[]).slice(0,3).map(b => {
-        const bd = new Date((b.scheduled_date||'')+'T12:00:00');
-        const dow = bd.toLocaleDateString('en-CA',{weekday:'short'});
-        const num = bd.getDate();
-        const mon = bd.toLocaleDateString('en-CA',{month:'short'});
-        const time = b.scheduled_time?b.scheduled_time.slice(0,5):'';
-        return '<div class="upcoming-row"><div class="upcoming-date"><div class="upcoming-date-dow">'+dow+'</div><div class="upcoming-date-num">'+num+'</div></div><div class="upcoming-info"><div class="upcoming-psw">'+(b.assigned_to||psw.name)+'</div><div class="upcoming-time">'+mon+' '+num+(time?' · '+time:'')+'</div></div><div class="upcoming-badge">Scheduled</div></div>';
-      }).join('')}</div></div>` : ''}
-      <div class="section">
+
+      <!-- RECENT VISITS -->
+      <div class="section" style="margin-bottom:20px;">
+        <div class="section-title">Recent Visits</div>
+        <div class="card">${recentVisitsHtml}</div>
+      </div>
+
+      <!-- CARE TEAM -->
+      <div class="section" style="margin-bottom:20px;">
         <div class="section-title">Your Care Team</div>
         ${(() => {
           const cutoff = new Date(); cutoff.setDate(cutoff.getDate() - 30);
@@ -1066,7 +1111,7 @@ function showTab(tab) {
           if (psw && psw.name) recentNames.add(psw.name);
           const teamNames = [...recentNames];
           if (!teamNames.length) teamNames.push(psw.name || 'Your PSW');
-          return teamNames.map(name => {
+          return '<div class="card">' + teamNames.map(name => {
             const isAssigned = psw && psw.name === name;
             const initials = name.split(' ').map(w=>w[0]||'').join('').toUpperCase().slice(0,2);
             return '<div class="psw-card" onclick="showPSWProfile(\'' + name + '\',\'' + initials + '\')" style="cursor:pointer;">'
@@ -1074,30 +1119,17 @@ function showTab(tab) {
               + '<div class="psw-info">'
               + '<div class="psw-name">' + name + '</div>'
               + '<div class="psw-title">' + (isAssigned ? (psw.title || 'Personal Support Worker') : 'Personal Support Worker') + '</div>'
-              + (isAssigned && client.schedule ? '<div class="psw-schedule">' + client.schedule + '</div>' : '')
               + '</div>'
               + '<div style="margin-left:auto;color:var(--muted);display:flex;align-items:center;gap:8px;">'
-              + (isAssigned && psw.email ? '<a href="mailto:' + psw.email + '" onclick="event.stopPropagation()" style="display:flex;align-items:center;padding:4px 8px;border:1px solid var(--border);border-radius:6px;color:var(--accent);text-decoration:none;" title="Email your PSW"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\" width=\"14\" height=\"14\"><path d=\"M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z\"/><polyline points=\"22,6 12,13 2,6\"/></svg></a>' : '')
+              + (isAssigned && psw.email ? '<a href="mailto:' + psw.email + '" onclick="event.stopPropagation()" style="display:flex;align-items:center;padding:4px 8px;border:1px solid var(--border);border-radius:6px;color:var(--accent);text-decoration:none;" title="Email your PSW"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></a>' : '')
               + '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><polyline points="9 18 15 12 9 6"/></svg>'
               + '</div>'
               + '</div>';
-          }).join('');
+          }).join('') + '</div>';
         })()}
       </div>
-      <button class="map-btn" onclick="openMapSheet()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-        View PSW on Map
-      </button>
-      <div class="section">
-        <div class="section-title">Recent Visits</div>
-        <div class="card">
-          ${(visits || []).slice(0, 3).map(v => visitRow(v)).join('') || emptyState(
-            '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="5" width="16" height="16" rx="2"/><path d="M8 3v4M16 3v4M4 11h16"/></svg>',
-            'No visits yet',
-            'Visits will appear here after your first care session.'
-          )}
-        </div>
-      </div>
+
+      <!-- MESSAGE THREAD -->
       <div class="section">
         <div class="section-title">Message Your Coordinator</div>
         <div class="msg-thread-wrap">
@@ -1109,9 +1141,39 @@ function showTab(tab) {
           <div class="msg-char-count" id="msgCharCount" style="display:none;">0 / 500</div>
         </div>
       </div>`;
+
+    // Init inline map after render
+    setTimeout(() => {
+      try {
+        const mapEl = document.getElementById('home-map');
+        const placeholder = document.getElementById('home-map-placeholder');
+        if (!mapEl || typeof L === 'undefined') return;
+        if (mapEl._leaflet_id) return; // already initialized
+        placeholder && (placeholder.style.display = 'none');
+        const lat = portalData.client?.latitude || 43.5890;
+        const lng = portalData.client?.longitude || -79.6441;
+        const homeMap = L.map(mapEl, { zoomControl: false, dragging: false, scrollWheelZoom: false, attributionControl: false });
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 17 }).addTo(homeMap);
+        // Client home marker
+        L.circleMarker([lat, lng], { radius: 8, color: '#c8a96e', fillColor: '#c8a96e', fillOpacity: 0.9, weight: 2 })
+          .bindPopup(`<b>${portalData.client?.first_name || 'Client'}</b><br>Home`)
+          .addTo(homeMap);
+        // Active or last visit marker
+        const v = portalData.today_visit || (portalData.visits||[])[0];
+        if (v?.checkin_lat && v?.checkin_lng) {
+          const color = v.time_out ? '#5ab4d4' : '#4a9a6e';
+          L.circleMarker([v.checkin_lat, v.checkin_lng], { radius: 9, color, fillColor: color, fillOpacity: 0.95, weight: 2 })
+            .bindPopup(`<b>${v.psw_name||'PSW'}</b><br>${v.time_out ? 'Completed' : 'Active visit'}`)
+            .addTo(homeMap);
+          homeMap.fitBounds([[lat, lng], [v.checkin_lat, v.checkin_lng]], { padding: [20, 20] });
+        } else {
+          homeMap.setView([lat, lng], 14);
+        }
+      } catch(e) { console.warn('home map init failed', e); }
+    }, 200);
   }
 
-  else if (tab === 'visits') {
+    else if (tab === 'visits') {
     const { visits } = portalData;
     const all = visits || [];
     const range = getFamDateRange();
