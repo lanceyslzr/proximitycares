@@ -246,7 +246,7 @@ button:active{transform:scale(0.98);}
 @keyframes spin{to{transform:rotate(360deg);}}
 
 /* STATS */
-.stats-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border2);border-bottom:2px solid var(--border);var(--border);}
+.stats-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border2);border-bottom:2px solid var(--border);position:sticky;top:54px;z-index:90;transition:margin-left .2s cubic-bezier(.4,0,.2,1);}
 .stat-card{background:var(--bg2);padding:12px 6px;text-align:center;}
 .stat-val{font-family:var(--mono);font-size:22px;font-weight:700;color:var(--text);line-height:1;letter-spacing:-0.5px;}
 .stat-lbl{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-top:4px;}
@@ -1026,9 +1026,20 @@ button,.sbtn,.btn,.bnav-item,.nav-tab,.icon-btn{
   .sidebar.rail .sidebar-close{ display:none; }
   .sidebar.rail .sidebar-collapse-btn span{ display:none; }
   .sidebar.rail .sidebar-collapse-btn svg{ transform:rotate(180deg); }
-  /* Topbar offset handled by JS class on body */
-  .topbar{
-    padding-left:24px;
+  /* Rail: hide footer button text, show icon only */
+  .sidebar.rail .sidebar-footer{ padding:8px 0; }
+  .sidebar.rail .sidebar-footer button{ justify-content:center; padding:10px 0; width:100%; border-radius:0; border-left:none; border-right:none; }
+  .sidebar.rail .sidebar-footer button .btn-label{ display:none; }
+  .sidebar.rail .sidebar-footer button svg{ flex-shrink:0; }
+  /* Topbar + stats-strip + sections: all offset right of fixed sidebar */
+  .topbar, .stats-strip{
+    margin-left:240px;
+    transition:margin-left .2s cubic-bezier(.4,0,.2,1);
+  }
+  .topbar{ padding-left:24px; }
+  body.sidebar-rail .topbar,
+  body.sidebar-rail .stats-strip{
+    margin-left:60px;
   }
   /* Overlay doesn't show on desktop */
   #sidebar-overlay{ display:none !important; }
@@ -1060,8 +1071,11 @@ button,.sbtn,.btn,.bnav-item,.nav-tab,.icon-btn{
   .kpi-grid{display:grid !important;}
 }
 @media(min-width:1200px){
-  .sidebar{width:260px;}
-  .section{ margin-left:260px; }
+  /* Keep 240px sidebar at 1200px+ for consistency */
+  .sidebar{width:240px;}
+  .topbar, .stats-strip, .section{ margin-left:240px; }
+  body.sidebar-rail .topbar,
+  body.sidebar-rail .stats-strip,
   body.sidebar-rail .section{ margin-left:60px; }
 }
 
@@ -2078,11 +2092,11 @@ button,.sbtn,.btn,.bnav-item,.nav-tab,.icon-btn{
   <div class="sidebar-footer" style="padding:12px;display:flex;flex-direction:column;gap:8px;border-top:1px solid rgba(255,255,255,.07);">
     <button onclick="lockHQ();toggleSidebar()" style="width:100%;padding:10px 14px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:8px;color:var(--muted);font-family:var(--mono);font-size:12px;cursor:pointer;display:flex;align-items:center;gap:8px;min-height:44px;">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="16" height="16"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-      Lock
+      <span class="btn-label">Lock</span>
     </button>
     <button onclick="signOutHQ()" style="width:100%;padding:10px 14px;background:rgba(224,85,85,.08);border:1px solid rgba(224,85,85,.15);border-radius:8px;color:var(--red,#e05555);font-family:var(--mono);font-size:12px;cursor:pointer;display:flex;align-items:center;gap:8px;min-height:44px;">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="16" height="16"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-      Sign out
+      <span class="btn-label">Sign out</span>
     </button>
   </div>
 </div>
