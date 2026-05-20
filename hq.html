@@ -1859,6 +1859,23 @@ button,.sbtn,.btn,.bnav-item,.nav-tab,.icon-btn{
 <!-- CREATE OPERATOR — Tab 10 -->
 <!-- SCHEDULE TAB -->
 <div class="section" id="sect-schedule">
+
+  <!-- ── NEEDS ATTENTION STRIP ── -->
+  <div id="sched-needs-attn" style="display:none;margin:10px 12px 0;">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:rgba(224,154,61,.06);border:1px solid rgba(224,154,61,.25);border-radius:10px 10px 0 0;cursor:pointer;" onclick="toggleNeedsAttn()">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="font-size:13px;">⚑</span>
+        <span style="font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--amber);">Needs Attention</span>
+        <span id="sched-attn-count" style="font-family:var(--mono);font-size:11px;padding:1px 7px;border-radius:100px;background:rgba(224,154,61,.15);color:var(--amber);"></span>
+      </div>
+      <span id="sched-attn-chevron" style="font-size:12px;color:var(--amber);">▾</span>
+    </div>
+    <div id="sched-attn-body" style="background:var(--bg2);border:1px solid rgba(224,154,61,.2);border-top:none;border-radius:0 0 10px 10px;overflow:hidden;">
+      <div id="sched-cancel-list" style="padding:0;"></div>
+      <div id="sched-conflict-list" style="padding:0;"></div>
+    </div>
+  </div>
+
   <!-- Broadcast button at top of schedule -->
   <div style="margin:10px 12px 0;display:flex;gap:8px;align-items:center;">
     <button onclick="openBroadcastSheet()" class="broadcast-btn"><svg width="11" height="11" viewBox="0 0 12 12" fill="none" style="display:inline;vertical-align:middle;margin-right:4px"><path d="M7 1L3 7h4l-2 4 6-6H7L9 1z" fill="#c9a96e"/></svg>Broadcast Open Shift</button>
@@ -2038,6 +2055,7 @@ button,.sbtn,.btn,.bnav-item,.nav-tab,.icon-btn{
     <div class="sn-item" id="sn-schedule" onclick="showSect('schedule');closeSidebar()">
       <div class="sn-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="5" width="16" height="16" rx="2"/><path d="M8 3v4M16 3v4M4 11h16"/></svg></div>
       <span class="sn-label">Schedule</span>
+      <span class="sn-badge" id="sn-schedule-badge" style="display:none;"></span>
     </div>
     <div class="sidebar-section">People</div>
     <div class="sn-item" id="sn-clients" onclick="showSect('clients');closeSidebar()">
@@ -2152,7 +2170,7 @@ button,.sbtn,.btn,.bnav-item,.nav-tab,.icon-btn{
 <div class="bottom-nav">
   <div class="bnav-item active" onclick="showSect('today')" id="bn-today"><div class="bnav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div><div class="bnav-lbl">Today</div></div>
   <div class="bnav-item" onclick="showSect('clients')" id="bn-clients"><div class="bnav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78z"/></svg></div><div class="bnav-lbl">Clients</div></div>
-  <div class="bnav-item" onclick="showSect('schedule')" id="bn-schedule"><div class="bnav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="5" width="16" height="16" rx="2"/><path d="M8 3v4M16 3v4M4 11h16"/></svg></div><div class="bnav-lbl">Schedule</div></div>
+  <div class="bnav-item" onclick="showSect('schedule')" id="bn-schedule"><div class="bnav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="5" width="16" height="16" rx="2"/><path d="M8 3v4M16 3v4M4 11h16"/></svg></div><div class="bnav-lbl">Schedule</div><span id="bn-schedule-badge" style="display:none;position:absolute;top:6px;right:calc(50% - 10px);width:7px;height:7px;border-radius:50%;background:var(--amber);"></span></div>
   <div class="bnav-item" onclick="showSect('messages')" id="bn-messages"><div class="bnav-icon" style="position:relative;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span id="bn-msg-badge" style="display:none;position:absolute;top:-3px;right:-4px;min-width:16px;height:16px;background:var(--red);color:#fff;border-radius:8px;font-family:var(--mono);font-size:11px;font-weight:700;line-height:16px;text-align:center;padding:0 3px;"></span></div><div class="bnav-lbl">Messages</div></div>
   <div class="bnav-item" onclick="toggleSidebar()" id="bn-menu"><div class="bnav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></div><div class="bnav-lbl">Menu</div></div>
 </div>
@@ -2483,26 +2501,100 @@ let _hqFetching = false;
 // ── CANCELLATION REQUESTS ──
 async function loadCancellationRequests() {
   try {
-    const r = await fetch(`${API}/hq/cancellation-requests?operator_id=${currentOp}&status=pending`, { headers: { 'x-hq-token': window._hqToken || sessionStorage.getItem('hq_token') || '' } });
+    const r = await fetch(`${API}/hq/cancellation-requests?operator_id=${currentOp}&status=pending`, {
+      headers: { 'x-hq-token': window._hqToken || sessionStorage.getItem('hq_token') || '' }
+    });
     const d = await r.json();
     const requests = d.requests || [];
+    const count = requests.length;
+
+    // ── Update Today section alert (existing) ──
     const alertEl = document.getElementById('cancel-req-alert');
-    const listEl = document.getElementById('cancel-req-list');
-    if (!alertEl || !listEl) return;
-    if (!requests.length) { alertEl.style.display = 'none'; return; }
-    alertEl.style.display = 'block';
-    listEl.innerHTML = requests.map(req => `
-      <div class="cancel-req-card" id="cancel-req-${req.id}">
-        <div style="font-size:13px;font-weight:500;color:var(--text);">${escHtml(req.psw_name||"")} · ${escHtml(req.client_name||'Unknown client')}</div>
-        <div style="font-family:var(--mono);font-size:12px;color:var(--muted2);margin-top:2px;">${req.scheduled_date||'—'}${req.scheduled_time?' · '+req.scheduled_time:''}</div>
-        <div style="font-size:12px;color:var(--muted2);margin-top:4px;">Reason: ${escHtml(req.reason||"")}</div>
-        <div class="cancel-req-actions">
-          <button class="cancel-approve-btn" onclick="respondCancelRequest('${req.id}','approve')">✓ Approve + Broadcast</button>
-          <button class="cancel-reject-btn" onclick="respondCancelRequest('${req.id}','reject')">Reject</button>
-        </div>
-      </div>`).join('');
-  } catch {}
+    const listEl  = document.getElementById('cancel-req-list');
+    if (alertEl) alertEl.style.display = count ? 'block' : 'none';
+    if (listEl)  listEl.innerHTML = requests.map(req => _cancelReqCard(req)).join('');
+
+    // ── Update sidebar + bottom nav badge ──
+    const snBadge = document.getElementById('sn-schedule-badge');
+    const bnBadge = document.getElementById('bn-schedule-badge');
+    if (snBadge) { snBadge.textContent = count || ''; snBadge.style.display = count ? 'inline-block' : 'none'; }
+    if (bnBadge) { bnBadge.style.display = count ? 'block' : 'none'; }
+
+    // ── Update Needs Attention strip in Schedule section ──
+    const attnStrip  = document.getElementById('sched-needs-attn');
+    const attnCount  = document.getElementById('sched-attn-count');
+    const cancelList = document.getElementById('sched-cancel-list');
+    if (attnStrip && cancelList) {
+      // Build conflict rows from D.bookings
+      const conflicts = _getConflictRows();
+      const total = count + conflicts.length;
+      if (total === 0) {
+        attnStrip.style.display = 'none';
+      } else {
+        attnStrip.style.display = 'block';
+        if (attnCount) attnCount.textContent = total;
+        cancelList.innerHTML = requests.map(req => _cancelReqRow(req)).join('');
+        const conflictListEl = document.getElementById('sched-conflict-list');
+        if (conflictListEl) conflictListEl.innerHTML = conflicts.join('');
+      }
+    }
+  } catch(e) { /* fail silently — non-critical */ }
 }
+
+function _getConflictRows() {
+  // Pull conflicts already detected by _buildFCEvents
+  const conflicts = window._fcConflicts || new Set();
+  if (!conflicts.size) return [];
+  const bookings = D.bookings || [];
+  return bookings
+    .filter(b => conflicts.has(b.id))
+    .map(b => `
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-top:1px solid var(--border);">
+        <div>
+          <span style="font-family:var(--mono);font-size:10px;letter-spacing:1px;padding:2px 6px;border-radius:4px;background:rgba(224,85,85,.12);color:var(--red);margin-right:8px;">CONFLICT</span>
+          <span style="font-size:13px;color:var(--text);">${escHtml(b.client_name||'')} · ${escHtml(b.assigned_to||'Unassigned')}</span>
+          <span style="font-size:12px;color:var(--muted);margin-left:8px;">${b.scheduled_date||''} ${b.scheduled_time||''}</span>
+        </div>
+        <button onclick="showSect('schedule');_fc&&_fc.gotoDate('${b.scheduled_date||''}')" style="font-family:var(--mono);font-size:11px;padding:4px 10px;border-radius:6px;border:1px solid var(--border);background:var(--bg3);color:var(--text);cursor:pointer;">View</button>
+      </div>`);
+}
+
+function _cancelReqCard(req) {
+  return `<div class="cancel-req-card" id="cancel-req-${req.id}">
+    <div style="font-size:13px;font-weight:500;color:var(--text);">${escHtml(req.psw_name||'')} · ${escHtml(req.client_name||'Unknown client')}</div>
+    <div style="font-family:var(--mono);font-size:12px;color:var(--muted2);margin-top:2px;">${req.scheduled_date||'—'}${req.scheduled_time?' · '+req.scheduled_time:''}</div>
+    ${req.reason?`<div style="font-size:12px;color:var(--muted);margin-top:4px;">"${escHtml(req.reason)}"</div>`:''}
+    <div style="display:flex;gap:8px;margin-top:8px;">
+      <button class="sbtn ok" onclick="respondCancelReq('${req.id}','approve')">Approve</button>
+      <button class="sbtn" style="border-color:rgba(224,85,85,.3);color:var(--red);" onclick="respondCancelReq('${req.id}','reject')">Reject</button>
+    </div>
+  </div>`;
+}
+
+function _cancelReqRow(req) {
+  return `<div style="display:flex;align-items:flex-start;justify-content:space-between;padding:10px 14px;border-top:1px solid var(--border);">
+    <div>
+      <span style="font-family:var(--mono);font-size:10px;letter-spacing:1px;padding:2px 6px;border-radius:4px;background:rgba(224,154,61,.12);color:var(--amber);margin-right:8px;">CANCEL</span>
+      <span style="font-size:13px;color:var(--text);">${escHtml(req.psw_name||'')} · ${escHtml(req.client_name||'Unknown client')}</span>
+      <span style="font-size:12px;color:var(--muted);margin-left:8px;">${req.scheduled_date||''}</span>
+      ${req.reason?`<div style="font-size:12px;color:var(--muted);margin-top:2px;padding-left:4px;">"${escHtml(req.reason)}"</div>`:''}
+    </div>
+    <div style="display:flex;gap:6px;flex-shrink:0;margin-left:12px;">
+      <button onclick="respondCancelReq('${req.id}','approve');loadCancellationRequests()" style="font-family:var(--mono);font-size:11px;padding:4px 10px;border-radius:6px;border:1px solid rgba(74,154,110,.3);background:rgba(74,154,110,.08);color:var(--teal2);cursor:pointer;">Approve</button>
+      <button onclick="respondCancelReq('${req.id}','reject');loadCancellationRequests()" style="font-family:var(--mono);font-size:11px;padding:4px 10px;border-radius:6px;border:1px solid rgba(224,85,85,.3);background:rgba(224,85,85,.06);color:var(--red);cursor:pointer;">Reject</button>
+    </div>
+  </div>`;
+}
+
+function toggleNeedsAttn() {
+  const body    = document.getElementById('sched-attn-body');
+  const chevron = document.getElementById('sched-attn-chevron');
+  if (!body) return;
+  const open = body.style.display !== 'none';
+  body.style.display    = open ? 'none' : 'block';
+  if (chevron) chevron.textContent = open ? '▸' : '▾';
+}
+
 
 async function respondCancelRequest(id, action) {
   try {
@@ -2689,7 +2781,8 @@ function renderAll() {
   const activeSect = (document.querySelector('.section.active')?.id || '').replace('sect-','');
 
   renderLeads();   // lightweight — always render
-  renderClients(); // needed for badges across sections
+  renderClients();
+  loadCancellationRequests(); // keep schedule badge current // needed for badges across sections
 
   // Heavier renders — only if section is active or data is fresh
   if (activeSect === 'psws' || !window._pswsRendered) { renderPSWs(); window._pswsRendered = true; }
@@ -4140,6 +4233,7 @@ function showSect(name) {
   if(name==='schedule') { renderSchedule(); renderVacantVisits(); loadShiftOffersHQ(); }
   if(name==='visits') { renderVisits(); }
   if(name==='today') { renderToday(); loadCancellationRequests(); }
+  if(name==='schedule') { loadCancellationRequests(); }
   window.scrollTo(0,0);
 }
 
