@@ -2384,6 +2384,10 @@ body.sidebar-hidden #sidebar-reopen-tab{ display:flex; }
   <div class="shift-detail-box">
     <div class="sd-title" id="sd-title"></div>
     <div class="sd-row" id="sd-psw"></div>
+    <div id="sd-psw-contact" style="display:none;margin:-6px 0 10px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+      <a id="sd-psw-phone-link" href="" style="font-family:var(--mono);font-size:11px;letter-spacing:1px;padding:5px 12px;border-radius:6px;border:1px solid rgba(61,138,122,.3);background:rgba(61,138,122,.06);color:var(--teal2);text-decoration:none;display:inline-flex;align-items:center;gap:5px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="11" height="11"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.65 3.55 2 2 0 0 1 3.62 1.37h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg><span id="sd-psw-phone-txt">—</span></a>
+      <button id="sd-reminder-btn" onclick="_sendShiftReminder()" style="font-family:var(--mono);font-size:11px;letter-spacing:1px;padding:5px 12px;border-radius:6px;border:1px solid rgba(200,169,110,.3);background:rgba(200,169,110,.06);color:var(--gold);cursor:pointer;display:inline-flex;align-items:center;gap:5px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="11" height="11"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>Send Reminder</button>
+    </div>
     <div class="sd-row" id="sd-date"></div>
     <div class="sd-status" id="sd-status"></div>
     <div class="sd-conflict-row" id="sd-conflict-row" style="display:none;">
@@ -5405,6 +5409,36 @@ async function _patchBooking(id, updates, fcInfo) {
   }
 }
 
+async function _sendShiftReminder() {
+  const btn = document.getElementById('sd-reminder-btn');
+  if (!btn) return;
+  const bookingId = window._sdBookingId;
+  if (!bookingId) { showToast('No shift selected', 'err'); return; }
+  const orig = btn.innerHTML;
+  btn.innerHTML = '⏳ Sending...';
+  btn.disabled = true;
+  try {
+    const r = await fetch(`${API}/hq/shift-reminder-today`, {
+      method: 'POST',
+      headers: hqHeaders(),
+      body: JSON.stringify({ operator_id: currentOp, booking_id: bookingId })
+    });
+    const d = await r.json();
+    if (!d.success) throw new Error(d.error || 'Failed');
+    if (d.sent > 0) {
+      showToast('Reminder sent ✓', 'ok');
+      btn.innerHTML = '✓ Sent';
+      setTimeout(() => { btn.innerHTML = orig; btn.disabled = false; }, 3000);
+    } else {
+      showToast('PSW has no email on file', 'err');
+      btn.innerHTML = orig; btn.disabled = false;
+    }
+  } catch(e) {
+    showToast(e.message || 'Error sending reminder', 'err');
+    btn.innerHTML = orig; btn.disabled = false;
+  }
+}
+
 function _showShiftDetail(b, props) {
   const m = document.getElementById('shift-detail-modal');
   if (!m) { openEditShift(b.id); return; }
@@ -5415,6 +5449,20 @@ function _showShiftDetail(b, props) {
 
   document.getElementById('sd-title').textContent = b.client_name || 'Shift';
   document.getElementById('sd-psw').textContent   = b.assigned_to || 'Unassigned';
+
+  // PSW phone — look up from D.psws
+  const _sdPSW = (D.psws || []).find(p =>
+    (p.name || p.full_name || '').trim() === (b.assigned_to || '').trim()
+  );
+  const _sdPhone = _sdPSW?.phone || '';
+  const contactRow = document.getElementById('sd-psw-contact');
+  const phoneLink  = document.getElementById('sd-psw-phone-link');
+  const phoneTxt   = document.getElementById('sd-psw-phone-txt');
+  if (contactRow) contactRow.style.display = b.assigned_to ? 'flex' : 'none';
+  if (phoneTxt)   phoneTxt.textContent = _sdPhone || 'No phone on file';
+  if (phoneLink)  phoneLink.href = _sdPhone ? 'tel:'+_sdPhone.replace(/\D/g,'') : '#';
+  if (phoneLink)  phoneLink.style.pointerEvents = _sdPhone ? 'auto' : 'none';
+  if (phoneLink)  phoneLink.style.opacity = _sdPhone ? '1' : '0.4';
   const _sdStartMins = toMins(b.scheduled_time || '09:00');
   const _sdEndMins = _sdStartMins + (b.duration_minutes || 480);
   const _sdEndH = Math.floor(_sdEndMins/60)%24;
