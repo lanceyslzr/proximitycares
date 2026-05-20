@@ -1523,9 +1523,9 @@ async function sendAskMessage() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         slug,
+        pin: pinVal,
         question: q,
-        visit_context: ctx.visitCtx || '',
-        coordinator_phone: ctx.phone || '647-382-8047'
+        visit_context: ctx.visitCtx || ''
       })
     });
     const d = await res.json();
