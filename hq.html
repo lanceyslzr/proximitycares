@@ -1393,7 +1393,12 @@ button,.sbtn,.btn,.bnav-item,.nav-tab,.icon-btn{
 
 <!-- PSWs -->
 <div class="section" id="sect-psws">
-  <div class="section-header"><span class="section-title">PSW Staff</span></div>
+  <div class="section-header">
+    <span class="section-title">PSW Staff</span>
+    <div style="display:flex;gap:6px;">
+      <div class="sect-action" onclick="openInvitePSWSheet()" style="color:var(--teal2);border-color:rgba(61,138,122,.3);">+ Invite PSW</div>
+    </div>
+  </div>
   <div class="list-search-wrap"><span class="list-search-icon" style="font-size:14px;">⌕</span><input class="list-search" id="psws-search" placeholder="Search PSWs..." oninput="filterList('psws-list','psws-search')" autocomplete="off"></div>
   <div id="psws-list"><div class="empty-state">Loading...</div></div>
 </div>
@@ -3397,6 +3402,7 @@ function renderPSWs() {
         ${email?`<div class="card-act call" onclick="window.location.href='mailto:${email}'">Email</div>`:''}
         <div class="card-act" onclick="openPSWMsg('${p.name}')">Message</div>
         <div class="card-act" onclick="showSect('schedule');setTimeout(()=>openAddShift(this.closest('.card').querySelector('[data-psw-name]')?.dataset.pswName||'',''),150);">+ Shift</div>
+        ${(pStatus === 'pending_review' || pStatus === 'invited') ? `<div class="card-act" style="color:var(--green2);border-color:rgba(74,154,110,.3);background:rgba(74,154,110,.06);" onclick="approvePSW('${p.name}')">✓ Approve</div>` : ''}
         <div class="card-act ok" data-psw-id="${p.id||''}" data-psw-name="${p.name}" data-psw-source="${p.source||'live'}" onclick="if(this.dataset.pswSource==='live'){openPSWDetail(this.dataset.pswId||this.dataset.pswName);}else{showToast('PSW not yet activated in Supabase','err');}">View</div>
       </div>
     </div>`;
@@ -8317,6 +8323,68 @@ async function startWatchdogScan() {
 // WATCHDOG_PIN from existing HQ constants — falls back to proximity-watchdog-2026
 const WATCHDOG_PIN = 'proximity-watchdog-2026';
 
+
+// ── BUILD 1: PSW INVITE FLOW ──────────────────────────────────
+function openInvitePSWSheet() {
+  document.getElementById('inv-name').value = '';
+  document.getElementById('inv-email').value = '';
+  document.getElementById('inv-phone').value = '';
+  document.getElementById('inv-btn').disabled = true;
+  document.getElementById('psw-invite-overlay').style.display = 'block';
+  document.getElementById('psw-invite-sheet').style.display = 'block';
+  setTimeout(() => document.getElementById('inv-name').focus(), 300);
+}
+
+function closeInvitePSWSheet() {
+  document.getElementById('psw-invite-overlay').style.display = 'none';
+  document.getElementById('psw-invite-sheet').style.display = 'none';
+}
+
+async function sendPSWInvite() {
+  const name  = document.getElementById('inv-name').value.trim();
+  const email = document.getElementById('inv-email').value.trim();
+  const phone = document.getElementById('inv-phone').value.trim();
+  if (!name || !email) { showToast('Name and email required', 'err'); return; }
+
+  const btn = document.getElementById('inv-btn');
+  btn.disabled = true; btn.textContent = 'Sending invite...';
+
+  try {
+    const r = await fetch(`${API}/hq/psw/invite`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-hq-token': window._hqToken || sessionStorage.getItem('hq_token') || '' },
+      body: JSON.stringify({ operator_id: currentOp, psw_name: name, psw_email: email, psw_phone: phone || null })
+    });
+    const d = await r.json();
+    if (!d.success) throw new Error(d.error || 'Invite failed');
+    showToast(`Invite sent to ${name} ✓`, 'ok');
+    closeInvitePSWSheet();
+    await loadAll(false);
+  } catch(e) {
+    showToast(e.message || 'Could not send invite', 'err');
+  } finally {
+    btn.disabled = false; btn.textContent = 'Send Invite Email';
+  }
+}
+
+async function approvePSW(name) {
+  if (!confirm(`Approve ${name}? They will receive an email and can log in immediately.`)) return;
+  try {
+    const r = await fetch(`${API}/hq/psw/${encodeURIComponent(name)}/approve`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', 'x-hq-token': window._hqToken || sessionStorage.getItem('hq_token') || '' },
+      body: JSON.stringify({ operator_id: currentOp })
+    });
+    const d = await r.json();
+    if (!d.success) throw new Error(d.error || 'Approval failed');
+    showToast(`${name} approved ✓`, 'ok');
+    await loadAll(false);
+  } catch(e) {
+    showToast(e.message || 'Could not approve PSW', 'err');
+  }
+}
+// ── END BUILD 1 ──────────────────────────────────────────────
+
 </script>
 <div class="demo-tip" id="demo-tip"></div>
 
@@ -8364,6 +8432,33 @@ const WATCHDOG_PIN = 'proximity-watchdog-2026';
   </div>
 </div>
 
+</div>
+
+
+<!-- PSW INVITE SHEET — BUILD 1 -->
+<div id="psw-invite-overlay" style="display:none;position:fixed;inset:0;z-index:450;background:rgba(0,0,0,.7);" onclick="closeInvitePSWSheet()"></div>
+<div id="psw-invite-sheet" style="display:none;position:fixed;bottom:0;left:0;right:0;background:var(--bg2);border-radius:18px 18px 0 0;padding:20px;max-height:85vh;overflow-y:auto;z-index:451;">
+  <div style="width:36px;height:4px;background:var(--border2);border-radius:2px;margin:0 auto 16px;"></div>
+  <div style="font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--teal2);margin-bottom:20px;">Invite PSW</div>
+
+  <div class="sheet-row"><div class="slbl">Full Name *</div><input class="sinput" id="inv-name" placeholder="First Last" style="font-size:16px;" oninput="document.getElementById('inv-btn').disabled=!this.value.trim()||!document.getElementById('inv-email').value.trim()"></div>
+  <div class="sheet-row"><div class="slbl">Email *</div><input class="sinput" id="inv-email" placeholder="psw@email.com" type="email" style="font-size:16px;" oninput="document.getElementById('inv-btn').disabled=!this.value.trim()||!document.getElementById('inv-name').value.trim()"></div>
+  <div class="sheet-row"><div class="slbl">Phone</div><input class="sinput" id="inv-phone" placeholder="647 000 0000" type="tel" style="font-size:16px;"></div>
+
+  <div style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:12px 14px;margin:16px 0;">
+    <div style="font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:8px;">What Happens</div>
+    <div style="font-size:12px;color:var(--muted2);line-height:1.8;">
+      <span style="color:var(--green2);">✓</span> PSW record created with status: Invited<br>
+      <span style="color:var(--green2);">✓</span> PIN auto-generated and saved<br>
+      <span style="color:var(--green2);">✓</span> Invite email sent with 7-day profile link<br>
+      <span style="color:var(--green2);">✓</span> PSW appears in your staff list as Invited<br>
+      <span style="color:var(--green2);">✓</span> You get a Pending Review badge after they complete profile<br>
+      <span style="color:var(--green2);">✓</span> One click to approve → they can log in
+    </div>
+  </div>
+
+  <button class="sbtn" id="inv-btn" onclick="sendPSWInvite()" disabled style="touch-action:manipulation;">Send Invite Email</button>
+  <button onclick="closeInvitePSWSheet()" style="width:100%;padding:12px;background:none;border:1px solid var(--border);border-radius:8px;color:var(--muted2);font-family:var(--mono);font-size:12px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;min-height:44px;margin-top:8px;">Cancel</button>
 </div>
 
 </body>
