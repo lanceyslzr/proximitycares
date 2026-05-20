@@ -51,7 +51,7 @@ html,body{min-height:100vh;font-family:var(--sans),sans-serif;background:var(--b
 .pin-btn.del{font-size:16px;color:var(--muted);}
 .pin-btn.del svg{width:20px;height:20px;display:block;margin:0 auto;}
 .pin-btn.empty{background:none;border:none;cursor:default;}
-.pin-error{text-align:center;font-size:13px;color:var(--error);margin-top:16px;opacity:0;transition:opacity 0.2s;min-height:20px;}
+.pin-error{text-align:center;font-size:13px;color:var(--error);margin-top:16px;opacity:0;transition:opacity 0.2s;min-height:44px;}
 .pin-error.show{opacity:1;}
 @keyframes pin-shake{0%,100%{transform:translateX(0);}20%{transform:translateX(-6px);}40%{transform:translateX(6px);}60%{transform:translateX(-4px);}80%{transform:translateX(4px);}}
 .gate-card.shake{animation:pin-shake 0.35s ease;}
@@ -73,7 +73,10 @@ html,body{min-height:100vh;font-family:var(--sans),sans-serif;background:var(--b
 .content{flex:1;padding:24px 20px;padding-bottom:calc(88px + env(safe-area-inset-bottom));max-width:min(560px,calc(100vw - 24px));max-width:calc(100vw - 24px);margin:0 auto;width:100%;transition:opacity 150ms ease;}
 
 /* STATUS CARD */
-.status-card{background:var(--green);border-radius:20px;padding:28px 24px;margin-bottom:24px;color:white;position:relative;overflow:hidden;}
+.status-card{background:var(--c-good-soft,rgba(74,154,110,.1));border:1px solid rgba(46,125,91,.2);border-radius:20px;padding:24px;margin-bottom:20px;position:relative;overflow:hidden;}
+.status-card.status-active{background:var(--c-good-soft,rgba(74,154,110,.1));border-color:rgba(46,125,91,.3);}
+.status-card.status-complete{background:rgba(74,154,110,.06);border-color:rgba(74,154,110,.15);}
+.status-card.status-none{background:var(--bg2);border-color:var(--border);}
 .status-card::after{content:'';position:absolute;top:-30px;right:-30px;width:120px;height:120px;border-radius:50%;background:rgba(255,255,255,0.06);}
 .status-eyebrow{font-size:12px;letter-spacing:0.08em;text-transform:uppercase;opacity:0.8;margin-bottom:8px;font-weight:500;}
 .status-name{font-family:'Inter',sans-serif;font-size:26px;font-weight:600;margin-bottom:4px;}
@@ -171,7 +174,7 @@ textarea::placeholder,input::placeholder{color:rgba(184,207,212,.4);}
 .upcoming-info{flex:1;}
 .upcoming-psw{font-size:13px;font-weight:500;color:var(--text);}
 .upcoming-time{font-size:12px;color:var(--muted);margin-top:2px;}
-.upcoming-badge{font-size:10px;padding:3px 10px;border-radius:100px;background:var(--green-l);color:var(--green);font-weight:600;flex-shrink:0;}
+.upcoming-badge{font-size:11px;padding:3px 10px;border-radius:100px;background:var(--green-l);color:var(--green);font-weight:600;flex-shrink:0;}
 
 /* CARE PLAN */
 .plan-text{padding:20px;font-size:14px;color:var(--text);line-height:1.8;}
@@ -200,7 +203,7 @@ textarea::placeholder,input::placeholder{color:rgba(184,207,212,.4);}
 /* SATISFACTION STARS */
 .visit-stars{display:flex;align-items:center;gap:4px;margin-top:6px;flex-wrap:wrap;}
 .visit-stars.rated{font-size:14px;color:#c8a040;letter-spacing:1px;}
-.visit-stars.unrated .star-btn{background:none;border:none;font-size:18px;color:#c8d0c8;cursor:pointer;padding:0 1px;min-height:32px;min-width:28px;line-height:1;transition:color .15s;}
+.visit-stars.unrated .star-btn{background:none;border:none;font-size:18px;color:#c8d0c8;cursor:pointer;padding:0 1px;min-height:44px;min-width:28px;line-height:1;transition:color .15s;}
 .visit-stars.unrated .star-btn:hover,.visit-stars.unrated .star-btn:focus{color:#c8a040;}
 .stars-label{font-size:12px;color:var(--muted);letter-spacing:0.3px;margin-left:4px;}
 
@@ -230,7 +233,7 @@ button:active{transform:scale(0.98);}
 .fam-alert-msg{font-size:13px;color:var(--muted2);line-height:1.6;}
 /* Vitals row in visit detail */
 .vitals-compact{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;}
-.vitals-pill{font-family:var(--mono);font-size:10px;padding:4px 10px;border-radius:100px;background:var(--bg3);border:1px solid var(--border2);color:var(--muted2);}
+.vitals-pill{font-family:var(--mono);font-size:11px;padding:4px 10px;border-radius:100px;background:var(--bg3);border:1px solid var(--border2);color:var(--muted2);}
 .vitals-pill.ok{color:var(--teal2);border-color:rgba(61,138,122,.3);}
 .vitals-pill.flag{color:var(--amber);border-color:rgba(224,154,61,.3);}
 /* ETA banner */
@@ -250,6 +253,19 @@ button:active{transform:scale(0.98);}
 .section-title{font-family:var(--mono);font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:10px;}
 
 :root{
+  /* Calm family portal tokens — Research Report 2 */
+  --c-bg:#F7F8F5;
+  --c-surface:#FFFFFF;
+  --c-ink:#1B2A24;
+  --c-ink-muted:#4B5A52;
+  --c-good:#2E7D5B;
+  --c-good-soft:#E4F1EA;
+  --c-warn:#B26A00;
+  --c-emergency:#B3261E;
+  --fs-base:1.125rem;
+  --fs-lg:1.375rem;
+  --fs-xl:1.75rem;
+  --lh-body:1.6;
   /* Dark theme — matches PSW portal + HQ design system */
   --bg:#07090c;
   --bg2:#0d1117;
@@ -303,7 +319,7 @@ button:active{transform:scale(0.98);}
 .pin-btn.del{font-size:16px;color:var(--muted);}
 .pin-btn.del svg{width:20px;height:20px;display:block;margin:0 auto;}
 .pin-btn.empty{background:none;border:none;cursor:default;}
-.pin-error{text-align:center;font-size:13px;color:var(--error);margin-top:16px;opacity:0;transition:opacity 0.2s;min-height:20px;}
+.pin-error{text-align:center;font-size:13px;color:var(--error);margin-top:16px;opacity:0;transition:opacity 0.2s;min-height:44px;}
 .pin-error.show{opacity:1;}
 @keyframes pin-shake{0%,100%{transform:translateX(0);}20%{transform:translateX(-6px);}40%{transform:translateX(6px);}60%{transform:translateX(-4px);}80%{transform:translateX(4px);}}
 .gate-card.shake{animation:pin-shake 0.35s ease;}
@@ -407,7 +423,7 @@ button:active{transform:scale(0.98);}
 
 /* VISIT DETAIL */
 .visit-detail{padding:12px 20px 16px;border-top:1px solid var(--border);background:var(--surface);}
-.visit-detail-lbl{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:4px;margin-top:10px;font-weight:600;}
+.visit-detail-lbl{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:4px;margin-top:10px;font-weight:600;}
 .visit-detail-val{font-size:13px;color:var(--text);line-height:1.6;}
 .visit-expand-btn{font-size:11px;color:var(--accent);cursor:pointer;text-decoration:underline;margin-top:4px;display:inline-block;font-weight:500;}
 
@@ -421,7 +437,7 @@ button:active{transform:scale(0.98);}
 .upcoming-info{flex:1;}
 .upcoming-psw{font-size:13px;font-weight:500;color:var(--text);}
 .upcoming-time{font-size:12px;color:var(--muted);margin-top:2px;}
-.upcoming-badge{font-size:10px;padding:3px 10px;border-radius:100px;background:var(--green-l);color:var(--green);font-weight:600;flex-shrink:0;}
+.upcoming-badge{font-size:11px;padding:3px 10px;border-radius:100px;background:var(--green-l);color:var(--green);font-weight:600;flex-shrink:0;}
 
 /* CARE PLAN */
 .plan-text{padding:20px;font-size:14px;color:var(--text);line-height:1.8;}
@@ -449,9 +465,9 @@ button:active{transform:scale(0.98);}
 /* SATISFACTION STARS */
 .visit-stars{display:flex;align-items:center;gap:4px;margin-top:6px;flex-wrap:wrap;}
 .visit-stars.rated{font-size:14px;color:#c8a040;letter-spacing:1px;}
-.visit-stars.unrated .star-btn{background:none;border:none;font-size:18px;color:#c8d0c8;cursor:pointer;padding:0 1px;min-height:32px;min-width:28px;line-height:1;transition:color .15s;}
+.visit-stars.unrated .star-btn{background:none;border:none;font-size:18px;color:#c8d0c8;cursor:pointer;padding:0 1px;min-height:44px;min-width:28px;line-height:1;transition:color .15s;}
 .visit-stars.unrated .star-btn:hover,.visit-stars.unrated .star-btn:focus{color:#c8a040;}
-.stars-label{font-size:10px;color:var(--muted);letter-spacing:0.5px;margin-left:4px;}
+.stars-label{font-size:11px;color:var(--muted);letter-spacing:0.5px;margin-left:4px;}
 
 /* SKELETON */
 .skeleton-wrap{padding:24px 20px;}
@@ -477,7 +493,7 @@ button:active{transform:scale(0.98);}
 .map-sheet-drag{width:36px;height:4px;background:var(--border2);border-radius:2px;margin:12px auto 0;}
 .map-sheet-hdr{padding:12px 18px 10px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
 .map-sheet-title{font-family:var(--mono);font-size:12px;letter-spacing:2px;text-transform:uppercase;color:var(--teal3);}
-.map-sheet-close{background:none;border:none;color:var(--muted);font-size:18px;cursor:pointer;padding:4px 8px;min-height:36px;touch-action:manipulation;}
+.map-sheet-close{background:none;border:none;color:var(--muted);font-size:18px;cursor:pointer;padding:4px 8px;min-height:44px;touch-action:manipulation;}
 #visit-map{width:100%;height:340px;background:var(--bg3);border-bottom:1px solid var(--border);}
 .map-legend{padding:12px 18px;display:flex;flex-wrap:wrap;gap:8px;}
 .map-legend-item{display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:.5px;}
@@ -491,7 +507,7 @@ button:active{transform:scale(0.98);}
 .map-visit-info{flex:1;min-width:0;}
 .map-visit-name{font-size:13px;font-weight:500;color:var(--text);}
 .map-visit-time{font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:1px;}
-.map-visit-badge{font-family:var(--mono);font-size:10px;padding:3px 8px;border-radius:100px;border:1px solid;flex-shrink:0;}
+.map-visit-badge{font-family:var(--mono);font-size:11px;padding:3px 8px;border-radius:100px;border:1px solid;flex-shrink:0;}
 .map-visit-badge.active{color:var(--green);border-color:rgba(74,154,110,.4);background:rgba(74,154,110,.08);}
 .map-visit-badge.done{color:var(--muted);border-color:var(--border);}
 
@@ -503,10 +519,22 @@ button:active{transform:scale(0.98);}
   .section-title{font-size:11px}
   .map-sheet{border-radius:16px 16px 0 0;width:100%;left:0;right:0}
 }
+
+/* ── HERO STATUS CARD — calm, personal ── */
+.hero-status-line1{font-size:var(--fs-xl,1.75rem);font-weight:650;line-height:1.3;color:var(--text);margin:0 0 6px;}
+.hero-status-line2{font-size:var(--fs-base,1rem);color:var(--muted);line-height:1.5;}
+.hero-status-dot{width:10px;height:10px;border-radius:50%;background:var(--c-good,#4a9a6e);position:absolute;top:24px;right:24px;animation:heropulse 2.2s cubic-bezier(.22,.61,.36,1) infinite;}
+@keyframes heropulse{0%{box-shadow:0 0 0 0 rgba(46,125,91,.5)}70%{box-shadow:0 0 0 10px rgba(46,125,91,0)}100%{box-shadow:0 0 0 0 rgba(46,125,91,0)}}
+.hero-actions{display:flex;gap:12px;margin-top:20px;flex-wrap:wrap;}
+.hero-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:52px;padding:0 22px;border-radius:999px;font-size:var(--fs-base,1rem);font-weight:600;text-decoration:none;border:none;cursor:pointer;touch-action:manipulation;flex:1 1 auto;min-width:0;}
+.hero-btn-primary{background:var(--c-good,#4a9a6e);color:#fff;}
+.hero-btn-ghost{background:transparent;color:var(--text);border:1.5px solid var(--border2);}
+@media(prefers-reduced-motion:reduce){.hero-status-dot{animation:none}}
+
 @media(max-width:480px){
   .gate-card{width:min(380px,calc(100vw - 24px))!important;padding:24px 16px}
   .nav-bar{gap:0}
-  .nav-btn{padding:8px 4px;font-size:10px}
+  .nav-btn{padding:8px 4px;font-size:11px}
   #visit-map{height:260px}
 }
 </style>
@@ -861,6 +889,7 @@ async function loadPortal() {
       }
     }
     renderAll();
+    if (!window._sseConnected) { window._sseConnected = true; connectArrivalSSE(); }
   } catch (e) {
     document.getElementById('contentArea').innerHTML = emptyState(
       '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>',
@@ -959,11 +988,28 @@ function showTab(tab) {
       </div>` : '';
 
     html = renderPushPrompt() + incidentBanner + `
-      <div class="status-card">
-        <div class="status-eyebrow">Your loved one</div>
-        <div class="status-name">${client.first_name} ${client.last_name}</div>
-        <div class="status-detail">${client.schedule || 'Schedule on file'}</div>
-        <div class="status-badge"><span class="status-dot"></span>${statusMsg}</div>
+      <div class="status-card ${today_visit && !today_visit.time_out ? 'status-active' : today_visit ? 'status-complete' : 'status-none'}">
+        ${today_visit && !today_visit.time_out ? '<div class="hero-status-dot" aria-hidden="true"></div>' : ''}
+        <p class="hero-status-line1">${
+          today_visit && !today_visit.time_out
+            ? `${(today_visit.psw_name||'Your caregiver').split(' ')[0]} is with ${client.first_name} now`
+            : today_visit && today_visit.time_out
+            ? `Visit completed at ${fmtTime(today_visit.time_out)}`
+            : lastVisit
+            ? `Last visit: ${fmtDate(lastVisit.visit_date)}`
+            : `No visits scheduled yet`
+        }</p>
+        <p class="hero-status-line2">${
+          today_visit && !today_visit.time_out
+            ? `Arrived ${today_visit.time_in ? fmtTime(today_visit.time_in) : ''} · ends about ${today_visit.time_out ? fmtTime(today_visit.time_out) : 'later today'}`
+            : today_visit && today_visit.time_out
+            ? `${today_visit.psw_name||'Caregiver'} · ${fmtDate(today_visit.visit_date)}`
+            : client.schedule || 'Schedule on file'
+        }</p>
+        <div class="hero-actions">
+          ${(today_visit?.psw_name || psw?.name) ? `<a class="hero-btn hero-btn-primary" href="tel:${psw?.phone||''}">📞 Call ${(today_visit?.psw_name||psw?.name||'Caregiver').split(' ')[0]}</a>` : ''}
+          <a class="hero-btn hero-btn-ghost" href="tel:6473828047">Call Agency</a>
+        </div>
       </div>
       ${today_visit?.voice_note_url ? `<div style="margin-bottom:16px;padding:14px 16px;background:rgba(58,170,138,0.06);border:1px solid rgba(58,170,138,0.2);border-radius:12px;">
         <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;color:var(--accent);margin-bottom:8px;"><svg width="13" height="13" viewBox="0 0 14 14" fill="none" style="display:inline;vertical-align:middle;margin-right:3px"><rect x="4.5" y="1" width="5" height="7" rx="2.5" stroke="#6dbdd4" stroke-width="1.3"/><path d="M2.5 7a4.5 4.5 0 0 0 9 0" stroke="#6dbdd4" stroke-width="1.3"/><line x1="7" y1="11.5" x2="7" y2="13" stroke="#6dbdd4" stroke-width="1.3"/></svg> Voice message from ${(today_visit.psw_name||'your caregiver').split(' ')[0]}</div>
@@ -2020,6 +2066,60 @@ async function initVisitMap() {
   }
 }
 
+
+// ── ARRIVAL TOAST — real-time caregiver arrival notification ──
+function showArrivalToast(caregiver, timeStr) {
+  // Remove any existing toast
+  const existing = document.getElementById('arrival-toast');
+  if (existing) existing.remove();
+
+  const toast = document.createElement('div');
+  toast.id = 'arrival-toast';
+  toast.setAttribute('role', 'status');
+  toast.setAttribute('aria-live', 'polite');
+  toast.style.cssText = 'position:fixed;top:16px;left:50%;transform:translateX(-50%);z-index:999;background:var(--c-good-soft,rgba(74,154,110,.12));border:1.5px solid rgba(74,154,110,.35);border-radius:16px;padding:14px 18px;display:flex;align-items:center;gap:12px;box-shadow:0 8px 32px rgba(0,0,0,.25);max-width:calc(100vw - 32px);width:360px;';
+  toast.innerHTML = `
+    <div style="width:36px;height:36px;border-radius:50%;background:var(--c-good,#4a9a6e);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" width="18" height="18"><polyline points="20 6 9 17 4 12"/></svg>
+    </div>
+    <div style="flex:1;min-width:0;">
+      <div style="font-size:15px;font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escHtml(caregiver)} arrived at ${escHtml(timeStr)}</div>
+      <div style="font-size:12px;color:var(--muted);margin-top:2px;">Visit started</div>
+    </div>
+    <button onclick="this.parentElement.remove()" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:18px;padding:4px;min-height:44px;min-width:44px;" aria-label="Dismiss">×</button>
+  `;
+  document.body.appendChild(toast);
+  if (navigator.vibrate) navigator.vibrate(15);
+  // Auto dismiss after 8 seconds
+  setTimeout(() => { if (toast.parentNode) toast.remove(); }, 8000);
+  // Reload portal data to show updated visit
+  if (typeof loadPortal === 'function') setTimeout(() => loadPortal(true), 2000);
+}
+
+// ── SSE ARRIVAL WIRING ──
+function connectArrivalSSE() {
+  if (!window.slug || !window.pinVal) return;
+  if (!window.EventSource) return; // fallback — polling already handles updates
+  // Wire arrival events to toast
+  const es = new EventSource(`${R}/family/portal/${window.slug}?pin=${encodeURIComponent(window.pinVal)}&sse=1`);
+  es.addEventListener('arrival', e => {
+    try {
+      const d = JSON.parse(e.data);
+      const timeStr = d.time_in ? new Date('1970-01-01T'+d.time_in).toLocaleTimeString('en-CA',{hour:'2-digit',minute:'2-digit',hour12:false}) : '';
+      showArrivalToast(d.psw_name || 'Your caregiver', timeStr);
+    } catch {}
+  });
+  es.onerror = () => { es.close(); };
+}
+
+// ── Leaflet invalidateSize helper ──
+function familyInvalidateMap() {
+  ['_familyMap','_leafletMap','map'].forEach(k => {
+    if (window[k] && typeof window[k].invalidateSize === 'function') {
+      requestAnimationFrame(() => requestAnimationFrame(() => window[k].invalidateSize()));
+    }
+  });
+}
 </script>
 
 <!-- PSW PROFILE MODAL -->
