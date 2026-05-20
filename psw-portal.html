@@ -1614,7 +1614,7 @@ function updateShiftUI() {
     startElapsed();
   } else {
     // Only show manual signin card if no shifts are scheduled for today
-    const todayStr = new Date().toISOString().slice(0,10);
+    const todayStr = new Date().toLocaleDateString('en-CA',{timeZone:'America/Toronto'});
     const todayBookings = (scheduleData?.bookings || []).filter(b => b.scheduled_date === todayStr);
     signinCard.style.display = todayBookings.length ? 'none' : 'block';
     activeCard.style.display = 'none';
@@ -1658,7 +1658,7 @@ function renderHomeFeed() {
   updateSyncStatus();
   const el = document.getElementById('home-feed');
   if (!el) return;
-  const today = new Date().toISOString().slice(0,10);
+  const today = new Date().toLocaleDateString('en-CA',{timeZone:'America/Toronto'});
   const monthStr = today.slice(0,7);
   const allVisits = scheduleData?.completed_visits || [];
   const todayV = allVisits.filter(v => v.visit_date === today);
@@ -1759,7 +1759,7 @@ function renderWeek() {
   document.getElementById('week-label').textContent = `${fmtd(days[0].toISOString().slice(0,10))} – ${fmtd(days[13].toISOString().slice(0,10))}`;
   const bookings = scheduleData?.bookings || [];
   const visits = scheduleData?.completed_visits || [];
-  const todayStr = new Date().toISOString().slice(0,10);
+  const todayStr = new Date().toLocaleDateString('en-CA',{timeZone:'America/Toronto'});
   el.innerHTML = days.map((d, i) => {
     const ds = d.toISOString().slice(0,10);
     const isToday = ds === todayStr;
@@ -1767,6 +1767,22 @@ function renderWeek() {
     const dayVisits = visits.filter(v => v.visit_date === ds);
     const dayBookings = bookings.filter(b => b.scheduled_date === ds);
     let rows = '';
+    // Time-off blocks for this day
+    const timeOffToday = (scheduleData?.time_off || []).filter(t =>
+      t.from_date <= ds && t.to_date >= ds
+    );
+    timeOffToday.forEach(t => {
+      const typeLabel = { vacation:'🌴 Vacation', sick:'🤒 Sick', off:'⏸ Off' };
+      const typeColor = { vacation:'rgba(200,169,110,.15)', sick:'rgba(224,85,85,.12)', off:'rgba(100,100,120,.15)' };
+      const typeBorder= { vacation:'rgba(200,169,110,.4)', sick:'rgba(224,85,85,.35)', off:'rgba(100,100,120,.35)' };
+      rows += `<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border-radius:8px;background:${typeColor[t.type]||typeColor.off};border:1px solid ${typeBorder[t.type]||typeBorder.off};margin-bottom:4px;">
+        <div>
+          <div style="font-size:13px;font-weight:600;color:var(--text);">${typeLabel[t.type]||t.type}</div>
+          ${t.note?`<div style="font-size:11px;color:var(--muted);margin-top:2px;">${t.note}</div>`:''}
+        </div>
+        <span style="font-family:var(--mono);font-size:10px;letter-spacing:1px;color:var(--muted);">ALL DAY</span>
+      </div>`;
+    });
     dayVisits.forEach(v => {
       rows += `<div class="sched-shift"><div><div class="shift-client">${v.client_name||'—'}</div><div class="shift-time">${v.time_in||'—'} – ${v.time_out||'—'} · ${v.hours_worked||0}h</div></div><div class="shift-badge done">Done</div></div>`;
     });
@@ -1807,7 +1823,7 @@ function renderAvailableShifts() {
   const section = document.getElementById('avail-shifts-section');
   const list = document.getElementById('avail-shifts-list');
   if (!section || !list || !scheduleData) return;
-  const today = new Date().toISOString().slice(0,10);
+  const today = new Date().toLocaleDateString('en-CA',{timeZone:'America/Toronto'});
   const cutoff = new Date(); cutoff.setDate(cutoff.getDate() + 7);
   const cutoffStr = cutoff.toISOString().slice(0,10);
   // Show unassigned shifts in the next 7 days
@@ -1962,7 +1978,7 @@ function showCheckinConfirm(clientName, latitude, longitude, within_range, btn) 
   document.getElementById('cc-client-name').textContent = clientName;
 
   // Find scheduled time from today's bookings
-  const today = new Date().toISOString().slice(0,10);
+  const today = new Date().toLocaleDateString('en-CA',{timeZone:'America/Toronto'});
   const booking = (window._scheduleData||[]).find(b =>
     b.client_name === clientName && b.scheduled_date === today
   );
@@ -2382,7 +2398,7 @@ async function loadClients() {
       const name = ((c.first_name||'') + ' ' + (c.last_name||'')).trim() || c.full_name || c.client_name || '—';
       const ini = name.split(' ').map(w=>w[0]||'').join('').toUpperCase().slice(0,2);
       const safeName = name.replace(/'/g,'').replace(/"/g,'');
-      const today = new Date().toISOString().slice(0,10);
+      const today = new Date().toLocaleDateString('en-CA',{timeZone:'America/Toronto'});
       const todayShift = (scheduleData?.bookings||[]).find(b => b.scheduled_date === today && (b.client_name||'').toLowerCase().includes((c.first_name||name).toLowerCase()));
       return `<div class="card" onclick="openClientSheetByName('${safeName}')" style="cursor:pointer;">
         <div class="card-header">
@@ -2835,7 +2851,7 @@ function openClientSheetByName(clientName) {
   if (!clientName) return;
   // Pull from scheduleData.clients (populated by schedule-upcoming)
   const clients = scheduleData?.clients || window._pswClients || [];
-  const today = new Date().toISOString().slice(0,10);
+  const today = new Date().toLocaleDateString('en-CA',{timeZone:'America/Toronto'});
   // Try to match by first name or full name
   let c = clients.find(cl => {
     const full = ((cl.first_name||'') + ' ' + (cl.last_name||'')).trim();
@@ -2993,7 +3009,7 @@ function closeVisitDetail() {
 // ── LIVE OPS ──
 function renderLiveOps() {
   if (!scheduleData) { loadSchedule().then(renderLiveOps); return; }
-  const today = new Date().toISOString().slice(0,10);
+  const today = new Date().toLocaleDateString('en-CA',{timeZone:'America/Toronto'});
   const visits = scheduleData.completed_visits || [];
   const bookings = scheduleData.bookings || [];
 
@@ -3211,7 +3227,7 @@ function recordCarePlanAck(clientName) {
 
 function updateTodayProgress() {
   if (!scheduleData) return;
-  const today = new Date().toISOString().slice(0,10);
+  const today = new Date().toLocaleDateString('en-CA',{timeZone:'America/Toronto'});
   const todayBookings = (scheduleData.bookings||[]).filter(b => b.scheduled_date === today);
   const todayDone = (scheduleData.completed_visits||[]).filter(v => v.visit_date === today);
   const total = todayBookings.length;
@@ -3343,13 +3359,13 @@ function openCalPopup(dateStr) {
   const d = new Date(dateStr + 'T12:00:00');
   const dayName = d.toLocaleDateString('en-CA', { weekday: 'long' });
   const monthDay = d.toLocaleDateString('en-CA', { month: 'long', day: 'numeric' });
-  const isToday = dateStr === new Date().toISOString().slice(0,10);
+  const isToday = dateStr === new Date().toLocaleDateString('en-CA',{timeZone:'America/Toronto'});
   if (dateEl) dateEl.textContent = (isToday ? 'Today · ' : '') + dayName + ', ' + monthDay;
 
   // Get shifts for this day
   const bookings = (scheduleData?.bookings || []).filter(b => b.scheduled_date === dateStr);
   const completed = (scheduleData?.completed_visits || []).filter(v => v.visit_date === dateStr);
-  const today = new Date().toISOString().slice(0,10);
+  const today = new Date().toLocaleDateString('en-CA',{timeZone:'America/Toronto'});
 
   if (!bookings.length && !completed.length) {
     body.innerHTML = '<div class="cal-popup-empty">No shifts scheduled</div>';
@@ -3430,7 +3446,7 @@ function updateTimeRemaining() {
   if (!el) return;
 
   // Get scheduled end time from bookings
-  const today = new Date().toISOString().slice(0,10);
+  const today = new Date().toLocaleDateString('en-CA',{timeZone:'America/Toronto'});
   const booking = (scheduleData?.bookings||[]).find(b =>
     b.client_name === activeVisit.client_name && b.scheduled_date === today
   );
@@ -3521,7 +3537,7 @@ function getAlertBadges(c) {
 
 // ── MINI CAL ROUTE MAP ──
 function openRouteMap() {
-  const today = new Date().toISOString().slice(0,10);
+  const today = new Date().toLocaleDateString('en-CA',{timeZone:'America/Toronto'});
   const todayBookings = (scheduleData?.bookings||[])
     .filter(b => b.scheduled_date === today)
     .sort((a,b) => (a.scheduled_time||'').localeCompare(b.scheduled_time||''));
@@ -3544,7 +3560,7 @@ function openRouteMap() {
 
 // ── HEADING TO NEXT CLIENT ──
 function headingToNextClient() {
-  const today = new Date().toISOString().slice(0,10);
+  const today = new Date().toLocaleDateString('en-CA',{timeZone:'America/Toronto'});
   const done = (scheduleData?.completed_visits||[]).filter(v => v.visit_date === today);
   const upcoming = (scheduleData?.bookings||[])
     .filter(b => b.scheduled_date === today && !done.some(v => v.client_name === b.client_name) && (!activeVisit || activeVisit.client_name !== b.client_name))
