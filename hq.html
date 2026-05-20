@@ -1059,6 +1059,16 @@ button,.sbtn,.btn,.bnav-item,.nav-tab,.icon-btn{
   
   /* Hide bottom nav on desktop */
   .bottom-nav{ display:none !important; }
+  /* ── FULL-HIDE MODE ── */
+  body.sidebar-hidden .sidebar{
+    transform:translateX(-100%) !important;
+    width:240px;
+  }
+  body.sidebar-hidden .topbar,
+  body.sidebar-hidden .stats-strip,
+  body.sidebar-hidden .section{
+    margin-left:0 !important;
+  }
   /* Show sidebar close chevron on desktop */
   /* KPI row 4 cols on desktop */
   .kpi-row{
@@ -1077,6 +1087,32 @@ button,.sbtn,.btn,.bnav-item,.nav-tab,.icon-btn{
   body.sidebar-rail .section{ margin-left:60px; }
 }
 
+
+/* ── SIDEBAR REOPEN TAB ── */
+#sidebar-reopen-tab{
+  display:none;
+  position:fixed;
+  top:50%;
+  left:0;
+  transform:translateY(-50%);
+  z-index:210;
+  background:var(--bg2);
+  border:1px solid var(--border2);
+  border-left:none;
+  border-radius:0 8px 8px 0;
+  padding:12px 8px;
+  cursor:pointer;
+  transition:opacity .2s;
+  writing-mode:vertical-rl;
+  font-family:var(--mono);
+  font-size:10px;
+  letter-spacing:1px;
+  color:var(--muted2);
+  gap:6px;
+  align-items:center;
+}
+#sidebar-reopen-tab:hover{ background:var(--bg3); color:var(--text); }
+body.sidebar-hidden #sidebar-reopen-tab{ display:flex; }
 </style>
 </head>
 <body>
@@ -2030,6 +2066,7 @@ button,.sbtn,.btn,.bnav-item,.nav-tab,.icon-btn{
       <span style="font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;">Collapse</span>
     </div>
   </div>
+<div id="sidebar-reopen-tab" onclick="openSidebar()" title="Open sidebar">▶ HQ</div>
 
 <!-- SIDEBAR OVERLAY -->
 <div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebar()"></div>
@@ -7409,16 +7446,40 @@ const _isDesktop = () => window.innerWidth >= 900;
 
 function toggleSidebar() {
   if (_isDesktop()) {
-    // Desktop: toggle rail mode (never fully hide sidebar)
-    const isRail = document.getElementById('sidebar').classList.toggle('rail');
-    document.body.classList.toggle('sidebar-rail', isRail);
-    try { localStorage.setItem('hq_sidebar_rail', isRail ? '1' : '0'); } catch {}
+    // Desktop: cycle full → rail → hidden → full
+    const sidebar = document.getElementById('sidebar');
+    const isRail    = sidebar.classList.contains('rail');
+    const isHidden  = document.body.classList.contains('sidebar-hidden');
+    if (!isRail && !isHidden) {
+      // full → rail
+      sidebar.classList.add('rail');
+      document.body.classList.add('sidebar-rail');
+      document.body.classList.remove('sidebar-hidden');
+      try { localStorage.setItem('hq_sidebar_state','rail'); } catch {}
+    } else if (isRail && !isHidden) {
+      // rail → hidden
+      sidebar.classList.remove('rail');
+      document.body.classList.remove('sidebar-rail');
+      document.body.classList.add('sidebar-hidden');
+      try { localStorage.setItem('hq_sidebar_state','hidden'); } catch {}
+    } else {
+      // hidden → full (also called from reopen tab)
+      openSidebar();
+    }
   } else {
     // Mobile: slide in/out with overlay
     _sidebarOpen = !_sidebarOpen;
     document.getElementById('sidebar').classList.toggle('open', _sidebarOpen);
     document.getElementById('sidebar-overlay').classList.toggle('open', _sidebarOpen);
   }
+}
+
+function openSidebar() {
+  const sidebar = document.getElementById('sidebar');
+  sidebar.classList.remove('rail');
+  document.body.classList.remove('sidebar-rail');
+  document.body.classList.remove('sidebar-hidden');
+  try { localStorage.setItem('hq_sidebar_state','full'); } catch {}
 }
 
 function closeSidebar() {
@@ -7434,10 +7495,12 @@ function initSidebar() {
     // This prevents "sidebar disappeared" when resizing or loading after a previous collapse
     document.body.classList.remove('sidebar-rail');
     document.getElementById('sidebar').classList.remove('rail');
-    // Clear legacy broken keys
+    // Always start full — clear any persisted state
+    document.body.classList.remove('sidebar-hidden');
     try {
       localStorage.removeItem('hq_sidebar_open');
       localStorage.removeItem('hq_sidebar_rail');
+      localStorage.removeItem('hq_sidebar_state');
     } catch {}
   }
 }
@@ -7446,13 +7509,13 @@ document.addEventListener('DOMContentLoaded', initSidebar);
 // Also handle resize (going from mobile to desktop)
 window.addEventListener('resize', () => {
   if (_isDesktop()) {
-    // Transitioning to desktop: always start full sidebar (not rail)
-    // User must explicitly click Collapse to enter rail mode
+    // Transitioning to desktop: always start full sidebar
     _sidebarOpen = false;
     document.getElementById('sidebar').classList.remove('open');
+    document.getElementById('sidebar').classList.remove('rail');
     document.getElementById('sidebar-overlay').classList.remove('open');
     document.body.classList.remove('sidebar-rail');
-    document.getElementById('sidebar').classList.remove('rail');
+    document.body.classList.remove('sidebar-hidden');
   } else {
     // Going to mobile: remove desktop sidebar classes
     document.body.classList.remove('sidebar-rail');
