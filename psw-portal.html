@@ -1499,7 +1499,7 @@ async function loadSchedule() {
   try {
     const now = new Date();
     // Start from 14 days ago to show recent history, extend 60 days forward for next-month shifts
-    const past = new Date(now); past.setDate(now.getDate() - 14);
+    const past = new Date(now.getFullYear(), now.getMonth(), 1); // Start of current month
     const fromDate = past.toISOString().slice(0, 10);
     const res = await fetch(`${API}/psw/schedule-upcoming?psw_name=${encodeURIComponent(pswName)}&pin=${pswPin}&operator_id=${pswOperatorId}&from_date=${fromDate}`);
     const d = await res.json();
