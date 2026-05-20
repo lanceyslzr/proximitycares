@@ -1002,17 +1002,30 @@ button,.sbtn,.btn,.bnav-item,.nav-tab,.icon-btn{
 
 /* ═══ DESKTOP LAYOUT: sidebar pinned left, content offset ═══ */
 @media(min-width:900px){
+  /* ── DESKTOP: sidebar always visible, never hides ── */
   .sidebar{
-    transform:translateX(0);
+    transform:translateX(0) !important;
     position:fixed;
     top:0;left:0;bottom:0;
     width:240px;
-    z-index:500;
+    z-index:200;
     overflow-y:auto;
+    transition:width .2s cubic-bezier(.4,0,.2,1);
   }
-  .sidebar.desktop-collapsed{
-    transform:translateX(-100%);
+  /* Rail mode: collapse to icon-only 60px */
+  .sidebar.rail{
+    width:60px;
+    overflow:hidden;
   }
+  .sidebar.rail .sn-label{ display:none; }
+  .sidebar.rail .sn-item{ justify-content:center; padding:11px 0; }
+  .sidebar.rail .sn-icon{ margin:0; }
+  .sidebar.rail .sidebar-section{ display:none; }
+  .sidebar.rail .sidebar-head .sidebar-logo{ display:none; }
+  .sidebar.rail .sidebar-head{ justify-content:center; padding:16px 0; }
+  .sidebar.rail .sidebar-close{ display:none; }
+  .sidebar.rail .sidebar-collapse-btn span{ display:none; }
+  .sidebar.rail .sidebar-collapse-btn svg{ transform:rotate(180deg); }
   /* Topbar offset handled by JS class on body */
   .topbar{
     padding-left:24px;
@@ -1025,9 +1038,13 @@ button,.sbtn,.btn,.bnav-item,.nav-tab,.icon-btn{
   .sidebar-collapse-btn{display:flex !important;}
   .sidebar-close{display:none;}
   /* Push content right when sidebar is open on desktop */
-  body.desktop-sidebar-open .section{
+  /* Content offset: full sidebar or rail */
+  .section{
     margin-left:240px;
-    transition:margin-left .25s cubic-bezier(.4,0,.2,1);
+    transition:margin-left .2s cubic-bezier(.4,0,.2,1);
+  }
+  body.sidebar-rail .section{
+    margin-left:60px;
   }
   
   
@@ -1044,14 +1061,13 @@ button,.sbtn,.btn,.bnav-item,.nav-tab,.icon-btn{
 }
 @media(min-width:1200px){
   .sidebar{width:260px;}
-  body.desktop-sidebar-open .section{
-    margin-left:260px;
-  }
+  .section{ margin-left:260px; }
+  body.sidebar-rail .section{ margin-left:60px; }
 }
 
 </style>
 </head>
-<body class="desktop-sidebar-open">
+<body>
 
 <!-- LOCK -->
 <div id="lock">
@@ -7184,11 +7200,10 @@ const _isDesktop = () => window.innerWidth >= 900;
 
 function toggleSidebar() {
   if (_isDesktop()) {
-    // Desktop: toggle body class, animate content shift
-    const open = !document.body.classList.contains('desktop-sidebar-open');
-    document.body.classList.toggle('desktop-sidebar-open', open);
-    document.getElementById('sidebar').classList.toggle('desktop-collapsed', !open);
-    try { localStorage.setItem('hq_sidebar_open', open ? '1' : '0'); } catch {}
+    // Desktop: toggle rail mode (never fully hide sidebar)
+    const isRail = document.getElementById('sidebar').classList.toggle('rail');
+    document.body.classList.toggle('sidebar-rail', isRail);
+    try { localStorage.setItem('hq_sidebar_rail', isRail ? '1' : '0'); } catch {}
   } else {
     // Mobile: slide in/out with overlay
     _sidebarOpen = !_sidebarOpen;
@@ -7206,11 +7221,18 @@ function closeSidebar() {
 
 function initSidebar() {
   if (_isDesktop()) {
-    // Restore desktop preference (default: open)
-    const saved = localStorage.getItem('hq_sidebar_open');
-    const open = saved === null ? true : saved === '1';
-    document.body.classList.toggle('desktop-sidebar-open', open);
-    document.getElementById('sidebar').classList.toggle('desktop-collapsed', !open);
+    // Restore rail preference from localStorage (default: full sidebar)
+    const saved = localStorage.getItem('hq_sidebar_rail');
+    const isRail = saved === '1';
+    if (isRail) {
+      document.body.classList.add('sidebar-rail');
+      document.getElementById('sidebar').classList.add('rail');
+    } else {
+      document.body.classList.remove('sidebar-rail');
+      document.getElementById('sidebar').classList.remove('rail');
+    }
+    // Clear old broken key that was hiding the sidebar
+    try { localStorage.removeItem('hq_sidebar_open'); } catch {}
   }
 }
 // Run on load
@@ -7223,7 +7245,9 @@ window.addEventListener('resize', () => {
     document.getElementById('sidebar-overlay').classList.remove('open');
     initSidebar();
   } else {
-    document.body.classList.remove('desktop-sidebar-open');
+    // Going to mobile: remove desktop classes
+    document.body.classList.remove('sidebar-rail');
+    document.getElementById('sidebar').classList.remove('rail');
   }
 });
 
