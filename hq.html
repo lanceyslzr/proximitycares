@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -332,7 +331,7 @@ button:active{transform:scale(0.98);}
 .section.active{display:block;}
 .section-header{display:flex;align-items:center;justify-content:space-between;padding:12px 14px 8px;}
 .section-title{font-size:12px;letter-spacing:3px;text-transform:uppercase;color:var(--muted2);}
-.sect-action{font-family:var(--mono);font-size:12px;letter-spacing:1px;text-transform:uppercase;color:var(--teal2);padding:7px 12px;border:1px solid var(--border2);border-radius:4px;cursor:pointer;min-height:44px;display:flex;align-items:center;touch-action:manipulation;-webkit-tap-highlight-color:transparent;}
+.sect-action{font-family:var(--mono);font-size:12px;letter-spacing:1px;text-transform:uppercase;color:var(--teal2);padding:7px 12px;border:1px solid var(--border2);border-radius:4px;cursor:pointer;min-height:44px;display:flex;align-items:center;touch-action:manipulation;-webkit-tap-highlight-color:transparent;white-space:nowrap;flex-shrink:0;}
 .sect-action:active{background:rgba(61,138,122,.08);border-color:var(--teal2);}
 
 /* CARDS */
@@ -486,7 +485,7 @@ button:active{transform:scale(0.98);}
 .bnav-lbl{font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;}
 
 /* TOAST */
-.toast{position:fixed;bottom:calc(70px + var(--safe-bottom));left:50%;transform:translateX(-50%) translateY(16px);background:var(--bg2);border:1px solid var(--border2);color:var(--text);font-family:var(--mono);font-size:11px;letter-spacing:1px;padding:10px 18px;border-radius:100px;z-index:500;opacity:0;transition:all .3s;pointer-events:none;white-space:nowrap;max-width:90vw;overflow:hidden;text-overflow:ellipsis;}
+.toast{position:fixed;bottom:calc(80px + var(--safe-bottom));left:50%;transform:translateX(-50%) translateY(16px);background:#0f1418;border:1px solid var(--teal2);color:var(--text);font-family:var(--mono);font-size:12px;letter-spacing:1px;padding:12px 22px;border-radius:100px;z-index:1100;opacity:0;transition:all .3s;pointer-events:none;white-space:nowrap;max-width:88vw;overflow:hidden;text-overflow:ellipsis;box-shadow:0 8px 24px rgba(0,0,0,.5),0 0 0 4px rgba(15,20,24,.6);}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
 .toast.ok{border-color:var(--teal2);color:var(--teal2);}
 .toast.err{border-color:var(--red);color:var(--red);}
@@ -950,6 +949,54 @@ button,.sbtn,.btn,.bnav-item,.nav-tab,.icon-btn{
 }
 @media(min-width:769px) {
   .kpi-grid { display:none; }
+}
+
+/* ═══ MOBILE: Schedule toolbar horizontal scroll ═══ */
+.sched-toolbar-row::-webkit-scrollbar{display:none;}
+@media(max-width:768px){
+  .sched-toolbar-row{margin-right:-12px;padding-right:12px;}
+  .sched-toolbar-row .sect-action{font-size:11px;padding:8px 10px;}
+}
+
+/* ═══ NEW MOBILE VIEW: HQ Today dashboard reflows for mobile ═══ */
+@media(max-width:768px){
+  /* Section headers: stack title above actions */
+  .section-header{flex-wrap:wrap;gap:8px;padding:14px 12px 8px;}
+  .section-header > .section-title{flex:1 1 100%;font-size:12px;}
+  
+  /* KPI grids: 2 cols not 4 */
+  .kpi-row{display:grid !important;grid-template-columns:1fr 1fr !important;gap:8px;}
+  .kpi-card{padding:14px 12px !important;}
+  .kpi-val{font-size:24px !important;}
+  .kpi-label{font-size:9px !important;letter-spacing:1.2px;}
+  
+  /* Today section: compact spacing */
+  .nav-tabs{overflow-x:auto;overflow-y:hidden;flex-wrap:nowrap;scrollbar-width:none;-webkit-overflow-scrolling:touch;}
+  .nav-tabs::-webkit-scrollbar{display:none;}
+  .nav-tab{flex-shrink:0;white-space:nowrap;}
+  
+  /* Tables become scrollable cards */
+  .visit-row{flex-wrap:wrap;}
+  .visit-row > *{min-width:0;}
+  
+  /* Live map: smaller height on mobile */
+  #leaflet-map{height:260px !important;}
+  
+  /* FullCalendar: compact mobile */
+  .fc-toolbar{flex-direction:column;gap:8px;align-items:stretch;}
+  .fc-toolbar-chunk{display:flex;justify-content:center;}
+  .fc .fc-button-group{gap:2px;}
+  .fc .fc-button{padding:6px 8px !important;font-size:9px !important;}
+  .fc-toolbar-title{font-size:14px !important;text-align:center;}
+  
+  /* Toast: don't overlap bottom nav */
+  .toast{bottom:calc(82px + var(--safe-bottom)) !important;font-size:11px !important;padding:10px 18px !important;max-width:80vw !important;}
+}
+
+@media(max-width:480px){
+  .kpi-val{font-size:20px !important;}
+  .section-header > div:not(.section-title){gap:4px !important;}
+  .sect-action{font-size:10px !important;padding:7px 8px !important;}
 }
 </style>
 </head>
@@ -1743,7 +1790,7 @@ button,.sbtn,.btn,.bnav-item,.nav-tab,.icon-btn{
   </div>
   <div class="section-header">
     <span class="section-title">Weekly Schedule</span>
-    <div style="display:flex;gap:6px;">
+    <div class="sched-toolbar-row" style="display:flex;gap:6px;overflow-x:auto;overflow-y:hidden;flex-wrap:nowrap;scrollbar-width:none;-ms-overflow-style:none;-webkit-overflow-scrolling:touch;max-width:100%;padding-bottom:2px;">
       <div class="sect-action" onclick="openAddShift('','')">+ Shift</div>
       <div class="sect-action" onclick="openBulkSchedule()" style="color:var(--gold);border-color:rgba(200,169,110,.3);">+ Bulk Week</div>
       <div class="sect-action" onclick="openImportBookings()" style="color:var(--teal3);border-color:rgba(125,202,189,.3);">↑ Import CSV</div>
