@@ -2535,7 +2535,7 @@ function openBroadcastSheet() {
   }
   // Default date to today
   const dateEl = document.getElementById('bs-date');
-  if (dateEl) dateEl.value = new Date().toISOString().slice(0,10);
+  if (dateEl) dateEl.value = new Date().toLocaleDateString('en-CA',{timeZone:'America/Toronto'});
   overlay.style.display = 'block';
   sheet.style.display = 'block';
 }
@@ -2572,7 +2572,7 @@ async function submitBroadcast() {
 
 async function loadShiftOffersHQ() {
   try {
-    const today = new Date().toISOString().slice(0,10);
+    const today = new Date().toLocaleDateString('en-CA',{timeZone:'America/Toronto'});
     const r = await fetch(`${API}/hq/shift-offers?operator_id=${currentOp}&from_date=${today}`, { headers: { 'x-hq-token': window._hqToken || sessionStorage.getItem('hq_token') || '' } });
     const d = await r.json();
     const offers = d.offers || [];
@@ -2956,7 +2956,7 @@ function openClientSchedule(clientName) {
   showSect('schedule');
   setTimeout(() => {
     // openAddShift(pswName, date, clientName)
-    openAddShift('', new Date().toISOString().slice(0,10), clientName);
+    openAddShift('', new Date().toLocaleDateString('en-CA',{timeZone:'America/Toronto'}), clientName);
     // Pre-select client in the dropdown
     const sel = document.getElementById('ss-client');
     if (sel) {
@@ -3017,7 +3017,7 @@ function renderClients() {
     const pswChip = c.assigned_psw
       ? `<span class="card-info-chip">PSW: ${c.assigned_psw.split(' ')[0]}</span>`
       : `<span class="card-info-chip warn">⚑ Unassigned</span>`;
-    const onShiftNow = (D.visits||[]).some(v => v.client_name===name && v.visit_date===new Date().toISOString().slice(0,10) && v.time_in && !v.time_out);
+    const onShiftNow = (D.visits||[]).some(v => v.client_name===name && v.visit_date===new Date().toLocaleDateString('en-CA',{timeZone:'America/Toronto'}) && v.time_in && !v.time_out);
     const onShiftChip = onShiftNow ? `<span class="card-info-chip active" style="color:var(--green2);border-color:rgba(74,154,110,.3);">⬤ On Shift</span>` : '';
     return `
     <div class="card">
@@ -3406,7 +3406,7 @@ function renderPSWs() {
   const el = document.getElementById('psws-list');
   if (!el.querySelector('.card')) showSkeleton('psws-list', 6, true);
   const merged = getMergedPSWList();
-  const today = new Date().toISOString().slice(0,10);
+  const today = new Date().toLocaleDateString('en-CA',{timeZone:'America/Toronto'});
   const in90 = new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString().slice(0,10);
   el.innerHTML = merged.map(p => {
     const ini = p.name.split(' ').map(w=>w[0]).join('').toUpperCase();
@@ -3426,7 +3426,7 @@ function renderPSWs() {
       ? `<span style="font-family:var(--mono);font-size:11px;letter-spacing:1px;padding:2px 6px;border-radius:100px;border:1px solid ${probationSoon?'rgba(224,85,85,.4)':'rgba(224,154,61,.4)'};color:${probationSoon?'var(--red)':'var(--amber)'};margin-left:4px;">PROBATION${probationSoon?' ⚠':''}</span>`
       : '';
     // On-shift status
-    const todayStr2 = new Date().toISOString().slice(0,10);
+    const todayStr2 = new Date().toLocaleDateString('en-CA',{timeZone:'America/Toronto'});
     const activeShift = (D.visits||[]).find(v => v.psw_name===p.name && v.visit_date===todayStr2 && v.time_in && !v.time_out);
     const doneToday = (D.visits||[]).find(v => v.psw_name===p.name && v.visit_date===todayStr2 && v.time_out);
     const pswVisits = (D.visits||[]).filter(v => v.psw_name===p.name).sort((a,b) => (b.visit_date||'').localeCompare(a.visit_date||''));
@@ -4960,7 +4960,7 @@ function _initFC() {
   const clients = D.clients || [];
 
   // PSW capacity sidebar — filterable for 50+ PSW scale
-  const _capToday = new Date().toISOString().slice(0,10);
+  const _capToday = new Date().toLocaleDateString('en-CA',{timeZone:'America/Toronto'});
   const _onShiftToday = new Set(
     (D.bookings||[]).filter(b => b.scheduled_date===_capToday && b.status!=='cancelled' && b.assigned_to)
       .map(b => b.assigned_to)
@@ -5393,7 +5393,7 @@ function openAddShift(pswName, date, clientName) {
     return;
   }
   document.getElementById('ss-title').textContent = 'Add Shift';
-  document.getElementById('ss-date').value = date || new Date().toISOString().slice(0,10);
+  document.getElementById('ss-date').value = date || new Date().toLocaleDateString('en-CA',{timeZone:'America/Toronto'});
   document.getElementById('ss-time').value = '08:00';
   document.getElementById('ss-duration').value = '480';
   document.getElementById('ss-end').value = '17:00';
@@ -5695,7 +5695,7 @@ function openSwapSheet(preselectPSW) {
   const toSel = document.getElementById('swap-to');
   fromSel.innerHTML = '<option value="">Select PSW...</option>' + psws.map(p => `<option value="${p.name}" ${p.name===preselectPSW?'selected':''}>${p.name}</option>`).join('');
   toSel.innerHTML = '<option value="">Select replacement PSW...</option>' + psws.map(p => `<option value="${p.name}">${p.name}</option>`).join('');
-  const today = new Date().toISOString().slice(0,10);
+  const today = new Date().toLocaleDateString('en-CA',{timeZone:'America/Toronto'});
   document.getElementById('swap-from-date').value = today;
   document.getElementById('swap-to-date').value = '';
   openSheet('swap-sheet');
@@ -6539,7 +6539,7 @@ async function exportPayrollCSV() {
     const blob = await res.blob();
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
-    a.download = `payroll_${new Date().toISOString().slice(0,10)}.csv`;
+    a.download = `payroll_${new Date().toLocaleDateString('en-CA',{timeZone:'America/Toronto'})}.csv`;
     a.click();
     showToast('Payroll CSV downloaded', 'ok');
   } catch(e) { showToast(e.message, 'err'); }
@@ -6630,7 +6630,7 @@ async function renderAttendance() {
     const d = await res.json();
     const visits = d.visits || [];
     const psws = D?.psws || [];
-    const today = new Date().toISOString().slice(0,10);
+    const today = new Date().toLocaleDateString('en-CA',{timeZone:'America/Toronto'});
     const now = new Date();
     const pswStatus = {};
     psws.forEach(p => { pswStatus[p.full_name] = { name: p.full_name, status: 'off', client: '—' }; });
@@ -6664,7 +6664,7 @@ function renderVacantVisits() {
   const el = document.getElementById('vacant-list');
   const countEl = document.getElementById('vacant-count');
   if (!el) return;
-  const today = new Date().toISOString().slice(0,10);
+  const today = new Date().toLocaleDateString('en-CA',{timeZone:'America/Toronto'});
   const cutoff = new Date(); cutoff.setDate(cutoff.getDate()+7);
   const cutoffStr = cutoff.toISOString().slice(0,10);
   const vacant = (D?.bookings||[]).filter(b => (!b.assigned_to||b.assigned_to.trim()==='') && b.scheduled_date >= today && b.scheduled_date <= cutoffStr && b.status !== 'cancelled');
@@ -6677,7 +6677,7 @@ function renderVacantVisits() {
 // ── OVERVIEW DASHBOARD ──
 // ── SYSTEM HEALTH CARD (replaced onboarding checklist) ──
 async function renderSystemHealth() {
-  const today = new Date().toISOString().slice(0,10);
+  const today = new Date().toLocaleDateString('en-CA',{timeZone:'America/Toronto'});
   const visits = D.visits || [];
   const psws = D.psws || [];
 
@@ -7051,7 +7051,7 @@ function openManualVisitSheet() {
     clients.map(c => { const n = (c.first_name + ' ' + (c.last_name||'')).trim(); return '<option value="' + n + '">' + n + '</option>'; }).join('');
   // Default date to today
   const dateEl = document.getElementById('mv-date');
-  if (dateEl) dateEl.value = new Date().toISOString().slice(0,10);
+  if (dateEl) dateEl.value = new Date().toLocaleDateString('en-CA',{timeZone:'America/Toronto'});
   openSheet('manual-visit-sheet');
 }
 
@@ -7429,7 +7429,7 @@ function toggleNotifications() {
 
 function updateNotifications() {
   const alerts = [];
-  const today = new Date().toISOString().slice(0,10);
+  const today = new Date().toLocaleDateString('en-CA',{timeZone:'America/Toronto'});
   const in30 = new Date(); in30.setDate(in30.getDate() + 30);
 
   // Open incidents
@@ -7681,7 +7681,7 @@ async function runChiefOfStaff() {
   if (!cosEl) return;
   cosEl.innerHTML = '<div class="cos-loading"><span style="animation:livepulse 1.5s infinite;display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--teal2);margin-right:8px;"></span>Analysing agency data...</div>';
 
-  const today = new Date().toISOString().slice(0,10);
+  const today = new Date().toLocaleDateString('en-CA',{timeZone:'America/Toronto'});
   const visits = D.visits||[];
   const clients = D.clients||[];
   const bookings = D.bookings||[];
@@ -8084,7 +8084,7 @@ const _RV_TIME_W  = 52;   // px for time label
 const _RV_START   = 6;    // 06:00
 const _RV_END     = 22;   // 22:00
 let   _rvActive   = false;
-let   _rvDate     = new Date().toISOString().slice(0,10);
+let   _rvDate     = new Date().toLocaleDateString('en-CA',{timeZone:'America/Toronto'});
 let   _rvDragSrc  = null; // { bookingId, pswName }
 
 function toggleResourceView() {
@@ -8145,7 +8145,7 @@ function renderResourceView() {
   const visits   = (D.visits || []).filter(v => v.visit_date === _rvDate);
   const liveSet  = new Set(visits.filter(v => v.status === 'in_progress').map(v => v.psw_name));
   const slots    = _rvSlots();
-  const today    = new Date().toISOString().slice(0,10);
+  const today    = new Date().toLocaleDateString('en-CA',{timeZone:'America/Toronto'});
   const isToday  = _rvDate === today;
 
   // Conflict detection for this day
@@ -8192,7 +8192,7 @@ function renderResourceView() {
       <button onclick="_rvDate=_rvAddDay(_rvDate,-1);renderResourceView()" style="font-family:var(--mono);font-size:12px;padding:6px 12px;background:var(--bg3);border:1px solid var(--border);border-radius:5px;color:var(--text);cursor:pointer;min-height:44px;">‹ Prev</button>
       <div style="font-family:var(--sans);font-size:15px;font-weight:500;color:var(--text);flex:1;text-align:center;">${_rvFmtDate(_rvDate)}${isToday?' <span style="font-family:var(--mono);font-size:10px;color:var(--teal2);background:rgba(61,138,122,.1);border:1px solid rgba(61,138,122,.2);border-radius:3px;padding:2px 6px;margin-left:6px;">TODAY</span>':''}</div>
       <button onclick="_rvDate=_rvAddDay(_rvDate,1);renderResourceView()" style="font-family:var(--mono);font-size:12px;padding:6px 12px;background:var(--bg3);border:1px solid var(--border);border-radius:5px;color:var(--text);cursor:pointer;min-height:44px;">Next ›</button>
-      <button onclick="_rvDate=new Date().toISOString().slice(0,10);renderResourceView()" style="font-family:var(--mono);font-size:11px;letter-spacing:1px;padding:6px 10px;background:rgba(61,138,122,.1);border:1px solid rgba(61,138,122,.3);border-radius:5px;color:var(--teal2);cursor:pointer;min-height:44px;">Today</button>
+      <button onclick="_rvDate=new Date().toLocaleDateString('en-CA',{timeZone:'America/Toronto'});renderResourceView()" style="font-family:var(--mono);font-size:11px;letter-spacing:1px;padding:6px 10px;background:rgba(61,138,122,.1);border:1px solid rgba(61,138,122,.3);border-radius:5px;color:var(--teal2);cursor:pointer;min-height:44px;">Today</button>
     </div>
 
     <!-- GRID WRAPPER -->
