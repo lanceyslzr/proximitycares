@@ -1876,9 +1876,10 @@ button,.sbtn,.btn,.bnav-item,.nav-tab,.icon-btn{
     </div>
   </div>
 
-  <!-- Broadcast button at top of schedule -->
-  <div style="margin:10px 12px 0;display:flex;gap:8px;align-items:center;">
+  <!-- Broadcast + Time Off buttons -->
+  <div style="margin:10px 12px 0;display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
     <button onclick="openBroadcastSheet()" class="broadcast-btn"><svg width="11" height="11" viewBox="0 0 12 12" fill="none" style="display:inline;vertical-align:middle;margin-right:4px"><path d="M7 1L3 7h4l-2 4 6-6H7L9 1z" fill="#c9a96e"/></svg>Broadcast Open Shift</button>
+    <button onclick="openTimeOffSheet()" style="font-family:var(--mono);font-size:11px;letter-spacing:1px;padding:8px 14px;background:rgba(224,85,85,.08);border:1px solid rgba(224,85,85,.2);border-radius:7px;color:var(--red);cursor:pointer;min-height:40px;display:flex;align-items:center;gap:6px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="12" height="12"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/><path d="M9 16l2 2 4-4"/></svg>Time Off</button>
   </div>
   <!-- Shift offers history -->
   <div id="shift-offers-hq-section" style="display:none;margin-top:10px;">
@@ -2750,9 +2751,13 @@ async function loadAll(spin=false) {
   if(spin) { const b=document.getElementById('refresh-btn'); if(b){b.classList.add('refresh-spin'); setTimeout(()=>b.classList.remove('refresh-spin'),800);} }
   try {
     const _headers = { 'x-hq-token': window._hqToken || sessionStorage.getItem('hq_token') || '' };
-    const [overviewRes, visitsRes] = await Promise.all([
+    // Fetch window: 60 days back, 120 days forward for time-off blocks
+    const _toWin = new Date(); _toWin.setDate(_toWin.getDate()+120);
+    const _frWin = new Date(); _frWin.setDate(_frWin.getDate()-60);
+    const [overviewRes, visitsRes, timeOffRes] = await Promise.all([
       fetch(`${API}/hq/overview?operator_id=${currentOp}`, { headers: _headers }),
-      fetch(`${API}/hq/visits?operator_id=${currentOp}&limit=500&from_date=${new Date(Date.now()-90*86400000).toISOString().slice(0,10)}`, { headers: _headers })
+      fetch(`${API}/hq/visits?operator_id=${currentOp}&limit=500&from_date=${new Date(Date.now()-90*86400000).toISOString().slice(0,10)}`, { headers: _headers }),
+      fetch(`${API}/hq/psw-time-off?operator_id=${currentOp}&from_date=${_frWin.toLocaleDateString('en-CA',{timeZone:'America/Toronto'})}&to_date=${_toWin.toLocaleDateString('en-CA',{timeZone:'America/Toronto'})}`, { headers: _headers })
     ]);
     const freshD = await overviewRes.json();
     if(!freshD.success) throw new Error('API error');
@@ -2760,6 +2765,10 @@ async function loadAll(spin=false) {
     try {
       const vd = await visitsRes.json();
       if (vd.visits) D.visits = vd.visits;
+    } catch {}
+    try {
+      const tod = await timeOffRes.json();
+      if (tod.time_off) D.time_off = tod.time_off;
     } catch {}
     // Invalidate lazy caches so next render fetches fresh data
     window._sentimentData = null;
@@ -5037,7 +5046,39 @@ function _buildFCEvents() {
       };
     });
 
-  return [...bookingEvents, ...visitEvents];
+  // Time-off background blocks
+  const timeOffEvents = (D.time_off || []).flatMap(t => {
+    const typeConfig = {
+      vacation: { color: 'rgba(200,169,110,.18)', border: '#c9a96e', label: '🌴 Vacation' },
+      sick:     { color: 'rgba(224,85,85,.15)',   border: '#e05555', label: '🤒 Sick'     },
+      off:      { color: 'rgba(100,100,120,.18)', border: '#666688', label: '⏸ Off'       },
+    };
+    const cfg = typeConfig[t.type] || typeConfig['off'];
+    // Generate one all-day event per day in the range
+    const events = [];
+    let cur = new Date(t.from_date + 'T12:00:00');
+    const end = new Date(t.to_date + 'T12:00:00');
+    while (cur <= end) {
+      const ds = cur.toLocaleDateString('en-CA',{timeZone:'America/Toronto'});
+      if (ds >= _ws && ds <= _we) {
+        events.push({
+          id:        'to-' + t.id + '-' + ds,
+          title:     `${cfg.label}${t.note ? ': '+t.note : ''} · ${t.psw_name}`,
+          start:     ds,
+          end:       ds,
+          allDay:    true,
+          display:   'background',
+          color:     cfg.color,
+          borderColor: cfg.border,
+          extendedProps: { timeOff: t }
+        });
+      }
+      cur.setDate(cur.getDate() + 1);
+    }
+    return events;
+  });
+
+  return [...bookingEvents, ...visitEvents, ...timeOffEvents];
 }
 
 function _addMins(dtStr, mins) {
@@ -7946,6 +7987,100 @@ function endDemo() {
   if (tipEl) tipEl.classList.remove('visible');
 }
 
+// ── PSW TIME-OFF ───────────────────────────────────────────
+function openTimeOffSheet(prefillPsw, prefillFrom, prefillTo) {
+  // Populate PSW dropdown
+  const sel = document.getElementById('to-psw');
+  if (sel) {
+    const psws = getMergedPSWList ? getMergedPSWList() : (D.psws || []);
+    sel.innerHTML = '<option value="">Select PSW</option>' +
+      psws.map(p => {
+        const n = p.name || p.full_name || '';
+        return `<option value="${n}"${prefillPsw===n?' selected':''}>${n}</option>`;
+      }).join('');
+  }
+  // Pre-fill dates
+  const today = new Date().toLocaleDateString('en-CA',{timeZone:'America/Toronto'});
+  document.getElementById('to-from').value = prefillFrom || today;
+  document.getElementById('to-to').value   = prefillTo   || today;
+  document.getElementById('to-type').value = 'off';
+  document.getElementById('to-note').value = '';
+  _loadTimeOffList();
+  openSheet('time-off-sheet');
+}
+
+function _toSetRange(daysFromNow, daysEnd) {
+  const base = new Date();
+  const from = new Date(base); from.setDate(base.getDate() + daysFromNow);
+  const to   = new Date(base); to.setDate(base.getDate() + daysEnd);
+  document.getElementById('to-from').value = from.toLocaleDateString('en-CA',{timeZone:'America/Toronto'});
+  document.getElementById('to-to').value   = to.toLocaleDateString('en-CA',{timeZone:'America/Toronto'});
+}
+
+async function saveTimeOff() {
+  const psw_name = document.getElementById('to-psw').value.trim();
+  const type     = document.getElementById('to-type').value;
+  const from_date= document.getElementById('to-from').value;
+  const to_date  = document.getElementById('to-to').value;
+  const note     = document.getElementById('to-note').value.trim();
+  if (!psw_name || !from_date || !to_date) { showToast('PSW and dates are required','err'); return; }
+  if (from_date > to_date) { showToast('From date must be before To date','err'); return; }
+  try {
+    const r = await fetch(`${API}/hq/psw-time-off`, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json','x-hq-token': window._hqToken || sessionStorage.getItem('hq_token') || ''},
+      body: JSON.stringify({ operator_id: currentOp, psw_name, type, from_date, to_date, note })
+    });
+    const d = await r.json();
+    if (!d.success) throw new Error(d.error || 'Failed');
+    showToast(`Time off saved for ${psw_name.split(' ')[0]}`, 'ok');
+    // Clear dates, reload list, refresh calendar
+    document.getElementById('to-note').value = '';
+    _loadTimeOffList();
+    await loadAll(false);
+    if (window._fc) _refreshFC();
+  } catch(e) { showToast(e.message || 'Error saving', 'err'); }
+}
+
+async function deleteTimeOff(id) {
+  if (!confirm('Remove this time-off block?')) return;
+  try {
+    const r = await fetch(`${API}/hq/psw-time-off/${id}?operator_id=${currentOp}`, {
+      method: 'DELETE',
+      headers: {'x-hq-token': window._hqToken || sessionStorage.getItem('hq_token') || ''}
+    });
+    const d = await r.json();
+    if (!d.success) throw new Error(d.error || 'Failed');
+    showToast('Time off removed', 'ok');
+    _loadTimeOffList();
+    await loadAll(false);
+    if (window._fc) _refreshFC();
+  } catch(e) { showToast(e.message || 'Error', 'err'); }
+}
+
+function _loadTimeOffList() {
+  const listEl = document.getElementById('to-list');
+  if (!listEl) return;
+  const blocks = D.time_off || [];
+  if (!blocks.length) {
+    listEl.innerHTML = '<div style="font-size:13px;color:var(--muted);padding:8px 0;">No time off scheduled.</div>';
+    return;
+  }
+  const typeLabel = { vacation:'🌴 Vacation', sick:'🤒 Sick', off:'⏸ Off' };
+  listEl.innerHTML = blocks
+    .sort((a,b) => a.from_date.localeCompare(b.from_date))
+    .map(t => `
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;padding:10px 12px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;gap:10px;">
+        <div>
+          <div style="font-size:13px;font-weight:500;color:var(--text);">${escHtml(t.psw_name||'')} · ${typeLabel[t.type]||t.type}</div>
+          <div style="font-family:var(--mono);font-size:11px;color:var(--muted2);margin-top:2px;">${t.from_date}${t.from_date!==t.to_date?' → '+t.to_date:''}</div>
+          ${t.note?`<div style="font-size:12px;color:var(--muted);margin-top:2px;">${escHtml(t.note)}</div>`:''}
+        </div>
+        <button onclick="deleteTimeOff('${t.id}')" style="font-family:var(--mono);font-size:11px;padding:4px 10px;border-radius:6px;border:1px solid rgba(224,85,85,.3);background:rgba(224,85,85,.06);color:var(--red);cursor:pointer;flex-shrink:0;">Remove</button>
+      </div>`).join('');
+}
+
+
 // ── WORKFLOW FIX: renderAll wires — make sure all sections re-render correctly ──
 const _origRenderAll = typeof renderAll === 'function' ? renderAll : null;
 
@@ -8837,6 +8972,56 @@ function autoVscExpiry(checkDate) {
   <div id="app-sheet-ai-result" style="display:none;margin:16px 18px;padding:14px;background:rgba(61,138,122,.06);border:1px solid rgba(61,138,122,.2);border-radius:10px;font-size:13px;color:var(--text);line-height:1.6;"></div>
   <div style="padding:16px 18px;display:flex;flex-direction:column;gap:8px;">
     <div id="app-sheet-acts"></div>
+  </div>
+</div>
+
+<!-- TIME-OFF SHEET -->
+<div class="sheet-overlay" id="time-off-overlay" onclick="closeSheet('time-off-sheet')"></div>
+<div class="sheet" id="time-off-sheet">
+  <div class="sheet-header">
+    <div class="sheet-title">PSW Time Off</div>
+    <div class="sheet-close" onclick="closeSheet('time-off-sheet')">✕</div>
+  </div>
+  <div style="padding:16px 18px;border-bottom:1px solid var(--border);">
+    <div class="sheet-row">
+      <div class="slbl">PSW *</div>
+      <select class="sinput" id="to-psw"></select>
+    </div>
+    <div class="sheet-row">
+      <div class="slbl">Type *</div>
+      <select class="sinput" id="to-type">
+        <option value="off">⏸ Off</option>
+        <option value="sick">🤒 Sick</option>
+        <option value="vacation">🌴 Vacation</option>
+      </select>
+    </div>
+    <div class="sheet-row" style="gap:8px;">
+      <div style="flex:1;">
+        <div class="slbl">From *</div>
+        <input class="sinput" id="to-from" type="date">
+      </div>
+      <div style="flex:1;">
+        <div class="slbl">To *</div>
+        <input class="sinput" id="to-to" type="date">
+      </div>
+    </div>
+    <!-- Quick range shortcuts -->
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin:8px 0 4px;">
+      <button onclick="_toSetRange(0,0)" style="font-family:var(--mono);font-size:10px;padding:4px 10px;border-radius:5px;border:1px solid var(--border);background:var(--bg3);color:var(--muted2);cursor:pointer;">Today</button>
+      <button onclick="_toSetRange(0,6)" style="font-family:var(--mono);font-size:10px;padding:4px 10px;border-radius:5px;border:1px solid var(--border);background:var(--bg3);color:var(--muted2);cursor:pointer;">This Week</button>
+      <button onclick="_toSetRange(7,13)" style="font-family:var(--mono);font-size:10px;padding:4px 10px;border-radius:5px;border:1px solid var(--border);background:var(--bg3);color:var(--muted2);cursor:pointer;">Next Week</button>
+      <button onclick="_toSetRange(0,27)" style="font-family:var(--mono);font-size:10px;padding:4px 10px;border-radius:5px;border:1px solid var(--border);background:var(--bg3);color:var(--muted2);cursor:pointer;">4 Weeks</button>
+    </div>
+    <div class="sheet-row">
+      <div class="slbl">Note</div>
+      <input class="sinput" id="to-note" type="text" placeholder="Optional — e.g. Annual leave" maxlength="200">
+    </div>
+    <button class="sbtn ok" style="width:100%;margin-top:4px;" onclick="saveTimeOff()">Save Time Off</button>
+  </div>
+  <!-- Existing blocks list -->
+  <div style="padding:14px 18px;">
+    <div style="font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:10px;">Scheduled Time Off</div>
+    <div id="to-list" style="display:flex;flex-direction:column;gap:6px;"></div>
   </div>
 </div>
 
