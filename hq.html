@@ -233,10 +233,10 @@ button:active{transform:scale(0.98);}
 
 /* TOPBAR */
 .topbar{position:sticky;top:0;z-index:100;height:54px;display:flex;align-items:center;justify-content:space-between;padding:0 14px;background:rgba(7,9,12,.96);border-bottom:1px solid var(--border);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);}
-.tl{display:flex;align-items:center;gap:10px;flex:1;min-width:0;overflow:hidden;}
-.logo{font-family:var(--serif);font-size:18px;color:var(--text);font-weight:300;flex:none;letter-spacing:1px;white-space:nowrap;}
+.tl{display:flex;align-items:center;gap:6px;flex:1;min-width:0;overflow:hidden;}
+.logo{font-family:var(--serif);font-size:16px;color:var(--text);font-weight:300;flex:none;letter-spacing:1px;white-space:nowrap;}
 .logo em{color:var(--teal2);font-style:italic;}
-.op-pill{display:flex;align-items:center;gap:6px;background:var(--bg3);border:1px solid var(--border2);padding:5px 10px;border-radius:100px;cursor:default;min-height:36px;max-width:160px;overflow:hidden;flex-shrink:1;}
+.op-pill{display:flex;align-items:center;gap:5px;background:var(--bg3);border:1px solid var(--border2);padding:4px 8px;border-radius:100px;cursor:default;min-height:32px;max-width:200px;overflow:hidden;flex-shrink:1;}
 .op-live{width:6px;height:6px;border-radius:50%;background:var(--teal2);animation:livepulse 2s infinite;}
 @keyframes livepulse{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(90,173,160,.4);}50%{opacity:.7;box-shadow:0 0 0 5px rgba(90,173,160,0);}}
 .op-name-text{font-family:var(--mono);font-size:12px;letter-spacing:1px;text-transform:uppercase;color:var(--teal2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:120px;}
@@ -1192,13 +1192,14 @@ body.sidebar-hidden #sidebar-reopen-tab{ display:flex; }
 /* ── PSW GRID — schedule grid view ── */
 .psw-grid-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0;padding-bottom:8px;}
 .psw-grid{width:100%;border-collapse:collapse;min-width:560px;}
-.psw-grid th{font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted2);padding:8px 6px;text-align:center;border-bottom:1px solid var(--border);background:var(--bg2);position:sticky;top:52px;z-index:4;white-space:nowrap;}
-.psw-grid th.col-name{text-align:left;padding-left:12px;min-width:130px;max-width:160px;}
+.psw-grid th{font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted2);padding:8px 6px;text-align:center;border-bottom:1px solid var(--border);background:var(--bg2);position:sticky;top:118px;z-index:4;white-space:nowrap;}
+.psw-grid th.col-name{text-align:left;padding-left:12px;min-width:130px;max-width:160px;position:sticky;top:118px;left:0;z-index:6;background:var(--bg2);}
 .psw-grid th.col-today{color:var(--teal2);border-bottom-color:var(--teal2);}
 .psw-grid td{padding:4px 4px;border-bottom:1px solid rgba(201,169,110,.06);vertical-align:top;}
-.psw-grid td.col-name{padding:8px 6px 8px 12px;vertical-align:middle;}
+.psw-grid td.col-name{padding:8px 6px 8px 12px;vertical-align:middle;position:sticky;left:0;z-index:2;background:var(--bg2);}
 .psw-grid tr:last-child td{border-bottom:none;}
 .psw-grid tr:hover td{background:rgba(61,138,122,.025);}
+.psw-grid tr:hover td.col-name{background:var(--bg2);}
 .psw-name-cell{display:flex;align-items:center;gap:8px;}
 .psw-name-av{width:28px;height:28px;border-radius:50%;background:var(--bg3);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:10px;color:var(--teal2);flex-shrink:0;}
 .psw-name-text{font-size:12px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100px;}
@@ -2205,8 +2206,8 @@ body.sidebar-hidden #sidebar-reopen-tab{ display:flex; }
     <div class="sched-toolbar-row" style="display:flex;gap:6px;overflow-x:auto;overflow-y:hidden;flex-wrap:nowrap;scrollbar-width:none;-ms-overflow-style:none;-webkit-overflow-scrolling:touch;max-width:100%;padding-bottom:2px;">
       <div class="sect-action" onclick="openAddShift('','')">+ Shift</div>
       <div class="sect-action" onclick="openBulkSchedule()" style="color:var(--gold);border-color:rgba(200,169,110,.3);">+ Bulk Week</div>
-      <div class="sect-action" onclick="copyWeek()" style="color:var(--teal3);border-color:rgba(125,202,189,.3);">⧉ Copy Week</div>
-      <div class="sect-action" onclick="copyWeeks(2)" style="color:var(--teal3);border-color:rgba(125,202,189,.3);">⧉ Copy 2 Wks</div>
+      <div class="sect-action" onclick="openCopyWeeksSheet()" style="color:var(--teal3);border-color:rgba(125,202,189,.3);">⧉ Copy Week</div>
+      <div class="sect-action" onclick="openCopyWeeksSheet()" style="color:var(--teal3);border-color:rgba(125,202,189,.3);">⧉ Copy Weeks</div>
       <div class="sect-action" onclick="openImportBookings()" style="color:var(--teal3);border-color:rgba(125,202,189,.3);">↑ Import CSV</div>
       <div class="sect-action" onclick="openSwapSheet()" style="color:var(--purple2);border-color:rgba(160,96,224,.3);">⇄ Swap</div>
       <div class="sect-action" id="map-toggle-btn" onclick="toggleLiveMap()" style="color:var(--teal2);border-color:rgba(61,138,122,.3);">⬤ Live Map</div>
@@ -8181,91 +8182,7 @@ async function saveBulkSchedule() {
   btn.disabled = false; btn.textContent = 'Create Shifts';
 }
 
-// ── COPY WEEK ──
-// Duplicates all scheduled bookings from the current FC view week into the following week
-async function copyWeek() {
-  // Get visible window from FC
-  const fc = window._fc;
-  if (!fc) { showToast('Calendar not loaded', 'err'); return; }
-  const viewStart = fc.view.currentStart; // Monday of current view
-  const weekStart = new Date(viewStart); weekStart.setHours(0,0,0,0);
-  const weekEnd   = new Date(weekStart); weekEnd.setDate(weekStart.getDate() + 6);
-  const ws = weekStart.toLocaleDateString('en-CA',{timeZone:'America/Toronto'});
-  const we = weekEnd.toLocaleDateString('en-CA',{timeZone:'America/Toronto'});
 
-  // Get bookings in this week
-  const thisWeek = (D.bookings||[]).filter(b =>
-    b.scheduled_date >= ws && b.scheduled_date <= we && b.status !== 'cancelled'
-  );
-
-  if (!thisWeek.length) { showToast('No shifts this week to copy', 'err'); return; }
-
-  // Check for conflicts — any of next week's dates already have bookings?
-  const nextWeekDates = thisWeek.map(b => {
-    const d = new Date(b.scheduled_date + 'T12:00:00');
-    d.setDate(d.getDate() + 7);
-    return d.toLocaleDateString('en-CA',{timeZone:'America/Toronto'});
-  });
-  const existing = (D.bookings||[]).filter(b => nextWeekDates.includes(b.scheduled_date) && b.status !== 'cancelled');
-  const conflictMsg = existing.length ? ` (${existing.length} shifts already exist next week — will be skipped)` : '';
-
-  if (!window.confirm(`Copy ${thisWeek.length} shift${thisWeek.length!==1?'s':''} to next week?${conflictMsg}`)) return;
-
-  // Build next week's bookings — skip dates that already have a booking for the same PSW+client
-  const existingKeys = new Set(existing.map(b => `${b.assigned_to}|${b.client_name}|${b.scheduled_date}`));
-  const toCreate = thisWeek.map(b => {
-    const d = new Date(b.scheduled_date + 'T12:00:00');
-    d.setDate(d.getDate() + 7);
-    const nextDate = d.toLocaleDateString('en-CA',{timeZone:'America/Toronto'});
-    const key = `${b.assigned_to}|${b.client_name}|${nextDate}`;
-    if (existingKeys.has(key)) return null;
-    return { ...b, scheduled_date: nextDate, id: undefined, series_id: undefined, status: 'scheduled', created_at: undefined };
-  }).filter(Boolean);
-
-  if (!toCreate.length) { showToast('All shifts already exist next week', 'warn'); return; }
-
-  showToast(`Creating ${toCreate.length} shifts...`, 'ok');
-
-  try {
-    const results = await Promise.all(toCreate.map(b =>
-      fetch(`${API}/hq/booking`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-hq-token': window._hqToken || sessionStorage.getItem('hq_token') || '' },
-        body: JSON.stringify({
-          operator_id: currentOp,
-          client_name: b.client_name,
-          booking_type: b.booking_type || 'visit',
-          scheduled_date: b.scheduled_date,
-          scheduled_time: b.scheduled_time,
-          assigned_to: b.assigned_to || null,
-          duration_minutes: b.duration_minutes || 60,
-          location: b.location || null,
-          notes: b.notes || null
-        })
-      }).then(r => r.json()).catch(() => ({ success: false }))
-    ));
-
-    const created = results.filter(r => r.success).length;
-    const skipped = toCreate.length - created;
-    showToast(`${created} shift${created!==1?'s':''} copied to next week${skipped?' · '+skipped+' failed':''}`, created > 0 ? 'ok' : 'err');
-
-    if (created > 0) {
-      // Refresh data and navigate FC to next week
-      const res = await fetch(`${API}/hq/overview?operator_id=${currentOp}`, { headers: { 'x-hq-token': window._hqToken || sessionStorage.getItem('hq_token') || '' } });
-      const freshD = await res.json();
-      if (freshD.success) { D = freshD; }
-      _refreshSched();
-      // Navigate calendar forward one week
-      fc.next();
-    }
-  } catch (e) {
-    showToast(e.message || 'Copy failed', 'err');
-  }
-}
-
-// ── COPY N WEEKS ──
-// Works from both grid and calendar view
-// Copies the CURRENT visible week forward N times (fills N weeks ahead)
 async function copyWeeks(n) {
   // Determine the source week from grid or FC
   let weekStart;
@@ -8285,8 +8202,19 @@ async function copyWeeks(n) {
   const ws = weekStart.toLocaleDateString('en-CA',{timeZone:'America/Toronto'});
   const we = weekEnd.toLocaleDateString('en-CA',{timeZone:'America/Toronto'});
 
-  // Source bookings: this visible week
-  const source = (D.bookings||[]).filter(b =>
+  // Source bookings — fetch from server to ensure we have the full week
+  // (D.bookings may not cover past weeks or the full window)
+  showToast('Loading source week...', 'ok');
+  let sourcePool = D.bookings || [];
+  try {
+    const r = await fetch(`${API}/hq/bookings?operator_id=${currentOp}&from_date=${ws}&to_date=${we}`, {
+      headers: { 'x-hq-token': window._hqToken || sessionStorage.getItem('hq_token') || '' }
+    });
+    const d = await r.json();
+    if (d.success && d.bookings.length) sourcePool = d.bookings;
+  } catch(e) {}
+
+  const source = sourcePool.filter(b =>
     b.scheduled_date >= ws && b.scheduled_date <= we && b.status !== 'cancelled'
   );
 
@@ -8312,9 +8240,20 @@ async function copyWeeks(n) {
     });
   }
 
-  // Skip dates that already have a booking for same PSW + client
+  // Fetch existing bookings for the target range to check conflicts
+  const targetWs = toCreate[0].scheduled_date;
+  const targetWe = toCreate[toCreate.length - 1].scheduled_date;
+  let existingInRange = [];
+  try {
+    const r = await fetch(`${API}/hq/bookings?operator_id=${currentOp}&from_date=${targetWs}&to_date=${targetWe}`, {
+      headers: { 'x-hq-token': window._hqToken || sessionStorage.getItem('hq_token') || '' }
+    });
+    const d = await r.json();
+    if (d.success) existingInRange = d.bookings || [];
+  } catch(e) {}
+
   const existingKeys = new Set(
-    (D.bookings||[])
+    existingInRange
       .filter(b => b.status !== 'cancelled')
       .map(b => `${b.assigned_to||''}|${b.client_name}|${b.scheduled_date}`)
   );
@@ -8341,7 +8280,6 @@ async function copyWeeks(n) {
         }).then(r => r.json()).catch(() => ({ success: false }))
       ));
       created += results.filter(r => r.success).length;
-      // Update toast progress every chunk
       if (filtered.length > CHUNK) showToast(`Creating... ${created}/${filtered.length}`, 'ok');
     }
 
@@ -8361,6 +8299,69 @@ async function copyWeeks(n) {
   } catch(e) {
     showToast(e.message || 'Copy failed', 'err');
   }
+}
+
+function openCopyWeeksSheet() {
+  // Build week label for display
+  let weekLabel = '';
+  if (schedHQView === 'grid') {
+    const today = new Date();
+    const dow = (today.getDay() + 6) % 7;
+    const ws = new Date(today); ws.setDate(today.getDate() - dow + (schedWeekOffset * 7));
+    const we = new Date(ws); we.setDate(ws.getDate() + 6);
+    const fmt = d => `${d.getMonth()+1}/${d.getDate()}`;
+    weekLabel = `${fmt(ws)} — ${fmt(we)}`;
+  } else if (window._fc) {
+    const vs = window._fc.view.currentStart;
+    const ve = new Date(vs); ve.setDate(vs.getDate() + 6);
+    const fmt = d => `${d.getMonth()+1}/${d.getDate()}`;
+    weekLabel = `${fmt(vs)} — ${fmt(ve)}`;
+  }
+
+  const existing = document.getElementById('copy-weeks-sheet');
+  if (existing) existing.remove();
+
+  const sheet = document.createElement('div');
+  sheet.id = 'copy-weeks-sheet';
+  sheet.style.cssText = 'position:fixed;bottom:0;left:0;right:0;z-index:1060;background:var(--bg2);border-top:1px solid var(--border2);border-radius:18px 18px 0 0;padding:20px 16px 32px;transform:translateY(0);';
+  sheet.innerHTML = `
+    <div style="width:36px;height:4px;background:var(--border2);border-radius:2px;margin:0 auto 16px;"></div>
+    <div style="font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--teal2);margin-bottom:4px;">Copy Schedule</div>
+    <div style="font-size:12px;color:var(--muted2);margin-bottom:16px;">Source week: <span style="color:var(--text);font-family:var(--mono);">${weekLabel}</span></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;">
+      <button onclick="closeCopyWeeksSheet();copyWeeks(1)" style="padding:14px 10px;background:var(--bg3);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:var(--mono);font-size:12px;cursor:pointer;text-align:center;touch-action:manipulation;">
+        <div style="font-size:20px;font-weight:600;color:var(--teal2);">1</div>
+        <div style="color:var(--muted2);font-size:11px;margin-top:2px;">week forward</div>
+      </button>
+      <button onclick="closeCopyWeeksSheet();copyWeeks(2)" style="padding:14px 10px;background:var(--bg3);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:var(--mono);font-size:12px;cursor:pointer;text-align:center;touch-action:manipulation;">
+        <div style="font-size:20px;font-weight:600;color:var(--teal2);">2</div>
+        <div style="color:var(--muted2);font-size:11px;margin-top:2px;">weeks forward</div>
+      </button>
+      <button onclick="closeCopyWeeksSheet();copyWeeks(4)" style="padding:14px 10px;background:var(--bg3);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:var(--mono);font-size:12px;cursor:pointer;text-align:center;touch-action:manipulation;">
+        <div style="font-size:20px;font-weight:600;color:var(--gold);">4</div>
+        <div style="color:var(--muted2);font-size:11px;margin-top:2px;">weeks forward</div>
+      </button>
+      <button onclick="closeCopyWeeksSheet();copyWeeks(8)" style="padding:14px 10px;background:var(--bg3);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:var(--mono);font-size:12px;cursor:pointer;text-align:center;touch-action:manipulation;">
+        <div style="font-size:20px;font-weight:600;color:var(--gold);">8</div>
+        <div style="color:var(--muted2);font-size:11px;margin-top:2px;">weeks forward</div>
+      </button>
+    </div>
+    <button onclick="closeCopyWeeksSheet()" style="width:100%;padding:12px;background:none;border:1px solid var(--border);border-radius:8px;color:var(--muted2);font-family:var(--mono);font-size:11px;cursor:pointer;touch-action:manipulation;">Cancel</button>
+  `;
+
+  // Tap outside to close
+  const overlay = document.createElement('div');
+  overlay.id = 'copy-weeks-overlay';
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:1059;background:rgba(0,0,0,.5);';
+  overlay.onclick = closeCopyWeeksSheet;
+
+  document.body.appendChild(overlay);
+  document.body.appendChild(sheet);
+}
+
+function closeCopyWeeksSheet() {
+  document.getElementById('copy-weeks-sheet')?.remove();
+  document.getElementById('copy-weeks-overlay')?.remove();
 }
 
 
