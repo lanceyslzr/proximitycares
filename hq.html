@@ -3174,7 +3174,22 @@ function renderAll() {
   if (activeSect === 'crm') { renderCRM(); }
   if (activeSect === 'overview') { renderOverview(); }
   if (activeSect === 'revenue') { renderRevenue().catch(()=>{}); }
-  if (activeSect === 'schedule') { schedHQView === 'grid' ? renderPSWGrid() : (window._fc ? _refreshFC() : null); renderVacantVisits(); }
+  if (activeSect === 'schedule') {
+    if (schedHQView === 'grid') {
+      // Show skeleton immediately — refreshGrid() (called after renderAll) will do the real fetch+render
+      // This prevents the empty-grid flash where overview bookings don't cover the visible week
+      const _sbEl = document.getElementById('schedule-board');
+      if (_sbEl && !_sbEl.querySelector('.psw-grid')) {
+        _sbEl.style.display = 'block';
+        _sbEl.innerHTML = '<div style="padding:24px 12px;font-family:var(--mono);font-size:11px;letter-spacing:2px;color:var(--muted2);text-align:center;text-transform:uppercase;">Loading schedule...</div>';
+      } else if (_sbEl && _sbEl.querySelector('.psw-grid')) {
+        renderPSWGrid(); // grid already rendered — update in place from cache
+      }
+    } else {
+      window._fc ? _refreshFC() : null;
+    }
+    renderVacantVisits();
+  }
   renderBookings();
 
   // Incident badge
