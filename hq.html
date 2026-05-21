@@ -5435,6 +5435,10 @@ function renderPSWGrid() {
 
   html += `</tbody></table></div></div>`;
   el.innerHTML = html;
+  // Grid overwrote #fc-root and #fc-cal — FC instance is now orphaned.
+  // Reset so switching to Cal view re-runs _initFC() cleanly.
+  window._fcInitialized = false;
+  window._fc = null;
 }
 
 // Fetch correct bookings window then render grid — use this instead of bare renderPSWGrid()
