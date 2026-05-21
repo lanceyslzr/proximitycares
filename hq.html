@@ -2439,10 +2439,17 @@ body.sidebar-hidden #sidebar-reopen-tab{ display:flex; }
 
 <!-- CLIENT DETAIL SHEET -->
 <div class="sheet" id="client-sheet">
-  <div class="sheet-handle"></div>
-  <div class="sheet-title" id="client-sheet-title">Client</div>
+  <div class="sheet-header">
+    <div class="sheet-title" id="client-sheet-title">Client</div>
+    <div class="sheet-close" onclick="closeSheet('client-sheet')">✕</div>
+  </div>
   <div id="client-sheet-badges" style="padding:0 16px 8px;display:flex;flex-wrap:wrap;gap:4px;"></div>
-  <div class="sheet-body" id="client-sheet-body"></div>
+  <div class="sheet-body" id="client-sheet-body" style="padding-bottom:80px;"></div>
+  <!-- Sticky save footer — always visible, no hunting for button -->
+  <div id="client-sheet-save-bar" style="display:none;position:sticky;bottom:0;left:0;right:0;padding:10px 14px calc(10px + env(safe-area-inset-bottom));background:var(--bg2);border-top:1px solid var(--border);display:flex;gap:8px;z-index:10;">
+    <button class="sbtn" style="flex:2;background:var(--gold-mid);color:var(--gold);border-color:var(--gold-border);" id="client-save-btn" onclick="">Save Changes</button>
+    <button class="sbtn ghost" style="flex:1;" onclick="closeSheet('client-sheet')">Cancel</button>
+  </div>
 </div>
 
 <!-- BOOKING SHEET -->
@@ -2528,7 +2535,12 @@ body.sidebar-hidden #sidebar-reopen-tab{ display:flex; }
     <div class="sheet-title" id="psw-detail-title">PSW Profile</div>
     <div class="sheet-close" onclick="closeSheet('psw-detail-sheet')">✕</div>
   </div>
-  <div class="sheet-body" id="psw-detail-body"></div>
+  <div class="sheet-body" id="psw-detail-body" style="padding-bottom:80px;"></div>
+  <!-- Sticky save footer -->
+  <div id="psw-sheet-save-bar" style="display:none;position:sticky;bottom:0;left:0;right:0;padding:10px 14px calc(10px + env(safe-area-inset-bottom));background:var(--bg2);border-top:1px solid var(--border);display:flex;gap:8px;z-index:10;">
+    <button class="sbtn" style="flex:2;background:var(--gold-mid);color:var(--gold);border-color:var(--gold-border);" id="psw-save-btn" onclick="">Save Changes</button>
+    <button class="sbtn ghost" style="flex:1;" onclick="closeSheet('psw-detail-sheet')">Cancel</button>
+  </div>
 </div>
 
 <div class="sheet" id="psw-msg-sheet">
@@ -6673,6 +6685,11 @@ async function openPSWDetail(pswId) {
   document.getElementById('psw-detail-title').textContent = name;
   const body = document.getElementById('psw-detail-body');
   body.innerHTML = '<div class="empty-state">Loading profile...</div>';
+  // Wire sticky save footer immediately — before async fetch completes
+  const saveBtn = document.getElementById('psw-save-btn');
+  const saveBar = document.getElementById('psw-sheet-save-bar');
+  if (saveBtn) saveBtn.onclick = () => savePSWEdits(p.id, name);
+  if (saveBar) saveBar.style.display = 'flex';
   openSheet('psw-detail-sheet');
 
   // Fetch full PSW record
@@ -7036,6 +7053,11 @@ function openClientDetail(id) {
     </div>`;
   loadCarePlan(slug);
   loadFamilyContactsForClient(id, slug);
+  // Wire sticky save footer
+  const saveBtn = document.getElementById('client-save-btn');
+  const saveBar = document.getElementById('client-sheet-save-bar');
+  if (saveBtn) saveBtn.onclick = () => saveClientEdits(id);
+  if (saveBar) saveBar.style.display = 'flex';
   openSheet('client-sheet');
 }
 
