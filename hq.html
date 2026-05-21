@@ -3164,7 +3164,7 @@ function renderAll() {
   if (activeSect === 'crm') { renderCRM(); }
   if (activeSect === 'overview') { renderOverview(); }
   if (activeSect === 'revenue') { renderRevenue().catch(()=>{}); }
-  if (activeSect === 'schedule') { if (schedHQView !== 'grid') { window._fc ? _refreshFC() : null; } renderVacantVisits(); }
+  if (activeSect === 'schedule') { schedHQView === 'grid' ? renderPSWGrid() : (window._fc ? _refreshFC() : null); renderVacantVisits(); }
   renderBookings();
 
   // Incident badge
