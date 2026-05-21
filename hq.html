@@ -2206,6 +2206,7 @@ body.sidebar-hidden #sidebar-reopen-tab{ display:flex; }
       <div class="sect-action" onclick="openAddShift('','')">+ Shift</div>
       <div class="sect-action" onclick="openBulkSchedule()" style="color:var(--gold);border-color:rgba(200,169,110,.3);">+ Bulk Week</div>
       <div class="sect-action" onclick="copyWeek()" style="color:var(--teal3);border-color:rgba(125,202,189,.3);">⧉ Copy Week</div>
+      <div class="sect-action" onclick="copyWeeks(2)" style="color:var(--teal3);border-color:rgba(125,202,189,.3);">⧉ Copy 2 Wks</div>
       <div class="sect-action" onclick="openImportBookings()" style="color:var(--teal3);border-color:rgba(125,202,189,.3);">↑ Import CSV</div>
       <div class="sect-action" onclick="openSwapSheet()" style="color:var(--purple2);border-color:rgba(160,96,224,.3);">⇄ Swap</div>
       <div class="sect-action" id="map-toggle-btn" onclick="toggleLiveMap()" style="color:var(--teal2);border-color:rgba(61,138,122,.3);">⬤ Live Map</div>
@@ -8227,7 +8228,107 @@ async function copyWeek() {
   }
 }
 
-// ── SEARCH / FILTER ──
+// ── COPY N WEEKS ──
+// Works from both grid and calendar view
+// Copies the CURRENT visible week forward N times (fills N weeks ahead)
+async function copyWeeks(n) {
+  // Determine the source week from grid or FC
+  let weekStart;
+  if (schedHQView === 'grid') {
+    const today = new Date();
+    const dow = (today.getDay() + 6) % 7;
+    weekStart = new Date(today);
+    weekStart.setDate(today.getDate() - dow + (schedWeekOffset * 7));
+    weekStart.setHours(0,0,0,0);
+  } else {
+    if (!window._fc) { showToast('Calendar not loaded', 'err'); return; }
+    weekStart = new Date(window._fc.view.currentStart);
+    weekStart.setHours(0,0,0,0);
+  }
+
+  const weekEnd = new Date(weekStart); weekEnd.setDate(weekStart.getDate() + 6);
+  const ws = weekStart.toLocaleDateString('en-CA',{timeZone:'America/Toronto'});
+  const we = weekEnd.toLocaleDateString('en-CA',{timeZone:'America/Toronto'});
+
+  // Source bookings: this visible week
+  const source = (D.bookings||[]).filter(b =>
+    b.scheduled_date >= ws && b.scheduled_date <= we && b.status !== 'cancelled'
+  );
+
+  if (!source.length) { showToast('No shifts this week to copy', 'err'); return; }
+
+  // Build all target dates across N weeks
+  const toCreate = [];
+  for (let w = 1; w <= n; w++) {
+    source.forEach(b => {
+      const d = new Date(b.scheduled_date + 'T12:00:00');
+      d.setDate(d.getDate() + 7 * w);
+      const targetDate = d.toLocaleDateString('en-CA',{timeZone:'America/Toronto'});
+      toCreate.push({
+        client_name: b.client_name,
+        booking_type: b.booking_type || 'visit',
+        scheduled_date: targetDate,
+        scheduled_time: b.scheduled_time,
+        assigned_to: b.assigned_to || null,
+        duration_minutes: b.duration_minutes || 60,
+        location: b.location || null,
+        notes: b.notes || null
+      });
+    });
+  }
+
+  // Skip dates that already have a booking for same PSW + client
+  const existingKeys = new Set(
+    (D.bookings||[])
+      .filter(b => b.status !== 'cancelled')
+      .map(b => `${b.assigned_to||''}|${b.client_name}|${b.scheduled_date}`)
+  );
+  const filtered = toCreate.filter(b => !existingKeys.has(`${b.assigned_to||''}|${b.client_name}|${b.scheduled_date}`));
+  const dupes = toCreate.length - filtered.length;
+
+  if (!filtered.length) { showToast(`All ${n * source.length} shifts already exist`, 'warn'); return; }
+
+  if (!window.confirm(`Copy ${source.length} shifts × ${n} week${n>1?'s':''} = ${filtered.length} new shifts${dupes ? ' ('+dupes+' skipped — already exist)' : ''}?`)) return;
+
+  showToast(`Creating ${filtered.length} shifts...`, 'ok');
+
+  try {
+    // Batch in chunks of 20 to avoid overwhelming the API
+    const CHUNK = 20;
+    let created = 0;
+    for (let i = 0; i < filtered.length; i += CHUNK) {
+      const chunk = filtered.slice(i, i + CHUNK);
+      const results = await Promise.all(chunk.map(b =>
+        fetch(`${API}/hq/booking`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-hq-token': window._hqToken || sessionStorage.getItem('hq_token') || '' },
+          body: JSON.stringify({ operator_id: currentOp, ...b })
+        }).then(r => r.json()).catch(() => ({ success: false }))
+      ));
+      created += results.filter(r => r.success).length;
+      // Update toast progress every chunk
+      if (filtered.length > CHUNK) showToast(`Creating... ${created}/${filtered.length}`, 'ok');
+    }
+
+    const failed = filtered.length - created;
+    showToast(`${created} shifts created${failed?' · '+failed+' failed':''}${dupes?' · '+dupes+' already existed':''}`, created > 0 ? 'ok' : 'err');
+
+    if (created > 0) {
+      await _fetchGridBookings(true);
+      try {
+        const res = await fetch(`${API}/hq/overview?operator_id=${currentOp}`, { headers: { 'x-hq-token': window._hqToken || sessionStorage.getItem('hq_token') || '' } });
+        const d = await res.json();
+        if (d.success) { const sb = D.bookings; D = d; D.bookings = sb; _mergedPSWCache = null; }
+      } catch(e) {}
+      _refreshSched();
+      renderStats();
+    }
+  } catch(e) {
+    showToast(e.message || 'Copy failed', 'err');
+  }
+}
+
+
 let _filterTimers = {};
 function filterList(listId, searchId) {
   clearTimeout(_filterTimers[listId]);
