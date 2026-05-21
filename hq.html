@@ -1931,6 +1931,7 @@ body.sidebar-hidden #sidebar-reopen-tab{ display:flex; }
     <div class="sched-toolbar-row" style="display:flex;gap:6px;overflow-x:auto;overflow-y:hidden;flex-wrap:nowrap;scrollbar-width:none;-ms-overflow-style:none;-webkit-overflow-scrolling:touch;max-width:100%;padding-bottom:2px;">
       <div class="sect-action" onclick="openAddShift('','')">+ Shift</div>
       <div class="sect-action" onclick="openBulkSchedule()" style="color:var(--gold);border-color:rgba(200,169,110,.3);">+ Bulk Week</div>
+      <div class="sect-action" onclick="copyWeek()" style="color:var(--teal3);border-color:rgba(125,202,189,.3);">⧉ Copy Week</div>
       <div class="sect-action" onclick="openImportBookings()" style="color:var(--teal3);border-color:rgba(125,202,189,.3);">↑ Import CSV</div>
       <div class="sect-action" onclick="openSwapSheet()" style="color:var(--purple2);border-color:rgba(160,96,224,.3);">⇄ Swap</div>
       <div class="sect-action" id="map-toggle-btn" onclick="toggleLiveMap()" style="color:var(--teal2);border-color:rgba(61,138,122,.3);">⬤ Live Map</div>
@@ -7527,6 +7528,88 @@ async function saveBulkSchedule() {
     if (freshD.success) { D = freshD; _refreshFC(); renderVacantVisits(); renderStats(); }
   } catch (e) { showToast(e.message || 'Failed', 'err'); }
   btn.disabled = false; btn.textContent = 'Create Shifts';
+}
+
+// ── COPY WEEK ──
+// Duplicates all scheduled bookings from the current FC view week into the following week
+async function copyWeek() {
+  // Get visible window from FC
+  const fc = window._fc;
+  if (!fc) { showToast('Calendar not loaded', 'err'); return; }
+  const viewStart = fc.view.currentStart; // Monday of current view
+  const weekStart = new Date(viewStart); weekStart.setHours(0,0,0,0);
+  const weekEnd   = new Date(weekStart); weekEnd.setDate(weekStart.getDate() + 6);
+  const ws = weekStart.toLocaleDateString('en-CA',{timeZone:'America/Toronto'});
+  const we = weekEnd.toLocaleDateString('en-CA',{timeZone:'America/Toronto'});
+
+  // Get bookings in this week
+  const thisWeek = (D.bookings||[]).filter(b =>
+    b.scheduled_date >= ws && b.scheduled_date <= we && b.status !== 'cancelled'
+  );
+
+  if (!thisWeek.length) { showToast('No shifts this week to copy', 'err'); return; }
+
+  // Check for conflicts — any of next week's dates already have bookings?
+  const nextWeekDates = thisWeek.map(b => {
+    const d = new Date(b.scheduled_date + 'T12:00:00');
+    d.setDate(d.getDate() + 7);
+    return d.toLocaleDateString('en-CA',{timeZone:'America/Toronto'});
+  });
+  const existing = (D.bookings||[]).filter(b => nextWeekDates.includes(b.scheduled_date) && b.status !== 'cancelled');
+  const conflictMsg = existing.length ? ` (${existing.length} shifts already exist next week — will be skipped)` : '';
+
+  if (!window.confirm(`Copy ${thisWeek.length} shift${thisWeek.length!==1?'s':''} to next week?${conflictMsg}`)) return;
+
+  // Build next week's bookings — skip dates that already have a booking for the same PSW+client
+  const existingKeys = new Set(existing.map(b => `${b.assigned_to}|${b.client_name}|${b.scheduled_date}`));
+  const toCreate = thisWeek.map(b => {
+    const d = new Date(b.scheduled_date + 'T12:00:00');
+    d.setDate(d.getDate() + 7);
+    const nextDate = d.toLocaleDateString('en-CA',{timeZone:'America/Toronto'});
+    const key = `${b.assigned_to}|${b.client_name}|${nextDate}`;
+    if (existingKeys.has(key)) return null;
+    return { ...b, scheduled_date: nextDate, id: undefined, series_id: undefined, status: 'scheduled', created_at: undefined };
+  }).filter(Boolean);
+
+  if (!toCreate.length) { showToast('All shifts already exist next week', 'warn'); return; }
+
+  showToast(`Creating ${toCreate.length} shifts...`, 'ok');
+
+  try {
+    const results = await Promise.all(toCreate.map(b =>
+      fetch(`${API}/hq/booking`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-hq-token': window._hqToken || sessionStorage.getItem('hq_token') || '' },
+        body: JSON.stringify({
+          operator_id: currentOp,
+          client_name: b.client_name,
+          booking_type: b.booking_type || 'visit',
+          scheduled_date: b.scheduled_date,
+          scheduled_time: b.scheduled_time,
+          assigned_to: b.assigned_to || null,
+          duration_minutes: b.duration_minutes || 480,
+          location: b.location || null,
+          notes: b.notes || null
+        })
+      }).then(r => r.json()).catch(() => ({ success: false }))
+    ));
+
+    const created = results.filter(r => r.success).length;
+    const skipped = toCreate.length - created;
+    showToast(`${created} shift${created!==1?'s':''} copied to next week${skipped?' · '+skipped+' failed':''}`, created > 0 ? 'ok' : 'err');
+
+    if (created > 0) {
+      // Refresh data and navigate FC to next week
+      const res = await fetch(`${API}/hq/overview?operator_id=${currentOp}`, { headers: { 'x-hq-token': window._hqToken || sessionStorage.getItem('hq_token') || '' } });
+      const freshD = await res.json();
+      if (freshD.success) { D = freshD; }
+      _refreshFC();
+      // Navigate calendar forward one week
+      fc.next();
+    }
+  } catch (e) {
+    showToast(e.message || 'Copy failed', 'err');
+  }
 }
 
 // ── SEARCH / FILTER ──
