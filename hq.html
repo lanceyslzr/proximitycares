@@ -4647,14 +4647,17 @@ function fmtdt(str) {
 }
 function fmtTime(str) {
   if(!str) return '—';
-  // Handles both "HH:MM:SS" raw strings and ISO timestamps
+  // ISO timestamp — convert to Toronto local time
   if(str.includes('T') || str.includes('Z') || str.includes('+')) {
     return new Date(str).toLocaleTimeString('en-CA',{hour:'2-digit',minute:'2-digit',timeZone:'America/Toronto'});
   }
-  // Raw time string from DB like "11:59:00" — parse as Toronto local
-  const [h,m] = str.split(':');
-  const d = new Date(); d.setUTCHours(parseInt(h), parseInt(m), 0, 0);
-  return d.toLocaleTimeString('en-CA',{hour:'2-digit',minute:'2-digit',timeZone:'America/Toronto'});
+  // Plain time string from DB like "15:00" or "15:00:00" — already local, just format
+  const parts = str.split(':');
+  const h = parseInt(parts[0]);
+  const m = parseInt(parts[1]) || 0;
+  const ampm = h >= 12 ? 'p.m.' : 'a.m.';
+  const h12 = (h % 12) || 12;
+  return h12 + ':' + String(m).padStart(2,'0') + ' ' + ampm;
 }
 function showToast(msg,type='ok') {
   const t=document.getElementById('toast');
@@ -6013,7 +6016,7 @@ function _showShiftDetail(b, props) {
   const _sdEndMins = _sdStartMins + (b.duration_minutes || 480);
   const _sdEndH = Math.floor(_sdEndMins/60)%24;
   const _sdEndM = _sdEndMins%60;
-  const _sdEndFmt = (_sdEndH%12||12)+':'+String(_sdEndM).padStart(2,'0')+(_sdEndH>=12?' PM':' AM');
+  const _sdEndFmt = ((_sdEndH%12)||12)+':'+String(_sdEndM).padStart(2,'0')+(_sdEndH>=12?' p.m.':', a.m.');
   if (_elDate)   _elDate.textContent   = b.scheduled_date+' · '+fmtTime(b.scheduled_time||'09:00')+' → '+_sdEndFmt+' ('+dur+'h)';
   if (_elStatus) _elStatus.textContent = isLive ? '● Live now' : isConflict ? '⚠ Conflict' : b.status||'scheduled';
   if (_elConflictRow) _elConflictRow.style.display = isConflict ? 'block' : 'none';
