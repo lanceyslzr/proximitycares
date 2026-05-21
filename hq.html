@@ -3109,7 +3109,7 @@ async function loadAll(spin=false) {
     const _frWin = new Date(); _frWin.setDate(_frWin.getDate()-60);
     const [overviewRes, visitsRes, timeOffRes] = await Promise.all([
       fetch(`${API}/hq/overview?operator_id=${currentOp}`, { headers: _headers }),
-      fetch(`${API}/hq/visits?operator_id=${currentOp}&limit=500&from_date=${new Date(Date.now()-90*86400000).toISOString().slice(0,10)}`, { headers: _headers }),
+      fetch(`${API}/hq/visits?operator_id=${currentOp}&limit=500&from_date=${new Date(Date.now()-90*86400000).toLocaleDateString('en-CA',{timeZone:'America/Toronto'})}`, { headers: _headers }),
       fetch(`${API}/hq/psw-time-off?operator_id=${currentOp}&from_date=${_frWin.toLocaleDateString('en-CA',{timeZone:'America/Toronto'})}&to_date=${_toWin.toLocaleDateString('en-CA',{timeZone:'America/Toronto'})}`, { headers: _headers })
     ]);
     const freshD = await overviewRes.json();
@@ -3894,9 +3894,9 @@ function renderPSWs() {
       : '';
     // On-shift status
     const todayStr2 = new Date().toLocaleDateString('en-CA',{timeZone:'America/Toronto'});
-    const activeShift = (D.visits||[]).find(v => v.psw_name===p.name && v.visit_date===todayStr2 && v.time_in && !v.time_out);
-    const doneToday = (D.visits||[]).find(v => v.psw_name===p.name && v.visit_date===todayStr2 && v.time_out);
-    const pswVisits = (D.visits||[]).filter(v => v.psw_name===p.name).sort((a,b) => (b.visit_date||'').localeCompare(a.visit_date||''));
+    const activeShift = (D.visits||[]).find(v => v.psw_name.trim()===p.name.trim() && v.visit_date===todayStr2 && v.time_in && !v.time_out);
+    const doneToday = (D.visits||[]).find(v => v.psw_name.trim()===p.name.trim() && v.visit_date===todayStr2 && v.time_out);
+    const pswVisits = (D.visits||[]).filter(v => v.psw_name.trim()===p.name.trim()).sort((a,b) => (b.visit_date||'').localeCompare(a.visit_date||''));
     const lastPswV = pswVisits[0];
     let shiftBar = '';
     if (activeShift) {
@@ -5388,11 +5388,11 @@ function renderPSWGrid() {
     const initials = name.split(' ').map(n=>n[0]||'').join('').toUpperCase().slice(0,2);
 
     const wkHrs = bookings.filter(b =>
-      b.assigned_to === name &&
+      b.assigned_to.trim() === name.trim() &&
       b.scheduled_date >= weekStart &&
       b.scheduled_date <= weekEnd &&
       b.status !== 'cancelled'
-    ).reduce((s,b) => s + (b.duration_minutes||480)/60, 0);
+    ).reduce((s,b) => s + (b.duration_minutes||60)/60, 0);
 
     html += `<tr>
       <td class="col-name">
@@ -5477,8 +5477,8 @@ function _buildFCEvents() {
   const _fcCenter = window._fc ? (window._fc.view.currentStart || new Date()) : new Date();
   const _winS = new Date(_fcCenter); _winS.setDate(_winS.getDate() - 60);
   const _winE = new Date(_fcCenter); _winE.setDate(_winE.getDate() + 60);
-  const _ws = _winS.toISOString().slice(0,10);
-  const _we = _winE.toISOString().slice(0,10);
+  const _ws = _winS.toLocaleDateString('en-CA',{timeZone:'America/Toronto'});
+  const _we = _winE.toLocaleDateString('en-CA',{timeZone:'America/Toronto'});
   const bookings = (D.bookings || []).filter(b =>
     !b.scheduled_date || (b.scheduled_date >= _ws && b.scheduled_date <= _we)
   );
@@ -5748,7 +5748,7 @@ function _initFC() {
       }
       // Tooltip
       if (b) {
-        info.el.title = `${b.client_name||''} · ${b.assigned_to||'Unassigned'}\n${b.scheduled_date} ${b.scheduled_time}\n${(b.duration_minutes||480)/60}h`;
+        info.el.title = `${b.client_name||''} · ${b.assigned_to||'Unassigned'}\n${b.scheduled_date} ${b.scheduled_time}\n${(b.duration_minutes||60)/60}h`;
       } else if (v) {
         const vType = v.booking_id ? 'Completed' : 'Manual';
         info.el.title = `${vType}: ${v.client_name||''} · ${v.psw_name||''}\n${v.visit_date} ${v.time_in||''}–${v.time_out||''}\n${parseFloat(v.hours_worked||0).toFixed(1)}h`;
@@ -5812,11 +5812,11 @@ function _pswWeekHours(pswName) {
   const dow = today.getDay()===0?6:today.getDay()-1;
   const weekStart = new Date(today); weekStart.setDate(today.getDate()-dow);
   const weekEnd   = new Date(weekStart); weekEnd.setDate(weekStart.getDate()+6);
-  const ws = weekStart.toISOString().slice(0,10);
-  const we = weekEnd.toISOString().slice(0,10);
+  const ws = weekStart.toLocaleDateString('en-CA',{timeZone:'America/Toronto'});
+  const we = weekEnd.toLocaleDateString('en-CA',{timeZone:'America/Toronto'});
   return bookings
-    .filter(b=>b.assigned_to===pswName&&b.scheduled_date>=ws&&b.scheduled_date<=we&&b.status!=='cancelled')
-    .reduce((sum,b)=>sum+(b.duration_minutes||480)/60,0);
+    .filter(b=>b.assigned_to.trim()===pswName.trim()&&b.scheduled_date>=ws&&b.scheduled_date<=we&&b.status!=='cancelled')
+    .reduce((sum,b)=>sum+(b.duration_minutes||60)/60,0);
 }
 
 function _updateCapacityBars() {
@@ -5879,7 +5879,7 @@ function _detectDropConflict(bookingId, pswName, newDate, newTime, durMins) {
     const bs = toMins(b.scheduled_time);
     const be = bs + (b.duration_minutes||480);
     if (newStart<be && bs<newEnd) {
-      return { conflictingBooking: b, reason: `${pswName} is already assigned to ${b.client_name||'another client'} from ${b.scheduled_time} (${(b.duration_minutes||480)/60}h)` };
+      return { conflictingBooking: b, reason: `${pswName} is already assigned to ${b.client_name||'another client'} from ${b.scheduled_time} (${(b.duration_minutes||60)/60}h)` };
     }
   }
   return null;
@@ -5983,7 +5983,7 @@ function _showShiftDetail(b, props) {
   const m = document.getElementById('shift-detail-modal');
   if (!m) { openEditShift(b.id); return; }
 
-  const dur = (b.duration_minutes||480)/60;
+  const dur = (b.duration_minutes||60)/60;
   const isLive = props.isLive;
   const isConflict = props.isConflict;
 
@@ -6013,7 +6013,7 @@ function _showShiftDetail(b, props) {
   if (phoneLink)  phoneLink.style.pointerEvents = _sdPhone ? 'auto' : 'none';
   if (phoneLink)  phoneLink.style.opacity = _sdPhone ? '1' : '0.4';
   const _sdStartMins = toMins(b.scheduled_time || '09:00');
-  const _sdEndMins = _sdStartMins + (b.duration_minutes || 480);
+  const _sdEndMins = _sdStartMins + (b.duration_minutes || 60);
   const _sdEndH = Math.floor(_sdEndMins/60)%24;
   const _sdEndM = _sdEndMins%60;
   const _sdEndFmt = ((_sdEndH%12)||12)+':'+String(_sdEndM).padStart(2,'0')+(_sdEndH>=12?' p.m.':', a.m.');
@@ -6184,7 +6184,7 @@ function openAddShift(pswName, date, clientName) {
   const scoreMap = {};
   if (clientName) {
     psws.forEach(p => {
-      const pswVisits = visits.filter(v => v.psw_name === p.name && v.client_name === clientName);
+      const pswVisits = visits.filter(v => v.psw_name.trim() === p.name.trim() && v.client_name === clientName);
       const rated = pswVisits.filter(v => v.satisfaction_rating);
       const avg = rated.length ? (rated.reduce((s,v) => s + v.satisfaction_rating, 0) / rated.length).toFixed(1) : null;
       scoreMap[p.name] = { count: pswVisits.length, avg };
@@ -6240,7 +6240,7 @@ function checkPSWAvailability() {
   }
 
   // 3. Check availability_days (stored as comma string e.g. "Mon,Tue,Wed,Thu,Fri")
-  const pswRec = (D.psws || []).find(p => p.full_name === pswName);
+  const pswRec = (D.psws || []).find(p => (p.full_name||"").trim() === (pswName||"").trim());
   if (pswRec && pswRec.availability_days) {
     const dayNames = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
     const dow = dayNames[new Date(date + 'T12:00:00').getDay()];
@@ -7444,7 +7444,7 @@ async function broadcastShift(bookingId) {
     const res = await fetch(`${API}/hq/broadcast-shift`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'x-hq-token': window._hqToken || sessionStorage.getItem('hq_token') || '' },
-      body: JSON.stringify({ operator_id: currentOp, booking_id: bookingId, client_name: b.client_name, scheduled_date: b.scheduled_date, scheduled_time: b.scheduled_time, duration_minutes: b.duration_minutes||480 })
+      body: JSON.stringify({ operator_id: currentOp, booking_id: bookingId, client_name: b.client_name, scheduled_date: b.scheduled_date, scheduled_time: b.scheduled_time, duration_minutes: b.duration_minutes||60 })
     });
     const d = await res.json();
     if (!d.success) throw new Error(d.error||'Broadcast failed');
@@ -7551,7 +7551,7 @@ async function renderAttendance() {
   const updEl = document.getElementById('attendance-updated');
   if (!el) return;
   try {
-    const _attFrom = new Date(Date.now()-30*86400000).toISOString().slice(0,10);
+    const _attFrom = new Date(Date.now()-30*86400000).toLocaleDateString('en-CA',{timeZone:'America/Toronto'});
     const res = await fetch(`${API}/hq/visits?operator_id=${currentOp}&limit=100&from_date=${_attFrom}`, { headers: { 'x-hq-token': window._hqToken || sessionStorage.getItem('hq_token') || '' } });
     const d = await res.json();
     const visits = d.visits || [];
@@ -8217,7 +8217,7 @@ async function copyWeek() {
           scheduled_date: b.scheduled_date,
           scheduled_time: b.scheduled_time,
           assigned_to: b.assigned_to || null,
-          duration_minutes: b.duration_minutes || 480,
+          duration_minutes: b.duration_minutes || 60,
           location: b.location || null,
           notes: b.notes || null
         })
@@ -9458,7 +9458,7 @@ function renderResourceView() {
     const color  = _RV_COLORS[i % _RV_COLORS.length];
     const isLive = liveSet.has(p.name);
     const hrsToday = bookings.filter(b=>b.assigned_to===p.name)
-      .reduce((s,b) => s + (b.duration_minutes||480)/60, 0);
+      .reduce((s,b) => s + (b.duration_minutes||60)/60, 0);
     html += `
           <div style="width:${_RV_COL_W}px;flex-shrink:0;padding:8px 6px;border-left:1px solid var(--border);text-align:center;">
             <div style="display:flex;align-items:center;justify-content:center;gap:5px;">
@@ -9520,7 +9520,7 @@ function renderResourceView() {
       // (cell click handled above)
 
       cellBookings.forEach(b => {
-        const durSlots = Math.max(1, Math.round((b.duration_minutes||480)/30));
+        const durSlots = Math.max(1, Math.round((b.duration_minutes||60)/30));
         const chipH    = durSlots * _RV_SLOT_H - 4;
         const isConf   = conflicts.has(b.id);
         const isLv     = liveSet.has(p.name);
@@ -9538,7 +9538,7 @@ function renderResourceView() {
           ${isLv?'<div style="width:6px;height:6px;border-radius:50%;background:#4a9a6e;display:inline-block;margin-right:3px;box-shadow:0 0 4px #4a9a6e;vertical-align:middle;"></div>':''}
           ${isConf?'<span style="font-family:var(--mono);font-size:11px;color:var(--red);">⚠ </span>':''}
           <span style="font-family:var(--mono);font-size:10px;color:${isConf?'var(--red)':isLv?'var(--green2)':color};font-weight:600;">${b.client_name||'—'}</span>
-          <div style="font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:1px;">${b.scheduled_time?b.scheduled_time.slice(0,5):'—'} · ${((b.duration_minutes||480)/60).toFixed(1)}h</div>
+          <div style="font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:1px;">${b.scheduled_time?b.scheduled_time.slice(0,5):'—'} · ${((b.duration_minutes||60)/60).toFixed(1)}h</div>
         </div>`;
       });
 
@@ -9553,7 +9553,7 @@ function renderResourceView() {
       });
       html += `<div style="width:${_RV_COL_W}px;flex-shrink:0;border-left:1px solid var(--border);position:relative;">`;
       uCell.forEach(b => {
-        const durSlots = Math.max(1, Math.round((b.duration_minutes||480)/30));
+        const durSlots = Math.max(1, Math.round((b.duration_minutes||60)/30));
         const chipH = durSlots * _RV_SLOT_H - 4;
         const bData = JSON.stringify(b).replace(/"/g,'&quot;');
         html += `<div onclick="event.stopPropagation();_showShiftDetail(${bData},{isConflict:false,isLive:false,isCancelled:false})"
@@ -9561,7 +9561,7 @@ function renderResourceView() {
             background:rgba(212,160,61,.1);border:1px solid var(--amber);border-radius:5px;
             padding:3px 6px;cursor:pointer;overflow:hidden;">
           <div style="font-family:var(--mono);font-size:10px;color:var(--amber);">${b.client_name||'—'}</div>
-          <div style="font-family:var(--mono);font-size:11px;color:var(--muted);">${b.scheduled_time?b.scheduled_time.slice(0,5):'—'} · ${((b.duration_minutes||480)/60).toFixed(1)}h</div>
+          <div style="font-family:var(--mono);font-size:11px;color:var(--muted);">${b.scheduled_time?b.scheduled_time.slice(0,5):'—'} · ${((b.duration_minutes||60)/60).toFixed(1)}h</div>
         </div>`;
       });
       html += '</div>';
