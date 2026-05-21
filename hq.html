@@ -7362,8 +7362,8 @@ async function savePSWEdits(pswId, pswName) {
   const availability = document.getElementById('pe-availability')?.value.trim() || '';
   try {
     const payload = { operator_id: currentOp, psw_rate: rate, status, notes, probation_end: probationEnd || null };
-    if (phone) payload.phone = phone;
-    if (email) payload.email = email;
+    payload.phone = phone || null;
+    payload.email = email || null;
     if (availability) payload.availability = availability;
     // BUILD 2 — Ontario credentials
     const naccNum  = document.getElementById('pe-nacc-number')?.value?.trim()  ?? undefined;
