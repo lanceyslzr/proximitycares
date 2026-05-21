@@ -2802,7 +2802,6 @@ function lk(k) {
           if (todayShifts) todayShifts.innerHTML = '<div style="padding:16px;text-align:center;font-family:var(--mono);font-size:12px;color:var(--muted);letter-spacing:2px;">LOADING...</div>';
           loadAll();
           showSect('today');
-          startPollInterval();
         } else {
           // Wrong PIN — show server error message if available
           const errEl = document.getElementById('lock-err');
@@ -5328,6 +5327,7 @@ async function _fetchGridBookings(forceRefresh) {
 function renderPSWGrid() {
   const el = document.getElementById('schedule-board');
   if (!el) return;
+  el.style.display = 'block'; // always visible — resource view may have hidden it
 
   const psws = (D.psws || []).filter(p => p.status === 'active' || !p.status);
   const bookings = D.bookings || [];
@@ -9376,7 +9376,7 @@ function toggleResourceView() {
     sb.style.display  = 'block';
     btn.style.background = '';
     btn.style.color  = 'var(--gold)';
-    _refreshFC();
+    _refreshSched(); // route to grid or cal based on current view
   }
 }
 
