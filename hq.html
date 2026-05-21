@@ -2637,7 +2637,7 @@ function toggleNeedsAttn() {
 }
 
 
-async function respondCancelRequest(id, action) {
+async function respondCancelReq(id, action) {
   try {
     const r = await fetch(`${API}/hq/cancellation-requests/${id}/respond`, {
       method: 'POST', headers: {'Content-Type': 'application/json', 'x-hq-token': window._hqToken || sessionStorage.getItem('hq_token') || ''},
@@ -3605,7 +3605,6 @@ function renderPSWs() {
         <div class="card-act" onclick="openPSWMsg('${p.name}')">Message</div>
         <div class="card-act" onclick="showSect('schedule');setTimeout(()=>openAddShift(this.closest('.card').querySelector('[data-psw-name]')?.dataset.pswName||'',''),150);">+ Shift</div>
         ${(pStatus === 'pending_review' || pStatus === 'invited') ? `<div class="card-act" style="color:var(--green2);border-color:rgba(74,154,110,.3);background:rgba(74,154,110,.06);" onclick="approvePSW('${p.name}')">✓ Approve</div>` : ''}
-        ${(pStatus==='pending_review'||pStatus==='invited')?`<div class="card-act" style="color:var(--green2);border-color:rgba(74,154,110,.3);" onclick="approvePSW('${p.name}')">✓ Approve</div>`:''}
         <div class="card-act ok" data-psw-id="${p.id||''}" data-psw-name="${p.name}" data-psw-source="${p.source||'live'}" onclick="if(this.dataset.pswSource==='live'){openPSWDetail(this.dataset.pswId||this.dataset.pswName);}else{showToast('PSW not yet activated in Supabase','err');}">View</div>
       </div>
     </div>`;
