@@ -1485,139 +1485,149 @@ body.sidebar-hidden #sidebar-reopen-tab{ display:flex; }
 
 <!-- OVERVIEW DASHBOARD -->
 <div class="section" id="sect-overview">
-  <div class="section-header" style="padding-bottom:4px;">
-    <span class="section-title">Operations Overview</span>
-    <span style="font-family:var(--mono);font-size:11px;color:var(--muted);" id="ov-updated">—</span>
+
+  <!-- ── HEADER ── -->
+  <div class="section-header">
+    <span class="section-title">Overview</span>
+    <span style="font-family:var(--mono);font-size:11px;color:var(--muted2);" id="ov-updated">—</span>
   </div>
 
-  <!-- System Health — replaces onboarding checklist (moved to operator.html) -->
-  <div id="ov-system-health" style="margin:0 12px 12px;">
-    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;overflow:hidden;">
-      <div style="padding:10px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
-        <div style="font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted2);">System Health</div>
-        <div style="font-family:var(--mono);font-size:11px;color:var(--muted);" id="sh-updated">—</div>
+  <!-- ── SYSTEM HEALTH ── -->
+  <div id="ov-system-health" style="margin:0 0 2px;">
+    <div style="padding:8px 14px 4px;display:flex;align-items:center;justify-content:space-between;">
+      <span style="font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted2);">System Health</span>
+      <span style="font-family:var(--mono);font-size:10px;color:var(--muted);" id="sh-updated">—</span>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);margin:0 12px;border-radius:var(--r8);overflow:hidden;">
+      <div style="background:var(--bg2);padding:12px 8px;text-align:center;">
+        <div style="font-family:var(--mono);font-size:18px;font-weight:500;color:var(--teal2);" id="sh-on-shift">—</div>
+        <div style="font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-top:3px;">On Shift</div>
       </div>
-      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);">
-        <div style="background:var(--bg2);padding:12px 10px;text-align:center;">
-          <div style="font-family:var(--mono);font-size:16px;font-weight:500;color:var(--teal2);" id="sh-on-shift">—</div>
-          <div style="font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-top:3px;">On Shift</div>
-        </div>
-        <div style="background:var(--bg2);padding:12px 10px;text-align:center;cursor:pointer;" onclick="showSect('revenue')">
-          <div style="font-family:var(--mono);font-size:16px;font-weight:500;color:var(--amber);" id="sh-outstanding">$—</div>
-          <div style="font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-top:3px;">Outstanding</div>
-        </div>
-        <div style="background:var(--bg2);padding:12px 10px;text-align:center;cursor:pointer;" onclick="showSect('psws')">
-          <div style="font-family:var(--mono);font-size:16px;font-weight:500;color:var(--red);" id="sh-expiring">—</div>
-          <div style="font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-top:3px;">Certs Expiring</div>
-        </div>
+      <div style="background:var(--bg2);padding:12px 8px;text-align:center;cursor:pointer;" onclick="showSect('revenue')">
+        <div style="font-family:var(--mono);font-size:18px;font-weight:500;color:var(--amber);" id="sh-outstanding">$—</div>
+        <div style="font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-top:3px;">Outstanding</div>
+      </div>
+      <div style="background:var(--bg2);padding:12px 8px;text-align:center;cursor:pointer;" onclick="showSect('psws')">
+        <div style="font-family:var(--mono);font-size:18px;font-weight:500;color:var(--red);" id="sh-expiring">—</div>
+        <div style="font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-top:3px;">Certs Expiring</div>
       </div>
     </div>
   </div>
 
-  <!-- Live KPI row -->
-  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);margin:0 12px 12px;border-radius:8px;overflow:hidden;">
-    <div style="background:var(--bg2);padding:14px 10px;text-align:center;cursor:pointer;" onclick="showSect('visits')">
-      <div style="font-family:var(--mono);font-size:22px;font-weight:500;color:var(--teal2);" id="ov-active-psws">—</div>
-      <div style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-top:4px;">On Shift Now</div>
+  <!-- ── KPI TILES ROW 1 — Live ── -->
+  <div class="ov-kpi-row" style="margin-top:12px;">
+    <div class="ov-kpi" onclick="showSect('visits')" style="cursor:pointer;">
+      <div class="ov-kpi-val" style="color:var(--teal2);" id="ov-active-psws">—</div>
+      <div class="ov-kpi-lbl">On Shift Now</div>
     </div>
-    <div style="background:var(--bg2);padding:14px 10px;text-align:center;cursor:pointer;" onclick="showSect('leads')">
-      <div style="font-family:var(--mono);font-size:22px;font-weight:500;color:var(--gold);" id="ov-new-leads">—</div>
-      <div style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-top:4px;">New Leads</div>
+    <div class="ov-kpi" onclick="showSect('leads')" style="cursor:pointer;">
+      <div class="ov-kpi-val" style="color:var(--gold);" id="ov-new-leads">—</div>
+      <div class="ov-kpi-lbl">New Leads</div>
     </div>
-    <div style="background:var(--bg2);padding:14px 10px;text-align:center;cursor:pointer;" onclick="showSect('revenue')">
-      <div style="font-family:var(--mono);font-size:22px;font-weight:500;color:var(--green2);" id="ov-month-rev">$—</div>
-      <div style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-top:4px;">Month Billed</div>
+    <div class="ov-kpi" onclick="showSect('revenue')" style="cursor:pointer;">
+      <div class="ov-kpi-val" style="color:var(--green2);" id="ov-month-rev">$—</div>
+      <div class="ov-kpi-lbl">Month Billed</div>
     </div>
-  </div>
-
-  <!-- Agency health row -->
-  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);margin:0 12px 12px;border-radius:8px;overflow:hidden;">
-    <div style="background:var(--bg2);padding:12px 6px;text-align:center;cursor:pointer;" onclick="showSect('clients')">
-      <div style="font-family:var(--mono);font-size:18px;font-weight:500;color:var(--text);" id="ov-clients">—</div>
-      <div style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-top:3px;">Clients</div>
-    </div>
-    <div style="background:var(--bg2);padding:12px 6px;text-align:center;cursor:pointer;" onclick="showSect('psws')">
-      <div style="font-family:var(--mono);font-size:18px;font-weight:500;color:var(--text);" id="ov-psws">—</div>
-      <div style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-top:3px;">PSWs</div>
-    </div>
-    <div style="background:var(--bg2);padding:12px 6px;text-align:center;cursor:pointer;" onclick="showSect('bookings')">
-      <div style="font-family:var(--mono);font-size:18px;font-weight:500;color:var(--text);" id="ov-bookings">—</div>
-      <div style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-top:3px;">Upcoming</div>
-    </div>
-    <div style="background:var(--bg2);padding:12px 6px;text-align:center;cursor:pointer;" onclick="showSect('visits')">
-      <div style="font-family:var(--mono);font-size:18px;font-weight:500;color:var(--text);" id="ov-visits-month">—</div>
-      <div style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-top:3px;">Month Visits</div>
+    <div class="ov-kpi" onclick="showSect('visits')" style="cursor:pointer;">
+      <div class="ov-kpi-val" id="ov-visits-month">—</div>
+      <div class="ov-kpi-lbl">Month Visits</div>
     </div>
   </div>
 
-  <!-- Vacant shifts alert -->
-  <div id="ov-vacant-alert" style="display:none;margin:0 12px 10px;padding:11px 14px;background:rgba(224,154,61,.06);border:1px solid rgba(224,154,61,.25);border-radius:8px;cursor:pointer;" onclick="showSect('schedule')">
-    <div style="font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--amber);margin-bottom:4px;">⚑ Open Shifts</div>
-    <div style="font-size:12px;color:var(--muted2);" id="ov-vacant-msg">—</div>
+  <!-- ── KPI TILES ROW 2 — Agency ── -->
+  <div class="ov-kpi-row">
+    <div class="ov-kpi" onclick="showSect('clients')" style="cursor:pointer;">
+      <div class="ov-kpi-val" id="ov-clients">—</div>
+      <div class="ov-kpi-lbl">Clients</div>
+    </div>
+    <div class="ov-kpi" onclick="showSect('psws')" style="cursor:pointer;">
+      <div class="ov-kpi-val" id="ov-psws">—</div>
+      <div class="ov-kpi-lbl">Active PSWs</div>
+    </div>
+    <div class="ov-kpi" onclick="showSect('schedule')" style="cursor:pointer;">
+      <div class="ov-kpi-val" id="ov-bookings">—</div>
+      <div class="ov-kpi-lbl">Upcoming</div>
+    </div>
+    <div class="ov-kpi" onclick="showSect('leads')" style="cursor:pointer;">
+      <div class="ov-kpi-val" id="ov-new-leads-2" style="color:var(--gold);">—</div>
+      <div class="ov-kpi-lbl">Leads</div>
+    </div>
   </div>
 
-  <!-- Open incidents alert -->
-  <div id="ov-incident-alert" style="display:none;margin:0 12px 10px;padding:11px 14px;background:rgba(224,85,85,.06);border:1px solid rgba(224,85,85,.2);border-radius:8px;cursor:pointer;" onclick="showSect('visits')">
-    <div style="font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--red);margin-bottom:4px;">⚠ Open Incidents</div>
-    <div style="font-size:12px;color:var(--muted2);" id="ov-incident-msg">—</div>
+  <!-- ── ALERT BANNERS ── -->
+  <div id="ov-vacant-alert" style="display:none;margin:0 12px 8px;padding:10px 14px;background:var(--amber-dim);border:1px solid var(--amber-border);border-radius:var(--r8);cursor:pointer;" onclick="showSect('schedule')">
+    <div style="font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--amber);display:flex;align-items:center;gap:6px;"><span class="dot dot-amber dot-pulse"></span>Open Shifts</div>
+    <div style="font-size:12px;color:var(--muted2);margin-top:3px;" id="ov-vacant-msg">—</div>
+  </div>
+  <div id="ov-incident-alert" style="display:none;margin:0 12px 8px;padding:10px 14px;background:var(--red-dim);border:1px solid var(--red-border);border-radius:var(--r8);cursor:pointer;" onclick="showSect('visits')">
+    <div style="font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--red);display:flex;align-items:center;gap:6px;"><span class="dot dot-red dot-pulse"></span>Open Incidents</div>
+    <div style="font-size:12px;color:var(--muted2);margin-top:3px;" id="ov-incident-msg">—</div>
+  </div>
+  <div id="ov-vitals-alert" style="display:none;margin:0 12px 8px;padding:10px 14px;background:var(--red-dim);border:1px solid var(--red-border);border-radius:var(--r8);">
+    <div style="font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--red);display:flex;align-items:center;gap:6px;"><span class="dot dot-red"></span>Flagged Vitals</div>
+    <div style="font-size:12px;color:var(--muted2);margin-top:3px;" id="ov-vitals-msg">—</div>
   </div>
 
-  <!-- Live attendance board -->
-  <div class="section-header" style="padding-bottom:4px;"><span class="section-title">Live Attendance</span></div>
-  <div style="margin:0 12px 12px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;overflow:hidden;" id="ov-attendance">
-    <div class="empty-state" style="padding:16px;">Loading attendance...</div>
+  <!-- ── LIVE ATTENDANCE ── -->
+  <div class="section-header" style="padding-bottom:6px;"><span class="section-title">Live Attendance</span></div>
+  <div id="ov-attendance" style="margin:0 0 2px;background:var(--bg2);border-top:1px solid var(--border);border-bottom:1px solid var(--border);">
+    <div class="empty-state">Loading attendance...</div>
   </div>
 
-  <!-- GPS Exceptions panel -->
-  <div class="section-header" style="padding-bottom:4px;">
+  <!-- ── GPS EXCEPTIONS ── -->
+  <div class="section-header" style="padding-bottom:6px;padding-top:14px;">
     <span class="section-title">GPS Exceptions</span>
-    <div class="sect-action" id="gps-exc-refresh" onclick="renderGPSExceptions()">↻ Refresh</div>
+    <div class="sect-action" id="gps-exc-refresh" onclick="renderGPSExceptions()">↻</div>
   </div>
-  <div style="margin:0 12px 12px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;overflow:hidden;" id="ov-gps-exceptions">
-    <div class="empty-state" style="padding:14px;">Loading GPS data...</div>
-  </div>
-
-  <!-- Vitals alert banner -->
-  <div id="ov-vitals-alert" style="display:none;" class="vitals-alert-banner">
-    <div style="font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--red);margin-bottom:4px;">⚠ Flagged Vitals</div>
-    <div style="font-size:12px;color:var(--muted2);" id="ov-vitals-msg">—</div>
+  <div id="ov-gps-exceptions" style="margin:0 0 2px;background:var(--bg2);border-top:1px solid var(--border);border-bottom:1px solid var(--border);">
+    <div class="empty-state">Loading GPS data...</div>
   </div>
 
-  <!-- Recent activity feed -->
-  <div class="section-header" style="padding-bottom:4px;"><span class="section-title">Recent Activity</span></div>
-  <div style="margin:0 12px 12px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;overflow:hidden;" id="ov-activity">
-    <div class="empty-state" style="padding:16px;">Loading activity...</div>
-  </div>
-
-  <!-- Today's schedule -->
-  <div class="section-header" style="padding-bottom:4px;">
+  <!-- ── TODAY'S SHIFTS ── -->
+  <div class="section-header" style="padding-bottom:6px;padding-top:14px;">
     <span class="section-title">Today's Shifts</span>
     <div class="sect-action" onclick="showSect('schedule')">View All</div>
   </div>
-  <div style="margin:0 12px 12px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;overflow:hidden;" id="ov-today-shifts">
-    <div class="empty-state" style="padding:16px;">Loading shifts...</div>
+  <div id="ov-today-shifts" style="margin:0 0 2px;background:var(--bg2);border-top:1px solid var(--border);border-bottom:1px solid var(--border);">
+    <div class="empty-state">Loading shifts...</div>
   </div>
 
-  <!-- New leads today -->
-  <div class="section-header" style="padding-bottom:4px;">
+  <!-- ── RECENT ACTIVITY ── -->
+  <div class="section-header" style="padding-bottom:6px;padding-top:14px;"><span class="section-title">Recent Activity</span></div>
+  <div id="ov-activity" style="margin:0 0 2px;background:var(--bg2);border-top:1px solid var(--border);border-bottom:1px solid var(--border);">
+    <div class="empty-state">Loading activity...</div>
+  </div>
+
+  <!-- ── NEW LEADS ── -->
+  <div class="section-header" style="padding-bottom:6px;padding-top:14px;">
     <span class="section-title">New Leads</span>
     <div class="sect-action" onclick="showSect('leads')">View All</div>
   </div>
-  <div id="ov-leads-list" style="margin:0 12px 12px;">
+  <div id="ov-leads-list" style="margin:0 0 16px;">
     <div class="empty-state">Loading leads...</div>
   </div>
+
 </div>
 
 <!-- LEADS -->
 <div class="section" id="sect-leads">
   <div class="section-header">
-    <span class="section-title">All Leads</span>
+    <span class="section-title">Leads</span>
     <div class="sect-action" onclick="triggerFollowUp()">↻ Follow-up</div>
   </div>
-  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);margin:0 12px 10px;border-radius:6px;overflow:hidden;">
-    <div style="background:var(--bg2);padding:10px 6px;text-align:center;"><div style="font-family:var(--mono);font-size:16px;font-weight:500;color:var(--teal2);" id="lmt-month">—</div><div style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-top:3px;">This Month</div></div>
-    <div style="background:var(--bg2);padding:10px 6px;text-align:center;"><div style="font-family:var(--mono);font-size:16px;font-weight:500;color:var(--green2);" id="lmt-converted">—</div><div style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-top:3px;">Converted</div></div>
-    <div style="background:var(--bg2);padding:10px 6px;text-align:center;"><div style="font-family:var(--mono);font-size:16px;font-weight:500;color:var(--text);" id="lmt-pending">—</div><div style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-top:3px;">Pending</div></div>
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);margin:0 12px 10px;border-radius:var(--r8);overflow:hidden;">
+    <div style="background:var(--bg2);padding:12px 6px;text-align:center;">
+      <div style="font-family:var(--mono);font-size:18px;font-weight:500;color:var(--teal2);" id="lmt-month">—</div>
+      <div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-top:3px;">This Month</div>
+    </div>
+    <div style="background:var(--bg2);padding:12px 6px;text-align:center;">
+      <div style="font-family:var(--mono);font-size:18px;font-weight:500;color:var(--green2);" id="lmt-converted">—</div>
+      <div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-top:3px;">Converted</div>
+    </div>
+    <div style="background:var(--bg2);padding:12px 6px;text-align:center;">
+      <div style="font-family:var(--mono);font-size:18px;font-weight:500;color:var(--text);" id="lmt-pending">—</div>
+      <div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-top:3px;">Pending</div>
+    </div>
   </div>
   <div class="list-search-wrap"><span class="list-search-icon" style="font-size:14px;">⌕</span><input class="list-search" id="leads-search" placeholder="Search leads..." oninput="filterList('leads-list','leads-search')" autocomplete="off"></div>
   <div id="leads-list"><div class="empty-state">Loading...</div></div>
@@ -7525,6 +7535,7 @@ function renderOverview() {
   const setEl = (id, val) => { const el=document.getElementById(id); if(el) el.textContent=val; };
   setEl('ov-active-psws', activePSWs);
   setEl('ov-new-leads', newLeads);
+  setEl('ov-new-leads-2', newLeads);
   setEl('ov-month-rev', '$' + monthBilled.toFixed(0));
   setEl('ov-clients', clients.length);
   setEl('ov-psws', psws.filter(p => p.status==='active').length || psws.length);
