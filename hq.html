@@ -2210,7 +2210,7 @@ body.sidebar-hidden #sidebar-reopen-tab{ display:flex; }
       <div class="sect-action" onclick="openSwapSheet()" style="color:var(--purple2);border-color:rgba(160,96,224,.3);">⇄ Swap</div>
       <div class="sect-action" id="map-toggle-btn" onclick="toggleLiveMap()" style="color:var(--teal2);border-color:rgba(61,138,122,.3);">⬤ Live Map</div>
       <div class="sect-action" id="resource-toggle-btn" onclick="toggleResourceView()" style="color:var(--gold);border-color:rgba(201,169,110,.3);">⊞ Resource</div>
-      <div class="sect-action" onclick="schedHQView==='grid'?renderPSWGrid():renderSchedule()">↻</div>
+      <div class="sect-action" onclick="schedHQView==='grid'?refreshGrid():renderSchedule()">↻</div>
     </div>
   </div>
   <!-- GPS Live Map Panel -->
@@ -3153,7 +3153,7 @@ function renderAll() {
   if (activeSect === 'crm') { renderCRM(); }
   if (activeSect === 'overview') { renderOverview(); }
   if (activeSect === 'revenue') { renderRevenue().catch(()=>{}); }
-  if (activeSect === 'schedule') { schedHQView === 'grid' ? renderPSWGrid() : (window._fc ? _refreshFC() : null); renderVacantVisits(); }
+  if (activeSect === 'schedule') { schedHQView === 'grid' ? refreshGrid() : (window._fc ? _refreshFC() : null); renderVacantVisits(); }
   renderBookings();
 
   // Incident badge
@@ -4591,7 +4591,7 @@ function showSect(name) {
   if(name==='crm') { window._dirtyCRM=false; renderCRM(); }
   if(name==='overview') { window._dirtyOverview=false; renderOverview(); loadFlaggedVitals(); }
   if(name==='applicants') loadApplicants();
-  if(name==='schedule') { schedHQView==='grid' ? renderPSWGrid() : renderSchedule(); renderVacantVisits(); loadShiftOffersHQ(); }
+  if(name==='schedule') { schedHQView==='grid' ? refreshGrid() : renderSchedule(); renderVacantVisits(); loadShiftOffersHQ(); }
   if(name==='visits') { renderVisits(); }
   if(name==='today') { renderToday(); loadCancellationRequests(); }
   if(name==='schedule') { loadCancellationRequests(); }
@@ -5274,6 +5274,42 @@ let dragBookingId = null;
 let dragData = null;
 
 // ── PSW GRID VIEW ──
+// ── GRID BOOKINGS FETCH ──
+// Fetches the correct date window for the current grid view and merges into D.bookings
+// This is the same pattern as FC's datesSet — ensures the grid always has accurate data
+async function _fetchGridBookings(forceRefresh) {
+  const today = new Date();
+  const weekBase = new Date(today);
+  const dow = (weekBase.getDay() + 6) % 7;
+  weekBase.setDate(weekBase.getDate() - dow + (schedWeekOffset * 7));
+  // Fetch ±14 days around the current week to cover week nav without extra fetches
+  const fromD = new Date(weekBase); fromD.setDate(fromD.getDate() - 14);
+  const toD   = new Date(weekBase); toD.setDate(toD.getDate() + 21);
+  const from = fromD.toLocaleDateString('en-CA', {timeZone:'America/Toronto'});
+  const to   = toD.toLocaleDateString('en-CA', {timeZone:'America/Toronto'});
+
+  // Skip if window already covered and not forcing
+  if (!forceRefresh) {
+    const loaded = D.bookings || [];
+    const dates = loaded.map(b => b.scheduled_date).filter(Boolean);
+    const minL = dates.length ? dates.reduce((a,b) => a<b?a:b) : '';
+    const maxL = dates.length ? dates.reduce((a,b) => a>b?a:b) : '';
+    if (minL && maxL && from >= minL && to <= maxL) return; // already covered
+  }
+
+  try {
+    const r = await fetch(`${API}/hq/bookings?operator_id=${currentOp}&from_date=${from}&to_date=${to}`, {
+      headers: { 'x-hq-token': window._hqToken || sessionStorage.getItem('hq_token') || '' }
+    });
+    const d = await r.json();
+    if (!d.success) return;
+    // Merge — dedup by id
+    const existing = new Map((D.bookings||[]).map(b => [b.id, b]));
+    d.bookings.forEach(b => existing.set(b.id, b));
+    D.bookings = Array.from(existing.values());
+  } catch(e) { /* silent */ }
+}
+
 function renderPSWGrid() {
   const el = document.getElementById('schedule-board');
   if (!el) return;
@@ -5286,11 +5322,9 @@ function renderPSWGrid() {
   const today = new Date();
   const todayStr = today.toLocaleDateString('en-CA', {timeZone:'America/Toronto'});
   const weekBase = new Date(today);
-  // Find Monday of current week, then offset
   const dow = (weekBase.getDay() + 6) % 7; // 0=Mon
   weekBase.setDate(weekBase.getDate() - dow + (schedWeekOffset * 7));
 
-  // Build 7 day columns
   const days = [];
   for (let i = 0; i < 7; i++) {
     const d = new Date(weekBase);
@@ -5301,27 +5335,23 @@ function renderPSWGrid() {
   const weekStart = days[0];
   const weekEnd   = days[6];
 
-  // Active visits for live status
   const liveClients = new Set(
     visits.filter(v => v.status === 'in_progress').map(v => v.client_name)
   );
 
-  // Format week label
   const fmtDay = ds => {
     const [,m,d] = ds.split('-');
     return `${parseInt(m)}/${parseInt(d)}`;
   };
   const dayNames = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 
-  // Build grid header
   let html = `<div style="padding:0 12px 12px;">`;
 
-  // Week nav row
   html += `<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap;">
     <button onclick="shiftSchedWeek(-1)" style="font-family:var(--mono);font-size:13px;padding:5px 10px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r6);color:var(--muted2);cursor:pointer;min-height:36px;touch-action:manipulation;">‹</button>
     <span style="font-family:var(--mono);font-size:11px;letter-spacing:1px;color:var(--muted2);flex:1;text-align:center;">${fmtDay(weekStart)} — ${fmtDay(weekEnd)}</span>
     <button onclick="shiftSchedWeek(1)" style="font-family:var(--mono);font-size:13px;padding:5px 10px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r6);color:var(--muted2);cursor:pointer;min-height:36px;touch-action:manipulation;">›</button>
-    ${schedWeekOffset !== 0 ? `<button onclick="schedWeekOffset=0;renderPSWGrid()" style="font-family:var(--mono);font-size:10px;letter-spacing:1px;padding:5px 8px;background:var(--teal-dim);border:1px solid var(--teal-border);border-radius:var(--r6);color:var(--teal2);cursor:pointer;min-height:36px;touch-action:manipulation;">Today</button>` : ''}
+    ${schedWeekOffset !== 0 ? `<button onclick="schedWeekOffset=0;refreshGrid()" style="font-family:var(--mono);font-size:10px;letter-spacing:1px;padding:5px 8px;background:var(--teal-dim);border:1px solid var(--teal-border);border-radius:var(--r6);color:var(--teal2);cursor:pointer;min-height:36px;touch-action:manipulation;">Today</button>` : ''}
   </div>`;
 
   if (!psws.length) {
@@ -5330,7 +5360,6 @@ function renderPSWGrid() {
     return;
   }
 
-  // Build table
   html += `<div class="psw-grid-wrap"><table class="psw-grid"><thead><tr>
     <th class="col-name">PSW</th>`;
   days.forEach((ds, i) => {
@@ -5343,7 +5372,6 @@ function renderPSWGrid() {
     const name = psw.full_name || psw.name || '';
     const initials = name.split(' ').map(n=>n[0]||'').join('').toUpperCase().slice(0,2);
 
-    // Hours this week
     const wkHrs = bookings.filter(b =>
       b.assigned_to === name &&
       b.scheduled_date >= weekStart &&
@@ -5394,6 +5422,12 @@ function renderPSWGrid() {
   el.innerHTML = html;
 }
 
+// Fetch correct bookings window then render grid — use this instead of bare renderPSWGrid()
+async function refreshGrid() {
+  await _fetchGridBookings(true);
+  renderPSWGrid();
+}
+
 function setSchedHQView(v) {
   schedHQView = v;
   // Update toggle button states
@@ -5402,7 +5436,7 @@ function setSchedHQView(v) {
   if (gBtn) { gBtn.style.background = v==='grid' ? 'rgba(61,138,122,.15)' : 'none'; gBtn.style.color = v==='grid' ? 'var(--teal2)' : 'var(--muted2)'; gBtn.style.borderColor = v==='grid' ? 'rgba(61,138,122,.3)' : 'var(--border)'; }
   if (cBtn) { cBtn.style.background = v==='cal' ? 'rgba(61,138,122,.15)' : 'none'; cBtn.style.color = v==='cal' ? 'var(--teal2)' : 'var(--muted2)'; cBtn.style.borderColor = v==='cal' ? 'rgba(61,138,122,.3)' : 'var(--border)'; }
   if (v === 'grid') {
-    renderPSWGrid();
+    refreshGrid();
   } else {
     renderSchedule();
   }
@@ -5748,10 +5782,10 @@ function _refreshFC() {
 }
 
 // ── UNIFIED SCHEDULE REFRESH ──
-// Call this instead of _refreshFC() so grid view stays current too
+// Always fetches correct bookings window before rendering
 function _refreshSched() {
   if (schedHQView === 'grid') {
-    renderPSWGrid();
+    refreshGrid(); // fetches correct window then renders
   } else {
     _refreshFC();
   }
@@ -5864,10 +5898,17 @@ async function _patchBooking(id, updates, fcInfo) {
     });
     const d = await res.json();
     if (!d.success) throw new Error(d.error||'Failed');
-    showToast('Shift updated ✓', 'ok'); // PSW toast fires below after pswToNotify resolved
-    const freshRes = await fetch(`${API}/hq/overview?operator_id=${currentOp}`, { headers: { 'x-hq-token': window._hqToken || sessionStorage.getItem('hq_token') || '' } });
-    const freshD = await freshRes.json();
-    if (freshD.success) { D = freshD; _mergedPSWCache = null; }
+    showToast('Shift updated ✓', 'ok');
+    // Optimistic update — patch in D.bookings immediately
+    const idx = (D.bookings||[]).findIndex(b => b.id === id);
+    if (idx >= 0) D.bookings[idx] = { ...D.bookings[idx], ...updates };
+    // Fetch correct bookings window then refresh stats
+    await _fetchGridBookings(true);
+    try {
+      const freshRes = await fetch(`${API}/hq/overview?operator_id=${currentOp}`, { headers: { 'x-hq-token': window._hqToken || sessionStorage.getItem('hq_token') || '' } });
+      const freshD = await freshRes.json();
+      if (freshD.success) { const sb = D.bookings; D = freshD; D.bookings = sb; _mergedPSWCache = null; }
+    } catch(e) {}
     _refreshSched();
     renderVacantVisits();
     renderStats();
@@ -6035,7 +6076,7 @@ function _styleFC() {
 function setSchedView(v) { schedView = v; renderSchedule(); }
 function shiftSchedWeek(dir) {
   schedWeekOffset += dir;
-  if (schedHQView === 'grid') { renderPSWGrid(); } else { renderSchedule(); }
+  if (schedHQView === 'grid') { refreshGrid(); } else { renderSchedule(); }
 }
 
 function toMins(t) {
@@ -6353,10 +6394,32 @@ async function saveShift(addAnother = false) {
     }
     }
 
-    // Single targeted refresh — no double fetch
-    const _schedRes = await fetch(`${API}/hq/overview?operator_id=${currentOp}`, { headers: { 'x-hq-token': window._hqToken || sessionStorage.getItem('hq_token') || '' } });
-    const _schedD = await _schedRes.json();
-    if (_schedD.success) { D = _schedD; _mergedPSWCache = null; }
+    // ── OPTIMISTIC UPDATE + TARGETED REFRESH ──
+    // Merge created/updated bookings into D.bookings immediately
+    // so the grid shows them without waiting for a full re-fetch
+    if (editingBookingId) {
+      // Update existing booking in D.bookings in place
+      const idx = (D.bookings||[]).findIndex(b => b.id === editingBookingId);
+      if (idx >= 0) {
+        D.bookings[idx] = { ...D.bookings[idx], assigned_to: psw, scheduled_date: date, scheduled_time: time, duration_minutes: duration, client_name: client };
+      }
+    }
+    // For new bookings, _fetchGridBookings(true) will pick them up below
+
+    // Fetch fresh bookings for the visible window (not the capped overview)
+    await _fetchGridBookings(true);
+    // Also refresh stats/counts via overview (but don't overwrite D.bookings)
+    try {
+      const _ovRes = await fetch(`${API}/hq/overview?operator_id=${currentOp}`, { headers: { 'x-hq-token': window._hqToken || sessionStorage.getItem('hq_token') || '' } });
+      const _ovD = await _ovRes.json();
+      if (_ovD.success) {
+        // Update everything except bookings — those came from the targeted fetch above
+        const savedBookings = D.bookings;
+        D = _ovD;
+        D.bookings = savedBookings;
+        _mergedPSWCache = null;
+      }
+    } catch(e) { /* silent — bookings already refreshed */ }
     _refreshSched();
     renderVacantVisits();
     renderStats();
@@ -6403,7 +6466,13 @@ async function deleteShift(id) {
           message: `A shift on ${_delBook.scheduled_date||'your schedule'} has been cancelled. Check your portal.` })
       }).catch(() => {});
     }
-    await loadAll(false);
+    // Optimistic: remove from D.bookings immediately
+    D.bookings = (D.bookings||[]).filter(b => b.id !== id);
+    _refreshSched();
+    renderVacantVisits();
+    renderStats();
+    // Background full refresh for stats/counts
+    loadAll(false);
   } catch(e) { showToast(e.message, 'err'); }
 }
 
