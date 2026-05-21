@@ -7993,7 +7993,7 @@ async function runChiefOfStaff() {
   const expiringCerts = psws.filter(p => p.psw_cert_expiry && new Date(p.psw_cert_expiry) <= in30 && new Date(p.psw_cert_expiry) >= new Date()).length;
   const noConsent = clients.filter(c => !c.consent_given).length;
   const newLeads = leads.filter(l => ['new','contacted'].includes(l.status)).length;
-  const todayShifts = bookings.filter(b => b.scheduled_date===today && b.status!=='cancelled').length;
+  const todayShifts = bookings.filter(b => b.scheduled_date===today && b.status!=='cancelled');
 
   const snapshot = `You are the AI Chief of Staff for Proximity Care Services, a home care agency. Today is ${today}.
 
@@ -8001,7 +8001,7 @@ Agency snapshot:
 - ${clients.length} active clients
 - ${psws.filter(p=>p.status==='active').length} active PSWs on roster
 - ${onShift} PSWs currently on shift
-- ${todayShifts} shifts scheduled today
+- ${todayShifts.length} shifts scheduled today
 - ${vacant} vacant shifts in the next 7 days (no PSW assigned)
 - ${openIncidents} open unresolved incidents
 - ${expiringCerts} PSW certifications expiring within 30 days
@@ -8055,7 +8055,7 @@ Generate exactly 3 to 5 prioritized action items for the operator. Each item mus
     if (kpiShiftsSub) kpiShiftsSub.textContent = unassigned > 0 ? `${unassigned} unassigned` : 'All covered';
   }
 
-  const totalAlerts = (vacant ? vacant.length : 0) + ((D.counts&&D.counts.incidents)||0);
+  const totalAlerts = (vacant || 0) + ((D.counts&&D.counts.incidents)||0);
   if (kpiAlerts) {
     kpiAlerts.textContent = totalAlerts;
     kpiAlerts.style.color = totalAlerts > 0 ? 'var(--red)' : 'var(--muted)';
