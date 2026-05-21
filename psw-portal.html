@@ -2197,6 +2197,8 @@ async function doCheckOut() {
   if (!selectedMood) { showToast('Please select a mood rating first', 'err'); return; }
   const tasks = Array.from(document.querySelectorAll('#sect-checklist .cl-item.done'))
     .map(el => el.querySelector('.cl-label').textContent);
+  // Require at least one checklist item before checkout
+  if (tasks.length === 0) { showToast('Complete the visit checklist before checking out', 'err'); showSect('checklist'); return; }
   const obs = document.getElementById('cl-obs').value.trim();
   const supplies = document.getElementById('cl-supplies').value.trim();
   const incident = document.getElementById('co-incident').value.trim();
