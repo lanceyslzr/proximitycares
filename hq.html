@@ -5258,7 +5258,32 @@ function _initFC() {
     },
 
     // FullCalendar theme
-    themeSystem: 'standard'
+    themeSystem: 'standard',
+
+    // Fix 5 — datesSet: fetch bookings for the visible window when user navigates
+    // Prevents hitting the 200-row overview cap when viewing future months
+    async datesSet(info) {
+      const from = info.startStr.slice(0,10);
+      const to   = info.endStr.slice(0,10);
+      // Check if this window is already covered by D.bookings
+      const loaded = D.bookings || [];
+      const dates  = loaded.map(b => b.scheduled_date).filter(Boolean);
+      const minLoaded = dates.length ? dates.reduce((a,b) => a<b?a:b) : '';
+      const maxLoaded = dates.length ? dates.reduce((a,b) => a>b?a:b) : '';
+      if (minLoaded && maxLoaded && from >= minLoaded && to <= maxLoaded) return; // already have it
+      try {
+        const r = await fetch(`${API}/hq/bookings?operator_id=${currentOp}&from_date=${from}&to_date=${to}`, {
+          headers: { 'x-hq-token': window._hqToken || sessionStorage.getItem('hq_token') || '' }
+        });
+        const d = await r.json();
+        if (!d.success) return;
+        // Merge new bookings into D.bookings, deduplicating by id
+        const existing = new Map((D.bookings||[]).map(b => [b.id, b]));
+        d.bookings.forEach(b => existing.set(b.id, b));
+        D.bookings = Array.from(existing.values());
+        _refreshFC();
+      } catch(e) { /* silent — FC already shows loaded events */ }
+    }
   });
 
   window._fc.render();
