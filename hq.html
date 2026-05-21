@@ -3129,6 +3129,14 @@ async function loadAll(spin=false) {
     _mergedPSWCache = null;
     window._pswsRendered = false;
     renderAll();
+    // If schedule is active, refreshGrid() is async — call it separately so it
+    // properly awaits _fetchGridBookings before rendering. renderAll fires it but
+    // can't await it (sync function). This ensures the grid shows correct data
+    // after a full page refresh with large datasets (>200 bookings).
+    const _activeSect = (document.querySelector('.section.active')?.id || '').replace('sect-','');
+    if (_activeSect === 'schedule' && schedHQView === 'grid') {
+      refreshGrid();
+    }
   } catch(err) { showToast('Failed to load data — check connection', 'err'); }
   finally { _hqFetching = false; }
 }
@@ -3154,7 +3162,7 @@ function renderAll() {
   if (activeSect === 'crm') { renderCRM(); }
   if (activeSect === 'overview') { renderOverview(); }
   if (activeSect === 'revenue') { renderRevenue().catch(()=>{}); }
-  if (activeSect === 'schedule') { schedHQView === 'grid' ? refreshGrid() : (window._fc ? _refreshFC() : null); renderVacantVisits(); }
+  if (activeSect === 'schedule') { if (schedHQView !== 'grid') { window._fc ? _refreshFC() : null; } renderVacantVisits(); }
   renderBookings();
 
   // Incident badge
