@@ -5458,6 +5458,11 @@ function setSchedHQView(v) {
     refreshGrid();
   } else {
     renderSchedule();
+    // Scroll past vacant list so the calendar is immediately visible
+    setTimeout(() => {
+      const sb = document.getElementById('schedule-board');
+      if (sb) sb.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 100);
   }
 }
 
@@ -7600,7 +7605,19 @@ function renderVacantVisits() {
   const vacant = (D?.bookings||[]).filter(b => (!b.assigned_to||b.assigned_to.trim()==='') && b.scheduled_date >= today && b.scheduled_date <= cutoffStr && b.status !== 'cancelled');
   if (countEl) countEl.textContent = vacant.length;
   if (!vacant.length) { el.innerHTML = '<div style="font-family:var(--mono);font-size:12px;color:var(--muted);text-align:center;padding:8px;">All shifts assigned</div>'; return; }
-  el.innerHTML = vacant.map(b => `<div class="vacant-card"><div class="vacant-info"><div class="vacant-client">${b.client_name||'—'}</div><div class="vacant-time">${b.scheduled_date ? fmtd(b.scheduled_date) : '—'}${b.scheduled_time ? ' · '+b.scheduled_time : ''}</div></div><button class="vacant-btn" onclick="broadcastShift('${b.id}')"><svg width="12" height="12" viewBox="0 0 14 14" fill="none" style="display:inline;vertical-align:middle;margin-right:3px"><circle cx="7" cy="7" r="6" stroke="#c9a96e" stroke-width="1.2"/><circle cx="7" cy="7" r="3.5" stroke="#c9a96e" stroke-width="1" opacity="0.6"/><circle cx="7" cy="7" r="1.2" fill="#c9a96e"/></svg>Broadcast</button></div>`).join('');
+
+  const PREVIEW = 3;
+  const renderCard = b => `<div class="vacant-card"><div class="vacant-info"><div class="vacant-client">${b.client_name||'—'}</div><div class="vacant-time">${b.scheduled_date ? fmtd(b.scheduled_date) : '—'}${b.scheduled_time ? ' · '+b.scheduled_time : ''}</div></div><button class="vacant-btn" onclick="broadcastShift('${b.id}')"><svg width="12" height="12" viewBox="0 0 14 14" fill="none" style="display:inline;vertical-align:middle;margin-right:3px"><circle cx="7" cy="7" r="6" stroke="#c9a96e" stroke-width="1.2"/><circle cx="7" cy="7" r="3.5" stroke="#c9a96e" stroke-width="1" opacity="0.6"/><circle cx="7" cy="7" r="1.2" fill="#c9a96e"/></svg>Broadcast</button></div>`;
+
+  if (vacant.length <= PREVIEW) {
+    el.innerHTML = vacant.map(renderCard).join('');
+  } else {
+    const showing = window._vacantExpanded ? vacant : vacant.slice(0, PREVIEW);
+    const btn = window._vacantExpanded
+      ? `<div onclick="window._vacantExpanded=false;renderVacantVisits()" style="text-align:center;padding:6px;font-family:var(--mono);font-size:11px;color:var(--muted2);cursor:pointer;letter-spacing:1px;">▲ Show less</div>`
+      : `<div onclick="window._vacantExpanded=true;renderVacantVisits()" style="text-align:center;padding:6px;font-family:var(--mono);font-size:11px;color:var(--amber);cursor:pointer;letter-spacing:1px;">▼ Show all ${vacant.length} vacant shifts</div>`;
+    el.innerHTML = showing.map(renderCard).join('') + btn;
+  }
 }
 
 
