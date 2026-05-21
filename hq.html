@@ -3129,14 +3129,17 @@ async function loadAll(spin=false) {
     _mergedPSWCache = null;
     window._pswsRendered = false;
     renderAll();
-    // If schedule is active, refreshGrid() is async — call it separately so it
-    // properly awaits _fetchGridBookings before rendering. renderAll fires it but
-    // can't await it (sync function). This ensures the grid shows correct data
-    // after a full page refresh with large datasets (>200 bookings).
-    const _activeSect = (document.querySelector('.section.active')?.id || '').replace('sect-','');
-    if (_activeSect === 'schedule' && schedHQView === 'grid') {
-      refreshGrid();
-    }
+    // renderAll() restores the saved tab via showSect(saved) at the end.
+    // showSect('schedule') already calls refreshGrid() — so on tab restore we're covered.
+    // But if schedule was already the active section before renderAll ran (e.g. URL param),
+    // we need to explicitly refresh the grid here too.
+    // Use setTimeout(0) so the DOM settles after renderAll's showSect call first.
+    setTimeout(() => {
+      const _activeSect = (document.querySelector('.section.active')?.id || '').replace('sect-','');
+      if (_activeSect === 'schedule' && schedHQView === 'grid') {
+        refreshGrid();
+      }
+    }, 0);
   } catch(err) { showToast('Failed to load data — check connection', 'err'); }
   finally { _hqFetching = false; }
 }
