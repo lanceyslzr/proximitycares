@@ -5473,8 +5473,17 @@ function _showShiftDetail(b, props) {
   const isLive = props.isLive;
   const isConflict = props.isConflict;
 
-  document.getElementById('sd-title').textContent = b.client_name || 'Shift';
-  document.getElementById('sd-psw').textContent   = b.assigned_to || 'Unassigned';
+  const _elTitle = document.getElementById('sd-title');
+  const _elPsw   = document.getElementById('sd-psw');
+  const _elDate  = document.getElementById('sd-date');
+  const _elStatus = document.getElementById('sd-status');
+  const _elConflictRow = document.getElementById('sd-conflict-row');
+  const _elConflictMsg = document.getElementById('sd-conflict-msg');
+  const _elEdit  = document.getElementById('sd-edit');
+  const _elClose = document.getElementById('sd-close');
+
+  if (_elTitle)  _elTitle.textContent  = b.client_name || 'Shift';
+  if (_elPsw)    _elPsw.textContent    = b.assigned_to || 'Unassigned';
 
   // PSW phone — look up from D.psws
   const _sdPSW = (D.psws || []).find(p =>
@@ -5494,12 +5503,12 @@ function _showShiftDetail(b, props) {
   const _sdEndH = Math.floor(_sdEndMins/60)%24;
   const _sdEndM = _sdEndMins%60;
   const _sdEndFmt = (_sdEndH%12||12)+':'+String(_sdEndM).padStart(2,'0')+(_sdEndH>=12?' PM':' AM');
-  document.getElementById('sd-date').textContent  = b.scheduled_date+' · '+fmtTime(b.scheduled_time||'09:00')+' → '+_sdEndFmt+' ('+dur+'h)';
-  document.getElementById('sd-status').textContent = isLive ? '● Live now' : isConflict ? '⚠ Conflict' : b.status||'scheduled';
-  document.getElementById('sd-conflict-row').style.display = isConflict ? 'block' : 'none';
-  if (isConflict) {
+  if (_elDate)   _elDate.textContent   = b.scheduled_date+' · '+fmtTime(b.scheduled_time||'09:00')+' → '+_sdEndFmt+' ('+dur+'h)';
+  if (_elStatus) _elStatus.textContent = isLive ? '● Live now' : isConflict ? '⚠ Conflict' : b.status||'scheduled';
+  if (_elConflictRow) _elConflictRow.style.display = isConflict ? 'block' : 'none';
+  if (isConflict && _elConflictMsg) {
     const conflict = _detectDropConflict(b.id, b.assigned_to, b.scheduled_date, b.scheduled_time, b.duration_minutes||480);
-    document.getElementById('sd-conflict-msg').textContent = conflict?.reason || 'Schedule conflict detected';
+    _elConflictMsg.textContent = conflict?.reason || 'Schedule conflict detected';
   }
 
   window._sdBookingId = b.id;
@@ -5526,8 +5535,8 @@ function _showShiftDetail(b, props) {
   const delBtn = document.getElementById('sd-delete');
   if (delBtn) delBtn.dataset.bookingId = b.id;
 
-  document.getElementById('sd-edit').onclick   = () => { m.style.display='none'; openEditShift(b.id); };
-  document.getElementById('sd-close').onclick  = () => { m.style.display='none'; };
+  if (_elEdit)  _elEdit.onclick  = () => { m.style.display='none'; openEditShift(b.id); };
+  if (_elClose) _elClose.onclick = () => { m.style.display='none'; };
   m.style.display = 'flex';
 }
 
