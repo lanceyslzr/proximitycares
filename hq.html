@@ -2258,11 +2258,12 @@ body.sidebar-hidden #sidebar-reopen-tab{ display:flex; }
     <select class="sselect" id="ss-client"><option value="">Select client...</option></select>
   </div>
   <div class="sheet-row"><div class="slbl">PSW</div>
-    <select class="sselect" id="ss-psw">
+    <select class="sselect" id="ss-psw" onchange="checkPSWAvailability()">
       <option value="">Select PSW (optional)</option>
     </select>
   </div>
-  <div class="sheet-row"><div class="slbl">Date *</div><input class="sinput" id="ss-date" type="date" style="font-size:16px;"></div>
+  <div id="ss-avail-indicator" style="display:none;margin:0 0 6px;padding:8px 12px;border-radius:7px;font-family:var(--mono);font-size:11px;letter-spacing:1px;"></div>
+  <div class="sheet-row"><div class="slbl">Date *</div><input class="sinput" id="ss-date" type="date" style="font-size:16px;" oninput="checkPSWAvailability()"></div>
   <div class="sheet-row"><div class="slbl">Start Time *</div><input class="sinput" id="ss-time" type="time" style="font-size:16px;" value="09:00" oninput="syncEndFromDuration()"></div>
   <div class="sheet-row"><div class="slbl">End Time</div>
     <input class="sinput" id="ss-end" type="time" style="font-size:16px;" value="17:00" oninput="syncDurationFromEnd()">
@@ -5658,6 +5659,59 @@ function openAddShift(pswName, date, clientName) {
   const rec = document.getElementById('ss-recurring');
   if(rec) rec.value = 'none';
   openSheet('shift-sheet');
+  setTimeout(checkPSWAvailability, 50);
+}
+
+function checkPSWAvailability() {
+  const ind = document.getElementById('ss-avail-indicator');
+  if (!ind) return;
+  const pswName = document.getElementById('ss-psw')?.value || '';
+  const date    = document.getElementById('ss-date')?.value || '';
+  if (!pswName || !date) { ind.style.display = 'none'; return; }
+
+  // 1. Time off block on this date
+  const timeOff = (D.time_off || []).find(t =>
+    t.psw_name === pswName && date >= t.from_date && date <= t.to_date
+  );
+  if (timeOff) {
+    const label = { vacation: '🌴 On vacation', sick: '🤒 Sick leave', off: '⏸ Scheduled off' };
+    _setAvailIndicator(ind, 'red', (label[timeOff.type] || 'On leave') + (timeOff.note ? ' — ' + timeOff.note : ''));
+    return;
+  }
+
+  // 2. Already has a booking on this date
+  const clash = (D.bookings || []).find(b =>
+    b.assigned_to === pswName && b.scheduled_date === date && b.status !== 'cancelled'
+  );
+  if (clash) {
+    _setAvailIndicator(ind, 'amber', `Already scheduled — ${clash.client_name} at ${clash.scheduled_time || 'TBD'}`);
+    return;
+  }
+
+  // 3. Check availability_days (stored as comma string e.g. "Mon,Tue,Wed,Thu,Fri")
+  const pswRec = (D.psws || []).find(p => p.full_name === pswName);
+  if (pswRec && pswRec.availability_days) {
+    const dayNames = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+    const dow = dayNames[new Date(date + 'T12:00:00').getDay()];
+    const avail = pswRec.availability_days.split(/[,\s]+/).map(d => d.trim());
+    if (!avail.some(d => d.toLowerCase().startsWith(dow.toLowerCase()))) {
+      _setAvailIndicator(ind, 'amber', `Not usually available on ${new Date(date + 'T12:00:00').toLocaleDateString('en-CA',{weekday:'long'})}`);
+      return;
+    }
+  }
+
+  // 4. All clear
+  _setAvailIndicator(ind, 'green', '✓ Available');
+}
+
+function _setAvailIndicator(el, state, msg) {
+  const styles = {
+    green: 'background:rgba(109,185,116,.12);border:1px solid rgba(109,185,116,.35);color:var(--green2)',
+    amber: 'background:rgba(212,160,74,.1);border:1px solid rgba(212,160,74,.35);color:var(--amber)',
+    red:   'background:rgba(224,85,85,.1);border:1px solid rgba(224,85,85,.35);color:var(--red)'
+  };
+  el.style.cssText = `display:block;margin:0 0 6px;padding:8px 12px;border-radius:7px;font-family:var(--mono);font-size:11px;letter-spacing:1px;${styles[state]}`;
+  el.textContent = msg;
 }
 
 function openEditShift(id, clientName, pswName, date, time, duration) {
