@@ -5388,7 +5388,7 @@ function renderPSWGrid() {
     const initials = name.split(' ').map(n=>n[0]||'').join('').toUpperCase().slice(0,2);
 
     const wkHrs = bookings.filter(b =>
-      b.assigned_to.trim() === name.trim() &&
+      (b.assigned_to||'').trim() === name.trim() &&
       b.scheduled_date >= weekStart &&
       b.scheduled_date <= weekEnd &&
       b.status !== 'cancelled'
@@ -5824,7 +5824,7 @@ function _pswWeekHours(pswName) {
   const ws = weekStart.toLocaleDateString('en-CA',{timeZone:'America/Toronto'});
   const we = weekEnd.toLocaleDateString('en-CA',{timeZone:'America/Toronto'});
   return bookings
-    .filter(b=>b.assigned_to.trim()===pswName.trim()&&b.scheduled_date>=ws&&b.scheduled_date<=we&&b.status!=='cancelled')
+    .filter(b=>(b.assigned_to||'').trim()===pswName.trim()&&b.scheduled_date>=ws&&b.scheduled_date<=we&&b.status!=='cancelled')
     .reduce((sum,b)=>sum+(b.duration_minutes||60)/60,0);
 }
 
