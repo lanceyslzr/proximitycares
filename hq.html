@@ -2360,8 +2360,10 @@ body.sidebar-hidden #sidebar-reopen-tab{ display:flex; }
 <!-- SIDEBAR NAV -->
 <div class="sidebar" id="sidebar">
   <div class="sidebar-head">
-    <div class="sidebar-logo">Proximity <em>HQ</em></div>
-    <span id="sidebar-op-label" style="font-family:var(--mono);font-size:9px;letter-spacing:1px;color:var(--muted);text-transform:uppercase;display:block;margin-top:2px;"></span>
+    <div style="display:flex;flex-direction:column;gap:2px;min-width:0;flex:1;">
+      <div class="sidebar-logo">Proximity <em>HQ</em></div>
+      <span id="sidebar-op-label" style="font-family:var(--mono);font-size:9px;letter-spacing:1px;color:var(--muted);text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:160px;"></span>
+    </div>
     <div class="sidebar-close" onclick="toggleSidebar()">✕</div>
   </div>
   <div class="sidebar-body">
@@ -3175,19 +3177,19 @@ function renderAll() {
   if (activeSect === 'overview') { renderOverview(); }
   if (activeSect === 'revenue') { renderRevenue().catch(()=>{}); }
   if (activeSect === 'schedule') {
-    if (schedHQView === 'grid') {
-      // Show skeleton immediately — refreshGrid() (called after renderAll) will do the real fetch+render
-      // This prevents the empty-grid flash where overview bookings don't cover the visible week
-      const _sbEl = document.getElementById('schedule-board');
-      if (_sbEl && !_sbEl.querySelector('.psw-grid')) {
-        _sbEl.style.display = 'block';
+    // Always show loading state in renderAll — never render from potentially stale D.bookings.
+    // showSect('schedule') fires refreshGrid() which fetches the correct window then renders.
+    // This is the only correct render path for the grid.
+    const _sbEl = document.getElementById('schedule-board');
+    if (_sbEl) {
+      _sbEl.style.display = 'block';
+      if (!_sbEl.querySelector('.psw-grid')) {
+        // First load — show skeleton
         _sbEl.innerHTML = '<div style="padding:24px 12px;font-family:var(--mono);font-size:11px;letter-spacing:2px;color:var(--muted2);text-align:center;text-transform:uppercase;">Loading schedule...</div>';
-      } else if (_sbEl && _sbEl.querySelector('.psw-grid')) {
-        renderPSWGrid(); // grid already rendered — update in place from cache
       }
-    } else {
-      window._fc ? _refreshFC() : null;
+      // If grid already rendered, leave it — refreshGrid() will update it momentarily
     }
+    if (schedHQView !== 'grid') { window._fc ? _refreshFC() : null; }
     renderVacantVisits();
   }
   renderBookings();
