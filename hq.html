@@ -1281,7 +1281,94 @@ body.sidebar-hidden #sidebar-reopen-tab{ display:flex; }
 @media(min-width:900px){
   .ov-kpi-row{grid-template-columns:repeat(4,1fr);}
 }
-</style>
+
+/* ══════════════════════════════════════════════════
+   MOBILE PASS — Step 6
+   360px baseline, no horizontal overflow anywhere
+══════════════════════════════════════════════════ */
+@media(max-width:768px){
+
+  /* Section padding — full width rows breathe properly */
+  .section{padding-left:0;padding-right:0;}
+  .section-header{padding:12px 14px 8px;}
+
+  /* KPI tiles — tighter on narrow screens */
+  .kpi-tile{padding:12px 10px;}
+  .kpi-val{font-size:22px;}
+
+  /* Overview KPIs */
+  .ov-kpi{padding:12px 10px;}
+  .ov-kpi-val{font-size:20px;}
+
+  /* Cards — full width, no side margin clip */
+  .card{margin-left:0;margin-right:0;border-radius:0;border-left:none;border-right:none;}
+  .card:first-child{border-top:none;}
+
+  /* Stats strip — smaller values */
+  .stat-val{font-size:18px;}
+  .stat-lbl{font-size:10px;letter-spacing:1px;}
+
+  /* Leads swipe wrap — full width */
+  .lead-swipe-wrap{margin-left:0;margin-right:0;border-radius:0;}
+  .lead-swipe-inner{border-radius:0;border-left:none;border-right:none;}
+
+  /* Sheets — full width bottom sheet */
+  .sheet{border-radius:20px 20px 0 0;}
+  .sheet-body{padding:12px 14px;}
+  .srow2{grid-template-columns:1fr;}
+
+  /* Schedule toolbar — horizontal scroll, no wrap */
+  .sched-toolbar-row{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding-bottom:4px;}
+  .sched-toolbar-row::-webkit-scrollbar{display:none;}
+  .sched-toolbar-row .sect-action{flex-shrink:0;font-size:11px;padding:7px 10px;}
+
+  /* PSW grid chip text */
+  .gc-client{font-size:10px;}
+  .gc-time{font-size:9px;}
+  .grid-chip{padding:3px 4px;}
+
+  /* Quick actions bar — prevent overflow */
+  .quick-actions{gap:6px;padding:6px 10px;}
+  .quick-actions button{font-size:10px;padding:0 6px;}
+
+  /* CoS action buttons — wrap on narrow */
+  .cos-item-action{font-size:9px;padding:4px 8px;min-height:30px;}
+
+  /* Status row — tighter */
+  .status-row{padding:10px 12px;}
+  .status-row-name{font-size:12px;}
+  .status-row-meta{font-size:10px;}
+  .status-chip{font-size:9px;padding:2px 6px;}
+
+  /* Client/PSW sheet save bar */
+  #client-sheet-save-bar,#psw-sheet-save-bar{padding:8px 12px calc(8px + env(safe-area-inset-bottom));}
+
+  /* Topbar on very small screens */
+  .logo{font-size:14px;}
+  .op-pill{display:none;}
+
+  /* Bottom nav labels */
+  .bnav-lbl{font-size:10px;letter-spacing:0;}
+}
+
+@media(max-width:480px){
+  .kpi-val{font-size:20px;}
+  .ov-kpi-val{font-size:18px;}
+  .stat-val{font-size:16px;}
+  .section-title{font-size:10px;letter-spacing:2px;}
+  .card-name{font-size:12px;}
+  .card-act{font-size:10px;padding:9px 3px;}
+  .sect-action{font-size:10px;padding:6px 8px;}
+  .sbtn{font-size:11px;}
+}
+
+@media(max-width:360px){
+  .bnav-lbl{font-size:9px;}
+  .bnav-item{padding:4px 2px;}
+  .topbar{padding:0 8px;}
+  .kpi-val{font-size:18px;}
+  .lock-key{width:64px;height:64px;font-size:20px;}
+}</style>
 </head>
 <body>
 
@@ -3066,6 +3153,7 @@ function renderAll() {
   if (activeSect === 'crm') { renderCRM(); }
   if (activeSect === 'overview') { renderOverview(); }
   if (activeSect === 'revenue') { renderRevenue().catch(()=>{}); }
+  if (activeSect === 'schedule') { schedHQView === 'grid' ? renderPSWGrid() : (window._fc ? _refreshFC() : null); renderVacantVisits(); }
   renderBookings();
 
   // Incident badge
@@ -5659,6 +5747,16 @@ function _refreshFC() {
   _updateCapacityBars();
 }
 
+// ── UNIFIED SCHEDULE REFRESH ──
+// Call this instead of _refreshFC() so grid view stays current too
+function _refreshSched() {
+  if (schedHQView === 'grid') {
+    renderPSWGrid();
+  } else {
+    _refreshFC();
+  }
+}
+
 function _pswWeekHours(pswName) {
   const bookings = D.bookings || [];
   const today = new Date();
@@ -5770,7 +5868,7 @@ async function _patchBooking(id, updates, fcInfo) {
     const freshRes = await fetch(`${API}/hq/overview?operator_id=${currentOp}`, { headers: { 'x-hq-token': window._hqToken || sessionStorage.getItem('hq_token') || '' } });
     const freshD = await freshRes.json();
     if (freshD.success) { D = freshD; _mergedPSWCache = null; }
-    _refreshFC();
+    _refreshSched();
     renderVacantVisits();
     renderStats();
     // Notify affected PSW — use d.assigned_to (PATCH response field name)
@@ -5950,7 +6048,7 @@ function toMins(t) {
 async function toggleShiftStatus(id, newStatus) {
   // Optimistic UI — update D immediately, revert on error
   const _origBooking = (D.bookings||[]).find(b=>b.id===id);
-  if (_origBooking) { _origBooking.status = newStatus; _refreshFC(); }
+  if (_origBooking) { _origBooking.status = newStatus; _refreshSched(); }
   try {
     const res = await fetch(`${API}/hq/booking/${id}`, {
       method: 'PATCH',
@@ -5963,8 +6061,8 @@ async function toggleShiftStatus(id, newStatus) {
     // Targeted refresh — just update calendar and vacant list
     const freshRes = await fetch(`${API}/hq/overview?operator_id=${currentOp}`, { headers: { 'x-hq-token': window._hqToken || sessionStorage.getItem('hq_token') || '' } });
     const freshD = await freshRes.json();
-    if (freshD.success) { D = freshD; _mergedPSWCache = null; _refreshFC(); renderVacantVisits(); renderStats(); }
-  } catch(e) { if(_origBooking && _origBooking._prevStatus){_origBooking.status=_origBooking._prevStatus; _refreshFC();} showToast(e.message||'Update failed','err'); }
+    if (freshD.success) { D = freshD; _mergedPSWCache = null; _refreshSched(); renderVacantVisits(); renderStats(); }
+  } catch(e) { if(_origBooking && _origBooking._prevStatus){_origBooking.status=_origBooking._prevStatus; _refreshSched();} showToast(e.message||'Update failed','err'); }
 }
 
 // ── DRAG AND DROP ──
@@ -5992,7 +6090,7 @@ async function dropShift(event, pswName, date, cell, clientName) {
     // Targeted refresh — just update calendar and vacant list
     const freshRes = await fetch(`${API}/hq/overview?operator_id=${currentOp}`, { headers: { 'x-hq-token': window._hqToken || sessionStorage.getItem('hq_token') || '' } });
     const freshD = await freshRes.json();
-    if (freshD.success) { D = freshD; _mergedPSWCache = null; _refreshFC(); renderVacantVisits(); renderStats(); }
+    if (freshD.success) { D = freshD; _mergedPSWCache = null; _refreshSched(); renderVacantVisits(); renderStats(); }
   } catch(e) { showToast(e.message,'err'); }
   dragBookingId = null; dragData = null;
 }
@@ -6259,7 +6357,7 @@ async function saveShift(addAnother = false) {
     const _schedRes = await fetch(`${API}/hq/overview?operator_id=${currentOp}`, { headers: { 'x-hq-token': window._hqToken || sessionStorage.getItem('hq_token') || '' } });
     const _schedD = await _schedRes.json();
     if (_schedD.success) { D = _schedD; _mergedPSWCache = null; }
-    _refreshFC();
+    _refreshSched();
     renderVacantVisits();
     renderStats();
     // Notify PSW of schedule change via in-app message
@@ -6353,7 +6451,7 @@ async function cancelSeries(bookingId, seriesId, mode) {
     if (!d.success) throw new Error(d.error);
     showToast(mode === 'future' ? `${d.cancelled} shift${d.cancelled !== 1 ? 's' : ''} cancelled ✓` : 'Shift cancelled ✓', 'ok');
     await loadAll(false);
-    _refreshFC();
+    _refreshSched();
   } catch(e) { showToast(e.message || 'Cancel failed', 'err'); }
 }
 
@@ -6391,7 +6489,7 @@ async function executeSwap() {
     showToast(`${d.swapped} shift${d.swapped !== 1 ? 's' : ''} reassigned to ${toPSW} ✓`, 'ok');
     closeSheet('swap-sheet');
     await loadAll(false);
-    _refreshFC();
+    _refreshSched();
     // Notify both PSWs
     if (d.swapped > 0) {
       const _sDate = fromDate ? ' from ' + fromDate : '';
@@ -7973,7 +8071,7 @@ async function saveBulkSchedule() {
     closeAllSheets();
     const res = await fetch(`${API}/hq/overview?operator_id=${currentOp}`, { headers: { 'x-hq-token': window._hqToken || sessionStorage.getItem('hq_token') || '' } });
     const freshD = await res.json();
-    if (freshD.success) { D = freshD; _refreshFC(); renderVacantVisits(); renderStats(); }
+    if (freshD.success) { D = freshD; _refreshSched(); renderVacantVisits(); renderStats(); }
   } catch (e) { showToast(e.message || 'Failed', 'err'); }
   btn.disabled = false; btn.textContent = 'Create Shifts';
 }
@@ -8051,7 +8149,7 @@ async function copyWeek() {
       const res = await fetch(`${API}/hq/overview?operator_id=${currentOp}`, { headers: { 'x-hq-token': window._hqToken || sessionStorage.getItem('hq_token') || '' } });
       const freshD = await res.json();
       if (freshD.success) { D = freshD; }
-      _refreshFC();
+      _refreshSched();
       // Navigate calendar forward one week
       fc.next();
     }
