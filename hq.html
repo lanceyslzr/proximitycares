@@ -1272,10 +1272,17 @@ body.sidebar-hidden #sidebar-reopen-tab{ display:flex; }
 
 /* ── MOBILE OVERRIDES FOR NEW COMPONENTS ── */
 @media(max-width:768px){
-  .psw-grid{min-width:480px;}
-  .psw-grid th.col-name{min-width:110px;}
-  .psw-name-text{max-width:72px;}
-  .gc-client{max-width:70px;}
+  .psw-grid{min-width:420px;}
+  .psw-grid th{top:100px;}
+  .psw-grid th.col-name{min-width:80px;max-width:80px;top:100px;}
+  .psw-grid td.col-name{min-width:80px;max-width:80px;padding:6px 4px 6px 8px;}
+  .psw-name-av{width:24px;height:24px;font-size:9px;}
+  .psw-name-cell{gap:5px;}
+  .psw-name-text{max-width:42px;font-size:11px;}
+  .psw-name-hrs{font-size:9px;}
+  .gc-client{max-width:52px;font-size:10px;}
+  .gc-time{font-size:9px;}
+  .grid-chip{padding:3px 4px;min-height:32px;}
   .status-group-hdr{top:52px;}
   .ov-kpi-row{grid-template-columns:repeat(2,1fr);}
 }
@@ -5380,7 +5387,7 @@ function renderPSWGrid() {
     <th class="col-name">PSW</th>`;
   days.forEach((ds, i) => {
     const isToday = ds === todayStr;
-    html += `<th class="${isToday ? 'col-today' : ''}">${dayNames[i]}<br><span style="font-size:9px;opacity:.7;">${fmtDay(ds)}</span></th>`;
+    html += `<th id="${isToday ? 'grid-today-col' : ''}" class="${isToday ? 'col-today' : ''}">${dayNames[i]}<br><span style="font-size:9px;opacity:.7;">${fmtDay(ds)}</span></th>`;
   });
   html += `</tr></thead><tbody>`;
 
@@ -5408,7 +5415,7 @@ function renderPSWGrid() {
 
     days.forEach(ds => {
       const dayBookings = bookings.filter(b =>
-        b.assigned_to === name &&
+        (b.assigned_to||'').trim() === name.trim() &&
         b.scheduled_date === ds &&
         b.status !== 'cancelled'
       ).sort((a,b) => (a.scheduled_time||'').localeCompare(b.scheduled_time||''));
@@ -5436,6 +5443,15 @@ function renderPSWGrid() {
 
   html += `</tbody></table></div></div>`;
   el.innerHTML = html;
+  // Auto-scroll so today's column is visible on load
+  setTimeout(() => {
+    const todayTh = el.querySelector('#grid-today-col');
+    const wrap = el.querySelector('.psw-grid-wrap');
+    if (todayTh && wrap) {
+      const offset = todayTh.offsetLeft - 90; // leave name column visible
+      wrap.scrollLeft = Math.max(0, offset);
+    }
+  }, 0);
   // Grid overwrote #fc-root and #fc-cal — FC instance is now orphaned.
   // Reset so switching to Cal view re-runs _initFC() cleanly.
   window._fcInitialized = false;
