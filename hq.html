@@ -9199,30 +9199,44 @@ window.addEventListener('popstate', (e) => {
 });
 
 if (sessionStorage.getItem('hq_auth') === '1' && sessionStorage.getItem('hq_token')) {
-      window._hqToken = sessionStorage.getItem('hq_token');
-      if (sessionStorage.getItem('hq_op')) currentOp = sessionStorage.getItem('hq_op');
-      document.getElementById('lock').style.display = 'none';
-      document.getElementById('app').style.display = 'block';
-      loadAll(false);
-      startHQIdleTimer();
-      // Auto-refresh Today section every 60s when active
-      setInterval(() => {
-        if (document.hidden) return;
-        const active = document.querySelector('.section.active');
-        if (active && active.id === 'sect-today') renderToday();
-        // Update messages badge from D.messages
-        const _mb = document.getElementById('bn-msg-badge');
-        if (_mb) {
-          const _uc = (D.messages||[]).filter(m => !m.read_by_hq).length;
-          _mb.textContent = _uc; _mb.style.display = _uc > 0 ? 'block' : 'none';
-        }
-      }, 60000);
-      // Restore last active tab
-      try {
-        const lastTab = localStorage.getItem('hq_tab') || 'today';
-        setTimeout(() => showSect(lastTab), 400);
-      } catch(e) {}
-    }
+      // If URL ?op= param differs from stored session operator, force fresh login
+      const _urlOp = new URLSearchParams(window.location.search).get('op');
+      const _storedOp = sessionStorage.getItem('hq_op');
+      if (_urlOp && _storedOp && _urlOp !== _storedOp) {
+        // Different operator — clear session, show lock screen for new operator
+        sessionStorage.removeItem('hq_auth');
+        sessionStorage.removeItem('hq_token');
+        sessionStorage.removeItem('hq_op');
+        sessionStorage.removeItem('hq_operator_name');
+        window._hqToken = '';
+        currentOp = _urlOp;
+        // Lock screen already visible by default — do nothing, user must re-enter PIN
+      } else {
+        window._hqToken = sessionStorage.getItem('hq_token');
+        if (sessionStorage.getItem('hq_op')) currentOp = sessionStorage.getItem('hq_op');
+        document.getElementById('lock').style.display = 'none';
+        document.getElementById('app').style.display = 'block';
+        loadAll(false);
+        startHQIdleTimer();
+        // Auto-refresh Today section every 60s when active
+        setInterval(() => {
+          if (document.hidden) return;
+          const active = document.querySelector('.section.active');
+          if (active && active.id === 'sect-today') renderToday();
+          // Update messages badge from D.messages
+          const _mb = document.getElementById('bn-msg-badge');
+          if (_mb) {
+            const _uc = (D.messages||[]).filter(m => !m.read_by_hq).length;
+            _mb.textContent = _uc; _mb.style.display = _uc > 0 ? 'block' : 'none';
+          }
+        }, 60000);
+        // Restore last active tab
+        try {
+          const lastTab = localStorage.getItem('hq_tab') || 'today';
+          setTimeout(() => showSect(lastTab), 400);
+        } catch(e) {}
+      }
+}
   } catch(e) {}
 })();
 
