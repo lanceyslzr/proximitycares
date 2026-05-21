@@ -1551,7 +1551,7 @@ async function loadSchedule() {
     const now = new Date();
     // Start from 14 days ago to show recent history, extend 60 days forward for next-month shifts
     const past = new Date(now.getFullYear(), now.getMonth(), 1); // Start of current month
-    const fromDate = past.toISOString().slice(0, 10);
+    const fromDate = new Date(now.getFullYear(), now.getMonth(), 1).toLocaleDateString('en-CA', {timeZone:'America/Toronto'});
     const res = await fetch(`${API}/psw/schedule-upcoming?psw_name=${encodeURIComponent(pswName)}&pin=${pswPin}&operator_id=${pswOperatorId}&from_date=${fromDate}`);
     const d = await res.json();
     if (!d.success) return;
@@ -1824,8 +1824,7 @@ function renderAvailableShifts() {
   const list = document.getElementById('avail-shifts-list');
   if (!section || !list || !scheduleData) return;
   const today = new Date().toLocaleDateString('en-CA',{timeZone:'America/Toronto'});
-  const cutoff = new Date(); cutoff.setDate(cutoff.getDate() + 7);
-  const cutoffStr = cutoff.toISOString().slice(0,10);
+  const cutoffStr = new Date(Date.now() + 7 * 86400000).toLocaleDateString('en-CA',{timeZone:'America/Toronto'});
   // Show unassigned shifts in the next 7 days
   const avail = (scheduleData.bookings || []).filter(b =>
     (!b.assigned_to || !b.assigned_to.trim()) &&
@@ -3308,8 +3307,7 @@ function renderMiniCal() {
 
   titleEl.textContent = months[_miniCalMonth] + ' ' + _miniCalYear;
 
-  const today = new Date();
-  const todayStr = today.toISOString().slice(0,10);
+  const todayStr = new Date().toLocaleDateString('en-CA',{timeZone:'America/Toronto'});
 
   // Days with shifts
   const shiftDays = new Set((scheduleData?.bookings||[])
@@ -3404,7 +3402,7 @@ function openCalPopup(dateStr) {
     rows.sort((a,b) => (a.time||'').localeCompare(b.time||''));
 
     body.innerHTML = rows.map(r => `
-      <div class="cal-popup-row" onclick="${r.status === 'upcoming' && dateStr === today ? `openCalPopup._signin('${(r.client||'').replace(/'/g,'')}')` : 'void(0)'}" style="${r.status === 'upcoming' && dateStr === today ? 'cursor:pointer;' : ''}">
+      <div class="cal-popup-row" onclick="${r.status === 'upcoming' && dateStr === today ? `closeCalPopup();doCheckInFromShift('${(r.client||'').replace(/'/g,'')}')` : 'void(0)'}" style="${r.status === 'upcoming' && dateStr === today ? 'cursor:pointer;' : ''}">
         <div class="cal-popup-time">${r.time}</div>
         <div class="cal-popup-client">
           <div class="cal-popup-name">${r.client}</div>
