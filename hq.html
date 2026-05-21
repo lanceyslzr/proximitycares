@@ -6015,7 +6015,7 @@ async function renderRevenue() {
   const bookings = D.bookings || [];
   const psws = D.psws || [];
   const now = new Date();
-  const monthStr = now.toISOString().slice(0,7);
+  const monthStr = now.toLocaleDateString('en-CA',{timeZone:'America/Toronto'}).slice(0,7);
 
   // Fetch real visit data for revenue calculation
   // Use D.visits already loaded — no duplicate fetch needed
@@ -6937,7 +6937,7 @@ function renderVacantVisits() {
   if (!el) return;
   const today = new Date().toLocaleDateString('en-CA',{timeZone:'America/Toronto'});
   const cutoff = new Date(); cutoff.setDate(cutoff.getDate()+7);
-  const cutoffStr = cutoff.toISOString().slice(0,10);
+  const cutoffStr = cutoff.toLocaleDateString('en-CA',{timeZone:'America/Toronto'});
   const vacant = (D?.bookings||[]).filter(b => (!b.assigned_to||b.assigned_to.trim()==='') && b.scheduled_date >= today && b.scheduled_date <= cutoffStr && b.status !== 'cancelled');
   if (countEl) countEl.textContent = vacant.length;
   if (!vacant.length) { el.innerHTML = '<div style="font-family:var(--mono);font-size:12px;color:var(--muted);text-align:center;padding:8px;">All shifts assigned</div>'; return; }
@@ -7038,8 +7038,8 @@ async function renderGPSExceptions() {
 
 function renderOverview() {
   const now = new Date();
-  const today = now.toISOString().slice(0,10);
-  const monthStr = now.toISOString().slice(0,7);
+  const today = now.toLocaleDateString('en-CA',{timeZone:'America/Toronto'});
+  const monthStr = today.slice(0,7);
   const clients = D.clients||[];
   const psws = D.psws||[];
   const leads = D.leads||[];
@@ -7735,7 +7735,7 @@ function updateNotifications() {
 
   // Vacant shifts in next 7 days
   const cutoff = new Date(); cutoff.setDate(cutoff.getDate()+7);
-  const vacant = (D.bookings||[]).filter(b => (!b.assigned_to||!b.assigned_to.trim()) && b.scheduled_date >= today && b.scheduled_date <= cutoff.toISOString().slice(0,10) && b.status !== 'cancelled');
+  const vacant = (D.bookings||[]).filter(b => (!b.assigned_to||!b.assigned_to.trim()) && b.scheduled_date >= today && b.scheduled_date <= cutoff.toLocaleDateString('en-CA',{timeZone:'America/Toronto'}) && b.status !== 'cancelled');
   if (vacant.length) alerts.push({ dot:'nd-amber', text:`${vacant.length} shift${vacant.length!==1?'s':''} need a PSW`, sub:'Next 7 days — tap Schedule', action:()=>{ toggleNotifications(); showSect('schedule'); } });
 
   // Expiring certs
@@ -7787,7 +7787,7 @@ function closeFAB() {
 let _cosLoaded = false;
 function renderToday() {
   const now = new Date();
-  const today = now.toISOString().slice(0,10);
+  const today = now.toLocaleDateString('en-CA',{timeZone:'America/Toronto'});
   const clients = D.clients||[];
   const psws = D.psws||[];
   const visits = D.visits||[];
@@ -7988,7 +7988,7 @@ async function runChiefOfStaff() {
   const onShift = visits.filter(v => v.visit_date===today && v.time_in && !v.time_out).length;
   const openIncidents = visits.filter(v => v.incident_reported && !v.incident_resolved).length;
   const cutoff7 = new Date(); cutoff7.setDate(cutoff7.getDate()+7);
-  const vacant = bookings.filter(b => (!b.assigned_to||!b.assigned_to.trim()) && b.scheduled_date >= today && b.scheduled_date <= cutoff7.toISOString().slice(0,10) && b.status!=='cancelled').length;
+  const vacant = bookings.filter(b => (!b.assigned_to||!b.assigned_to.trim()) && b.scheduled_date >= today && b.scheduled_date <= cutoff7.toLocaleDateString('en-CA',{timeZone:'America/Toronto'}) && b.status!=='cancelled').length;
   const in30 = new Date(); in30.setDate(in30.getDate()+30);
   const expiringCerts = psws.filter(p => p.psw_cert_expiry && new Date(p.psw_cert_expiry) <= in30 && new Date(p.psw_cert_expiry) >= new Date()).length;
   const noConsent = clients.filter(c => !c.consent_given).length;
