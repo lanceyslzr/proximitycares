@@ -2483,6 +2483,12 @@ function lk(k) {
           sessionStorage.setItem('hq_auth', '1');
           sessionStorage.setItem('hq_token', d.token);
           sessionStorage.setItem('hq_op', currentOp);
+          if (d.agency_name) {
+            currentOpName = d.agency_name;
+            sessionStorage.setItem('hq_operator_name', d.agency_name);
+            const solEl = document.getElementById('sidebar-op-label');
+            if (solEl) solEl.textContent = d.agency_name;
+          }
           document.getElementById('lock').style.display = 'none';
           document.getElementById('app').style.display = 'block';
           // Show loading state immediately before data arrives
