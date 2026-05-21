@@ -1113,6 +1113,174 @@ button,.sbtn,.btn,.bnav-item,.nav-tab,.icon-btn{
 }
 #sidebar-reopen-tab:hover{ background:var(--bg3); color:var(--text); }
 body.sidebar-hidden #sidebar-reopen-tab{ display:flex; }
+
+/* ══════════════════════════════════════════════════════════════
+   PROXIMITY HQ — MAKEOVER LAYER
+   Design tokens + new component classes
+   All existing IDs and JS untouched
+══════════════════════════════════════════════════════════════ */
+
+/* ── REFINED TOKENS ── */
+:root{
+  --r4:4px;--r6:6px;--r8:8px;--r10:10px;--r12:12px;--r16:16px;
+  --sp4:4px;--sp6:6px;--sp8:8px;--sp12:12px;--sp14:14px;--sp16:16px;--sp20:20px;
+  --teal-dim:rgba(61,138,122,.08);--teal-mid:rgba(61,138,122,.15);--teal-border:rgba(61,138,122,.28);
+  --gold-dim:rgba(201,169,110,.08);--gold-mid:rgba(201,169,110,.15);--gold-border:rgba(201,169,110,.28);
+  --red-dim:rgba(224,85,85,.08);--red-mid:rgba(224,85,85,.15);--red-border:rgba(224,85,85,.28);
+  --amber-dim:rgba(212,160,74,.08);--amber-mid:rgba(212,160,74,.15);--amber-border:rgba(212,160,74,.28);
+  --green-dim:rgba(74,154,110,.08);--green-mid:rgba(74,154,110,.15);--green-border:rgba(74,154,110,.28);
+}
+
+/* ── STATUS DOTS ── */
+.dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;display:inline-block;}
+.dot-green{background:var(--green2);}
+.dot-amber{background:var(--amber);}
+.dot-red{background:var(--red);}
+.dot-teal{background:var(--teal2);}
+.dot-muted{background:var(--muted);}
+.dot-pulse{animation:livepulse 2s infinite;}
+
+/* ── SECTION HEADER REFRESH ── */
+.section-header{padding:14px 14px 10px;}
+.section-title{font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--muted2);font-family:var(--mono);}
+
+/* ── IMPROVED TOPBAR ── */
+.topbar{height:52px;background:rgba(7,9,12,.98);border-bottom:1px solid rgba(201,169,110,.1);}
+.op-pill{background:transparent;border:none;padding:0 6px 0 0;}
+.op-live{width:5px;height:5px;}
+.op-name-text{font-size:11px;color:var(--muted);}
+
+/* ── STATS STRIP REFRESH ── */
+.stats-strip{background:var(--bg2);border-bottom:1px solid var(--border);}
+.stat-card{padding:10px 4px;}
+.stat-val{font-size:20px;}
+.stat-lbl{font-size:10px;letter-spacing:1.5px;}
+
+/* ── CARD REFRESH ── */
+.card{border-radius:var(--r10);border-color:var(--border);}
+.card-name{font-size:13px;}
+.card-sub{font-size:11px;}
+.card-act{font-size:10px;letter-spacing:.5px;padding:10px 4px;}
+
+/* ── STATUS ROW — for Today tab Real Time view ── */
+.status-group{margin:0 0 2px;}
+.status-group-hdr{display:flex;align-items:center;gap:8px;padding:10px 14px 6px;position:sticky;top:52px;background:var(--bg);z-index:5;}
+.status-group-label{font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted2);}
+.status-group-count{font-family:var(--mono);font-size:10px;color:var(--muted);background:var(--bg2);border:1px solid var(--border);border-radius:100px;padding:1px 6px;}
+.status-row{display:flex;align-items:center;gap:10px;padding:11px 14px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s;min-height:56px;}
+.status-row:last-child{border-bottom:none;}
+.status-row:active{background:var(--bg2);}
+.status-row-left{display:flex;align-items:center;gap:10px;flex:1;min-width:0;}
+.status-row-avatar{width:34px;height:34px;border-radius:50%;background:var(--bg3);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:11px;color:var(--teal2);flex-shrink:0;}
+.status-row-main{flex:1;min-width:0;}
+.status-row-name{font-size:13px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.status-row-meta{font-family:var(--mono);font-size:11px;color:var(--muted2);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.status-row-right{display:flex;align-items:center;gap:8px;flex-shrink:0;}
+.status-chip{font-family:var(--mono);font-size:10px;letter-spacing:.5px;text-transform:uppercase;padding:3px 8px;border-radius:100px;border:1px solid;white-space:nowrap;}
+.sc-live{background:var(--green-dim);color:var(--green2);border-color:var(--green-border);}
+.sc-soon{background:var(--amber-dim);color:var(--amber);border-color:var(--amber-border);}
+.sc-open{background:var(--red-dim);color:var(--red);border-color:var(--red-border);}
+.sc-done{background:var(--teal-dim);color:var(--teal2);border-color:var(--teal-border);}
+.sc-sched{background:var(--bg3);color:var(--muted2);border-color:var(--border);}
+.status-row-actions{display:flex;gap:6px;padding:8px 14px 10px;flex-wrap:wrap;}
+.sra-btn{font-family:var(--mono);font-size:10px;letter-spacing:.5px;text-transform:uppercase;padding:6px 12px;border-radius:var(--r6);border:1px solid var(--border2);background:none;color:var(--muted2);cursor:pointer;min-height:36px;transition:all .15s;touch-action:manipulation;}
+.sra-btn:active{background:var(--bg3);}
+.sra-btn.primary{color:var(--teal2);border-color:var(--teal-border);background:var(--teal-dim);}
+.sra-btn.warn{color:var(--amber);border-color:var(--amber-border);background:var(--amber-dim);}
+.sra-btn.danger{color:var(--red);border-color:var(--red-border);background:var(--red-dim);}
+
+/* ── PSW GRID — schedule grid view ── */
+.psw-grid-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0;padding-bottom:8px;}
+.psw-grid{width:100%;border-collapse:collapse;min-width:560px;}
+.psw-grid th{font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted2);padding:8px 6px;text-align:center;border-bottom:1px solid var(--border);background:var(--bg2);position:sticky;top:52px;z-index:4;white-space:nowrap;}
+.psw-grid th.col-name{text-align:left;padding-left:12px;min-width:130px;max-width:160px;}
+.psw-grid th.col-today{color:var(--teal2);border-bottom-color:var(--teal2);}
+.psw-grid td{padding:4px 4px;border-bottom:1px solid rgba(201,169,110,.06);vertical-align:top;}
+.psw-grid td.col-name{padding:8px 6px 8px 12px;vertical-align:middle;}
+.psw-grid tr:last-child td{border-bottom:none;}
+.psw-grid tr:hover td{background:rgba(61,138,122,.025);}
+.psw-name-cell{display:flex;align-items:center;gap:8px;}
+.psw-name-av{width:28px;height:28px;border-radius:50%;background:var(--bg3);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:10px;color:var(--teal2);flex-shrink:0;}
+.psw-name-text{font-size:12px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100px;}
+.psw-name-hrs{font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:1px;}
+.grid-cell{display:flex;flex-direction:column;gap:3px;padding:2px 0;min-height:36px;}
+.grid-chip{padding:4px 6px;border-radius:var(--r4);cursor:pointer;transition:all .12s;border:1px solid transparent;min-height:28px;display:flex;flex-direction:column;gap:1px;}
+.grid-chip:active{opacity:.75;}
+.gc-client{font-size:11px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:90px;}
+.gc-time{font-family:var(--mono);font-size:10px;color:var(--muted2);}
+.gc-scheduled{background:var(--teal-dim);border-color:var(--teal-border);}
+.gc-live{background:var(--green-dim);border-color:var(--green-border);animation:livepulse 2s infinite;}
+.gc-done{background:var(--bg3);border-color:var(--border);opacity:.6;}
+.gc-open{background:var(--amber-dim);border-color:var(--amber-border);}
+.gc-cancelled{background:var(--bg3);border-color:transparent;opacity:.35;text-decoration:line-through;}
+.grid-empty{height:34px;}
+
+/* ── CHIEF OF STAFF ACTIONS ── */
+.cos-item-action{display:inline-flex;align-items:center;gap:5px;margin-top:6px;font-family:var(--mono);font-size:10px;letter-spacing:.5px;text-transform:uppercase;padding:5px 10px;border-radius:var(--r6);border:1px solid var(--teal-border);background:var(--teal-dim);color:var(--teal2);cursor:pointer;min-height:32px;transition:all .15s;touch-action:manipulation;}
+.cos-item-action:active{background:var(--teal-mid);}
+.cos-item-action.warn{border-color:var(--amber-border);background:var(--amber-dim);color:var(--amber);}
+
+/* ── OVERVIEW REFRESH ── */
+.ov-kpi-row{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;padding:0 12px 12px;}
+.ov-kpi{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r10);padding:14px 12px;}
+.ov-kpi-val{font-family:var(--mono);font-size:24px;font-weight:600;line-height:1;color:var(--text);}
+.ov-kpi-lbl{font-family:var(--mono);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-top:4px;}
+.ov-kpi-sub{font-size:11px;color:var(--muted2);margin-top:3px;}
+@media(min-width:769px){.ov-kpi-row{grid-template-columns:repeat(4,1fr);}}
+
+/* ── SIDEBAR SECTION LABELS REFRESH ── */
+.sidebar-section{font-family:var(--mono);font-size:9px;letter-spacing:3px;text-transform:uppercase;color:rgba(240,237,232,.3);padding:14px 18px 4px;margin-top:4px;}
+.sidebar-section:first-child{margin-top:0;}
+.sn-label{font-size:13px;color:var(--muted3);letter-spacing:.1px;}
+.sn-item{padding:10px 16px;border-radius:0;}
+.sn-item.active .sn-label{color:var(--teal2);font-weight:500;}
+
+/* ── BOTTOM NAV REFRESH ── */
+.bottom-nav{background:rgba(7,9,12,.98);border-top:1px solid rgba(201,169,110,.1);}
+.bnav-item{padding:6px 2px;min-height:52px;color:rgba(168,191,196,.5);}
+.bnav-item.active{color:var(--teal2);}
+.bnav-icon svg{width:19px;height:19px;}
+.bnav-lbl{font-size:10px;letter-spacing:.5px;}
+
+/* ── VISIT LOG REFRESH ── */
+.vl-row{display:flex;align-items:center;gap:10px;padding:11px 14px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s;}
+.vl-row:active{background:var(--bg2);}
+.vl-row:last-child{border-bottom:none;}
+.vl-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+.vl-main{flex:1;min-width:0;}
+.vl-name{font-size:13px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.vl-meta{font-family:var(--mono);font-size:11px;color:var(--muted2);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.vl-hrs{font-family:var(--mono);font-size:13px;color:var(--teal2);flex-shrink:0;}
+
+/* ── SHEET REFRESH ── */
+.sheet-header{padding:14px 16px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.sheet-title{font-size:15px;font-weight:500;color:var(--text);}
+.sheet-close{width:32px;height:32px;display:flex;align-items:center;justify-content:center;color:var(--muted2);cursor:pointer;border-radius:var(--r6);border:1px solid var(--border);font-size:16px;flex-shrink:0;}
+.sheet-row{padding:0 14px 10px;}
+.slbl{font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--muted2);margin-bottom:5px;}
+.sinput{width:100%;padding:10px 12px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r8);color:var(--text);font-size:16px;font-family:var(--sans);outline:none;min-height:44px;}
+.sinput:focus{border-color:var(--teal2);}
+.sselect{width:100%;padding:10px 12px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r8);color:var(--text);font-size:16px;font-family:var(--sans);min-height:44px;}
+.sbtn{width:100%;padding:12px 16px;border-radius:var(--r8);background:var(--teal-mid);border:1px solid var(--teal-border);color:var(--teal2);font-family:var(--mono);font-size:12px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;min-height:44px;transition:background .15s;}
+.sbtn:active{background:rgba(61,138,122,.25);}
+.sbtn.ghost{background:var(--bg3);border-color:var(--border);color:var(--muted2);}
+.srow2{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 14px 10px;}
+
+/* ── EMPTY STATE REFRESH ── */
+.empty-state{padding:40px 20px;text-align:center;font-family:var(--mono);font-size:12px;color:var(--muted);letter-spacing:1px;line-height:1.8;}
+
+/* ── MOBILE OVERRIDES FOR NEW COMPONENTS ── */
+@media(max-width:768px){
+  .psw-grid{min-width:480px;}
+  .psw-grid th.col-name{min-width:110px;}
+  .psw-name-text{max-width:72px;}
+  .gc-client{max-width:70px;}
+  .status-group-hdr{top:52px;}
+  .ov-kpi-row{grid-template-columns:repeat(2,1fr);}
+}
+@media(min-width:900px){
+  .ov-kpi-row{grid-template-columns:repeat(4,1fr);}
+}
 </style>
 </head>
 <body>
@@ -1183,129 +1351,132 @@ body.sidebar-hidden #sidebar-reopen-tab{ display:flex; }
   <div class="nav-tab" onclick="showSect('help')">Help</div>
 </div>
 
-<!-- TODAY — Default home (Batch 3) -->
+<!-- TODAY — Real Time View -->
 <div class="section active" id="sect-today">
-  <div class="section-header" style="padding-bottom:4px;">
+
+  <!-- ── HEADER ── -->
+  <div class="section-header">
     <span class="section-title">Today</span>
     <span style="font-family:var(--mono);font-size:11px;color:var(--muted2);letter-spacing:1px;" id="today-updated">—</span>
   </div>
 
-  <!-- Live time cards -->
-  <div class="today-time-row">
-    <div class="today-time-card">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="20" height="20" style="color:var(--teal2);flex-shrink:0;"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-      <div><div class="ttc-val" id="today-on-shift">—</div><div class="ttc-lbl">On Shift</div>
-  <!-- ── KPI GRID (mobile) ── -->
+  <!-- ── KPI TILES (mobile + desktop) ── -->
   <div class="kpi-grid" id="kpi-grid">
-    <div class="kpi-tile" onclick="showSect('visits')">
+    <div class="kpi-tile" onclick="showSect('visits')" style="cursor:pointer;">
       <div class="kpi-val" id="kpi-on-shift" style="color:var(--teal2);">—</div>
       <div class="kpi-lbl">On Shift</div>
       <div class="kpi-sub" id="kpi-on-shift-sub"></div>
     </div>
-    <div class="kpi-tile" onclick="showSect('schedule')">
+    <div class="kpi-tile" onclick="showSect('schedule')" style="cursor:pointer;">
       <div class="kpi-val" id="kpi-shifts" style="color:var(--gold);">—</div>
       <div class="kpi-lbl">Shifts Today</div>
       <div class="kpi-sub" id="kpi-shifts-sub"></div>
     </div>
-    <div class="kpi-tile" id="kpi-alerts-tile" onclick="showSect('visits')">
+    <div class="kpi-tile" id="kpi-alerts-tile" onclick="showSect('visits')" style="cursor:pointer;">
       <div class="kpi-val" id="kpi-alerts" style="color:var(--muted);">—</div>
       <div class="kpi-lbl">Alerts</div>
       <div class="kpi-sub" id="kpi-alerts-sub"></div>
     </div>
-    <div class="kpi-tile" onclick="showSect('revenue')">
+    <div class="kpi-tile" onclick="showSect('revenue')" style="cursor:pointer;">
       <div class="kpi-val" id="kpi-rev" style="color:var(--muted);">—</div>
       <div class="kpi-lbl">Revenue</div>
       <div class="kpi-sub" id="kpi-rev-sub">This month</div>
     </div>
   </div>
 
-</div>
+  <!-- ── DESKTOP TIME CARDS (hidden on mobile via CSS) ── -->
+  <div class="today-time-row">
+    <div class="today-time-card">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="18" height="18" style="color:var(--teal2);flex-shrink:0;"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      <div><div class="ttc-val" id="today-on-shift">—</div><div class="ttc-lbl">On Shift</div></div>
     </div>
     <div class="today-time-card" style="cursor:pointer;" onclick="showSect('schedule')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="20" height="20" style="color:var(--gold);flex-shrink:0;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="18" height="18" style="color:var(--gold);flex-shrink:0;"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
       <div><div class="ttc-val" id="today-shifts-count" style="color:var(--gold);">—</div><div class="ttc-lbl">Shifts</div></div>
     </div>
   </div>
 
-  <!-- Alert banners -->
-  <div id="today-vacant-alert" style="display:none;margin:0 12px 8px;padding:10px 14px;background:rgba(224,154,61,.06);border:1px solid rgba(224,154,61,.25);border-radius:8px;cursor:pointer;" onclick="showSect('schedule')">
-    <div style="font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--amber);">⚑ Open Shifts</div>
+  <!-- ── ALERT BANNERS ── -->
+  <div id="today-vacant-alert" style="display:none;margin:0 12px 8px;padding:10px 14px;background:var(--amber-dim);border:1px solid var(--amber-border);border-radius:var(--r8);cursor:pointer;" onclick="showSect('schedule')">
+    <div style="font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--amber);display:flex;align-items:center;gap:6px;"><span class="dot dot-amber dot-pulse"></span>Open Shifts</div>
     <div style="font-size:12px;color:var(--muted2);margin-top:3px;" id="today-vacant-msg">—</div>
   </div>
-  <div id="today-incident-alert" style="display:none;margin:0 12px 8px;padding:10px 14px;background:rgba(224,85,85,.06);border:1px solid rgba(224,85,85,.2);border-radius:8px;cursor:pointer;" onclick="showSect('visits')">
-    <div style="font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--red);">⚠ Open Incidents</div>
+  <div id="today-incident-alert" style="display:none;margin:0 12px 8px;padding:10px 14px;background:var(--red-dim);border:1px solid var(--red-border);border-radius:var(--r8);cursor:pointer;" onclick="showSect('visits')">
+    <div style="font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--red);display:flex;align-items:center;gap:6px;"><span class="dot dot-red dot-pulse"></span>Open Incidents</div>
     <div style="font-size:12px;color:var(--muted2);margin-top:3px;" id="today-incident-msg">—</div>
   </div>
 
-  <!-- AI Chief of Staff -->
-    <!-- ── QUICK TOOLS ROW ── -->
+  <!-- ── CANCELLATION REQUESTS ── -->
+  <div id="cancel-req-alert" style="display:none;margin:0 12px 8px;">
+    <div style="font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--amber);margin-bottom:6px;padding:0 2px;display:flex;align-items:center;gap:6px;"><span class="dot dot-amber"></span>Cancellation Requests</div>
+    <div id="cancel-req-list"></div>
+  </div>
+
+  <!-- ── QUICK TOOLS ── -->
   <div style="display:flex;gap:8px;padding:0 12px 12px;flex-wrap:wrap;">
-    <button onclick="showSect('overview');setTimeout(()=>toggleLiveMap(),200)" style="flex:1 1 auto;min-width:0;min-height:44px;padding:0 12px;background:rgba(74,154,110,.1);border:1px solid rgba(74,154,110,.3);border-radius:10px;color:var(--teal2);font-family:var(--mono);font-size:11px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;touch-action:manipulation;">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="14" height="14"><circle cx="12" cy="10" r="3"/><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/></svg>
+    <button onclick="showSect('overview');setTimeout(()=>toggleLiveMap(),200)" style="flex:1 1 auto;min-width:0;min-height:44px;padding:0 12px;background:var(--teal-dim);border:1px solid var(--teal-border);border-radius:var(--r10);color:var(--teal2);font-family:var(--mono);font-size:11px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;touch-action:manipulation;">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="13" height="13"><circle cx="12" cy="10" r="3"/><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/></svg>
       Live Map
     </button>
-    <button onclick="runDemoStep()" style="flex:1 1 auto;min-width:0;min-height:44px;padding:0 12px;background:rgba(106,172,240,.1);border:1px solid rgba(106,172,240,.25);border-radius:10px;color:var(--blue2);font-family:var(--mono);font-size:11px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;touch-action:manipulation;">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="14" height="14"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+    <button onclick="runDemoStep()" style="flex:1 1 auto;min-width:0;min-height:44px;padding:0 12px;background:rgba(106,172,240,.08);border:1px solid rgba(106,172,240,.2);border-radius:var(--r10);color:var(--blue2);font-family:var(--mono);font-size:11px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;touch-action:manipulation;">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="13" height="13"><polygon points="5 3 19 12 5 21 5 3"/></svg>
       Demo
     </button>
-    <button onclick="showSect('schedule')" style="flex:1 1 auto;min-width:0;min-height:44px;padding:0 12px;background:var(--bg2);border:1px solid var(--border);border-radius:10px;color:var(--muted2);font-family:var(--mono);font-size:11px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;touch-action:manipulation;">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="14" height="14"><rect x="4" y="5" width="16" height="16" rx="2"/><path d="M8 3v4M16 3v4M4 11h16"/></svg>
+    <button onclick="showSect('schedule')" style="flex:1 1 auto;min-width:0;min-height:44px;padding:0 12px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r10);color:var(--muted2);font-family:var(--mono);font-size:11px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;touch-action:manipulation;">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="13" height="13"><rect x="4" y="5" width="16" height="16" rx="2"/><path d="M8 3v4M16 3v4M4 11h16"/></svg>
       Schedule
     </button>
   </div>
 
-<div class="cos-card">
-    <div class="cos-head">
-      <span class="cos-title">⬡ Chief of Staff</span>
-      <span class="cos-refresh" onclick="runChiefOfStaff()">↻ Refresh</span>
+  <!-- ── CHIEF OF STAFF ── -->
+  <div style="margin:0 12px 12px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r10);overflow:hidden;">
+    <div style="padding:11px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
+      <span style="font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--teal2);display:flex;align-items:center;gap:7px;"><span style="width:5px;height:5px;border-radius:50%;background:var(--teal2);animation:livepulse 2s infinite;display:inline-block;"></span>Chief of Staff</span>
+      <span style="font-family:var(--mono);font-size:11px;color:var(--muted2);cursor:pointer;padding:3px 8px;border:1px solid var(--border);border-radius:4px;" onclick="runChiefOfStaff()">↻ Refresh</span>
     </div>
-    <div class="cos-body" id="cos-body">
-      <div class="cos-loading"><span style="animation:livepulse 1.5s infinite;display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--teal2);"></span>Loading action items...</div>
+    <div id="cos-body" style="padding:4px 0;">
+      <div style="padding:16px 14px;font-family:var(--mono);font-size:12px;color:var(--muted);display:flex;align-items:center;gap:8px;"><span style="animation:livepulse 1.5s infinite;display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--teal2);"></span>Loading action items...</div>
     </div>
   </div>
 
-  <!-- Cancellation Requests Alert -->
-  <div id="cancel-req-alert" style="display:none;margin:0 12px 8px;">
-    <div style="font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--amber);margin-bottom:6px;">⚑ Cancellation Requests</div>
-    <div id="cancel-req-list"></div>
-  </div>
-
-  <!-- Today's shifts -->
-  <div class="section-header" style="padding-bottom:4px;">
+  <!-- ── TODAY'S SHIFTS — Real Time View ── -->
+  <div class="section-header" style="padding-bottom:6px;">
     <span class="section-title">Today's Shifts</span>
     <div class="sect-action" onclick="showSect('schedule')">View All</div>
   </div>
-  <div style="margin:0 12px 12px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;overflow:hidden;" id="today-shifts-list">
-    <div class="empty-state" style="padding:16px;">Loading shifts...</div>
+  <div id="today-shifts-list" style="margin:0 0 12px;background:var(--bg2);border-top:1px solid var(--border);border-bottom:1px solid var(--border);">
+    <div class="empty-state">Loading shifts...</div>
   </div>
 
-  <!-- Live attendance -->
-  <div class="section-header" style="padding-bottom:4px;"><span class="section-title">Staff Status</span></div>
-  <div style="margin:0 12px 12px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;overflow:hidden;" id="today-attendance">
-    <div class="empty-state" style="padding:16px;">Loading...</div>
+  <!-- ── STAFF STATUS ── -->
+  <div class="section-header" style="padding-bottom:6px;">
+    <span class="section-title">Staff Status</span>
+  </div>
+  <div id="today-attendance" style="margin:0 0 12px;background:var(--bg2);border-top:1px solid var(--border);border-bottom:1px solid var(--border);">
+    <div class="empty-state">Loading...</div>
   </div>
 
-  <!-- Recent activity -->
-  <div class="section-header" style="padding-bottom:4px;">
+  <!-- ── RECENT ACTIVITY ── -->
+  <div class="section-header" style="padding-bottom:6px;">
     <span class="section-title">Recent Activity</span>
     <div class="sect-action" onclick="showSect('activity')">View All</div>
   </div>
-  <div style="margin:0 12px 12px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;overflow:hidden;" id="today-activity">
-    <div class="empty-state" style="padding:16px;">Loading...</div>
+  <div id="today-activity" style="margin:0 0 16px;background:var(--bg2);border-top:1px solid var(--border);border-bottom:1px solid var(--border);">
+    <div class="empty-state">Loading...</div>
   </div>
 
   <!-- ── QUICK ACTIONS BAR ── -->
   <div class="quick-actions">
     <button class="qa-primary" onclick="openAddShift('','')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
       Add Shift
     </button>
     <button onclick="showSect('messages')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
       Messages
     </button>
     <button onclick="openManualVisitSheet()">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
       Manual Visit
     </button>
   </div>
@@ -1927,7 +2098,13 @@ body.sidebar-hidden #sidebar-reopen-tab{ display:flex; }
     <div id="vacant-list" style="margin-bottom:12px;"><div style="font-family:var(--mono);font-size:12px;color:var(--muted);text-align:center;padding:8px;">All shifts assigned</div></div>
   </div>
   <div class="section-header">
-    <span class="section-title">Weekly Schedule</span>
+    <span class="section-title">Schedule</span>
+    <div style="display:flex;align-items:center;gap:6px;">
+      <button id="sched-view-grid" onclick="setSchedHQView('grid')" style="font-family:var(--mono);font-size:11px;letter-spacing:1px;padding:6px 10px;background:rgba(61,138,122,.15);border:1px solid rgba(61,138,122,.3);border-radius:var(--r6);color:var(--teal2);cursor:pointer;min-height:36px;touch-action:manipulation;">⊞ Grid</button>
+      <button id="sched-view-cal" onclick="setSchedHQView('cal')" style="font-family:var(--mono);font-size:11px;letter-spacing:1px;padding:6px 10px;background:none;border:1px solid var(--border);border-radius:var(--r6);color:var(--muted2);cursor:pointer;min-height:36px;touch-action:manipulation;">▦ Cal</button>
+    </div>
+  </div>
+  <div class="section-header" style="padding-top:0;">
     <div class="sched-toolbar-row" style="display:flex;gap:6px;overflow-x:auto;overflow-y:hidden;flex-wrap:nowrap;scrollbar-width:none;-ms-overflow-style:none;-webkit-overflow-scrolling:touch;max-width:100%;padding-bottom:2px;">
       <div class="sect-action" onclick="openAddShift('','')">+ Shift</div>
       <div class="sect-action" onclick="openBulkSchedule()" style="color:var(--gold);border-color:rgba(200,169,110,.3);">+ Bulk Week</div>
@@ -1936,7 +2113,7 @@ body.sidebar-hidden #sidebar-reopen-tab{ display:flex; }
       <div class="sect-action" onclick="openSwapSheet()" style="color:var(--purple2);border-color:rgba(160,96,224,.3);">⇄ Swap</div>
       <div class="sect-action" id="map-toggle-btn" onclick="toggleLiveMap()" style="color:var(--teal2);border-color:rgba(61,138,122,.3);">⬤ Live Map</div>
       <div class="sect-action" id="resource-toggle-btn" onclick="toggleResourceView()" style="color:var(--gold);border-color:rgba(201,169,110,.3);">⊞ Resource</div>
-      <div class="sect-action" onclick="renderSchedule()">↻</div>
+      <div class="sect-action" onclick="schedHQView==='grid'?renderPSWGrid():renderSchedule()">↻</div>
     </div>
   </div>
   <!-- GPS Live Map Panel -->
@@ -2205,11 +2382,30 @@ body.sidebar-hidden #sidebar-reopen-tab{ display:flex; }
 
 <!-- BOTTOM NAV -->
 <div class="bottom-nav">
-  <div class="bnav-item active" onclick="showSect('today')" id="bn-today"><div class="bnav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div><div class="bnav-lbl">Today</div></div>
-  <div class="bnav-item" onclick="showSect('clients')" id="bn-clients"><div class="bnav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78z"/></svg></div><div class="bnav-lbl">Clients</div></div>
-  <div class="bnav-item" onclick="showSect('schedule')" id="bn-schedule"><div class="bnav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="5" width="16" height="16" rx="2"/><path d="M8 3v4M16 3v4M4 11h16"/></svg></div><div class="bnav-lbl">Schedule</div><span id="bn-schedule-badge" style="display:none;position:absolute;top:6px;right:calc(50% - 10px);width:7px;height:7px;border-radius:50%;background:var(--amber);"></span></div>
-  <div class="bnav-item" onclick="showSect('messages')" id="bn-messages"><div class="bnav-icon" style="position:relative;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span id="bn-msg-badge" style="display:none;position:absolute;top:-3px;right:-4px;min-width:16px;height:16px;background:var(--red);color:#fff;border-radius:8px;font-family:var(--mono);font-size:11px;font-weight:700;line-height:16px;text-align:center;padding:0 3px;"></span></div><div class="bnav-lbl">Messages</div></div>
-  <div class="bnav-item" onclick="toggleSidebar()" id="bn-menu"><div class="bnav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></div><div class="bnav-lbl">Menu</div></div>
+  <div class="bnav-item active" onclick="showSect('today')" id="bn-today">
+    <div class="bnav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+    <div class="bnav-lbl">Today</div>
+  </div>
+  <div class="bnav-item" onclick="showSect('schedule')" id="bn-schedule" style="position:relative;">
+    <div class="bnav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="5" width="16" height="16" rx="2"/><path d="M8 3v4M16 3v4M4 11h16"/></svg></div>
+    <div class="bnav-lbl">Schedule</div>
+    <span id="bn-schedule-badge" style="display:none;position:absolute;top:6px;right:calc(50% - 10px);width:7px;height:7px;border-radius:50%;background:var(--amber);"></span>
+  </div>
+  <div class="bnav-item" onclick="showSect('clients')" id="bn-clients">
+    <div class="bnav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78z"/></svg></div>
+    <div class="bnav-lbl">Clients</div>
+  </div>
+  <div class="bnav-item" onclick="showSect('messages')" id="bn-messages">
+    <div class="bnav-icon" style="position:relative;">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      <span id="bn-msg-badge" style="display:none;position:absolute;top:-3px;right:-4px;min-width:16px;height:16px;background:var(--red);color:#fff;border-radius:8px;font-family:var(--mono);font-size:11px;font-weight:700;line-height:16px;text-align:center;padding:0 3px;"></span>
+    </div>
+    <div class="bnav-lbl">Messages</div>
+  </div>
+  <div class="bnav-item" onclick="toggleSidebar()" id="bn-menu">
+    <div class="bnav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></div>
+    <div class="bnav-lbl">Menu</div>
+  </div>
 </div>
 
 
@@ -4285,7 +4481,7 @@ function showSect(name) {
   if(name==='crm') { window._dirtyCRM=false; renderCRM(); }
   if(name==='overview') { window._dirtyOverview=false; renderOverview(); loadFlaggedVitals(); }
   if(name==='applicants') loadApplicants();
-  if(name==='schedule') { renderSchedule(); renderVacantVisits(); loadShiftOffersHQ(); }
+  if(name==='schedule') { schedHQView==='grid' ? renderPSWGrid() : renderSchedule(); renderVacantVisits(); loadShiftOffersHQ(); }
   if(name==='visits') { renderVisits(); }
   if(name==='today') { renderToday(); loadCancellationRequests(); }
   if(name==='schedule') { loadCancellationRequests(); }
@@ -4962,9 +5158,145 @@ async function firePostClose() {
 // ── SCHEDULING BOARD ──
 let schedWeekOffset = 0;
 let schedView = 'client'; // 'client' or 'psw'
+let schedHQView = 'grid'; // 'grid' (PSW grid, default) or 'cal' (FullCalendar)
 let schedFilter = '';
 let dragBookingId = null;
 let dragData = null;
+
+// ── PSW GRID VIEW ──
+function renderPSWGrid() {
+  const el = document.getElementById('schedule-board');
+  if (!el) return;
+
+  const psws = (D.psws || []).filter(p => p.status === 'active' || !p.status);
+  const bookings = D.bookings || [];
+  const visits = D.visits || [];
+
+  // Week window from schedWeekOffset
+  const today = new Date();
+  const todayStr = today.toLocaleDateString('en-CA', {timeZone:'America/Toronto'});
+  const weekBase = new Date(today);
+  // Find Monday of current week, then offset
+  const dow = (weekBase.getDay() + 6) % 7; // 0=Mon
+  weekBase.setDate(weekBase.getDate() - dow + (schedWeekOffset * 7));
+
+  // Build 7 day columns
+  const days = [];
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(weekBase);
+    d.setDate(d.getDate() + i);
+    days.push(d.toLocaleDateString('en-CA', {timeZone:'America/Toronto'}));
+  }
+
+  const weekStart = days[0];
+  const weekEnd   = days[6];
+
+  // Active visits for live status
+  const liveClients = new Set(
+    visits.filter(v => v.status === 'in_progress').map(v => v.client_name)
+  );
+
+  // Format week label
+  const fmtDay = ds => {
+    const [,m,d] = ds.split('-');
+    return `${parseInt(m)}/${parseInt(d)}`;
+  };
+  const dayNames = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+
+  // Build grid header
+  let html = `<div style="padding:0 12px 12px;">`;
+
+  // Week nav row
+  html += `<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap;">
+    <button onclick="shiftSchedWeek(-1)" style="font-family:var(--mono);font-size:13px;padding:5px 10px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r6);color:var(--muted2);cursor:pointer;min-height:36px;touch-action:manipulation;">‹</button>
+    <span style="font-family:var(--mono);font-size:11px;letter-spacing:1px;color:var(--muted2);flex:1;text-align:center;">${fmtDay(weekStart)} — ${fmtDay(weekEnd)}</span>
+    <button onclick="shiftSchedWeek(1)" style="font-family:var(--mono);font-size:13px;padding:5px 10px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r6);color:var(--muted2);cursor:pointer;min-height:36px;touch-action:manipulation;">›</button>
+    ${schedWeekOffset !== 0 ? `<button onclick="schedWeekOffset=0;renderPSWGrid()" style="font-family:var(--mono);font-size:10px;letter-spacing:1px;padding:5px 8px;background:var(--teal-dim);border:1px solid var(--teal-border);border-radius:var(--r6);color:var(--teal2);cursor:pointer;min-height:36px;touch-action:manipulation;">Today</button>` : ''}
+  </div>`;
+
+  if (!psws.length) {
+    html += `<div class="empty-state">No active PSWs found</div></div>`;
+    el.innerHTML = html;
+    return;
+  }
+
+  // Build table
+  html += `<div class="psw-grid-wrap"><table class="psw-grid"><thead><tr>
+    <th class="col-name">PSW</th>`;
+  days.forEach((ds, i) => {
+    const isToday = ds === todayStr;
+    html += `<th class="${isToday ? 'col-today' : ''}">${dayNames[i]}<br><span style="font-size:9px;opacity:.7;">${fmtDay(ds)}</span></th>`;
+  });
+  html += `</tr></thead><tbody>`;
+
+  psws.forEach(psw => {
+    const name = psw.full_name || psw.name || '';
+    const initials = name.split(' ').map(n=>n[0]||'').join('').toUpperCase().slice(0,2);
+
+    // Hours this week
+    const wkHrs = bookings.filter(b =>
+      b.assigned_to === name &&
+      b.scheduled_date >= weekStart &&
+      b.scheduled_date <= weekEnd &&
+      b.status !== 'cancelled'
+    ).reduce((s,b) => s + (b.duration_minutes||480)/60, 0);
+
+    html += `<tr>
+      <td class="col-name">
+        <div class="psw-name-cell">
+          <div class="psw-name-av">${initials}</div>
+          <div>
+            <div class="psw-name-text">${escHtml(name.split(' ')[0])}</div>
+            <div class="psw-name-hrs">${wkHrs.toFixed(1)}h</div>
+          </div>
+        </div>
+      </td>`;
+
+    days.forEach(ds => {
+      const dayBookings = bookings.filter(b =>
+        b.assigned_to === name &&
+        b.scheduled_date === ds &&
+        b.status !== 'cancelled'
+      ).sort((a,b) => (a.scheduled_time||'').localeCompare(b.scheduled_time||''));
+
+      html += `<td><div class="grid-cell">`;
+      if (dayBookings.length) {
+        dayBookings.forEach(b => {
+          const isLive = liveClients.has(b.client_name);
+          const chipCls = isLive ? 'gc-live' : b.status === 'completed' ? 'gc-done' : 'gc-scheduled';
+          const timeStr = b.scheduled_time ? b.scheduled_time.slice(0,5) : '';
+          const clientShort = (b.client_name||'').split(' ')[0];
+          html += `<div class="grid-chip ${chipCls}" onclick="_showShiftDetail(${JSON.stringify(b).replace(/"/g,'&quot;')},{})">
+            <div class="gc-client">${escHtml(clientShort)}</div>
+            <div class="gc-time">${timeStr}</div>
+          </div>`;
+        });
+      } else {
+        html += `<div class="grid-empty"></div>`;
+      }
+      html += `</div></td>`;
+    });
+
+    html += `</tr>`;
+  });
+
+  html += `</tbody></table></div></div>`;
+  el.innerHTML = html;
+}
+
+function setSchedHQView(v) {
+  schedHQView = v;
+  // Update toggle button states
+  const gBtn = document.getElementById('sched-view-grid');
+  const cBtn = document.getElementById('sched-view-cal');
+  if (gBtn) { gBtn.style.background = v==='grid' ? 'rgba(61,138,122,.15)' : 'none'; gBtn.style.color = v==='grid' ? 'var(--teal2)' : 'var(--muted2)'; gBtn.style.borderColor = v==='grid' ? 'rgba(61,138,122,.3)' : 'var(--border)'; }
+  if (cBtn) { cBtn.style.background = v==='cal' ? 'rgba(61,138,122,.15)' : 'none'; cBtn.style.color = v==='cal' ? 'var(--teal2)' : 'var(--muted2)'; cBtn.style.borderColor = v==='cal' ? 'rgba(61,138,122,.3)' : 'var(--border)'; }
+  if (v === 'grid') {
+    renderPSWGrid();
+  } else {
+    renderSchedule();
+  }
+}
 
 function renderSchedule() {
   const el = document.getElementById('schedule-board');
@@ -5187,7 +5519,7 @@ function _initFC() {
     headerToolbar: {
       left:   'prev,next today',
       center: 'title',
-      right:  'dayGridMonth,timeGridWeek,listWeek'
+      right:  'timeGridWeek,listWeek'
     },
     height: 'auto',
     slotMinTime: '05:00:00',
@@ -5581,7 +5913,10 @@ function _styleFC() {
 
 
 function setSchedView(v) { schedView = v; renderSchedule(); }
-function shiftSchedWeek(dir) { schedWeekOffset += dir; renderSchedule(); }
+function shiftSchedWeek(dir) {
+  schedWeekOffset += dir;
+  if (schedHQView === 'grid') { renderPSWGrid(); } else { renderSchedule(); }
+}
 
 function toMins(t) {
   if(!t) return 0;
@@ -8215,9 +8550,30 @@ Generate exactly 3 to 5 prioritized action items for the operator. Each item mus
     cosEl.innerHTML = items.map(item => {
       const p = (item.priority||'MED').toUpperCase();
       const cls = p==='HIGH' ? 'cp-high' : p==='LOW' ? 'cp-low' : 'cp-med';
-      return `<div class="cos-item">
-        <span class="cos-priority ${cls}">${p}</span>
-        <span class="cos-text">${item.action||'—'}</span>
+      // Derive action button from item text
+      const txt = (item.action||'').toLowerCase();
+      let actionBtn = '';
+      if (txt.includes('unassigned') || txt.includes('open shift') || txt.includes('no psw')) {
+        actionBtn = `<button class="cos-item-action" onclick="openBroadcastSheet()">→ Broadcast Shift</button>`;
+      } else if (txt.includes('cert') || txt.includes('expir') || txt.includes('document')) {
+        actionBtn = `<button class="cos-item-action warn" onclick="showSect('psws')">→ View PSWs</button>`;
+      } else if (txt.includes('incident') || txt.includes('flag')) {
+        actionBtn = `<button class="cos-item-action warn" onclick="showSect('visits')">→ View Visits</button>`;
+      } else if (txt.includes('invoice') || txt.includes('billing') || txt.includes('payment') || txt.includes('overdue')) {
+        actionBtn = `<button class="cos-item-action" onclick="showSect('revenue')">→ View Revenue</button>`;
+      } else if (txt.includes('lead') || txt.includes('prospect') || txt.includes('follow')) {
+        actionBtn = `<button class="cos-item-action" onclick="showSect('leads')">→ View Leads</button>`;
+      } else if (txt.includes('client') || txt.includes('care plan') || txt.includes('consent')) {
+        actionBtn = `<button class="cos-item-action" onclick="showSect('clients')">→ View Clients</button>`;
+      } else if (txt.includes('schedule') || txt.includes('shift') || txt.includes('coverage')) {
+        actionBtn = `<button class="cos-item-action" onclick="showSect('schedule')">→ View Schedule</button>`;
+      }
+      return `<div class="cos-item" style="flex-direction:column;align-items:flex-start;gap:4px;">
+        <div style="display:flex;align-items:flex-start;gap:10px;width:100%;">
+          <span class="cos-priority ${cls}">${p}</span>
+          <span class="cos-text">${item.action||'—'}</span>
+        </div>
+        ${actionBtn}
       </div>`;
     }).join('');
   } catch(e) {
