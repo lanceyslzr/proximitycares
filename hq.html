@@ -4459,13 +4459,16 @@ async function loadVisitForms(visitId, clientName, container) {
 
 async function renderVisits() {
   const el = document.getElementById('visits-list');
+  if (!el) return;
   el.innerHTML = '<div class="empty-state">Loading visits...</div>';
   try {
     const range = getVisitDateRange();
+    if (!range || !range.from) throw new Error('Invalid date range');
     const _fromDate = range.from; // CLAUDE.md rule 14 — from_date required
     const res = await fetch(`${API}/hq/visits?operator_id=${currentOp}&limit=500&from_date=${_fromDate}`, { headers: { 'x-hq-token': window._hqToken || sessionStorage.getItem('hq_token') || '' } });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const d = await res.json();
-    if (!d.visits) throw new Error('Failed');
+    if (!d.visits) throw new Error(d.error || 'No visits field in response');
 
     // Filter by selected range
     const allVisits = d.visits || [];
@@ -4489,9 +4492,10 @@ async function renderVisits() {
     // Range totals
     const totalHours = visits.reduce((sum,v) => sum + parseFloat(v.hours_worked||0), 0);
     const uniquePSWs = [...new Set(visits.map(v=>v.psw_name).filter(Boolean))].length;
-    document.getElementById('vmt-count').textContent = visits.length;
-    document.getElementById('vmt-hours').textContent = totalHours.toFixed(1)+'h';
-    document.getElementById('vmt-psws').textContent = uniquePSWs;
+    const _setText = (id, val) => { const e = document.getElementById(id); if (e) e.textContent = val; };
+    _setText('vmt-count', visits.length);
+    _setText('vmt-hours', totalHours.toFixed(1)+'h');
+    _setText('vmt-psws', uniquePSWs);
 
     // Per-PSW breakdown panel
     const pswBreakdownEl = document.getElementById('psw-breakdown');
@@ -4575,7 +4579,8 @@ async function renderVisits() {
       </div>`;
     }).join('');
   } catch (err) {
-    el.innerHTML = '<div class="empty-state">Could not load visits</div>';
+    console.error('renderVisits failed:', err);
+    if (el) el.innerHTML = `<div class="empty-state"><div class="empty-state-title">Could not load visits</div><div class="empty-state-sub" style="font-family:var(--mono);font-size:11px;color:var(--muted);">${(err && err.message) || 'Unknown error'}</div></div>`;
   }
 }
 
