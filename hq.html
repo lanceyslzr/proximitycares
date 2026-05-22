@@ -287,7 +287,6 @@ button:active{transform:scale(0.98);}
 /* ── FULLCALENDAR WRAPPER ── */
 #fc-root { background: var(--bg); }
 #fc-cal { background: var(--bg); }
-.fc-view-harness { background: var(--bg2); border-radius: 8px; overflow: hidden; border: 1px solid var(--border); }
 
 /* ── CONFLICT MODAL ── */
 .conflict-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:500;display:none;align-items:center;justify-content:center;padding:16px;}
@@ -762,7 +761,6 @@ button,.sbtn,.btn,.bnav-item,.nav-tab,.icon-btn{
 @media(max-width:min(1024px,100%)){
   .section{padding:0 8px;}
   .sect-head-row{flex-wrap:wrap;gap:6px;}
-  .fc-toolbar-chunk{flex-wrap:wrap;}
 }
 @media(max-width:min(900px,100%)){
   .sidebar{width:260px;}
@@ -981,11 +979,6 @@ button,.sbtn,.btn,.bnav-item,.nav-tab,.icon-btn{
   #leaflet-map{height:260px !important;}
   
   /* FullCalendar: compact mobile */
-  .fc-toolbar{flex-direction:column;gap:8px;align-items:stretch;}
-  .fc-toolbar-chunk{display:flex;justify-content:center;}
-  .fc .fc-button-group{gap:2px;}
-  .fc .fc-button{padding:6px 8px !important;font-size:9px !important;}
-  .fc-toolbar-title{font-size:14px !important;text-align:center;}
   
   /* Toast: don't overlap bottom nav */
   .toast{bottom:calc(82px + var(--safe-bottom)) !important;font-size:11px !important;padding:10px 18px !important;max-width:80vw !important;}
@@ -5397,15 +5390,29 @@ let dragData = null;
 // Fetches the correct date window for the current grid view and merges into D.bookings
 // This is the same pattern as FC's datesSet — ensures the grid always has accurate data
 async function _fetchGridBookings(forceRefresh) {
+  // Unified window: covers both schedWeekOffset (grid) and _calDate (calendar)
+  // Always fetch a wide enough window that both views are covered
   const today = new Date();
-  const weekBase = new Date(today);
-  const dow = (weekBase.getDay() + 6) % 7;
-  weekBase.setDate(weekBase.getDate() - dow + (schedWeekOffset * 7));
-  // Fetch ±14 days around the current week to cover week nav without extra fetches
-  const fromD = new Date(weekBase); fromD.setDate(fromD.getDate() - 14);
-  const toD   = new Date(weekBase); toD.setDate(toD.getDate() + 21);
-  const from = fromD.toLocaleDateString('en-CA', {timeZone:'America/Toronto'});
-  const to   = toD.toLocaleDateString('en-CA', {timeZone:'America/Toronto'});
+
+  // Grid anchor
+  const gridBase = new Date(today);
+  const gdow = (gridBase.getDay() + 6) % 7;
+  gridBase.setDate(gridBase.getDate() - gdow + (schedWeekOffset * 7));
+
+  // Cal anchor
+  const calBase = _calDate instanceof Date ? new Date(_calDate) : new Date(today);
+  const cdow = (calBase.getDay() + 6) % 7;
+  calBase.setDate(calBase.getDate() - cdow);
+
+  // Use whichever is earlier/later to cover both
+  const earliest = gridBase < calBase ? new Date(gridBase) : new Date(calBase);
+  const latest   = gridBase > calBase ? new Date(gridBase) : new Date(calBase);
+
+  // Expand ±21 days around each anchor
+  const fromD = new Date(earliest); fromD.setDate(fromD.getDate() - 21);
+  const toD   = new Date(latest);   toD.setDate(toD.getDate() + 21);
+  const from  = fromD.toLocaleDateString('en-CA', {timeZone:'America/Toronto'});
+  const to    = toD.toLocaleDateString('en-CA',   {timeZone:'America/Toronto'});
 
   // Skip if window already covered and not forcing
   if (!forceRefresh) {
@@ -5413,7 +5420,7 @@ async function _fetchGridBookings(forceRefresh) {
     const dates = loaded.map(b => b.scheduled_date).filter(Boolean);
     const minL = dates.length ? dates.reduce((a,b) => a<b?a:b) : '';
     const maxL = dates.length ? dates.reduce((a,b) => a>b?a:b) : '';
-    if (minL && maxL && from >= minL && to <= maxL) return; // already covered
+    if (minL && maxL && from >= minL && to <= maxL) return;
   }
 
   try {
@@ -5422,7 +5429,6 @@ async function _fetchGridBookings(forceRefresh) {
     });
     const d = await r.json();
     if (!d.success) return;
-    // Merge — dedup by id
     const existing = new Map((D.bookings||[]).map(b => [b.id, b]));
     d.bookings.forEach(b => existing.set(b.id, b));
     D.bookings = Array.from(existing.values());
@@ -6005,15 +6011,18 @@ function _renderCustomCal() {
   }
 }
 
-function _calNav(dir) {
+async function _calNav(dir) {
   const d = new Date(_calDate);
   if (_calView === 'week') d.setDate(d.getDate() + dir * 7);
   else d.setDate(d.getDate() + dir);
   _calDate = d;
+  try {
+    await _fetchGridBookings(false);
+  } catch(e) { /* silent — render with cached data */ }
   _renderCustomCal();
 }
 
-function _calGoToday() { _calDate = new Date(); _renderCustomCal(); }
+function _calGoToday() { _calDate = new Date(); _fetchGridBookings(false).then(() => _renderCustomCal()); }
 
 function _calSetView(v) { _calView = v; _renderCustomCal(); }
 
@@ -6286,7 +6295,103 @@ function _addMins(dtStr, mins) {
 function setSchedView(v) { schedView = v; renderSchedule(); }
 function shiftSchedWeek(dir) {
   schedWeekOffset += dir;
-  if (schedHQView === 'grid') { refreshGrid(); } else { _renderCustomCal(); }
+  // Keep _calDate in sync with grid so switching views shows the same week
+  const today = new Date();
+  const dow = (today.getDay() + 6) % 7;
+  const newAnchor = new Date(today);
+  newAnchor.setDate(today.getDate() - dow + (schedWeekOffset * 7));
+  _calDate = newAnchor;
+  // Update the static week nav label
+  const we = new Date(newAnchor); we.setDate(newAnchor.getDate() + 6);
+  const wl = document.getElementById('sched-week-label');
+  if (wl) wl.textContent = `${(newAnchor.getMonth()+1)}/${newAnchor.getDate()} — ${(we.getMonth()+1)}/${we.getDate()}`;
+  const tb = document.getElementById('sched-today-btn');
+  if (tb) tb.style.display = schedWeekOffset !== 0 ? 'block' : 'none';
+  if (schedHQView === 'grid') { refreshGrid(); } else { _fetchGridBookings(false).then(() => _renderCustomCal()); }
+}
+
+// ── UNIFIED SCHEDULE REFRESH ─────────────────────────────────────────
+function _refreshSched() {
+  if (schedHQView === 'grid') {
+    refreshGrid();
+  } else {
+    _renderCustomCal();
+  }
+}
+
+// ── CONFLICT DETECTION ───────────────────────────────────────────────
+function _detectDropConflict(bookingId, pswName, newDate, newTime, durMins) {
+  if (!pswName) return null;
+  const bookings = D.bookings || [];
+  const newStart = toMins(newTime);
+  const newEnd   = newStart + durMins;
+  for (const b of bookings) {
+    if (b.id===bookingId||b.assigned_to!==pswName||b.scheduled_date!==newDate||b.status==='cancelled') continue;
+    const bs = toMins(b.scheduled_time);
+    const be = bs + (b.duration_minutes||480);
+    if (newStart<be && bs<newEnd) {
+      return { conflictingBooking: b, reason: `${pswName} is already assigned to ${b.client_name||'another client'} from ${b.scheduled_time} (${(b.duration_minutes||60)/60}h)` };
+    }
+  }
+  return null;
+}
+
+function _showConflictModal(conflict, booking, newDate, newTime, fcInfo) {
+  const m = document.getElementById('conflict-modal');
+  if (!m) { if(fcInfo?.revert) fcInfo.revert(); return; }
+  document.getElementById('cm-reason').textContent   = conflict.reason;
+  document.getElementById('cm-booking').textContent  = `Moving: ${booking.client_name} · ${newDate} ${newTime}`;
+  document.getElementById('cm-conflict').textContent = `Conflict: ${conflict.conflictingBooking.client_name} · ${conflict.conflictingBooking.scheduled_time}`;
+  m.style.display = 'flex';
+  document.getElementById('cm-override').onclick = async () => {
+    m.style.display = 'none';
+    await _patchBooking(booking.id, { scheduled_date: newDate, scheduled_time: newTime }, fcInfo);
+  };
+  document.getElementById('cm-cancel').onclick = () => {
+    m.style.display = 'none';
+    if(fcInfo?.revert) fcInfo.revert();
+  };
+}
+
+// ── PATCH BOOKING (drag-to-reschedule, inline edits) ─────────────────
+async function _patchBooking(id, updates, fcInfo) {
+  try {
+    const res = await fetch(`${API}/hq/booking/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', 'x-hq-token': window._hqToken || sessionStorage.getItem('hq_token') || '' },
+      body: JSON.stringify({ operator_id: currentOp, ...updates })
+    });
+    const d = await res.json();
+    if (!d.success) throw new Error(d.error||'Failed');
+    showToast('Shift updated ✓', 'ok');
+    const idx = (D.bookings||[]).findIndex(b => b.id === id);
+    if (idx >= 0) D.bookings[idx] = { ...D.bookings[idx], ...updates };
+    await _fetchGridBookings(true);
+    try {
+      const freshRes = await fetch(`${API}/hq/overview?operator_id=${currentOp}`, { headers: { 'x-hq-token': window._hqToken || sessionStorage.getItem('hq_token') || '' } });
+      const freshD = await freshRes.json();
+      if (freshD.success) { const sb = D.bookings; D = freshD; D.bookings = sb; _mergedPSWCache = null; }
+    } catch(e) {}
+    _refreshSched();
+    renderVacantVisits();
+    renderStats();
+    const pswToNotify = updates.assigned_to || (D.bookings||[]).find(b => b.id === id)?.assigned_to;
+    if (pswToNotify) {
+      const _newDate = updates.scheduled_date || '';
+      const _newTime = updates.scheduled_time || '';
+      const _pmsg = updates.assigned_to
+        ? `A shift has been reassigned to you${_newDate ? ' on ' + _newDate : ''}. Check your schedule.`
+        : `Schedule change: your shift${_newDate ? ' on ' + _newDate : ''}${_newTime ? ' at ' + _newTime : ''} has been updated. Check your portal.`;
+      fetch(`${API}/psw/note`, {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ psw_name: pswToNotify, sender: 'lance', message: _pmsg, operator_id: currentOp })
+      }).catch(() => {});
+      setTimeout(() => showToast(`Notified ${pswToNotify.split(' ')[0]} ✓`, 'ok'), 400);
+    }
+  } catch(e) {
+    showToast(e.message, 'err');
+    if (fcInfo?.revert) fcInfo.revert();
+  }
 }
 
 function toMins(t) {
@@ -8046,7 +8151,7 @@ function renderOverview() {
         const isActive = visits.some(v => v.client_name===b.client_name && v.visit_date===today && v.time_in && !v.time_out);
         const status = isActive ? 'On Shift' : hasVisit ? 'Done' : !b.assigned_to ? 'Unassigned' : 'Scheduled';
         const col = isActive?'var(--green2)':hasVisit?'var(--teal2)':!b.assigned_to?'var(--amber)':'var(--muted2)';
-        return `<div style="display:flex;align-items:center;gap:10px;padding:9px 14px;border-bottom:1px solid var(--border);cursor:pointer;" onclick="showSect('schedule');setTimeout(()=>{ if(window._fc) window._fc.gotoDate('${b.scheduled_date}'); },200);">
+        return `<div style="display:flex;align-items:center;gap:10px;padding:9px 14px;border-bottom:1px solid var(--border);cursor:pointer;" onclick="showSect('schedule');setTimeout(()=>{ _calDate=new Date('${b.scheduled_date}T12:00:00'); if(schedHQView==='cal') _renderCustomCal(); },200);">
           <div style="font-family:var(--mono);font-size:11px;color:var(--teal2);min-width:40px;">${b.scheduled_time||'—'}</div>
           <div style="flex:1;">
             <div style="font-size:12px;font-weight:500;color:var(--text);">${b.client_name||'—'}</div>
@@ -8394,8 +8499,10 @@ async function copyWeeks(n) {
     weekStart.setDate(today.getDate() - dow + (schedWeekOffset * 7));
     weekStart.setHours(0,0,0,0);
   } else {
-    if (!window._fc) { showToast('Calendar not loaded', 'err'); return; }
-    weekStart = new Date(window._fc.view.currentStart);
+    // Cal view — use _calDate (replaces window._fc which is removed)
+    weekStart = new Date(_calDate instanceof Date ? _calDate : new Date());
+    const cdow = (weekStart.getDay() + 6) % 7;
+    weekStart.setDate(weekStart.getDate() - cdow);
     weekStart.setHours(0,0,0,0);
   }
 
@@ -8512,8 +8619,11 @@ function openCopyWeeksSheet() {
     const we = new Date(ws); we.setDate(ws.getDate() + 6);
     const fmt = d => `${d.getMonth()+1}/${d.getDate()}`;
     weekLabel = `${fmt(ws)} — ${fmt(we)}`;
-  } else if (window._fc) {
-    const vs = window._fc.view.currentStart;
+  } else {
+    // Cal view — use _calDate
+    const vs = _calDate instanceof Date ? new Date(_calDate) : new Date();
+    const vdow = (vs.getDay() + 6) % 7;
+    vs.setDate(vs.getDate() - vdow);
     const ve = new Date(vs); ve.setDate(vs.getDate() + 6);
     const fmt = d => `${d.getMonth()+1}/${d.getDate()}`;
     weekLabel = `${fmt(vs)} — ${fmt(ve)}`;
@@ -9282,7 +9392,7 @@ async function saveTimeOff() {
     document.getElementById('to-note').value = '';
     _loadTimeOffList();
     await loadAll(false);
-    if (window._fc) _refreshFC();
+    _refreshSched();
   } catch(e) { showToast(e.message || 'Error saving', 'err'); }
 }
 
@@ -9298,7 +9408,7 @@ async function deleteTimeOff(id) {
     showToast('Time off removed', 'ok');
     _loadTimeOffList();
     await loadAll(false);
-    if (window._fc) _refreshFC();
+    _refreshSched();
   } catch(e) { showToast(e.message || 'Error', 'err'); }
 }
 
