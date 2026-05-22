@@ -5572,6 +5572,8 @@ function _patchGrid(el, newHTML) {
 function renderPSWGrid() {
   const el = document.getElementById('schedule-board');
   if (!el) return;
+  // Guard: if user switched to cal view while grid was loading, don't overwrite
+  if (schedHQView !== 'grid') return;
   el.style.display = 'block';
 
   const allPSWs    = (D.psws || []).filter(p => p.status === 'active' || !p.status);
