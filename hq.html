@@ -1226,14 +1226,15 @@ body.sidebar-hidden #sidebar-reopen-tab{ display:flex; }
 #sect-schedule.active{
   display:flex;
   flex-direction:column;
-  height:100vh;
-  height:100dvh;
+  height:calc(100vh - 54px);
+  height:calc(100dvh - 54px);
   overflow:hidden;
   padding-bottom:0;
 }
 #sect-schedule .sched-fixed-top{
   flex-shrink:0;
-  overflow:hidden;
+  overflow-y:auto; /* allow vacant list to expand without clipping */
+  overflow-x:hidden;
 }
 /* Grid wrap: takes all remaining height, scrolls both axes */
 .psw-grid-wrap{
@@ -1245,7 +1246,7 @@ body.sidebar-hidden #sidebar-reopen-tab{ display:flex; }
   padding-bottom:8px;
   min-height:0; /* required for flex child to shrink below content size */
 }
-/* Sticky header now relative to wrap (top:0), not viewport */
+/* Sticky header relative to wrap (top:0) */
 .psw-grid th{
   top:0 !important;
 }
@@ -1307,6 +1308,7 @@ body.sidebar-hidden #sidebar-reopen-tab{ display:flex; }
 
 /* ── MOBILE OVERRIDES FOR NEW COMPONENTS ── */
 @media(max-width:768px){
+  #sect-schedule.active{height:calc(100dvh - 52px);}
   .psw-grid{min-width:420px;width:auto;max-width:none;table-layout:auto;}
   .psw-grid th{top:52px;z-index:100;min-width:72px;}
   .psw-grid th.col-name{min-width:80px;max-width:80px;top:52px;z-index:101;}
