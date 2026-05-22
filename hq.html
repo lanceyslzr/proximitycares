@@ -7207,7 +7207,38 @@ async function openPSWDetail(pswId) {
       return `<span style="color:var(--green2);font-family:var(--mono);font-size:11px;">VALID${expiry?' · '+fmtd(expiry):''}</span>`;
     };
 
+    // Build PSW visit history from D.visits (already in memory — last 90 days)
+    const pswVisits = (D.visits||[])
+      .filter(v => (v.psw_name||'').trim() === name.trim())
+      .sort((a,b) => (b.visit_date||'').localeCompare(a.visit_date||''))
+      .slice(0, 30);
+    const pswTotalHrs = pswVisits.reduce((s,v)=>s+parseFloat(v.hours_worked||0),0);
+
+    const pswVisitRows = pswVisits.length
+      ? pswVisits.map(v => {
+          const hrs = parseFloat(v.hours_worked||0);
+          const statusDot = v.status==='completed'?'var(--green2)':v.status==='in_progress'?'var(--teal2)':'var(--muted)';
+          return `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);">
+            <div style="width:7px;height:7px;border-radius:50%;background:${statusDot};flex-shrink:0;"></div>
+            <div style="flex:1;min-width:0;">
+              <div style="font-size:12px;color:var(--text);font-weight:500;">${escHtml(v.client_name||'—')}</div>
+              <div style="font-family:var(--mono);font-size:10px;color:var(--muted2);">${v.visit_date||'—'} · ${v.time_in||'?'} — ${v.time_out||'?'}</div>
+            </div>
+            <div style="font-family:var(--mono);font-size:11px;color:var(--teal2);flex-shrink:0;">${hrs>0?hrs.toFixed(1)+'h':'—'}</div>
+          </div>`;
+        }).join('')
+      : '<div style="font-family:var(--mono);font-size:12px;color:var(--muted);padding:12px 0;">No visits in last 90 days</div>';
+
     body.innerHTML = `
+      <div style="display:flex;gap:8px;margin-bottom:16px;">
+        <button class="sbtn" style="flex:1;background:rgba(61,138,122,.12);color:var(--teal2);border:1px solid rgba(61,138,122,.3);" onclick="openHoursPanel('psw','${name}')">
+          ⏱ Hours Panel
+        </button>
+      </div>
+
+      <div style="margin-bottom:10px;font-family:var(--mono);font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--teal2);">Visit History <span style="color:var(--muted);font-size:10px;letter-spacing:1px;">(last 90 days · ${pswVisits.length} visits · ${pswTotalHrs.toFixed(1)}h total)</span></div>
+      <div style="margin-bottom:16px;">${pswVisitRows}</div>
+
       <div class="cpf"><div class="cpf-lbl">Email</div><div class="cpf-val">${p.email?`<a href="mailto:${p.email}">${p.email}</a>`:'—'}</div></div>
       <div class="cpf"><div class="cpf-lbl">Phone</div><div class="cpf-val">${p.phone?`<a href="tel:${p.phone}">${p.phone}</a>`:'—'}</div></div>
       <div class="cpf"><div class="cpf-lbl">PSW Code</div><div class="cpf-val" style="font-family:var(--mono);">${rec.psw_code||p.psw_code||'—'}</div></div>
@@ -7450,11 +7481,37 @@ function openClientDetail(id) {
   const alertBadges = getAlertBadges(c);
   const existingBadges = document.getElementById('client-sheet-badges');
   if (existingBadges) existingBadges.innerHTML = alertBadges || '';
+  // Build client visit history from D.visits (in memory — last 90 days)
+  const clientVisits = (D.visits||[])
+    .filter(v => (v.client_name||'').trim() === name.trim())
+    .sort((a,b) => (b.visit_date||'').localeCompare(a.visit_date||''))
+    .slice(0, 30);
+  const clientTotalHrs = clientVisits.reduce((s,v)=>s+parseFloat(v.hours_worked||0),0);
+
+  const clientVisitRows = clientVisits.length
+    ? clientVisits.map(v => {
+        const hrs = parseFloat(v.hours_worked||0);
+        const statusDot = v.status==='completed'?'var(--green2)':v.status==='in_progress'?'var(--teal2)':'var(--muted)';
+        return `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);">
+          <div style="width:7px;height:7px;border-radius:50%;background:${statusDot};flex-shrink:0;"></div>
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:12px;color:var(--text);font-weight:500;">${escHtml(v.psw_name||'—')}</div>
+            <div style="font-family:var(--mono);font-size:10px;color:var(--muted2);">${v.visit_date||'—'} · ${v.time_in||'?'} — ${v.time_out||'?'}</div>
+          </div>
+          <div style="font-family:var(--mono);font-size:11px;color:var(--teal2);flex-shrink:0;">${hrs>0?hrs.toFixed(1)+'h':'—'}</div>
+        </div>`;
+      }).join('')
+    : '<div style="font-family:var(--mono);font-size:12px;color:var(--muted);padding:12px 0;">No visits in last 90 days</div>';
+
   document.getElementById('client-sheet-body').innerHTML = `
     <div style="display:flex;gap:8px;margin-bottom:16px;">
       <button style="flex:1;background:rgba(61,138,122,.12);color:var(--teal2);border:1px solid var(--border2);padding:10px;font-family:var(--mono);font-size:12px;letter-spacing:1.5px;text-transform:uppercase;border-radius:6px;cursor:pointer;min-height:44px;touch-action:manipulation;" onclick="closeSheet('client-sheet');openClientSchedule('${name}')">+ Schedule Shift</button>
       <button style="flex:1;background:rgba(200,169,110,.1);color:var(--gold);border:1px solid rgba(200,169,110,.3);padding:10px;font-family:var(--mono);font-size:12px;letter-spacing:1.5px;text-transform:uppercase;border-radius:6px;cursor:pointer;min-height:44px;touch-action:manipulation;" onclick="genInvoice('${name}','${c.family_email||c.email||''}','${c.assigned_psw||''}',${c.client_rate||22},${c.psw_rate||19});closeSheet('client-sheet');">Invoice</button>
+      <button style="flex:1;background:rgba(61,138,122,.12);color:var(--teal2);border:1px solid rgba(61,138,122,.3);padding:10px;font-family:var(--mono);font-size:12px;letter-spacing:1.5px;text-transform:uppercase;border-radius:6px;cursor:pointer;min-height:44px;touch-action:manipulation;" onclick="openHoursPanel('client','${name}')">⏱ Hours</button>
     </div>
+
+    <div style="margin-bottom:10px;font-family:var(--mono);font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--teal2);">Visit History <span style="color:var(--muted);font-size:10px;letter-spacing:1px;">(last 90 days · ${clientVisits.length} visits · ${clientTotalHrs.toFixed(1)}h total)</span></div>
+    <div style="margin-bottom:16px;">${clientVisitRows}</div>
     <div class="cpf"><div class="cpf-lbl">Family</div><div class="cpf-val">${c.family_contact_name||'—'} · ${c.family_email?`<a href="mailto:${c.family_email}">${c.family_email}</a>`:'no email'}</div></div>
     <div class="cpf"><div class="cpf-lbl">Client Code</div><div class="cpf-val" style="font-family:var(--mono);color:var(--teal2);">${c.client_code||'—'}</div></div>
     <div class="cpf"><div class="cpf-lbl">Portal</div><div class="cpf-val" style="font-family:var(--mono);">${slug||'—'} · PIN ${c.portal_pin||'—'}</div></div>
