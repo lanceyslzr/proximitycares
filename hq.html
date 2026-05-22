@@ -1192,7 +1192,9 @@ body.sidebar-hidden #sidebar-reopen-tab{ display:flex; }
 .sra-btn.danger{color:var(--red);border-color:var(--red-border);background:var(--red-dim);}
 
 /* ── PSW GRID — schedule grid view ── */
-.psw-grid-wrap{overflow-x:auto;overflow-y:visible;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain;margin:0;padding-bottom:8px;}
+.psw-grid-wrap{overflow:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;margin:0;padding-bottom:8px;height:100%;}
+/* schedule-board wrapping div also needs full height */
+#schedule-board{display:flex;flex-direction:column;}
 .psw-grid{width:auto;max-width:none;table-layout:auto;border-collapse:separate;border-spacing:0;min-width:560px;}
 .psw-grid th{font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted2);padding:8px 6px;text-align:center;background:var(--bg2);position:-webkit-sticky;position:sticky;top:54px;z-index:100;white-space:nowrap;box-shadow:inset 0 -1px 0 var(--border);;min-width:96px;}
 .psw-grid th.col-name{text-align:left;padding-left:12px;min-width:130px;max-width:160px;position:-webkit-sticky;position:sticky;top:54px;left:0;z-index:101;background:var(--bg2);}
@@ -1218,7 +1220,38 @@ body.sidebar-hidden #sidebar-reopen-tab{ display:flex; }
 .gc-cancelled{background:var(--bg3);border-color:transparent;opacity:.35;text-decoration:line-through;}
 .grid-empty{height:34px;}
 
-/* ── CHIEF OF STAFF ACTIONS ── */
+/* ── SCHEDULE SECTION — fixed-height panel so grid scrolls independently ── */
+/* The section is a full-viewport flex column. Non-grid parts are fixed height. */
+/* The grid wrap takes remaining height, scrolls both axes, sticky th at top:0 */
+#sect-schedule.active{
+  display:flex;
+  flex-direction:column;
+  height:100vh;
+  height:100dvh;
+  overflow:hidden;
+  padding-bottom:0;
+}
+#sect-schedule .sched-fixed-top{
+  flex-shrink:0;
+  overflow:hidden;
+}
+/* Grid wrap: takes all remaining height, scrolls both axes */
+.psw-grid-wrap{
+  flex:1;
+  overflow:auto;
+  -webkit-overflow-scrolling:touch;
+  overscroll-behavior:contain;
+  margin:0;
+  padding-bottom:8px;
+  min-height:0; /* required for flex child to shrink below content size */
+}
+/* Sticky header now relative to wrap (top:0), not viewport */
+.psw-grid th{
+  top:0 !important;
+}
+.psw-grid th.col-name{
+  top:0 !important;
+}
 .cos-item-action{display:inline-flex;align-items:center;gap:5px;margin-top:6px;font-family:var(--mono);font-size:10px;letter-spacing:.5px;text-transform:uppercase;padding:5px 10px;border-radius:var(--r6);border:1px solid var(--teal-border);background:var(--teal-dim);color:var(--teal2);cursor:pointer;min-height:32px;transition:all .15s;touch-action:manipulation;}
 .cos-item-action:active{background:var(--teal-mid);}
 .cos-item-action.warn{border-color:var(--amber-border);background:var(--amber-dim);color:var(--amber);}
@@ -2171,6 +2204,8 @@ body.sidebar-hidden #sidebar-reopen-tab{ display:flex; }
 <!-- CREATE OPERATOR — Tab 10 -->
 <!-- SCHEDULE TAB -->
 <div class="section" id="sect-schedule">
+  <!-- Everything above the grid is fixed-top — scrolls with section but not with grid -->
+  <div class="sched-fixed-top">
 
   <!-- ── NEEDS ATTENTION STRIP ── -->
   <div id="sched-needs-attn" style="display:none;margin:10px 12px 0;">
@@ -2232,23 +2267,18 @@ body.sidebar-hidden #sidebar-reopen-tab{ display:flex; }
   </div>
   <!-- Filter bar — axis toggle + shift filter + search -->
   <div id="sched-filter-bar" style="display:flex;align-items:center;gap:6px;padding:0 12px 10px;flex-wrap:wrap;">
-    <!-- Axis: PSW rows or Client rows -->
     <div style="display:flex;gap:0;border:1px solid var(--border);border-radius:var(--r6);overflow:hidden;flex-shrink:0;">
       <button id="sched-axis-psw" onclick="setSchedAxis('psw')" style="font-family:var(--mono);font-size:10px;letter-spacing:1px;padding:5px 10px;background:rgba(61,138,122,.15);color:var(--teal2);border:none;cursor:pointer;min-height:32px;touch-action:manipulation;border-right:1px solid var(--border);">PSW</button>
       <button id="sched-axis-client" onclick="setSchedAxis('client')" style="font-family:var(--mono);font-size:10px;letter-spacing:1px;padding:5px 10px;background:none;color:var(--muted2);border:none;cursor:pointer;min-height:32px;touch-action:manipulation;">Client</button>
     </div>
-    <!-- Shift type filter -->
     <div style="display:flex;gap:0;border:1px solid var(--border);border-radius:var(--r6);overflow:hidden;flex-shrink:0;">
       <button id="sf-all" onclick="setSchedShiftFilter('all')" style="font-family:var(--mono);font-size:10px;letter-spacing:1px;padding:5px 9px;background:rgba(61,138,122,.15);color:var(--teal2);border:none;cursor:pointer;min-height:32px;touch-action:manipulation;border-right:1px solid var(--border);">All</button>
       <button id="sf-am" onclick="setSchedShiftFilter('am')" style="font-family:var(--mono);font-size:10px;letter-spacing:1px;padding:5px 9px;background:none;color:var(--muted2);border:none;cursor:pointer;min-height:32px;touch-action:manipulation;border-right:1px solid var(--border);">AM</button>
       <button id="sf-pm" onclick="setSchedShiftFilter('pm')" style="font-family:var(--mono);font-size:10px;letter-spacing:1px;padding:5px 9px;background:none;color:var(--muted2);border:none;cursor:pointer;min-height:32px;touch-action:manipulation;">PM</button>
     </div>
-    <!-- Unassigned toggle -->
     <button id="sf-vacant" onclick="setSchedVacantFilter()" style="font-family:var(--mono);font-size:10px;letter-spacing:1px;padding:5px 9px;background:none;color:var(--muted2);border:1px solid var(--border);border-radius:var(--r6);cursor:pointer;min-height:32px;touch-action:manipulation;flex-shrink:0;">Unassigned</button>
-    <!-- Search -->
     <input id="sched-search" type="text" placeholder="Search..." oninput="setSchedSearch(this.value)"
       style="flex:1;min-width:80px;max-width:160px;font-family:var(--mono);font-size:11px;padding:5px 10px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r6);color:var(--text);min-height:32px;">
-    <!-- Row count badge -->
     <span id="sched-row-count" style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px;flex-shrink:0;"></span>
   </div>
   <!-- GPS Live Map Panel -->
@@ -2260,8 +2290,12 @@ body.sidebar-hidden #sidebar-reopen-tab{ display:flex; }
     <div id="leaflet-map" style="width:100%;height:320px;border-radius:8px;border:1px solid var(--border);overflow:hidden;background:var(--bg2);"></div>
     <div id="map-legend" style="margin-top:8px;display:flex;gap:12px;flex-wrap:wrap;"></div>
   </div>
-  <div id="schedule-board"></div>
-<div id="resource-board" style="display:none;"></div>
+
+  </div><!-- end .sched-fixed-top -->
+
+  <!-- Grid/board fills remaining height and scrolls independently -->
+  <div id="schedule-board" style="flex:1;min-height:0;"></div>
+  <div id="resource-board" style="display:none;flex:1;min-height:0;overflow:auto;"></div>
 </div>
 
 <div class="section" id="sect-revenue">
