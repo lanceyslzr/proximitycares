@@ -1194,7 +1194,7 @@ body.sidebar-hidden #sidebar-reopen-tab{ display:flex; }
 /* ── PSW GRID — schedule grid view ── */
 .psw-grid-wrap{overflow:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;margin:0;padding-bottom:8px;height:100%;}
 /* schedule-board wrapping div also needs full height */
-#schedule-board{display:flex;flex-direction:column;}
+#schedule-board{height:100%;}
 .psw-grid{width:auto;max-width:none;table-layout:auto;border-collapse:separate;border-spacing:0;min-width:560px;}
 .psw-grid th{font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted2);padding:8px 6px;text-align:center;background:var(--bg2);position:-webkit-sticky;position:sticky;top:54px;z-index:100;white-space:nowrap;box-shadow:inset 0 -1px 0 var(--border);;min-width:96px;}
 .psw-grid th.col-name{text-align:left;padding-left:12px;min-width:130px;max-width:160px;position:-webkit-sticky;position:sticky;top:54px;left:0;z-index:101;background:var(--bg2);}
@@ -1236,15 +1236,16 @@ body.sidebar-hidden #sidebar-reopen-tab{ display:flex; }
   overflow-y:auto; /* allow vacant list to expand without clipping */
   overflow-x:hidden;
 }
-/* Grid wrap: takes all remaining height, scrolls both axes */
+/* Grid wrap: fills schedule-board, scrolls both axes, sticky th at top:0 */
 .psw-grid-wrap{
-  flex:1;
+  display:block;
+  width:100%;
+  height:100%;
   overflow:auto;
   -webkit-overflow-scrolling:touch;
   overscroll-behavior:contain;
   margin:0;
-  padding-bottom:8px;
-  min-height:0; /* required for flex child to shrink below content size */
+  padding-bottom:env(safe-area-inset-bottom,8px);
 }
 /* Sticky header relative to wrap (top:0) */
 .psw-grid th{
@@ -2291,6 +2292,14 @@ body.sidebar-hidden #sidebar-reopen-tab{ display:flex; }
     </div>
     <div id="leaflet-map" style="width:100%;height:320px;border-radius:8px;border:1px solid var(--border);overflow:hidden;background:var(--bg2);"></div>
     <div id="map-legend" style="margin-top:8px;display:flex;gap:12px;flex-wrap:wrap;"></div>
+  </div>
+
+  <!-- Week nav — lives in fixed-top so it's always visible above the grid -->
+  <div id="sched-week-nav" style="display:flex;align-items:center;gap:8px;padding:0 12px 8px;">
+    <button onclick="shiftSchedWeek(-1)" style="font-family:var(--mono);font-size:13px;padding:5px 10px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r6);color:var(--muted2);cursor:pointer;min-height:36px;touch-action:manipulation;">‹</button>
+    <span id="sched-week-label" style="font-family:var(--mono);font-size:11px;letter-spacing:1px;color:var(--muted2);flex:1;text-align:center;">—</span>
+    <button onclick="shiftSchedWeek(1)" style="font-family:var(--mono);font-size:13px;padding:5px 10px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r6);color:var(--muted2);cursor:pointer;min-height:36px;touch-action:manipulation;">›</button>
+    <button id="sched-today-btn" onclick="schedWeekOffset=0;refreshGrid()" style="display:none;font-family:var(--mono);font-size:10px;letter-spacing:1px;padding:5px 8px;background:var(--teal-dim);border:1px solid var(--teal-border);border-radius:var(--r6);color:var(--teal2);cursor:pointer;min-height:36px;touch-action:manipulation;">Today</button>
   </div>
 
   </div><!-- end .sched-fixed-top -->
@@ -5596,27 +5605,20 @@ function renderPSWGrid() {
   const total = _schedAxis === 'psw' ? allPSWs.length : allClients.length;
   if (countEl) countEl.textContent = rows.length < total ? `${rows.length}/${total}` : `${total}`;
 
-  // Week nav + empty state wrapper
-  let html = `<div style="padding:0 12px 12px;">`;
-  html += `<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
-    <button onclick="shiftSchedWeek(-1)" style="font-family:var(--mono);font-size:13px;padding:5px 10px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r6);color:var(--muted2);cursor:pointer;min-height:36px;touch-action:manipulation;">‹</button>
-    <span style="font-family:var(--mono);font-size:11px;letter-spacing:1px;color:var(--muted2);flex:1;text-align:center;">${fmtDay(weekStart)} — ${fmtDay(weekEnd)}</span>
-    <button onclick="shiftSchedWeek(1)" style="font-family:var(--mono);font-size:13px;padding:5px 10px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r6);color:var(--muted2);cursor:pointer;min-height:36px;touch-action:manipulation;">›</button>
-    ${schedWeekOffset !== 0 ? `<button onclick="schedWeekOffset=0;refreshGrid()" style="font-family:var(--mono);font-size:10px;letter-spacing:1px;padding:5px 8px;background:var(--teal-dim);border:1px solid var(--teal-border);border-radius:var(--r6);color:var(--teal2);cursor:pointer;min-height:36px;touch-action:manipulation;">Today</button>` : ''}
-  </div>`;
+  // Update static week nav label
+  const weekLabel = document.getElementById('sched-week-label');
+  if (weekLabel) weekLabel.textContent = `${fmtDay(weekStart)} — ${fmtDay(weekEnd)}`;
+  const todayBtn = document.getElementById('sched-today-btn');
+  if (todayBtn) todayBtn.style.display = schedWeekOffset !== 0 ? 'block' : 'none';
 
   if (!rows.length) {
     const msg = _schedSearch ? `No results for "${_schedSearch}"` : _schedVacant ? 'No unassigned shifts this week' : `No ${_schedAxis === 'psw' ? 'active PSWs' : 'active clients'} found`;
-    html += `<div class="empty-state">${msg}</div></div>`;
-    const existing = el.querySelector('.psw-grid');
-    if (existing) { el.innerHTML = html; }
-    else { el.innerHTML = html; }
+    el.innerHTML = `<div class="empty-state" style="padding:24px;">${msg}</div>`;
     return;
   }
 
-  // ── TABLE ──
-  // thead
-  html += `<div class="psw-grid-wrap"><table class="psw-grid"><thead><tr>`;
+  // ── TABLE — renders directly into schedule-board, no wrapper div ──
+  let html = `<div class="psw-grid-wrap"><table class="psw-grid"><thead><tr>`;
   html += `<th class="col-name">${_schedAxis === 'psw' ? 'PSW' : 'Client'}</th>`;
   days.forEach((ds, i) => {
     const isToday = ds === todayStr;
@@ -5671,7 +5673,7 @@ function renderPSWGrid() {
     html += `</tr>`;
   });
 
-  html += `</tbody></table></div></div>`;
+  html += `</tbody></table></div>`;
 
   // ── RENDER STRATEGY ──
   // First render: full innerHTML (grid doesn't exist yet)
