@@ -1301,8 +1301,10 @@ function showTab(tab) {
           </div>
         </div>`;
       }).join('');
-    const shown = filtered.slice(0, 8);
-    const rest = filtered.slice(8);
+    // Group joint visits into single merged rows before rendering
+    const groupedFiltered = groupJointVisits(filtered);
+    const shown = groupedFiltered.slice(0, 8);
+    const rest = groupedFiltered.slice(8);
 
     // Filter chips HTML
     const chips = ['today','week','month','lastmonth','year','custom'].map(r => {
@@ -1628,6 +1630,35 @@ function updateCharCount(ta) {
   el.className = 'msg-char-count' + (len > 450 ? ' near' : '') + (len >= 500 ? ' over' : '');
 }
 
+// ── JOINT VISIT GROUPING ──────────────────────────────────────────
+// Groups visits sharing a joint_visit_id into a single merged row.
+// Solo visits (joint_visit_id null) pass through unchanged.
+function groupJointVisits(visits) {
+  const groups = {};
+  const order = [];
+  visits.forEach(v => {
+    const key = v.joint_visit_id || ('solo_' + v.id);
+    if (!groups[key]) { groups[key] = []; order.push(key); }
+    groups[key].push(v);
+  });
+  return order.map(key => {
+    const group = groups[key];
+    if (group.length === 1) return group[0]; // solo visit — unchanged
+    // Merge: combine PSW names, use first row as base, average hours
+    const merged = Object.assign({}, group[0]);
+    const pswNames = [...new Set(group.map(v => v.psw_name).filter(Boolean))];
+    merged.psw_name = pswNames.join(' + ');
+    merged.is_joint = true;
+    merged.joint_psw_count = pswNames.length;
+    // Hours: use the max individual hours (both PSWs worked the full visit)
+    merged.hours_worked = Math.max(...group.map(v => parseFloat(v.hours_worked || 0))).toFixed(2);
+    // Merge summaries if both PSWs wrote notes
+    const summaries = group.map(v => v.visit_summary).filter(Boolean);
+    if (summaries.length > 1) merged.visit_summary = summaries.join(' | ');
+    return merged;
+  });
+}
+
 function visitRow(v) {
   const d = new Date((v.visit_date || '') + 'T12:00:00');
   const day = d.toLocaleDateString('en-CA', { weekday: 'short' });
@@ -1669,7 +1700,7 @@ function visitRow(v) {
       <div class="visit-date-num">${num}</div>
     </div>
     <div class="visit-info" style="flex:1;min-width:0;">
-      <div class="visit-psw">${v.psw_name || fallbackPSW}</div>
+      <div class="visit-psw">${v.psw_name || fallbackPSW}${v.is_joint ? ' <span style=\"display:inline-flex;align-items:center;font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;padding:2px 6px;border-radius:100px;border:1px solid rgba(61,138,122,.3);color:var(--teal2);margin-left:6px;vertical-align:middle;\">joint</span>' : ''}</div>
       <div class="visit-time">${tin}${tout ? ' \u2013 ' + tout : ''}</div>
       ${!hasDetail ? starsHtml : '<div class="visit-expand-btn">View details \u203a</div>'}
     </div>
