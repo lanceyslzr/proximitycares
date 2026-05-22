@@ -1408,7 +1408,7 @@ body.sidebar-hidden #sidebar-reopen-tab{ display:flex; }
   .lock-key{width:64px;height:64px;font-size:20px;}
 }
 /* ── CUSTOM CALENDAR (xcal) — moved here from inline innerHTML ── */
-.xcal-wrap{display:flex;flex-direction:column;height:100%;background:var(--bg);}
+.xcal-wrap{display:flex;flex-direction:column;flex:1;min-height:0;background:var(--bg);}
 .xcal-header{display:flex;align-items:center;gap:8px;padding:8px 12px;flex-shrink:0;background:var(--bg2);border-bottom:1px solid var(--border);}
 .xcal-nav-btn{font-family:var(--mono);font-size:14px;padding:4px 10px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r6);color:var(--muted2);cursor:pointer;min-height:32px;touch-action:manipulation;}
 .xcal-range{font-family:var(--mono);font-size:11px;color:var(--text);flex:1;text-align:center;letter-spacing:.5px;}
@@ -5771,6 +5771,9 @@ function setSchedHQView(v) {
 function renderSchedule() {
   const el = document.getElementById('schedule-board');
   if (!el) return;
+  // Cal view: schedule-board must be display:flex so xcal-wrap can use flex:1
+  el.style.display = 'flex';
+  el.style.flexDirection = 'column';
   window._fcInitialized = true;
   _renderCustomCal();
 }
