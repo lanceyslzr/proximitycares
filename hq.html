@@ -1192,14 +1192,14 @@ body.sidebar-hidden #sidebar-reopen-tab{ display:flex; }
 .sra-btn.danger{color:var(--red);border-color:var(--red-border);background:var(--red-dim);}
 
 /* ── PSW GRID — schedule grid view ── */
-.psw-grid-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0;padding-bottom:8px;}
-.psw-grid{width:100%;border-collapse:collapse;min-width:560px;}
-.psw-grid th{font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted2);padding:8px 6px;text-align:center;border-bottom:1px solid var(--border);background:var(--bg2);position:sticky;top:54px;z-index:4;white-space:nowrap;}
-.psw-grid th.col-name{text-align:left;padding-left:12px;min-width:130px;max-width:160px;position:sticky;top:54px;left:0;z-index:6;background:var(--bg2);}
-.psw-grid th.col-today{color:var(--teal2);border-bottom-color:var(--teal2);}
-.psw-grid td{padding:4px 4px;border-bottom:1px solid rgba(201,169,110,.06);vertical-align:top;}
-.psw-grid td.col-name{padding:8px 6px 8px 12px;vertical-align:middle;position:sticky;left:0;z-index:2;background:var(--bg2);}
-.psw-grid tr:last-child td{border-bottom:none;}
+.psw-grid-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain;margin:0;padding-bottom:8px;}
+.psw-grid{width:auto;max-width:none;table-layout:auto;border-collapse:separate;border-spacing:0;min-width:560px;}
+.psw-grid th{font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted2);padding:8px 6px;text-align:center;background:var(--bg2);position:-webkit-sticky;position:sticky;top:54px;z-index:100;white-space:nowrap;box-shadow:inset 0 -1px 0 var(--border);}
+.psw-grid th.col-name{text-align:left;padding-left:12px;min-width:130px;max-width:160px;position:-webkit-sticky;position:sticky;top:54px;left:0;z-index:101;background:var(--bg2);}
+.psw-grid th.col-today{color:var(--teal2);box-shadow:inset 0 -2px 0 var(--teal2);}
+.psw-grid td{padding:4px 4px;vertical-align:top;box-shadow:inset 0 -1px 0 rgba(201,169,110,.06);}
+.psw-grid td.col-name{padding:8px 6px 8px 12px;vertical-align:middle;position:-webkit-sticky;position:sticky;left:0;z-index:99;background:var(--bg2);}
+.psw-grid tr:last-child td{box-shadow:none;}
 .psw-grid tr:hover td{background:rgba(61,138,122,.025);}
 .psw-grid tr:hover td.col-name{background:var(--bg2);}
 .psw-name-cell{display:flex;align-items:center;gap:8px;}
@@ -1274,10 +1274,10 @@ body.sidebar-hidden #sidebar-reopen-tab{ display:flex; }
 
 /* ── MOBILE OVERRIDES FOR NEW COMPONENTS ── */
 @media(max-width:768px){
-  .psw-grid{min-width:420px;}
-  .psw-grid th{top:52px;}
-  .psw-grid th.col-name{min-width:80px;max-width:80px;top:52px;}
-  .psw-grid td.col-name{min-width:80px;max-width:80px;padding:6px 4px 6px 8px;}
+  .psw-grid{min-width:420px;width:auto;max-width:none;table-layout:auto;}
+  .psw-grid th{top:52px;z-index:100;}
+  .psw-grid th.col-name{min-width:80px;max-width:80px;top:52px;z-index:101;}
+  .psw-grid td.col-name{min-width:80px;max-width:80px;padding:6px 4px 6px 8px;z-index:99;}
   .psw-name-av{width:24px;height:24px;font-size:9px;}
   .psw-name-cell{gap:5px;}
   .psw-name-text{max-width:42px;font-size:11px;}
@@ -2223,6 +2223,27 @@ body.sidebar-hidden #sidebar-reopen-tab{ display:flex; }
       <div class="sect-action" id="resource-toggle-btn" onclick="toggleResourceView()" style="color:var(--gold);border-color:rgba(201,169,110,.3);">⊞ Resource</div>
       <div class="sect-action" onclick="schedHQView==='grid'?refreshGrid():renderSchedule()">↻</div>
     </div>
+  </div>
+  <!-- Filter bar — axis toggle + shift filter + search -->
+  <div id="sched-filter-bar" style="display:flex;align-items:center;gap:6px;padding:0 12px 10px;flex-wrap:wrap;">
+    <!-- Axis: PSW rows or Client rows -->
+    <div style="display:flex;gap:0;border:1px solid var(--border);border-radius:var(--r6);overflow:hidden;flex-shrink:0;">
+      <button id="sched-axis-psw" onclick="setSchedAxis('psw')" style="font-family:var(--mono);font-size:10px;letter-spacing:1px;padding:5px 10px;background:rgba(61,138,122,.15);color:var(--teal2);border:none;cursor:pointer;min-height:32px;touch-action:manipulation;border-right:1px solid var(--border);">PSW</button>
+      <button id="sched-axis-client" onclick="setSchedAxis('client')" style="font-family:var(--mono);font-size:10px;letter-spacing:1px;padding:5px 10px;background:none;color:var(--muted2);border:none;cursor:pointer;min-height:32px;touch-action:manipulation;">Client</button>
+    </div>
+    <!-- Shift type filter -->
+    <div style="display:flex;gap:0;border:1px solid var(--border);border-radius:var(--r6);overflow:hidden;flex-shrink:0;">
+      <button id="sf-all" onclick="setSchedShiftFilter('all')" style="font-family:var(--mono);font-size:10px;letter-spacing:1px;padding:5px 9px;background:rgba(61,138,122,.15);color:var(--teal2);border:none;cursor:pointer;min-height:32px;touch-action:manipulation;border-right:1px solid var(--border);">All</button>
+      <button id="sf-am" onclick="setSchedShiftFilter('am')" style="font-family:var(--mono);font-size:10px;letter-spacing:1px;padding:5px 9px;background:none;color:var(--muted2);border:none;cursor:pointer;min-height:32px;touch-action:manipulation;border-right:1px solid var(--border);">AM</button>
+      <button id="sf-pm" onclick="setSchedShiftFilter('pm')" style="font-family:var(--mono);font-size:10px;letter-spacing:1px;padding:5px 9px;background:none;color:var(--muted2);border:none;cursor:pointer;min-height:32px;touch-action:manipulation;">PM</button>
+    </div>
+    <!-- Unassigned toggle -->
+    <button id="sf-vacant" onclick="setSchedVacantFilter()" style="font-family:var(--mono);font-size:10px;letter-spacing:1px;padding:5px 9px;background:none;color:var(--muted2);border:1px solid var(--border);border-radius:var(--r6);cursor:pointer;min-height:32px;touch-action:manipulation;flex-shrink:0;">Unassigned</button>
+    <!-- Search -->
+    <input id="sched-search" type="text" placeholder="Search..." oninput="setSchedSearch(this.value)"
+      style="flex:1;min-width:80px;max-width:160px;font-family:var(--mono);font-size:11px;padding:5px 10px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r6);color:var(--text);min-height:32px;">
+    <!-- Row count badge -->
+    <span id="sched-row-count" style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px;flex-shrink:0;"></span>
   </div>
   <!-- GPS Live Map Panel -->
   <div id="live-map-panel" style="display:none;margin:0 12px 12px;">
@@ -5351,20 +5372,120 @@ async function _fetchGridBookings(forceRefresh) {
   } catch(e) { /* silent */ }
 }
 
+// ── SCHEDULE FILTER STATE ─────────────────────────────────────────
+let _schedAxis    = 'psw';    // 'psw' | 'client'
+let _schedShift   = 'all';    // 'all' | 'am' | 'pm'
+let _schedVacant  = false;    // true = show only unassigned rows
+let _schedSearch  = '';       // free-text search
+
+function setSchedAxis(v) {
+  _schedAxis = v;
+  const pBtn = document.getElementById('sched-axis-psw');
+  const cBtn = document.getElementById('sched-axis-client');
+  if (pBtn) { pBtn.style.background = v==='psw'?'rgba(61,138,122,.15)':'none'; pBtn.style.color = v==='psw'?'var(--teal2)':'var(--muted2)'; }
+  if (cBtn) { cBtn.style.background = v==='client'?'rgba(61,138,122,.15)':'none'; cBtn.style.color = v==='client'?'var(--teal2)':'var(--muted2)'; }
+  refreshGrid();
+}
+
+function setSchedShiftFilter(v) {
+  _schedShift = v;
+  ['all','am','pm'].forEach(id => {
+    const b = document.getElementById('sf-'+id);
+    if (b) { b.style.background = v===id?'rgba(61,138,122,.15)':'none'; b.style.color = v===id?'var(--teal2)':'var(--muted2)'; }
+  });
+  refreshGrid();
+}
+
+function setSchedVacantFilter() {
+  _schedVacant = !_schedVacant;
+  const b = document.getElementById('sf-vacant');
+  if (b) { b.style.background = _schedVacant?'rgba(224,85,85,.15)':'none'; b.style.color = _schedVacant?'var(--red)':'var(--muted2)'; b.style.borderColor = _schedVacant?'rgba(224,85,85,.3)':'var(--border)'; }
+  refreshGrid();
+}
+
+function setSchedSearch(v) {
+  _schedSearch = v.toLowerCase().trim();
+  refreshGrid();
+}
+
+// ── PER-CELL PATCH — no flash, scroll preserved ─────────────────────
+// Called when grid already exists. Only updates cells that changed.
+// Each td gets data-key="rowId|dateStr" — diff by innerHTML change only.
+function _patchGrid(el, newHTML) {
+  const tmp = document.createElement('div');
+  tmp.innerHTML = newHTML;
+
+  // Patch header row date labels (week nav changes them)
+  const oldThs = el.querySelectorAll('.psw-grid thead th');
+  const newThs = tmp.querySelectorAll('.psw-grid thead th');
+  newThs.forEach((nth, i) => {
+    if (oldThs[i] && oldThs[i].innerHTML !== nth.innerHTML) {
+      oldThs[i].innerHTML = nth.innerHTML;
+      oldThs[i].className = nth.className;
+      oldThs[i].id = nth.id;
+    }
+  });
+
+  // Patch data cells by key
+  tmp.querySelectorAll('td[data-key]').forEach(newCell => {
+    const key = newCell.dataset.key;
+    const oldCell = el.querySelector(`td[data-key="${key}"]`);
+    if (oldCell) {
+      if (oldCell.innerHTML !== newCell.innerHTML) {
+        oldCell.innerHTML = newCell.innerHTML;
+      }
+    }
+  });
+
+  // Add new rows (PSW or client added since last render)
+  const oldTbody = el.querySelector('.psw-grid tbody');
+  const newTbody = tmp.querySelector('.psw-grid tbody');
+  if (oldTbody && newTbody) {
+    const oldKeys = new Set([...oldTbody.querySelectorAll('tr[data-row]')].map(r => r.dataset.row));
+    const newKeys = new Set([...newTbody.querySelectorAll('tr[data-row]')].map(r => r.dataset.row));
+
+    // Remove rows no longer in filtered set
+    oldTbody.querySelectorAll('tr[data-row]').forEach(r => {
+      if (!newKeys.has(r.dataset.row)) r.remove();
+    });
+
+    // Add new rows
+    newTbody.querySelectorAll('tr[data-row]').forEach(newRow => {
+      if (!oldKeys.has(newRow.dataset.row)) {
+        oldTbody.appendChild(newRow.cloneNode(true));
+      }
+    });
+
+    // Update week-hours labels (change without cell key)
+    newTbody.querySelectorAll('tr[data-row]').forEach(newRow => {
+      const key = newRow.dataset.row;
+      const oldRow = oldTbody.querySelector(`tr[data-row="${key}"]`);
+      if (oldRow) {
+        const oldHrs = oldRow.querySelector('.psw-name-hrs');
+        const newHrs = newRow.querySelector('.psw-name-hrs');
+        if (oldHrs && newHrs && oldHrs.textContent !== newHrs.textContent) {
+          oldHrs.textContent = newHrs.textContent;
+        }
+      }
+    });
+  }
+}
+
 function renderPSWGrid() {
   const el = document.getElementById('schedule-board');
   if (!el) return;
-  el.style.display = 'block'; // always visible — resource view may have hidden it
+  el.style.display = 'block';
 
-  const psws = (D.psws || []).filter(p => p.status === 'active' || !p.status);
-  const bookings = D.bookings || [];
-  const visits = D.visits || [];
+  const allPSWs    = (D.psws || []).filter(p => p.status === 'active' || !p.status);
+  const allClients = (D.clients || []).filter(c => c.status === 'active' || !c.status);
+  const bookings   = D.bookings || [];
+  const visits     = D.visits || [];
 
-  // Week window from schedWeekOffset
+  // Week window
   const today = new Date();
   const todayStr = today.toLocaleDateString('en-CA', {timeZone:'America/Toronto'});
   const weekBase = new Date(today);
-  const dow = (weekBase.getDay() + 6) % 7; // 0=Mon
+  const dow = (weekBase.getDay() + 6) % 7;
   weekBase.setDate(weekBase.getDate() - dow + (schedWeekOffset * 7));
 
   const days = [];
@@ -5373,81 +5494,129 @@ function renderPSWGrid() {
     d.setDate(d.getDate() + i);
     days.push(d.toLocaleDateString('en-CA', {timeZone:'America/Toronto'}));
   }
-
   const weekStart = days[0];
   const weekEnd   = days[6];
-
-  const liveClients = new Set(
-    visits.filter(v => v.status === 'in_progress').map(v => v.client_name)
-  );
-
-  const fmtDay = ds => {
-    const [,m,d] = ds.split('-');
-    return `${parseInt(m)}/${parseInt(d)}`;
-  };
+  const fmtDay = ds => { const [,m,d] = ds.split('-'); return `${parseInt(m)}/${parseInt(d)}`; };
   const dayNames = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 
-  let html = `<div style="padding:0 12px 12px;">`;
+  // Live visits set for chip status
+  const liveVisits = new Set(visits.filter(v => v.status === 'in_progress').map(v => v.client_name));
 
-  html += `<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap;">
+  // ── SHIFT FILTER: AM = before 15:00, PM = 15:00 and after ──
+  const shiftMatchesFilter = (b) => {
+    if (_schedShift === 'all') return true;
+    const h = parseInt((b.scheduled_time||'00:00').split(':')[0]);
+    return _schedShift === 'am' ? h < 15 : h >= 15;
+  };
+
+  // ── VACANT FILTER: row has at least one unassigned booking this week ──
+  // Only applies to PSW axis (client axis: show clients with no PSW assigned)
+  const rowHasVacant = (rowBookings) =>
+    rowBookings.some(b => !b.assigned_to || b.assigned_to.trim() === '');
+
+  // ── BUILD ROWS BASED ON AXIS ──
+  let rows = [];
+
+  if (_schedAxis === 'psw') {
+    // Row = PSW, chips = their clients per day
+    rows = allPSWs.map(psw => {
+      const name = psw.full_name || psw.name || '';
+      const rowBookings = bookings.filter(b =>
+        (b.assigned_to||'').trim() === name.trim() &&
+        b.scheduled_date >= weekStart && b.scheduled_date <= weekEnd &&
+        b.status !== 'cancelled' && shiftMatchesFilter(b)
+      );
+      return { id: psw.id || name, label: name, initials: name.split(' ').map(n=>n[0]||'').join('').toUpperCase().slice(0,2), rowBookings };
+    }).filter(r => {
+      if (_schedVacant) return rowHasVacant(r.rowBookings);
+      if (_schedSearch) return r.label.toLowerCase().includes(_schedSearch);
+      return true;
+    });
+  } else {
+    // Row = Client, chips = which PSW is assigned per day
+    rows = allClients.map(client => {
+      const name = client.full_name || client.first_name + ' ' + (client.last_name||'') || '';
+      const rowBookings = bookings.filter(b =>
+        (b.client_name||'').trim() === name.trim() &&
+        b.scheduled_date >= weekStart && b.scheduled_date <= weekEnd &&
+        b.status !== 'cancelled' && shiftMatchesFilter(b)
+      );
+      return { id: client.id || name, label: name, initials: name.split(' ').map(n=>n[0]||'').join('').toUpperCase().slice(0,2), rowBookings };
+    }).filter(r => {
+      if (_schedVacant) return r.rowBookings.some(b => !b.assigned_to || b.assigned_to.trim() === '');
+      if (_schedSearch) return r.label.toLowerCase().includes(_schedSearch);
+      return true;
+    });
+  }
+
+  // Update row count badge
+  const countEl = document.getElementById('sched-row-count');
+  const total = _schedAxis === 'psw' ? allPSWs.length : allClients.length;
+  if (countEl) countEl.textContent = rows.length < total ? `${rows.length}/${total}` : `${total}`;
+
+  // Week nav + empty state wrapper
+  let html = `<div style="padding:0 12px 12px;">`;
+  html += `<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
     <button onclick="shiftSchedWeek(-1)" style="font-family:var(--mono);font-size:13px;padding:5px 10px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r6);color:var(--muted2);cursor:pointer;min-height:36px;touch-action:manipulation;">‹</button>
     <span style="font-family:var(--mono);font-size:11px;letter-spacing:1px;color:var(--muted2);flex:1;text-align:center;">${fmtDay(weekStart)} — ${fmtDay(weekEnd)}</span>
     <button onclick="shiftSchedWeek(1)" style="font-family:var(--mono);font-size:13px;padding:5px 10px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r6);color:var(--muted2);cursor:pointer;min-height:36px;touch-action:manipulation;">›</button>
     ${schedWeekOffset !== 0 ? `<button onclick="schedWeekOffset=0;refreshGrid()" style="font-family:var(--mono);font-size:10px;letter-spacing:1px;padding:5px 8px;background:var(--teal-dim);border:1px solid var(--teal-border);border-radius:var(--r6);color:var(--teal2);cursor:pointer;min-height:36px;touch-action:manipulation;">Today</button>` : ''}
   </div>`;
 
-  if (!psws.length) {
-    html += `<div class="empty-state">No active PSWs found</div></div>`;
-    el.innerHTML = html;
+  if (!rows.length) {
+    const msg = _schedSearch ? `No results for "${_schedSearch}"` : _schedVacant ? 'No unassigned shifts this week' : `No ${_schedAxis === 'psw' ? 'active PSWs' : 'active clients'} found`;
+    html += `<div class="empty-state">${msg}</div></div>`;
+    const existing = el.querySelector('.psw-grid');
+    if (existing) { el.innerHTML = html; }
+    else { el.innerHTML = html; }
     return;
   }
 
-  html += `<div class="psw-grid-wrap"><table class="psw-grid"><thead><tr>
-    <th class="col-name">PSW</th>`;
+  // ── TABLE ──
+  // thead
+  html += `<div class="psw-grid-wrap"><table class="psw-grid"><thead><tr>`;
+  html += `<th class="col-name">${_schedAxis === 'psw' ? 'PSW' : 'Client'}</th>`;
   days.forEach((ds, i) => {
     const isToday = ds === todayStr;
     html += `<th id="${isToday ? 'grid-today-col' : ''}" class="${isToday ? 'col-today' : ''}">${dayNames[i]}<br><span style="font-size:9px;opacity:.7;">${fmtDay(ds)}</span></th>`;
   });
   html += `</tr></thead><tbody>`;
 
-  psws.forEach(psw => {
-    const name = psw.full_name || psw.name || '';
-    const initials = name.split(' ').map(n=>n[0]||'').join('').toUpperCase().slice(0,2);
+  // tbody — one row per PSW or client
+  rows.forEach(row => {
+    const safeKey = (row.id||row.label).replace(/[^a-z0-9]/gi,'_');
+    const wkHrs = row.rowBookings.reduce((s,b) => s + (b.duration_minutes||60)/60, 0);
 
-    const wkHrs = bookings.filter(b =>
-      (b.assigned_to||'').trim() === name.trim() &&
-      b.scheduled_date >= weekStart &&
-      b.scheduled_date <= weekEnd &&
-      b.status !== 'cancelled'
-    ).reduce((s,b) => s + (b.duration_minutes||60)/60, 0);
-
-    html += `<tr>
-      <td class="col-name">
-        <div class="psw-name-cell">
-          <div class="psw-name-av">${initials}</div>
-          <div>
-            <div class="psw-name-text">${escHtml(name.split(' ')[0])}</div>
-            <div class="psw-name-hrs">${wkHrs.toFixed(1)}h</div>
-          </div>
+    html += `<tr data-row="${safeKey}">`;
+    html += `<td class="col-name">
+      <div class="psw-name-cell">
+        <div class="psw-name-av">${escHtml(row.initials)}</div>
+        <div>
+          <div class="psw-name-text">${escHtml(row.label.split(' ')[0])}</div>
+          <div class="psw-name-hrs">${wkHrs.toFixed(1)}h</div>
         </div>
-      </td>`;
+      </div>
+    </td>`;
 
     days.forEach(ds => {
-      const dayBookings = bookings.filter(b =>
-        (b.assigned_to||'').trim() === name.trim() &&
-        b.scheduled_date === ds &&
-        b.status !== 'cancelled'
-      ).sort((a,b) => (a.scheduled_time||'').localeCompare(b.scheduled_time||''));
+      const cellKey = `${safeKey}|${ds}`;
+      const dayBookings = row.rowBookings.filter(b => b.scheduled_date === ds)
+        .sort((a,b) => (a.scheduled_time||'').localeCompare(b.scheduled_time||''));
 
-      html += `<td><div class="grid-cell">`;
+      html += `<td data-key="${cellKey}"><div class="grid-cell">`;
       if (dayBookings.length) {
         dayBookings.forEach(b => {
-          const isLive = liveClients.has(b.client_name);
-          const chipCls = isLive ? 'gc-live' : b.status === 'completed' ? 'gc-done' : 'gc-scheduled';
+          // PSW axis: chip shows client name
+          // Client axis: chip shows PSW name
+          const chipLabel = _schedAxis === 'psw'
+            ? (b.client_name||'').split(' ')[0]
+            : (b.assigned_to||'Unassigned').split(' ')[0];
+          const isLive = liveVisits.has(b.client_name);
+          const isUnassigned = !b.assigned_to || b.assigned_to.trim() === '';
+          const chipCls = isUnassigned ? 'gc-open' : isLive ? 'gc-live' : b.status === 'completed' ? 'gc-done' : 'gc-scheduled';
           const timeStr = b.scheduled_time ? b.scheduled_time.slice(0,5) : '';
-          const clientShort = (b.client_name||'').split(' ')[0];
           html += `<div class="grid-chip ${chipCls}" onclick="_showShiftDetail(${JSON.stringify(b).replace(/"/g,'&quot;')},{})">
-            <div class="gc-client">${escHtml(clientShort)}</div>
+            <div class="gc-client">${escHtml(chipLabel)}</div>
             <div class="gc-time">${timeStr}</div>
           </div>`;
         });
@@ -5461,18 +5630,24 @@ function renderPSWGrid() {
   });
 
   html += `</tbody></table></div></div>`;
-  el.innerHTML = html;
-  // Auto-scroll so today's column is visible on load
-  setTimeout(() => {
-    const todayTh = el.querySelector('#grid-today-col');
-    const wrap = el.querySelector('.psw-grid-wrap');
-    if (todayTh && wrap) {
-      const offset = todayTh.offsetLeft - 90; // leave name column visible
-      wrap.scrollLeft = Math.max(0, offset);
-    }
-  }, 0);
-  // Grid overwrote #fc-root and #fc-cal — FC instance is now orphaned.
-  // Reset so switching to Cal view re-runs _initFC() cleanly.
+
+  // ── RENDER STRATEGY ──
+  // First render: full innerHTML (grid doesn't exist yet)
+  // Subsequent renders: per-cell patch (no flash, scroll preserved)
+  const existingGrid = el.querySelector('.psw-grid');
+  if (existingGrid) {
+    _patchGrid(el, html);
+  } else {
+    el.innerHTML = html;
+    // Auto-scroll to today on first render
+    setTimeout(() => {
+      const todayTh = el.querySelector('#grid-today-col');
+      const wrap = el.querySelector('.psw-grid-wrap');
+      if (todayTh && wrap) wrap.scrollLeft = Math.max(0, todayTh.offsetLeft - 90);
+    }, 0);
+  }
+
+  // Reset FC state — grid wiped fc-root
   window._fcInitialized = false;
   window._fc = null;
 }
