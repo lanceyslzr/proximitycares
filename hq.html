@@ -7236,8 +7236,18 @@ async function openPSWDetail(pswId) {
         </button>
       </div>
 
-      <div style="margin-bottom:10px;font-family:var(--mono);font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--teal2);">Visit History <span style="color:var(--muted);font-size:10px;letter-spacing:1px;">(last 90 days · ${pswVisits.length} visits · ${pswTotalHrs.toFixed(1)}h total)</span></div>
-      <div style="margin-bottom:16px;">${pswVisitRows}</div>
+      <div style="margin-bottom:16px;border:1px solid var(--border);border-radius:8px;overflow:hidden;">
+        <div onclick="(function(el){const b=el.nextElementSibling;const open=b.style.display!=='none';b.style.display=open?'none':'block';el.querySelector('.vh-chevron').style.transform=open?'rotate(0deg)':'rotate(180deg)';})(this)" style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;cursor:pointer;background:var(--bg2);user-select:none;" onmouseover="this.style.background='var(--bg3)'" onmouseout="this.style.background='var(--bg2)'">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span style="font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--teal2);">Visit History</span>
+            <span style="font-family:var(--mono);font-size:10px;color:var(--muted);">${pswVisits.length} visits · ${pswTotalHrs.toFixed(1)}h</span>
+          </div>
+          <svg class="vh-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--muted);transition:transform .2s;flex-shrink:0;"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div style="display:none;padding:0 14px;">
+          ${pswVisitRows}
+        </div>
+      </div>
 
       <div class="cpf"><div class="cpf-lbl">Email</div><div class="cpf-val">${p.email?`<a href="mailto:${p.email}">${p.email}</a>`:'—'}</div></div>
       <div class="cpf"><div class="cpf-lbl">Phone</div><div class="cpf-val">${p.phone?`<a href="tel:${p.phone}">${p.phone}</a>`:'—'}</div></div>
@@ -7510,8 +7520,18 @@ function openClientDetail(id) {
       <button style="flex:1;background:rgba(61,138,122,.12);color:var(--teal2);border:1px solid rgba(61,138,122,.3);padding:10px;font-family:var(--mono);font-size:12px;letter-spacing:1.5px;text-transform:uppercase;border-radius:6px;cursor:pointer;min-height:44px;touch-action:manipulation;" onclick="openHoursPanel('client','${name}')">⏱ Hours</button>
     </div>
 
-    <div style="margin-bottom:10px;font-family:var(--mono);font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--teal2);">Visit History <span style="color:var(--muted);font-size:10px;letter-spacing:1px;">(last 90 days · ${clientVisits.length} visits · ${clientTotalHrs.toFixed(1)}h total)</span></div>
-    <div style="margin-bottom:16px;">${clientVisitRows}</div>
+    <div style="margin-bottom:16px;border:1px solid var(--border);border-radius:8px;overflow:hidden;">
+      <div onclick="(function(el){const b=el.nextElementSibling;const open=b.style.display!=='none';b.style.display=open?'none':'block';el.querySelector('.vh-chevron').style.transform=open?'rotate(0deg)':'rotate(180deg)';})(this)" style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;cursor:pointer;background:var(--bg2);user-select:none;" onmouseover="this.style.background='var(--bg3)'" onmouseout="this.style.background='var(--bg2)'">
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span style="font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--teal2);">Visit History</span>
+          <span style="font-family:var(--mono);font-size:10px;color:var(--muted);">${clientVisits.length} visits · ${clientTotalHrs.toFixed(1)}h</span>
+        </div>
+        <svg class="vh-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--muted);transition:transform .2s;flex-shrink:0;"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div style="display:none;padding:0 14px;">
+        ${clientVisitRows}
+      </div>
+    </div>
     <div class="cpf"><div class="cpf-lbl">Family</div><div class="cpf-val">${c.family_contact_name||'—'} · ${c.family_email?`<a href="mailto:${c.family_email}">${c.family_email}</a>`:'no email'}</div></div>
     <div class="cpf"><div class="cpf-lbl">Client Code</div><div class="cpf-val" style="font-family:var(--mono);color:var(--teal2);">${c.client_code||'—'}</div></div>
     <div class="cpf"><div class="cpf-lbl">Portal</div><div class="cpf-val" style="font-family:var(--mono);">${slug||'—'} · PIN ${c.portal_pin||'—'}</div></div>
