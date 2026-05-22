@@ -4459,16 +4459,13 @@ async function loadVisitForms(visitId, clientName, container) {
 
 async function renderVisits() {
   const el = document.getElementById('visits-list');
-  if (!el) return;
   el.innerHTML = '<div class="empty-state">Loading visits...</div>';
   try {
     const range = getVisitDateRange();
-    if (!range || !range.from) throw new Error('Invalid date range');
     const _fromDate = range.from; // CLAUDE.md rule 14 — from_date required
     const res = await fetch(`${API}/hq/visits?operator_id=${currentOp}&limit=500&from_date=${_fromDate}`, { headers: { 'x-hq-token': window._hqToken || sessionStorage.getItem('hq_token') || '' } });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const d = await res.json();
-    if (!d.visits) throw new Error(d.error || 'No visits field in response');
+    if (!d.visits) throw new Error('Failed');
 
     // Filter by selected range
     const allVisits = d.visits || [];
@@ -4492,10 +4489,9 @@ async function renderVisits() {
     // Range totals
     const totalHours = visits.reduce((sum,v) => sum + parseFloat(v.hours_worked||0), 0);
     const uniquePSWs = [...new Set(visits.map(v=>v.psw_name).filter(Boolean))].length;
-    const _setText = (id, val) => { const e = document.getElementById(id); if (e) e.textContent = val; };
-    _setText('vmt-count', visits.length);
-    _setText('vmt-hours', totalHours.toFixed(1)+'h');
-    _setText('vmt-psws', uniquePSWs);
+    document.getElementById('vmt-count').textContent = visits.length;
+    document.getElementById('vmt-hours').textContent = totalHours.toFixed(1)+'h';
+    document.getElementById('vmt-psws').textContent = uniquePSWs;
 
     // Per-PSW breakdown panel
     const pswBreakdownEl = document.getElementById('psw-breakdown');
@@ -4579,8 +4575,7 @@ async function renderVisits() {
       </div>`;
     }).join('');
   } catch (err) {
-    console.error('renderVisits failed:', err);
-    if (el) el.innerHTML = `<div class="empty-state"><div class="empty-state-title">Could not load visits</div><div class="empty-state-sub" style="font-family:var(--mono);font-size:11px;color:var(--muted);">${(err && err.message) || 'Unknown error'}</div></div>`;
+    el.innerHTML = '<div class="empty-state">Could not load visits</div>';
   }
 }
 
@@ -5733,20 +5728,14 @@ function renderPSWGrid() {
   html += `</tbody></table></div>`;
 
   // ── RENDER STRATEGY ──
-  // First render: full innerHTML (grid doesn't exist yet)
-  // Subsequent renders: per-cell patch (no flash, scroll preserved)
-  const existingGrid = el.querySelector('.psw-grid');
-  if (existingGrid) {
-    _patchGrid(el, html);
-  } else {
-    el.innerHTML = html;
-    // Auto-scroll to today on first render
-    setTimeout(() => {
-      const todayTh = el.querySelector('#grid-today-col');
-      const wrap = el.querySelector('.psw-grid-wrap');
-      if (todayTh && wrap) wrap.scrollLeft = Math.max(0, todayTh.offsetLeft - 90);
-    }, 0);
-  }
+  // Always full replace — correct and simple.
+  // Patch was causing stale chips when week changed (data-keys changed but patch found no matches).
+  el.innerHTML = html;
+  setTimeout(() => {
+    const todayTh = el.querySelector('#grid-today-col');
+    const wrap = el.querySelector('.psw-grid-wrap');
+    if (todayTh && wrap) wrap.scrollLeft = Math.max(0, todayTh.offsetLeft - 90);
+  }, 0);
 
   // Reset FC state — grid wiped fc-root
   window._fcInitialized = false;
