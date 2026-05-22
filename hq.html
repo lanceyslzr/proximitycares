@@ -6049,6 +6049,27 @@ let _hpType = 'psw'; // 'psw' | 'client'
 let _hpName = '';
 let _hpPeriod = 'week'; // 'today' | 'week' | 'lastweek' | 'month' | 'year'
 
+// ── HQ JOINT VISIT GROUPING ───────────────────────────────────────
+function _hqGroupJointVisits(visits) {
+  const groups = {};
+  const order = [];
+  visits.forEach(v => {
+    const key = v.joint_visit_id || ('solo_' + v.id);
+    if (!groups[key]) { groups[key] = []; order.push(key); }
+    groups[key].push(v);
+  });
+  return order.map(key => {
+    const group = groups[key];
+    if (group.length === 1) return group[0];
+    const merged = Object.assign({}, group[0]);
+    const pswNames = [...new Set(group.map(v => v.psw_name).filter(Boolean))];
+    merged.psw_name = pswNames.join(' + ');
+    merged.is_joint = true;
+    merged.hours_worked = Math.max(...group.map(v => parseFloat(v.hours_worked || 0))).toFixed(2);
+    return merged;
+  });
+}
+
 function openHoursPanel(type, name) {
   _hpType = type;
   _hpName = name;
@@ -7492,20 +7513,22 @@ function openClientDetail(id) {
   const existingBadges = document.getElementById('client-sheet-badges');
   if (existingBadges) existingBadges.innerHTML = alertBadges || '';
   // Build client visit history from D.visits (in memory — last 90 days)
-  const clientVisits = (D.visits||[])
+  // Group joint visits before rendering — shared joint_visit_id = one row
+  const rawClientVisits = (D.visits||[])
     .filter(v => (v.client_name||'').trim() === name.trim())
-    .sort((a,b) => (b.visit_date||'').localeCompare(a.visit_date||''))
-    .slice(0, 30);
+    .sort((a,b) => (b.visit_date||'').localeCompare(a.visit_date||''));
+  const clientVisits = _hqGroupJointVisits(rawClientVisits).slice(0, 30);
   const clientTotalHrs = clientVisits.reduce((s,v)=>s+parseFloat(v.hours_worked||0),0);
 
   const clientVisitRows = clientVisits.length
     ? clientVisits.map(v => {
         const hrs = parseFloat(v.hours_worked||0);
         const statusDot = v.status==='completed'?'var(--green2)':v.status==='in_progress'?'var(--teal2)':'var(--muted)';
+        const jointBadge = v.is_joint ? ' <span style="font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;padding:1px 5px;border-radius:100px;border:1px solid rgba(61,138,122,.3);color:var(--teal2);margin-left:4px;">joint</span>' : '';
         return `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);">
           <div style="width:7px;height:7px;border-radius:50%;background:${statusDot};flex-shrink:0;"></div>
           <div style="flex:1;min-width:0;">
-            <div style="font-size:12px;color:var(--text);font-weight:500;">${escHtml(v.psw_name||'—')}</div>
+            <div style="font-size:12px;color:var(--text);font-weight:500;">${escHtml(v.psw_name||'—')}${jointBadge}</div>
             <div style="font-family:var(--mono);font-size:10px;color:var(--muted2);">${v.visit_date||'—'} · ${v.time_in||'?'} — ${v.time_out||'?'}</div>
           </div>
           <div style="font-family:var(--mono);font-size:11px;color:var(--teal2);flex-shrink:0;">${hrs>0?hrs.toFixed(1)+'h':'—'}</div>
