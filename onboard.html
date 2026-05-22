@@ -1,0 +1,1144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Proximity Systems — Onboarding</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600&family=DM+Mono:wght@300;400&family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+<style>
+/* ─── DESIGN TOKENS ─────────────────────────────────────── */
+:root {
+  --cream:        #faf8f4;
+  --cream-mid:    #f2ede4;
+  --cream-border: #e4ddd0;
+  --ink:          #1a1814;
+  --ink-muted:    #6b6560;
+  --ink-faint:    #a09890;
+  --teal:         #1e7d96;
+  --teal-light:   #d4edf5;
+  --teal-hover:   #165f73;
+  --gold:         #b87010;
+  --gold-light:   #f5e8cc;
+  --green:        #1e8a52;
+  --green-light:  #d4f0e3;
+  --red:          #c0392b;
+  --red-light:    #fde8e6;
+  --radius:       6px;
+  --shadow:       0 2px 12px rgba(26,24,20,0.08);
+  --shadow-lg:    0 8px 40px rgba(26,24,20,0.12);
+}
+
+/* ─── RESET ─────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 16px; -webkit-font-smoothing: antialiased; }
+body {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  background: var(--cream);
+  color: var(--ink);
+  min-height: 100vh;
+  line-height: 1.6;
+}
+
+/* ─── LAYOUT ─────────────────────────────────────────────── */
+.page-wrap {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 48px 24px 80px;
+}
+
+.logo-bar {
+  width: 100%;
+  max-width: 680px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 48px;
+}
+
+.logo-wordmark {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 20px;
+  font-weight: 300;
+  color: var(--ink);
+  letter-spacing: 0.02em;
+}
+.logo-wordmark em { font-style: italic; color: var(--teal); }
+
+.logo-tag {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+
+/* ─── STEP TRACKER ───────────────────────────────────────── */
+.step-tracker {
+  width: 100%;
+  max-width: 680px;
+  display: flex;
+  align-items: center;
+  gap: 0;
+  margin-bottom: 40px;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+.step-tracker.visible { opacity: 1; }
+
+.step-node {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  position: relative;
+}
+.step-node:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  top: 16px;
+  left: calc(50% + 16px);
+  right: calc(-50% + 16px);
+  height: 1px;
+  background: var(--cream-border);
+  transition: background 0.4s ease;
+}
+.step-node.done:not(:last-child)::after { background: var(--teal); }
+
+.step-circle {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1.5px solid var(--cream-border);
+  background: var(--cream);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'DM Mono', monospace;
+  font-size: 12px;
+  color: var(--ink-faint);
+  transition: all 0.3s ease;
+  position: relative;
+  z-index: 1;
+}
+.step-node.active .step-circle {
+  border-color: var(--teal);
+  background: var(--teal);
+  color: #fff;
+  box-shadow: 0 0 0 4px var(--teal-light);
+}
+.step-node.done .step-circle {
+  border-color: var(--teal);
+  background: var(--teal);
+  color: #fff;
+}
+.step-node.done .step-circle::after {
+  content: '✓';
+  font-size: 13px;
+  font-family: sans-serif;
+}
+
+.step-label {
+  font-size: 11px;
+  font-family: 'DM Mono', monospace;
+  letter-spacing: 0.05em;
+  color: var(--ink-faint);
+  text-transform: uppercase;
+  text-align: center;
+  transition: color 0.3s ease;
+}
+.step-node.active .step-label,
+.step-node.done .step-label { color: var(--ink-muted); }
+
+/* ─── CARD ───────────────────────────────────────────────── */
+.card {
+  width: 100%;
+  max-width: 680px;
+  background: #fff;
+  border: 1px solid var(--cream-border);
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.card-head {
+  padding: 28px 36px 20px;
+  border-bottom: 1px solid var(--cream-mid);
+}
+.card-head-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--teal);
+  margin-bottom: 8px;
+}
+.card-head h2 {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 26px;
+  font-weight: 300;
+  color: var(--ink);
+  line-height: 1.25;
+}
+.card-head p {
+  margin-top: 8px;
+  font-size: 14px;
+  color: var(--ink-muted);
+  line-height: 1.65;
+}
+
+.card-body { padding: 28px 36px; }
+
+/* ─── FORM ELEMENTS ──────────────────────────────────────── */
+.field-group { margin-bottom: 20px; }
+.field-group label {
+  display: block;
+  font-size: 12px;
+  font-family: 'DM Mono', monospace;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+  margin-bottom: 8px;
+}
+.field-group input[type="text"],
+.field-group input[type="password"],
+.field-group input[type="number"] {
+  width: 100%;
+  padding: 11px 14px;
+  border: 1.5px solid var(--cream-border);
+  border-radius: var(--radius);
+  font-family: 'DM Mono', monospace;
+  font-size: 14px;
+  color: var(--ink);
+  background: var(--cream);
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  letter-spacing: 0.04em;
+}
+.field-group input:focus {
+  border-color: var(--teal);
+  box-shadow: 0 0 0 3px var(--teal-light);
+  background: #fff;
+}
+.field-group input.error { border-color: var(--red); }
+
+/* ─── BUTTONS ────────────────────────────────────────────── */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  background: var(--teal);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius);
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.1s ease;
+}
+.btn-primary:hover { background: var(--teal-hover); }
+.btn-primary:active { transform: scale(0.99); }
+.btn-primary:disabled { opacity: 0.55; cursor: not-allowed; }
+
+.btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 18px;
+  background: transparent;
+  color: var(--ink-muted);
+  border: 1.5px solid var(--cream-border);
+  border-radius: var(--radius);
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 13px;
+  font-weight: 400;
+  cursor: pointer;
+  transition: border-color 0.2s ease, color 0.2s ease;
+  text-decoration: none;
+}
+.btn-ghost:hover { border-color: var(--ink-muted); color: var(--ink); }
+
+/* ─── DROP ZONE ──────────────────────────────────────────── */
+.drop-zone {
+  border: 2px dashed var(--cream-border);
+  border-radius: 8px;
+  padding: 36px 24px;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.2s ease, background 0.2s ease;
+  position: relative;
+  background: var(--cream);
+}
+.drop-zone:hover, .drop-zone.drag-over {
+  border-color: var(--teal);
+  background: var(--teal-light);
+}
+.drop-zone input[type="file"] {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+.drop-icon {
+  font-size: 28px;
+  margin-bottom: 10px;
+  display: block;
+}
+.drop-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--ink);
+  margin-bottom: 4px;
+}
+.drop-sub {
+  font-size: 12px;
+  color: var(--ink-faint);
+  font-family: 'DM Mono', monospace;
+}
+.drop-zone.has-file {
+  border-style: solid;
+  border-color: var(--teal);
+  background: var(--teal-light);
+}
+.drop-zone.has-file .drop-icon { content: ''; }
+
+/* ─── TEMPLATE DOWNLOAD ──────────────────────────────────── */
+.template-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: var(--gold-light);
+  border: 1px solid #ddc480;
+  border-radius: var(--radius);
+  margin-bottom: 20px;
+}
+.template-bar-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.template-bar-icon { font-size: 16px; }
+.template-bar-text { font-size: 13px; color: var(--ink); }
+.template-bar-text span { font-weight: 500; }
+.template-bar-text small {
+  display: block;
+  font-size: 11px;
+  color: var(--ink-muted);
+  font-family: 'DM Mono', monospace;
+  margin-top: 1px;
+}
+.btn-download {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  background: var(--gold);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  transition: opacity 0.2s;
+  text-decoration: none;
+}
+.btn-download:hover { opacity: 0.88; }
+
+/* ─── RESULTS ────────────────────────────────────────────── */
+.results-box {
+  margin-top: 20px;
+  border: 1px solid var(--cream-border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  display: none;
+}
+.results-box.visible { display: block; }
+.results-header {
+  padding: 12px 16px;
+  background: var(--cream-mid);
+  border-bottom: 1px solid var(--cream-border);
+  font-size: 12px;
+  font-family: 'DM Mono', monospace;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+}
+.result-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 16px;
+  font-size: 13px;
+  border-bottom: 1px solid var(--cream-border);
+}
+.result-row:last-child { border-bottom: none; }
+.result-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.result-dot.ok  { background: var(--green); }
+.result-dot.err { background: var(--red); }
+.result-dot.skip { background: var(--ink-faint); }
+.result-name { flex: 1; color: var(--ink); font-weight: 500; }
+.result-detail { color: var(--ink-muted); font-family: 'DM Mono', monospace; font-size: 11px; }
+
+.results-summary {
+  padding: 12px 16px;
+  background: var(--green-light);
+  border-top: 1px solid #b3e0cc;
+  font-size: 13px;
+  color: var(--green);
+  font-weight: 500;
+}
+.results-summary.has-errors {
+  background: var(--red-light);
+  border-top-color: #f0b8b0;
+  color: var(--red);
+}
+
+/* ─── PROGRESS / STATUS ──────────────────────────────────── */
+.upload-status {
+  margin-top: 16px;
+  display: none;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  color: var(--ink-muted);
+}
+.upload-status.visible { display: flex; }
+.spinner {
+  width: 16px; height: 16px;
+  border: 2px solid var(--cream-border);
+  border-top-color: var(--teal);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  flex-shrink: 0;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ─── CHECKLIST (Welcome step) ───────────────────────────── */
+.checklist { list-style: none; margin: 16px 0 0; }
+.checklist li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 0;
+  font-size: 14px;
+  color: var(--ink);
+  border-bottom: 1px solid var(--cream-border);
+  line-height: 1.5;
+}
+.checklist li:last-child { border-bottom: none; }
+.check-icon {
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  background: var(--teal-light);
+  color: var(--teal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+/* ─── ERROR MESSAGE ──────────────────────────────────────── */
+.error-msg {
+  font-size: 13px;
+  color: var(--red);
+  margin-top: 10px;
+  display: none;
+  font-family: 'DM Mono', monospace;
+}
+.error-msg.visible { display: block; }
+
+/* ─── SUCCESS CARD (Done step) ───────────────────────────── */
+.done-icon {
+  width: 64px; height: 64px;
+  border-radius: 50%;
+  background: var(--teal-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  margin: 0 auto 20px;
+}
+
+.done-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin: 20px 0;
+}
+.done-stat {
+  background: var(--cream);
+  border: 1px solid var(--cream-border);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  text-align: center;
+}
+.done-stat-num {
+  font-family: 'DM Mono', monospace;
+  font-size: 28px;
+  color: var(--teal);
+  font-weight: 400;
+  line-height: 1;
+  margin-bottom: 4px;
+}
+.done-stat-label {
+  font-size: 11px;
+  font-family: 'DM Mono', monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--ink-faint);
+}
+
+/* ─── FOOTER ACTIONS ─────────────────────────────────────── */
+.card-foot {
+  padding: 20px 36px 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-top: 1px solid var(--cream-mid);
+  gap: 12px;
+}
+
+/* ─── INFO STRIP ─────────────────────────────────────────── */
+.info-strip {
+  width: 100%;
+  max-width: 680px;
+  margin-top: 20px;
+  padding: 14px 20px;
+  background: transparent;
+  border: 1px solid var(--cream-border);
+  border-radius: var(--radius);
+  font-size: 12px;
+  color: var(--ink-faint);
+  font-family: 'DM Mono', monospace;
+  letter-spacing: 0.02em;
+  text-align: center;
+}
+
+/* ─── SECTION PANELS ─────────────────────────────────────── */
+.panel { display: none; }
+.panel.active { display: block; }
+.panel-animate {
+  animation: fadeUp 0.35s ease both;
+}
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ─── MEDIA ──────────────────────────────────────────────── */
+@media (max-width: 640px) {
+  .page-wrap { padding: 28px 16px 60px; }
+  .card-head, .card-body, .card-foot { padding-left: 20px; padding-right: 20px; }
+  .logo-bar { margin-bottom: 28px; }
+  .done-stats { grid-template-columns: 1fr; }
+  .card-foot { flex-direction: column; align-items: stretch; }
+  .card-foot .btn-ghost { text-align: center; justify-content: center; }
+}
+</style>
+</head>
+<body>
+
+<div class="page-wrap">
+
+  <!-- Logo Bar -->
+  <div class="logo-bar">
+    <div class="logo-wordmark">Proximity <em>Systems</em></div>
+    <div class="logo-tag">Operator Onboarding</div>
+  </div>
+
+  <!-- Step Tracker (hidden until verified) -->
+  <div class="step-tracker" id="stepTracker">
+    <div class="step-node" id="sn-welcome">
+      <div class="step-circle" id="sc-welcome">1</div>
+      <div class="step-label">Welcome</div>
+    </div>
+    <div class="step-node" id="sn-psw">
+      <div class="step-circle" id="sc-psw">2</div>
+      <div class="step-label">PSW Roster</div>
+    </div>
+    <div class="step-node" id="sn-clients">
+      <div class="step-circle" id="sc-clients">3</div>
+      <div class="step-label">Client List</div>
+    </div>
+    <div class="step-node" id="sn-done">
+      <div class="step-circle" id="sc-done">4</div>
+      <div class="step-label">Done</div>
+    </div>
+  </div>
+
+  <!-- ═══ PANEL 0 — VERIFY ════════════════════════════════ -->
+  <div class="panel active panel-animate" id="panel-verify">
+    <div class="card">
+      <div class="card-head">
+        <div class="card-head-label">Account Verification</div>
+        <h2>Enter your HQ PIN</h2>
+        <p>Your Operator ID and 6-digit HQ PIN were included in your welcome email.</p>
+      </div>
+      <div class="card-body">
+        <div class="field-group">
+          <label>Operator ID</label>
+          <input type="text" id="verifyOpId" placeholder="your-agency-1234" autocomplete="off" autocapitalize="none" spellcheck="false">
+        </div>
+        <div class="field-group">
+          <label>HQ PIN</label>
+          <input type="password" id="verifyPin" placeholder="6-digit PIN" maxlength="6" autocomplete="off">
+        </div>
+        <p class="error-msg" id="verifyError"></p>
+      </div>
+      <div class="card-foot">
+        <div></div>
+        <button class="btn-primary" id="verifyBtn" onclick="verifyOperator()">
+          Continue
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 7h10M7 2l5 5-5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+      </div>
+    </div>
+    <div class="info-strip">Questions? Email healthcareproximity@gmail.com</div>
+  </div>
+
+  <!-- ═══ PANEL 1 — WELCOME ════════════════════════════════ -->
+  <div class="panel" id="panel-welcome">
+    <div class="card">
+      <div class="card-head">
+        <div class="card-head-label">Step 1 of 3</div>
+        <h2 id="welcomeHeadline">Welcome.</h2>
+        <p>Here is what happens in the next few minutes. This is a one-time setup.</p>
+      </div>
+      <div class="card-body">
+        <ul class="checklist">
+          <li>
+            <div class="check-icon">✓</div>
+            <div>
+              <strong>Upload your PSW roster.</strong> One CSV. Every PSW on your list gets a portal invite by email with their PIN and login link. Automated.
+            </div>
+          </li>
+          <li>
+            <div class="check-icon">✓</div>
+            <div>
+              <strong>Upload your client list.</strong> One CSV. Every family with an email gets portal access automatically. Their care team info is ready immediately.
+            </div>
+          </li>
+          <li>
+            <div class="check-icon">✓</div>
+            <div>
+              <strong>Your HQ dashboard is live.</strong> Log in at any time with your Operator ID and HQ PIN at <strong>proximitycares.ca/hq.html</strong>.
+            </div>
+          </li>
+        </ul>
+        <p style="margin-top:20px;font-size:13px;color:var(--ink-muted);line-height:1.7;">
+          You do not need to contact anyone. Every invite fires the moment you complete the upload. Total time: under 10 minutes.
+        </p>
+      </div>
+      <div class="card-foot">
+        <div></div>
+        <button class="btn-primary" onclick="goToStep(2)">
+          Upload PSW Roster
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 7h10M7 2l5 5-5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ PANEL 2 — PSW ROSTER ════════════════════════════ -->
+  <div class="panel" id="panel-psw">
+    <div class="card">
+      <div class="card-head">
+        <div class="card-head-label">Step 2 of 3</div>
+        <h2>PSW Roster</h2>
+        <p>Upload your team. Each PSW receives a welcome email with their portal PIN and login link.</p>
+      </div>
+      <div class="card-body">
+
+        <div class="template-bar">
+          <div class="template-bar-left">
+            <div class="template-bar-icon">📄</div>
+            <div class="template-bar-text">
+              <span>PSW Roster Template</span>
+              <small>first_name, last_name, email, phone, city, psw_cert_number, vsc_date, nacc_number, languages</small>
+            </div>
+          </div>
+          <button class="btn-download" onclick="downloadTemplate('psw')">
+            ↓ Download
+          </button>
+        </div>
+
+        <div class="drop-zone" id="pswDropZone">
+          <input type="file" id="pswFile" accept=".csv" onchange="onFileSelect('psw', this)">
+          <span class="drop-icon" id="pswDropIcon">📋</span>
+          <div class="drop-title" id="pswDropTitle">Drop your CSV here, or click to browse</div>
+          <div class="drop-sub" id="pswDropSub">Required columns: first_name, last_name, email</div>
+        </div>
+
+        <div class="upload-status" id="pswUploadStatus">
+          <div class="spinner"></div>
+          <span>Importing PSWs and sending portal invites…</span>
+        </div>
+
+        <div class="results-box" id="pswResults"></div>
+
+      </div>
+      <div class="card-foot">
+        <button class="btn-ghost" onclick="goToStep(1)">← Back</button>
+        <button class="btn-primary" id="pswUploadBtn" onclick="uploadCSV('psw')" disabled>
+          Upload &amp; Send Invites
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1v8M2 6l5 5 5-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ PANEL 3 — CLIENT LIST ════════════════════════════ -->
+  <div class="panel" id="panel-clients">
+    <div class="card">
+      <div class="card-head">
+        <div class="card-head-label">Step 3 of 3</div>
+        <h2>Client List</h2>
+        <p>Upload your clients. Families with an email address receive portal access automatically.</p>
+      </div>
+      <div class="card-body">
+
+        <div class="template-bar">
+          <div class="template-bar-left">
+            <div class="template-bar-icon">📄</div>
+            <div class="template-bar-text">
+              <span>Client List Template</span>
+              <small>first_name, last_name, family_email, family_phone, family_name, assigned_psw, dob, address, health_card, mobility_level, cognitive_status, medications, care_notes, client_rate, psw_rate</small>
+            </div>
+          </div>
+          <button class="btn-download" onclick="downloadTemplate('clients')">
+            ↓ Download
+          </button>
+        </div>
+
+        <div class="drop-zone" id="clientDropZone">
+          <input type="file" id="clientFile" accept=".csv" onchange="onFileSelect('clients', this)">
+          <span class="drop-icon" id="clientDropIcon">📋</span>
+          <div class="drop-title" id="clientDropTitle">Drop your CSV here, or click to browse</div>
+          <div class="drop-sub" id="clientDropSub">Required columns: first_name, last_name</div>
+        </div>
+
+        <div class="upload-status" id="clientUploadStatus">
+          <div class="spinner"></div>
+          <span>Importing clients and sending family portal invites…</span>
+        </div>
+
+        <div class="results-box" id="clientResults"></div>
+
+      </div>
+      <div class="card-foot">
+        <button class="btn-ghost" onclick="goToStep(2)">← Back</button>
+        <button class="btn-primary" id="clientUploadBtn" onclick="uploadCSV('clients')" disabled>
+          Upload &amp; Send Invites
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1v8M2 6l5 5 5-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ PANEL 4 — DONE ══════════════════════════════════ -->
+  <div class="panel" id="panel-done">
+    <div class="card">
+      <div class="card-head">
+        <div class="card-head-label">Setup Complete</div>
+        <h2>Your agency is live.</h2>
+        <p>Portal invites have been sent. Your team and clients have everything they need.</p>
+      </div>
+      <div class="card-body">
+
+        <div class="done-icon">✓</div>
+
+        <div class="done-stats">
+          <div class="done-stat">
+            <div class="done-stat-num" id="donePswCount">0</div>
+            <div class="done-stat-label">PSWs Activated</div>
+          </div>
+          <div class="done-stat">
+            <div class="done-stat-num" id="doneClientCount">0</div>
+            <div class="done-stat-label">Clients Onboarded</div>
+          </div>
+        </div>
+
+        <ul class="checklist">
+          <li>
+            <div class="check-icon">✓</div>
+            <div>PSW portal invites sent. Each PSW received their PIN by email.</div>
+          </li>
+          <li>
+            <div class="check-icon">✓</div>
+            <div>Family portals live. Families with email addresses received access.</div>
+          </li>
+          <li>
+            <div class="check-icon">✓</div>
+            <div>Your HQ dashboard is ready. Log in to schedule shifts, review visits, and manage your team.</div>
+          </li>
+        </ul>
+
+      </div>
+      <div class="card-foot" style="justify-content:center;">
+        <a class="btn-primary" id="hqLink" href="#" target="_blank">
+          Open HQ Dashboard
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 7h10M7 2l5 5-5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </a>
+      </div>
+    </div>
+    <div class="info-strip">Need help? Email healthcareproximity@gmail.com · 647-382-8047</div>
+  </div>
+
+</div><!-- /page-wrap -->
+
+<script>
+// ─── STATE ────────────────────────────────────────────────────────
+const API = 'https://proximity-agent-production.up.railway.app';
+
+let operatorId     = '';
+let currentStep    = 0;
+let pswImported    = 0;
+let clientImported = 0;
+let pswFilePending    = null;
+let clientFilePending = null;
+
+// ─── INIT ─────────────────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', () => {
+  const params = new URLSearchParams(window.location.search);
+  const opFromUrl = params.get('op') || params.get('operator_id') || '';
+  if (opFromUrl) {
+    document.getElementById('verifyOpId').value = opFromUrl;
+  }
+
+  // Drag-and-drop
+  setupDrop('pswDropZone', 'pswFile', 'psw');
+  setupDrop('clientDropZone', 'clientFile', 'clients');
+
+  // Enter key on PIN field
+  document.getElementById('verifyPin').addEventListener('keydown', e => {
+    if (e.key === 'Enter') verifyOperator();
+  });
+});
+
+// ─── VERIFY ───────────────────────────────────────────────────────
+async function verifyOperator() {
+  const opId = document.getElementById('verifyOpId').value.trim().toLowerCase();
+  const pin  = document.getElementById('verifyPin').value.trim();
+  const errEl = document.getElementById('verifyError');
+  const btn   = document.getElementById('verifyBtn');
+
+  errEl.textContent = '';
+  errEl.classList.remove('visible');
+  document.getElementById('verifyOpId').classList.remove('error');
+  document.getElementById('verifyPin').classList.remove('error');
+
+  if (!opId) {
+    showVerifyError('Operator ID is required.');
+    document.getElementById('verifyOpId').classList.add('error');
+    return;
+  }
+  if (!pin || pin.length < 4) {
+    showVerifyError('Enter your HQ PIN.');
+    document.getElementById('verifyPin').classList.add('error');
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Verifying…';
+
+  try {
+    const res = await fetch(`${API}/operator/onboard-verify`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ operator_id: opId, hq_pin: pin })
+    });
+    const data = await res.json();
+
+    if (!res.ok || !data.success) {
+      showVerifyError(data.error || 'Verification failed. Check your Operator ID and PIN.');
+      btn.disabled = false;
+      btn.innerHTML = 'Continue <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 7h10M7 2l5 5-5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+      return;
+    }
+
+    operatorId = opId;
+    const agencyName = data.agency_name || opId;
+    const ownerName  = data.owner_name  || '';
+    const resumeStep = parseInt(data.onboarding_step || 0);
+
+    // Personalise welcome
+    const greeting = ownerName ? `Welcome, ${ownerName.split(' ')[0]}.` : `Welcome, ${agencyName}.`;
+    document.getElementById('welcomeHeadline').textContent = greeting;
+    document.getElementById('hqLink').href = `https://proximitycares.ca/hq.html?op=${operatorId}`;
+
+    // Show tracker
+    document.getElementById('stepTracker').classList.add('visible');
+
+    // Resume at correct step (minimum step 1 — welcome)
+    const startStep = Math.max(1, Math.min(resumeStep + 1, 4));
+    goToStep(startStep, true);
+
+  } catch (err) {
+    showVerifyError('Connection error. Try again.');
+    btn.disabled = false;
+    btn.innerHTML = 'Continue <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 7h10M7 2l5 5-5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  }
+}
+
+function showVerifyError(msg) {
+  const el = document.getElementById('verifyError');
+  el.textContent = msg;
+  el.classList.add('visible');
+}
+
+// ─── STEP NAV ─────────────────────────────────────────────────────
+const PANELS = ['panel-verify', 'panel-welcome', 'panel-psw', 'panel-clients', 'panel-done'];
+const STEP_NODES = ['', 'sn-welcome', 'sn-psw', 'sn-clients', 'sn-done'];
+
+function goToStep(step, skipSave) {
+  // Hide all panels
+  PANELS.forEach(id => {
+    const el = document.getElementById(id);
+    el.classList.remove('active');
+    el.classList.remove('panel-animate');
+  });
+
+  // Show target
+  const target = document.getElementById(PANELS[step]);
+  if (!target) return;
+  target.classList.add('active');
+  void target.offsetHeight; // reflow
+  target.classList.add('panel-animate');
+
+  currentStep = step;
+
+  // Update tracker nodes (steps 1-4)
+  [1, 2, 3, 4].forEach(s => {
+    const node = document.getElementById(STEP_NODES[s]);
+    if (!node) return;
+    node.classList.remove('active', 'done');
+    if (s < step) node.classList.add('done');
+    else if (s === step) node.classList.add('active');
+  });
+
+  // Mark step in DB (non-blocking, skip on initial load)
+  if (!skipSave && operatorId && step >= 1) {
+    advanceOnboardingStep(step - 1).catch(() => {});
+  }
+
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+async function advanceOnboardingStep(stepNum) {
+  await fetch(`${API}/hq/onboarding-step`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ operator_id: operatorId, step: stepNum })
+  });
+}
+
+// ─── FILE SELECT ──────────────────────────────────────────────────
+function onFileSelect(type, input) {
+  const file = input.files[0];
+  if (!file) return;
+  setFileSelected(type, file);
+}
+
+function setFileSelected(type, file) {
+  if (type === 'psw') {
+    pswFilePending = file;
+    document.getElementById('pswDropZone').classList.add('has-file');
+    document.getElementById('pswDropIcon').textContent = '✅';
+    document.getElementById('pswDropTitle').textContent = file.name;
+    document.getElementById('pswDropSub').textContent = `${(file.size / 1024).toFixed(1)} KB`;
+    document.getElementById('pswUploadBtn').disabled = false;
+  } else {
+    clientFilePending = file;
+    document.getElementById('clientDropZone').classList.add('has-file');
+    document.getElementById('clientDropIcon').textContent = '✅';
+    document.getElementById('clientDropTitle').textContent = file.name;
+    document.getElementById('clientDropSub').textContent = `${(file.size / 1024).toFixed(1)} KB`;
+    document.getElementById('clientUploadBtn').disabled = false;
+  }
+}
+
+// ─── DRAG AND DROP ────────────────────────────────────────────────
+function setupDrop(zoneId, inputId, type) {
+  const zone = document.getElementById(zoneId);
+  zone.addEventListener('dragover', e => {
+    e.preventDefault();
+    zone.classList.add('drag-over');
+  });
+  zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+  zone.addEventListener('drop', e => {
+    e.preventDefault();
+    zone.classList.remove('drag-over');
+    const file = e.dataTransfer.files[0];
+    if (file && file.name.endsWith('.csv')) {
+      setFileSelected(type, file);
+    }
+  });
+}
+
+// ─── UPLOAD ───────────────────────────────────────────────────────
+async function uploadCSV(type) {
+  const isPsw    = type === 'psw';
+  const file     = isPsw ? pswFilePending : clientFilePending;
+  const endpoint = isPsw ? '/operator/import-psws' : '/operator/import-clients';
+  const btnId    = isPsw ? 'pswUploadBtn' : 'clientUploadBtn';
+  const statusId = isPsw ? 'pswUploadStatus' : 'clientUploadStatus';
+  const resultsId = isPsw ? 'pswResults' : 'clientResults';
+
+  if (!file) return;
+  if (!operatorId) { alert('Session expired. Refresh the page.'); return; }
+
+  const btn    = document.getElementById(btnId);
+  const status = document.getElementById(statusId);
+  const results = document.getElementById(resultsId);
+
+  btn.disabled = true;
+  btn.textContent = 'Uploading…';
+  status.classList.add('visible');
+  results.classList.remove('visible');
+  results.innerHTML = '';
+
+  const form = new FormData();
+  form.append('file', file);
+  form.append('operator_id', operatorId);
+
+  try {
+    const res  = await fetch(`${API}${endpoint}`, { method: 'POST', body: form });
+    const data = await res.json();
+
+    status.classList.remove('visible');
+
+    if (!res.ok || !data.success) {
+      renderResults(results, null, data.error || 'Import failed.');
+      btn.disabled = false;
+      btn.innerHTML = 'Retry Upload';
+      return;
+    }
+
+    // Build result rows
+    const items = isPsw ? data.activated : data.onboarded;
+    const failed = data.failed || [];
+    const skipped = data.skipped || [];
+
+    renderResults(results, { items, failed, skipped, isPsw });
+
+    // Advance
+    if (isPsw) {
+      pswImported = items.length;
+      await advanceOnboardingStep(2);
+      goToStep(3);
+    } else {
+      clientImported = items.length;
+      document.getElementById('donePswCount').textContent = pswImported;
+      document.getElementById('doneClientCount').textContent = clientImported;
+      await advanceOnboardingStep(4);
+      goToStep(4);
+    }
+
+  } catch (err) {
+    status.classList.remove('visible');
+    renderResults(results, null, 'Connection error. Check your internet and try again.');
+    btn.disabled = false;
+    btn.textContent = 'Retry Upload';
+  }
+}
+
+// ─── RENDER RESULTS ───────────────────────────────────────────────
+function renderResults(container, data, errorMsg) {
+  container.innerHTML = '';
+  container.classList.add('visible');
+
+  if (errorMsg || !data) {
+    container.innerHTML = `<div class="results-header">Error</div>
+      <div class="result-row">
+        <div class="result-dot err"></div>
+        <div class="result-name">${errorMsg || 'Unknown error'}</div>
+      </div>`;
+    return;
+  }
+
+  const { items, failed, skipped, isPsw } = data;
+  const totalOk = items.length;
+  const totalBad = failed.length + skipped.length;
+
+  let html = `<div class="results-header">${totalOk} imported · ${failed.length} failed · ${skipped.length} skipped</div>`;
+
+  items.forEach(item => {
+    const label = isPsw ? `${item.name} · ${item.psw_code} · PIN ${item.pin}` : `${item.name} · ${item.client_code}`;
+    html += `<div class="result-row">
+      <div class="result-dot ok"></div>
+      <div class="result-name">${item.name}</div>
+      <div class="result-detail">${isPsw ? item.psw_code + ' · PIN ' + item.pin : item.client_code}</div>
+    </div>`;
+  });
+
+  failed.forEach(item => {
+    html += `<div class="result-row">
+      <div class="result-dot err"></div>
+      <div class="result-name">${item.name || 'Unknown'}</div>
+      <div class="result-detail">${item.error || 'Failed'}</div>
+    </div>`;
+  });
+
+  skipped.forEach(msg => {
+    html += `<div class="result-row">
+      <div class="result-dot skip"></div>
+      <div class="result-name" style="color:var(--ink-muted);font-weight:400;">${msg}</div>
+    </div>`;
+  });
+
+  const summaryClass = totalBad > 0 ? 'results-summary has-errors' : 'results-summary';
+  const summaryMsg = totalBad > 0
+    ? `${totalOk} imported with ${totalBad} issue(s). Review rows above, fix your CSV, and re-upload.`
+    : `${totalOk} records imported successfully. Invites sent.`;
+
+  html += `<div class="${summaryClass}">${summaryMsg}</div>`;
+  container.innerHTML = html;
+}
+
+// ─── CSV TEMPLATES ────────────────────────────────────────────────
+function downloadTemplate(type) {
+  let csv, filename;
+
+  if (type === 'psw') {
+    csv = [
+      'first_name,last_name,email,phone,city,psw_cert_number,vsc_date,nacc_number,languages',
+      'Maria,Chen,maria.chen@email.com,647-555-0101,Mississauga,PSW-1234,2024-03-15,NACC-5678,English/Mandarin'
+    ].join('\n');
+    filename = 'psw-roster-template.csv';
+  } else {
+    csv = [
+      'first_name,last_name,family_email,family_phone,family_name,assigned_psw,dob,address,health_card,mobility_level,cognitive_status,medications,care_notes,client_rate,psw_rate',
+      'Eleanor,Brooks,family@email.com,416-555-0202,James Brooks,Maria Chen,1942-06-10,"123 Main St, Mississauga ON",1234-567-890,independent,mild_cognitive,Lisinopril 10mg,"Prefers morning visits",28,22'
+    ].join('\n');
+    filename = 'client-list-template.csv';
+  }
+
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+</script>
+</body>
+</html>
