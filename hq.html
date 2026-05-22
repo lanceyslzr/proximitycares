@@ -169,8 +169,7 @@ async function loadFamilyNotes() {
 
 
 </script>
-<link href='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.css' rel='stylesheet' />
-<script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js'></script>
+<!-- Custom calendar — no FullCalendar dependency -->
 <style>
 
 /* ── MOBILE RESET: Android overflow, box-sizing, safe-area ── */
@@ -2309,6 +2308,13 @@ body.sidebar-hidden #sidebar-reopen-tab{ display:flex; }
   <div id="resource-board" style="display:none;flex:1;min-height:0;overflow:auto;"></div>
 </div>
 
+<!-- ── HOURS PANEL — slide-up, triggered from any PSW/client name ── -->
+<div id="hours-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:1055;" onclick="closeHoursPanel()"></div>
+<div id="hours-panel" style="position:fixed;bottom:0;left:0;right:0;z-index:1056;background:var(--bg2);border-top:1px solid var(--border2);border-radius:18px 18px 0 0;max-height:82vh;display:flex;flex-direction:column;transform:translateY(100%);transition:transform .3s cubic-bezier(.16,1,.3,1);padding-bottom:calc(16px + env(safe-area-inset-bottom,0px));">
+  <div style="width:36px;height:4px;background:var(--border2);border-radius:2px;margin:12px auto 0;flex-shrink:0;"></div>
+  <div id="hours-panel-body" style="flex:1;overflow-y:auto;"></div>
+</div>
+
 <div class="section" id="sect-revenue">
   <div class="section-header"><span class="section-title">Revenue & Analytics</span></div>
   <div id="revenue-content"><div class="empty-state">Loading analytics...</div></div>
@@ -3261,7 +3267,7 @@ function renderAll() {
       }
       // If grid already rendered, leave it — refreshGrid() will update it momentarily
     }
-    if (schedHQView !== 'grid') { window._fc ? _refreshFC() : null; }
+    if (schedHQView !== 'grid') { _renderCustomCal(); }
     renderVacantVisits();
   }
   renderBookings();
@@ -5632,7 +5638,7 @@ function renderPSWGrid() {
     const wkHrs = row.rowBookings.reduce((s,b) => s + (b.duration_minutes||60)/60, 0);
 
     html += `<tr data-row="${safeKey}">`;
-    html += `<td class="col-name">
+    html += `<td class="col-name" onclick="openHoursPanel('${_schedAxis}','${escHtml(row.label)}')" style="cursor:pointer;" title="View ${escHtml(row.label)} hours">
       <div class="psw-name-cell">
         <div class="psw-name-av">${escHtml(row.initials)}</div>
         <div>
@@ -5660,7 +5666,7 @@ function renderPSWGrid() {
           const chipCls = isUnassigned ? 'gc-open' : isLive ? 'gc-live' : b.status === 'completed' ? 'gc-done' : 'gc-scheduled';
           const timeStr = b.scheduled_time ? b.scheduled_time.slice(0,5) : '';
           html += `<div class="grid-chip ${chipCls}" onclick="_showShiftDetail(${JSON.stringify(b).replace(/"/g,'&quot;')},{})">
-            <div class="gc-client">${escHtml(chipLabel)}</div>
+            <div class="gc-client" onclick="event.stopPropagation();openHoursPanel('${_schedAxis==='psw'?'client':'psw'}','${escHtml(_schedAxis==='psw'?(b.client_name||''):(b.assigned_to||''))}')" style="cursor:pointer;">${escHtml(chipLabel)}</div>
             <div class="gc-time">${timeStr}</div>
           </div>`;
         });
@@ -5724,533 +5730,499 @@ function setSchedHQView(v) {
 function renderSchedule() {
   const el = document.getElementById('schedule-board');
   if (!el) return;
+  window._fcInitialized = true;
+  _renderCustomCal();
+}
 
-  // Build FullCalendar if not already initialized
-  if (!window._fcInitialized) {
-    window._fcInitialized = true;
-    el.innerHTML = '<div id="fc-root" style="padding:0 12px 12px;"></div>';
-    // Wait for data to be ready before init
-    if (D.bookings && D.bookings.length >= 0) { _initFC(); } else { setTimeout(() => _initFC(), 300); }
-  } else {
-    _refreshFC();
+function _refreshFC() { _renderCustomCal(); }
+
+// ── CUSTOM CALENDAR — replaces FullCalendar ──────────────────────────
+// Day + Week view. Time axis left (5am–11pm). Shift blocks by position.
+// PSW sidebar with hours. Client toggle. Color by status.
+// Click slot → add shift. Click block → edit. Zero libraries.
+
+let _calView    = 'week'; // 'day' | 'week'
+let _calAxis    = 'psw';  // 'psw' | 'client'
+let _calDate    = new Date(); // anchor date
+
+const CAL_START = 5;  // 5am
+const CAL_END   = 23; // 11pm
+const CAL_HOURS = CAL_END - CAL_START; // 18 hours
+
+function _calDateStr(d) {
+  return d.toLocaleDateString('en-CA', {timeZone:'America/Toronto'});
+}
+
+function _calWeekDays(anchor) {
+  const d = new Date(anchor);
+  const dow = (d.getDay() + 6) % 7; // 0=Mon
+  d.setDate(d.getDate() - dow);
+  const days = [];
+  for (let i = 0; i < 7; i++) {
+    const dd = new Date(d);
+    dd.setDate(d.getDate() + i);
+    days.push(dd);
   }
+  return days;
 }
 
-function _buildFCEvents() {
-  // Filter to ±60 days around current FC view — prevents recurring series from flooding
-  const _fcCenter = window._fc ? (window._fc.view.currentStart || new Date()) : new Date();
-  const _winS = new Date(_fcCenter); _winS.setDate(_winS.getDate() - 60);
-  const _winE = new Date(_fcCenter); _winE.setDate(_winE.getDate() + 60);
-  const _ws = _winS.toLocaleDateString('en-CA',{timeZone:'America/Toronto'});
-  const _we = _winE.toLocaleDateString('en-CA',{timeZone:'America/Toronto'});
-  const bookings = (D.bookings || []).filter(b =>
-    !b.scheduled_date || (b.scheduled_date >= _ws && b.scheduled_date <= _we)
-  );
-  const visits = D.visits || [];
-
-  // Conflict detection — O(n) using Map grouped by PSW+date
-  const conflicts = new Set();
-  const _pswDayMap = {};
-  bookings.forEach(b => {
-    if (!b.assigned_to || b.status === 'cancelled') return;
-    const key = b.assigned_to + '|' + b.scheduled_date;
-    if (!_pswDayMap[key]) _pswDayMap[key] = [];
-    _pswDayMap[key].push(b);
-  });
-  Object.values(_pswDayMap).forEach(group => {
-    if (group.length < 2) return;
-    group.sort((a,b) => toMins(a.scheduled_time) - toMins(b.scheduled_time));
-    for (let i = 0; i < group.length - 1; i++) {
-      const a = group[i], b = group[i+1];
-      const aEnd = toMins(a.scheduled_time) + (a.duration_minutes||60);
-      if (toMins(b.scheduled_time) < aEnd) { conflicts.add(a.id); conflicts.add(b.id); }
-    }
-  });
-  window._fcConflicts = conflicts;
-
-  // Active visit ids
-  const activeVisitClients = new Set(
-    visits.filter(v=>v.status==='in_progress').map(v=>v.client_slug||v.client_name)
-  );
-
-  // Build booking events
-  const bookingEvents = bookings.map(b => {
-    const isConflict = conflicts.has(b.id);
-    const clientName = b.client_name || '';
-    const pswName    = b.assigned_to  || b.psw_name || '';
-    const isLive     = activeVisitClients.has(clientName) || activeVisitClients.has(b.client_slug);
-    const isCancelled= b.status === 'cancelled';
-
-    let color = '#1e5a4e'; // scheduled — teal dark
-    if (isConflict)  color = '#8b2020'; // conflict — red
-    if (isLive)      color = '#1a6b3a'; // on shift now — bright green
-    if (isCancelled) color = '#2a2a2a'; // cancelled — dark grey
-
-    const startDT = `${b.scheduled_date}T${b.scheduled_time||'09:00'}`;
-    const durMins = b.duration_minutes || 480;
-    const endDT   = _addMins(startDT, durMins);
-
-    return {
-      id:         b.id,
-      title:      pswName ? `${clientName} · ${pswName}` : clientName || 'Unassigned',
-      start:      startDT,
-      end:        endDT,
-      color,
-      borderColor: isConflict ? '#e05555' : isLive ? '#4a9a6e' : '#3d8a7a',
-      textColor:  '#e8e4dc',
-      extendedProps: { booking: b, isConflict, isLive, isCancelled }
-    };
-  });
-
-  // Build visit events — visits table (manual entries + completed/active visits)
-  // Skip visits that have a matching booking (already shown above — avoids duplicates)
-  const bookingIds = new Set(bookings.map(b => b.id));
-  const visitEvents = visits
-    .filter(v => {
-      if (!v.visit_date) return false;
-      if (v.visit_date < _ws || v.visit_date > _we) return false;
-      // Skip if this visit belongs to a booking already on calendar
-      if (v.booking_id && bookingIds.has(v.booking_id)) return false;
-      return true;
-    })
-    .map(v => {
-      const clientName = v.client_name || '';
-      const pswName    = v.psw_name    || '';
-      const isManual   = !v.booking_id; // no booking = manually added
-      const isActive   = v.status === 'in_progress';
-      const isComplete = v.status === 'completed';
-
-      // Colour coding for visits:
-      // Manual (no booking_id) = amber/gold — stands out clearly
-      // Active (in progress)   = bright green
-      // Completed              = muted blue-teal
-      let color       = '#4a3a1a'; // manual — amber dark
-      let borderColor = '#c9a96e'; // amber border
-      if (isActive)   { color = '#1a6b3a'; borderColor = '#4a9a6e'; }
-      if (isComplete && !isManual) { color = '#1a3a5a'; borderColor = '#3d6a8a'; }
-
-      const startDT = `${v.visit_date}T${v.time_in||'09:00'}`;
-      const endDT   = v.time_out
-        ? `${v.visit_date}T${v.time_out}`
-        : _addMins(startDT, Math.round((parseFloat(v.hours_worked)||8)*60));
-
-      const label = isManual ? '✎ ' : isActive ? '● ' : '';
-      return {
-        id:         'visit-' + v.id,
-        title:      label + (pswName ? `${clientName} · ${pswName}` : clientName || 'Visit'),
-        start:      startDT,
-        end:        endDT,
-        color,
-        borderColor,
-        textColor:  '#e8e4dc',
-        extendedProps: { visit: v, isManual, isActive, isComplete }
-      };
-    });
-
-  // Time-off background blocks
-  const timeOffEvents = (D.time_off || []).flatMap(t => {
-    const typeConfig = {
-      vacation: { color: 'rgba(200,169,110,.18)', border: '#c9a96e', label: '🌴 Vacation' },
-      sick:     { color: 'rgba(224,85,85,.15)',   border: '#e05555', label: '🤒 Sick'     },
-      off:      { color: 'rgba(100,100,120,.18)', border: '#666688', label: '⏸ Off'       },
-    };
-    const cfg = typeConfig[t.type] || typeConfig['off'];
-    // Generate one all-day event per day in the range
-    const events = [];
-    let cur = new Date(t.from_date + 'T12:00:00');
-    const end = new Date(t.to_date + 'T12:00:00');
-    while (cur <= end) {
-      const ds = cur.toLocaleDateString('en-CA',{timeZone:'America/Toronto'});
-      if (ds >= _ws && ds <= _we) {
-        events.push({
-          id:        'to-' + t.id + '-' + ds,
-          title:     `${cfg.label}${t.note ? ': '+t.note : ''} · ${t.psw_name}`,
-          start:     ds,
-          end:       ds,
-          allDay:    true,
-          display:   'background',
-          color:     cfg.color,
-          borderColor: cfg.border,
-          extendedProps: { timeOff: t }
-        });
-      }
-      cur.setDate(cur.getDate() + 1);
-    }
-    return events;
-  });
-
-  return [...bookingEvents, ...visitEvents, ...timeOffEvents];
+function _toMinsFromMidnight(timeStr) {
+  if (!timeStr) return 540;
+  const [h,m] = timeStr.split(':').map(Number);
+  return h * 60 + (m||0);
 }
 
-function _addMins(dtStr, mins) {
-  const d = new Date(dtStr);
-  d.setMinutes(d.getMinutes() + mins);
-  return d.toISOString().slice(0,16);
+function _calBlockStyle(startMins, durationMins, totalH) {
+  const top = ((startMins - CAL_START*60) / (CAL_HOURS*60)) * 100;
+  const height = (durationMins / (CAL_HOURS*60)) * 100;
+  return `top:${Math.max(0,top).toFixed(2)}%;height:${Math.max(1.5,height).toFixed(2)}%;`;
 }
 
-function _initFC() {
-  const root = document.getElementById('fc-root');
-  if (!root) return;
-
-  const psws    = D.psws    || [];
-  const clients = D.clients || [];
-
-  // PSW capacity sidebar — filterable for 50+ PSW scale
-  const _capToday = new Date().toLocaleDateString('en-CA',{timeZone:'America/Toronto'});
-  const _onShiftToday = new Set(
-    (D.bookings||[]).filter(b => b.scheduled_date===_capToday && b.status!=='cancelled' && b.assigned_to)
-      .map(b => b.assigned_to)
-  );
-  const capBar = `
-    <div id="fc-sidebar" style="margin-bottom:10px;">
-      <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;flex-wrap:wrap;">
-        <span style="font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);">Capacity</span>
-        <div style="display:flex;gap:4px;margin-left:4px;">
-          <button id="cap-btn-today" onclick="_setCapFilter('today')" style="font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;padding:3px 8px;border-radius:4px;cursor:pointer;min-height:44px;border:1px solid var(--teal2);background:rgba(61,138,122,.15);color:var(--teal2);touch-action:manipulation;">Today</button>
-          <button id="cap-btn-all" onclick="_setCapFilter('all')" style="font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;padding:3px 8px;border-radius:4px;cursor:pointer;min-height:44px;border:1px solid var(--border);background:none;color:var(--muted2);touch-action:manipulation;">All</button>
-          <input id="cap-search" type="text" placeholder="Search PSW..." oninput="_filterCapSearch(this.value)" style="font-family:var(--mono);font-size:11px;background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:3px 8px;border-radius:4px;outline:none;width:110px;">
-        </div>
-        <button onclick="openAddShift('','')" style="font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--teal2);background:rgba(61,138,122,.1);border:1px solid rgba(61,138,122,.3);border-radius:4px;padding:4px 10px;cursor:pointer;min-height:44px;margin-left:auto;touch-action:manipulation;">+ Shift</button>
-      </div>
-      <div id="cap-chips" style="display:flex;gap:6px;flex-wrap:wrap;">
-        ${psws.map(p => {
-          const hrs = _pswWeekHours(p.full_name);
-          const max = p.max_hours_per_week || 40;
-          const pct = Math.min(100, Math.round(hrs/max*100));
-          const col = pct>90?'var(--red)':pct>70?'var(--amber)':'var(--teal2)';
-          const isToday = _onShiftToday.has(p.full_name);
-          return '<div class="cap-chip" data-psw="'+(p.full_name||'').toLowerCase()+'" data-today="'+isToday+'" style="display:flex;align-items:center;gap:4px;background:var(--bg2);border:1px solid '+(isToday?'rgba(61,138,122,.4)':'var(--border)')+';border-radius:4px;padding:3px 8px;">'
-            +'<span style="font-size:11px;color:var(--muted2);font-family:var(--mono);">'+(p.full_name||'').split(' ')[0]+'</span>'
-            +'<div style="width:40px;height:4px;background:var(--bg4);border-radius:2px;overflow:hidden;"><div style="width:'+pct+'%;height:100%;background:'+col+';border-radius:2px;transition:width .3s;"></div></div>'
-            +'<span style="font-family:var(--mono);font-size:11px;color:'+col+';">'+hrs+'h</span>'
-            +'</div>';
-        }).join('')}
-      </div>
-    </div>`;
-  window._capFilter = 'today';
-
-  root.innerHTML = capBar + '<div id="fc-cal"></div>';
-
-  const calEl = document.getElementById('fc-cal');
-  if (!calEl || typeof FullCalendar === 'undefined') {
-    root.innerHTML += '<div style="padding:20px;font-family:var(--mono);font-size:11px;color:var(--muted);">Loading calendar...</div>';
-    return;
-  }
-
-  window._fc = new FullCalendar.Calendar(calEl, {
-    initialView: window.innerWidth < 600 ? 'listWeek' : window.innerWidth < 1024 ? 'timeGridDay' : 'timeGridWeek',
-    headerToolbar: {
-      left:   'prev,next today',
-      center: 'title',
-      right:  'timeGridWeek,listWeek'
-    },
-    height: 'auto',
-    slotMinTime: '05:00:00',
-    slotMaxTime: '23:00:00',
-    allDaySlot: false,
-    nowIndicator: true,
-    editable: true,
-    selectable: true,
-    selectMirror: true,
-    snapDuration: '00:15:00',
-    longPressDelay: 300,
-    selectLongPressDelay: 300,
-    events: _buildFCEvents(),
-    eventSources: [],
-
-    // Click empty slot → add shift pre-filled
-    select(info) {
-      const dateStr = info.startStr.slice(0,10);
-      const timeStr = info.startStr.slice(11,16) || '09:00';
-      openAddShift('', dateStr);
-      document.getElementById('ss-date').value = dateStr;
-      document.getElementById('ss-time').value = timeStr;
-      window._fc.unselect();
-    },
-
-    // Click event → show detail / edit
-    eventClick(info) {
-      const b = info.event.extendedProps.booking;
-      const v = info.event.extendedProps.visit;
-      if (b) {
-        _showShiftDetail(b, info.event.extendedProps);
-      } else if (v) {
-        // Visit event (manual or completed) — show a simple toast with details
-        const label = v.status === 'in_progress' ? 'Active visit' : v.booking_id ? 'Completed visit' : 'Manual visit';
-        const hrs = parseFloat(v.hours_worked||0).toFixed(1);
-        showToast(`${label}: ${v.client_name||'Client'} · ${v.psw_name||'PSW'} · ${v.visit_date} · ${hrs}h`, 'ok');
-      }
-    },
-
-    // Drag to reschedule
-    eventDrop(info) {
-      const b = info.event.extendedProps.booking;
-      if (!b) { info.revert(); return; }
-      const newDate = info.event.startStr.slice(0,10);
-      const newTime = info.event.startStr.slice(11,16);
-
-      // Check conflict before saving
-      const conflict = _detectDropConflict(b.id, b.assigned_to, newDate, newTime, b.duration_minutes||480);
-      if (conflict) {
-        _showConflictModal(conflict, b, newDate, newTime, info);
-        return;
-      }
-      _patchBooking(b.id, { scheduled_date: newDate, scheduled_time: newTime }, info);
-    },
-
-    // Style events
-    eventDidMount(info) {
-      const b = info.event.extendedProps.booking;
-      const v = info.event.extendedProps.visit;
-      if (!b && !v) return;
-      if (b && info.event.extendedProps.isLive) {
-        info.el.style.boxShadow = '0 0 0 2px #4a9a6e, 0 0 8px rgba(74,154,110,0.4)';
-        info.el.style.animation = 'livepulse 2s infinite';
-      }
-      if (info.event.extendedProps.isConflict) {
-        info.el.style.boxShadow = '0 0 0 2px #e05555';
-      }
-      // Tooltip
-      if (b) {
-        info.el.title = `${b.client_name||''} · ${b.assigned_to||'Unassigned'}\n${b.scheduled_date} ${b.scheduled_time}\n${(b.duration_minutes||60)/60}h`;
-      } else if (v) {
-        const vType = v.booking_id ? 'Completed' : 'Manual';
-        info.el.title = `${vType}: ${v.client_name||''} · ${v.psw_name||''}\n${v.visit_date} ${v.time_in||''}–${v.time_out||''}\n${parseFloat(v.hours_worked||0).toFixed(1)}h`;
-      }
-    },
-
-    // FullCalendar theme
-    themeSystem: 'standard',
-
-    // Fix 5 — datesSet: fetch bookings for the visible window when user navigates
-    // Prevents hitting the 200-row overview cap when viewing future months
-    async datesSet(info) {
-      const from = info.startStr.slice(0,10);
-      const to   = info.endStr.slice(0,10);
-      // Check if this window is already covered by D.bookings
-      const loaded = D.bookings || [];
-      const dates  = loaded.map(b => b.scheduled_date).filter(Boolean);
-      const minLoaded = dates.length ? dates.reduce((a,b) => a<b?a:b) : '';
-      const maxLoaded = dates.length ? dates.reduce((a,b) => a>b?a:b) : '';
-      if (minLoaded && maxLoaded && from >= minLoaded && to <= maxLoaded) return; // already have it
-      try {
-        const r = await fetch(`${API}/hq/bookings?operator_id=${currentOp}&from_date=${from}&to_date=${to}`, {
-          headers: { 'x-hq-token': window._hqToken || sessionStorage.getItem('hq_token') || '' }
-        });
-        const d = await r.json();
-        if (!d.success) return;
-        // Merge new bookings into D.bookings, deduplicating by id
-        const existing = new Map((D.bookings||[]).map(b => [b.id, b]));
-        d.bookings.forEach(b => existing.set(b.id, b));
-        D.bookings = Array.from(existing.values());
-        _refreshFC();
-      } catch(e) { /* silent — FC already shows loaded events */ }
-    }
-  });
-
-  window._fc.render();
-  _styleFC();
-  setTimeout(_applyCapFilter, 100); // Apply Today filter by default
+function _calChipColor(b, liveSet) {
+  if (b.status === 'cancelled') return {bg:'rgba(60,60,60,.5)',border:'#555',text:'#888'};
+  if (b.status === 'completed') return {bg:'rgba(30,58,78,.8)',border:'#3d6a8a',text:'#8ab4cc'};
+  if (liveSet && liveSet.has(b.client_name)) return {bg:'rgba(26,107,58,.9)',border:'#4a9a6e',text:'#a0e0b0'};
+  if (!b.assigned_to) return {bg:'rgba(80,50,10,.8)',border:'#c9a96e',text:'#e8c88a'};
+  return {bg:'rgba(20,60,55,.85)',border:'#3d8a7a',text:'#a0d4cc'};
 }
 
-function _refreshFC() {
-  if (!window._fc) return;
-  window._fc.removeAllEvents();
-  window._fc.addEventSource(_buildFCEvents());
-  _updateCapacityBars();
-}
+function _renderCustomCal() {
+  const el = document.getElementById('schedule-board');
+  if (!el) return;
 
-// ── UNIFIED SCHEDULE REFRESH ──
-// Always fetches correct bookings window before rendering
-function _refreshSched() {
-  if (schedHQView === 'grid') {
-    refreshGrid(); // fetches correct window then renders
-  } else {
-    _refreshFC();
-  }
-}
-
-function _pswWeekHours(pswName) {
   const bookings = D.bookings || [];
-  const today = new Date();
-  const dow = today.getDay()===0?6:today.getDay()-1;
-  const weekStart = new Date(today); weekStart.setDate(today.getDate()-dow);
-  const weekEnd   = new Date(weekStart); weekEnd.setDate(weekStart.getDate()+6);
-  const ws = weekStart.toLocaleDateString('en-CA',{timeZone:'America/Toronto'});
-  const we = weekEnd.toLocaleDateString('en-CA',{timeZone:'America/Toronto'});
-  return bookings
-    .filter(b=>(b.assigned_to||'').trim()===pswName.trim()&&b.scheduled_date>=ws&&b.scheduled_date<=we&&b.status!=='cancelled')
-    .reduce((sum,b)=>sum+(b.duration_minutes||60)/60,0);
-}
+  const visits   = D.visits   || [];
+  const psws     = (D.psws    || []).filter(p => p.status === 'active' || !p.status);
+  const clients  = (D.clients || []).filter(c => c.status === 'active' || !c.status);
+  const todayStr = new Date().toLocaleDateString('en-CA',{timeZone:'America/Toronto'});
+  const liveSet  = new Set(visits.filter(v=>v.status==='in_progress').map(v=>v.client_name));
 
-function _updateCapacityBars() {
-  const psws = D.psws || [];
+  // Days to show
+  const days = _calView === 'week' ? _calWeekDays(_calDate) : [new Date(_calDate)];
+  const dayStrs = days.map(_calDateStr);
+
+  const fmtShort = d => `${['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][d.getDay()]} ${d.getMonth()+1}/${d.getDate()}`;
+  const fmtMo = d => d.toLocaleDateString('en-US',{month:'short',day:'numeric'});
+
+  // Header range label
+  const rangeLabel = _calView === 'week'
+    ? `${fmtMo(days[0])} — ${fmtMo(days[6])}, ${days[0].getFullYear()}`
+    : days[0].toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});
+
+  // Bookings index by date
+  const byDate = {};
+  bookings.filter(b => b.status !== 'cancelled').forEach(b => {
+    if (!byDate[b.scheduled_date]) byDate[b.scheduled_date] = [];
+    byDate[b.scheduled_date].push(b);
+  });
+
+  // PSW sidebar data
+  const pswHours = {};
   psws.forEach(p => {
-    const hrs = _pswWeekHours(p.full_name);
-    const max = p.max_hours_per_week || 40;
-    const pct = Math.min(100,Math.round(hrs/max*100));
-    const col = pct>90?'var(--red)':pct>70?'var(--amber)':'var(--teal2)';
-    const name = (p.full_name||'').split(' ')[0];
-    // Update bar if exists
-    const bars = document.querySelectorAll('#fc-sidebar > div');
-    bars.forEach(bar => {
-      if (bar.textContent.includes(name)) {
-        const barInner = bar.querySelector('div > div');
-        if (barInner) { barInner.style.width = pct+'%'; barInner.style.background = col; }
-      }
+    const name = p.full_name || p.name || '';
+    const dayH = {};
+    dayStrs.forEach(ds => {
+      dayH[ds] = (byDate[ds]||[])
+        .filter(b => (b.assigned_to||'').trim() === name.trim())
+        .reduce((s,b) => s+(b.duration_minutes||60)/60, 0);
     });
+    pswHours[name] = dayH;
   });
-}
 
-function _setCapFilter(mode) {
-  window._capFilter = mode;
-  const todayBtn = document.getElementById('cap-btn-today');
-  const allBtn = document.getElementById('cap-btn-all');
-  const searchEl = document.getElementById('cap-search');
-  if (todayBtn) { todayBtn.style.background = mode==='today'?'rgba(61,138,122,.15)':'none'; todayBtn.style.borderColor = mode==='today'?'var(--teal2)':'var(--border)'; todayBtn.style.color = mode==='today'?'var(--teal2)':'var(--muted2)'; }
-  if (allBtn) { allBtn.style.background = mode==='all'?'rgba(61,138,122,.15)':'none'; allBtn.style.borderColor = mode==='all'?'var(--teal2)':'var(--border)'; allBtn.style.color = mode==='all'?'var(--teal2)':'var(--muted2)'; }
-  if (searchEl) searchEl.value = '';
-  document.querySelectorAll('.cap-chip').forEach(chip => {
-    if (mode === 'today') chip.style.display = chip.dataset.today === 'true' ? 'flex' : 'none';
-    else chip.style.display = 'flex';
+  // CLIENT sidebar data
+  const clientHours = {};
+  clients.forEach(c => {
+    const name = c.full_name || `${c.first_name||''} ${c.last_name||''}`.trim();
+    const dayH = {};
+    dayStrs.forEach(ds => {
+      dayH[ds] = (byDate[ds]||[])
+        .filter(b => (b.client_name||'').trim() === name.trim())
+        .reduce((s,b) => s+(b.duration_minutes||60)/60, 0);
+    });
+    clientHours[name] = dayH;
   });
-}
 
-function _filterCapSearch(q) {
-  const term = (q||'').toLowerCase().trim();
-  document.querySelectorAll('.cap-chip').forEach(chip => {
-    chip.style.display = !term || chip.dataset.psw.includes(term) ? 'flex' : 'none';
+  // ── HTML ──
+  let h = `
+  <style>
+  .xcal-wrap{display:flex;flex-direction:column;height:100%;background:var(--bg);}
+  .xcal-header{display:flex;align-items:center;gap:8px;padding:8px 12px;flex-shrink:0;background:var(--bg2);border-bottom:1px solid var(--border);}
+  .xcal-nav-btn{font-family:var(--mono);font-size:14px;padding:4px 10px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r6);color:var(--muted2);cursor:pointer;min-height:32px;touch-action:manipulation;}
+  .xcal-range{font-family:var(--mono);font-size:11px;color:var(--text);flex:1;text-align:center;letter-spacing:.5px;}
+  .xcal-view-btn{font-family:var(--mono);font-size:10px;letter-spacing:1px;padding:4px 8px;border:1px solid var(--border);border-radius:var(--r6);cursor:pointer;min-height:32px;touch-action:manipulation;}
+  .xcal-view-btn.active{background:rgba(61,138,122,.15);border-color:rgba(61,138,122,.3);color:var(--teal2);}
+  .xcal-view-btn:not(.active){background:none;color:var(--muted2);}
+  .xcal-axis-btn{font-family:var(--mono);font-size:10px;letter-spacing:1px;padding:4px 8px;border:1px solid var(--border);cursor:pointer;min-height:32px;touch-action:manipulation;}
+  .xcal-axis-btn.active{background:rgba(61,138,122,.15);color:var(--teal2);}
+  .xcal-axis-btn:not(.active){background:none;color:var(--muted2);}
+  .xcal-body{display:flex;flex:1;min-height:0;overflow:hidden;}
+  .xcal-sidebar{width:200px;flex-shrink:0;overflow-y:auto;border-right:1px solid var(--border);background:var(--bg2);}
+  .xcal-sidebar-head{padding:6px 10px;font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border);display:flex;justify-content:space-between;}
+  .xcal-sidebar-row{display:flex;align-items:center;padding:6px 10px;border-bottom:1px solid rgba(201,169,110,.05);cursor:pointer;transition:background .1s;gap:6px;}
+  .xcal-sidebar-row:hover{background:rgba(61,138,122,.06);}
+  .xcal-sb-av{width:24px;height:24px;border-radius:50%;background:var(--bg3);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:9px;color:var(--teal2);flex-shrink:0;}
+  .xcal-sb-name{font-size:11px;color:var(--text);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .xcal-sb-hrs{font-family:var(--mono);font-size:10px;color:var(--muted2);flex-shrink:0;}
+  .xcal-grid{flex:1;overflow:auto;-webkit-overflow-scrolling:touch;}
+  .xcal-grid-inner{display:flex;position:relative;min-width:500px;}
+  .xcal-time-col{width:44px;flex-shrink:0;position:sticky;left:0;z-index:10;background:var(--bg2);}
+  .xcal-time-label{height:60px;display:flex;align-items:flex-start;justify-content:flex-end;padding:2px 6px 0 0;font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:.5px;}
+  .xcal-days-wrap{flex:1;display:flex;position:relative;}
+  .xcal-day-col{flex:1;border-left:1px solid var(--border);position:relative;min-width:80px;}
+  .xcal-day-head{height:32px;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:10px;letter-spacing:1px;color:var(--muted2);position:sticky;top:0;z-index:5;background:var(--bg2);border-bottom:1px solid var(--border);}
+  .xcal-day-head.is-today{color:var(--teal2);background:rgba(61,138,122,.08);}
+  .xcal-hour-row{height:60px;border-bottom:1px solid rgba(201,169,110,.04);position:relative;cursor:pointer;}
+  .xcal-hour-row:hover{background:rgba(61,138,122,.03);}
+  .xcal-block{position:absolute;left:2px;right:2px;border-radius:4px;padding:2px 4px;cursor:pointer;overflow:hidden;font-size:10px;line-height:1.3;border-left:2px solid;transition:opacity .1s;z-index:2;}
+  .xcal-block:hover{opacity:.85;z-index:3;}
+  .xcal-block-client{font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .xcal-block-psw{opacity:.75;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .xcal-block-time{opacity:.6;font-size:9px;font-family:var(--mono);}
+  .xcal-half-line{position:absolute;left:0;right:0;border-top:1px dashed rgba(201,169,110,.06);top:50%;}
+  </style>
+
+  <div class="xcal-wrap">
+    <div class="xcal-header">
+      <button class="xcal-nav-btn" onclick="_calNav(-1)">‹</button>
+      <span class="xcal-range">${rangeLabel}</span>
+      <button class="xcal-nav-btn" onclick="_calNav(1)">›</button>
+      <button class="xcal-nav-btn" onclick="_calGoToday()" style="font-size:10px;letter-spacing:1px;">Today</button>
+      <div style="display:flex;border:1px solid var(--border);border-radius:var(--r6);overflow:hidden;margin-left:4px;">
+        <button class="xcal-view-btn ${_calView==='day'?'active':''}" onclick="_calSetView('day')">Day</button>
+        <button class="xcal-view-btn ${_calView==='week'?'active':''}" onclick="_calSetView('week')" style="border-left:1px solid var(--border);">Week</button>
+      </div>
+      <div style="display:flex;border:1px solid var(--border);border-radius:var(--r6);overflow:hidden;margin-left:4px;">
+        <button class="xcal-axis-btn ${_calAxis==='psw'?'active':''}" onclick="_calSetAxis('psw')">PSW</button>
+        <button class="xcal-axis-btn ${_calAxis==='client'?'active':''}" onclick="_calSetAxis('client')" style="border-left:1px solid var(--border);">Client</button>
+      </div>
+      <button onclick="openAddShift('','')" style="font-family:var(--mono);font-size:10px;letter-spacing:1px;padding:4px 10px;background:rgba(61,138,122,.15);border:1px solid rgba(61,138,122,.3);border-radius:var(--r6);color:var(--teal2);cursor:pointer;min-height:32px;touch-action:manipulation;margin-left:4px;">+ Shift</button>
+    </div>
+    <div class="xcal-body">
+      <!-- Sidebar -->
+      <div class="xcal-sidebar">
+        <div class="xcal-sidebar-head">
+          <span>${_calAxis === 'psw' ? 'PSW' : 'Client'}</span>
+          <span>${_calView==='week' ? 'Week hrs' : 'Day hrs'}</span>
+        </div>`;
+
+  // Sidebar rows
+  if (_calAxis === 'psw') {
+    psws.forEach(p => {
+      const name = p.full_name || p.name || '';
+      const initials = name.split(' ').map(n=>n[0]||'').join('').toUpperCase().slice(0,2);
+      const totalH = Object.values(pswHours[name]||{}).reduce((s,v)=>s+v,0);
+      const dayH = _calView==='day' ? (pswHours[name]?.[dayStrs[0]]||0) : totalH;
+      const hasShifts = dayH > 0;
+      h += `<div class="xcal-sidebar-row" onclick="openHoursPanel('psw','${escHtml(name)}')" title="View ${escHtml(name)} hours">
+        <div class="xcal-sb-av" style="${hasShifts?'border-color:rgba(61,138,122,.4);color:var(--teal2)':''}">${initials}</div>
+        <span class="xcal-sb-name">${escHtml(name.split(' ')[0])}</span>
+        <span class="xcal-sb-hrs" style="${hasShifts?'color:var(--teal2)':''}">${dayH.toFixed(1)}h</span>
+      </div>`;
+    });
+  } else {
+    clients.forEach(c => {
+      const name = c.full_name || `${c.first_name||''} ${c.last_name||''}`.trim();
+      const initials = name.split(' ').map(n=>n[0]||'').join('').toUpperCase().slice(0,2);
+      const totalH = Object.values(clientHours[name]||{}).reduce((s,v)=>s+v,0);
+      const dayH = _calView==='day' ? (clientHours[name]?.[dayStrs[0]]||0) : totalH;
+      const hasCoverage = dayH > 0;
+      h += `<div class="xcal-sidebar-row" onclick="openHoursPanel('client','${escHtml(name)}')" title="View ${escHtml(name)} schedule">
+        <div class="xcal-sb-av" style="${hasCoverage?'border-color:rgba(61,138,122,.4)':''}">${initials}</div>
+        <span class="xcal-sb-name">${escHtml(name.split(' ')[0])}</span>
+        <span class="xcal-sb-hrs" style="${hasCoverage?'color:var(--teal2)':'color:var(--red)'}">${hasCoverage?dayH.toFixed(1)+'h':'—'}</span>
+      </div>`;
+    });
+  }
+
+  h += `</div><!-- end sidebar -->
+      <div class="xcal-grid">
+        <div class="xcal-grid-inner">
+          <!-- Time column -->
+          <div class="xcal-time-col">
+            <div style="height:32px;"></div>`; // spacer for day header
+  for (let hour = CAL_START; hour < CAL_END; hour++) {
+    const label = hour === 0 ? '12am' : hour < 12 ? `${hour}am` : hour === 12 ? '12pm' : `${hour-12}pm`;
+    h += `<div class="xcal-time-label">${label}</div>`;
+  }
+  h += `</div><!-- end time col -->
+          <div class="xcal-days-wrap">`;
+
+  // Day columns
+  days.forEach((day, di) => {
+    const ds = dayStrs[di];
+    const isToday = ds === todayStr;
+    const dayBookings = (byDate[ds]||[]).filter(b => b.status !== 'cancelled');
+
+    h += `<div class="xcal-day-col">
+      <div class="xcal-day-head ${isToday?'is-today':''}">${fmtShort(day)}</div>`;
+
+    // Hour rows (click to add shift)
+    for (let hour = CAL_START; hour < CAL_END; hour++) {
+      const timeStr = `${String(hour).padStart(2,'0')}:00`;
+      h += `<div class="xcal-hour-row" onclick="_calClickSlot('${ds}','${timeStr}')">
+        <div class="xcal-half-line"></div>
+      </div>`;
+    }
+
+    // Shift blocks (absolutely positioned)
+    dayBookings.forEach(b => {
+      const startMins = _toMinsFromMidnight(b.scheduled_time);
+      const durMins   = b.duration_minutes || 60;
+      // Only show within our window
+      if (startMins < CAL_START*60 || startMins >= CAL_END*60) return;
+      const style = _calBlockStyle(startMins, durMins, CAL_HOURS);
+      const col   = _calChipColor(b, liveSet);
+      const label = _calAxis === 'psw'
+        ? `<div class="xcal-block-client">${escHtml((b.client_name||'?').split(' ')[0])}</div><div class="xcal-block-psw">${escHtml((b.assigned_to||'Open').split(' ')[0])}</div>`
+        : `<div class="xcal-block-client">${escHtml((b.assigned_to||'Open').split(' ')[0])}</div><div class="xcal-block-psw">${escHtml((b.client_name||'?').split(' ')[0])}</div>`;
+      const timeLabel = b.scheduled_time ? `<div class="xcal-block-time">${b.scheduled_time.slice(0,5)}</div>` : '';
+      h += `<div class="xcal-block"
+        style="${style}background:${col.bg};border-color:${col.border};color:${col.text};"
+        onclick="event.stopPropagation();_showShiftDetail(${JSON.stringify(b).replace(/"/g,'&quot;')},{})"
+        title="${escHtml(b.client_name||'')} · ${escHtml(b.assigned_to||'Unassigned')} · ${b.scheduled_time||''}"
+      >${label}${timeLabel}</div>`;
+    });
+
+    h += `</div><!-- end day col -->`;
   });
-  // update filter buttons to show neither active when searching
-  const todayBtn = document.getElementById('cap-btn-today');
-  const allBtn = document.getElementById('cap-btn-all');
-  if (todayBtn) { todayBtn.style.background='none'; todayBtn.style.borderColor='var(--border)'; todayBtn.style.color='var(--muted2)'; }
-  if (allBtn) { allBtn.style.background='none'; allBtn.style.borderColor='var(--border)'; allBtn.style.color='var(--muted2)'; }
+
+  h += `</div><!-- end days-wrap -->
+        </div><!-- end grid-inner -->
+      </div><!-- end grid -->
+    </div><!-- end body -->
+  </div><!-- end xcal-wrap -->`;
+
+  el.innerHTML = h;
+
+  // Scroll to current time on day view or to 7am on week view
+  const scrollTarget = _calView === 'day' ? Math.max(0, new Date().getHours() - 1) : 7;
+  const gridEl = el.querySelector('.xcal-grid');
+  if (gridEl) {
+    const rowH = 60; // px per hour
+    setTimeout(() => {
+      gridEl.scrollTop = (scrollTarget - CAL_START) * rowH + 32; // +32 for header
+    }, 0);
+  }
 }
 
-function _applyCapFilter() {
-  const f = window._capFilter || 'today';
-  _setCapFilter(f);
+function _calNav(dir) {
+  const d = new Date(_calDate);
+  if (_calView === 'week') d.setDate(d.getDate() + dir * 7);
+  else d.setDate(d.getDate() + dir);
+  _calDate = d;
+  _renderCustomCal();
 }
 
-function _detectDropConflict(bookingId, pswName, newDate, newTime, durMins) {
-  if (!pswName) return null;
+function _calGoToday() { _calDate = new Date(); _renderCustomCal(); }
+
+function _calSetView(v) { _calView = v; _renderCustomCal(); }
+
+function _calSetAxis(v) { _calAxis = v; _renderCustomCal(); }
+
+function _calClickSlot(dateStr, timeStr) {
+  openAddShift('', dateStr);
+  setTimeout(() => {
+    const sd = document.getElementById('ss-date');
+    const st = document.getElementById('ss-time');
+    if (sd) sd.value = dateStr;
+    if (st) st.value = timeStr;
+  }, 100);
+}
+
+// ── HOURS PANEL — PSW or Client hours drill-down ─────────────────────
+// Triggered from any name click in HQ. Shows hours by period + timeline.
+
+let _hpType = 'psw'; // 'psw' | 'client'
+let _hpName = '';
+let _hpPeriod = 'week'; // 'today' | 'week' | 'lastweek' | 'month' | 'year'
+
+function openHoursPanel(type, name) {
+  _hpType = type;
+  _hpName = name;
+  _hpPeriod = 'week';
+  _renderHoursPanel();
+  const panel = document.getElementById('hours-panel');
+  const overlay = document.getElementById('hours-overlay');
+  if (panel) panel.style.transform = 'translateY(0)';
+  if (overlay) overlay.style.display = 'block';
+}
+
+function closeHoursPanel() {
+  const panel = document.getElementById('hours-panel');
+  const overlay = document.getElementById('hours-overlay');
+  if (panel) panel.style.transform = 'translateY(100%)';
+  if (overlay) overlay.style.display = 'none';
+}
+
+function _hpDateRange(period) {
+  const today = new Date();
+  const todayStr = _calDateStr(today);
+  const dow = (today.getDay() + 6) % 7;
+
+  if (period === 'today') {
+    return { from: todayStr, to: todayStr, label: 'Today' };
+  }
+  if (period === 'week') {
+    const ws = new Date(today); ws.setDate(today.getDate() - dow);
+    const we = new Date(ws); we.setDate(ws.getDate() + 6);
+    return { from: _calDateStr(ws), to: _calDateStr(we), label: 'This Week' };
+  }
+  if (period === 'lastweek') {
+    const ws = new Date(today); ws.setDate(today.getDate() - dow - 7);
+    const we = new Date(ws); we.setDate(ws.getDate() + 6);
+    return { from: _calDateStr(ws), to: _calDateStr(we), label: 'Last Week' };
+  }
+  if (period === 'month') {
+    const ms = new Date(today.getFullYear(), today.getMonth(), 1);
+    const me = new Date(today.getFullYear(), today.getMonth()+1, 0);
+    return { from: _calDateStr(ms), to: _calDateStr(me), label: 'This Month' };
+  }
+  if (period === 'year') {
+    const ys = new Date(today.getFullYear(), 0, 1);
+    const ye = new Date(today.getFullYear(), 11, 31);
+    return { from: _calDateStr(ys), to: _calDateStr(ye), label: 'This Year' };
+  }
+  return { from: todayStr, to: todayStr, label: 'Today' };
+}
+
+function _renderHoursPanel() {
+  const panel = document.getElementById('hours-panel-body');
+  if (!panel) return;
+
+  const { from, to } = _hpDateRange(_hpPeriod);
   const bookings = D.bookings || [];
-  const newStart = toMins(newTime);
-  const newEnd   = newStart + durMins;
-  for (const b of bookings) {
-    if (b.id===bookingId||b.assigned_to!==pswName||b.scheduled_date!==newDate||b.status==='cancelled') continue;
-    const bs = toMins(b.scheduled_time);
-    const be = bs + (b.duration_minutes||480);
-    if (newStart<be && bs<newEnd) {
-      return { conflictingBooking: b, reason: `${pswName} is already assigned to ${b.client_name||'another client'} from ${b.scheduled_time} (${(b.duration_minutes||60)/60}h)` };
-    }
-  }
-  return null;
-}
+  const visits   = D.visits   || [];
 
-function _showConflictModal(conflict, booking, newDate, newTime, fcInfo) {
-  const m = document.getElementById('conflict-modal');
-  if (!m) { fcInfo.revert(); return; }
-  document.getElementById('cm-reason').textContent   = conflict.reason;
-  document.getElementById('cm-booking').textContent  = `Moving: ${booking.client_name} · ${newDate} ${newTime}`;
-  document.getElementById('cm-conflict').textContent = `Conflict: ${conflict.conflictingBooking.client_name} · ${conflict.conflictingBooking.scheduled_time}`;
-  m.style.display = 'flex';
-  // Override button — save anyway
-  document.getElementById('cm-override').onclick = async () => {
-    m.style.display = 'none';
-    await _patchBooking(booking.id, { scheduled_date: newDate, scheduled_time: newTime }, fcInfo);
+  // Filter bookings for this person + period
+  const relevant = bookings.filter(b => {
+    if (b.status === 'cancelled') return false;
+    if (b.scheduled_date < from || b.scheduled_date > to) return false;
+    if (_hpType === 'psw') return (b.assigned_to||'').trim() === _hpName.trim();
+    return (b.client_name||'').trim() === _hpName.trim();
+  }).sort((a,b) => a.scheduled_date.localeCompare(b.scheduled_date) || (a.scheduled_time||'').localeCompare(b.scheduled_time||''));
+
+  // Also pull visits for completed hours
+  const relevantVisits = visits.filter(v => {
+    if (!v.visit_date || v.visit_date < from || v.visit_date > to) return false;
+    if (_hpType === 'psw') return (v.psw_name||'').trim() === _hpName.trim();
+    return (v.client_name||'').trim() === _hpName.trim();
+  });
+
+  // Hours totals
+  const scheduledH = relevant.filter(b => b.status !== 'completed')
+    .reduce((s,b) => s+(b.duration_minutes||60)/60, 0);
+  const completedH = relevant.filter(b => b.status === 'completed')
+    .reduce((s,b) => s+(b.duration_minutes||60)/60, 0)
+    + relevantVisits.reduce((s,v) => s+parseFloat(v.hours_worked||0), 0);
+  const totalH = scheduledH + completedH;
+
+  // Status icon
+  const sIcon = b => {
+    if (b.status === 'completed') return '✅';
+    if (!b.assigned_to) return '🔴';
+    const isLive = visits.some(v => v.status==='in_progress' && (v.client_name===b.client_name));
+    if (isLive) return '🟢';
+    return '🔵';
   };
-  // Cancel — revert drag
-  document.getElementById('cm-cancel').onclick = () => {
-    m.style.display = 'none';
-    fcInfo.revert();
+
+  const fmtDate = ds => {
+    const d = new Date(ds+'T12:00:00');
+    return d.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
   };
-}
 
-async function _patchBooking(id, updates, fcInfo) {
-  try {
-    const res = await fetch(`${API}/hq/booking/${id}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json', 'x-hq-token': window._hqToken || sessionStorage.getItem('hq_token') || '' },
-      body: JSON.stringify({ operator_id: currentOp, ...updates })
+  const fmtDur = mins => {
+    const h = Math.floor(mins/60);
+    const m = mins%60;
+    return m ? `${h}h ${m}m` : `${h}h`;
+  };
+
+  // Period buttons
+  const periods = [
+    ['today','Today'],['week','This Week'],['lastweek','Last Week'],
+    ['month','Month'],['year','Year']
+  ];
+  const periodBtns = periods.map(([id,label]) =>
+    `<button onclick="_hpPeriod='${id}';_renderHoursPanel()"
+      style="font-family:var(--mono);font-size:10px;letter-spacing:1px;padding:5px 10px;border-radius:var(--r6);cursor:pointer;min-height:32px;touch-action:manipulation;
+      border:1px solid ${_hpPeriod===id?'rgba(61,138,122,.4)':'var(--border)'};
+      background:${_hpPeriod===id?'rgba(61,138,122,.15)':'none'};
+      color:${_hpPeriod===id?'var(--teal2)':'var(--muted2)'};">${label}</button>`
+  ).join('');
+
+  // Group by date
+  const byDate = {};
+  relevant.forEach(b => {
+    if (!byDate[b.scheduled_date]) byDate[b.scheduled_date] = [];
+    byDate[b.scheduled_date].push(b);
+  });
+
+  let rows = '';
+  if (relevant.length === 0) {
+    rows = `<div style="padding:20px;text-align:center;font-family:var(--mono);font-size:12px;color:var(--muted);">No shifts in this period</div>`;
+  } else {
+    Object.keys(byDate).sort().forEach(ds => {
+      const dayBookings = byDate[ds];
+      const dayH = dayBookings.reduce((s,b)=>s+(b.duration_minutes||60)/60,0);
+      rows += `<div style="padding:8px 16px 4px;font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);display:flex;justify-content:space-between;border-top:1px solid var(--border);">
+        <span>${fmtDate(ds)}</span><span>${dayH.toFixed(1)}h</span>
+      </div>`;
+      dayBookings.forEach(b => {
+        const counterpart = _hpType === 'psw' ? (b.client_name||'—') : (b.assigned_to||'Unassigned');
+        const dur = b.duration_minutes || 60;
+        const endMins = _toMinsFromMidnight(b.scheduled_time) + dur;
+        const endH = Math.floor(endMins/60);
+        const endM = endMins%60;
+        const endStr = `${String(endH).padStart(2,'0')}:${String(endM).padStart(2,'0')}`;
+        rows += `<div onclick="_showShiftDetail(${JSON.stringify(b).replace(/"/g,'&quot;')},{})"
+          style="display:flex;align-items:center;gap:10px;padding:8px 16px;cursor:pointer;transition:background .1s;"
+          onmouseover="this.style.background='rgba(61,138,122,.05)'" onmouseout="this.style.background=''">
+          <span style="font-size:14px;">${sIcon(b)}</span>
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:12px;color:var(--text);font-weight:500;">${escHtml(counterpart)}</div>
+            <div style="font-family:var(--mono);font-size:10px;color:var(--muted2);">${b.scheduled_time||'?'} — ${endStr} · ${fmtDur(dur)}</div>
+          </div>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" opacity=".3"><polyline points="9 18 15 12 9 6"/></svg>
+        </div>`;
+      });
     });
-    const d = await res.json();
-    if (!d.success) throw new Error(d.error||'Failed');
-    showToast('Shift updated ✓', 'ok');
-    // Optimistic update — patch in D.bookings immediately
-    const idx = (D.bookings||[]).findIndex(b => b.id === id);
-    if (idx >= 0) D.bookings[idx] = { ...D.bookings[idx], ...updates };
-    // Fetch correct bookings window then refresh stats
-    await _fetchGridBookings(true);
-    try {
-      const freshRes = await fetch(`${API}/hq/overview?operator_id=${currentOp}`, { headers: { 'x-hq-token': window._hqToken || sessionStorage.getItem('hq_token') || '' } });
-      const freshD = await freshRes.json();
-      if (freshD.success) { const sb = D.bookings; D = freshD; D.bookings = sb; _mergedPSWCache = null; }
-    } catch(e) {}
-    _refreshSched();
-    renderVacantVisits();
-    renderStats();
-    // Notify affected PSW — use d.assigned_to (PATCH response field name)
-    const pswToNotify = updates.assigned_to || d.booking?.assigned_to || d.assigned_to ||
-      (D.bookings||[]).find(b => b.id === id)?.assigned_to;
-    if (pswToNotify) {
-      const _newDate = updates.scheduled_date || d.scheduled_date || '';
-      const _newTime = updates.scheduled_time || d.scheduled_time || '';
-      const _pmsg = updates.assigned_to
-        ? `A shift has been reassigned to you${_newDate ? ' on ' + _newDate : ''}. Check your schedule.`
-        : `Schedule change: your shift${_newDate ? ' on ' + _newDate : ''}${_newTime ? ' at ' + _newTime : ''} has been updated. Check your portal.`;
-      fetch(`${API}/psw/note`, {
-        method: 'POST', headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({ psw_name: pswToNotify, sender: 'lance', message: _pmsg, operator_id: currentOp })
-      }).catch(() => {});
-      // Update toast to confirm notification
-      setTimeout(() => showToast(`Notified ${pswToNotify.split(' ')[0]} ✓`, 'ok'), 400);
-    }
-  } catch(e) {
-    showToast(e.message, 'err');
-    if (fcInfo?.revert) fcInfo.revert();
   }
-}
 
-async function _sendShiftReminder() {
-  const btn = document.getElementById('sd-reminder-btn');
-  if (!btn) return;
-  const bookingId = window._sdBookingId;
-  if (!bookingId) { showToast('No shift selected', 'err'); return; }
-  const orig = btn.innerHTML;
-  btn.innerHTML = '⏳ Sending...';
-  btn.disabled = true;
-  try {
-    const r = await fetch(`${API}/hq/shift-reminder-today`, {
-      method: 'POST',
-      headers: hqHeaders(),
-      body: JSON.stringify({ operator_id: currentOp, booking_id: bookingId })
-    });
-    const d = await r.json();
-    if (!d.success) throw new Error(d.error || 'Failed');
-    if (d.sent > 0) {
-      showToast('Reminder sent ✓', 'ok');
-      btn.innerHTML = '✓ Sent';
-      setTimeout(() => { btn.innerHTML = orig; btn.disabled = false; }, 3000);
-    } else {
-      showToast('PSW has no email on file', 'err');
-      btn.innerHTML = orig; btn.disabled = false;
-    }
-  } catch(e) {
-    showToast(e.message || 'Error sending reminder', 'err');
-    btn.innerHTML = orig; btn.disabled = false;
-  }
-}
+  const initials = _hpName.split(' ').map(n=>n[0]||'').join('').toUpperCase().slice(0,2);
+  const typeLabel = _hpType === 'psw' ? 'PSW' : 'Client';
 
+  panel.innerHTML = `
+    <div style="display:flex;align-items:center;gap:10px;padding:16px 16px 12px;">
+      <div style="width:36px;height:36px;border-radius:50%;background:var(--bg3);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:12px;color:var(--teal2);flex-shrink:0;">${escHtml(initials)}</div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:14px;font-weight:500;color:var(--text);">${escHtml(_hpName)}</div>
+        <div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;">${typeLabel}</div>
+      </div>
+      <button onclick="closeHoursPanel()" style="width:32px;height:32px;background:var(--bg3);border:1px solid var(--border);border-radius:50%;color:var(--muted2);cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;">✕</button>
+    </div>
+    <div style="display:flex;gap:6px;padding:0 16px 12px;flex-wrap:wrap;">${periodBtns}</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:1px;background:var(--border);margin:0 16px 12px;border-radius:var(--r10);overflow:hidden;">
+      <div style="background:var(--bg2);padding:10px 12px;text-align:center;">
+        <div style="font-family:var(--mono);font-size:18px;font-weight:600;color:var(--text);">${totalH.toFixed(1)}h</div>
+        <div style="font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-top:2px;">Total</div>
+      </div>
+      <div style="background:var(--bg2);padding:10px 12px;text-align:center;">
+        <div style="font-family:var(--mono);font-size:18px;font-weight:600;color:var(--teal2);">${completedH.toFixed(1)}h</div>
+        <div style="font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-top:2px;">Done</div>
+      </div>
+      <div style="background:var(--bg2);padding:10px 12px;text-align:center;">
+        <div style="font-family:var(--mono);font-size:18px;font-weight:600;color:var(--amber);">${scheduledH.toFixed(1)}h</div>
+        <div style="font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-top:2px;">Upcoming</div>
+      </div>
+    </div>
+    <div style="flex:1;overflow-y:auto;">${rows}</div>
+  `;
+}
 function _showShiftDetail(b, props) {
   const m = document.getElementById('shift-detail-modal');
   if (!m) { openEditShift(b.id); return; }
-
   const dur = (b.duration_minutes||60)/60;
   const isLive = props.isLive;
   const isConflict = props.isConflict;
-
   const _elTitle = document.getElementById('sd-title');
   const _elPsw   = document.getElementById('sd-psw');
   const _elDate  = document.getElementById('sd-date');
@@ -6259,14 +6231,9 @@ function _showShiftDetail(b, props) {
   const _elConflictMsg = document.getElementById('sd-conflict-msg');
   const _elEdit  = document.getElementById('sd-edit');
   const _elClose = document.getElementById('sd-close');
-
   if (_elTitle)  _elTitle.textContent  = b.client_name || 'Shift';
   if (_elPsw)    _elPsw.textContent    = b.assigned_to || 'Unassigned';
-
-  // PSW phone — look up from D.psws
-  const _sdPSW = (D.psws || []).find(p =>
-    (p.name || p.full_name || '').trim() === (b.assigned_to || '').trim()
-  );
+  const _sdPSW = (D.psws || []).find(p => (p.name || p.full_name || '').trim() === (b.assigned_to || '').trim());
   const _sdPhone = _sdPSW?.phone || '';
   const contactRow = document.getElementById('sd-psw-contact');
   const phoneLink  = document.getElementById('sd-psw-phone-link');
@@ -6280,7 +6247,7 @@ function _showShiftDetail(b, props) {
   const _sdEndMins = _sdStartMins + (b.duration_minutes || 60);
   const _sdEndH = Math.floor(_sdEndMins/60)%24;
   const _sdEndM = _sdEndMins%60;
-  const _sdEndFmt = ((_sdEndH%12)||12)+':'+String(_sdEndM).padStart(2,'0')+(_sdEndH>=12?' p.m.':', a.m.');
+  const _sdEndFmt = ((_sdEndH%12)||12)+':'+String(_sdEndM).padStart(2,'0')+(_sdEndH>=12?' p.m.':' a.m.');
   if (_elDate)   _elDate.textContent   = b.scheduled_date+' · '+fmtTime(b.scheduled_time||'09:00')+' → '+_sdEndFmt+' ('+dur+'h)';
   if (_elStatus) _elStatus.textContent = isLive ? '● Live now' : isConflict ? '⚠ Conflict' : b.status||'scheduled';
   if (_elConflictRow) _elConflictRow.style.display = isConflict ? 'block' : 'none';
@@ -6288,12 +6255,9 @@ function _showShiftDetail(b, props) {
     const conflict = _detectDropConflict(b.id, b.assigned_to, b.scheduled_date, b.scheduled_time, b.duration_minutes||480);
     _elConflictMsg.textContent = conflict?.reason || 'Schedule conflict detected';
   }
-
   window._sdBookingId = b.id;
   const broadcastRow = document.getElementById('sd-broadcast-row');
   if (broadcastRow) broadcastRow.style.display = (!b.assigned_to||b.assigned_to==='') ? 'block' : 'none';
-
-  // Series row — show if this booking has a series_id
   const seriesRow = document.getElementById('sd-series-row');
   if (seriesRow) {
     if (b.series_id) {
@@ -6304,58 +6268,25 @@ function _showShiftDetail(b, props) {
       if (cancelThis) cancelThis.dataset.bookingId = b.id;
       if (cancelFuture) { cancelFuture.dataset.bookingId = b.id; cancelFuture.dataset.seriesId = b.series_id; }
       if (swapBtn) swapBtn.dataset.psw = b.assigned_to || '';
-    } else {
-      seriesRow.style.display = 'none';
-    }
+    } else { seriesRow.style.display = 'none'; }
   }
-
-  // Wire delete button via data-attribute (no inline onclick with dynamic id)
   const delBtn = document.getElementById('sd-delete');
   if (delBtn) delBtn.dataset.bookingId = b.id;
-
   if (_elEdit)  _elEdit.onclick  = () => { m.style.display='none'; openEditShift(b.id); };
   if (_elClose) _elClose.onclick = () => { m.style.display='none'; };
   m.style.display = 'flex';
 }
 
-function _styleFC() {
-  const style = document.createElement('style');
-  style.textContent = `
-    .fc { font-family: 'DM Mono', monospace !important; }
-    .fc-toolbar-title { font-family: 'DM Sans', sans-serif !important; font-size: 14px !important; font-weight: 500 !important; color: #e8e4dc !important; letter-spacing: 1px; }
-    .fc-button { font-family: 'DM Mono', monospace !important; font-size: 9px !important; letter-spacing: 1.5px !important; text-transform: uppercase !important; background: #0d1117 !important; border: 1px solid rgba(61,138,122,.25) !important; color: rgba(232,228,220,.7) !important; padding: 5px 10px !important; border-radius: 4px !important; box-shadow: none !important; transition: all .2s !important; }
-    .fc-button:hover { border-color: #5aada0 !important; color: #5aada0 !important; background: rgba(61,138,122,.08) !important; }
-    .fc-button-active, .fc-button-primary:not(:disabled).fc-button-active { background: rgba(61,138,122,.15) !important; border-color: #5aada0 !important; color: #5aada0 !important; }
-    .fc-button:disabled { opacity: .35 !important; }
-    .fc-scrollgrid { border-color: rgba(61,138,122,.12) !important; }
-    .fc-scrollgrid td, .fc-scrollgrid th { border-color: rgba(61,138,122,.12) !important; }
-    .fc-col-header-cell { background: #0d1117 !important; }
-    .fc-col-header-cell-cushion { font-family: 'DM Mono', monospace !important; font-size: 9px !important; letter-spacing: 2px !important; text-transform: uppercase !important; color: rgba(232,228,220,.5) !important; padding: 6px 4px !important; text-decoration: none !important; }
-    .fc-timegrid-slot-label-cushion { font-family: 'DM Mono', monospace !important; font-size: 8px !important; color: rgba(232,228,220,.35) !important; letter-spacing: 1px !important; }
-    .fc-daygrid-day-number { font-family: 'DM Mono', monospace !important; font-size: 10px !important; color: rgba(232,228,220,.5) !important; text-decoration: none !important; }
-    .fc-day-today { background: rgba(61,138,122,.05) !important; }
-    .fc-day-today .fc-col-header-cell-cushion { color: #5aada0 !important; }
-    .fc-now-indicator-line { border-color: #5aada0 !important; border-width: 2px !important; }
-    .fc-event { border-radius: 4px !important; font-size: 10px !important; padding: 2px 4px !important; cursor: pointer !important; }
-    .fc-event-title { font-family: 'DM Mono', monospace !important; font-size: 9px !important; letter-spacing: .5px !important; overflow: hidden !important; text-overflow: ellipsis !important; }
-    .fc-event-time { font-family: 'DM Mono', monospace !important; font-size: 8px !important; opacity: .7 !important; }
-    .fc-highlight { background: rgba(61,138,122,.15) !important; }
-    .fc-list-event { background: transparent !important; }
-    .fc-list-event-title a { color: #e8e4dc !important; font-family: 'DM Mono', monospace !important; font-size: 11px !important; text-decoration: none !important; }
-    .fc-list-day-cushion { background: #0d1117 !important; }
-    .fc-list-day-text, .fc-list-day-side-text { color: rgba(232,228,220,.5) !important; font-family: 'DM Mono', monospace !important; font-size: 9px !important; letter-spacing: 2px !important; text-transform: uppercase !important; text-decoration: none !important; }
-    .fc-list-empty { color: rgba(232,228,220,.35) !important; font-family: 'DM Mono', monospace !important; font-size: 11px !important; }
-    .fc-toolbar { flex-wrap: wrap !important; gap: 6px !important; padding: 10px 0 !important; }
-    @media (max-width: 480px) { .fc-toolbar-title { font-size: 12px !important; } .fc-button { font-size: 8px !important; padding: 4px 7px !important; } }
-  `;
-  document.head.appendChild(style);
+function _addMins(dtStr, mins) {
+  const d = new Date(dtStr);
+  d.setMinutes(d.getMinutes() + mins);
+  return d.toISOString().slice(0,16);
 }
-
 
 function setSchedView(v) { schedView = v; renderSchedule(); }
 function shiftSchedWeek(dir) {
   schedWeekOffset += dir;
-  if (schedHQView === 'grid') { refreshGrid(); } else { renderSchedule(); }
+  if (schedHQView === 'grid') { refreshGrid(); } else { _renderCustomCal(); }
 }
 
 function toMins(t) {
