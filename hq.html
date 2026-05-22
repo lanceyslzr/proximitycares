@@ -1192,7 +1192,7 @@ body.sidebar-hidden #sidebar-reopen-tab{ display:flex; }
 .sra-btn.danger{color:var(--red);border-color:var(--red-border);background:var(--red-dim);}
 
 /* ── PSW GRID — schedule grid view ── */
-.psw-grid-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain;margin:0;padding-bottom:8px;}
+.psw-grid-wrap{overflow-x:auto;overflow-y:visible;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain;margin:0;padding-bottom:8px;}
 .psw-grid{width:auto;max-width:none;table-layout:auto;border-collapse:separate;border-spacing:0;min-width:560px;}
 .psw-grid th{font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted2);padding:8px 6px;text-align:center;background:var(--bg2);position:-webkit-sticky;position:sticky;top:54px;z-index:100;white-space:nowrap;box-shadow:inset 0 -1px 0 var(--border);}
 .psw-grid th.col-name{text-align:left;padding-left:12px;min-width:130px;max-width:160px;position:-webkit-sticky;position:sticky;top:54px;left:0;z-index:101;background:var(--bg2);}
@@ -2200,9 +2200,15 @@ body.sidebar-hidden #sidebar-reopen-tab{ display:flex; }
       <div class="empty-state" style="padding:12px;">Loading offers...</div>
     </div>
   </div>
-  <div style="padding:12px 12px 0;">
-    <div style="font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--amber);margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;"><span>⚑ Vacant Shifts</span><span id="vacant-count" style="font-family:var(--mono);font-size:11px;padding:2px 6px;background:rgba(224,154,61,.1);border:1px solid rgba(224,154,61,.25);border-radius:4px;color:var(--amber);">0</span></div>
-    <div id="vacant-list" style="margin-bottom:12px;"><div style="font-family:var(--mono);font-size:12px;color:var(--muted);text-align:center;padding:8px;">All shifts assigned</div></div>
+  <div style="padding:8px 12px 0;">
+    <div onclick="window._vacantExpanded=!window._vacantExpanded;renderVacantVisits()" style="font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--amber);margin-bottom:0;display:flex;align-items:center;justify-content:space-between;cursor:pointer;padding:6px 0;">
+      <span>⚑ Vacant Shifts</span>
+      <div style="display:flex;align-items:center;gap:6px;">
+        <span id="vacant-count" style="font-family:var(--mono);font-size:11px;padding:2px 6px;background:rgba(224,154,61,.1);border:1px solid rgba(224,154,61,.25);border-radius:4px;color:var(--amber);">0</span>
+        <span id="vacant-chevron" style="font-size:11px;color:var(--amber);transition:transform .2s;">▾</span>
+      </div>
+    </div>
+    <div id="vacant-list" style="display:none;margin-bottom:8px;"></div>
   </div>
   <div class="section-header">
     <span class="section-title">Schedule</span>
@@ -7809,13 +7815,29 @@ async function renderAttendance() {
 function renderVacantVisits() {
   const el = document.getElementById('vacant-list');
   const countEl = document.getElementById('vacant-count');
+  const chevEl = document.getElementById('vacant-chevron');
   if (!el) return;
   const today = new Date().toLocaleDateString('en-CA',{timeZone:'America/Toronto'});
   const cutoff = new Date(); cutoff.setDate(cutoff.getDate()+7);
   const cutoffStr = cutoff.toLocaleDateString('en-CA',{timeZone:'America/Toronto'});
   const vacant = (D?.bookings||[]).filter(b => (!b.assigned_to||b.assigned_to.trim()==='') && b.scheduled_date >= today && b.scheduled_date <= cutoffStr && b.status !== 'cancelled');
-  if (countEl) countEl.textContent = vacant.length;
-  if (!vacant.length) { el.innerHTML = '<div style="font-family:var(--mono);font-size:12px;color:var(--muted);text-align:center;padding:8px;">All shifts assigned</div>'; return; }
+  if (countEl) {
+    countEl.textContent = vacant.length;
+    countEl.style.background = vacant.length > 0 ? 'rgba(224,154,61,.1)' : 'rgba(61,138,122,.1)';
+    countEl.style.borderColor = vacant.length > 0 ? 'rgba(224,154,61,.25)' : 'rgba(61,138,122,.25)';
+    countEl.style.color = vacant.length > 0 ? 'var(--amber)' : 'var(--teal2)';
+  }
+
+  // Collapsed by default — only show list when expanded
+  const expanded = window._vacantExpanded;
+  el.style.display = expanded ? 'block' : 'none';
+  if (chevEl) chevEl.style.transform = expanded ? 'rotate(180deg)' : 'rotate(0deg)';
+  if (!expanded) return;
+
+  if (!vacant.length) {
+    el.innerHTML = '<div style="font-family:var(--mono);font-size:12px;color:var(--muted);text-align:center;padding:8px;">All shifts assigned</div>';
+    return;
+  }
 
   const PREVIEW = 3;
   const renderCard = b => `<div class="vacant-card"><div class="vacant-info"><div class="vacant-client">${b.client_name||'—'}</div><div class="vacant-time">${b.scheduled_date ? fmtd(b.scheduled_date) : '—'}${b.scheduled_time ? ' · '+b.scheduled_time : ''}</div></div><button class="vacant-btn" onclick="broadcastShift('${b.id}')"><svg width="12" height="12" viewBox="0 0 14 14" fill="none" style="display:inline;vertical-align:middle;margin-right:3px"><circle cx="7" cy="7" r="6" stroke="#c9a96e" stroke-width="1.2"/><circle cx="7" cy="7" r="3.5" stroke="#c9a96e" stroke-width="1" opacity="0.6"/><circle cx="7" cy="7" r="1.2" fill="#c9a96e"/></svg>Broadcast</button></div>`;
@@ -7823,10 +7845,10 @@ function renderVacantVisits() {
   if (vacant.length <= PREVIEW) {
     el.innerHTML = vacant.map(renderCard).join('');
   } else {
-    const showing = window._vacantExpanded ? vacant : vacant.slice(0, PREVIEW);
-    const btn = window._vacantExpanded
-      ? `<div onclick="window._vacantExpanded=false;renderVacantVisits()" style="text-align:center;padding:6px;font-family:var(--mono);font-size:11px;color:var(--muted2);cursor:pointer;letter-spacing:1px;">▲ Show less</div>`
-      : `<div onclick="window._vacantExpanded=true;renderVacantVisits()" style="text-align:center;padding:6px;font-family:var(--mono);font-size:11px;color:var(--amber);cursor:pointer;letter-spacing:1px;">▼ Show all ${vacant.length} vacant shifts</div>`;
+    const showing = window._vacantShowAll ? vacant : vacant.slice(0, PREVIEW);
+    const btn = window._vacantShowAll
+      ? `<div onclick="window._vacantShowAll=false;renderVacantVisits()" style="text-align:center;padding:6px;font-family:var(--mono);font-size:11px;color:var(--muted2);cursor:pointer;letter-spacing:1px;">▲ Show less</div>`
+      : `<div onclick="window._vacantShowAll=true;renderVacantVisits()" style="text-align:center;padding:6px;font-family:var(--mono);font-size:11px;color:var(--amber);cursor:pointer;letter-spacing:1px;">▼ Show all ${vacant.length} vacant shifts</div>`;
     el.innerHTML = showing.map(renderCard).join('') + btn;
   }
 }
