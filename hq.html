@@ -1406,7 +1406,42 @@ body.sidebar-hidden #sidebar-reopen-tab{ display:flex; }
   .topbar{padding:0 8px;}
   .kpi-val{font-size:18px;}
   .lock-key{width:64px;height:64px;font-size:20px;}
-}</style>
+}
+/* ── CUSTOM CALENDAR (xcal) — moved here from inline innerHTML ── */
+.xcal-wrap{display:flex;flex-direction:column;height:100%;background:var(--bg);}
+.xcal-header{display:flex;align-items:center;gap:8px;padding:8px 12px;flex-shrink:0;background:var(--bg2);border-bottom:1px solid var(--border);}
+.xcal-nav-btn{font-family:var(--mono);font-size:14px;padding:4px 10px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r6);color:var(--muted2);cursor:pointer;min-height:32px;touch-action:manipulation;}
+.xcal-range{font-family:var(--mono);font-size:11px;color:var(--text);flex:1;text-align:center;letter-spacing:.5px;}
+.xcal-view-btn{font-family:var(--mono);font-size:10px;letter-spacing:1px;padding:4px 8px;border:1px solid var(--border);border-radius:var(--r6);cursor:pointer;min-height:32px;touch-action:manipulation;}
+.xcal-view-btn.active{background:rgba(61,138,122,.15);border-color:rgba(61,138,122,.3);color:var(--teal2);}
+.xcal-view-btn:not(.active){background:none;color:var(--muted2);}
+.xcal-axis-btn{font-family:var(--mono);font-size:10px;letter-spacing:1px;padding:4px 8px;border:1px solid var(--border);cursor:pointer;min-height:32px;touch-action:manipulation;}
+.xcal-axis-btn.active{background:rgba(61,138,122,.15);color:var(--teal2);}
+.xcal-axis-btn:not(.active){background:none;color:var(--muted2);}
+.xcal-body{display:flex;flex:1;min-height:0;overflow:hidden;}
+.xcal-sidebar{width:200px;flex-shrink:0;overflow-y:auto;border-right:1px solid var(--border);background:var(--bg2);}
+.xcal-sidebar-head{padding:6px 10px;font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border);display:flex;justify-content:space-between;}
+.xcal-sidebar-row{display:flex;align-items:center;padding:6px 10px;border-bottom:1px solid rgba(201,169,110,.05);cursor:pointer;transition:background .1s;gap:6px;}
+.xcal-sidebar-row:hover{background:rgba(61,138,122,.06);}
+.xcal-sb-av{width:24px;height:24px;border-radius:50%;background:var(--bg3);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:9px;color:var(--teal2);flex-shrink:0;}
+.xcal-sb-name{font-size:11px;color:var(--text);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.xcal-sb-hrs{font-family:var(--mono);font-size:10px;color:var(--muted2);flex-shrink:0;}
+.xcal-grid{flex:1;overflow:auto;-webkit-overflow-scrolling:touch;}
+.xcal-grid-inner{display:flex;position:relative;min-width:500px;}
+.xcal-time-col{width:44px;flex-shrink:0;position:sticky;left:0;z-index:10;background:var(--bg2);}
+.xcal-time-label{height:60px;display:flex;align-items:flex-start;justify-content:flex-end;padding:2px 6px 0 0;font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:.5px;}
+.xcal-days-wrap{flex:1;display:flex;position:relative;}
+.xcal-day-col{flex:1;border-left:1px solid var(--border);position:relative;min-width:80px;}
+.xcal-day-head{height:32px;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:10px;letter-spacing:1px;color:var(--muted2);position:sticky;top:0;z-index:5;background:var(--bg2);border-bottom:1px solid var(--border);}
+.xcal-day-head.is-today{color:var(--teal2);background:rgba(61,138,122,.08);}
+.xcal-hour-row{height:60px;border-bottom:1px solid rgba(201,169,110,.04);position:relative;cursor:pointer;}
+.xcal-hour-row:hover{background:rgba(61,138,122,.03);}
+.xcal-block{position:absolute;left:2px;right:2px;border-radius:4px;padding:2px 4px;cursor:pointer;overflow:hidden;font-size:10px;line-height:1.3;border-left:2px solid;transition:opacity .1s;z-index:2;}
+.xcal-block:hover{opacity:.85;z-index:3;}
+.xcal-block-client{font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.xcal-block-psw{opacity:.75;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.xcal-block-time{opacity:.6;font-size:9px;font-family:var(--mono);}
+.xcal-half-line{position:absolute;left:0;right:0;border-top:1px dashed rgba(201,169,110,.06);top:50%;}</style>
 </head>
 <body>
 
@@ -5795,6 +5830,7 @@ function _calChipColor(b, liveSet) {
 function _renderCustomCal() {
   const el = document.getElementById('schedule-board');
   if (!el) return;
+  try {
 
   const bookings = D.bookings || [];
   const visits   = D.visits   || [];
@@ -5848,46 +5884,8 @@ function _renderCustomCal() {
     clientHours[name] = dayH;
   });
 
-  // ── HTML ──
-  let h = `
-  <style>
-  .xcal-wrap{display:flex;flex-direction:column;height:100%;background:var(--bg);}
-  .xcal-header{display:flex;align-items:center;gap:8px;padding:8px 12px;flex-shrink:0;background:var(--bg2);border-bottom:1px solid var(--border);}
-  .xcal-nav-btn{font-family:var(--mono);font-size:14px;padding:4px 10px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r6);color:var(--muted2);cursor:pointer;min-height:32px;touch-action:manipulation;}
-  .xcal-range{font-family:var(--mono);font-size:11px;color:var(--text);flex:1;text-align:center;letter-spacing:.5px;}
-  .xcal-view-btn{font-family:var(--mono);font-size:10px;letter-spacing:1px;padding:4px 8px;border:1px solid var(--border);border-radius:var(--r6);cursor:pointer;min-height:32px;touch-action:manipulation;}
-  .xcal-view-btn.active{background:rgba(61,138,122,.15);border-color:rgba(61,138,122,.3);color:var(--teal2);}
-  .xcal-view-btn:not(.active){background:none;color:var(--muted2);}
-  .xcal-axis-btn{font-family:var(--mono);font-size:10px;letter-spacing:1px;padding:4px 8px;border:1px solid var(--border);cursor:pointer;min-height:32px;touch-action:manipulation;}
-  .xcal-axis-btn.active{background:rgba(61,138,122,.15);color:var(--teal2);}
-  .xcal-axis-btn:not(.active){background:none;color:var(--muted2);}
-  .xcal-body{display:flex;flex:1;min-height:0;overflow:hidden;}
-  .xcal-sidebar{width:200px;flex-shrink:0;overflow-y:auto;border-right:1px solid var(--border);background:var(--bg2);}
-  .xcal-sidebar-head{padding:6px 10px;font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border);display:flex;justify-content:space-between;}
-  .xcal-sidebar-row{display:flex;align-items:center;padding:6px 10px;border-bottom:1px solid rgba(201,169,110,.05);cursor:pointer;transition:background .1s;gap:6px;}
-  .xcal-sidebar-row:hover{background:rgba(61,138,122,.06);}
-  .xcal-sb-av{width:24px;height:24px;border-radius:50%;background:var(--bg3);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:9px;color:var(--teal2);flex-shrink:0;}
-  .xcal-sb-name{font-size:11px;color:var(--text);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-  .xcal-sb-hrs{font-family:var(--mono);font-size:10px;color:var(--muted2);flex-shrink:0;}
-  .xcal-grid{flex:1;overflow:auto;-webkit-overflow-scrolling:touch;}
-  .xcal-grid-inner{display:flex;position:relative;min-width:500px;}
-  .xcal-time-col{width:44px;flex-shrink:0;position:sticky;left:0;z-index:10;background:var(--bg2);}
-  .xcal-time-label{height:60px;display:flex;align-items:flex-start;justify-content:flex-end;padding:2px 6px 0 0;font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:.5px;}
-  .xcal-days-wrap{flex:1;display:flex;position:relative;}
-  .xcal-day-col{flex:1;border-left:1px solid var(--border);position:relative;min-width:80px;}
-  .xcal-day-head{height:32px;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:10px;letter-spacing:1px;color:var(--muted2);position:sticky;top:0;z-index:5;background:var(--bg2);border-bottom:1px solid var(--border);}
-  .xcal-day-head.is-today{color:var(--teal2);background:rgba(61,138,122,.08);}
-  .xcal-hour-row{height:60px;border-bottom:1px solid rgba(201,169,110,.04);position:relative;cursor:pointer;}
-  .xcal-hour-row:hover{background:rgba(61,138,122,.03);}
-  .xcal-block{position:absolute;left:2px;right:2px;border-radius:4px;padding:2px 4px;cursor:pointer;overflow:hidden;font-size:10px;line-height:1.3;border-left:2px solid;transition:opacity .1s;z-index:2;}
-  .xcal-block:hover{opacity:.85;z-index:3;}
-  .xcal-block-client{font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-  .xcal-block-psw{opacity:.75;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-  .xcal-block-time{opacity:.6;font-size:9px;font-family:var(--mono);}
-  .xcal-half-line{position:absolute;left:0;right:0;border-top:1px dashed rgba(201,169,110,.06);top:50%;}
-  </style>
-
-  <div class="xcal-wrap">
+  // ── HTML — xcal CSS is in <head> <style>, not re-injected here ──
+  let h = `<div class="xcal-wrap">
     <div class="xcal-header">
       <button class="xcal-nav-btn" onclick="_calNav(-1)">‹</button>
       <span class="xcal-range">${rangeLabel}</span>
@@ -6008,6 +6006,10 @@ function _renderCustomCal() {
     setTimeout(() => {
       gridEl.scrollTop = (scrollTarget - CAL_START) * rowH + 32; // +32 for header
     }, 0);
+  }
+  } catch(e) {
+    console.error('[_renderCustomCal]', e.message, e.stack);
+    if (el) el.innerHTML = `<div style="padding:24px 16px;font-family:var(--mono);font-size:11px;color:var(--red);letter-spacing:1px;">CAL ERROR: ${e.message}</div>`;
   }
 }
 
