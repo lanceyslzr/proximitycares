@@ -2678,14 +2678,26 @@ body.sidebar-hidden #sidebar-reopen-tab{ display:flex; }
     <div class="sheet-close" onclick="closeSheet('shift-sheet')">✕</div>
   </div>
   <div class="sheet-row"><div class="slbl">Client *</div>
-    <select class="sselect" id="ss-client"><option value="">Select client...</option></select>
+    <select class="sselect" id="ss-client" onchange="_ssClientChanged()"><option value="">Select client...</option></select>
   </div>
-  <div class="sheet-row"><div class="slbl">PSW</div>
+  <div id="ss-two-psw-banner" style="display:none;margin:0 0 8px;padding:11px 14px;background:rgba(200,169,110,.1);border:1.5px solid rgba(200,169,110,.4);border-radius:8px;">
+    <div style="font-size:12px;font-weight:600;color:var(--gold);margin-bottom:2px;">⚠ 2-Person Visit Required</div>
+    <div id="ss-two-psw-reason" style="font-size:11px;color:var(--muted2);font-family:var(--mono);"></div>
+  </div>
+  <div class="sheet-row"><div class="slbl">PSW 1</div>
     <select class="sselect" id="ss-psw" onchange="checkPSWAvailability()">
       <option value="">Select PSW (optional)</option>
     </select>
   </div>
   <div id="ss-avail-indicator" style="display:none;margin:0 0 6px;padding:8px 12px;border-radius:7px;font-family:var(--mono);font-size:11px;letter-spacing:1px;"></div>
+  <div id="ss-psw2-wrap" style="display:none;">
+    <div class="sheet-row"><div class="slbl" style="color:var(--gold);">PSW 2 *</div>
+      <select class="sselect" id="ss-psw2" style="border-color:rgba(200,169,110,.4);">
+        <option value="">Select second PSW</option>
+      </select>
+    </div>
+    <div id="ss-avail-indicator-2" style="display:none;margin:0 0 6px;padding:8px 12px;border-radius:7px;font-family:var(--mono);font-size:11px;letter-spacing:1px;"></div>
+  </div>
   <div class="sheet-row"><div class="slbl">Date *</div><input class="sinput" id="ss-date" type="date" style="font-size:16px;" oninput="checkPSWAvailability()"></div>
   <div class="sheet-row"><div class="slbl">Start Time *</div><input class="sinput" id="ss-time" type="time" style="font-size:16px;" value="09:00" oninput="syncEndFromDuration()"></div>
   <div class="sheet-row"><div class="slbl">End Time</div>
@@ -6542,6 +6554,42 @@ function openAddShift(pswName, date, clientName) {
   setTimeout(checkPSWAvailability, 50);
 }
 
+function _ssClientChanged() {
+  const clientName = document.getElementById('ss-client')?.value || '';
+  const c = (D.clients||[]).find(x => {
+    const n = `${x.first_name||''} ${x.last_name||''}`.trim();
+    return n === clientName;
+  });
+  const banner = document.getElementById('ss-two-psw-banner');
+  const psw2Wrap = document.getElementById('ss-psw2-wrap');
+  const pswLabel = document.querySelector('#shift-sheet .slbl');
+
+  if (c?.requires_two_psw) {
+    // Show banner
+    if (banner) {
+      banner.style.display = 'block';
+      const reasonEl = document.getElementById('ss-two-psw-reason');
+      if (reasonEl) reasonEl.textContent = c.two_psw_reason || 'Two PSWs required for this client';
+    }
+    // Show second PSW dropdown
+    if (psw2Wrap) psw2Wrap.style.display = 'block';
+    // Populate second PSW dropdown with same list
+    const psw2Sel = document.getElementById('ss-psw2');
+    if (psw2Sel) {
+      const psws = getMergedPSWList();
+      psw2Sel.innerHTML = '<option value="">Select second PSW</option>' +
+        psws.map(p => `<option value="${p.name}">${p.name}</option>`).join('');
+    }
+    // Update PSW 1 label
+    const psw1Label = document.querySelector('#shift-sheet [for="ss-psw"], #shift-sheet .slbl');
+  } else {
+    if (banner) banner.style.display = 'none';
+    if (psw2Wrap) psw2Wrap.style.display = 'none';
+  }
+  // Trigger availability check
+  checkPSWAvailability();
+}
+
 function checkPSWAvailability() {
   const ind = document.getElementById('ss-avail-indicator');
   if (!ind) return;
@@ -6719,16 +6767,30 @@ async function saveShift(addAnother = false) {
       const uniqueDates=[...new Set(dates)].slice(0,60);
       // Generate series_id for recurring shifts so they can be cancelled as a group
       const seriesId = recurring !== 'none' ? crypto.randomUUID() : null;
+      // Check for second PSW (2-person visit)
+      const psw2 = document.getElementById('ss-psw2')?.value || '';
+      const clientObj = (D.clients||[]).find(x => (`${x.first_name||''} ${x.last_name||''}`.trim()) === client);
+      const isTwoPsw = clientObj?.requires_two_psw && psw2;
       // Fire all creates in parallel for speed
-      const results = await Promise.all(uniqueDates.map(async d =>
-        fetch(`${API}/hq/booking`,{method:'POST',headers:{'Content-Type': 'application/json', 'x-hq-token': window._hqToken || sessionStorage.getItem('hq_token') || ''},
+      const results = await Promise.all(uniqueDates.map(async d => {
+        // Generate a shared joint_booking_id per date for 2-person visits
+        const jointBookingId = isTwoPsw ? crypto.randomUUID() : null;
+        const b1 = fetch(`${API}/hq/booking`,{method:'POST',headers:{'Content-Type': 'application/json', 'x-hq-token': window._hqToken || sessionStorage.getItem('hq_token') || ''},
           body:JSON.stringify({operator_id:currentOp,client_name:client,booking_type:'visit',
             scheduled_date:d,scheduled_time:time,assigned_to:psw,duration_minutes:duration,
-            series_id:seriesId})})
-        .then(r=>r.json()).catch(()=>({success:false}))
-      ));
+            series_id:seriesId,joint_booking_id:jointBookingId})})
+          .then(r=>r.json()).catch(()=>({success:false}));
+        if (!isTwoPsw) return b1;
+        // Second PSW booking — same joint_booking_id
+        const b2 = fetch(`${API}/hq/booking`,{method:'POST',headers:{'Content-Type': 'application/json', 'x-hq-token': window._hqToken || sessionStorage.getItem('hq_token') || ''},
+          body:JSON.stringify({operator_id:currentOp,client_name:client,booking_type:'visit',
+            scheduled_date:d,scheduled_time:time,assigned_to:psw2,duration_minutes:duration,
+            series_id:seriesId,joint_booking_id:jointBookingId})})
+          .then(r=>r.json()).catch(()=>({success:false}));
+        return Promise.all([b1, b2]).then(([r1]) => r1);
+      }));
       const created=results.filter(r=>r.success).length;
-      showToast(`${created} shift${created!==1?'s':''} created ✓`,'ok');
+      showToast(`${created} shift${created!==1?'s':''} created ✓${isTwoPsw?' (joint — 2 PSWs)':''}`, 'ok');
     if (psw && created > 0) {
       fetch(`${API}/psw/note`, {
         method: 'POST', headers: {'Content-Type':'application/json'},
@@ -7631,12 +7693,26 @@ function openClientDetail(id) {
 </div>
 <div class="sheet-row"><div class="slbl">Medications</div><textarea class="sinput" id="ce-medications" rows="2" style="min-height:64px;resize:none;" placeholder="List current medications...">${c.medications||''}</textarea></div>
 <div class="sheet-row" style="margin-top:12px;">
-  <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border:1px solid var(--border);border-radius:8px;background:${c.requires_two_psw?'rgba(200,169,110,.08)':'var(--bg)'};cursor:pointer;" onclick="(function(){const cb=document.getElementById('ce-two-psw');cb.checked=!cb.checked;this.style.background=cb.checked?'rgba(200,169,110,.08)':'var(--bg)';}).call(this)">
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border:1px solid var(--border);border-radius:8px;background:${c.requires_two_psw?'rgba(200,169,110,.08)':'var(--bg)'};cursor:pointer;" id="ce-two-psw-row" onclick="(function(row){const cb=document.getElementById('ce-two-psw');cb.checked=!cb.checked;row.style.background=cb.checked?'rgba(200,169,110,.08)':'var(--bg)';document.getElementById('ce-two-psw-reason-wrap').style.display=cb.checked?'block':'none';}).call(this,this)">
     <div>
       <div style="font-size:13px;font-weight:500;color:var(--text);">Requires 2 PSWs</div>
       <div style="font-size:11px;color:var(--muted);font-family:var(--mono);margin-top:2px;">Joint visits — shower assist, transfers, bariatric care</div>
     </div>
-    <input type="checkbox" id="ce-two-psw" ${c.requires_two_psw?'checked':''} style="width:18px;height:18px;accent-color:var(--gold);cursor:pointer;flex-shrink:0;" onclick="event.stopPropagation()">
+    <input type="checkbox" id="ce-two-psw" ${c.requires_two_psw?'checked':''} style="width:18px;height:18px;accent-color:var(--gold);cursor:pointer;flex-shrink:0;" onclick="event.stopPropagation();document.getElementById('ce-two-psw-reason-wrap').style.display=this.checked?'block':'none';document.getElementById('ce-two-psw-row').style.background=this.checked?'rgba(200,169,110,.08)':'var(--bg)';">
+  </div>
+  <div id="ce-two-psw-reason-wrap" style="display:${c.requires_two_psw?'block':'none'};margin-top:10px;">
+    <div class="slbl" style="margin-bottom:6px;">Reason for 2-Person Visit</div>
+    <select class="sselect" id="ce-two-psw-reason">
+      <option value="">Select reason…</option>
+      <option value="Hoyer Lift" ${(c.two_psw_reason==='Hoyer Lift')?'selected':''}>Hoyer Lift</option>
+      <option value="Transfer Assist" ${(c.two_psw_reason==='Transfer Assist')?'selected':''}>Transfer Assist</option>
+      <option value="Bariatric Care" ${(c.two_psw_reason==='Bariatric Care')?'selected':''}>Bariatric Care</option>
+      <option value="Fall Risk" ${(c.two_psw_reason==='Fall Risk')?'selected':''}>Fall Risk</option>
+      <option value="Wound Care" ${(c.two_psw_reason==='Wound Care')?'selected':''}>Wound Care</option>
+      <option value="Behavioural — Cognitive" ${(c.two_psw_reason==='Behavioural — Cognitive')?'selected':''}>Behavioural — Cognitive</option>
+      <option value="Shower Assist" ${(c.two_psw_reason==='Shower Assist')?'selected':''}>Shower Assist</option>
+      <option value="Other" ${(c.two_psw_reason==='Other')?'selected':''}>Other</option>
+    </select>
   </div>
 </div>
 <button class="sbtn" style="margin-top:4px;background:rgba(200,169,110,.12);color:var(--gold);border:1px solid rgba(200,169,110,.3);" onclick="saveClientEdits('${id}')">Save Changes</button>
@@ -8514,6 +8590,7 @@ async function saveClientEdits(clientId) {
     const mobilityLevel = document.getElementById('ce-mobility')?.value.trim() || '';
     const cognitiveStatus = document.getElementById('ce-cognitive')?.value.trim() || '';
     const requiresTwoPsw = document.getElementById('ce-two-psw')?.checked ?? false;
+    const twoPswReason = document.getElementById('ce-two-psw-reason')?.value || null;
     const medications = document.getElementById('ce-medications')?.value.trim() || '';
     const payload = { operator_id: currentOp, assigned_psw: psw, client_rate: clientRate,
       psw_rate: pswRate, care_notes: careNotes };
@@ -8528,6 +8605,7 @@ async function saveClientEdits(clientId) {
     if (cognitiveStatus) payload.cognitive_status = cognitiveStatus;
     if (medications)    payload.medications      = medications;
     payload.requires_two_psw = requiresTwoPsw;
+    payload.two_psw_reason = requiresTwoPsw ? (twoPswReason || null) : null;
     const res = await fetch(`${API}/hq/client/${clientId}`, {
       method: 'PATCH',
       headers: {'Content-Type': 'application/json', 'x-hq-token': window._hqToken || sessionStorage.getItem('hq_token') || ''},
