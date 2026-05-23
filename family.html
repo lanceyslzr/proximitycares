@@ -192,7 +192,7 @@ textarea::placeholder,input::placeholder{color:rgba(184,207,212,.4);}
 @keyframes map-pulse{0%,100%{box-shadow:0 0 0 3px rgba(74,154,110,.4),0 0 12px rgba(74,154,110,.6);}50%{box-shadow:0 0 0 6px rgba(74,154,110,.15),0 0 16px rgba(74,154,110,.4);}}
 
 /* NAV */
-.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:var(--bg);border-top:1px solid var(--border);display:flex;z-index:10;padding-bottom:env(safe-area-inset-bottom);}
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:var(--bg);border-top:1px solid var(--border);display:flex;z-index:320;padding-bottom:env(safe-area-inset-bottom);}
 .nav-btn{flex:1;padding:12px 4px 14px;background:none;border:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;font-family:'Inter',sans-serif;transition:color 0.15s;color:var(--muted);touch-action:manipulation;-webkit-tap-highlight-color:transparent;}
 .nav-icon{display:flex;align-items:center;justify-content:center;color:var(--muted);transition:color 0.15s;}
 .nav-icon svg{width:22px;height:22px;}
@@ -454,7 +454,7 @@ button:active{transform:scale(0.98);}
 @keyframes spin{to{transform:rotate(360deg);}}
 
 /* NAV */
-.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:var(--bg);border-top:1px solid var(--border);display:flex;z-index:10;padding-bottom:env(safe-area-inset-bottom);}
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:var(--bg);border-top:1px solid var(--border);display:flex;z-index:320;padding-bottom:env(safe-area-inset-bottom);}
 .nav-btn{flex:1;padding:12px 4px 14px;background:none;border:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;font-family:'Inter',sans-serif;transition:color 0.15s;color:var(--muted);touch-action:manipulation;-webkit-tap-highlight-color:transparent;}
 .nav-icon{display:flex;align-items:center;justify-content:center;color:var(--muted);transition:color 0.15s;}
 .nav-icon svg{width:22px;height:22px;}
@@ -488,7 +488,7 @@ button:active{transform:scale(0.98);}
 .map-btn svg{width:16px;height:16px;flex-shrink:0;}
 .map-sheet-overlay{display:none;position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);}
 .map-sheet-overlay.open{display:block;}
-.map-sheet{position:fixed;bottom:0;left:0;right:0;background:var(--bg2);border-radius:20px 20px 0 0;max-height:88vh;z-index:301;transform:translateY(100%);transition:transform .3s cubic-bezier(.4,0,.2,1);;max-width:100%;width:100%;}
+.map-sheet{position:fixed;bottom:0;left:0;right:0;background:var(--bg2);border-radius:20px 20px 0 0;max-height:88vh;z-index:301;transform:translateY(100%);transition:transform .3s cubic-bezier(.4,0,.2,1);max-width:100%;width:100%;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;}
 .map-sheet.open{transform:translateY(0);}
 .map-sheet-drag{width:36px;height:4px;background:var(--border2);border-radius:2px;margin:12px auto 0;}
 .map-sheet-hdr{padding:12px 18px 10px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
@@ -498,7 +498,7 @@ button:active{transform:scale(0.98);}
 .map-legend{padding:12px 18px;display:flex;flex-wrap:wrap;gap:8px;}
 .map-legend-item{display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:.5px;}
 .map-legend-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
-.map-visit-list{padding:0 18px 12px;max-height:160px;overflow-y:auto;}
+.map-visit-list{padding:0 18px 12px;max-height:160px;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;}
 .map-visit-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);}
 .map-visit-row:last-child{border-bottom:none;}
 .map-visit-ini{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:11px;font-weight:600;flex-shrink:0;}
@@ -513,14 +513,8 @@ button:active{transform:scale(0.98);}
 
 
 /* ── FAMILY PORTAL RESPONSIVE BREAKPOINTS ── */
-@media(max-width:768px){
-  .card{width:100%;max-width:100%;margin-inline:0}
-  .section{padding:0 12px 12px}
-  .section-title{font-size:11px}
-  .map-sheet{border-radius:16px 16px 0 0;width:100%;left:0;right:0}
-}
 
-/* ── HERO STATUS CARD — calm, personal ── */
+/* ── mobile base rules (moved before @media) ── */
 .hero-status-line1{font-size:var(--fs-xl,1.75rem);font-weight:650;line-height:1.3;color:var(--text);margin:0 0 6px;}
 .hero-status-line2{font-size:var(--fs-base,1rem);color:var(--muted);line-height:1.5;}
 .hero-status-dot{width:10px;height:10px;border-radius:50%;background:var(--c-good,#4a9a6e);position:absolute;top:24px;right:24px;animation:heropulse 2.2s cubic-bezier(.22,.61,.36,1) infinite;}
@@ -529,57 +523,12 @@ button:active{transform:scale(0.98);}
 .hero-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:52px;padding:0 22px;border-radius:999px;font-size:var(--fs-base,1rem);font-weight:600;text-decoration:none;border:none;cursor:pointer;touch-action:manipulation;flex:1 1 auto;min-width:0;}
 .hero-btn-primary{background:var(--c-good,#4a9a6e);color:#fff;}
 .hero-btn-ghost{background:transparent;color:var(--text);border:1.5px solid var(--border2);}
-@media(prefers-reduced-motion:reduce){.hero-status-dot{animation:none}}
-
-@media(max-width:480px){
-  .gate-card{width:min(380px,calc(100vw - 24px))!important;padding:24px 16px}
-  .nav-bar{gap:0}
-  .nav-btn{padding:8px 4px;font-size:11px}
-  #visit-map{height:260px}
-}
-
-/* ═══ FAMILY: hide hero decoration in empty/no-visit state ═══ */
 .status-card.status-none::after{display:none;}
 .status-card.status-none{background:var(--bg2);border:1px solid var(--border);padding:20px 22px;}
 .status-card.status-none .hero-status-line1{color:var(--text);font-size:1.25rem;font-weight:600;}
 .status-card.status-none .hero-status-line2{color:var(--muted);font-size:.9rem;}
 
 /* ═══ FAMILY MOBILE POLISH ═══ */
-@media(max-width:768px){
-  /* Hero card: tighter on mobile */
-  .status-card{padding:20px 18px;border-radius:18px;}
-  .hero-status-line1{font-size:1.35rem !important;}
-  .hero-status-line2{font-size:.95rem !important;}
-  
-  /* Hero buttons: stack on tiny screens */
-  .hero-actions{gap:8px;}
-  .hero-btn{min-height:48px;font-size:14px;}
-  
-  /* Bottom nav: roomier */
-  .nav-bar{padding:6px 0 max(6px,var(--safe-bottom));}
-  
-  /* Recent visits: cleaner cards */
-  .visit-row{padding:14px;}
-}
-
-@media(max-width:480px){
-  .hero-actions{flex-direction:column;}
-  .hero-btn{width:100%;}
-  .status-card{padding:18px 14px;}
-}
-
-/* ══════════════════════════════════════════════════════
-   PROXIMITY FAMILY PORTAL — MAKEOVER LAYER
-   Aligns with HQ + PSW design system tokens
-══════════════════════════════════════════════════════ */
-:root{
-  --r4:4px;--r6:6px;--r8:8px;--r10:10px;--r12:12px;--r16:16px;
-  --teal-dim:rgba(61,138,122,.08);--teal-mid:rgba(61,138,122,.15);--teal-border:rgba(61,138,122,.28);
-  --amber-dim:rgba(212,160,74,.08);--amber-border:rgba(212,160,74,.28);
-  --red-dim:rgba(224,85,85,.08);--red-border:rgba(224,85,85,.28);
-}
-
-/* Topbar */
 .topbar{height:52px;padding:0 14px;border-bottom-color:rgba(255,255,255,.06);}
 .tb-brand{font-size:10px;letter-spacing:2px;}
 .tb-name{font-size:12px;}
@@ -637,6 +586,60 @@ button:active{transform:scale(0.98);}
 /* Spinner */
 .spinner{width:24px;height:24px;}
 
+
+@media(max-width:768px){
+  .card{width:100%;max-width:100%;margin-inline:0}
+  .section{padding:0 12px 12px}
+  .section-title{font-size:11px}
+  .map-sheet{border-radius:16px 16px 0 0;width:100%;left:0;right:0}
+}
+
+/* ── HERO STATUS CARD — calm, personal ── */
+@media(prefers-reduced-motion:reduce){.hero-status-dot{animation:none}}
+
+@media(max-width:480px){
+  .gate-card{width:min(380px,calc(100vw - 24px))!important;padding:24px 16px}
+  .nav-bar{gap:0}
+  .nav-btn{padding:8px 4px;font-size:11px}
+  #visit-map{height:260px}
+}
+
+/* ═══ FAMILY: hide hero decoration in empty/no-visit state ═══ */
+@media(max-width:768px){
+  /* Hero card: tighter on mobile */
+  .status-card{padding:20px 18px;border-radius:18px;}
+  .hero-status-line1{font-size:1.35rem !important;}
+  .hero-status-line2{font-size:.95rem !important;}
+  
+  /* Hero buttons: stack on tiny screens */
+  .hero-actions{gap:8px;}
+  .hero-btn{min-height:48px;font-size:14px;}
+  
+  /* Bottom nav: roomier */
+  .nav-bar{padding:6px 0 max(6px,var(--safe-bottom));}
+  
+  /* Recent visits: cleaner cards */
+  .visit-row{padding:14px;}
+}
+
+@media(max-width:480px){
+  .hero-actions{flex-direction:column;}
+  .hero-btn{width:100%;}
+  .status-card{padding:18px 14px;}
+}
+
+/* ══════════════════════════════════════════════════════
+   PROXIMITY FAMILY PORTAL — MAKEOVER LAYER
+   Aligns with HQ + PSW design system tokens
+══════════════════════════════════════════════════════ */
+:root{
+  --r4:4px;--r6:6px;--r8:8px;--r10:10px;--r12:12px;--r16:16px;
+  --teal-dim:rgba(61,138,122,.08);--teal-mid:rgba(61,138,122,.15);--teal-border:rgba(61,138,122,.28);
+  --amber-dim:rgba(212,160,74,.08);--amber-border:rgba(212,160,74,.28);
+  --red-dim:rgba(224,85,85,.08);--red-border:rgba(224,85,85,.28);
+}
+
+/* Topbar */
 @media(max-width:360px){
   .content{padding:16px 14px;}
   .pin-btn{min-height:50px;font-size:18px;}
