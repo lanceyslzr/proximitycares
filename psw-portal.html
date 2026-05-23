@@ -1,6 +1,5 @@
 
 
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1756,13 +1755,25 @@ function renderHomeFeed() {
   const monthStr = today.slice(0,7);
   const allVisits = scheduleData?.completed_visits || [];
   const todayV = allVisits.filter(v => v.visit_date === today);
-  const monthV = allVisits.filter(v => (v.visit_date||'').startsWith(monthStr));
-  const monthHrs = monthV.reduce((s,v) => s + parseFloat(v.hours_worked||0), 0);
   const bookings = scheduleData?.bookings || [];
   const todayBookings = bookings.filter(b => b.scheduled_date === today);
   document.getElementById('s-today').textContent = todayV.length + (activeVisit ? 1 : 0);
-  document.getElementById('s-month').textContent = monthV.length;
-  document.getElementById('s-hours').textContent = monthHrs.toFixed(1) + 'h';
+
+  // s-month and s-hours — use pay summary data (already fetched, always correct)
+  // pay summary reads all visits directly, not limited by loadSchedule date window
+  if (window._lastPayData?.success) {
+    const months = getMonthlyTotals(window._lastPayData);
+    const curMonthKey = new Date().toISOString().slice(0,7);
+    const mon = months.find(m => m.month_key === curMonthKey) || { total_hours: 0, visit_count: 0 };
+    document.getElementById('s-month').textContent = mon.visit_count;
+    document.getElementById('s-hours').textContent = mon.total_hours.toFixed(1) + 'h';
+  } else {
+    // Fallback to scheduleData if pay summary not loaded yet
+    const monthV = allVisits.filter(v => (v.visit_date||'').startsWith(monthStr));
+    const monthHrs = monthV.reduce((s,v) => s + parseFloat(v.hours_worked||0), 0);
+    document.getElementById('s-month').textContent = monthV.length;
+    document.getElementById('s-hours').textContent = monthHrs.toFixed(1) + 'h';
+  }
   const upd = document.getElementById('home-last-updated');
   if (upd) upd.textContent = new Date().toLocaleTimeString('en-CA',{hour:'2-digit',minute:'2-digit'});
   const rows = [];
