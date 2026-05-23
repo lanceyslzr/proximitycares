@@ -3608,6 +3608,10 @@ function renderClients() {
     const consentBadge = !c.consent_given
       ? `<div style="font-family:var(--mono);font-size:11px;letter-spacing:1px;padding:2px 6px;border-radius:100px;border:1px solid rgba(212,160,61,.4);color:var(--amber);background:rgba(212,160,61,.08);margin-top:2px;">CONSENT NEEDED</div>`
       : '';
+    // Two-person visit badge
+    const twoPswBadge = c.requires_two_psw
+      ? `<div style="font-family:var(--mono);font-size:11px;letter-spacing:1px;padding:2px 6px;border-radius:100px;border:1px solid rgba(200,169,110,.5);color:var(--gold);background:rgba(200,169,110,.1);margin-top:2px;">2 PSW</div>`
+      : '';
     // C8 — referral source
     const refSource = c.referral_source ? `<span style="font-family:var(--mono);font-size:11px;color:var(--muted);margin-left:4px;">· ${c.referral_source}</span>` : '';
     // Last visit for this client
@@ -3628,7 +3632,7 @@ function renderClients() {
           <div class="avatar">${ini}</div>
           <div><div class="card-name">${name}</div><div class="card-sub">${c.client_code?'<span style="font-family:var(--mono);color:var(--teal3);">'+c.client_code+'</span> · ':''} ${c.portal_slug||c.email||'—'}${refSource}</div></div>
         </div>
-        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">${onShiftChip||'<span class="badge b-active">Active</span>'}${sentBadge}${overdueBadge}${consentBadge}</div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">${onShiftChip||'<span class="badge b-active">Active</span>'}${sentBadge}${overdueBadge}${consentBadge}${twoPswBadge}</div>
       </div>
       <div class="card-info-strip">${lastVisitChip}${pswChip}</div>
       <div class="card-actions">
@@ -7510,8 +7514,11 @@ function openClientDetail(id) {
   document.getElementById('client-sheet-title').textContent = name;
   // Alert badges
   const alertBadges = getAlertBadges(c);
+  const twoPswHeader = c.requires_two_psw
+    ? `<span style="display:inline-flex;align-items:center;font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;padding:3px 8px;border-radius:100px;border:1px solid rgba(200,169,110,.5);color:var(--gold);background:rgba(200,169,110,.1);margin-right:4px;">2 PSW Required</span>`
+    : '';
   const existingBadges = document.getElementById('client-sheet-badges');
-  if (existingBadges) existingBadges.innerHTML = alertBadges || '';
+  if (existingBadges) existingBadges.innerHTML = (twoPswHeader + alertBadges) || '';
   // Build client visit history from D.visits (in memory — last 90 days)
   // Group joint visits before rendering — shared joint_visit_id = one row
   const rawClientVisits = (D.visits||[])
@@ -7623,6 +7630,15 @@ function openClientDetail(id) {
   <div><div class="slbl">Cognitive</div><input class="sinput" id="ce-cognitive" type="text" value="${c.cognitive_status||''}" placeholder="e.g. Mild dementia" style="font-size:15px;"></div>
 </div>
 <div class="sheet-row"><div class="slbl">Medications</div><textarea class="sinput" id="ce-medications" rows="2" style="min-height:64px;resize:none;" placeholder="List current medications...">${c.medications||''}</textarea></div>
+<div class="sheet-row" style="margin-top:12px;">
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border:1px solid var(--border);border-radius:8px;background:${c.requires_two_psw?'rgba(200,169,110,.08)':'var(--bg)'};cursor:pointer;" onclick="(function(){const cb=document.getElementById('ce-two-psw');cb.checked=!cb.checked;this.style.background=cb.checked?'rgba(200,169,110,.08)':'var(--bg)';}).call(this)">
+    <div>
+      <div style="font-size:13px;font-weight:500;color:var(--text);">Requires 2 PSWs</div>
+      <div style="font-size:11px;color:var(--muted);font-family:var(--mono);margin-top:2px;">Joint visits — shower assist, transfers, bariatric care</div>
+    </div>
+    <input type="checkbox" id="ce-two-psw" ${c.requires_two_psw?'checked':''} style="width:18px;height:18px;accent-color:var(--gold);cursor:pointer;flex-shrink:0;" onclick="event.stopPropagation()">
+  </div>
+</div>
 <button class="sbtn" style="margin-top:4px;background:rgba(200,169,110,.12);color:var(--gold);border:1px solid rgba(200,169,110,.3);" onclick="saveClientEdits('${id}')">Save Changes</button>
 
     <button class="sbtn" style="margin-top:8px;" onclick="genInvoice('${name}','${c.family_email||c.email||''}','${c.assigned_psw||''}',${c.client_rate||22},${c.psw_rate||19});closeSheet('client-sheet');">Generate Invoice</button>
@@ -8497,6 +8513,7 @@ async function saveClientEdits(clientId) {
     const careDirectives = document.getElementById('ce-care-directives')?.value.trim() || '';
     const mobilityLevel = document.getElementById('ce-mobility')?.value.trim() || '';
     const cognitiveStatus = document.getElementById('ce-cognitive')?.value.trim() || '';
+    const requiresTwoPsw = document.getElementById('ce-two-psw')?.checked ?? false;
     const medications = document.getElementById('ce-medications')?.value.trim() || '';
     const payload = { operator_id: currentOp, assigned_psw: psw, client_rate: clientRate,
       psw_rate: pswRate, care_notes: careNotes };
@@ -8510,6 +8527,7 @@ async function saveClientEdits(clientId) {
     if (mobilityLevel)  payload.mobility_level   = mobilityLevel;
     if (cognitiveStatus) payload.cognitive_status = cognitiveStatus;
     if (medications)    payload.medications      = medications;
+    payload.requires_two_psw = requiresTwoPsw;
     const res = await fetch(`${API}/hq/client/${clientId}`, {
       method: 'PATCH',
       headers: {'Content-Type': 'application/json', 'x-hq-token': window._hqToken || sessionStorage.getItem('hq_token') || ''},
