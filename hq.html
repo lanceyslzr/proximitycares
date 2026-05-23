@@ -323,7 +323,7 @@ button:active{transform:scale(0.98);}
 .nbadge{background:var(--teal);color:#fff;border-radius:100px;font-size:11px;min-width:15px;height:15px;padding:0 3px;display:inline-flex;align-items:center;justify-content:center;}
 
 /* SECTIONS */
-.section{display:none;padding-top:12px;padding-bottom:8px;opacity:0;transition:opacity 150ms ease;}
+.section{display:none;padding-top:54px;padding-bottom:8px;opacity:0;transition:opacity 150ms ease;}
 .section.active{display:block;}
 .section.visible{opacity:1;}
 .section.active{display:block;}
@@ -423,7 +423,7 @@ button:active{transform:scale(0.98);}
 .sheet{position:fixed;bottom:0;left:0;right:0;z-index:1050;background:var(--bg2);border-top:1px solid var(--border2);border-radius:18px 18px 0 0;transform:translateY(100%);transition:transform .35s cubic-bezier(.16,1,.3,1);max-height:92vh;overflow-y:auto;padding-bottom:calc(24px + var(--safe-bottom));}
 .sheet.open{transform:translateY(0);}
 .sheet-handle{width:36px;height:4px;background:var(--border2);border-radius:2px;margin:12px auto 0;}
-.sheet-title{font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted2);padding:14px 18px 12px;border-bottom:1px solid var(--border);}
+.sheet-title{font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted2);padding:14px 18px 12px;border-bottom:1px solid var(--border);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .sheet-body{padding:16px 18px;}
 .sheet-header{display:flex;align-items:center;justify-content:space-between;padding:14px 18px 12px;border-bottom:1px solid var(--border);}
 .sheet-close{font-size:18px;color:var(--muted2);background:none;border:none;cursor:pointer;padding:4px 8px;min-height:44px;touch-action:manipulation;line-height:1;}
@@ -977,7 +977,6 @@ body.sidebar-hidden #sidebar-reopen-tab{ display:flex; }
   height:calc(100dvh - 54px);
   overflow:hidden;
   padding-bottom:0;
-  padding-top:0;
 }
 #sect-schedule .sched-fixed-top{
   flex-shrink:0;
@@ -1063,13 +1062,13 @@ body.sidebar-hidden #sidebar-reopen-tab{ display:flex; }
 
 /* ── CUSTOM CALENDAR (xcal) — moved here from inline innerHTML ── */
 .xcal-wrap{display:flex;flex-direction:column;flex:1;min-height:0;background:var(--bg);}
-.xcal-header{display:flex;align-items:center;gap:8px;padding:8px 12px;flex-shrink:0;background:var(--bg2);border-bottom:1px solid var(--border);}
-.xcal-nav-btn{font-family:var(--mono);font-size:14px;padding:4px 10px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r6);color:var(--muted2);cursor:pointer;min-height:32px;touch-action:manipulation;}
-.xcal-range{font-family:var(--mono);font-size:11px;color:var(--text);flex:1;text-align:center;letter-spacing:.5px;}
-.xcal-view-btn{font-family:var(--mono);font-size:10px;letter-spacing:1px;padding:4px 8px;border:1px solid var(--border);border-radius:var(--r6);cursor:pointer;min-height:32px;touch-action:manipulation;}
+.xcal-header{display:flex;align-items:center;gap:6px;padding:8px 10px;flex-shrink:0;background:var(--bg2);border-bottom:1px solid var(--border);overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;flex-wrap:nowrap;}
+.xcal-nav-btn{font-family:var(--mono);font-size:14px;padding:4px 8px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r6);color:var(--muted2);cursor:pointer;min-height:32px;touch-action:manipulation;flex-shrink:0;}
+.xcal-range{font-family:var(--mono);font-size:11px;color:var(--text);flex:1;text-align:center;letter-spacing:.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;}
+.xcal-view-btn{font-family:var(--mono);font-size:10px;letter-spacing:1px;padding:4px 8px;border:1px solid var(--border);border-radius:var(--r6);cursor:pointer;min-height:32px;touch-action:manipulation;flex-shrink:0;white-space:nowrap;}
 .xcal-view-btn.active{background:rgba(61,138,122,.15);border-color:rgba(61,138,122,.3);color:var(--teal2);}
 .xcal-view-btn:not(.active){background:none;color:var(--muted2);}
-.xcal-axis-btn{font-family:var(--mono);font-size:10px;letter-spacing:1px;padding:4px 8px;border:1px solid var(--border);cursor:pointer;min-height:32px;touch-action:manipulation;}
+.xcal-axis-btn{font-family:var(--mono);font-size:10px;letter-spacing:1px;padding:4px 8px;border:1px solid var(--border);cursor:pointer;min-height:32px;touch-action:manipulation;flex-shrink:0;white-space:nowrap;}
 .xcal-axis-btn.active{background:rgba(61,138,122,.15);color:var(--teal2);}
 .xcal-axis-btn:not(.active){background:none;color:var(--muted2);}
 .xcal-body{display:flex;flex:1;min-height:0;overflow:hidden;}
@@ -1445,7 +1444,17 @@ body.sidebar-hidden #sidebar-reopen-tab{ display:flex; }
   .topbar{padding:0 8px;}
   .kpi-val{font-size:18px;}
   .lock-key{width:64px;height:64px;font-size:20px;}
-}</style>
+}
+/* ── xcal sidebar narrow screens ── */
+@media(max-width:480px){
+  .xcal-sidebar{width:100px;}
+  .xcal-sb-name{font-size:10px;}
+  .xcal-sb-hrs{display:none;}
+}
+@media(max-width:360px){
+  .xcal-sidebar{width:80px;}
+}
+</style>
 </head>
 <body>
 
@@ -2258,7 +2267,7 @@ body.sidebar-hidden #sidebar-reopen-tab{ display:flex; }
   </div>
 
   <!-- Broadcast + Time Off buttons -->
-  <div style="margin:6px 12px 0;display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+  <div style="margin:10px 12px 0;display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
     <button onclick="openBroadcastSheet()" class="broadcast-btn"><svg width="11" height="11" viewBox="0 0 12 12" fill="none" style="display:inline;vertical-align:middle;margin-right:4px"><path d="M7 1L3 7h4l-2 4 6-6H7L9 1z" fill="#c9a96e"/></svg>Broadcast Open Shift</button>
     <button onclick="openTimeOffSheet()" style="font-family:var(--mono);font-size:11px;letter-spacing:1px;padding:8px 14px;background:rgba(224,85,85,.08);border:1px solid rgba(224,85,85,.2);border-radius:7px;color:var(--red);cursor:pointer;min-height:40px;display:flex;align-items:center;gap:6px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="12" height="12"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/><path d="M9 16l2 2 4-4"/></svg>Time Off</button>
   </div>
@@ -6798,10 +6807,8 @@ async function saveShift(addAnother = false) {
       }));
       const created=results.filter(r=>r.success).length;
       const failed=results.filter(r=>!r.success);
-      // Surface the first error so operator knows why it failed
       if (created === 0 && failed.length > 0) {
         const firstErr = failed[0];
-        // Session expired — force re-login
         if (firstErr?._sessionExpired) {
           window._hqToken = null;
           sessionStorage.removeItem('hq_token');
@@ -6814,7 +6821,6 @@ async function saveShift(addAnother = false) {
           return;
         }
         const errMsg = firstErr?.error || firstErr?.message || 'Booking failed';
-        // Conflict detail — most common failure
         if (firstErr?.conflict) {
           const c = firstErr.conflict;
           showToast(`Conflict: ${c.psw||psw} already booked for ${c.existing_client||'another client'} at ${c.existing_time||time}`, 'err');
@@ -6827,7 +6833,7 @@ async function saveShift(addAnother = false) {
     if (psw && created > 0) {
       fetch(`${API}/psw/note`, {
         method: 'POST', headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({ psw_name: psw, sender: 'lance', operator_id: currentOp,
+        body: JSON.stringify({ psw_name: psw, sender: 'lance',
           message: `${created} new shift${created!==1?'s have':' has'} been added to your schedule for ${client}. Check your portal.` })
       }).catch(() => {});
     }
