@@ -2690,6 +2690,18 @@ body.sidebar-hidden #sidebar-reopen-tab{ display:flex; }
   <div class="sheet-row"><div class="slbl">Client *</div>
     <select class="sselect" id="ss-client" onchange="_ssClientChanged()"><option value="">Select client...</option></select>
   </div>
+  <!-- S35 — AI suggestion banner — shown when client+date are both set -->
+  <div id="ss-ai-suggestion" style="display:none;margin:0 0 8px;padding:11px 14px;background:rgba(61,138,122,.08);border:1.5px solid rgba(61,138,122,.35);border-radius:8px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+      <div style="flex:1;min-width:0;">
+        <div style="font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--teal2);margin-bottom:3px;">✦ Recommended PSW</div>
+        <div id="ss-ai-name" style="font-size:13px;font-weight:600;color:var(--text);"></div>
+        <div id="ss-ai-reason" style="font-family:var(--mono);font-size:10px;color:var(--muted2);margin-top:2px;letter-spacing:.5px;"></div>
+      </div>
+      <button id="ss-ai-confirm" onclick="_ssAiConfirm()" style="font-family:var(--mono);font-size:11px;letter-spacing:1px;padding:7px 14px;background:rgba(61,138,122,.15);border:1px solid rgba(61,138,122,.4);border-radius:6px;color:var(--teal2);cursor:pointer;white-space:nowrap;touch-action:manipulation;flex-shrink:0;min-height:36px;">Use This PSW</button>
+    </div>
+    <div id="ss-ai-others" style="margin-top:8px;display:none;"></div>
+  </div>
   <div id="ss-two-psw-banner" style="display:none;margin:0 0 8px;padding:11px 14px;background:rgba(200,169,110,.1);border:1.5px solid rgba(200,169,110,.4);border-radius:8px;">
     <div style="font-size:12px;font-weight:600;color:var(--gold);margin-bottom:2px;">⚠ 2-Person Visit Required</div>
     <div id="ss-two-psw-reason" style="font-size:11px;color:var(--muted2);font-family:var(--mono);"></div>
@@ -2708,7 +2720,7 @@ body.sidebar-hidden #sidebar-reopen-tab{ display:flex; }
     </div>
     <div id="ss-avail-indicator-2" style="display:none;margin:0 0 6px;padding:8px 12px;border-radius:7px;font-family:var(--mono);font-size:11px;letter-spacing:1px;"></div>
   </div>
-  <div class="sheet-row"><div class="slbl">Date *</div><input class="sinput" id="ss-date" type="date" style="font-size:16px;" oninput="checkPSWAvailability()"></div>
+  <div class="sheet-row"><div class="slbl">Date *</div><input class="sinput" id="ss-date" type="date" style="font-size:16px;" oninput="checkPSWAvailability();_fetchPSWSuggestion()"></div>
   <div class="sheet-row"><div class="slbl">Start Time *</div><input class="sinput" id="ss-time" type="time" style="font-size:16px;" value="09:00" oninput="syncEndFromDuration()"></div>
   <div class="sheet-row"><div class="slbl">End Time</div>
     <input class="sinput" id="ss-end" type="time" style="font-size:16px;" value="17:00" oninput="syncDurationFromEnd()">
@@ -6599,7 +6611,86 @@ function _ssClientChanged() {
   }
   // Trigger availability check
   checkPSWAvailability();
+  // S35 — fetch AI suggestion if date is already set
+  _fetchPSWSuggestion();
 }
+
+// ── S35 SCHEDULING AI — PSW SUGGESTION ──────────────────────────────────────
+let _suggestionTop = null; // store top suggestion for confirm button
+
+async function _fetchPSWSuggestion() {
+  const clientName = document.getElementById('ss-client')?.value || '';
+  const date = document.getElementById('ss-date')?.value || '';
+  const suggEl = document.getElementById('ss-ai-suggestion');
+  if (!suggEl) return;
+
+  // Need both client and date to suggest
+  if (!clientName || !date) {
+    suggEl.style.display = 'none';
+    _suggestionTop = null;
+    return;
+  }
+
+  // Show loading state
+  suggEl.style.display = 'block';
+  document.getElementById('ss-ai-name').textContent = 'Finding best match...';
+  document.getElementById('ss-ai-reason').textContent = '';
+  document.getElementById('ss-ai-confirm').style.display = 'none';
+
+  try {
+    const r = await fetch(
+      `${API}/hq/suggest-psw?operator_id=${encodeURIComponent(currentOp)}&client_name=${encodeURIComponent(clientName)}&date=${encodeURIComponent(date)}`,
+      { headers: { 'x-hq-token': window._hqToken || sessionStorage.getItem('hq_token') || '' } }
+    );
+    const d = await r.json();
+    if (!d.success || !d.top_suggestions?.length) {
+      suggEl.style.display = 'none';
+      return;
+    }
+
+    const top = d.top_suggestions[0];
+    _suggestionTop = top.psw_name;
+
+    document.getElementById('ss-ai-name').textContent = top.psw_name;
+    document.getElementById('ss-ai-reason').textContent = top.reason || '';
+    document.getElementById('ss-ai-confirm').style.display = 'block';
+
+    // Show alternatives if more than 1
+    const othersEl = document.getElementById('ss-ai-others');
+    if (d.top_suggestions.length > 1 && othersEl) {
+      othersEl.style.display = 'block';
+      othersEl.innerHTML = d.top_suggestions.slice(1).map(p =>
+        `<span onclick="_ssSuggestFill('${escHtml(p.psw_name)}')" style="display:inline-block;font-family:var(--mono);font-size:10px;color:var(--muted2);padding:3px 8px;border:1px solid var(--border);border-radius:4px;cursor:pointer;margin:2px;" title="${escHtml(p.reason || '')}">${escHtml(p.psw_name)}</span>`
+      ).join('');
+    } else if (othersEl) {
+      othersEl.style.display = 'none';
+    }
+  } catch(e) {
+    // Silent — suggestion is a nice-to-have, never blocks the user
+    suggEl.style.display = 'none';
+  }
+}
+
+function _ssAiConfirm() {
+  if (!_suggestionTop) return;
+  _ssSuggestFill(_suggestionTop);
+}
+
+function _ssSuggestFill(pswName) {
+  const sel = document.getElementById('ss-psw');
+  if (!sel) return;
+  // Find matching option
+  const opt = Array.from(sel.options).find(o => o.value === pswName || o.text === pswName);
+  if (opt) {
+    sel.value = opt.value;
+    checkPSWAvailability();
+    // Hide suggestion banner — PSW is now selected
+    const suggEl = document.getElementById('ss-ai-suggestion');
+    if (suggEl) suggEl.style.display = 'none';
+    showToast(`${pswName} selected ✓`, 'ok');
+  }
+}
+// ── END S35 SCHEDULING AI ────────────────────────────────────────────────────
 
 function checkPSWAvailability() {
   const ind = document.getElementById('ss-avail-indicator');
