@@ -6884,6 +6884,14 @@ async function saveShift(addAnother = false) {
           .then(async r => {
             const body = await r.json().catch(()=>({}));
             if (r.status === 401) return {...body, success:false, _sessionExpired:true};
+            // Immediately merge returned booking into D.bookings so grid renders it
+            // without waiting for _fetchGridBookings round-trip
+            if (r.ok && body.success && body.booking) {
+              if (!D.bookings) D.bookings = [];
+              const exists = D.bookings.findIndex(b => b.id === body.booking.id);
+              if (exists >= 0) D.bookings[exists] = body.booking;
+              else D.bookings.push(body.booking);
+            }
             return r.ok ? body : {...body, success:false};
           })
           .catch(()=>({success:false,error:'Network error'}));
