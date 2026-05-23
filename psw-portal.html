@@ -1083,6 +1083,7 @@ a{color:inherit;text-decoration:none;}
     <div class="cs-name" id="cs-name">—</div>
     <div class="cs-status" id="cs-status">Active Client</div>
     <div id="cs-alert-badges" style="margin-top:6px;"></div>
+    <div id="cs-two-psw-banner" style="display:none;margin-top:10px;padding:0 4px;"></div>
   </div>
   <div id="cs-today-shift" style="display:none;" class="cs-section">
     <div class="cs-section-lbl">Today's Shift</div>
@@ -3051,6 +3052,54 @@ function openClientSheetByName(clientName) {
   }
   body += section('Emergency Contacts', contactsHtml);
 
+  // ── TWO-PERSON VISIT WARNING BANNER ─────────────────────────────────
+  // Must be impossible to miss — safety/WSIB liability issue
+  const twoPswWrap = document.getElementById('cs-two-psw-banner');
+  if (twoPswWrap) {
+    if (c.requires_two_psw) {
+      const reasonText = c.two_psw_reason ? ` · ${c.two_psw_reason}` : '';
+      // Find partner PSW from today's bookings for this client
+      const today = new Date().toLocaleDateString('en-CA',{timeZone:'America/Toronto'});
+      const todayJointBookings = (scheduleData?.bookings || []).filter(b =>
+        b.scheduled_date === today &&
+        (b.client_name||'').toLowerCase().includes((c.first_name||clientName).toLowerCase()) &&
+        b.assigned_to && b.assigned_to !== pswName
+      );
+      const partnerPSW = todayJointBookings[0]?.assigned_to || null;
+      // Look up partner phone from clients data (their PSW record)
+      let partnerContact = '';
+      if (partnerPSW) {
+        // P1 — partner_psw_phone comes from enriched booking in schedule-upcoming
+        const partnerBooking = (scheduleData?.bookings || []).find(b =>
+          b.partner_psw_name === partnerPSW && (b.client_name||'').toLowerCase().includes((c.first_name||clientName).toLowerCase())
+        );
+        const partnerPhone = partnerBooking?.partner_psw_phone || '';
+        partnerContact = `<div style="margin-top:10px;padding-top:10px;border-top:1px solid rgba(224,85,85,.2);">
+          <div style="font-size:11px;font-family:var(--mono);letter-spacing:1px;text-transform:uppercase;color:var(--red);margin-bottom:6px;">Your Partner for Today</div>
+          <div style="display:flex;align-items:center;justify-content:space-between;">
+            <div style="font-size:14px;font-weight:500;color:var(--text);">${partnerPSW}</div>
+            ${partnerPhone ? `<a href="tel:${partnerPhone}" style="display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:6px;background:rgba(224,85,85,.1);border:1px solid rgba(224,85,85,.3);color:var(--red);font-size:12px;font-family:var(--mono);letter-spacing:1px;text-decoration:none;min-height:44px;touch-action:manipulation;"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 2h2.5l1 2.5-1.5 1a6 6 0 0 0 3 3l1-1.5L10.5 8V10c-5 .5-9-4-8.5-8z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/></svg>Call Partner</a>` : `<span style="font-size:11px;color:var(--muted);font-family:var(--mono);">No phone on file</span>`}
+          </div>
+        </div>`;
+      }
+      twoPswWrap.innerHTML = `<div style="margin:0 0 14px;padding:14px;background:rgba(224,85,85,.08);border:1.5px solid rgba(224,85,85,.35);border-radius:10px;">
+        <div style="display:flex;align-items:flex-start;gap:10px;">
+          <div style="font-size:20px;flex-shrink:0;margin-top:-1px;">⚠️</div>
+          <div style="flex:1;">
+            <div style="font-size:14px;font-weight:600;color:var(--red);margin-bottom:3px;">2-Person Visit Required${reasonText}</div>
+            <div style="font-size:12px;color:var(--muted2);line-height:1.6;">This client requires two PSWs present for safety. Do not perform this visit alone.</div>
+            ${partnerContact}
+          </div>
+        </div>
+      </div>`;
+      twoPswWrap.style.display = 'block';
+    } else {
+      twoPswWrap.innerHTML = '';
+      twoPswWrap.style.display = 'none';
+    }
+  }
+  // ─────────────────────────────────────────────────────────────────────
+
   document.getElementById('cs-body').innerHTML = body || '<div class="empty-state" style="padding:20px;">Care details will appear here once the care plan is set up in HQ.</div>';
 
   // Open sheet
@@ -3313,6 +3362,12 @@ function recordCarePlanAck(clientName) {
     const key = 'cp_ack_' + (pswName||'').replace(/\s+/g,'_') + '_' + (clientName||'').replace(/\s+/g,'_');
     localStorage.setItem(key, new Date().toISOString());
   } catch {}
+  // P3 — Server-side permanent ack record (timestamps both PSWs for 2-person visits)
+  fetch(`${API}/psw/care-plan-ack`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ psw_name: pswName, pin: pswPin, operator_id: pswOperatorId, client_name: clientName })
+  }).catch(() => {});
 }
 
 
