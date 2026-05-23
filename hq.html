@@ -6159,11 +6159,12 @@ function _renderHoursPanel() {
   });
 
   // Hours totals
+  // Scheduled: booking duration for future/upcoming shifts only
+  // Completed: actual hours_worked from visit rows — not booking duration
+  // Prevents double-counting when completed booking also has a visit row
   const scheduledH = relevant.filter(b => b.status !== 'completed')
     .reduce((s,b) => s+(b.duration_minutes||60)/60, 0);
-  const completedH = relevant.filter(b => b.status === 'completed')
-    .reduce((s,b) => s+(b.duration_minutes||60)/60, 0)
-    + relevantVisits.reduce((s,v) => s+parseFloat(v.hours_worked||0), 0);
+  const completedH = relevantVisits.reduce((s,v) => s+parseFloat(v.hours_worked||0), 0);
   const totalH = scheduledH + completedH;
 
   // Status icon
