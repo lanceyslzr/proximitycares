@@ -1144,6 +1144,17 @@ function showTab(tab) {
         <span style="font-size:13px;font-weight:600;color:var(--text);">Call Agency</span>
       </a>`;
 
+    // ── TWO-PERSON VISIT NOTE ── informational only for family
+    const twoPswNote = client?.requires_two_psw
+      ? `<div style="display:flex;align-items:flex-start;gap:10px;padding:12px 14px;background:rgba(200,169,110,.08);border:1px solid rgba(200,169,110,.25);border-radius:10px;margin-bottom:16px;">
+          <div style="font-size:16px;flex-shrink:0;">👥</div>
+          <div>
+            <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:2px;">Some visits require two caregivers</div>
+            <div style="font-size:12px;color:var(--muted2);line-height:1.6;">${client.two_psw_reason ? client.two_psw_reason + ' — t' : 'T'}wo PSWs are needed to safely assist with certain care tasks. Both will be present together.</div>
+          </div>
+        </div>`
+      : '';
+
     // ── RECENT VISITS (last 5) ──
     const recentVisitsHtml = (visits||[]).slice(0,5).length
       ? (visits||[]).slice(0,5).map(v => visitRow(v)).join('')
@@ -1172,7 +1183,7 @@ function showTab(tab) {
       ${voiceNote}
 
       <!-- CONTACT ROW — compact side by side -->
-      ${contactRow}
+      ${contactRow}${twoPswNote}
 
       <!-- LIVE MAP — inline, always visible -->
       <div style="margin-bottom:20px;">
