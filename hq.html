@@ -6781,7 +6781,12 @@ async function saveShift(addAnother = false) {
           body:JSON.stringify({operator_id:currentOp,client_name:client,booking_type:'visit',
             scheduled_date:d,scheduled_time:time,assigned_to:psw,duration_minutes:duration,
             series_id:seriesId,joint_booking_id:jointBookingId})})
-          .then(r=>r.json()).catch(()=>({success:false}));
+          .then(async r => {
+            const body = await r.json().catch(()=>({}));
+            if (r.status === 401) return {...body, success:false, _sessionExpired:true};
+            return r.ok ? body : {...body, success:false};
+          })
+          .catch(()=>({success:false,error:'Network error'}));
         if (!isTwoPsw) return b1;
         // Second PSW booking — same joint_booking_id
         const b2 = fetch(`${API}/hq/booking`,{method:'POST',headers:{'Content-Type': 'application/json', 'x-hq-token': window._hqToken || sessionStorage.getItem('hq_token') || ''},
@@ -6792,6 +6797,32 @@ async function saveShift(addAnother = false) {
         return Promise.all([b1, b2]).then(([r1]) => r1);
       }));
       const created=results.filter(r=>r.success).length;
+      const failed=results.filter(r=>!r.success);
+      // Surface the first error so operator knows why it failed
+      if (created === 0 && failed.length > 0) {
+        const firstErr = failed[0];
+        // Session expired — force re-login
+        if (firstErr?._sessionExpired) {
+          window._hqToken = null;
+          sessionStorage.removeItem('hq_token');
+          sessionStorage.removeItem('hq_auth');
+          showToast('Session expired — please log in again', 'err');
+          setTimeout(() => {
+            document.getElementById('app').style.display = 'none';
+            document.getElementById('lock').style.display = 'flex';
+          }, 1200);
+          return;
+        }
+        const errMsg = firstErr?.error || firstErr?.message || 'Booking failed';
+        // Conflict detail — most common failure
+        if (firstErr?.conflict) {
+          const c = firstErr.conflict;
+          showToast(`Conflict: ${c.psw||psw} already booked for ${c.existing_client||'another client'} at ${c.existing_time||time}`, 'err');
+        } else {
+          showToast(errMsg, 'err');
+        }
+        return; // Don't proceed with refresh if nothing was created
+      }
       showToast(`${created} shift${created!==1?'s':''} created ✓${isTwoPsw?' (joint — 2 PSWs)':''}`, 'ok');
     if (psw && created > 0) {
       fetch(`${API}/psw/note`, {
