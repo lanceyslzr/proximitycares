@@ -1096,6 +1096,24 @@ body.sidebar-hidden #sidebar-reopen-tab{ display:flex; }
 .xcal-block-time{opacity:.6;font-size:9px;font-family:var(--mono);}
 .xcal-half-line{position:absolute;left:0;right:0;border-top:1px dashed rgba(201,169,110,.06);top:50%;}
 
+
+/* ── PROFILE TABS (client + PSW detail sheets) — S36 ── */
+.prof-tabs{display:flex;gap:2px;padding:0 16px 0;margin-bottom:0;overflow-x:auto;scrollbar-width:none;border-bottom:1px solid var(--border);background:var(--bg2);}
+.prof-tabs::-webkit-scrollbar{display:none;}
+.prof-tab{font-family:var(--mono);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;padding:10px 12px;cursor:pointer;color:var(--muted2);border-bottom:2px solid transparent;white-space:nowrap;min-height:36px;display:flex;align-items:center;touch-action:manipulation;transition:color .15s,border-color .15s;}
+.prof-tab:hover{color:var(--text);}
+.prof-tab.active{color:var(--teal2);border-bottom-color:var(--teal2);}
+.prof-tab-body{display:none;padding:14px 16px 80px;}
+.prof-tab-body.active{display:block;}
+.prof-act-row{display:flex;gap:6px;margin-bottom:14px;}
+.prof-act-row .sbtn{flex:1;font-size:11px;letter-spacing:1px;padding:9px 6px;}
+.doc-vault-row{display:flex;justify-content:space-between;align-items:center;padding:9px 12px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;margin-bottom:5px;}
+.doc-vault-row:last-child{margin-bottom:0;}
+.doc-vault-name{font-size:12px;color:var(--text);}
+.doc-vault-status{display:flex;align-items:center;gap:8px;}
+.doc-vault-status a{font-family:var(--mono);font-size:11px;color:var(--green2);text-decoration:none;}
+.doc-vault-upload{cursor:pointer;padding:3px 8px;background:rgba(109,189,212,.1);border:1px solid rgba(109,189,212,.25);border-radius:4px;font-family:var(--mono);font-size:10px;color:var(--teal2);letter-spacing:1px;}
+
 /* ── MEDIA QUERIES — last, after all base CSS ── */
 @media(max-width:min(1024px,100%)){
   .section{padding:0 8px;}
@@ -7455,143 +7473,182 @@ async function openPSWDetail(pswId) {
       : '<div style="font-family:var(--mono);font-size:12px;color:var(--muted);padding:12px 0;">No visits in last 90 days</div>';
 
     body.innerHTML = `
-      <div style="display:flex;gap:8px;margin-bottom:16px;">
-        <button class="sbtn" style="flex:1;background:rgba(61,138,122,.12);color:var(--teal2);border:1px solid rgba(61,138,122,.3);" onclick="openHoursPanel('psw','${name}')">
-          ⏱ Hours Panel
-        </button>
-      </div>
+    <div class="prof-act-row">
+      <button class="sbtn" onclick="openHoursPanel('psw','${name}')">&#9201; Hours</button>
+      <button class="sbtn" onclick="openPSWMsg('${name}');closeSheet('psw-detail-sheet');">Message</button>
+      <button class="sbtn" style="background:rgba(109,185,116,.1);color:var(--green2);border-color:rgba(109,185,116,.25);" onclick="openPaystubModal('${name}','${p.email||rec.email||\'\'}',${p.psw_rate||rec.psw_rate||19})">Paystub</button>
+    </div>
+    <div class="prof-tabs">
+      <div class="prof-tab active" onclick="_ppTab(this,'ppt-info')">Info</div>
+      <div class="prof-tab" onclick="_ppTab(this,'ppt-certs')">Certifications</div>
+      <div class="prof-tab" onclick="_ppTab(this,'ppt-docs')">Documents</div>
+      <div class="prof-tab" onclick="_ppTab(this,'ppt-schedule')">Schedule</div>
+      <div class="prof-tab" onclick="_ppTab(this,'ppt-edit')">Edit</div>
+    </div>
 
-      <div style="margin-bottom:16px;border:1px solid var(--border);border-radius:8px;overflow:hidden;">
-        <div onclick="(function(el){const b=el.nextElementSibling;const open=b.style.display!=='none';b.style.display=open?'none':'block';el.querySelector('.vh-chevron').style.transform=open?'rotate(0deg)':'rotate(180deg)';})(this)" style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;cursor:pointer;background:var(--bg2);user-select:none;" onmouseover="this.style.background='var(--bg3)'" onmouseout="this.style.background='var(--bg2)'">
-          <div style="display:flex;align-items:center;gap:8px;">
-            <span style="font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--teal2);">Visit History</span>
-            <span style="font-family:var(--mono);font-size:10px;color:var(--muted);">${pswVisits.length} visits · ${pswTotalHrs.toFixed(1)}h</span>
-          </div>
-          <svg class="vh-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--muted);transition:transform .2s;flex-shrink:0;"><polyline points="6 9 12 15 18 9"/></svg>
-        </div>
-        <div style="display:none;padding:0 14px;">
-          ${pswVisitRows}
-        </div>
-      </div>
-
-      <div class="cpf"><div class="cpf-lbl">Email</div><div class="cpf-val">${p.email?`<a href="mailto:${p.email}">${p.email}</a>`:'—'}</div></div>
-      <div class="cpf"><div class="cpf-lbl">Phone</div><div class="cpf-val">${p.phone?`<a href="tel:${p.phone}">${p.phone}</a>`:'—'}</div></div>
-      <div class="cpf"><div class="cpf-lbl">PSW Code</div><div class="cpf-val" style="font-family:var(--mono);">${rec.psw_code||p.psw_code||'—'}</div></div>
+    <div class="prof-tab-body active" id="ppt-info">
+      <div style="margin-bottom:12px;font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--teal2);">Contact</div>
+      <div class="cpf"><div class="cpf-lbl">Email</div><div class="cpf-val">${p.email?'<a href="mailto:'+p.email+'">'+p.email+'</a>':'&#8212;'}</div></div>
+      <div class="cpf"><div class="cpf-lbl">Phone</div><div class="cpf-val">${p.phone?'<a href="tel:'+p.phone+'">'+p.phone+'</a>':'&#8212;'}</div></div>
+      <div class="cpf"><div class="cpf-lbl">Address</div><div class="cpf-val">${rec.address||p.address||'&#8212;'}</div></div>
+      <div class="cpf"><div class="cpf-lbl">Emergency Contact</div><div class="cpf-val">${rec.emergency_contact||p.emergency_contact||'&#8212;'}</div></div>
+      <div style="margin:14px 0 10px;font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--teal2);">Employment</div>
+      <div class="cpf"><div class="cpf-lbl">Start Date</div><div class="cpf-val">${(rec.start_date||p.start_date)?fmtd(rec.start_date||p.start_date):'Not set'}</div></div>
       <div class="cpf"><div class="cpf-lbl">Status</div><div class="cpf-val"><span class="badge b-${p.status||'active'}">${p.status||'active'}</span></div></div>
-      <div class="cpf"><div class="cpf-lbl">Availability</div><div class="cpf-val">${escHtml(rec.availability_days||'Not set')} · ${rec.availability_shifts||''}</div></div>
+      <div class="cpf"><div class="cpf-lbl">PSW Code</div><div class="cpf-val" style="font-family:var(--mono);">${rec.psw_code||p.psw_code||'&#8212;'}</div></div>
+      <div class="cpf"><div class="cpf-lbl">Rate</div><div class="cpf-val" style="font-family:var(--mono);">$${p.psw_rate||rec.psw_rate||19}/hr</div></div>
+      <div class="cpf"><div class="cpf-lbl">Availability</div><div class="cpf-val">${rec.availability_days||'Not set'} ${rec.availability_shifts?'&#183; '+rec.availability_shifts:''}</div></div>
+      ${p.probation_end?'<div class="cpf"><div class="cpf-lbl">Probation End</div><div class="cpf-val" style="font-family:var(--mono);color:var(--amber);">'+fmtd(p.probation_end)+'</div></div>':''}
+      <div style="margin:14px 0 10px;font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--teal2);">Assigned Clients</div>
+      ${(()=>{ const ac=(D.clients||[]).filter(c=>c.assigned_psw===name); return ac.length ? ac.map(c=>'<div style="padding:8px 12px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;margin-bottom:4px;font-size:12px;color:var(--text);">'+(c.first_name||'')+' '+(c.last_name||'')+'</div>').join('') : '<div style="font-size:12px;color:var(--muted);margin-bottom:12px;">No clients assigned</div>'; })()}
+    </div>
 
-      <div style="margin:16px 0 10px;font-family:var(--mono);font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--teal2);">Documents</div>
-      <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:16px;">
-        ${[
-          {label:'PSW Certificate', field:'psw_cert', url:rec.psw_cert_url, expiry:rec.psw_cert_expiry},
-          {label:'Police Check',    field:'police_check', url:rec.police_check_url, expiry:rec.police_check_expiry},
-          {label:'CPR Certification', field:'cpr_cert', url:rec.cpr_cert_url, expiry:rec.cpr_cert_expiry},
-          {label:'First Aid',       field:'first_aid', url:rec.first_aid_url, expiry:rec.first_aid_expiry}
-        ].map(d => `
-          <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;">
-            <div style="font-size:12px;color:var(--text);flex:1;">${d.label}</div>
-            <div style="display:flex;align-items:center;gap:8px;">
-              ${d.url
-                ? `<a href="${d.url}" target="_blank" style="font-family:var(--mono);font-size:11px;color:var(--green2);text-decoration:none;">VALID${d.expiry?' · '+fmtd(d.expiry):''}</a>`
-                : `<span style="color:var(--red);font-family:var(--mono);font-size:11px;">MISSING</span>`}
-              <label style="cursor:pointer;padding:4px 8px;background:rgba(109,189,212,.1);border:1px solid rgba(109,189,212,.25);border-radius:4px;font-family:var(--mono);font-size:10px;color:var(--teal);letter-spacing:1px;">
-                UPLOAD<input type="file" accept=".pdf,.jpg,.jpeg,.png" style="display:none;" onchange="uploadPSWDoc(event,'${name}','${d.field}')">
-              </label>
-            </div>
-          </div>
-        `).join('')}
-      </div>
-
-      <div style="margin-bottom:10px;font-family:var(--mono);font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--teal2);">Assigned Clients</div>
-      ${assignedClients.length
-        ? assignedClients.map(c => `<div style="padding:8px 12px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;margin-bottom:4px;font-size:12px;color:var(--text);">${c.first_name||''} ${c.last_name||''}</div>`).join('')
-        : '<div style="font-size:12px;color:var(--muted);margin-bottom:12px;">No clients assigned</div>'
-      }
-
-      <!-- BUILD 2: ONTARIO CREDENTIALS -->
-      <div style="margin:16px 0 10px;font-family:var(--mono);font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--teal2);">Ontario Credentials</div>
-
-      <div style="margin-bottom:10px;padding:10px 12px;background:rgba(200,169,110,.06);border:1px solid rgba(200,169,110,.25);border-radius:8px;display:flex;gap:8px;align-items:flex-start;">
-        <span style="color:var(--gold);flex-shrink:0;">⚠</span>
-        <div style="font-size:11px;color:var(--muted2);line-height:1.5;"><strong style="color:var(--gold);">HSCPOA registration mandatory Dec 1, 2027.</strong> Track every PSW — no competitor does this.</div>
-      </div>
-
-      <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:16px;">
-
+    <div class="prof-tab-body" id="ppt-certs">
+      <div style="margin-bottom:10px;padding:10px 12px;background:rgba(200,169,110,.06);border:1px solid rgba(200,169,110,.25);border-radius:8px;font-size:11px;color:var(--muted2);line-height:1.5;"><strong style="color:var(--gold);">HSCPOA registration mandatory Dec 1, 2027.</strong> Track every PSW &#8212; no competitor does this.</div>
+      <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:14px;">
         <div style="padding:10px 12px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
             <div style="font-size:12px;font-weight:600;color:var(--text);">NACC Certification</div>
             <span style="font-family:var(--mono);font-size:10px;color:${p.nacc_expiry&&Math.round((new Date(p.nacc_expiry)-new Date())/86400000)<30?'var(--amber)':p.nacc_number?'var(--green2)':'var(--muted2)'};">${p.nacc_expiry&&Math.round((new Date(p.nacc_expiry)-new Date())/86400000)<30?'EXP SOON':p.nacc_number?'ON FILE':'NOT SET'}</span>
           </div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-            <div><div class="slbl" style="font-size:10px;margin-bottom:4px;">Registration #</div>
-              <input class="sinput" id="pe-nacc-number" value="${p.nacc_number||''}" placeholder="NACC-12345" style="font-size:14px;padding:8px 10px;"></div>
-            <div><div class="slbl" style="font-size:10px;margin-bottom:4px;">Expiry Date</div>
-              <input class="sinput" id="pe-nacc-expiry" type="date" value="${p.nacc_expiry||''}" style="font-size:14px;padding:8px 10px;"></div>
+            <div><div class="slbl" style="font-size:10px;margin-bottom:4px;">Registration #</div><input class="sinput" id="pe-nacc-number" value="${p.nacc_number||''}" placeholder="NACC-12345" style="font-size:14px;padding:8px 10px;"></div>
+            <div><div class="slbl" style="font-size:10px;margin-bottom:4px;">Expiry</div><input class="sinput" id="pe-nacc-expiry" type="date" value="${p.nacc_expiry||''}" style="font-size:14px;padding:8px 10px;"></div>
           </div>
         </div>
-
         <div style="padding:10px 12px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
             <div style="font-size:12px;font-weight:600;color:var(--text);">HSCPOA Registration</div>
             <span style="font-family:var(--mono);font-size:10px;color:${p.hscpoa_status==='active'?'var(--green2)':p.hscpoa_status==='pending'?'var(--amber)':p.hscpoa_number?'var(--teal2)':'var(--muted2)'};">${p.hscpoa_status==='active'?'ACTIVE':p.hscpoa_status==='pending'?'PENDING':p.hscpoa_number?'ON FILE':'NOT SET'}</span>
           </div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-            <div><div class="slbl" style="font-size:10px;margin-bottom:4px;">Registration #</div>
-              <input class="sinput" id="pe-hscpoa-number" value="${p.hscpoa_number||''}" placeholder="HSCPOA reg #" style="font-size:14px;padding:8px 10px;"></div>
+            <div><div class="slbl" style="font-size:10px;margin-bottom:4px;">Registration #</div><input class="sinput" id="pe-hscpoa-number" value="${p.hscpoa_number||''}" placeholder="HSCPOA reg #" style="font-size:14px;padding:8px 10px;"></div>
             <div><div class="slbl" style="font-size:10px;margin-bottom:4px;">Status</div>
               <select class="sselect" id="pe-hscpoa-status" style="padding:8px 10px;font-size:14px;">
                 <option value="" ${!p.hscpoa_status?'selected':''}>Not set</option>
                 <option value="active" ${p.hscpoa_status==='active'?'selected':''}>Active</option>
                 <option value="pending" ${p.hscpoa_status==='pending'?'selected':''}>Pending</option>
                 <option value="expired" ${p.hscpoa_status==='expired'?'selected':''}>Expired</option>
-              </select></div>
+              </select>
+            </div>
           </div>
         </div>
-
         <div style="padding:10px 12px;background:var(--bg3);border:1px solid ${p.vsc_expiry&&Math.round((new Date(p.vsc_expiry)-new Date())/86400000)<0?'rgba(224,85,85,.4)':p.vsc_expiry&&Math.round((new Date(p.vsc_expiry)-new Date())/86400000)<30?'rgba(224,154,61,.4)':'var(--border)'};border-radius:8px;">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-            <div style="font-size:12px;font-weight:600;color:var(--text);">Vulnerable Sector Check (VSC)</div>
-            <span style="font-family:var(--mono);font-size:10px;font-weight:${p.vsc_expiry&&Math.round((new Date(p.vsc_expiry)-new Date())/86400000)<0?'700':'400'};color:${p.vsc_expiry&&Math.round((new Date(p.vsc_expiry)-new Date())/86400000)<0?'var(--red)':p.vsc_expiry&&Math.round((new Date(p.vsc_expiry)-new Date())/86400000)<30?'var(--amber)':p.vsc_date?'var(--green2)':'var(--muted2)'};">${p.vsc_expiry&&Math.round((new Date(p.vsc_expiry)-new Date())/86400000)<0?'EXPIRED':p.vsc_expiry&&Math.round((new Date(p.vsc_expiry)-new Date())/86400000)<30?'EXP SOON':p.vsc_date?'VALID':'NOT SET'}</span>
+            <div style="font-size:12px;font-weight:600;color:var(--text);">Vulnerable Sector Check</div>
+            <span style="font-family:var(--mono);font-size:10px;color:${p.vsc_expiry&&Math.round((new Date(p.vsc_expiry)-new Date())/86400000)<0?'var(--red)':p.vsc_expiry&&Math.round((new Date(p.vsc_expiry)-new Date())/86400000)<30?'var(--amber)':p.vsc_date?'var(--green2)':'var(--muted2)'};">${p.vsc_expiry&&Math.round((new Date(p.vsc_expiry)-new Date())/86400000)<0?'EXPIRED':p.vsc_expiry&&Math.round((new Date(p.vsc_expiry)-new Date())/86400000)<30?'EXP SOON':p.vsc_date?'VALID':'NOT SET'}</span>
           </div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-            <div><div class="slbl" style="font-size:10px;margin-bottom:4px;">Check Date</div>
-              <input class="sinput" id="pe-vsc-date" type="date" value="${p.vsc_date||''}" style="font-size:14px;padding:8px 10px;" oninput="autoVscExpiry(this.value)"></div>
-            <div><div class="slbl" style="font-size:10px;margin-bottom:4px;">Expiry <span style="color:var(--muted);font-size:9px;">(12 mo)</span></div>
-              <input class="sinput" id="pe-vsc-expiry" type="date" value="${p.vsc_expiry||''}" style="font-size:14px;padding:8px 10px;"></div>
+            <div><div class="slbl" style="font-size:10px;margin-bottom:4px;">Check Date</div><input class="sinput" id="pe-vsc-date" type="date" value="${p.vsc_date||''}" style="font-size:14px;padding:8px 10px;" oninput="autoVscExpiry(this.value)"></div>
+            <div><div class="slbl" style="font-size:10px;margin-bottom:4px;">Expiry (12 mo)</div><input class="sinput" id="pe-vsc-expiry" type="date" value="${p.vsc_expiry||''}" style="font-size:14px;padding:8px 10px;"></div>
           </div>
         </div>
-
+        <div style="padding:10px 12px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;">
+          <div style="font-size:12px;font-weight:600;color:var(--text);margin-bottom:8px;">TB Test</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+            <div><div class="slbl" style="font-size:10px;margin-bottom:4px;">Test Date</div><input class="sinput" id="pe-tb-test-date" type="date" value="${p.tb_test_date||''}" style="font-size:14px;padding:8px 10px;"></div>
+            <div style="display:flex;align-items:flex-end;padding-bottom:4px;"><span style="font-family:var(--mono);font-size:11px;color:${p.tb_test_date?'var(--green2)':'var(--muted2)'};">${p.tb_test_date?'ON FILE':'NOT SET'}</span></div>
+          </div>
+        </div>
+        <div style="padding:10px 12px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;">
+          <div style="font-size:12px;font-weight:600;color:var(--text);margin-bottom:8px;">COVID Vaccination</div>
+          <select class="sselect" id="pe-covid-vax-status" style="font-size:14px;">
+            <option value="" ${!p.covid_vax_status?'selected':''}>Not set</option>
+            <option value="Fully Vaccinated" ${p.covid_vax_status==='Fully Vaccinated'?'selected':''}>Fully Vaccinated</option>
+            <option value="Partially Vaccinated" ${p.covid_vax_status==='Partially Vaccinated'?'selected':''}>Partially Vaccinated</option>
+            <option value="Not Vaccinated" ${p.covid_vax_status==='Not Vaccinated'?'selected':''}>Not Vaccinated</option>
+            <option value="Medical Exemption" ${p.covid_vax_status==='Medical Exemption'?'selected':''}>Medical Exemption</option>
+          </select>
+        </div>
       </div>
-      <!-- END BUILD 2 -->
+      <button class="sbtn" style="background:rgba(200,169,110,.12);color:var(--gold);border-color:rgba(200,169,110,.3);" onclick="savePSWEdits('${p.id}','${name}')">Save Certifications</button>
+    </div>
 
-      <div style="margin:16px 0 10px;font-family:var(--mono);font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--gold);">Edit PSW</div>
+    <div class="prof-tab-body" id="ppt-docs">
+      <div style="margin-bottom:12px;font-size:12px;color:var(--muted2);line-height:1.5;">Upload replaces the previous file. Stored in psw-documents.</div>
+      <div style="display:flex;flex-direction:column;gap:5px;">
+        ${[
+          {label:'PSW Certificate',     field:'psw_cert',     url:rec.psw_cert_url,     expiry:rec.psw_cert_expiry},
+          {label:'Police Check',        field:'police_check', url:rec.police_check_url, expiry:rec.police_check_expiry},
+          {label:'CPR Certification',   field:'cpr_cert',     url:rec.cpr_cert_url,     expiry:rec.cpr_cert_expiry},
+          {label:'First Aid',           field:'first_aid',    url:rec.first_aid_url,    expiry:rec.first_aid_expiry},
+          {label:'Employment Agreement',field:'nacc_cert',    url:rec.employment_agreement_url||p.employment_agreement_url, expiry:null}
+        ].map(d => '<div class="doc-vault-row"><div class="doc-vault-name">'+d.label+'</div><div class="doc-vault-status">'+(d.url?'<a href="'+d.url+'" target="_blank">VIEW'+(d.expiry?' &#183; '+fmtd(d.expiry):'')+'</a>':'<span style="font-family:var(--mono);font-size:11px;color:var(--muted);">MISSING</span>')+'<label class="doc-vault-upload">UPLOAD<input type="file" accept=".pdf,.jpg,.jpeg,.png" style="display:none;" onchange="uploadPSWDoc(event,\''+name+'\',\''+d.field+'\')"></label></div></div>').join('')}
+      </div>
+    </div>
+
+    <div class="prof-tab-body" id="ppt-schedule">
+      <div style="margin-bottom:12px;border:1px solid var(--border);border-radius:8px;overflow:hidden;">
+        <div onclick="(function(el){const b=el.nextElementSibling;const open=b.style.display!==\'none\';b.style.display=open?\'none\':\'block\';el.querySelector(\'.vh-chevron\').style.transform=open?\'rotate(0deg)\':\'rotate(180deg)\';})(this)" style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;cursor:pointer;background:var(--bg2);user-select:none;">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span style="font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--teal2);">Visit History</span>
+            <span style="font-family:var(--mono);font-size:10px;color:var(--muted);">${pswVisits.length} visits &#183; ${pswTotalHrs.toFixed(1)}h</span>
+          </div>
+          <svg class="vh-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--muted);transition:transform .2s;flex-shrink:0;"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div style="display:none;padding:0 14px;">${pswVisitRows}</div>
+      </div>
+    </div>
+
+    <div class="prof-tab-body" id="ppt-edit">
       <div class="srow2" style="padding:0;">
         <div><div class="slbl">Phone</div><input class="sinput" id="pe-phone" type="tel" value="${p.phone||rec.phone||''}" style="font-size:16px;" placeholder="+1 416 555 0000"></div>
         <div><div class="slbl">Email</div><input class="sinput" id="pe-email" type="email" value="${p.email||rec.email||''}" style="font-size:16px;"></div>
       </div>
-      <div class="sheet-row"><div class="slbl">Availability</div><input class="sinput" id="pe-availability" type="text" value="${p.availability||rec.availability||''}" placeholder="e.g. Mon-Fri 7am-4pm, weekends" style="font-size:16px;"></div>
+      <div class="sheet-row"><div class="slbl">Address</div><input class="sinput" id="pe-address" type="text" value="${p.address||rec.address||''}" placeholder="Full address" style="font-size:15px;"></div>
+      <div class="sheet-row"><div class="slbl">Emergency Contact</div><input class="sinput" id="pe-emergency-contact" type="text" value="${p.emergency_contact||rec.emergency_contact||''}" placeholder="Name &#183; Relationship &#183; Phone" style="font-size:15px;"></div>
+      <div class="sheet-row"><div class="slbl">Availability</div><input class="sinput" id="pe-availability" type="text" value="${p.availability||rec.availability||''}" placeholder="e.g. Mon-Fri 7am-4pm" style="font-size:16px;"></div>
       <div class="srow2" style="padding:0;">
         <div><div class="slbl">PSW Rate $/hr</div><input class="sinput" id="pe-rate" type="number" value="${p.psw_rate||19}" min="15" max="80" style="font-size:16px;"></div>
-        <div><div class="slbl">Status</div>
-          <select class="sselect" id="pe-status">
-            <option value="active" ${(p.status||'active')==='active'?'selected':''}>Active</option>
-            <option value="inactive" ${p.status==='inactive'?'selected':''}>Inactive</option>
-            <option value="on-leave" ${p.status==='on-leave'?'selected':''}>On Leave</option>
-          </select>
-        </div>
+        <div><div class="slbl">Start Date</div><input class="sinput" id="pe-start-date" type="date" value="${p.start_date||rec.start_date||''}" style="font-size:16px;"></div>
       </div>
-      <div class="sheet-row"><div class="slbl">Probation End Date <span style="font-size:11px;color:var(--muted);">(leave blank if not on probation)</span></div><input class="sinput" id="pe-probation-end" type="date" value="${p.probation_end||''}" style="font-size:16px;"></div>
+      <div class="sheet-row"><div class="slbl">Status</div>
+        <select class="sselect" id="pe-status">
+          <option value="active" ${(p.status||'active')==='active'?'selected':''}>Active</option>
+          <option value="inactive" ${p.status==='inactive'?'selected':''}>Inactive</option>
+          <option value="on-leave" ${p.status==='on-leave'?'selected':''}>On Leave</option>
+        </select>
+      </div>
+      <div class="sheet-row"><div class="slbl">Probation End Date</div><input class="sinput" id="pe-probation-end" type="date" value="${p.probation_end||''}" style="font-size:16px;"></div>
       <div class="sheet-row"><div class="slbl">Internal Notes</div><textarea class="sinput" id="pe-notes" rows="2" style="min-height:60px;resize:none;" placeholder="Notes about this PSW...">${p.notes||rec.notes||''}</textarea></div>
       <button class="sbtn" style="background:rgba(200,169,110,.12);color:var(--gold);border:1px solid rgba(200,169,110,.3);margin-bottom:8px;" onclick="savePSWEdits('${p.id}','${name}')">Save Changes</button>
-
-      <div style="display:flex;gap:8px;margin-bottom:8px;">
-        <button class="sbtn" style="flex:1;" onclick="openPSWMsg('${name}');closeSheet('psw-detail-sheet');">Message ${name.split(' ')[0]}</button>
-        <button class="sbtn" style="flex:1;background:rgba(109,185,116,.1);color:var(--green2);border:1px solid rgba(109,185,116,.25);" onclick="openPaystubModal('${name}','${p.email||rec.email||''}',${p.psw_rate||rec.psw_rate||19})">Send Paystub</button>
-      </div>`;
-  } catch {
+    </div>
+  `;
     body.innerHTML = '<div class="empty-state">Could not load profile</div>';
   }
+}
+
+// ── S36 PROFILE TAB SWITCHERS ──
+function _cpTab(el, bodyId) {
+  const tabs = el.closest('.prof-tabs').querySelectorAll('.prof-tab');
+  tabs.forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  const sheet = el.closest('.prof-tab-body, .sheet-body') || el.closest('[id="client-sheet-body"]');
+  // Walk up to find sibling prof-tab-body elements
+  const parent = el.closest('.sheet-body') || el.parentNode.parentNode;
+  parent.querySelectorAll('.prof-tab-body').forEach(b => b.classList.remove('active'));
+  const target = document.getElementById(bodyId);
+  if (target) target.classList.add('active');
+}
+function _ppTab(el, bodyId) { _cpTab(el, bodyId); }
+
+// ── S36 CLIENT DOCUMENT UPLOAD ──
+async function uploadClientDoc(event, slug, docType) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const labels = { service_agreement: 'Service Agreement', photo_id: 'Photo ID', poa_document: 'POA Document', insurance_card: 'Insurance Card', other: 'Document' };
+  showToast('Uploading ' + (labels[docType]||docType) + '...', 'ok');
+  try {
+    const fd = new FormData();
+    fd.append('file', file);
+    fd.append('operator_id', currentOp);
+    fd.append('doc_type', docType);
+    const r = await hqFetch(`${API}/hq/client/${encodeURIComponent(slug)}/docs`, { method: 'POST', body: fd });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error || 'Upload failed');
+    showToast((labels[docType]||docType) + ' uploaded ✓', 'ok');
+    await loadAll(false);
+  } catch(e) { showToast('Upload failed: ' + e.message, 'err'); }
 }
 
 // Send PSW pay summary email with PDF
@@ -7744,11 +7801,201 @@ function openClientDetail(id) {
     : '<div style="font-family:var(--mono);font-size:12px;color:var(--muted);padding:12px 0;">No visits in last 90 days</div>';
 
   document.getElementById('client-sheet-body').innerHTML = `
-    <div style="display:flex;gap:8px;margin-bottom:16px;">
-      <button style="flex:1;background:rgba(61,138,122,.12);color:var(--teal2);border:1px solid var(--border2);padding:10px;font-family:var(--mono);font-size:12px;letter-spacing:1.5px;text-transform:uppercase;border-radius:6px;cursor:pointer;min-height:44px;touch-action:manipulation;" onclick="closeSheet('client-sheet');openClientSchedule('${name}')">+ Schedule Shift</button>
-      <button style="flex:1;background:rgba(200,169,110,.1);color:var(--gold);border:1px solid rgba(200,169,110,.3);padding:10px;font-family:var(--mono);font-size:12px;letter-spacing:1.5px;text-transform:uppercase;border-radius:6px;cursor:pointer;min-height:44px;touch-action:manipulation;" onclick="genInvoice('${name}','${c.family_email||c.email||''}','${c.assigned_psw||''}',${c.client_rate||22},${c.psw_rate||19});closeSheet('client-sheet');">Invoice</button>
-      <button style="flex:1;background:rgba(61,138,122,.12);color:var(--teal2);border:1px solid rgba(61,138,122,.3);padding:10px;font-family:var(--mono);font-size:12px;letter-spacing:1.5px;text-transform:uppercase;border-radius:6px;cursor:pointer;min-height:44px;touch-action:manipulation;" onclick="openHoursPanel('client','${name}')">⏱ Hours</button>
+    <div class="prof-act-row">
+      <button class="sbtn" onclick="closeSheet('client-sheet');openClientSchedule('${name}')">+ Shift</button>
+      <button class="sbtn" style="background:rgba(200,169,110,.1);color:var(--gold);border-color:rgba(200,169,110,.3);" onclick="genInvoice('${name}','${c.family_email||c.email||''}','${c.assigned_psw||''}',${c.client_rate||22},${c.psw_rate||19});closeSheet('client-sheet');">Invoice</button>
+      <button class="sbtn" onclick="openHoursPanel('client','${name}')">⏱ Hours</button>
     </div>
+    <div class="prof-tabs">
+      <div class="prof-tab active" onclick="_cpTab(this,'cpt-info')">Info</div>
+      <div class="prof-tab" onclick="_cpTab(this,'cpt-care')">Care Plan</div>
+      <div class="prof-tab" onclick="_cpTab(this,'cpt-docs')">Documents</div>
+      <div class="prof-tab" onclick="_cpTab(this,'cpt-billing')">Billing</div>
+      <div class="prof-tab" onclick="_cpTab(this,'cpt-portal')">Portal</div>
+    </div>
+
+    <!-- TAB: INFO -->
+    <div class="prof-tab-body active" id="cpt-info">
+      <div style="margin-bottom:14px;font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--teal2);">Client Details</div>
+      <div class="srow2">
+        <div><div class="slbl">First Name</div><input class="sinput" id="ce-first-name" type="text" value="${c.first_name||''}" style="font-size:15px;"></div>
+        <div><div class="slbl">Last Name</div><input class="sinput" id="ce-last-name" type="text" value="${c.last_name||''}" style="font-size:15px;"></div>
+      </div>
+      <div class="srow2">
+        <div><div class="slbl">Date of Birth</div><input class="sinput" id="ce-dob" type="date" value="${c.date_of_birth||''}" style="font-size:15px;"></div>
+        <div><div class="slbl">Phone</div><input class="sinput" id="ce-phone" type="tel" value="${c.phone||''}" style="font-size:15px;"></div>
+      </div>
+      <div class="sheet-row"><div class="slbl">Address</div><input class="sinput" id="ce-address" type="text" value="${c.address||''}" placeholder="Full address" style="font-size:15px;"></div>
+      <div class="srow2">
+        <div><div class="slbl">Family Contact</div><input class="sinput" id="ce-family-name" type="text" value="${c.family_contact_name||''}" style="font-size:15px;"></div>
+        <div><div class="slbl">Family Email</div><input class="sinput" id="ce-email" type="email" value="${c.family_email||c.email||''}" style="font-size:15px;"></div>
+      </div>
+      <div style="margin:14px 0 10px;font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--teal2);">Medical</div>
+      <div class="srow2">
+        <div><div class="slbl">Physician Name</div><input class="sinput" id="ce-physician-name" type="text" value="${c.physician_name||''}" style="font-size:15px;"></div>
+        <div><div class="slbl">Physician Phone</div><input class="sinput" id="ce-physician-phone" type="tel" value="${c.physician_phone||''}" style="font-size:15px;"></div>
+      </div>
+      <div class="sheet-row"><div class="slbl">Allergies</div><input class="sinput" id="ce-allergies" type="text" value="${c.allergies||''}" placeholder="Food, medication, environmental..." style="font-size:15px;"></div>
+      <div class="sheet-row"><div class="slbl">Current Medications</div><textarea class="sinput" id="ce-medications" rows="2" style="min-height:60px;resize:none;">${c.medications||''}</textarea></div>
+      <div class="srow2">
+        <div><div class="slbl">DNR Status</div>
+          <select class="sselect" id="ce-dnr-status">
+            <option value="" ${!c.dnr_status?'selected':''}>Not set</option>
+            <option value="DNR" ${c.dnr_status==='DNR'?'selected':''}>DNR — Do Not Resuscitate</option>
+            <option value="Full Code" ${c.dnr_status==='Full Code'?'selected':''}>Full Code</option>
+            <option value="DNI" ${c.dnr_status==='DNI'?'selected':''}>DNI — Do Not Intubate</option>
+          </select>
+        </div>
+        <div><div class="slbl">Mobility Level</div><input class="sinput" id="ce-mobility" type="text" value="${c.mobility_level||''}" placeholder="e.g. Walker, Independent" style="font-size:15px;"></div>
+      </div>
+      <div class="sheet-row"><div class="slbl">Cognitive Status</div><input class="sinput" id="ce-cognitive" type="text" value="${c.cognitive_status||''}" placeholder="e.g. Mild dementia, Oriented x3" style="font-size:15px;"></div>
+      <div style="margin:14px 0 10px;font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--teal2);">Power of Attorney</div>
+      <div class="srow2">
+        <div><div class="slbl">POA Name</div><input class="sinput" id="ce-poa-name" type="text" value="${c.poa_name||''}" style="font-size:15px;"></div>
+        <div><div class="slbl">POA Phone</div><input class="sinput" id="ce-poa-phone" type="tel" value="${c.poa_phone||''}" style="font-size:15px;"></div>
+      </div>
+      <div style="margin:14px 0 10px;font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--teal2);">Emergency Contacts</div>
+      ${c.emergency_contact_1_name?`<div class="cpf"><div class="cpf-lbl">EC 1</div><div class="cpf-val">${c.emergency_contact_1_name} · ${c.emergency_contact_1_relation||''} · <a href="tel:${c.emergency_contact_1_phone||''}">${c.emergency_contact_1_phone||'—'}</a></div></div>`:''}
+      ${c.emergency_contact_2_name?`<div class="cpf"><div class="cpf-lbl">EC 2</div><div class="cpf-val">${c.emergency_contact_2_name} · ${c.emergency_contact_2_relation||''} · <a href="tel:${c.emergency_contact_2_phone||''}">${c.emergency_contact_2_phone||'—'}</a></div></div>`:''}
+      <div style="margin:14px 0 10px;font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--teal2);">Home Access</div>
+      <div class="sheet-row"><div class="slbl">Access Instructions</div><textarea class="sinput" id="ce-home-access" rows="2" style="min-height:60px;resize:none;" placeholder="Key safe code, door code, building buzzer...">${c.home_access_instructions||''}</textarea></div>
+      <button class="sbtn" style="margin-top:6px;background:rgba(200,169,110,.12);color:var(--gold);border-color:rgba(200,169,110,.3);" onclick="saveClientEdits('${id}')">Save Changes</button>
+    </div>
+
+    <!-- TAB: CARE PLAN -->
+    <div class="prof-tab-body" id="cpt-care">
+      ${c.care_notes?`<div style="margin-bottom:12px;padding:12px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;font-size:12px;color:var(--muted2);line-height:1.6;">${c.care_notes}</div>`:''}
+      <div style="margin-bottom:14px;">
+        ${c.dnr_status==='DNR'?`<span style="display:inline-flex;align-items:center;font-family:var(--mono);font-size:11px;letter-spacing:1px;padding:3px 8px;border-radius:100px;border:1px solid rgba(224,85,85,.5);color:var(--red);background:rgba(224,85,85,.1);font-weight:700;margin-right:4px;">⚠ DNR</span>`:''}
+        ${c.allergies?`<span style="display:inline-flex;align-items:center;font-family:var(--mono);font-size:11px;letter-spacing:1px;padding:3px 8px;border-radius:100px;border:1px solid rgba(224,85,85,.4);color:var(--red);margin-right:4px;">⚠ Allergies</span>`:''}
+        ${c.requires_two_psw?`<span style="display:inline-flex;align-items:center;font-family:var(--mono);font-size:11px;letter-spacing:1px;padding:3px 8px;border-radius:100px;border:1px solid rgba(200,169,110,.5);color:var(--gold);background:rgba(200,169,110,.1);margin-right:4px;">2 PSW Required</span>`:''}
+      </div>
+      <div class="srow2">
+        <div><div class="slbl">Care Type</div><input class="sinput" id="ce-care-type" type="text" value="${c.care_type||''}" placeholder="e.g. Personal Support" style="font-size:15px;"></div>
+        <div><div class="slbl">City</div><input class="sinput" id="ce-city" type="text" value="${c.city||''}" style="font-size:15px;"></div>
+      </div>
+      <div class="sheet-row"><div class="slbl">Care Directives</div><textarea class="sinput" id="ce-care-directives" rows="2" style="min-height:64px;resize:none;" placeholder="DNR, transfer assist, dietary restrictions...">${c.care_directives||''}</textarea></div>
+      <div class="sheet-row"><div class="slbl">Care Notes</div><textarea class="sinput" id="ce-care-notes" rows="3" style="min-height:80px;resize:none;" placeholder="Internal care notes...">${c.care_notes||''}</textarea></div>
+      <div style="margin:14px 0 10px;font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--teal2);">Assigned PSW</div>
+      <select class="sselect" id="ce-psw">${getMergedPSWList().filter(p=>p.source==='live').map(p=>`<option value="${p.name}" ${p.name===c.assigned_psw?'selected':''}>${p.name}</option>`).join('')}</select>
+      <div style="margin-top:14px;" id="ce-two-psw-row">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border:1px solid var(--border);border-radius:8px;background:${c.requires_two_psw?'rgba(200,169,110,.08)':'var(--bg)'};cursor:pointer;" onclick="(function(row){const cb=document.getElementById('ce-two-psw');cb.checked=!cb.checked;row.style.background=cb.checked?'rgba(200,169,110,.08)':'var(--bg)';document.getElementById('ce-two-psw-reason-wrap').style.display=cb.checked?'block':'none';}).call(this,this)">
+          <div><div style="font-size:13px;font-weight:500;color:var(--text);">Requires 2 PSWs</div><div style="font-size:11px;color:var(--muted);font-family:var(--mono);margin-top:2px;">Joint visits — shower assist, transfers, bariatric</div></div>
+          <input type="checkbox" id="ce-two-psw" ${c.requires_two_psw?'checked':''} style="width:18px;height:18px;accent-color:var(--gold);cursor:pointer;flex-shrink:0;" onclick="event.stopPropagation();document.getElementById('ce-two-psw-reason-wrap').style.display=this.checked?'block':'none';this.closest('#ce-two-psw-row').querySelector('div').style.background=this.checked?'rgba(200,169,110,.08)':'var(--bg)';">
+        </div>
+        <div id="ce-two-psw-reason-wrap" style="display:${c.requires_two_psw?'block':'none'};margin-top:10px;">
+          <select class="sselect" id="ce-two-psw-reason">
+            <option value="">Select reason…</option>
+            ${['Hoyer Lift','Transfer Assist','Bariatric Care','Fall Risk','Wound Care','Behavioural — Cognitive','Shower Assist','Other'].map(r=>`<option value="${r}" ${c.two_psw_reason===r?'selected':''}>${r}</option>`).join('')}
+          </select>
+        </div>
+      </div>
+      <div style="margin:16px 0 10px;font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--teal2);">Care Plan Notes</div>
+      <div class="sheet-row"><div class="slbl">Summary</div><textarea class="sinput" id="cp-summary" rows="3" style="min-height:80px;resize:none;" placeholder="Overview of care needs..."></textarea></div>
+      <div class="sheet-row"><div class="slbl">Goals</div><textarea class="sinput" id="cp-goals" rows="2" style="min-height:60px;resize:none;" placeholder="Client goals and priorities..."></textarea></div>
+      <div class="sheet-row"><div class="slbl">Daily Routine</div><textarea class="sinput" id="cp-routine" rows="3" style="min-height:80px;resize:none;" placeholder="Morning routine, meal times, sleep schedule..."></textarea></div>
+      <div class="sheet-row"><div class="slbl">Preferences</div><textarea class="sinput" id="cp-prefs" rows="2" style="min-height:60px;resize:none;" placeholder="Likes, dislikes, communication preferences..."></textarea></div>
+      <div class="sheet-row"><div class="slbl">Reason for Change <span style="font-size:11px;color:var(--muted);">(C4 — required for version history)</span></div><input class="sinput" id="cp-reason" placeholder="e.g. New medication, fall risk assessment..." style="font-size:15px;"></div>
+      <div style="display:flex;gap:8px;margin:6px 0;">
+        <button class="sbtn" style="flex:2;" onclick="saveCarePlan('${id}','${slug}','${name}')">Save Care Plan</button>
+        <button class="sbtn ghost" style="flex:1;font-size:12px;" onclick="loadCarePlanVersions('${slug}')">History</button>
+      </div>
+      <div id="cp-version-history" style="display:none;margin-top:10px;"></div>
+      <div style="margin:14px 0 6px;font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--teal2);">Assessment</div>
+      ${c.assessment_completed_at?`<div style="font-family:var(--mono);font-size:11px;color:var(--green2);margin-bottom:8px;">✓ Completed ${fmtd(c.assessment_completed_at)}</div>`:''}
+      <textarea class="sinput" id="ce-assessment-${id}" rows="3" style="min-height:72px;resize:none;margin-bottom:8px;font-size:13px;" placeholder="Paste assessment notes here...">${c.assessment_notes||''}</textarea>
+      <div style="display:flex;gap:8px;">
+        <button class="sbtn ghost" style="flex:1;font-size:12px;" onclick="saveAssessment('${id}','${slug}',false)">Save Notes</button>
+        <button class="sbtn" style="flex:1;font-size:12px;background:rgba(61,138,122,.12);color:var(--teal2);border-color:rgba(61,138,122,.3);" onclick="saveAssessment('${id}','${slug}',true)">Save + Send Intake</button>
+      </div>
+      <button class="sbtn" style="margin-top:8px;background:rgba(200,169,110,.12);color:var(--gold);border-color:rgba(200,169,110,.3);" onclick="saveClientEdits('${id}')">Save All Changes</button>
+    </div>
+
+    <!-- TAB: DOCUMENTS -->
+    <div class="prof-tab-body" id="cpt-docs">
+      <div style="margin-bottom:12px;font-size:12px;color:var(--muted2);line-height:1.5;">Documents are stored securely in Supabase. Tap UPLOAD to add or replace a file.</div>
+      <div style="margin-bottom:14px;">
+        ${[
+          {label:'Service Agreement', type:'service_agreement', url:c.service_agreement_url},
+          {label:'Photo ID / Health Card', type:'photo_id', url:c.client_photo_url},
+          {label:'POA Document', type:'poa_document', url:null},
+          {label:'Insurance Card', type:'insurance_card', url:null},
+          {label:'Other', type:'other', url:null}
+        ].map(d=>`
+          <div class="doc-vault-row">
+            <div class="doc-vault-name">${d.label}</div>
+            <div class="doc-vault-status">
+              ${d.url?`<a href="${d.url}" target="_blank">VIEW</a>`:`<span style="font-family:var(--mono);font-size:11px;color:var(--muted);">MISSING</span>`}
+              <label class="doc-vault-upload">UPLOAD<input type="file" accept=".pdf,.jpg,.jpeg,.png" style="display:none;" onchange="uploadClientDoc(event,'${slug}','${d.type}')"></label>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+      <div id="fc-list-${id}" style="margin-bottom:10px;"><div style="font-family:var(--mono);font-size:12px;color:var(--muted);">Loading contacts...</div></div>
+      <div style="display:flex;flex-direction:column;gap:6px;padding:12px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;">
+        <div style="font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:4px;">Add Family Contact</div>
+        <input class="sinput" id="fc-name-${id}" placeholder="Full name" style="font-size:15px;">
+        <input class="sinput" id="fc-email-${id}" placeholder="Email address" type="email" style="font-size:15px;">
+        <input class="sinput" id="fc-phone-${id}" placeholder="Phone (optional)" type="tel" style="font-size:15px;">
+        <input class="sinput" id="fc-rel-${id}" placeholder="Relationship (e.g. Daughter)" style="font-size:15px;">
+        <button class="sbtn" style="margin-top:4px;" onclick="addFamilyContact('${id}','${slug}')">Add Contact</button>
+      </div>
+    </div>
+
+    <!-- TAB: BILLING -->
+    <div class="prof-tab-body" id="cpt-billing">
+      <div style="margin-bottom:14px;padding:12px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;">
+        <div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span style="font-size:12px;color:var(--muted2);">Client Rate</span><span style="font-family:var(--mono);font-size:14px;color:var(--text);">$${c.client_rate||22}/hr</span></div>
+        <div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span style="font-size:12px;color:var(--muted2);">PSW Rate</span><span style="font-family:var(--mono);font-size:14px;color:var(--text);">$${c.psw_rate||19}/hr</span></div>
+        <div style="display:flex;justify-content:space-between;border-top:1px solid var(--border);padding-top:8px;margin-top:4px;"><span style="font-size:12px;color:var(--muted2);">Margin</span><span style="font-family:var(--mono);font-size:14px;color:var(--green2);">$${(c.client_rate||22)-(c.psw_rate||19)}/hr</span></div>
+      </div>
+      <div class="srow2">
+        <div><div class="slbl">Client Rate $/hr</div><input class="sinput" id="ce-client-rate" type="number" value="${c.client_rate||22}" min="15" max="100" style="font-size:16px;"></div>
+        <div><div class="slbl">PSW Rate $/hr</div><input class="sinput" id="ce-psw-rate" type="number" value="${c.psw_rate||19}" min="15" max="80" style="font-size:16px;"></div>
+      </div>
+      <div style="margin:14px 0 10px;font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--teal2);">Insurance</div>
+      <div class="srow2">
+        <div><div class="slbl">Provider</div><input class="sinput" id="ce-insurance-provider" type="text" value="${c.insurance_provider||''}" placeholder="e.g. Sun Life, Manulife" style="font-size:15px;"></div>
+        <div><div class="slbl">Policy Number</div><input class="sinput" id="ce-insurance-policy" type="text" value="${c.insurance_policy||''}" style="font-size:15px;"></div>
+      </div>
+      <div style="margin:14px 0 10px;font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--teal2);">Assessment Dates</div>
+      <div class="srow2">
+        <div><div class="slbl">Assessment Date</div><input class="sinput" id="ce-assessment-date" type="date" value="${c.assessment_date||''}" style="font-size:15px;"></div>
+        <div><div class="slbl">Reassessment Due</div><input class="sinput" id="ce-reassessment-due" type="date" value="${c.reassessment_due||''}" style="font-size:15px;"></div>
+      </div>
+      <button class="sbtn" style="margin-top:12px;background:rgba(200,169,110,.12);color:var(--gold);border-color:rgba(200,169,110,.3);" onclick="saveClientEdits('${id}')">Save Billing</button>
+      <div style="margin:16px 0 8px;"><button class="sbtn" onclick="genInvoice('${name}','${c.family_email||c.email||''}','${c.assigned_psw||''}',${c.client_rate||22},${c.psw_rate||19});closeSheet('client-sheet');">Generate Invoice</button></div>
+      <button class="sbtn ghost" style="margin-top:4px;" onclick="triggerOnboardClient('${slug}');closeSheet('client-sheet');">Resend Welcome Email</button>
+    </div>
+
+    <!-- TAB: PORTAL -->
+    <div class="prof-tab-body" id="cpt-portal">
+      <div class="cpf"><div class="cpf-lbl">Portal Slug</div><div class="cpf-val" style="font-family:var(--mono);color:var(--teal2);">${slug||'—'}</div></div>
+      <div class="cpf"><div class="cpf-lbl">Family PIN</div><div class="cpf-val" style="font-family:var(--mono);">${c.portal_pin||'—'}</div></div>
+      <div class="cpf"><div class="cpf-lbl">Start Date</div><div class="cpf-val">${c.start_date?fmtd(c.start_date):'Not set'}</div></div>
+      <div class="cpf"><div class="cpf-lbl">Referral Source</div><div class="cpf-val">${c.referral_source||'—'}${c.referral_detail?' · '+c.referral_detail:''}</div></div>
+      <div style="margin:14px 0 10px;">
+        <div style="padding:10px 12px;background:${c.consent_given?'rgba(58,170,138,.06)':'rgba(224,85,85,.06)'};border:1px solid ${c.consent_given?'rgba(58,170,138,.25)':'rgba(224,85,85,.25)'};border-radius:6px;display:flex;align-items:center;justify-content:space-between;">
+          <div>
+            <div style="font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:${c.consent_given?'var(--green2)':'var(--red)'};">PIPEDA Consent ${c.consent_given?'✓':'Missing'}</div>
+            ${c.consent_given?`<div style="font-size:12px;color:var(--muted);margin-top:2px;">v${c.consent_version||'1.0'} · ${c.consent_date?new Date(c.consent_date).toLocaleDateString('en-CA'):'—'}</div>`:'<div style="font-size:12px;color:var(--muted);margin-top:2px;">Client has not provided consent</div>'}
+          </div>
+          ${!c.consent_given?`<button onclick="recordConsent('${slug}')" style="font-family:var(--mono);font-size:11px;letter-spacing:1px;padding:5px 10px;border-radius:5px;border:1px solid rgba(58,170,138,.4);background:rgba(58,170,138,.08);color:var(--green2);cursor:pointer;min-height:44px;">Record</button>`:''}
+        </div>
+      </div>
+      <div style="margin-bottom:10px;font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--teal2);">Visit History</div>
+      <div style="border:1px solid var(--border);border-radius:8px;overflow:hidden;">
+        <div onclick="(function(el){const b=el.nextElementSibling;const open=b.style.display!=='none';b.style.display=open?'none':'block';el.querySelector('.vh-chevron').style.transform=open?'rotate(0deg)':'rotate(180deg)';})(this)" style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;cursor:pointer;background:var(--bg2);user-select:none;">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span style="font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--teal2);">Visits</span>
+            <span style="font-family:var(--mono);font-size:10px;color:var(--muted);">${clientVisits.length} · ${clientTotalHrs.toFixed(1)}h</span>
+          </div>
+          <svg class="vh-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--muted);transition:transform .2s;flex-shrink:0;"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div style="display:none;padding:0 14px;">${clientVisitRows}</div>
+      </div>
+    </div>
+  `
 
     <div style="margin-bottom:16px;border:1px solid var(--border);border-radius:8px;overflow:hidden;">
       <div onclick="(function(el){const b=el.nextElementSibling;const open=b.style.display!=='none';b.style.display=open?'none':'block';el.querySelector('.vh-chevron').style.transform=open?'rotate(0deg)':'rotate(180deg)';})(this)" style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;cursor:pointer;background:var(--bg2);user-select:none;" onmouseover="this.style.background='var(--bg3)'" onmouseout="this.style.background='var(--bg2)'">
@@ -8696,6 +8943,17 @@ async function savePSWEdits(pswId, pswName) {
     if (vscDt    !== undefined) payload.vsc_date      = vscDt     || null;
     if (vscDt && !vscExp) { const d=new Date(vscDt); d.setFullYear(d.getFullYear()+1); vscExp=d.toISOString().slice(0,10); }
     if (vscExp   !== undefined) payload.vsc_expiry    = vscExp    || null;
+    // S36 Ontario compliance fields
+    const tbTestDt   = document.getElementById('pe-tb-test-date')?.value ?? undefined;
+    const covidVax   = document.getElementById('pe-covid-vax-status')?.value ?? undefined;
+    const pswAddr    = document.getElementById('pe-address')?.value?.trim() ?? undefined;
+    const pswEC      = document.getElementById('pe-emergency-contact')?.value?.trim() ?? undefined;
+    const pswStart   = document.getElementById('pe-start-date')?.value ?? undefined;
+    if (tbTestDt  !== undefined) payload.tb_test_date             = tbTestDt  || null;
+    if (covidVax  !== undefined) payload.covid_vax_status         = covidVax  || null;
+    if (pswAddr   !== undefined) payload.address                  = pswAddr   || null;
+    if (pswEC     !== undefined) payload.emergency_contact        = pswEC     || null;
+    if (pswStart  !== undefined) payload.start_date               = pswStart  || null;
     const res = await fetch(`${API}/hq/psw/${encodeURIComponent(pswName)}`, {
       method: 'PATCH',
       headers: {'Content-Type': 'application/json', 'x-hq-token': window._hqToken || sessionStorage.getItem('hq_token') || ''},
@@ -8730,20 +8988,50 @@ async function saveClientEdits(clientId) {
     const requiresTwoPsw = document.getElementById('ce-two-psw')?.checked ?? false;
     const twoPswReason = document.getElementById('ce-two-psw-reason')?.value || null;
     const medications = document.getElementById('ce-medications')?.value.trim() || '';
+    // S36 PHIPA fields
+    const dob               = document.getElementById('ce-dob')?.value || '';
+    const address           = document.getElementById('ce-address')?.value?.trim() || '';
+    const physicianName     = document.getElementById('ce-physician-name')?.value?.trim() || '';
+    const physicianPhone    = document.getElementById('ce-physician-phone')?.value?.trim() || '';
+    const allergies         = document.getElementById('ce-allergies')?.value?.trim() || '';
+    const dnrStatus         = document.getElementById('ce-dnr-status')?.value || '';
+    const poaName           = document.getElementById('ce-poa-name')?.value?.trim() || '';
+    const poaPhone          = document.getElementById('ce-poa-phone')?.value?.trim() || '';
+    const homeAccess        = document.getElementById('ce-home-access')?.value?.trim() || '';
+    const insuranceProvider = document.getElementById('ce-insurance-provider')?.value?.trim() || '';
+    const insurancePolicy   = document.getElementById('ce-insurance-policy')?.value?.trim() || '';
+    const assessmentDate    = document.getElementById('ce-assessment-date')?.value || '';
+    const reassessmentDue   = document.getElementById('ce-reassessment-due')?.value || '';
+    const familyContactName = document.getElementById('ce-family-name')?.value?.trim() || '';
     const payload = { operator_id: currentOp, assigned_psw: psw, client_rate: clientRate,
       psw_rate: pswRate, care_notes: careNotes };
-    if (firstName)      payload.first_name       = firstName;
-    if (lastName)       payload.last_name        = lastName;
-    if (phone)          payload.phone            = phone;
-    if (email)          payload.family_email     = email;
-    if (careType)       payload.care_type        = careType;
-    if (city)           payload.city             = city;
-    if (careDirectives) payload.care_directives  = careDirectives;
-    if (mobilityLevel)  payload.mobility_level   = mobilityLevel;
-    if (cognitiveStatus) payload.cognitive_status = cognitiveStatus;
-    if (medications)    payload.medications      = medications;
+    if (firstName)          payload.first_name               = firstName;
+    if (lastName)           payload.last_name                = lastName;
+    if (phone)              payload.phone                    = phone;
+    if (email)              payload.family_email             = email;
+    if (familyContactName)  payload.family_contact_name      = familyContactName;
+    if (careType)           payload.care_type                = careType;
+    if (city)               payload.city                     = city;
+    if (careDirectives)     payload.care_directives          = careDirectives;
+    if (mobilityLevel)      payload.mobility_level           = mobilityLevel;
+    if (cognitiveStatus)    payload.cognitive_status         = cognitiveStatus;
+    if (medications)        payload.medications              = medications;
     payload.requires_two_psw = requiresTwoPsw;
     payload.two_psw_reason = requiresTwoPsw ? (twoPswReason || null) : null;
+    // PHIPA fields
+    if (dob)               payload.date_of_birth            = dob;
+    if (address)           payload.address                  = address;
+    if (physicianName)     payload.physician_name           = physicianName;
+    if (physicianPhone)    payload.physician_phone          = physicianPhone;
+    if (allergies)         payload.allergies                = allergies;
+    if (dnrStatus)         payload.dnr_status               = dnrStatus;
+    if (poaName)           payload.poa_name                 = poaName;
+    if (poaPhone)          payload.poa_phone                = poaPhone;
+    if (homeAccess)        payload.home_access_instructions = homeAccess;
+    if (insuranceProvider) payload.insurance_provider       = insuranceProvider;
+    if (insurancePolicy)   payload.insurance_policy         = insurancePolicy;
+    if (assessmentDate)    payload.assessment_date          = assessmentDate;
+    if (reassessmentDue)   payload.reassessment_due         = reassessmentDue;
     const res = await fetch(`${API}/hq/client/${clientId}`, {
       method: 'PATCH',
       headers: {'Content-Type': 'application/json', 'x-hq-token': window._hqToken || sessionStorage.getItem('hq_token') || ''},
