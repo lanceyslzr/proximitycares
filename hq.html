@@ -7573,7 +7573,7 @@ async function openPSWDetail(pswId) {
     <div class="prof-act-row">
       <button class="sbtn" onclick="openHoursPanel('psw','${name}')">&#9201; Hours</button>
       <button class="sbtn" onclick="openPSWMsg('${name}');closeSheet('psw-detail-sheet');">Message</button>
-      <button class="sbtn" style="background:rgba(109,185,116,.1);color:var(--green2);border-color:rgba(109,185,116,.25);" onclick="openPaystubModal('${name}','${p.email||rec.email||\'\'}',${p.psw_rate||rec.psw_rate||19})">Paystub</button>
+      <button class="sbtn" style="background:rgba(109,185,116,.1);color:var(--green2);border-color:rgba(109,185,116,.25);" onclick="openPaystubModal('${name}','${p.email||rec.email||String()}',${p.psw_rate||rec.psw_rate||19})">Paystub</button>
     </div>
     <div class="prof-tabs">
       <div class="prof-tab active" onclick="_ppTab(this,'ppt-info')">Info</div>
@@ -7711,6 +7711,7 @@ async function openPSWDetail(pswId) {
       <button class="sbtn" style="background:rgba(200,169,110,.12);color:var(--gold);border:1px solid rgba(200,169,110,.3);margin-bottom:8px;" onclick="savePSWEdits('${p.id}','${name}')">Save Changes</button>
     </div>
   `;
+  } catch {
     body.innerHTML = '<div class="empty-state">Could not load profile</div>';
   }
 }
