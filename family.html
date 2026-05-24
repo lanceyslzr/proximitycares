@@ -1545,6 +1545,18 @@ function showTab(tab) {
             `<button onclick="document.getElementById('ask-input').value='${q}'" style="background:var(--surface);border:1px solid var(--border);border-radius:100px;padding:6px 12px;font-size:12px;color:var(--muted);cursor:pointer;font-family:'Inter',sans-serif;touch-action:manipulation;">${q}</button>`
           ).join('')}
         </div>
+      </div>
+      <div class="section" style="margin-top:16px;">
+        <div class="section-title">Contact Coordinator</div>
+        <div class="card" style="padding:16px;">
+          <p style="font-size:13px;color:var(--muted);line-height:1.6;margin:0 0 14px;">Send a message directly to your care coordinator. They typically respond within 2 hours.</p>
+          <textarea id="coord-msg-input" placeholder="e.g. Can we change the Tuesday visit time? Or: I have a concern about..." rows="3" style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px;font-size:14px;color:var(--text);resize:none;font-family:'Inter',sans-serif;line-height:1.5;outline:none;box-sizing:border-box;" maxlength="600"></textarea>
+          <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;">
+            <button onclick="sendCoordMessage()" style="flex:2;min-width:120px;background:var(--accent);color:#fff;border:none;border-radius:10px;padding:10px 16px;font-size:13px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;touch-action:manipulation;min-height:44px;">Send Message</button>
+            <button onclick="requestPSWContact()" style="flex:1;min-width:100px;background:var(--surface);color:var(--accent);border:1px solid var(--border);border-radius:10px;padding:10px 12px;font-size:12px;cursor:pointer;font-family:'Inter',sans-serif;touch-action:manipulation;min-height:44px;">Request PSW Contact Info</button>
+          </div>
+          <div id="coord-msg-success" style="display:none;margin-top:10px;padding:10px 14px;background:rgba(58,170,138,0.1);border:1px solid rgba(58,170,138,0.25);border-radius:8px;font-size:13px;color:#3aaa8a;"></div>
+        </div>
       </div>`;
   }
 
@@ -1704,6 +1716,11 @@ function visitRow(v) {
         ${v.incident_reported ? `<div class="visit-detail-lbl" style="color:var(--error);">Incident Reported</div><div class="visit-detail-val" style="color:var(--error);">An incident was reported during this visit. Your coordinator has been notified.</div>` : ''}
         ${v.meds_given && Array.isArray(v.meds_given) && v.meds_given.length ? `<div class="visit-detail-lbl">Medications Given</div><div class="visit-detail-val">${v.meds_given.join(', ')}</div>` : ''}
         ${(window._visitVitals && window._visitVitals[v.id]) ? `<div class="visit-detail-lbl">Health Readings</div><div class="vitals-compact">${formatVitalsCompact(window._visitVitals[v.id])}</div>` : ''}
+        ${Array.isArray(v.task_photos) && v.task_photos.length ? `
+          <div class="visit-detail-lbl">Visit Photos</div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:4px;border-radius:8px;overflow:hidden;margin-bottom:8px;">
+            ${v.task_photos.slice(0,6).map(url => `<a href="${url}" target="_blank" style="display:block;aspect-ratio:1;overflow:hidden;border-radius:4px;"><img src="${url}" alt="Visit photo" style="width:100%;height:100%;object-fit:cover;" loading="lazy"></a>`).join('')}
+          </div>` : ''}
         ${starsHtml}
       </div>
     </div>` : '';
@@ -2115,6 +2132,57 @@ async function submitPrivateNote(visitDate, pswName) {
   }
 }
 
+
+// ── S39 COORDINATOR MESSAGING GATE ──
+async function sendCoordMessage() {
+  const input = document.getElementById('coord-msg-input');
+  const successEl = document.getElementById('coord-msg-success');
+  if (!input || !input.value.trim()) return;
+  const message = input.value.trim();
+  try {
+    const res = await fetch(`${R}/family/message`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ slug: clientSlug || slug, pin: pinVal, message })
+    });
+    const d = await res.json();
+    if (!d.success) throw new Error(d.error || 'Failed');
+    input.value = '';
+    if (successEl) {
+      successEl.textContent = '✓ Message sent to your coordinator.';
+      successEl.style.display = 'block';
+      setTimeout(() => { if (successEl) successEl.style.display = 'none'; }, 5000);
+    }
+  } catch(e) {
+    alert('Could not send message. Please try again.');
+  }
+}
+
+async function requestPSWContact() {
+  const successEl = document.getElementById('coord-msg-success');
+  const clientName = portalData?.client?.first_name || 'my loved one';
+  const pswName = portalData?.psw?.name || 'the PSW';
+  try {
+    const res = await fetch(`${R}/family/message`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        slug: clientSlug || slug,
+        pin: pinVal,
+        message: `[PSW Contact Request] Family of ${clientName} is requesting direct contact information for ${pswName}. Please share the PSW phone number or facilitate an introduction.`
+      })
+    });
+    const d = await res.json();
+    if (!d.success) throw new Error(d.error || 'Failed');
+    if (successEl) {
+      successEl.textContent = '✓ Request sent. Your coordinator will share contact info or reach out shortly.';
+      successEl.style.display = 'block';
+      setTimeout(() => { if (successEl) successEl.style.display = 'none'; }, 7000);
+    }
+  } catch(e) {
+    alert('Could not send request. Please try again.');
+  }
+}
 
 function scrollToNoteWithContext(visitDate, pswName) {
   const input = document.getElementById('private-note-input');
