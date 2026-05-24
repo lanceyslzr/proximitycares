@@ -826,6 +826,7 @@ a{color:inherit;text-decoration:none;}
     <div class="active-banner-elapsed" id="home-elapsed">—</div>
     <div class="banner-btns">
       <button class="banner-btn cl" onclick="showSect('checklist')">Checklist</button>
+      <button class="banner-btn" onclick="openIncidentQuick()" style="background:rgba(224,85,85,.15);border-color:rgba(224,85,85,.4);color:var(--red);">⚠ Incident</button>
       <button class="banner-btn co" onclick="openCheckout()">Check Out</button>
     </div>
   </div>
@@ -1155,6 +1156,39 @@ a{color:inherit;text-decoration:none;}
     <button id="cs-submit-btn" onclick="submitCancelShift()" style="width:100%;background:var(--amber);color:#000;border:none;padding:14px;border-radius:8px;font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;cursor:pointer;min-height:48px;opacity:.4;pointer-events:none;">Send Request to Coordinator</button>
     <button onclick="closeCancelShift()" style="width:100%;background:none;border:1px solid var(--border);color:var(--muted2);padding:12px;border-radius:8px;font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;min-height:44px;margin-top:8px;">Keep Shift</button>
   </div>
+</div>
+
+<!-- S40 INCIDENT QUICK REPORT SHEET -->
+<div id="incident-quick-overlay" style="display:none;position:fixed;inset:0;z-index:295;background:rgba(0,0,0,.75);" onclick="closeIncidentQuick()"></div>
+<div id="incident-quick-sheet" style="display:none;position:fixed;bottom:0;left:0;right:0;background:var(--bg2);border-radius:18px 18px 0 0;padding:20px 16px calc(24px + var(--safe-bottom));max-height:80vh;overflow-y:auto;z-index:296;">
+  <div style="width:36px;height:4px;background:var(--border2);border-radius:2px;margin:0 auto 16px;"></div>
+  <div style="font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--red);margin-bottom:16px;">⚠ Incident Report</div>
+  <div style="font-size:13px;color:var(--muted2);margin-bottom:14px;line-height:1.5;">This will notify your coordinator immediately. Use for falls, medical emergencies, medication errors, or safety concerns.</div>
+
+  <div style="font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:8px;">Incident Type *</div>
+  <div id="iq-types" style="display:flex;flex-direction:column;gap:6px;margin-bottom:14px;">
+    <button class="incident-type-btn" onclick="selectIQType(this,'Fall / injury')">🩹 Fall / injury</button>
+    <button class="incident-type-btn" onclick="selectIQType(this,'Medication error')">💊 Medication error</button>
+    <button class="incident-type-btn" onclick="selectIQType(this,'Medical emergency')">🚨 Medical emergency</button>
+    <button class="incident-type-btn" onclick="selectIQType(this,'Client agitation / aggression')">⚠ Client agitation / aggression</button>
+    <button class="incident-type-btn" onclick="selectIQType(this,'Home safety concern')">🏠 Home safety concern</button>
+    <button class="incident-type-btn" onclick="selectIQType(this,'Other')">Other</button>
+  </div>
+
+  <div style="font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;">What happened *</div>
+  <textarea class="form-textarea" id="iq-desc" placeholder="Describe exactly what happened, when, and what actions you took..." style="border-color:rgba(224,85,85,.3);min-height:80px;margin-bottom:12px;"></textarea>
+
+  <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;">
+    <label style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--muted2);cursor:pointer;min-height:36px;">
+      <input type="checkbox" id="iq-911" style="width:18px;height:18px;accent-color:var(--red);flex-shrink:0;"> 911 was called
+    </label>
+    <label style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--muted2);cursor:pointer;min-height:36px;">
+      <input type="checkbox" id="iq-family" style="width:18px;height:18px;accent-color:var(--teal2);flex-shrink:0;"> Family was notified
+    </label>
+  </div>
+
+  <button onclick="submitIncidentQuick()" id="iq-submit-btn" style="width:100%;padding:14px;background:var(--red);color:#fff;border:none;border-radius:10px;font-family:var(--mono);font-size:12px;letter-spacing:2px;text-transform:uppercase;cursor:pointer;min-height:52px;touch-action:manipulation;margin-bottom:8px;">Send to Coordinator Now</button>
+  <button onclick="closeIncidentQuick()" style="width:100%;padding:12px;background:none;border:1px solid var(--border);border-radius:10px;color:var(--muted2);font-family:var(--mono);font-size:12px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;min-height:44px;touch-action:manipulation;">Cancel</button>
 </div>
 
 <div id="checkout-sheet" style="display:none;position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.75);" onclick="if(event.target===this)closeCheckout()">
@@ -2300,6 +2334,74 @@ function closeCheckout() {
   // Reset mood to unselected state -- prevent stale mood from previous open
   selectedMood = null;
   document.querySelectorAll('#co-mood-row .mood-opt').forEach(o => o.classList.remove('sel'));
+}
+
+// ── S40 INCIDENT QUICK REPORT ──
+let _iqSelectedType = '';
+
+function openIncidentQuick() {
+  if (!activeVisit) { showToast('No active visit — sign in first', 'err'); return; }
+  _iqSelectedType = '';
+  document.querySelectorAll('#iq-types .incident-type-btn').forEach(b => b.classList.remove('sel'));
+  document.getElementById('iq-desc').value = '';
+  document.getElementById('iq-911').checked = false;
+  document.getElementById('iq-family').checked = false;
+  document.getElementById('incident-quick-overlay').style.display = 'block';
+  document.getElementById('incident-quick-sheet').style.display = 'block';
+  setTimeout(() => document.getElementById('iq-desc').focus(), 300);
+}
+
+function closeIncidentQuick() {
+  document.getElementById('incident-quick-overlay').style.display = 'none';
+  document.getElementById('incident-quick-sheet').style.display = 'none';
+}
+
+function selectIQType(el, type) {
+  document.querySelectorAll('#iq-types .incident-type-btn').forEach(b => b.classList.remove('sel'));
+  el.classList.add('sel');
+  _iqSelectedType = type;
+}
+
+async function submitIncidentQuick() {
+  if (!_iqSelectedType) { showToast('Select an incident type', 'err'); return; }
+  const desc = document.getElementById('iq-desc').value.trim();
+  if (!desc) { showToast('Describe what happened', 'err'); return; }
+
+  const called911 = document.getElementById('iq-911').checked;
+  const familyNotified = document.getElementById('iq-family').checked;
+  const clientName = activeVisit?.client_name || 'Unknown client';
+  const now = new Date().toLocaleTimeString('en-CA', { timeZone: 'America/Toronto', hour: '2-digit', minute: '2-digit' });
+
+  const parts = [`[MID-VISIT INCIDENT] ${clientName} · ${now}`, `TYPE: ${_iqSelectedType}`, desc];
+  if (called911) parts.push('911 CALLED: Yes');
+  if (familyNotified) parts.push('FAMILY NOTIFIED: Yes');
+  const message = parts.join(' | ');
+
+  const btn = document.getElementById('iq-submit-btn');
+  btn.disabled = true; btn.textContent = 'Sending...';
+
+  try {
+    const r = await fetch(`${API}/psw/note`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        psw_name: pswName,
+        sender: pswName,
+        message,
+        operator_id: pswOperatorId,
+        priority: 'urgent'
+      })
+    });
+    const d = await r.json();
+    if (!d.success && !d.id) throw new Error(d.error || 'Failed');
+    closeIncidentQuick();
+    haptic([100, 50, 100, 50, 200]);
+    showToast('Incident reported to coordinator ✓', 'ok');
+  } catch(e) {
+    showToast('Could not send — try again or call coordinator directly', 'err');
+  } finally {
+    btn.disabled = false; btn.textContent = 'Send to Coordinator Now';
+  }
 }
 
 async function doCheckOut() {
