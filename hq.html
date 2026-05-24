@@ -1842,6 +1842,7 @@ body.sidebar-hidden #sidebar-reopen-tab{ display:flex; }
       <div class="sect-action" onclick="openInvitePSWSheet()" style="color:var(--teal2);border-color:rgba(61,138,122,.3);">+ Invite PSW</div>
     </div>
   </div>
+  <div id="psw-expiry-panel" style="margin-bottom:10px;display:none;"></div>
   <div class="list-search-wrap"><span class="list-search-icon" style="font-size:14px;">⌕</span><input class="list-search" id="psws-search" placeholder="Search PSWs..." oninput="filterList('psws-list','psws-search')" autocomplete="off"></div>
   <div id="psws-list"><div class="empty-state">Loading...</div></div>
 </div>
@@ -4060,7 +4061,103 @@ async function onboardClientFull() {
 }
 
 // ── PSWs ──
+// ── S37 PSW CERT EXPIRY DASHBOARD ──
+// Reads D.psws — no endpoint needed — called from renderPSWs() on every PSW section load
+function renderCertExpiry() {
+  const panel = document.getElementById('psw-expiry-panel');
+  if (!panel) return;
+  const psws = (D.psws || []).filter(p => p.status === 'active' || p.status === 'on-leave');
+  if (!psws.length) { panel.style.display = 'none'; return; }
+
+  const now   = new Date();
+  const in30  = new Date(Date.now() + 30  * 86400000);
+  const in60  = new Date(Date.now() + 60  * 86400000);
+  const in90  = new Date(Date.now() + 90  * 86400000);
+
+  const CERT_FIELDS = [
+    { key: 'psw_cert_expiry',      label: 'PSW Cert'     },
+    { key: 'police_check_expiry',  label: 'Police Check' },
+    { key: 'cpr_cert_expiry',      label: 'CPR'          },
+    { key: 'first_aid_expiry',     label: 'First Aid'    },
+    { key: 'vsc_expiry',           label: 'VSC'          },
+    { key: 'nacc_expiry',          label: 'NACC'         }
+  ];
+
+  // Build flat list of issues: { name, label, expiry, daysLeft, band }
+  const issues = [];
+  for (const p of psws) {
+    const name = p.full_name || p.name || '—';
+    for (const cf of CERT_FIELDS) {
+      const val = p[cf.key];
+      if (!val) continue;
+      const exp = new Date(val + 'T12:00:00');
+      const daysLeft = Math.round((exp - now) / 86400000);
+      if (daysLeft > 90) continue; // only show within 90 days
+      const band = daysLeft < 0 ? 'expired' : daysLeft < 30 ? 'red' : daysLeft < 60 ? 'amber' : 'gold';
+      issues.push({ name, label: cf.label, expiry: val, daysLeft, band });
+    }
+  }
+
+  if (!issues.length) { panel.style.display = 'none'; return; }
+
+  // Sort: expired first, then soonest
+  issues.sort((a, b) => a.daysLeft - b.daysLeft);
+
+  const expired = issues.filter(i => i.band === 'expired');
+  const critical = issues.filter(i => i.band === 'red');
+  const warning  = issues.filter(i => i.band === 'amber');
+  const upcoming = issues.filter(i => i.band === 'gold');
+
+  const bandColor = { expired: 'var(--red)', red: 'var(--red)', amber: 'var(--amber)', gold: 'var(--gold)' };
+  const bandBg    = { expired: 'rgba(224,85,85,.08)', red: 'rgba(224,85,85,.06)', amber: 'rgba(224,154,61,.06)', gold: 'rgba(200,169,110,.06)' };
+  const bandBorder= { expired: 'rgba(224,85,85,.35)', red: 'rgba(224,85,85,.25)', amber: 'rgba(224,154,61,.25)', gold: 'rgba(200,169,110,.25)' };
+
+  const renderBand = (items, title, band) => {
+    if (!items.length) return '';
+    return `
+      <div style="margin-bottom:8px;">
+        <div style="font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:${bandColor[band]};margin-bottom:6px;padding:0 2px;">${title} (${items.length})</div>
+        <div style="display:flex;flex-direction:column;gap:4px;">
+          ${items.map(i => `
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:7px 10px;background:${bandBg[band]};border:1px solid ${bandBorder[band]};border-radius:6px;cursor:pointer;" onclick="openPSWDetail('${escHtml(i.name)}')">
+              <div>
+                <span style="font-size:12px;font-weight:500;color:var(--text);">${escHtml(i.name)}</span>
+                <span style="font-family:var(--mono);font-size:11px;color:var(--muted2);margin-left:6px;">${i.label}</span>
+              </div>
+              <span style="font-family:var(--mono);font-size:11px;color:${bandColor[band]};flex-shrink:0;margin-left:8px;">
+                ${i.daysLeft < 0 ? 'EXPIRED ' + fmtd(i.expiry) : i.daysLeft === 0 ? 'EXPIRES TODAY' : i.daysLeft + 'd · ' + fmtd(i.expiry)}
+              </span>
+            </div>
+          `).join('')}
+        </div>
+      </div>`;
+  };
+
+  const totalIssues = issues.length;
+  const worstBand = expired.length ? 'expired' : critical.length ? 'red' : warning.length ? 'amber' : 'gold';
+
+  panel.style.display = 'block';
+  panel.innerHTML = `
+    <div style="border:1px solid ${bandBorder[worstBand]};border-radius:8px;overflow:hidden;">
+      <div onclick="(function(el){const b=el.nextElementSibling;const open=b.style.display!=='none';b.style.display=open?'none':'block';el.querySelector('.ce-chev').style.transform=open?'rotate(0deg)':'rotate(180deg)';})(this)"
+           style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;cursor:pointer;background:${bandBg[worstBand]};user-select:none;">
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span style="font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:${bandColor[worstBand]};">Cert Expiry Dashboard</span>
+          <span style="font-family:var(--mono);font-size:10px;color:var(--muted);">${totalIssues} issue${totalIssues!==1?'s':''} · 90-day window</span>
+        </div>
+        <svg class="ce-chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:${bandColor[worstBand]};transition:transform .2s;flex-shrink:0;transform:rotate(180deg);"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div style="padding:12px 14px;">
+        ${renderBand(expired, '🔴 Expired', 'expired')}
+        ${renderBand(critical, '🔴 Critical — under 30 days', 'red')}
+        ${renderBand(warning,  '🟡 Warning — 30-60 days', 'amber')}
+        ${renderBand(upcoming, '🟡 Upcoming — 60-90 days', 'gold')}
+      </div>
+    </div>`;
+}
+
 function renderPSWs() {
+  renderCertExpiry();
   const el = document.getElementById('psws-list');
   if (!el.querySelector('.card')) showSkeleton('psws-list', 6, true);
   const merged = getMergedPSWList();
@@ -7996,134 +8093,6 @@ function openClientDetail(id) {
       </div>
     </div>
   `
-
-    <div style="margin-bottom:16px;border:1px solid var(--border);border-radius:8px;overflow:hidden;">
-      <div onclick="(function(el){const b=el.nextElementSibling;const open=b.style.display!=='none';b.style.display=open?'none':'block';el.querySelector('.vh-chevron').style.transform=open?'rotate(0deg)':'rotate(180deg)';})(this)" style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;cursor:pointer;background:var(--bg2);user-select:none;" onmouseover="this.style.background='var(--bg3)'" onmouseout="this.style.background='var(--bg2)'">
-        <div style="display:flex;align-items:center;gap:8px;">
-          <span style="font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--teal2);">Visit History</span>
-          <span style="font-family:var(--mono);font-size:10px;color:var(--muted);">${clientVisits.length} visits · ${clientTotalHrs.toFixed(1)}h</span>
-        </div>
-        <svg class="vh-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--muted);transition:transform .2s;flex-shrink:0;"><polyline points="6 9 12 15 18 9"/></svg>
-      </div>
-      <div style="display:none;padding:0 14px;">
-        ${clientVisitRows}
-      </div>
-    </div>
-    <div class="cpf"><div class="cpf-lbl">Family</div><div class="cpf-val">${c.family_contact_name||'—'} · ${c.family_email?`<a href="mailto:${c.family_email}">${c.family_email}</a>`:'no email'}</div></div>
-    <div class="cpf"><div class="cpf-lbl">Client Code</div><div class="cpf-val" style="font-family:var(--mono);color:var(--teal2);">${c.client_code||'—'}</div></div>
-    <div class="cpf"><div class="cpf-lbl">Portal</div><div class="cpf-val" style="font-family:var(--mono);">${slug||'—'} · PIN ${c.portal_pin||'—'}</div></div>
-    <div class="cpf"><div class="cpf-lbl">Assigned PSW</div><div class="cpf-val">${c.assigned_psw||'Unassigned'}</div></div>
-    <div class="cpf"><div class="cpf-lbl">Rates</div><div class="cpf-val">Client $${c.client_rate||22}/hr · PSW $${c.psw_rate||19}/hr · Margin $${(c.client_rate||22)-(c.psw_rate||19)}/hr</div></div>
-    <div class="cpf"><div class="cpf-lbl">Start Date</div><div class="cpf-val">${c.start_date?fmtd(c.start_date):'Not set'}</div></div>
-
-    <!-- C2 — PIPEDA Consent -->
-    <div style="margin:12px 0;padding:10px 12px;background:${c.consent_given?'rgba(58,170,138,.06)':'rgba(224,85,85,.06)'};border:1px solid ${c.consent_given?'rgba(58,170,138,.25)':'rgba(224,85,85,.25)'};border-radius:6px;display:flex;align-items:center;justify-content:space-between;">
-      <div>
-        <div style="font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:${c.consent_given?'var(--green2)':'var(--red)'};">PIPEDA Consent ${c.consent_given?'✓':'Missing'}</div>
-        ${c.consent_given?`<div style="font-size:12px;color:var(--muted);margin-top:2px;">v${c.consent_version||'1.0'} · ${c.consent_date?new Date(c.consent_date).toLocaleDateString('en-CA'):'—'}</div>`:'<div style="font-size:12px;color:var(--muted);margin-top:2px;">Client has not provided PIPEDA consent</div>'}
-      </div>
-      ${!c.consent_given?`<button onclick="recordConsent('${slug}')" style="font-family:var(--mono);font-size:11px;letter-spacing:1px;padding:5px 10px;border-radius:5px;border:1px solid rgba(58,170,138,.4);background:rgba(58,170,138,.08);color:var(--green2);cursor:pointer;min-height:44px;">Record Consent</button>`:''}
-    </div>
-
-    <!-- C8 — Referral source -->
-    ${c.referral_source?`<div class="cpf"><div class="cpf-lbl">Referral Source</div><div class="cpf-val">${c.referral_source}${c.referral_detail?' · '+c.referral_detail:''}</div></div>`:''}
-
-    <div style="margin:16px 0 10px;font-family:var(--mono);font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--teal2);">Care Profile</div>
-    <div class="cpf"><div class="cpf-lbl">Care Type</div><div class="cpf-val">${c.care_type||'—'}</div></div>
-    <div class="cpf"><div class="cpf-lbl">Mobility</div><div class="cpf-val">${c.mobility_level||'—'}</div></div>
-    <div class="cpf"><div class="cpf-lbl">Cognitive</div><div class="cpf-val">${c.cognitive_status||'—'}</div></div>
-    <div class="cpf"><div class="cpf-lbl">Medications</div><div class="cpf-val">${c.medications||'—'}</div></div>
-    ${c.emergency_contact_1_name?`<div class="cpf"><div class="cpf-lbl">Emergency 1</div><div class="cpf-val">${c.emergency_contact_1_name} · ${c.emergency_contact_1_relation||''} · <a href="tel:${c.emergency_contact_1_phone||''}">${c.emergency_contact_1_phone||'—'}</a></div></div>`:''}
-    ${c.emergency_contact_2_name?`<div class="cpf"><div class="cpf-lbl">Emergency 2</div><div class="cpf-val">${c.emergency_contact_2_name} · ${c.emergency_contact_2_relation||''} · <a href="tel:${c.emergency_contact_2_phone||''}">${c.emergency_contact_2_phone||'—'}</a></div></div>`:''}
-
-    ${c.care_notes?`<div style="margin:12px 0;padding:12px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;font-size:12px;color:var(--muted2);line-height:1.6;">${c.care_notes}</div>`:''}
-
-    <div style="margin:16px 0 10px;font-family:var(--mono);font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--teal2);">Care Plan</div>
-    <div class="sheet-row"><div class="slbl">Summary</div><textarea class="sinput" id="cp-summary" rows="3" style="min-height:80px;resize:none;" placeholder="Overview of care needs..."></textarea></div>
-    <div class="sheet-row"><div class="slbl">Goals</div><textarea class="sinput" id="cp-goals" rows="2" style="min-height:60px;resize:none;" placeholder="Client goals and priorities..."></textarea></div>
-    <div class="sheet-row"><div class="slbl">Daily Routine</div><textarea class="sinput" id="cp-routine" rows="3" style="min-height:80px;resize:none;" placeholder="Morning routine, meal times, sleep schedule..."></textarea></div>
-    <div class="sheet-row"><div class="slbl">Preferences</div><textarea class="sinput" id="cp-prefs" rows="2" style="min-height:60px;resize:none;" placeholder="Likes, dislikes, communication preferences..."></textarea></div>
-    <div class="sheet-row"><div class="slbl">Reason for Change <span style="font-size:11px;color:var(--muted);">(C4 — required for version history)</span></div><input class="sinput" id="cp-reason" placeholder="e.g. New medication, fall risk assessment, family request..." style="font-size:15px;"></div>
-    <div style="display:flex;gap:8px;margin-top:4px;">
-      <button class="sbtn" style="flex:2;" onclick="saveCarePlan('${id}','${slug}','${name}')">Save Care Plan</button>
-      <button class="sbtn ghost" style="flex:1;font-size:12px;" onclick="loadCarePlanVersions('${slug}')">History</button>
-    </div>
-    <div id="cp-version-history" style="display:none;margin-top:10px;"></div>
-
-    <div style="margin:18px 0 10px;font-family:var(--mono);font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--gold);">Edit Client</div>
-    <div class="srow2">
-      <div><div class="slbl">First Name</div><input class="sinput" id="ce-first-name" type="text" value="${c.first_name||''}" style="font-size:16px;"></div>
-      <div><div class="slbl">Last Name</div><input class="sinput" id="ce-last-name" type="text" value="${c.last_name||''}" style="font-size:16px;"></div>
-    </div>
-    <div class="srow2">
-      <div><div class="slbl">Phone</div><input class="sinput" id="ce-phone" type="tel" value="${c.phone||''}" style="font-size:16px;"></div>
-      <div><div class="slbl">Family Email</div><input class="sinput" id="ce-email" type="email" value="${c.family_email||c.email||''}" style="font-size:16px;"></div>
-    </div>
-    <div class="srow2">
-      <div><div class="slbl">City</div><input class="sinput" id="ce-city" type="text" value="${c.city||''}" style="font-size:16px;"></div>
-      <div><div class="slbl">Care Type</div><input class="sinput" id="ce-care-type" type="text" value="${c.care_type||''}" placeholder="e.g. Personal Support" style="font-size:16px;"></div>
-    </div>
-    <div class="sheet-row"><div class="slbl">Assigned PSW</div>
-      <select class="sselect" id="ce-psw">${getMergedPSWList().filter(p=>p.source==='live').map(p=>`<option value="${p.name}" ${p.name===c.assigned_psw?'selected':''}>${p.name}</option>`).join('')}</select>
-    </div>
-    <div class="srow2">
-      <div><div class="slbl">Client Rate $/hr</div><input class="sinput" id="ce-client-rate" type="number" value="${c.client_rate||22}" min="15" max="100" style="font-size:16px;"></div>
-      <div><div class="slbl">PSW Rate $/hr</div><input class="sinput" id="ce-psw-rate" type="number" value="${c.psw_rate||19}" min="15" max="80" style="font-size:16px;"></div>
-    </div>
-    <div class="sheet-row"><div class="slbl">Care Notes</div><textarea class="sinput" id="ce-care-notes" rows="3" style="min-height:80px;resize:none;" placeholder="Internal care notes...">${c.care_notes||''}</textarea></div>
-    <div class="sheet-row"><div class="slbl">Care Directives</div><textarea class="sinput" id="ce-care-directives" rows="2" style="min-height:64px;resize:none;" placeholder="DNR, allergies, special instructions...">${c.care_directives||''}</textarea></div>
-<div class="srow2" style="padding:0;">
-  <div><div class="slbl">Mobility</div><input class="sinput" id="ce-mobility" type="text" value="${c.mobility_level||''}" placeholder="e.g. Walker, Independent" style="font-size:15px;"></div>
-  <div><div class="slbl">Cognitive</div><input class="sinput" id="ce-cognitive" type="text" value="${c.cognitive_status||''}" placeholder="e.g. Mild dementia" style="font-size:15px;"></div>
-</div>
-<div class="sheet-row"><div class="slbl">Medications</div><textarea class="sinput" id="ce-medications" rows="2" style="min-height:64px;resize:none;" placeholder="List current medications...">${c.medications||''}</textarea></div>
-<div class="sheet-row" style="margin-top:12px;">
-  <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border:1px solid var(--border);border-radius:8px;background:${c.requires_two_psw?'rgba(200,169,110,.08)':'var(--bg)'};cursor:pointer;" id="ce-two-psw-row" onclick="(function(row){const cb=document.getElementById('ce-two-psw');cb.checked=!cb.checked;row.style.background=cb.checked?'rgba(200,169,110,.08)':'var(--bg)';document.getElementById('ce-two-psw-reason-wrap').style.display=cb.checked?'block':'none';}).call(this,this)">
-    <div>
-      <div style="font-size:13px;font-weight:500;color:var(--text);">Requires 2 PSWs</div>
-      <div style="font-size:11px;color:var(--muted);font-family:var(--mono);margin-top:2px;">Joint visits — shower assist, transfers, bariatric care</div>
-    </div>
-    <input type="checkbox" id="ce-two-psw" ${c.requires_two_psw?'checked':''} style="width:18px;height:18px;accent-color:var(--gold);cursor:pointer;flex-shrink:0;" onclick="event.stopPropagation();document.getElementById('ce-two-psw-reason-wrap').style.display=this.checked?'block':'none';document.getElementById('ce-two-psw-row').style.background=this.checked?'rgba(200,169,110,.08)':'var(--bg)';">
-  </div>
-  <div id="ce-two-psw-reason-wrap" style="display:${c.requires_two_psw?'block':'none'};margin-top:10px;">
-    <div class="slbl" style="margin-bottom:6px;">Reason for 2-Person Visit</div>
-    <select class="sselect" id="ce-two-psw-reason">
-      <option value="">Select reason…</option>
-      <option value="Hoyer Lift" ${(c.two_psw_reason==='Hoyer Lift')?'selected':''}>Hoyer Lift</option>
-      <option value="Transfer Assist" ${(c.two_psw_reason==='Transfer Assist')?'selected':''}>Transfer Assist</option>
-      <option value="Bariatric Care" ${(c.two_psw_reason==='Bariatric Care')?'selected':''}>Bariatric Care</option>
-      <option value="Fall Risk" ${(c.two_psw_reason==='Fall Risk')?'selected':''}>Fall Risk</option>
-      <option value="Wound Care" ${(c.two_psw_reason==='Wound Care')?'selected':''}>Wound Care</option>
-      <option value="Behavioural — Cognitive" ${(c.two_psw_reason==='Behavioural — Cognitive')?'selected':''}>Behavioural — Cognitive</option>
-      <option value="Shower Assist" ${(c.two_psw_reason==='Shower Assist')?'selected':''}>Shower Assist</option>
-      <option value="Other" ${(c.two_psw_reason==='Other')?'selected':''}>Other</option>
-    </select>
-  </div>
-</div>
-<button class="sbtn" style="margin-top:4px;background:rgba(200,169,110,.12);color:var(--gold);border:1px solid rgba(200,169,110,.3);" onclick="saveClientEdits('${id}')">Save Changes</button>
-
-    <button class="sbtn" style="margin-top:8px;" onclick="genInvoice('${name}','${c.family_email||c.email||''}','${c.assigned_psw||''}',${c.client_rate||22},${c.psw_rate||19});closeSheet('client-sheet');">Generate Invoice</button>
-    <button class="sbtn ghost" style="margin-top:8px;" onclick="triggerOnboardClient('${slug}');closeSheet('client-sheet');">Resend Welcome Email</button>
-
-    <!-- ASSESSMENT UPLOAD -->
-    <div style="margin:20px 0 10px;padding-top:16px;border-top:1px solid var(--border);">
-      <div style="font-family:var(--mono);font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--teal2);margin-bottom:10px;">Assessment</div>
-      ${c.assessment_completed_at ? `<div style="font-family:var(--mono);font-size:11px;color:var(--green2);margin-bottom:8px;">✓ Completed ${fmtd(c.assessment_completed_at)}</div>` : ''}
-      <textarea class="sinput" id="ce-assessment-${id}" rows="3" style="min-height:72px;resize:none;margin-bottom:8px;font-size:13px;" placeholder="Paste assessment notes here...">${c.assessment_notes||''}</textarea>
-      <div style="display:flex;gap:8px;">
-        <button class="sbtn ghost" style="flex:1;font-size:12px;padding:8px;" onclick="saveAssessment('${id}','${slug}',false)">Save Notes</button>
-        <button class="sbtn" style="flex:1;font-size:12px;padding:8px;background:rgba(61,138,122,.12);color:var(--teal2);border-color:rgba(61,138,122,.3);" onclick="saveAssessment('${id}','${slug}',true)">Save + Send Intake Link</button>
-      </div>
-    </div>
-    <div id="fc-list-${id}" style="margin-bottom:10px;"><div style="font-family:var(--mono);font-size:12px;color:var(--muted);">Loading contacts...</div></div>
-    <div style="display:flex;flex-direction:column;gap:6px;padding:12px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;">
-      <div style="font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:4px;">Add Contact</div>
-      <input class="sinput" id="fc-name-${id}" placeholder="Full name" style="font-size:15px;">
-      <input class="sinput" id="fc-email-${id}" placeholder="Email address" type="email" style="font-size:15px;">
-      <input class="sinput" id="fc-phone-${id}" placeholder="Phone (optional)" type="tel" style="font-size:15px;">
-      <input class="sinput" id="fc-rel-${id}" placeholder="Relationship (e.g. Daughter)" style="font-size:15px;">
-      <button class="sbtn" style="margin-top:4px;" onclick="addFamilyContact('${id}','${slug}')">Add Contact</button>
-    </div>`;
   loadCarePlan(slug);
   loadFamilyContactsForClient(id, slug);
   // Wire sticky save footer
@@ -8537,17 +8506,21 @@ async function renderSystemHealth() {
     }
   } catch {}
 
-  // Expiring PSW certs — count from psws with cert expiry within 30 days
+  // Expiring PSW certs — count across ALL cert types within 30 days (S37)
   const in30 = new Date(); in30.setDate(in30.getDate() + 30);
-  const expiring = psws.filter(p => {
-    if (!p.psw_cert_expiry) return false;
-    const exp = new Date(p.psw_cert_expiry);
-    return exp <= in30 && exp >= new Date();
-  }).length;
+  const _certKeys = ['psw_cert_expiry','police_check_expiry','cpr_cert_expiry','first_aid_expiry','vsc_expiry','nacc_expiry'];
+  let expiringCount = 0;
+  psws.forEach(p => {
+    _certKeys.forEach(k => {
+      if (!p[k]) return;
+      const exp = new Date(p[k] + 'T12:00:00');
+      if (exp <= in30) expiringCount++;
+    });
+  });
   const expEl = document.getElementById('sh-expiring');
   if (expEl) {
-    expEl.textContent = expiring;
-    expEl.style.color = expiring > 0 ? 'var(--red)' : 'var(--green2)';
+    expEl.textContent = expiringCount;
+    expEl.style.color = expiringCount > 0 ? 'var(--red)' : 'var(--green2)';
   }
 }
 
