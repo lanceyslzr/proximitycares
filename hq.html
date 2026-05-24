@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1859,7 +1858,12 @@ body.sidebar-hidden #sidebar-reopen-tab{ display:flex; }
     <div class="sheet-row"><div class="slbl">Family Email *</div><input class="sinput" id="intake-family-email" placeholder="family@email.com" type="email" style="font-size:16px;"></div>
     <div class="sheet-row"><div class="slbl">Family Name</div><input class="sinput" id="intake-family-name" placeholder="e.g. John Williams" style="font-size:16px;"></div>
     <div class="sheet-row"><div class="slbl">Client Name (optional)</div><input class="sinput" id="intake-client-name" placeholder="e.g. Margaret Williams" style="font-size:16px;"></div>
-    <div class="sheet-row"><div class="slbl">Operator</div><input class="sinput" id="intake-operator-id" value="proximity-care" style="font-size:16px;"></div>
+    <div class="sheet-row" style="display:none;"><div class="slbl">Operator</div><input class="sinput" id="intake-operator-id" value="" style="font-size:16px;"></div>
+    <div id="intake-confirm" style="display:none;margin:0 0 10px;padding:10px 14px;background:rgba(61,138,122,.08);border:1px solid rgba(61,138,122,.3);border-radius:8px;">
+      <div style="font-family:var(--mono);font-size:11px;letter-spacing:1px;color:var(--green2);margin-bottom:4px;">✓ Intake link sent</div>
+      <div id="intake-confirm-email" style="font-size:12px;color:var(--muted2);"></div>
+      <button onclick="sendIntakeLink()" style="margin-top:8px;font-family:var(--mono);font-size:11px;letter-spacing:1px;padding:4px 10px;border-radius:4px;border:1px solid rgba(61,138,122,.3);background:rgba(61,138,122,.08);color:var(--green2);cursor:pointer;min-height:36px;">Resend</button>
+    </div>
     <button class="sbtn" id="intake-btn" onclick="sendIntakeLink()" style="touch-action:manipulation;">Send Intake Link</button>
   </div>
 
@@ -3794,14 +3798,50 @@ async function loadCarePlanVersions(slug) {
     const versions = d.versions || [];
     if (!versions.length) { el.innerHTML = '<div style="font-family:var(--mono);font-size:12px;color:var(--muted);padding:8px 0;">No version history yet</div>'; return; }
     el.innerHTML = `<div style="font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted2);margin-bottom:8px;">Version History</div>` +
-      versions.map(v => `<div style="padding:8px 10px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;margin-bottom:4px;">
-        <div style="display:flex;justify-content:space-between;align-items:center;">
-          <div style="font-family:var(--mono);font-size:12px;color:var(--teal2);">v${v.version_number}</div>
-          <div style="font-family:var(--mono);font-size:11px;color:var(--muted);">${v.updated_at?new Date(v.updated_at).toLocaleDateString('en-CA'):''}</div>
+      versions.map((v,i) => `<div style="padding:8px 10px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;margin-bottom:4px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;">
+          <div>
+            <div style="font-family:var(--mono);font-size:12px;color:var(--teal2);">v${v.version_number} · ${v.updated_at?new Date(v.updated_at).toLocaleDateString('en-CA'):''}</div>
+            <div style="font-size:11px;color:var(--muted2);margin-top:2px;">${v.reason_for_change||'—'} · ${v.updated_by||'—'}</div>
+          </div>
+          ${i > 0 ? `<button onclick="restoreCarePlanVersion(${JSON.stringify(v).replace(/"/g,'&quot;')}, '${slug}')" style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;padding:4px 8px;border-radius:4px;border:1px solid rgba(200,169,110,.35);color:var(--gold);background:rgba(200,169,110,.08);cursor:pointer;white-space:nowrap;min-height:36px;flex-shrink:0;touch-action:manipulation;">Restore</button>` : '<span style="font-family:var(--mono);font-size:10px;color:var(--muted);white-space:nowrap;">Current</span>'}
         </div>
-        <div style="font-size:11px;color:var(--muted2);margin-top:3px;">${v.reason_for_change||'—'} · ${v.updated_by||'—'}</div>
       </div>`).join('');
   } catch { el.innerHTML = '<div style="font-family:var(--mono);font-size:12px;color:var(--red);">Could not load history</div>'; }
+}
+
+// ── S40 CARE PLAN VERSION RESTORE ──
+async function restoreCarePlanVersion(version, slug) {
+  if (!confirm(`Restore care plan to v${version.version_number} (${version.updated_at ? new Date(version.updated_at).toLocaleDateString('en-CA') : ''})?\nThis will overwrite the current care plan.`)) return;
+  try {
+    let snapshot = {};
+    if (version.content) {
+      try { snapshot = typeof version.content === 'string' ? JSON.parse(version.content) : version.content; } catch {}
+    }
+    const payload = {
+      client_slug: slug,
+      operator_id: currentOp,
+      reason_for_change: `Restored from v${version.version_number}`,
+      updated_by: 'HQ',
+      ...snapshot
+    };
+    // Remove meta fields that shouldn't be written back
+    ['id','client_slug','operator_id','version_number','updated_at','created_at'].forEach(k => delete payload[k]);
+
+    const res = await fetch(`${API}/client/care-plan`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', 'x-hq-token': window._hqToken || sessionStorage.getItem('hq_token') || '' },
+      body: JSON.stringify(payload)
+    });
+    const d = await res.json();
+    if (!d.success && !d.id) throw new Error(d.error || 'Restore failed');
+    showToast(`Care plan restored to v${version.version_number} ✓`, 'ok');
+    // Reload care plan and version history
+    await loadCarePlan(slug);
+    await loadCarePlanVersions(slug);
+  } catch(e) {
+    showToast(e.message || 'Restore failed', 'err');
+  }
 }
 
 // C2 — Record PIPEDA consent manually for existing clients
@@ -4035,7 +4075,10 @@ async function sendIntakeLink() {
   const family_email = (document.getElementById('intake-family-email')?.value || '').trim();
   const family_name = (document.getElementById('intake-family-name')?.value || '').trim();
   const client_name = (document.getElementById('intake-client-name')?.value || '').trim();
-  const operator_id = (document.getElementById('intake-operator-id')?.value || 'proximity-care').trim();
+  // Always use currentOp — intake-operator-id row is hidden
+  const opEl = document.getElementById('intake-operator-id');
+  if (opEl && !opEl.value) opEl.value = currentOp;
+  const operator_id = currentOp;
   if (!family_email || !family_email.includes('@')) {
     showToast('Family email is required', 'warn');
     document.getElementById('intake-family-email')?.focus();
@@ -4052,6 +4095,12 @@ async function sendIntakeLink() {
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'Failed');
     showToast('Intake link sent to ' + family_email, 'ok');
+    // Show confirmation banner
+    const confirmEl = document.getElementById('intake-confirm');
+    const confirmEmail = document.getElementById('intake-confirm-email');
+    if (confirmEl) confirmEl.style.display = 'block';
+    if (confirmEmail) confirmEmail.textContent = 'Sent to ' + family_email + (client_name ? ' for ' + client_name : '');
+    // Clear fields
     ['intake-family-email','intake-family-name','intake-client-name'].forEach(id => {
       const el = document.getElementById(id);
       if (el) el.value = '';
