@@ -2409,17 +2409,11 @@ body.sidebar-hidden #sidebar-reopen-tab{ display:flex; }
     <select class="sselect" id="bulk-client"><option value="">Select client</option></select>
   </div>
   <div class="sheet-row"><div class="slbl">Start Time *</div>
-    <input class="sinput" id="bulk-time" type="time" value="09:00" style="font-size:16px;">
+    <input class="sinput" id="bulk-time" type="time" value="09:00" style="font-size:16px;" oninput="_bulkUpdatePreview()">
   </div>
-  <div class="sheet-row"><div class="slbl">Duration</div>
-    <select class="sselect" id="bulk-duration">
-      <option value="240">4 hours</option>
-      <option value="300">5 hours</option>
-      <option value="360">6 hours</option>
-      <option value="420">7 hours</option>
-      <option value="480" selected>8 hours</option>
-      <option value="600">10 hours</option>
-    </select>
+  <div class="sheet-row"><div class="slbl">End Time *</div>
+    <input class="sinput" id="bulk-end-time" type="time" value="17:00" style="font-size:16px;" oninput="_bulkUpdatePreview()">
+    <div style="font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:4px;" id="bulk-duration-preview">Duration: 8h</div>
   </div>
   <div class="sheet-row"><div class="slbl">Weeks ahead</div>
     <select class="sselect" id="bulk-weeks">
@@ -3205,18 +3199,71 @@ async function loadShiftOffersHQ() {
         <div style="flex:1;min-width:0;">
           <div style="font-size:12px;font-weight:500;color:var(--text);">${escHtml(o.client_name||'—')}</div>
           <div style="font-family:var(--mono);font-size:11px;color:var(--muted2);">${o.scheduled_date} · ${o.scheduled_time||'TBD'} · ${o.duration_minutes?(o.duration_minutes/60).toFixed(1)+'h':'—'}</div>
+          ${o.status==='filled'&&o.accepted_by ? `<div style="font-family:var(--mono);font-size:11px;color:var(--green2);margin-top:2px;">✓ ${escHtml(o.accepted_by)} accepted</div>` : ''}
         </div>
         <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
           <span class="offer-status-chip ${o.status}">${o.status==='filled'?'✓ Filled':o.status==='cancelled'?'Cancelled':'Open'}</span>
-          ${o.accepted_by
-            ? `<span style="font-family:var(--mono);font-size:11px;color:var(--muted);">${o.accepted_by.split(' ')[0]}</span>`
-            : o.status==='open'
-              ? `<span style="font-family:var(--mono);font-size:11px;color:var(--muted);">${(o.broadcast_to||[]).length} notified</span>`
+          ${o.status==='open'
+            ? `<span style="font-family:var(--mono);font-size:11px;color:var(--muted);">${(o.broadcast_to||[]).length} notified</span>
+               <button onclick="cancelShiftOffer('${o.id}')" style="font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;padding:3px 8px;border-radius:4px;border:1px solid rgba(224,85,85,.3);color:var(--red);background:rgba(224,85,85,.06);cursor:pointer;min-height:44px;touch-action:manipulation;">✕ Cancel</button>`
+            : o.status==='filled'&&o.accepted_by&&!o.booking_created
+              ? `<button onclick="assignOfferToSchedule('${o.id}','${escHtml(o.client_name||'')}','${escHtml(o.accepted_by||'')}','${o.scheduled_date||''}','${o.scheduled_time||''}',${o.duration_minutes||480})" style="font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;padding:5px 10px;border-radius:4px;border:1px solid rgba(61,138,122,.35);color:var(--teal2);background:rgba(61,138,122,.08);cursor:pointer;min-height:44px;touch-action:manipulation;">+ Assign</button>`
+              : o.status==='filled'&&o.booking_created
+              ? `<span style="font-family:var(--mono);font-size:11px;color:var(--muted);">Scheduled</span>`
               : ''}
-          ${o.status === 'open' ? `<button onclick="cancelShiftOffer('${o.id}')" style="font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;padding:3px 8px;border-radius:4px;border:1px solid rgba(224,85,85,.3);color:var(--red);background:rgba(224,85,85,.06);cursor:pointer;min-height:44px;touch-action:manipulation;">✕ Cancel</button>` : ''}
         </div>
       </div>`).join('');
   } catch {}
+}
+
+// ── S38 ASSIGN OFFER TO SCHEDULE ──
+// Called from HQ shift offers list when a PSW has accepted — creates the booking
+async function assignOfferToSchedule(offerId, clientName, pswName, date, time, durationMins) {
+  if (!confirm(`Assign ${pswName} to ${clientName} on ${date}${time ? ' at ' + time : ''}?`)) return;
+  try {
+    // Create the booking
+    const r = await fetch(`${API}/hq/booking`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-hq-token': window._hqToken || sessionStorage.getItem('hq_token') || '' },
+      body: JSON.stringify({
+        operator_id: currentOp, client_name: clientName,
+        booking_type: 'visit', scheduled_date: date,
+        scheduled_time: time || '09:00', assigned_to: pswName,
+        duration_minutes: durationMins || 480
+      })
+    });
+    const d = await r.json();
+    if (!d.success) throw new Error(d.error || 'Booking failed');
+
+    // Mark offer as booking_created so button disappears
+    await fetch(`${API}/hq/shift-offer/${offerId}/cancel`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-hq-token': window._hqToken || sessionStorage.getItem('hq_token') || '' },
+      body: JSON.stringify({ operator_id: currentOp, mark_scheduled: true })
+    }).catch(() => {});
+
+    // Notify PSW
+    fetch(`${API}/psw/note`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ psw_name: pswName, sender: 'lance', message: `Your accepted shift for ${clientName} on ${date}${time ? ' at ' + time : ''} has been confirmed and added to your schedule.`, operator_id: currentOp })
+    }).catch(() => {});
+
+    showToast(`${pswName} assigned to ${clientName} ✓`, 'ok');
+
+    // Update row UI immediately
+    const row = document.getElementById('hq-offer-' + offerId);
+    if (row) {
+      const btn = row.querySelector('button');
+      if (btn) { btn.textContent = 'Scheduled'; btn.disabled = true; btn.style.opacity = '.5'; }
+    }
+
+    // Refresh schedule + offers
+    _mergedPSWCache = null;
+    if (schedHQView === 'grid') refreshGrid(); else _fetchGridBookings(true).then(() => _renderCustomCal());
+    setTimeout(() => loadShiftOffersHQ(), 800);
+  } catch(e) {
+    showToast(e.message || 'Failed to assign', 'err');
+  }
 }
 
 // ── VITALS DASHBOARD ──
@@ -9022,6 +9069,26 @@ async function saveClientEdits(clientId) {
 // ── BULK SCHEDULING ──
 function toggleBulkDay(el) { el.classList.toggle('sel'); }
 
+function _bulkUpdatePreview() {
+  const t = document.getElementById('bulk-time')?.value;
+  const e = document.getElementById('bulk-end-time')?.value;
+  const prev = document.getElementById('bulk-duration-preview');
+  if (!prev) return;
+  if (t && e) {
+    const [sh,sm] = t.split(':').map(Number);
+    const [eh,em] = e.split(':').map(Number);
+    const mins = (eh*60+em)-(sh*60+sm);
+    if (mins > 0) {
+      const h = Math.floor(mins/60), m = mins%60;
+      prev.textContent = `Duration: ${h}h${m?` ${m}m`:''}`;
+      prev.style.color = 'var(--teal2)';
+    } else {
+      prev.textContent = 'End time must be after start time';
+      prev.style.color = 'var(--red)';
+    }
+  }
+}
+
 function openBulkSchedule() {
   // Populate PSW and client selects
   const pswSel = document.getElementById('bulk-psw');
@@ -9042,8 +9109,17 @@ async function saveBulkSchedule() {
   const psw = document.getElementById('bulk-psw').value;
   const client = document.getElementById('bulk-client').value;
   const time = document.getElementById('bulk-time').value;
-  const duration = parseInt(document.getElementById('bulk-duration').value) || 480;
+  const endTime = document.getElementById('bulk-end-time').value;
   const weeksAhead = parseInt(document.getElementById('bulk-weeks').value) || 2;
+  // Calculate duration from start + end time
+  let duration = 480; // default 8h
+  if (time && endTime) {
+    const [sh, sm] = time.split(':').map(Number);
+    const [eh, em] = endTime.split(':').map(Number);
+    const calc = (eh * 60 + em) - (sh * 60 + sm);
+    if (calc > 0) duration = calc;
+    else { showToast('End time must be after start time', 'err'); return; }
+  }
   if (!psw || !client) { showToast('Select PSW and client', 'err'); return; }
 
   const selectedDows = Array.from(document.querySelectorAll('.bulk-day.sel'))
