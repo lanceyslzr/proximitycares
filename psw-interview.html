@@ -4,121 +4,290 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Book Your Interview — Proximity Care Services</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400&family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
-:root{--navy:#1B3A6B;--cream:#faf8f4;--text:#1a1a1a;--muted:#888;--border:#e8e2d9;--teal:#3d8a7a;}
-body{background:var(--cream);font-family:'DM Sans',sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px 16px;}
-.card{background:#fff;border-radius:8px;box-shadow:0 2px 20px rgba(0,0,0,.08);max-width:520px;width:100%;overflow:hidden;}
-.header{background:var(--navy);padding:28px 32px;}
-.header-title{font-family:'Cormorant Garamond',Georgia,serif;font-size:22px;color:#fff;font-weight:400;}
-.header-sub{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.5);margin-top:4px;}
-.body{padding:32px;}
-.intro{font-size:15px;color:var(--text);line-height:1.75;margin-bottom:24px;}
-.zoom-note{background:#f0f8f6;border:1px solid #b8dfd8;border-radius:6px;padding:14px 16px;margin-bottom:20px;font-size:13px;color:#2d7a6a;line-height:1.6;}
-.section-label{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:12px;}
-.slots{display:flex;flex-direction:column;gap:8px;margin-bottom:24px;}
-.slot{display:flex;align-items:center;gap:12px;padding:14px 16px;border:1px solid var(--border);border-radius:6px;cursor:pointer;transition:border-color .15s,background .15s;}
-.slot:hover{border-color:var(--navy);background:#f5f7fb;}
-.slot.selected{border-color:var(--navy);background:#eff3fb;}
-.slot input[type=radio]{accent-color:var(--navy);flex-shrink:0;}
-.slot-label{font-size:14px;color:var(--text);line-height:1.4;}
-.btn{width:100%;padding:14px;background:var(--navy);color:#fff;border:none;border-radius:6px;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:500;cursor:pointer;}
+:root{
+  --navy:#1B3A6B;--navy2:#0f2449;
+  --cream:#faf8f4;--cream2:#f2ede4;
+  --text:#1a1a1a;--muted:#888;--muted2:#bbb;
+  --border:#e8e2d9;--border2:#d8d1c6;
+  --teal:#3d8a7a;--teal2:#5aada0;--teal-bg:rgba(61,138,122,.08);
+  --green:#2d7a4a;--green-bg:rgba(45,122,74,.08);
+  --red:#c05050;
+  --mono:'DM Mono',monospace;
+  --serif:'Cormorant Garamond',Georgia,serif;
+  --sans:'DM Sans',sans-serif;
+}
+body{background:var(--cream);font-family:var(--sans);min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px 16px;}
+
+/* HEADER BAR */
+.top-bar{width:100%;max-width:540px;display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;}
+.top-logo{font-family:var(--serif);font-size:18px;font-weight:600;color:var(--navy);display:flex;align-items:center;gap:8px;}
+.top-logo-dot{width:8px;height:8px;border-radius:50%;background:var(--teal);}
+.top-badge{font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);background:var(--cream2);border:1px solid var(--border);padding:4px 10px;border-radius:3px;}
+
+/* CARD */
+.card{background:#fff;border:1px solid var(--border);border-radius:10px;max-width:540px;width:100%;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,.07);}
+
+/* CARD HEADER */
+.card-head{background:var(--navy);padding:28px 32px 24px;}
+.ch-eyebrow{font-family:var(--mono);font-size:9px;letter-spacing:3px;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:10px;}
+.ch-name{font-family:var(--serif);font-size:26px;font-weight:300;color:#fff;line-height:1.15;margin-bottom:6px;}
+.ch-sub{font-family:var(--mono);font-size:11px;color:rgba(255,255,255,.5);display:flex;align-items:center;gap:6px;}
+.ch-dot{width:5px;height:5px;border-radius:50%;background:var(--teal2);}
+
+/* CARD BODY */
+.card-body{padding:28px 32px;}
+
+/* STEPS */
+.steps{display:flex;gap:0;margin-bottom:24px;border-bottom:1px solid var(--border);padding-bottom:20px;}
+.step{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;position:relative;}
+.step:not(:last-child)::after{content:'';position:absolute;top:12px;left:calc(50% + 16px);right:calc(-50% + 16px);height:1px;background:var(--border2);}
+.step.done::after{background:var(--teal);}
+.step-num{width:24px;height:24px;border-radius:50%;border:1.5px solid var(--border2);font-family:var(--mono);font-size:10px;color:var(--muted);display:flex;align-items:center;justify-content:center;background:#fff;position:relative;z-index:1;transition:all .3s;}
+.step.active .step-num{border-color:var(--navy);background:var(--navy);color:#fff;}
+.step.done .step-num{border-color:var(--teal);background:var(--teal);color:#fff;}
+.step-label{font-family:var(--mono);font-size:8px;letter-spacing:1px;text-transform:uppercase;color:var(--muted2);text-align:center;}
+.step.active .step-label{color:var(--navy);}
+.step.done .step-label{color:var(--teal);}
+
+/* ZOOM NOTE */
+.zoom-note{background:var(--teal-bg);border:1px solid rgba(61,138,122,.2);border-left:3px solid var(--teal);border-radius:0 6px 6px 0;padding:12px 14px;margin-bottom:22px;display:flex;align-items:flex-start;gap:10px;}
+.zn-icon{font-size:16px;flex-shrink:0;margin-top:1px;}
+.zn-text{font-size:13px;color:var(--text);line-height:1.65;}
+
+/* SECTION LABEL */
+.section-label{font-family:var(--mono);font-size:9px;letter-spacing:2.5px;text-transform:uppercase;color:var(--muted);margin-bottom:12px;display:flex;align-items:center;gap:8px;}
+.section-label::before{content:'';display:inline-block;width:16px;height:1px;background:var(--muted2);}
+
+/* SLOTS */
+.slots{display:flex;flex-direction:column;gap:6px;margin-bottom:24px;}
+.slot{display:flex;align-items:center;gap:12px;padding:13px 16px;border:1px solid var(--border);border-radius:7px;cursor:pointer;transition:border-color .15s,background .15s,box-shadow .15s;user-select:none;}
+.slot:hover{border-color:var(--navy);background:#f5f7fb;box-shadow:0 1px 4px rgba(27,58,107,.06);}
+.slot.selected{border-color:var(--navy);background:#f0f3fa;box-shadow:0 0 0 2px rgba(27,58,107,.1);}
+.slot input[type=radio]{accent-color:var(--navy);flex-shrink:0;width:15px;height:15px;}
+.slot-inner{flex:1;}
+.slot-day{font-size:14px;font-weight:500;color:var(--text);line-height:1.3;}
+.slot-time{font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:2px;}
+.slot-tag{font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;padding:3px 7px;border-radius:3px;background:var(--teal-bg);color:var(--teal);border:1px solid rgba(61,138,122,.2);flex-shrink:0;display:none;}
+.slot.selected .slot-tag{display:block;}
+
+/* SUBMIT BUTTON */
+.btn{width:100%;padding:14px;background:var(--navy);color:#fff;border:none;border-radius:7px;font-family:var(--sans);font-size:15px;font-weight:500;cursor:pointer;transition:all .2s;letter-spacing:.2px;}
 .btn:disabled{opacity:.4;cursor:not-allowed;}
-.btn:not(:disabled):hover{opacity:.9;}
-.state{text-align:center;padding:40px 32px;}
-.state-icon{font-size:48px;margin-bottom:16px;}
-.state-title{font-family:'Cormorant Garamond',serif;font-size:26px;color:var(--navy);margin-bottom:12px;font-weight:400;}
-.state-msg{font-size:15px;color:var(--muted);line-height:1.75;}
-.loading-text{font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);letter-spacing:1px;}
+.btn:not(:disabled):hover{background:var(--navy2);box-shadow:0 4px 12px rgba(27,58,107,.25);}
+.btn-note{font-family:var(--mono);font-size:10px;color:var(--muted);text-align:center;margin-top:10px;line-height:1.6;}
+
+/* STATES */
+.state{padding:40px 32px;text-align:center;}
+.state-icon{font-size:44px;margin-bottom:18px;display:block;}
+.state-title{font-family:var(--serif);font-size:28px;font-weight:400;color:var(--navy);margin-bottom:12px;line-height:1.2;}
+.state-msg{font-size:14px;color:var(--muted);line-height:1.8;max-width:380px;margin:0 auto;}
+.state-detail{margin-top:16px;padding:14px 18px;background:var(--cream2);border-radius:6px;border:1px solid var(--border);display:inline-block;text-align:left;}
+.sd-label{font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:4px;}
+.sd-val{font-size:14px;color:var(--text);font-weight:500;}
+.help-link{margin-top:20px;font-family:var(--mono);font-size:11px;color:var(--muted);}
+.help-link a{color:var(--navy);text-decoration:none;}
+.help-link a:hover{text-decoration:underline;}
+
+.loading-wrap{padding:40px 32px;text-align:center;}
+.loading-text{font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:1.5px;animation:fade .8s ease-in-out infinite alternate;}
+@keyframes fade{from{opacity:.4}to{opacity:1}}
+.spinner{width:28px;height:28px;border:2px solid var(--border);border-top-color:var(--navy);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 16px;}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.error-state{padding:32px;text-align:center;}
+.es-icon{font-size:36px;margin-bottom:14px;}
+.es-title{font-family:var(--serif);font-size:22px;color:var(--red);margin-bottom:8px;}
+.es-msg{font-size:13px;color:var(--muted);line-height:1.7;}
+
+/* FOOTER */
+.footer{margin-top:20px;font-family:var(--mono);font-size:10px;color:var(--muted2);text-align:center;letter-spacing:.5px;}
+
+/* MOBILE */
+@media(max-width:480px){
+  .card-head,.card-body,.state,.error-state,.loading-wrap{padding:22px 20px;}
+  .ch-name{font-size:22px;}
+  body{padding:16px 12px;}
+}
 </style>
 </head>
 <body>
+
+<div class="top-bar">
+  <div class="top-logo"><div class="top-logo-dot"></div>Proximity Care Services</div>
+  <div class="top-badge">PSW Recruitment</div>
+</div>
+
 <div class="card">
-  <div class="header">
-    <div class="header-title">Proximity Care Services</div>
-    <div class="header-sub">Book your Zoom interview</div>
+  <div class="card-head">
+    <div class="ch-eyebrow">Step 3 of 3</div>
+    <div class="ch-name" id="ch-name">Book Your Interview</div>
+    <div class="ch-sub"><div class="ch-dot"></div><span id="ch-sub">20-minute Zoom with Lance</span></div>
   </div>
   <div id="content">
-    <div class="state"><div class="loading-text">Loading available times...</div></div>
+    <div class="loading-wrap">
+      <div class="spinner"></div>
+      <div class="loading-text">Loading available times...</div>
+    </div>
   </div>
 </div>
+
+<div class="footer">proximitycares.ca · 647-382-8047</div>
+
 <script>
 var API = 'https://proximity-agent-production.up.railway.app';
 var params = new URLSearchParams(window.location.search);
 var applicantId = params.get('id');
 var opId = params.get('op') || 'proximity-care';
 var selectedSlot = null;
+var selectedLabel = '';
 
+// ── INIT ─────────────────────────────────────────────────────────────────────
 function init() {
   if (!applicantId) {
-    document.getElementById('content').innerHTML = '<div class="state"><div class="state-msg">Invalid link. Please contact Lance at 647-382-8047.</div></div>';
+    showError('Invalid Link', 'This link is missing required information. Please use the exact link from your email or contact Lance at 647-382-8047.');
     return;
   }
+  loadSlots();
+}
+
+// ── LOAD SLOTS ────────────────────────────────────────────────────────────────
+function loadSlots() {
   fetch(API + '/leads/call-slots')
-    .then(function(r){ return r.json(); })
-    .then(function(d){
-      if (!d.success || !d.slots || !d.slots.length) throw new Error('no slots');
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+      if (!d.success || !d.slots || !d.slots.length) throw new Error('No slots available');
       renderSlots(d.slots);
     })
-    .catch(function(){
-      document.getElementById('content').innerHTML = '<div class="state"><div class="state-msg">Could not load times. Please call 647-382-8047.</div></div>';
+    .catch(function(err) {
+      showError('Could Not Load Times', 'We had trouble loading available times. Please call Lance directly at 647-382-8047 to book your interview.');
     });
 }
 
+// ── RENDER SLOTS ─────────────────────────────────────────────────────────────
 function renderSlots(slots) {
-  var rows = slots.map(function(s){
-    return '<label class="slot" id="slot-' + s.value + '" onclick="selectSlot(\'' + s.value + '\')">' +
-      '<input type="radio" name="slot" value="' + s.value + '">' +
-      '<span class="slot-label">' + s.label + '</span>' +
-      '</label>';
-  }).join('');
+  // Group by date for cleaner display
+  var grouped = {};
+  var order = [];
+  slots.forEach(function(s) {
+    var parts = s.label.split(' at ');
+    var dateKey = parts[0] || s.label;
+    var time = parts[1] || '';
+    if (!grouped[dateKey]) { grouped[dateKey] = []; order.push(dateKey); }
+    grouped[dateKey].push({ value: s.value, time: time, label: s.label });
+  });
+
+  var rows = '';
+  order.forEach(function(day) {
+    grouped[day].forEach(function(slot, i) {
+      var dayDisplay = i === 0 ? '<div class="slot-day">' + day + '</div>' : '<div class="slot-day" style="color:var(--muted);font-size:12px;"></div>';
+      rows += '<label class="slot" id="slot-' + slot.value + '" onclick="selectSlot(\'' + slot.value + '\',\'' + escQ(slot.label) + '\')">' +
+        '<input type="radio" name="slot" value="' + slot.value + '">' +
+        '<div class="slot-inner">' +
+        '<div class="slot-day">' + (i === 0 ? day : '') + '</div>' +
+        '<div class="slot-time">' + slot.time + ' Toronto time</div>' +
+        '</div>' +
+        '<div class="slot-tag">Selected</div>' +
+        '</label>';
+    });
+  });
+
   document.getElementById('content').innerHTML =
-    '<div class="body">' +
-    '<div class="zoom-note">📹 This is a Zoom video interview with Lance. Once you pick a time, Lance will confirm and email you the Zoom link.</div>' +
-    '<p class="intro">Choose the time that works best for you. The interview is about 20 minutes — your experience, availability, and any questions you have.</p>' +
+    '<div class="card-body">' +
+    '<div class="steps">' +
+    '<div class="step done"><div class="step-num">✓</div><div class="step-label">Applied</div></div>' +
+    '<div class="step done"><div class="step-num">✓</div><div class="step-label">Documents</div></div>' +
+    '<div class="step active"><div class="step-num">3</div><div class="step-label">Interview</div></div>' +
+    '</div>' +
+    '<div class="zoom-note"><div class="zn-icon">📹</div><div class="zn-text">This is a 20-minute Zoom video interview with Lance. Once you pick a time, Lance will confirm and send you the Zoom link by email.</div></div>' +
     '<div class="section-label">Available times</div>' +
-    '<div class="slots">' + rows + '</div>' +
+    '<div class="slots" id="slots-list">' + rows + '</div>' +
     '<button class="btn" id="submit-btn" onclick="submitBooking()" disabled>Request This Time</button>' +
+    '<div class="btn-note">Lance confirms within a few hours · Zoom link sent by email</div>' +
     '</div>';
 }
 
-function selectSlot(val) {
+// ── SELECT SLOT ───────────────────────────────────────────────────────────────
+function selectSlot(val, label) {
   selectedSlot = val;
-  var all = document.querySelectorAll('.slot');
-  for (var i = 0; i < all.length; i++) all[i].classList.remove('selected');
+  selectedLabel = label || val.replace(/_/g, ' ');
+  document.querySelectorAll('.slot').forEach(function(el) { el.classList.remove('selected'); });
   var el = document.getElementById('slot-' + val);
-  if (el) el.classList.add('selected');
+  if (el) {
+    el.classList.add('selected');
+    var radio = el.querySelector('input[type=radio]');
+    if (radio) radio.checked = true;
+  }
   var btn = document.getElementById('submit-btn');
-  if (btn) btn.disabled = false;
+  if (btn) { btn.disabled = false; btn.textContent = 'Request ' + (label ? label.split(' at ')[1] || 'This Time' : 'This Time') + ' →'; }
 }
 
+// ── SUBMIT ────────────────────────────────────────────────────────────────────
 function submitBooking() {
   if (!selectedSlot) return;
   var btn = document.getElementById('submit-btn');
   btn.disabled = true;
   btn.textContent = 'Sending request...';
+
   fetch(API + '/psw/book-interview', {
     method: 'POST',
-    headers: {'Content-Type':'application/json'},
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ applicant_id: applicantId, slot: selectedSlot, operator_id: opId })
   })
-  .then(function(r){ return r.json(); })
-  .then(function(d){
-    if (!d.success) throw new Error(d.error || 'failed');
-    document.getElementById('content').innerHTML =
-      '<div class="state">' +
-      '<div class="state-icon">✅</div>' +
-      '<div class="state-title">Request sent</div>' +
-      '<div class="state-msg">Lance will confirm your interview within a few hours. You will receive an email with the Zoom link once confirmed.<br><br>Questions? Call 647-382-8047.</div>' +
-      '</div>';
+  .then(function(r) { return r.json().then(function(d) { return { ok: r.ok, data: d }; }); })
+  .then(function(res) {
+    if (!res.ok || !res.data.success) throw new Error(res.data.error || 'Booking failed');
+    showConfirmed(selectedLabel);
   })
-  .catch(function(){
+  .catch(function(err) {
     btn.disabled = false;
     btn.textContent = 'Request This Time';
-    alert('Something went wrong. Please call 647-382-8047.');
+    showToast('Something went wrong — please try again or call 647-382-8047');
   });
 }
+
+// ── CONFIRMED STATE ───────────────────────────────────────────────────────────
+function showConfirmed(label) {
+  // Update header
+  var nameEl = document.getElementById('ch-name');
+  var subEl = document.getElementById('ch-sub');
+  if (nameEl) nameEl.textContent = 'Request Sent';
+  if (subEl) subEl.textContent = 'Lance will confirm within a few hours';
+
+  document.getElementById('content').innerHTML =
+    '<div class="state">' +
+    '<span class="state-icon">✅</span>' +
+    '<div class="state-title">You\'re all set.</div>' +
+    '<div class="state-msg">Lance will confirm your interview within a few hours. You\'ll receive an email with the Zoom link once confirmed.</div>' +
+    (label ? '<div class="state-detail"><div class="sd-label">Requested time</div><div class="sd-val">' + label + '</div></div>' : '') +
+    '<div class="help-link">Questions? <a href="tel:6473828047">647-382-8047</a> · <a href="mailto:lancesalazar56@gmail.com">lancesalazar56@gmail.com</a></div>' +
+    '</div>';
+}
+
+// ── ERROR STATE ───────────────────────────────────────────────────────────────
+function showError(title, msg) {
+  document.getElementById('content').innerHTML =
+    '<div class="error-state">' +
+    '<div class="es-icon">⚠️</div>' +
+    '<div class="es-title">' + title + '</div>' +
+    '<div class="es-msg">' + msg + '</div>' +
+    '<div class="help-link" style="margin-top:16px;">Call Lance: <a href="tel:6473828047">647-382-8047</a></div>' +
+    '</div>';
+}
+
+// ── TOAST ─────────────────────────────────────────────────────────────────────
+function showToast(msg) {
+  var t = document.createElement('div');
+  t.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1a1a1a;color:#fff;padding:10px 18px;border-radius:6px;font-family:var(--mono);font-size:12px;z-index:999;box-shadow:0 4px 16px rgba(0,0,0,.3);white-space:nowrap;';
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(function() { t.remove(); }, 4000);
+}
+
+// ── UTIL ──────────────────────────────────────────────────────────────────────
+function escQ(s) { return (s || '').replace(/'/g, "\\'").replace(/"/g, '&quot;'); }
 
 init();
 </script>
