@@ -5245,8 +5245,9 @@ async function loadApplicants() {
   if(!el) return;
   el.innerHTML = '<div class="empty-state">Loading...</div>';
   try {
-    const res = await fetch(`${API}/psw/applicants?operator_id=${currentOp}`);
+    const res = await fetch(`${API}/psw/applicants?operator_id=${currentOp}`, { headers: { 'x-hq-token': window._hqToken || sessionStorage.getItem('hq_token') || '' } });
     const data = await res.json();
+    if (!res.ok) { console.error('[applicants] server returned', res.status, data); throw new Error(data.error || 'Server error ' + res.status); }
     let apps = data.applicants || [];
 
     // Deduplicate by email — keep most recent per email (array is already newest-first)
@@ -5295,7 +5296,7 @@ async function loadApplicants() {
         </div>
       </div>`;
     }).join('');
-  } catch { el.innerHTML = '<div class="empty-state"><div class="empty-state-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div><div class="empty-state-title">Could not load applicants</div></div>'; }
+  } catch(err) { console.error('[loadApplicants] error:', err); el.innerHTML = '<div class="empty-state"><div class="empty-state-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div><div class="empty-state-title">Could not load applicants · ' + (err.message||'') + '</div></div>'; }
 }
 
 // ── APPLICANT DOC VIEWER SHEET ──
@@ -5305,7 +5306,7 @@ async function openApplicantSheet(id) {
   let a = _applicantCache.find(x => x.id === id);
   if(!a) {
     try {
-      const res = await fetch(`${API}/psw/applicants?operator_id=${currentOp}`);
+      const res = await fetch(`${API}/psw/applicants?operator_id=${currentOp}`, { headers: { 'x-hq-token': window._hqToken || sessionStorage.getItem('hq_token') || '' } });
       const data = await res.json();
       _applicantCache = data.applicants || [];
       a = _applicantCache.find(x => x.id === id);
@@ -5388,7 +5389,7 @@ async function dismissApplicant(id, name) {
   const confirmed = window.confirm ? window.confirm('Dismiss ' + name + '?') : true;
   if(!confirmed) return;
   try {
-    const res = await fetch(`${API}/psw/applicants/${id}?operator_id=${currentOp}`, { method:'DELETE' });
+    const res = await fetch(`${API}/psw/applicants/${id}?operator_id=${currentOp}`, { method:'DELETE', headers: { 'x-hq-token': window._hqToken || sessionStorage.getItem('hq_token') || '' } });
     if(!res.ok) throw new Error((await res.json().catch(()=>({}))).error || 'Failed');
     showToast(name + ' dismissed', 'ok');
     _applicantCache = _applicantCache.filter(a => a.id !== id);
@@ -7377,27 +7378,12 @@ async function renderRevenue() {
   const weekEnd = new Date(now); weekEnd.setDate(now.getDate() + 7);
   const weekBookings = bookings.filter(b => { const d = new Date(b.scheduled_date); return d >= now && d <= weekEnd; });
 
-  // Last month comparison
-  const lastMonthDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-  const lastMonthStr  = lastMonthDate.toLocaleDateString('en-CA',{timeZone:'America/Toronto'}).slice(0,7);
-  const lastMonthVisits = visits.filter(v => (v.visit_date||'').startsWith(lastMonthStr));
-  const lastMonthBilled = lastMonthVisits.reduce((s,v) => {
-    const c = clients.find(cl => `${cl.first_name||''} ${cl.last_name||''}`.trim() === v.client_name);
-    return s + parseFloat(v.hours_worked||0) * (c?.client_rate||22);
-  }, 0);
-  const revChange = lastMonthBilled > 0 ? Math.round(((totalBilled - lastMonthBilled) / lastMonthBilled) * 100) : null;
-  const revChangeStr = revChange !== null ? (revChange >= 0 ? '↑ +' : '↓ ') + Math.abs(revChange) + '% vs last month' : 'No data last month';
-  const revChangeColor = revChange === null ? 'var(--muted)' : revChange >= 0 ? 'var(--green2)' : 'var(--red)';
-
-  // Vacant shifts — scheduled bookings with no assigned PSW
-  const vacantShifts = bookings.filter(b => !b.assigned_to && b.status === 'scheduled').length;
-
   const kpis = [
-    { label: 'Month Billed', val: '$'+totalBilled.toFixed(0), sub: revChangeStr, subColor: revChangeColor, color: 'var(--teal2)' },
+    { label: 'Month Billed', val: '$'+totalBilled.toFixed(0), sub: monthHours.toFixed(1)+'h worked', color: 'var(--teal2)' },
     { label: 'Month Cost', val: '$'+totalCost.toFixed(0), sub: 'PSW wages', color: 'var(--text)' },
-    { label: 'Month Margin', val: '$'+totalMargin.toFixed(0), sub: (totalBilled>0?(totalMargin/totalBilled*100).toFixed(1):0)+'% · '+monthVisits.length+' visits', color: totalMargin>0?'var(--green2)':'var(--red)' },
+    { label: 'Month Margin', val: '$'+totalMargin.toFixed(0), sub: (totalBilled>0?(totalMargin/totalBilled*100).toFixed(1):0)+'% margin · '+monthVisits.length+' visits', color: totalMargin>0?'var(--green2)':'var(--red)' },
     { label: 'Active Clients', val: clients.length, sub: 'on service', color: 'var(--text)' },
-    { label: 'Vacant Shifts', val: vacantShifts, sub: vacantShifts>0?'need assignment':'all covered ✓', color: vacantShifts>0?'var(--red)':'var(--green2)' },
+    { label: 'Shifts This Week', val: weekBookings.length, sub: 'upcoming', color: 'var(--gold)' },
     { label: 'Active PSWs', val: pswCount, sub: 'on roster', color: 'var(--text)' },
   ];
 
@@ -7406,7 +7392,7 @@ async function renderRevenue() {
     html += `<div style="background:var(--bg2);padding:14px 10px;text-align:center;">
       <div style="font-family:var(--mono);font-size:18px;font-weight:500;color:${k.color};">${k.val}</div>
       <div style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-top:4px;">${k.label}</div>
-      <div style="font-size:12px;color:${k.subColor||'var(--muted)'};margin-top:2px;">${k.sub}</div>
+      <div style="font-size:12px;color:var(--muted);margin-top:2px;">${k.sub}</div>
     </div>`;
   });
   html += '</div>';
@@ -7483,58 +7469,41 @@ async function renderRevenue() {
     html += '</div></div>';
   }
 
-  // ── PSW PERFORMANCE DASHBOARD ────────────────────────────────────
-  // Hours, visits, avg rating, last visit — all from D.visits
+  // ── HOURS BY PSW ────────────────────────────────────────────────
   const pswHoursMap = {};
-  // Build from ALL visits (not just this month) for last visit date
-  visits.forEach(v => {
+  monthVisits.forEach(v => {
     const n = v.psw_name || 'Unknown';
-    if (!pswHoursMap[n]) pswHoursMap[n] = { hours: 0, visits: 0, earnings: 0, ratingSum: 0, ratingCount: 0, lastVisit: '' };
-    // Only add hours/visits/earnings for this month
-    const isThisMonth = (v.visit_date||'').startsWith(monthStr);
-    if (isThisMonth) {
-      const hrs = parseFloat(v.hours_worked || 0);
-      pswHoursMap[n].hours += hrs;
-      pswHoursMap[n].visits++;
-      const clientForVisit = clients.find(c => `${c.first_name||''} ${c.last_name||''}`.trim() === v.client_name);
-      pswHoursMap[n].earnings += hrs * (clientForVisit?.psw_rate || 19);
-    }
-    // Rating + last visit from all time
-    if (v.satisfaction_rating) { pswHoursMap[n].ratingSum += v.satisfaction_rating; pswHoursMap[n].ratingCount++; }
-    if ((v.visit_date||'') > pswHoursMap[n].lastVisit) pswHoursMap[n].lastVisit = v.visit_date || '';
+    if (!pswHoursMap[n]) pswHoursMap[n] = { hours: 0, visits: 0, earnings: 0 };
+    const hrs = parseFloat(v.hours_worked || 0);
+    pswHoursMap[n].hours += hrs;
+    pswHoursMap[n].visits++;
+    // Find PSW rate from clients assigned to this PSW
+    const clientForVisit = clients.find(c => `${c.first_name||''} ${c.last_name||''}`.trim() === v.client_name);
+    pswHoursMap[n].earnings += hrs * (clientForVisit?.psw_rate || 19);
   });
 
   const maxPswHours = Math.max(...Object.values(pswHoursMap).map(p => p.hours), 1);
 
   if (Object.keys(pswHoursMap).length) {
     html += `<div style="margin:0 12px 16px;">
-      <div style="font-family:var(--mono);font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--muted2);margin-bottom:10px;">PSW Performance — This Month</div>
+      <div style="font-family:var(--mono);font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--muted2);margin-bottom:10px;">Hours by PSW — This Month</div>
       <div style="display:flex;flex-direction:column;gap:6px;">`;
     Object.entries(pswHoursMap)
       .sort((a,b) => b[1].hours - a[1].hours)
       .forEach(([name, p]) => {
         const pct = Math.round(p.hours / maxPswHours * 100);
-        const avgRating = p.ratingCount > 0 ? (p.ratingSum / p.ratingCount) : null;
-        const stars = avgRating !== null
-          ? '★'.repeat(Math.round(avgRating)) + '☆'.repeat(5 - Math.round(avgRating))
-          : '—';
-        const ratingColor = avgRating === null ? 'var(--muted)' : avgRating >= 4 ? 'var(--gold)' : avgRating >= 3 ? 'var(--amber)' : 'var(--red)';
-        const pswRec = psws.find(pw => pw.full_name === name || pw.name === name);
-        const pswId = pswRec?.id || name;
-        html += `<div style="padding:10px 12px;background:var(--bg2);border:1px solid var(--border);border-radius:6px;cursor:pointer;" onclick="openPSWDetail('${pswId}')">
+        html += `<div style="padding:10px 12px;background:var(--bg2);border:1px solid var(--border);border-radius:6px;">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
-            <div>
-              <div style="font-size:12px;font-weight:500;color:var(--text);">${name}</div>
-              <div style="font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:2px;">${p.visits} visit${p.visits!==1?'s':''} · Last: ${p.lastVisit||'—'}</div>
-            </div>
+            <div style="font-size:12px;font-weight:500;color:var(--text);">${name}</div>
             <div style="text-align:right;">
-              <div style="font-family:var(--mono);font-size:12px;color:var(--teal2);">${p.hours.toFixed(1)}h · $${p.earnings.toFixed(0)}</div>
-              <div style="font-size:13px;color:${ratingColor};margin-top:2px;">${stars}${avgRating!==null?' '+avgRating.toFixed(1):''}</div>
+              <span style="font-family:var(--mono);font-size:12px;color:var(--teal2);">${p.hours.toFixed(1)}h</span>
+              <span style="font-family:var(--mono);font-size:12px;color:var(--muted);margin-left:8px;">$${p.earnings.toFixed(0)}</span>
             </div>
           </div>
           <div style="height:4px;background:var(--border);border-radius:100px;">
             <div style="width:${pct}%;height:100%;background:var(--teal2);border-radius:100px;transition:width .4s;"></div>
           </div>
+          <div style="font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:4px;">${p.visits} visit${p.visits!==1?'s':''}</div>
         </div>`;
       });
     html += '</div></div>';
