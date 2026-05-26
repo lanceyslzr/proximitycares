@@ -2794,8 +2794,12 @@ body.sidebar-hidden #sidebar-reopen-tab{ display:flex; }
       <div><div class="slbl">Time</div><input class="sinput" id="bf-time" placeholder="10:00 AM"></div>
       <div><div class="slbl">Assigned To</div><input class="sinput" id="bf-assigned" placeholder="PSW or staff"></div>
     </div>
-    <div class="sheet-row"><div class="slbl">Location</div><input class="sinput" id="bf-location" placeholder="Address or Virtual"></div>
-    <button class="sbtn" onclick="submitBooking()">Book Appointment</button>
+    <div class="srow2">
+      <div><div class="slbl">Duration (minutes)</div><input class="sinput" id="bf-duration" type="number" min="15" step="15" placeholder="60"></div>
+      <div><div class="slbl">Location</div><input class="sinput" id="bf-location" placeholder="Address or Virtual"></div>
+    </div>
+    <div class="sheet-row"><div class="slbl">Notes</div><textarea class="sinput" id="bf-notes" placeholder="Care instructions, special considerations..." style="min-height:56px;resize:vertical;"></textarea></div>
+    <button class="sbtn" id="bf-submit-btn" onclick="submitBooking()">Book Shift</button>
   </div>
 </div>
 
@@ -4413,13 +4417,23 @@ async function submitBooking() {
   const time=document.getElementById('bf-time').value.trim();
   const type=document.getElementById('bf-type').value;
   if(!name||!date||!time) { showToast('Name, date and time required','err'); return; }
+  const btn=document.getElementById('bf-submit-btn');
+  if(btn){btn.disabled=true;btn.textContent='Saving...';}
   try {
-    const r=await fetch(`${API}/hq/booking`,{method:'POST',headers:{'Content-Type': 'application/json', 'x-hq-token': window._hqToken || sessionStorage.getItem('hq_token') || ''},body:JSON.stringify({operator_id:currentOp,client_name:name,client_email:document.getElementById('bf-email').value.trim(),client_phone:document.getElementById('bf-phone').value.trim(),booking_type:type,scheduled_date:date,scheduled_time:time,assigned_to:document.getElementById('bf-assigned').value.trim(),location:document.getElementById('bf-location').value.trim()})});
-    const d=await r.json(); if(!d.success) throw new Error(d.error);
+    const dur=document.getElementById('bf-duration')?parseInt(document.getElementById('bf-duration').value)||60:60;
+    const notesVal=document.getElementById('bf-notes')?document.getElementById('bf-notes').value.trim():'';
+    const r=await hqFetch(`${API}/hq/booking`,{method:'POST',headers:{'Content-Type':'application/json','x-hq-token':window._hqToken||sessionStorage.getItem('hq_token')||''},body:JSON.stringify({operator_id:currentOp,client_name:name,client_email:document.getElementById('bf-email').value.trim(),client_phone:document.getElementById('bf-phone').value.trim(),booking_type:type,scheduled_date:date,scheduled_time:time,duration_minutes:dur,assigned_to:document.getElementById('bf-assigned').value.trim(),location:document.getElementById('bf-location').value.trim(),notes:notesVal})});
+    const d=await r.json();
+    if(!r.ok||!d.success) {
+      // Show specific conflict message if available
+      const errMsg=d.message||d.error||'Booking failed';
+      throw new Error(errMsg);
+    }
     showToast('Appointment booked ✓','ok'); closeAllSheets();
-    ['bf-name','bf-email','bf-phone','bf-date','bf-time','bf-assigned','bf-location'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+    ['bf-name','bf-email','bf-phone','bf-date','bf-time','bf-assigned','bf-location','bf-duration','bf-notes'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
     await loadAll(false);
   } catch(err) { showToast(err.message||'Booking failed','err'); }
+  finally { if(btn){btn.disabled=false;btn.textContent='Book Shift';} }
 }
 
 // ── PURCHASES ──
@@ -7211,9 +7225,14 @@ async function saveShift(addAnother = false) {
   }
 }
 
-async function deleteShift(id) {
+async function deleteShift(id, skipConfirm) {
+  if(!skipConfirm) {
+    const book=(D.bookings||[]).find(b=>b.id===id);
+    const label=book?`${book.client_name} on ${book.scheduled_date} at ${book.scheduled_time}`:'this shift';
+    if(!window.confirm(`Remove ${label}?\nThis cannot be undone.`)) return;
+  }
   try {
-    const res = await fetch(`${API}/hq/booking/${id}?operator_id=${currentOp}`, { method: 'DELETE', headers: { 'x-hq-token': window._hqToken || sessionStorage.getItem('hq_token') || '' } });
+    const res = await hqFetch(`${API}/hq/booking/${id}?operator_id=${currentOp}`, { method: 'DELETE', headers: { 'x-hq-token': window._hqToken || sessionStorage.getItem('hq_token') || '' } });
     const d = await res.json();
     if (!d.success) throw new Error(d.error);
     showToast('Shift removed', 'ok');
@@ -7226,13 +7245,13 @@ async function deleteShift(id) {
           message: `A shift on ${_delBook.scheduled_date||'your schedule'} has been cancelled. Check your portal.` })
       }).catch(() => {});
     }
-    // Optimistic: remove from D.bookings immediately
+    // Remove from local cache first (optimistic)
     D.bookings = (D.bookings||[]).filter(b => b.id !== id);
     _refreshSched();
     renderVacantVisits();
     renderStats();
-    // Background full refresh for stats/counts
-    loadAll(false);
+    // Await full refresh so any immediately subsequent booking sees clean state
+    await loadAll(false);
   } catch(e) { showToast(e.message, 'err'); }
 }
 
