@@ -1,6 +1,6 @@
 // Proximity PSW Portal — Service Worker v5
 // Upgraded: offline queue sync + web push notifications + cache bust
-const CACHE = 'proximity-psw-v5';
+const CACHE = 'proximity-psw-v6';
 const STATIC = [
   '/index.html',
   '/psw-manifest.json',
