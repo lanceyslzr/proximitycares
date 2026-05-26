@@ -2063,7 +2063,7 @@ body.sidebar-hidden #sidebar-reopen-tab{ display:flex; }
   <div class="section-header">
     <span class="section-title">Visit Log</span>
     <div style="display:flex;gap:6px;flex-wrap:wrap;">
-      <div class="sect-action" id="vv-log" onclick="setVisitView('log')" style="border-color:var(--teal2);color:var(--teal2);background:rgba(61,138,122,.1);">Log</div>
+      <div class="sect-action" id="vv-log" onclick="setVisitView('log')" style="border-color:var(--teal2);color:var(--teal2);background:rgba(61,138,122,.1);">Log<button onclick="openAddVisit()" style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;padding:6px 14px;background:rgba(200,169,110,.08);border:1px solid rgba(200,169,110,.25);border-radius:5px;color:var(--gold);cursor:pointer;min-height:44px;touch-action:manipulation;">+ Add Visit</button></div>
       <div class="sect-action" id="vv-incidents" onclick="setVisitView('incidents')">⚠ <span id="incident-count" style="display:none;background:var(--red);color:#fff;border-radius:100px;font-size:11px;padding:1px 5px;margin-left:2px;">0</span> Incidents</div>
       <div class="sect-action" onclick="toggleAttendance()">⬤ Live</div>
       <div class="sect-action" onclick="exportPayrollCSV()">↓ CSV</div>
@@ -10456,6 +10456,10 @@ function openVisitEdit(visitData) {
   document.getElementById('vem-time-in').value  = fmtT(visitData.time_in);
   document.getElementById('vem-time-out').value = fmtT(visitData.time_out);
   document.getElementById('vem-hours-preview').style.display = 'none';
+  const vemMH = document.getElementById('vem-manual-hours');
+  const vemR = document.getElementById('vem-reason');
+  if (vemMH) vemMH.value = '';
+  if (vemR) vemR.value = '';
   modal.style.display = 'flex';
 
   // Live hours preview
@@ -10483,30 +10487,39 @@ function closeVisitEdit() {
 
 async function saveVisitEdit() {
   if (!_vemVisitId) return;
-  const timeIn  = document.getElementById('vem-time-in').value;
-  const timeOut = document.getElementById('vem-time-out').value;
-  if (!timeIn || !timeOut) { showToast('Both times required', 'err'); return; }
-  const [h1,m1] = timeIn.split(':').map(Number);
-  const [h2,m2] = timeOut.split(':').map(Number);
-  if ((h2*60+m2) <= (h1*60+m1)) { showToast('Time out must be after time in', 'err'); return; }
+  const timeIn       = document.getElementById('vem-time-in').value;
+  const timeOut      = document.getElementById('vem-time-out').value;
+  const manualHours  = document.getElementById('vem-manual-hours')?.value;
+  const reason       = document.getElementById('vem-reason')?.value?.trim();
+
+  // Validate: need at least times OR manual hours
+  if (!manualHours && (!timeIn || !timeOut)) {
+    showToast('Enter time in/out OR manual hours', 'err'); return;
+  }
+  if (timeIn && timeOut) {
+    const [h1,m1] = timeIn.split(':').map(Number);
+    const [h2,m2] = timeOut.split(':').map(Number);
+    if ((h2*60+m2) <= (h1*60+m1)) { showToast('Time out must be after time in', 'err'); return; }
+  }
 
   const btn = document.getElementById('vem-save-btn');
   btn.textContent = 'Saving...'; btn.disabled = true;
   try {
-    const r = await hqFetch(`${API}/hq/visit/${_vemVisitId}/verify`, {
+    const body = { operator_id: currentOp };
+    if (timeIn)       body.time_in  = timeIn + ':00';
+    if (timeOut)      body.time_out = timeOut + ':00';
+    if (manualHours)  body.manual_hours = parseFloat(manualHours);
+    if (reason)       body.notes = reason;
+
+    const r = await hqFetch(`${API}/hq/visit/${_vemVisitId}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        operator_id: currentOp,
-        verified_by: 'lance',
-        corrected_time_in: timeIn + ':00',
-        corrected_time_out: timeOut + ':00'
-      })
+      body: JSON.stringify(body)
     });
     const d = await r.json();
     if (!r.ok) throw new Error(d.error || 'Save failed');
     closeVisitEdit();
-    showToast('Visit updated — PSW and family notified', 'ok');
+    showToast('Visit updated ✓ — PSW notified', 'ok');
     await renderVisits();
     await loadAll(false);
   } catch(e) {
@@ -11125,8 +11138,20 @@ function autoVscExpiry(checkDate) {
       <div id="vem-hours-preview" style="padding:12px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;font-family:var(--mono);font-size:13px;color:var(--teal);display:none;"></div>
       <div style="font-size:12px;color:var(--muted);line-height:1.5;">Original times are saved for audit. PSW and family will be notified of the correction.</div>
     </div>
+    <!-- Manual hours override -->
+    <div style="margin-bottom:16px;padding-top:16px;border-top:1px solid var(--border);">
+      <div style="font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--teal2);margin-bottom:8px;">Manual Hours Override</div>
+      <div style="font-family:var(--mono);font-size:11px;color:var(--muted2);margin-bottom:8px;">Use only when times are unavailable. Directly sets hours on PSW timesheet.</div>
+      <input id="vem-manual-hours" type="number" step="0.25" min="0" max="24" placeholder="e.g. 8.0" style="width:100%;padding:11px 13px;background:var(--bg4);border:1px solid var(--border);border-radius:6px;font-family:var(--mono);font-size:15px;color:var(--text);outline:none;">
+    </div>
+    <!-- Reason for edit -->
+    <div style="margin-bottom:16px;">
+      <div style="font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:8px;">Reason (internal)</div>
+      <input id="vem-reason" type="text" placeholder="GPS failed, offline visit, time correction..." style="width:100%;padding:11px 13px;background:var(--bg4);border:1px solid var(--border);border-radius:6px;font-family:var(--mono);font-size:13px;color:var(--text);outline:none;">
+    </div>
     <div style="display:flex;gap:10px;">
-      <button onclick="closeVisitEdit()" style="flex:1;padding:12px;background:none;border:1px solid var(--border);border-radius:6px;font-family:var(--mono);font-size:11px;color:var(--muted);cursor:pointer;letter-spacing:1px;">Cancel</button>
+      <button onclick="closeVisitEdit()"
+ style="flex:1;padding:12px;background:none;border:1px solid var(--border);border-radius:6px;font-family:var(--mono);font-size:11px;color:var(--muted);cursor:pointer;letter-spacing:1px;">Cancel</button>
       <button id="vem-save-btn" onclick="saveVisitEdit()" style="flex:2;padding:12px;background:rgba(201,169,110,.12);border:1px solid rgba(201,169,110,.3);border-radius:6px;font-family:var(--mono);font-size:11px;color:var(--gold);cursor:pointer;letter-spacing:1px;">Save & Notify</button>
     </div>
   </div>
@@ -11257,5 +11282,165 @@ function autoVscExpiry(checkDate) {
   </div>
 </div>
 
+
+<!-- EDIT VISIT SHEET -->
+<div class="sheet" id="edit-visit-sheet" style="z-index:601;">
+  <div class="sheet-header">
+    <div class="sheet-title">Edit Visit</div>
+    <button class="sheet-close" onclick="closeSheet('edit-visit-sheet')">✕</button>
+  </div>
+  <div class="sheet-body" style="padding:16px;">
+    <input type="hidden" id="ev-id">
+    <div class="srow2">
+      <div><div class="slbl">PSW</div><input class="sinput" id="ev-psw" readonly style="color:var(--muted2);"></div>
+      <div><div class="slbl">Client</div><input class="sinput" id="ev-client" readonly style="color:var(--muted2);"></div>
+    </div>
+    <div class="srow2">
+      <div><div class="slbl">Date</div><input class="sinput" id="ev-date" readonly style="color:var(--muted2);"></div>
+      <div><div class="slbl">Status</div>
+        <select class="sinput" id="ev-status">
+          <option value="completed">Completed</option>
+          <option value="complete">Complete</option>
+          <option value="in_progress">In Progress</option>
+        </select>
+      </div>
+    </div>
+    <div style="font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--teal2);padding:12px 0 6px;border-top:1px solid var(--border);margin-top:4px;">Time Correction</div>
+    <div class="srow2">
+      <div><div class="slbl">Time In</div><input class="sinput" id="ev-time-in" type="time"></div>
+      <div><div class="slbl">Time Out</div><input class="sinput" id="ev-time-out" type="time"></div>
+    </div>
+    <div style="font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);padding:12px 0 6px;border-top:1px solid var(--border);margin-top:4px;">Manual Hours Override</div>
+    <div style="font-family:var(--mono);font-size:11px;color:var(--muted2);margin-bottom:8px;">Use only if time in/out are unavailable. Overrides the calculated hours on the PSW timesheet.</div>
+    <div class="srow2">
+      <div><div class="slbl">Hours (decimal)</div><input class="sinput" id="ev-hours" type="number" step="0.25" min="0" max="24" placeholder="e.g. 8.0"></div>
+      <div><div class="slbl">Current Hours</div><input class="sinput" id="ev-current-hours" readonly style="color:var(--muted2);"></div>
+    </div>
+    <div style="font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);padding:12px 0 6px;border-top:1px solid var(--border);margin-top:4px;">Notes</div>
+    <div class="sheet-row"><div class="slbl">Reason for edit (internal)</div><textarea class="sinput" id="ev-notes" placeholder="GPS failed, visit logged offline, time correction..." style="min-height:56px;resize:vertical;"></textarea></div>
+    <div class="sheet-row"><div class="slbl">Care summary (optional)</div><textarea class="sinput" id="ev-summary" placeholder="Update care summary visible to family..." style="min-height:56px;resize:vertical;"></textarea></div>
+    <button class="sbtn" id="ev-submit-btn" onclick="submitEditVisit()">Save Changes</button>
+  </div>
+</div>
+
+<!-- ADD VISIT SHEET (manual entry) -->
+<div class="sheet" id="add-visit-sheet" style="z-index:601;">
+  <div class="sheet-header">
+    <div class="sheet-title">Add Visit Manually</div>
+    <button class="sheet-close" onclick="closeSheet('add-visit-sheet')">✕</button>
+  </div>
+  <div class="sheet-body" style="padding:16px;">
+    <div style="font-family:var(--mono);font-size:11px;color:var(--gold);background:rgba(200,169,110,.08);border:1px solid rgba(200,169,110,.2);border-radius:6px;padding:10px 12px;margin-bottom:14px;">Use when a visit happened but wasn't logged through the PSW portal. This will appear on the PSW timesheet and affect their pay summary.</div>
+    <div class="srow2">
+      <div><div class="slbl">PSW Name</div><input class="sinput" id="av-psw" placeholder="Full name as in system"></div>
+      <div><div class="slbl">Client Name</div><input class="sinput" id="av-client" placeholder="Full name as in system"></div>
+    </div>
+    <div class="srow2">
+      <div><div class="slbl">Visit Date</div><input class="sinput" id="av-date" type="date"></div>
+      <div><div class="slbl">Hours (decimal)</div><input class="sinput" id="av-hours" type="number" step="0.25" min="0" max="24" placeholder="e.g. 8.0"></div>
+    </div>
+    <div class="srow2">
+      <div><div class="slbl">Time In (optional)</div><input class="sinput" id="av-time-in" type="time"></div>
+      <div><div class="slbl">Time Out (optional)</div><input class="sinput" id="av-time-out" type="time"></div>
+    </div>
+    <div class="sheet-row"><div class="slbl">Reason for manual entry</div><textarea class="sinput" id="av-reason" placeholder="PSW forgot to sign in, system outage, etc." style="min-height:56px;resize:vertical;"></textarea></div>
+    <button class="sbtn" id="av-submit-btn" onclick="submitAddVisit()">Add Visit</button>
+  </div>
+</div>
+
+<script>
+// ── EDIT VISIT ──
+function openEditVisit(id, psw, client, date, timeIn, timeOut, hours) {
+  document.getElementById('ev-id').value = id;
+  document.getElementById('ev-psw').value = psw;
+  document.getElementById('ev-client').value = client;
+  document.getElementById('ev-date').value = date;
+  document.getElementById('ev-time-in').value = timeIn || '';
+  document.getElementById('ev-time-out').value = timeOut || '';
+  document.getElementById('ev-current-hours').value = hours + 'h';
+  document.getElementById('ev-hours').value = '';
+  document.getElementById('ev-notes').value = '';
+  document.getElementById('ev-summary').value = '';
+  document.getElementById('ev-status').value = 'completed';
+  openSheet('edit-visit-sheet');
+}
+
+async function submitEditVisit() {
+  const id = document.getElementById('ev-id').value;
+  const timeIn = document.getElementById('ev-time-in').value;
+  const timeOut = document.getElementById('ev-time-out').value;
+  const manualHours = document.getElementById('ev-hours').value;
+  const notes = document.getElementById('ev-notes').value.trim();
+  const summary = document.getElementById('ev-summary').value.trim();
+  const status = document.getElementById('ev-status').value;
+  if (!timeIn && !timeOut && !manualHours && !notes && !summary) {
+    showToast('Nothing to save — enter at least one change', 'err'); return;
+  }
+  const btn = document.getElementById('ev-submit-btn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Saving...'; }
+  try {
+    const body = { operator_id: currentOp, status };
+    if (timeIn) body.time_in = timeIn;
+    if (timeOut) body.time_out = timeOut;
+    if (manualHours) body.manual_hours = parseFloat(manualHours);
+    if (notes) body.notes = notes;
+    if (summary) body.visit_summary = summary;
+    const r = await hqFetch(`${API}/hq/visit/${id}`, {
+      method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    const d = await r.json();
+    if (!r.ok || !d.success) throw new Error(d.error || 'Edit failed');
+    showToast('Visit updated ✓ — PSW notified', 'ok');
+    closeSheet('edit-visit-sheet');
+    await renderVisits();
+  } catch(e) { showToast(e.message, 'err'); }
+  finally { if (btn) { btn.disabled = false; btn.textContent = 'Save Changes'; } }
+}
+
+// ── ADD VISIT MANUALLY ──
+function openAddVisit() {
+  document.getElementById('av-psw').value = '';
+  document.getElementById('av-client').value = '';
+  document.getElementById('av-date').value = new Date().toLocaleDateString('en-CA', {timeZone:'America/Toronto'});
+  document.getElementById('av-hours').value = '';
+  document.getElementById('av-time-in').value = '';
+  document.getElementById('av-time-out').value = '';
+  document.getElementById('av-reason').value = '';
+  openSheet('add-visit-sheet');
+}
+
+async function submitAddVisit() {
+  const psw = document.getElementById('av-psw').value.trim();
+  const client = document.getElementById('av-client').value.trim();
+  const date = document.getElementById('av-date').value;
+  const hours = document.getElementById('av-hours').value;
+  const timeIn = document.getElementById('av-time-in').value;
+  const timeOut = document.getElementById('av-time-out').value;
+  const reason = document.getElementById('av-reason').value.trim();
+  if (!psw || !client || !date || !hours) {
+    showToast('PSW, client, date and hours required', 'err'); return;
+  }
+  const btn = document.getElementById('av-submit-btn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Adding...'; }
+  try {
+    const r = await hqFetch(`${API}/hq/visit`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        operator_id: currentOp, psw_name: psw, client_name: client,
+        visit_date: date, manual_hours: parseFloat(hours),
+        time_in: timeIn || null, time_out: timeOut || null,
+        entry_reason: reason, status: 'completed'
+      })
+    });
+    const d = await r.json();
+    if (!r.ok || !d.success) throw new Error(d.error || 'Failed to add visit');
+    showToast('Visit added ✓ — appears on PSW timesheet', 'ok');
+    closeSheet('add-visit-sheet');
+    await renderVisits();
+  } catch(e) { showToast(e.message, 'err'); }
+  finally { if (btn) { btn.disabled = false; btn.textContent = 'Add Visit'; } }
+}
+</script>
 </body>
 </html>
