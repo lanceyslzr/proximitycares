@@ -2692,33 +2692,42 @@ async function loadHomeData() {
     const res = await fetch(`${API}/psw/pay-summary?psw_name=${encodeURIComponent(pswName)}&pin=${pswPin}&operator_id=${pswOperatorId}`);
     const d = await res.json();
     window._lastPayData = d; // Cache so loadPaySummary and renderHomeFeed can reuse
-    if (!d.success) return;
+    console.log('[PSW] pay-summary:', { success: d.success, rate: d.rate, current_period: d.current_period, periods_count: (d.periods||[]).length, periods_keys: (d.periods||[]).map(p => p.period_key + ':' + p.total_hours + 'h') });
+    if (!d.success) { console.warn('[PSW] pay-summary failed:', d); return; }
 
-    // Use server's current_period directly — it already sums the correct bi-weekly period
-    // and is not subject to UTC date bugs. For the MONTH totals (top strip),
-    // use getMonthlyTotals with Toronto TZ curMonthKey.
-    const curMonthKey = new Date().toLocaleDateString('en-CA', {timeZone:'America/Toronto'}).slice(0, 7);
-    const months = getMonthlyTotals(d);
-    const mon = months.find(m => m.month_key === curMonthKey) || { label: '—', total_hours: 0, total_pay: 0, visit_count: 0 };
-
-    // TOP STRIP — month totals (full calendar month, both halves)
-    const earningsEl = document.getElementById('s-earnings');
-    if (earningsEl) earningsEl.textContent = '$' + mon.total_pay.toFixed(0);
-    const hoursEl = document.getElementById('s-hours');
-    if (hoursEl) hoursEl.textContent = mon.total_hours.toFixed(1) + 'h';
-    const monthEl = document.getElementById('s-month');
-    if (monthEl) monthEl.textContent = mon.visit_count;
-
-    // CURRENT PERIOD CARD — use server's current_period (bi-weekly, always correct)
+    // Use current_period from server for ALL stats — it already sums the correct period
+    // (April 27 – May 29 for last_friday schedule) and is TZ-safe.
     const cp = d.current_period || {};
+
+    // TOP STRIP — shows current pay period totals (what they get paid on next payday)
+    const earningsEl = document.getElementById('s-earnings');
+    if (earningsEl) earningsEl.textContent = '$' + (cp.total_pay || 0).toFixed(0);
+    const hoursEl = document.getElementById('s-hours');
+    if (hoursEl) hoursEl.textContent = (cp.total_hours || 0).toFixed(1) + 'h';
+    const monthEl = document.getElementById('s-month');
+    if (monthEl) monthEl.textContent = cp.visit_count || 0;
+
+    // CURRENT PERIOD CARD
     const card = document.getElementById('home-pay-card');
     if (card) {
       card.style.display = 'block';
-      document.getElementById('home-pay-period').textContent = cp.label || mon.label;
+      const periodEl = document.getElementById('home-pay-period');
+      if (periodEl) {
+        // Show pay date if available, otherwise show label
+        const payDate = cp.pay_date ? new Date(cp.pay_date + 'T12:00:00').toLocaleString('en-CA', {month:'long', day:'numeric', year:'numeric'}) : '';
+        periodEl.textContent = payDate ? 'Paid ' + payDate : (cp.label || 'Current Period');
+      }
       document.getElementById('home-pay-total').textContent = '$' + (cp.total_pay || 0).toFixed(2);
-      document.getElementById('home-pay-hours').textContent = (cp.total_hours || 0).toFixed(2) + 'h';
+      document.getElementById('home-pay-hours').textContent = (cp.total_hours || 0).toFixed(1) + 'h';
       document.getElementById('home-pay-visits').textContent = (cp.visit_count || 0) + ' visit' + ((cp.visit_count || 0) !== 1 ? 's' : '');
       document.getElementById('home-pay-rate').textContent = '$' + (d.rate || 19) + '/hr';
+      // Show period range in sub-label if available
+      const subEl = document.getElementById('home-pay-period-range');
+      if (subEl && cp.period_start && cp.period_end) {
+        const fmt = dt => new Date(dt + 'T12:00:00').toLocaleString('en-CA', {month:'short', day:'numeric'});
+        subEl.textContent = fmt(cp.period_start) + ' – ' + fmt(cp.period_end);
+        subEl.style.display = 'block';
+      }
     }
 
     // Mark stats as loaded — prevents renderHomeFeed fallback from overwriting correct values
