@@ -1,6 +1,6 @@
 // Proximity PSW Portal — Service Worker v5
 // Upgraded: offline queue sync + web push notifications + cache bust
-const CACHE = 'proximity-psw-v6';
+const CACHE = 'proximity-psw-v7';
 const STATIC = [
   '/index.html',
   '/psw-manifest.json',
@@ -46,7 +46,7 @@ self.addEventListener('fetch', e => {
   if (url.pathname.endsWith('.html') || url.pathname === '/') {
     e.respondWith(
       fetch(e.request).then(res => {
-        if (res && res.status === 200) {
+        if (res && res.status === 200 && e.request.url.startsWith('http')) {
           const clone = res.clone();
           caches.open(CACHE).then(cache => cache.put(e.request, clone));
         }
@@ -60,7 +60,8 @@ self.addEventListener('fetch', e => {
     caches.match(e.request).then(cached => {
       if (cached) return cached;
       return fetch(e.request).then(res => {
-        if (res && res.status === 200 && res.type !== 'opaque') {
+        if (res && res.status === 200 && res.type !== 'opaque' &&
+            e.request.url.startsWith('http')) {
           const clone = res.clone();
           caches.open(CACHE).then(cache => cache.put(e.request, clone));
         }
