@@ -1318,6 +1318,7 @@ function escHtml(str) {
 }
 let pswName = '', pswPin = '', pswEmail = '';
 let lockIn = '', appUnlocked = false;
+let _homeDataReady = false; // set true after loadHomeData stores stats — prevents renderHomeFeed fallback overwriting them
 
 // ── MULTI-TENANT OPERATOR ID ──
 let pswOperatorId = (function() {
@@ -1768,15 +1769,14 @@ function renderHomeFeed() {
 
   // s-month and s-hours — use pay summary data (already fetched, always correct)
   // pay summary reads all visits directly, not limited by loadSchedule date window
-  // s-month + s-hours: loadHomeData sets these directly after it resolves.
-  // Only set here as fallback if _lastPayData not ready yet.
-  if (!window._lastPayData?.success) {
+  // s-month + s-hours: loadHomeData owns these. Only set here if loadHomeData hasn't run yet.
+  // _homeDataReady flag prevents loadSchedule's repeated renderHomeFeed calls from overwriting correct values.
+  if (!_homeDataReady) {
     const monthV = allVisits.filter(v => (v.visit_date||'').startsWith(monthStr));
     const monthHrs = monthV.reduce((s,v) => s + parseFloat(v.hours_worked||0), 0);
     document.getElementById('s-month').textContent = monthV.length;
     document.getElementById('s-hours').textContent = monthHrs.toFixed(1) + 'h';
   }
-  // When _lastPayData IS ready, loadHomeData already set s-month/s-hours with correct Toronto TZ values.
   const upd = document.getElementById('home-last-updated');
   if (upd) upd.textContent = new Date().toLocaleTimeString('en-CA',{hour:'2-digit',minute:'2-digit'});
   const rows = [];
@@ -2721,6 +2721,8 @@ async function loadHomeData() {
       document.getElementById('home-pay-rate').textContent = '$' + (d.rate || 19) + '/hr';
     }
 
+    // Mark stats as loaded — prevents renderHomeFeed fallback from overwriting correct values
+    _homeDataReady = true;
     // Refresh home feed now that accurate data is available
     renderHomeFeed();
   } catch (e) { console.error('loadHomeData:', e); }
