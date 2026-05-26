@@ -323,7 +323,7 @@ button:active{transform:scale(0.98);}
 .nbadge{background:var(--teal);color:#fff;border-radius:100px;font-size:11px;min-width:15px;height:15px;padding:0 3px;display:inline-flex;align-items:center;justify-content:center;}
 
 /* SECTIONS */
-.section{display:none;padding-top:54px;padding-bottom:8px;opacity:0;transition:opacity 150ms ease;}
+.section{display:none;padding-top:102px;padding-bottom:8px;opacity:0;transition:opacity 150ms ease;}
 .section.active{display:block;}
 .section.visible{opacity:1;}
 .section.active{display:block;}
@@ -1146,7 +1146,7 @@ body.sidebar-hidden #sidebar-reopen-tab{ display:flex; }
   .today-time-row{gap:6px}
 }
 @media(max-width:768px){
-  .section{padding:54px 0 80px;}
+  .section{padding:102px 0 80px;}
   .sheet-inner{max-width:100%;border-radius:16px 16px 0 0;}
   .today-time-row{grid-template-columns:repeat(2,1fr);}
 }
@@ -4726,14 +4726,17 @@ async function renderVisits() {
     // Populate PSW dropdown
     const pswFilterEl = document.getElementById('visits-psw-filter');
     if (pswFilterEl) {
-      const pswNames = [...new Set(rangeFiltered.map(v=>v.psw_name).filter(Boolean))].sort();
-      const curVal = pswFilterEl.value;
+      const pswNames = [...new Set(rangeFiltered.map(v=>(v.psw_name||'').trim()).filter(Boolean))].sort();
+      const curVal = (visitPswFilter||pswFilterEl.value||'').trim();
       pswFilterEl.innerHTML = '<option value="">All PSWs</option>' +
-        pswNames.map(n => `<option value="${n}"${n===curVal?' selected':''}>${n}</option>`).join('');
+        pswNames.map(n => `<option value="${n}"${n.trim()===curVal?' selected':''}>${n}</option>`).join('');
+      // Keep visitPswFilter in sync with dropdown value
+      if (curVal && pswNames.includes(curVal)) { pswFilterEl.value = curVal; visitPswFilter = curVal; }
     }
     // Apply PSW filter
-    const visits = visitPswFilter
-      ? rangeFiltered.filter(v => v.psw_name === visitPswFilter)
+    const _pswF = (visitPswFilter||'').trim();
+    const visits = _pswF
+      ? rangeFiltered.filter(v => (v.psw_name||'').trim() === _pswF)
       : rangeFiltered;
 
     // Range totals
@@ -4758,7 +4761,7 @@ async function renderVisits() {
         .map(([name, s]) => {
           const ini = name.split(' ').map(w=>w[0]||'').join('').toUpperCase().slice(0,2);
           const _safeName = name.replace(/'/g,'').replace(/"/g,'');
-          return `<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--border);cursor:pointer;" onclick="visitPswFilter=visitPswFilter==='${_safeName}'?'':'${_safeName}';document.getElementById('visits-psw-filter').value=visitPswFilter;renderVisits();" title="Filter by ${_safeName}">
+          return `<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--border);cursor:pointer;" onclick="visitPswFilter=(visitPswFilter.trim()==='${_safeName}'.trim())?'':'${_safeName}';var pf=document.getElementById('visits-psw-filter');if(pf)pf.value=visitPswFilter;renderVisits();" title="Filter by ${_safeName}">
             <div style="width:30px;height:30px;border-radius:50%;background:rgba(61,138,122,.15);border:1px solid rgba(61,138,122,.3);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:12px;color:var(--teal2);flex-shrink:0;">${ini}</div>
             <div style="flex:1;min-width:0;"><div style="font-size:13px;color:var(--text);font-weight:500;">${name}</div><div style="font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:1px;">${s.visits} visit${s.visits!==1?'s':''}</div></div>
             <div style="text-align:right;"><div style="font-family:var(--mono);font-size:13px;color:var(--teal2);">${s.hours.toFixed(1)}h</div><div style="font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:2px;">tap to filter</div></div>
@@ -7672,6 +7675,7 @@ async function openPSWDetail(pswId) {
       <button class="sbtn" onclick="openHoursPanel('psw','${name}')">&#9201; Hours</button>
       <button class="sbtn" onclick="openPSWMsg('${name}');closeSheet('psw-detail-sheet');">Message</button>
       <button class="sbtn" style="background:rgba(109,185,116,.1);color:var(--green2);border-color:rgba(109,185,116,.25);" onclick="openPaystubModal('${name}','${p.email||rec.email||String()}',${p.psw_rate||rec.psw_rate||19})">Paystub</button>
+      <button class="sbtn" style="background:rgba(109,185,116,.06);color:var(--green2);border-color:rgba(109,185,116,.2);" onclick="confirmPaymentModal('${name}','${p.email||rec.email||String()}')">✓ Payment Sent</button>
     </div>
     <div class="prof-tabs">
       <div class="prof-tab active" onclick="_ppTab(this,'ppt-info')">Info</div>
@@ -7913,6 +7917,102 @@ function openPaystubModal(pswName, pswEmail, defaultRate) {
   }, 100);
 }
 
+async function confirmPaymentModal(pswName, pswEmail, defaultAmount) {
+  const now = new Date();
+  const monthName = now.toLocaleString('en-CA', { month: 'long', timeZone: 'America/Toronto' });
+  const year = now.getFullYear();
+  const existing = document.getElementById('confirm-payment-modal');
+  if (existing) existing.remove();
+  const modal = document.createElement('div');
+  modal.id = 'confirm-payment-modal';
+  modal.style.cssText = 'position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,.75);display:flex;align-items:center;justify-content:center;padding:20px;';
+  modal.innerHTML = `
+    <div style="background:var(--bg2);border:1px solid rgba(109,185,116,.3);border-radius:10px;padding:28px;width:100%;max-width:400px;position:relative;">
+      <div style="font-family:var(--mono);font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--green2);margin-bottom:6px;">Confirm Payment Sent</div>
+      <div style="font-family:var(--serif);font-size:20px;color:var(--text);margin-bottom:18px;">${pswName}</div>
+      <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:18px;">
+        <div>
+          <div style="font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:5px;">Amount Sent ($)</div>
+          <input id="cp-amount" type="number" step="0.01" min="0" placeholder="e.g. 1248.00" value="${defaultAmount || ''}"
+            style="width:100%;padding:11px 13px;background:var(--bg4);border:1px solid var(--border);border-radius:6px;font-family:var(--mono);font-size:15px;color:var(--text);outline:none;">
+        </div>
+        <div>
+          <div style="font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:5px;">Period</div>
+          <input id="cp-period" type="text" value="${monthName} ${year}"
+            style="width:100%;padding:11px 13px;background:var(--bg4);border:1px solid var(--border);border-radius:6px;font-family:var(--sans);font-size:14px;color:var(--text);outline:none;">
+        </div>
+        <div>
+          <div style="font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:5px;">PSW Email</div>
+          <input id="cp-email" type="email" value="${pswEmail || ''}"
+            style="width:100%;padding:11px 13px;background:var(--bg4);border:1px solid var(--border);border-radius:6px;font-family:var(--sans);font-size:14px;color:var(--text);outline:none;">
+        </div>
+        <div id="cp-preview" style="padding:12px 14px;background:rgba(109,185,116,.06);border:1px solid rgba(109,185,116,.2);border-radius:6px;display:none;">
+          <div style="font-family:var(--mono);font-size:11px;color:var(--muted);margin-bottom:4px;">Confirmation email will go to:</div>
+          <div id="cp-preview-text" style="font-family:var(--mono);font-size:12px;color:var(--green2);"></div>
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;">
+        <button onclick="document.getElementById('confirm-payment-modal').remove()"
+          style="flex:1;padding:12px;background:none;border:1px solid var(--border);border-radius:6px;font-family:var(--mono);font-size:11px;color:var(--muted);cursor:pointer;letter-spacing:1px;min-height:44px;">Cancel</button>
+        <button id="cp-send-btn" onclick="submitConfirmPayment('${pswName}')"
+          style="flex:2;padding:12px;background:rgba(109,185,116,.15);border:1px solid rgba(109,185,116,.4);border-radius:6px;font-family:var(--mono);font-size:11px;color:var(--green2);cursor:pointer;letter-spacing:1px;min-height:44px;touch-action:manipulation;">✓ Confirm Payment Sent</button>
+      </div>
+    </div>`;
+  document.body.appendChild(modal);
+  setTimeout(function() {
+    var emailInput = document.getElementById('cp-email');
+    var amtInput = document.getElementById('cp-amount');
+    function updatePreview() {
+      var email = emailInput ? emailInput.value.trim() : '';
+      var amt = amtInput ? parseFloat(amtInput.value) : 0;
+      var prev = document.getElementById('cp-preview');
+      var prevTxt = document.getElementById('cp-preview-text');
+      if (email && amt > 0 && prev && prevTxt) {
+        prev.style.display = 'block';
+        prevTxt.textContent = email + ' — $' + amt.toFixed(2);
+      } else if (prev) { prev.style.display = 'none'; }
+    }
+    if (emailInput) emailInput.addEventListener('input', updatePreview);
+    if (amtInput) amtInput.addEventListener('input', updatePreview);
+    updatePreview();
+  }, 80);
+}
+
+async function submitConfirmPayment(pswName) {
+  const amount = parseFloat(document.getElementById('cp-amount')?.value);
+  const period = (document.getElementById('cp-period')?.value || '').trim();
+  const emailOverride = (document.getElementById('cp-email')?.value || '').trim();
+  const btn = document.getElementById('cp-send-btn');
+  if (!amount || amount <= 0) { showToast('Enter the amount sent', 'err'); return; }
+  if (!period) { showToast('Enter the period (e.g. May 2026)', 'err'); return; }
+  if (btn) { btn.disabled = true; btn.textContent = 'Sending...'; }
+  try {
+    const r = await hqFetch(`${API}/hq/psw/confirm-payment`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-hq-token': window._hqToken || sessionStorage.getItem('hq_token') || '' },
+      body: JSON.stringify({ operator_id: currentOp, psw_name: pswName, amount: amount.toFixed(2), period_label: period, email_override: emailOverride || undefined })
+    });
+    const d = await r.json();
+    if (!r.ok || !d.success) throw new Error(d.error || 'Failed');
+    const modal = document.getElementById('confirm-payment-modal');
+    if (modal) {
+      modal.querySelector('div').innerHTML = `
+        <div style="text-align:center;padding:12px 0;">
+          <div style="font-size:36px;margin-bottom:12px;">✅</div>
+          <div style="font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--green2);margin-bottom:6px;">Payment Confirmed</div>
+          <div style="font-family:var(--serif);font-size:18px;color:var(--text);margin-bottom:8px;">$${amount.toFixed(2)} — ${pswName}</div>
+          <div style="font-family:var(--mono);font-size:11px;color:var(--muted);margin-bottom:20px;">E-transfer confirmation sent to ${d.email}</div>
+          <button onclick="document.getElementById('confirm-payment-modal').remove()"
+            style="padding:12px 32px;background:rgba(109,185,116,.15);border:1px solid rgba(109,185,116,.3);border-radius:6px;font-family:var(--mono);font-size:11px;color:var(--green2);cursor:pointer;letter-spacing:1px;min-height:44px;">Done</button>
+        </div>`;
+    }
+    showToast('Payment confirmation sent to ' + pswName + ' ✓', 'ok');
+  } catch(e) {
+    if (btn) { btn.disabled = false; btn.textContent = '✓ Confirm Payment Sent'; }
+    showToast(e.message || 'Failed to send confirmation', 'err');
+  }
+}
+
 async function submitPaystub(pswName) {
   const hours = parseFloat(document.getElementById('ps-hours')?.value);
   const rate  = parseFloat(document.getElementById('ps-rate')?.value);
@@ -7939,8 +8039,26 @@ async function submitPaystub(pswName) {
     });
     const d = await r.json();
     if (!r.ok) throw new Error(d.error || 'Failed');
-    document.getElementById('paystub-modal')?.remove();
-    showToast(`Paystub sent — ${hours}h · $${total.toFixed(2)}`, 'ok');
+    // Show success + confirm-payment CTA in modal
+    const _modal = document.getElementById('paystub-modal');
+    if (_modal) {
+      _modal.querySelector('div').innerHTML = `
+        <div style="text-align:center;padding:8px 0;">
+          <div style="font-size:32px;margin-bottom:10px;">📄</div>
+          <div style="font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--green2);margin-bottom:6px;">Paystub Sent</div>
+          <div style="font-family:var(--serif);font-size:18px;color:var(--text);margin-bottom:6px;">${pswName}</div>
+          <div style="font-family:var(--mono);font-size:11px;color:var(--muted);margin-bottom:18px;">${hours}h × $${rate}/hr = $${total.toFixed(2)} · emailed</div>
+          <div style="background:rgba(109,185,116,.06);border:1px solid rgba(109,185,116,.2);border-radius:8px;padding:14px 16px;margin-bottom:14px;text-align:left;">
+            <div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:8px;">Next step</div>
+            <div style="font-family:var(--mono);font-size:12px;color:var(--muted3);line-height:1.6;margin-bottom:12px;">E-transfer <strong style="color:var(--green2);">$${total.toFixed(2)}</strong> to ${email}. Then confirm so they get a payment notification.</div>
+            <button onclick="document.getElementById('paystub-modal').remove();confirmPaymentModal('${pswName}','${email}',${total})"
+              style="width:100%;padding:10px;background:rgba(109,185,116,.15);border:1px solid rgba(109,185,116,.4);border-radius:6px;font-family:var(--mono);font-size:11px;color:var(--green2);cursor:pointer;letter-spacing:1px;min-height:44px;touch-action:manipulation;">✓ Confirm Payment Sent →</button>
+          </div>
+          <button onclick="document.getElementById('paystub-modal').remove()"
+            style="padding:9px 24px;background:none;border:1px solid var(--border);border-radius:6px;font-family:var(--mono);font-size:11px;color:var(--muted);cursor:pointer;letter-spacing:1px;min-height:44px;">Close</button>
+        </div>`;
+    }
+    showToast('Paystub sent — $' + total.toFixed(2), 'ok');
   } catch(e) {
     showToast('Error: ' + e.message, 'err');
   }
