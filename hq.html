@@ -8235,8 +8235,22 @@ function openClientDetail(id) {
       </div>
       <div style="margin:14px 0 10px;font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--teal2);">Power of Attorney (updated)</div>
       <div style="margin:14px 0 10px;font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--teal2);">Emergency Contacts</div>
-      ${c.emergency_contact_1_name?`<div class="cpf"><div class="cpf-lbl">EC 1</div><div class="cpf-val">${c.emergency_contact_1_name} · ${c.emergency_contact_1_relation||''} · <a href="tel:${c.emergency_contact_1_phone||''}">${c.emergency_contact_1_phone||'—'}</a></div></div>`:''}
-      ${c.emergency_contact_2_name?`<div class="cpf"><div class="cpf-lbl">EC 2</div><div class="cpf-val">${c.emergency_contact_2_name} · ${c.emergency_contact_2_relation||''} · <a href="tel:${c.emergency_contact_2_phone||''}">${c.emergency_contact_2_phone||'—'}</a></div></div>`:''}
+      <div style="padding:10px 12px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;margin-bottom:8px;">
+        <div style="font-size:11px;font-weight:600;color:var(--teal2);font-family:var(--mono);letter-spacing:1px;margin-bottom:8px;">EC 1 — Primary</div>
+        <div class="srow2" style="margin-bottom:8px;">
+          <div><div class="slbl">Name</div><input class="sinput" id="ce-ec1-name" type="text" value="${c.emergency_contact_1_name||''}" placeholder="Full name" style="font-size:14px;"></div>
+          <div><div class="slbl">Relation</div><input class="sinput" id="ce-ec1-relation" type="text" value="${c.emergency_contact_1_relation||''}" placeholder="e.g. Daughter, Son" style="font-size:14px;"></div>
+        </div>
+        <div><div class="slbl">Phone</div><input class="sinput" id="ce-ec1-phone" type="tel" value="${c.emergency_contact_1_phone||''}" placeholder="+1 416 555 0000" style="font-size:14px;"></div>
+      </div>
+      <div style="padding:10px 12px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;">
+        <div style="font-size:11px;font-weight:600;color:var(--muted);font-family:var(--mono);letter-spacing:1px;margin-bottom:8px;">EC 2 — Secondary</div>
+        <div class="srow2" style="margin-bottom:8px;">
+          <div><div class="slbl">Name</div><input class="sinput" id="ce-ec2-name" type="text" value="${c.emergency_contact_2_name||''}" placeholder="Full name" style="font-size:14px;"></div>
+          <div><div class="slbl">Relation</div><input class="sinput" id="ce-ec2-relation" type="text" value="${c.emergency_contact_2_relation||''}" placeholder="e.g. Son, Spouse" style="font-size:14px;"></div>
+        </div>
+        <div><div class="slbl">Phone</div><input class="sinput" id="ce-ec2-phone" type="tel" value="${c.emergency_contact_2_phone||''}" placeholder="+1 647 555 0000" style="font-size:14px;"></div>
+      </div>
       <div style="margin:14px 0 10px;font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--teal2);">Home Access</div>
       <div class="sheet-row"><div class="slbl">Access Instructions</div><textarea class="sinput" id="ce-home-access" rows="2" style="min-height:60px;resize:none;" placeholder="Key safe code, door code, building buzzer...">${c.home_access_instructions||''}</textarea></div>
       <button class="sbtn" style="margin-top:6px;background:rgba(200,169,110,.12);color:var(--gold);border-color:rgba(200,169,110,.3);" onclick="saveClientEdits('${id}')">Save Changes</button>
@@ -9301,6 +9315,13 @@ async function saveClientEdits(clientId) {
     const assessmentDate    = document.getElementById('ce-assessment-date')?.value || '';
     const reassessmentDue   = document.getElementById('ce-reassessment-due')?.value || '';
     const familyContactName = document.getElementById('ce-family-name')?.value?.trim() || '';
+    // EC fields
+    const ec1Name     = document.getElementById('ce-ec1-name')?.value?.trim() || '';
+    const ec1Relation = document.getElementById('ce-ec1-relation')?.value?.trim() || '';
+    const ec1Phone    = document.getElementById('ce-ec1-phone')?.value?.trim() || '';
+    const ec2Name     = document.getElementById('ce-ec2-name')?.value?.trim() || '';
+    const ec2Relation = document.getElementById('ce-ec2-relation')?.value?.trim() || '';
+    const ec2Phone    = document.getElementById('ce-ec2-phone')?.value?.trim() || '';
     // S38 new PHIPA fields
     const healthCardNumber  = document.getElementById('ce-health-card-number')?.value?.trim() || '';
     const healthCardExpiry  = document.getElementById('ce-health-card-expiry')?.value || '';
@@ -9317,6 +9338,12 @@ async function saveClientEdits(clientId) {
     if (phone)              payload.phone                    = phone;
     if (email)              payload.family_email             = email;
     if (familyContactName)  payload.family_contact_name      = familyContactName;
+    if (ec1Name)            payload.emergency_contact_1_name     = ec1Name;
+    if (ec1Relation)        payload.emergency_contact_1_relation = ec1Relation;
+    if (ec1Phone)           payload.emergency_contact_1_phone    = ec1Phone;
+    if (ec2Name)            payload.emergency_contact_2_name     = ec2Name;
+    if (ec2Relation)        payload.emergency_contact_2_relation = ec2Relation;
+    if (ec2Phone)           payload.emergency_contact_2_phone    = ec2Phone;
     if (careType)           payload.care_type                = careType;
     if (city)               payload.city                     = city;
     if (careDirectives)     payload.care_directives          = careDirectives;
