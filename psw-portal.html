@@ -1,6 +1,5 @@
 
 
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -791,7 +790,7 @@ a{color:inherit;text-decoration:none;}
 
   <div class="stats-strip">
     <div class="stat-card hi"><div class="stat-val" id="s-today">—</div><div class="stat-lbl">Today</div></div>
-    <div class="stat-card"><div class="stat-val" id="s-month">—</div><div class="stat-lbl">Month</div></div>
+    <div class="stat-card"><div class="stat-val" id="s-month">—</div><div class="stat-lbl">Period</div></div>
     <div class="stat-card"><div class="stat-val" id="s-hours">—</div><div class="stat-lbl">Hours</div></div>
     <div class="stat-card pay"><div class="stat-val" id="s-earnings">—</div><div class="stat-lbl">Earned</div></div>
   </div>
@@ -981,6 +980,14 @@ a{color:inherit;text-decoration:none;}
     <div class="cl-item" onclick="toggleCl(this)"><div class="cl-box"></div><span class="cl-label">Change bed linen</span></div>
     <div class="cl-item" onclick="toggleCl(this)"><div class="cl-box"></div><span class="cl-label">Make bed</span></div>
     <div class="cl-item" onclick="toggleCl(this)"><div class="cl-box"></div><span class="cl-label">Collect garbage</span></div>
+    <!-- Custom task entry -->
+    <div style="margin:4px 0 16px;display:flex;gap:8px;align-items:center;">
+      <input type="text" id="cl-custom-input" placeholder="Add other task completed..."
+        style="flex:1;padding:10px 13px;background:var(--bg2);border:1px solid var(--border2);border-radius:8px;font-size:13px;font-family:var(--mono);color:var(--text);outline:none;min-height:44px;"
+        onkeydown="if(event.key==='Enter'){event.preventDefault();addCustomTask();}"
+      >
+      <button onclick="addCustomTask()" style="padding:10px 16px;background:rgba(61,138,122,.1);border:1px solid rgba(61,138,122,.3);border-radius:8px;font-family:var(--mono);font-size:11px;letter-spacing:1px;color:var(--teal2);cursor:pointer;min-height:44px;touch-action:manipulation;white-space:nowrap;">+ Add</button>
+    </div>
     <div class="cl-section-title">Observations &amp; Supplies</div>
     <div style="margin-bottom:10px;">
       <label class="form-label">Observations — anything to flag</label>
@@ -1519,6 +1526,8 @@ function lockApp() {
   // Warn if locking during active visit (timer stops but visit remains in Supabase)
   if (activeVisit) {
     showToast('Visit in progress -- app locked. Re-enter PIN to continue.', 'warn');
+    // Save checklist state before locking so no tasks are lost on unlock
+    try { saveChecklist(); } catch {}
   }
   appUnlocked = false;
   pswPin = '';
@@ -2312,8 +2321,11 @@ async function doCheckOut() {
   if (!selectedMood) { showToast('Please select a mood rating first', 'err'); return; }
   const tasks = Array.from(document.querySelectorAll('#sect-checklist .cl-item.done'))
     .map(el => el.querySelector('.cl-label').textContent);
-  // Require at least one checklist item before checkout
-  if (tasks.length === 0) { showToast('Complete the visit checklist before checking out', 'err'); showSect('checklist'); return; }
+  // Warn if no tasks checked — soft block with confirmation
+  if (tasks.length === 0) {
+    const confirmed = window.confirm('No tasks checked — this visit will be flagged to HQ for review. Continue anyway?');
+    if (!confirmed) { showSect('checklist'); return; }
+  }
   const obs = document.getElementById('cl-obs').value.trim();
   const supplies = document.getElementById('cl-supplies').value.trim();
   const incident = document.getElementById('co-incident').value.trim();
@@ -2464,21 +2476,52 @@ function _clKey(suffix) {
 }
 function saveChecklist() {
   try {
-    localStorage.setItem(_clKey('state'), JSON.stringify(
-      Array.from(document.querySelectorAll('#sect-checklist .cl-item.done'))
-        .map(el => el.querySelector('.cl-label').textContent)
-    ));
+    const allItems = Array.from(document.querySelectorAll('#sect-checklist .cl-item'));
+    // Save done state
+    const doneLabels = allItems.filter(el => el.classList.contains('done'))
+      .map(el => el.querySelector('.cl-label').textContent);
+    localStorage.setItem(_clKey('state'), JSON.stringify(doneLabels));
+    // Save custom tasks (dynamically added) so they survive idle lock
+    const allLabels = allItems.map(el => ({
+      label: el.querySelector('.cl-label').textContent,
+      done: el.classList.contains('done')
+    }));
+    localStorage.setItem(_clKey('all'), JSON.stringify(allLabels));
     localStorage.setItem(_clKey('obs'), document.getElementById('cl-obs').value);
     localStorage.setItem(_clKey('sup'), document.getElementById('cl-supplies').value);
   } catch {}
 }
 function restoreChecklist() {
   try {
+    // Restore standard items by done state
     const done = JSON.parse(localStorage.getItem(_clKey('state')) || '[]');
     document.querySelectorAll('#sect-checklist .cl-item').forEach(el => {
       const lbl = el.querySelector('.cl-label').textContent;
       if (done.includes(lbl)) { el.classList.add('done'); el.querySelector('.cl-box').textContent = '✓'; }
     });
+    // Restore custom tasks that were added dynamically
+    const allItems = JSON.parse(localStorage.getItem(_clKey('all')) || '[]');
+    const standardLabels = new Set(
+      Array.from(document.querySelectorAll('#sect-checklist .cl-item'))
+        .map(el => el.querySelector('.cl-label').textContent)
+    );
+    const inputDiv = document.getElementById('cl-custom-input')?.closest('div');
+    if (inputDiv) {
+      allItems.forEach(item => {
+        if (!standardLabels.has(item.label)) {
+          // This is a custom task — recreate it
+          const div = document.createElement('div');
+          div.className = 'cl-item' + (item.done ? ' done' : '');
+          div.onclick = function() { toggleCl(this); };
+          div.innerHTML = '<div class="cl-box">' + (item.done ? '✓' : '') + '</div>'
+            + '<span class="cl-label">' + escHtml(item.label) + '</span>'
+            + '<button onclick="event.stopPropagation();this.parentNode.remove();updateClCount();saveChecklist();" '
+            + 'style="margin-left:auto;padding:2px 8px;background:none;border:none;color:var(--muted);font-size:16px;cursor:pointer;line-height:1;touch-action:manipulation;" '
+            + 'aria-label="Remove">×</button>';
+          inputDiv.parentNode.insertBefore(div, inputDiv);
+        }
+      });
+    }
     const obs = localStorage.getItem(_clKey('obs'));
     const sup = localStorage.getItem(_clKey('sup'));
     if (obs) document.getElementById('cl-obs').value = obs;
@@ -2487,14 +2530,20 @@ function restoreChecklist() {
   } catch {}
 }
 function resetChecklist() {
+  // Remove dynamically added custom tasks first
   document.querySelectorAll('#sect-checklist .cl-item').forEach(el => {
-    el.classList.remove('done'); el.querySelector('.cl-box').textContent = '';
+    const hasRemoveBtn = el.querySelector('button[aria-label="Remove"]');
+    if (hasRemoveBtn) {
+      el.remove(); // Custom task — remove the DOM element
+    } else {
+      el.classList.remove('done'); el.querySelector('.cl-box').textContent = '';
+    }
   });
   document.getElementById('cl-obs').value = '';
   document.getElementById('cl-supplies').value = '';
   updateClCount();
   try {
-    ['state','obs','sup'].forEach(k => localStorage.removeItem(_clKey(k)));
+    ['state','obs','sup','all'].forEach(k => localStorage.removeItem(_clKey(k)));
   } catch {}
 }
 function selectMood(el, mood) {
@@ -2743,9 +2792,13 @@ async function loadHomeData() {
       card.style.display = 'block';
       const periodEl = document.getElementById('home-pay-period');
       if (periodEl) {
-        // Show pay date if available, otherwise show label
-        const payDate = cp.pay_date ? new Date(cp.pay_date + 'T12:00:00').toLocaleString('en-CA', {month:'long', day:'numeric', year:'numeric'}) : '';
-        periodEl.textContent = payDate ? 'Paid ' + payDate : (cp.label || 'Current Period');
+        // Show period date range — clear and unambiguous for PSW
+        const periodStart = cp.period_start ? new Date(cp.period_start + 'T12:00:00').toLocaleString('en-CA', {month:'short', day:'numeric'}) : '';
+        const periodEnd = cp.period_end ? new Date(cp.period_end + 'T12:00:00').toLocaleString('en-CA', {month:'short', day:'numeric'}) : '';
+        const payDate = cp.pay_date ? new Date(cp.pay_date + 'T12:00:00').toLocaleString('en-CA', {month:'short', day:'numeric', year:'numeric'}) : '';
+        periodEl.textContent = (periodStart && periodEnd) 
+          ? periodStart + ' – ' + periodEnd + (payDate ? ' · Paid ' + payDate : '')
+          : (cp.label || 'Current Period');
       }
       document.getElementById('home-pay-total').textContent = '$' + (cp.total_pay || 0).toFixed(2);
       document.getElementById('home-pay-hours').textContent = (cp.total_hours || 0).toFixed(1) + 'h';
@@ -2896,6 +2949,30 @@ async function loadPaySummary() {
         <div class="pay-row"><div class="pay-row-lbl">This week</div><div class="pay-row-val">$${(parseFloat(thisWeekHours)*rate).toFixed(0)} · ${thisWeekHours}h</div></div>
       </div>
     </div>`;
+
+    // ── Visit breakdown — transparency for PSW to verify their pay ─────────
+    if (allVisitsInRange.length > 0) {
+      const sortedVisits = [...allVisitsInRange].sort((a,b) => b.visit_date.localeCompare(a.visit_date));
+      html += `<div style="margin:14px 0 6px;font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);">Visit Breakdown</div>`;
+      html += `<div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;overflow:hidden;">`;
+      sortedVisits.forEach((v, i) => {
+        const vHrs = v.manual_hours_override != null ? parseFloat(v.manual_hours_override) : parseFloat(v.hours_worked || 0);
+        const vPay = (vHrs * rate).toFixed(2);
+        const vDate = new Date(v.visit_date + 'T12:00:00').toLocaleString('en-CA', {weekday:'short', month:'short', day:'numeric'});
+        const isEdited = v.manual_hours_override != null;
+        html += `<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;${i < sortedVisits.length-1 ? 'border-bottom:1px solid var(--border);' : ''}">
+          <div>
+            <div style="font-size:13px;color:var(--text);font-weight:500;">${escHtml(v.client_name||'—')}</div>
+            <div style="font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:1px;">${vDate}${isEdited ? ' <span style="color:var(--gold);">· HQ adjusted</span>' : ''}</div>
+          </div>
+          <div style="text-align:right;">
+            <div style="font-family:var(--mono);font-size:13px;color:var(--teal2);">${vHrs.toFixed(1)}h</div>
+            <div style="font-family:var(--mono);font-size:11px;color:var(--muted);">$${vPay}</div>
+          </div>
+        </div>`;
+      });
+      html += `</div>`;
+    }
 
     // Projection card — only shown for month/year modes where projection makes sense
     if (payRangeMode === 'month' || payRangeMode === 'year') {
@@ -3195,14 +3272,16 @@ function openVisitDetail(vid) {
   if (!v) return;
   document.getElementById('vd-client').textContent = v.client_name || '—';
   document.getElementById('vd-date').textContent = fmtd(v.visit_date) + (v.time_in ? ' · ' + fmtTime(v.time_in) + (v.time_out ? ' – ' + fmtTime(v.time_out) : '') : '');
-  const hrs = parseFloat(v.hours_worked||0).toFixed(1);
+  const rawHrs = v.manual_hours_override != null ? parseFloat(v.manual_hours_override) : parseFloat(v.hours_worked||0);
+  const hrs = rawHrs.toFixed(1);
+  const hrsLabel = v.manual_hours_override != null ? hrs + 'h <span style="font-size:10px;font-family:var(--mono);color:var(--gold);letter-spacing:1px;">HQ ADJUSTED</span>' : hrs + 'h';
   const tasks = Array.isArray(v.tasks_completed) ? v.tasks_completed.join(', ') : (v.tasks_completed||'');
   const meds = Array.isArray(v.meds_given) ? v.meds_given.join(', ') : (v.meds_given||'');
   let body = `<div class="cs-section">
     <div class="cs-section-lbl">Visit Summary</div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">
       <div style="background:var(--bg3);border-radius:8px;padding:10px 12px;text-align:center;">
-        <div style="font-family:var(--mono);font-size:18px;color:var(--teal2);">${hrs}h</div>
+        <div style="font-family:var(--mono);font-size:18px;color:var(--teal2);">${hrsLabel}</div>
         <div style="font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-top:2px;">Hours</div>
       </div>
       <div style="background:var(--bg3);border-radius:8px;padding:10px 12px;text-align:center;">
@@ -4535,6 +4614,34 @@ async function submitInviteProfile() {
   }
 }
 // ── END BUILD 1 PSW ──────────────────────────────────────────
+
+
+// ── CUSTOM TASK (Other) ───────────────────────────────────────────────────────
+function addCustomTask() {
+  const input = document.getElementById('cl-custom-input');
+  if (!input) return;
+  const label = input.value.trim();
+  if (!label) { input.focus(); return; }
+
+  // Build and insert a new cl-item (same structure as hardcoded items)
+  const div = document.createElement('div');
+  div.className = 'cl-item';
+  div.onclick = function() { toggleCl(this); };
+  div.innerHTML = '<div class="cl-box"></div><span class="cl-label">' + escHtml(label) + '</span>'
+    + '<button onclick="event.stopPropagation();this.parentNode.remove();updateClCount();saveChecklist();" '
+    + 'style="margin-left:auto;padding:2px 8px;background:none;border:none;color:var(--muted);font-size:16px;cursor:pointer;line-height:1;touch-action:manipulation;" '
+    + 'aria-label="Remove">×</button>';
+
+  // Insert before the custom input div
+  const inputDiv = input.closest('div');
+  inputDiv.parentNode.insertBefore(div, inputDiv);
+
+  input.value = '';
+  input.focus();
+  updateClCount();
+  saveChecklist();
+  haptic(30);
+}
 
 </script>
 <!-- MINI CAL DAY POPUP -->
