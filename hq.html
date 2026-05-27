@@ -4701,8 +4701,10 @@ function buildIncidentBadge(v) {
       : '';
     return `<div style="font-size:11px;color:var(--red);margin-top:4px;display:flex;align-items:center;gap:6px;flex-wrap:wrap;">⚠ Incident <span style="color:var(--green2);">Resolved</span> ${reportLink}</div>`;
   }
-  const vJson = JSON.stringify(v).replace(/\\/g,'\\\\').replace(/'/g,"\\'");
-  return `<div style="font-size:11px;color:var(--red);margin-top:4px;display:flex;align-items:center;gap:6px;">⚠ Incident <button onclick="event.stopPropagation();openIncidentResolve('${vJson}')" style="font-family:var(--mono);font-size:11px;background:rgba(224,85,85,.1);border:1px solid rgba(224,85,85,.3);color:var(--red);padding:2px 8px;border-radius:3px;cursor:pointer;min-height:44px;">Resolve</button></div>`;
+  // Store visit in lookup map to avoid fragile JSON serialization in onclick attributes
+  if (!window._visitMap) window._visitMap = {};
+  window._visitMap[v.id] = v;
+  return `<div style="font-size:11px;color:var(--red);margin-top:4px;display:flex;align-items:center;gap:6px;">⚠ Incident <button onclick="event.stopPropagation();openIncidentResolveById('${v.id}')" style="font-family:var(--mono);font-size:11px;background:rgba(224,85,85,.1);border:1px solid rgba(224,85,85,.3);color:var(--red);padding:2px 8px;border-radius:3px;cursor:pointer;min-height:44px;">Resolve</button></div>`;
 }
 
 // ── LOAD VISIT FORMS — wired into visit card expand ──
@@ -8474,6 +8476,9 @@ function setVisitView(view) {
 
 function renderIncidents() {
   const visits = D.visits || [];
+  // Populate lookup map so openIncidentResolveById can find visits by ID
+  window._visitMap = window._visitMap || {};
+  visits.forEach(v => { window._visitMap[v.id] = v; });
   const incidents = visits.filter(v => v.incident_reported && !v.incident_resolved);
   const el = document.getElementById('incidents-list');
   if (!el) return;
@@ -8494,9 +8499,26 @@ function renderIncidents() {
         </div>
       </div>
       <div class="card-actions">
-        <div class="card-act call" onclick="openIncidentResolve(${JSON.stringify(v).replace(/"/g,'&quot;')})">Resolve</div>
+        <div class="card-act call" onclick="event.stopPropagation();openIncidentResolveById('${v.id}')">Resolve</div>
       </div>
     </div>`).join('');
+}
+
+
+// ── INCIDENT RESOLVE — uses ID lookup to avoid JSON serialization bugs ────────
+function openIncidentResolveById(visitId) {
+  // Populate map from D.visits if not already there
+  if (!window._visitMap) window._visitMap = {};
+  if (!window._visitMap[visitId] && D.visits) {
+    const v = D.visits.find(x => String(x.id) === String(visitId));
+    if (v) window._visitMap[visitId] = v;
+  }
+  const visit = window._visitMap[visitId];
+  if (!visit) {
+    showToast('Visit data not found — please refresh', 'err');
+    return;
+  }
+  openIncidentResolve(visit);
 }
 
 function openIncidentResolve(visit) {
