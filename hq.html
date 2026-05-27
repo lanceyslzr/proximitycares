@@ -3809,13 +3809,20 @@ async function loadCarePlanVersions(slug) {
             <div style="font-family:var(--mono);font-size:12px;color:var(--teal2);">v${v.version_number} · ${v.updated_at?new Date(v.updated_at).toLocaleDateString('en-CA'):''}</div>
             <div style="font-size:11px;color:var(--muted2);margin-top:2px;">${v.reason_for_change||'—'} · ${v.updated_by||'—'}</div>
           </div>
-          ${i > 0 ? `<button onclick="restoreCarePlanVersion(${JSON.stringify(v).replace(/"/g,'&quot;')}, '${slug}')" style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;padding:4px 8px;border-radius:4px;border:1px solid rgba(200,169,110,.35);color:var(--gold);background:rgba(200,169,110,.08);cursor:pointer;white-space:nowrap;min-height:36px;flex-shrink:0;touch-action:manipulation;">Restore</button>` : '<span style="font-family:var(--mono);font-size:10px;color:var(--muted);white-space:nowrap;">Current</span>'}
+          ${i > 0 ? `<button onclick="event.stopPropagation();restoreCarePlanVersionById('${v.version_number}_${slug}','${slug}')" style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;padding:4px 8px;border-radius:4px;border:1px solid rgba(200,169,110,.35);color:var(--gold);background:rgba(200,169,110,.08);cursor:pointer;white-space:nowrap;min-height:36px;flex-shrink:0;touch-action:manipulation;">Restore</button>` : '<span style="font-family:var(--mono);font-size:10px;color:var(--muted);white-space:nowrap;">Current</span>'}
         </div>
       </div>`).join('');
   } catch { el.innerHTML = '<div style="font-family:var(--mono);font-size:12px;color:var(--red);">Could not load history</div>'; }
 }
 
 // ── S40 CARE PLAN VERSION RESTORE ──
+function restoreCarePlanVersionById(key, slug) {
+  const v = (window._cpvMap || {})[key];
+  if (!v) { showToast('Version not found', 'err'); return; }
+  restoreCarePlanVersion(v, slug);
+}
+
+
 async function restoreCarePlanVersion(version, slug) {
   if (!confirm(`Restore care plan to v${version.version_number} (${version.updated_at ? new Date(version.updated_at).toLocaleDateString('en-CA') : ''})?\nThis will overwrite the current care plan.`)) return;
   try {
@@ -4839,7 +4846,7 @@ async function renderVisits() {
           <div id="vforms-${vid}" data-visit-id="${v.id||''}" data-client="${v.client_name||''}" style="padding-bottom:4px;"></div>
         </div>
         <div style="display:flex;gap:8px;padding:8px 14px;border-top:1px solid var(--border);background:var(--bg2);">
-          <button onclick="openVisitEdit(${JSON.stringify({id:v.id,psw_name:v.psw_name,client_name:v.client_name,visit_date:v.visit_date,time_in:v.time_in,time_out:v.time_out,hours_worked:v.hours_worked}).replace(/"/g,'&quot;')})" style="padding:6px 14px;background:rgba(201,169,110,.1);border:1px solid rgba(201,169,110,.25);border-radius:5px;font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--gold);cursor:pointer;min-height:44px;">Edit Times</button>
+          <button onclick="event.stopPropagation();openVisitEditById(v.id)" style="padding:6px 14px;background:rgba(201,169,110,.1);border:1px solid rgba(201,169,110,.25);border-radius:5px;font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--gold);cursor:pointer;min-height:44px;">Edit Times</button>
           ${v.verified ? '<span style="font-family:var(--mono);font-size:10px;color:var(--green2);letter-spacing:1px;padding:6px 8px;">VERIFIED</span>' : `<button onclick="verifyVisit('${v.id}')" style="padding:6px 14px;background:rgba(109,185,116,.08);border:1px solid rgba(109,185,116,.2);border-radius:5px;font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--green2);cursor:pointer;min-height:44px;">Verify</button>`}
         </div>
       </div>`;
@@ -5982,7 +5989,7 @@ function renderPSWGrid() {
           const isUnassigned = !b.assigned_to || b.assigned_to.trim() === '';
           const chipCls = isUnassigned ? 'gc-open' : isLive ? 'gc-live' : b.status === 'completed' ? 'gc-done' : 'gc-scheduled';
           const timeStr = b.scheduled_time ? b.scheduled_time.slice(0,5) : '';
-          html += `<div class="grid-chip ${chipCls}" onclick="_showShiftDetail(${JSON.stringify(b).replace(/"/g,'&quot;')},{})">
+          html += `<div class="grid-chip ${chipCls}" onclick="_showShiftDetail(window._bookingMap&&window._bookingMap[b.id]?window._bookingMap[b.id]:b,{})">
             <div class="gc-client" onclick="event.stopPropagation();openHoursPanel('${_schedAxis==='psw'?'client':'psw'}','${escHtml(_schedAxis==='psw'?(b.client_name||''):(b.assigned_to||''))}')" style="cursor:pointer;">${escHtml(chipLabel)}</div>
             <div class="gc-time">${timeStr}</div>
           </div>`;
@@ -6255,7 +6262,7 @@ function _renderCustomCal() {
       const timeLabel = b.scheduled_time ? `<div class="xcal-block-time">${b.scheduled_time.slice(0,5)}</div>` : '';
       h += `<div class="xcal-block"
         style="${style}background:${col.bg};border-color:${col.border};color:${col.text};"
-        onclick="event.stopPropagation();_showShiftDetail(${JSON.stringify(b).replace(/"/g,'&quot;')},{})"
+        onclick="event.stopPropagation();_showShiftDetail(window._bookingMap&&window._bookingMap[b.id]?window._bookingMap[b.id]:b,{})"
         title="${escHtml(b.client_name||'')} · ${escHtml(b.assigned_to||'Unassigned')} · ${b.scheduled_time||''}"
       >${label}${timeLabel}</div>`;
     });
@@ -6479,7 +6486,7 @@ function _renderHoursPanel() {
         const endH = Math.floor(endMins/60);
         const endM = endMins%60;
         const endStr = `${String(endH).padStart(2,'0')}:${String(endM).padStart(2,'0')}`;
-        rows += `<div onclick="_showShiftDetail(${JSON.stringify(b).replace(/"/g,'&quot;')},{})"
+        rows += `<div onclick="_showShiftDetail(window._bookingMap&&window._bookingMap[b.id]?window._bookingMap[b.id]:b,{})"
           style="display:flex;align-items:center;gap:10px;padding:8px 16px;cursor:pointer;transition:background .1s;"
           onmouseover="this.style.background='rgba(61,138,122,.05)'" onmouseout="this.style.background=''">
           <span style="font-size:14px;">${sIcon(b)}</span>
@@ -7780,6 +7787,14 @@ async function openPSWDetail(pswId) {
             <option value="Not Vaccinated" ${p.covid_vax_status==='Not Vaccinated'?'selected':''}>Not Vaccinated</option>
             <option value="Medical Exemption" ${p.covid_vax_status==='Medical Exemption'?'selected':''}>Medical Exemption</option>
           </select>
+          <div style="margin-top:8px;"><div class="slbl" style="font-size:10px;margin-bottom:4px;">Vaccination Date</div><input class="sinput" id="pe-covid-vax-date" type="date" value="${p.covid_vax_date||''}" style="font-size:14px;padding:8px 10px;"></div>
+        </div>
+        <div style="padding:10px 12px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;">
+          <div style="font-size:12px;font-weight:600;color:var(--text);margin-bottom:8px;">Banking (Direct Deposit)</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+            <div><div class="slbl" style="font-size:10px;margin-bottom:4px;">Institution</div><input class="sinput" id="pe-banking-institution" type="text" value="${p.banking_institution||''}" placeholder="e.g. TD, RBC, BMO" style="font-size:14px;padding:8px 10px;"></div>
+            <div><div class="slbl" style="font-size:10px;margin-bottom:4px;">Account Last 4</div><input class="sinput" id="pe-banking-last4" type="text" value="${p.banking_account_last4||''}" placeholder="e.g. 4821" maxlength="4" style="font-size:14px;padding:8px 10px;"></div>
+          </div>
         </div>
       </div>
       <button class="sbtn" style="background:rgba(200,169,110,.12);color:var(--gold);border-color:rgba(200,169,110,.3);" onclick="savePSWEdits('${p.id}','${name}')">Save Certifications</button>
@@ -8198,6 +8213,27 @@ function openClientDetail(id) {
         <div><div class="slbl">POA Name</div><input class="sinput" id="ce-poa-name" type="text" value="${c.poa_name||''}" style="font-size:15px;"></div>
         <div><div class="slbl">POA Phone</div><input class="sinput" id="ce-poa-phone" type="tel" value="${c.poa_phone||''}" style="font-size:15px;"></div>
       </div>
+      <div class="sheet-row"><div class="slbl">POA Relation</div><input class="sinput" id="ce-poa-relation" type="text" value="${c.poa_relation||''}" placeholder="e.g. Daughter, Spouse, Sibling" style="font-size:15px;"></div>
+      <div style="margin:14px 0 10px;font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--teal2);">Health Card &amp; Clinical</div>
+      <div class="srow2">
+        <div><div class="slbl">Health Card Number</div><input class="sinput" id="ce-health-card-number" type="text" value="${c.health_card_number||''}" placeholder="1234-567-890" style="font-size:15px;"></div>
+        <div><div class="slbl">Health Card Expiry</div><input class="sinput" id="ce-health-card-expiry" type="date" value="${c.health_card_expiry||''}" style="font-size:15px;"></div>
+      </div>
+      <div class="sheet-row"><div class="slbl">Diagnosis / Primary Condition</div><input class="sinput" id="ce-diagnosis" type="text" value="${c.diagnosis||''}" placeholder="e.g. Type 2 Diabetes, COPD" style="font-size:15px;"></div>
+      <div class="sheet-row"><div class="slbl">Functional Limitations</div><input class="sinput" id="ce-functional-limitations" type="text" value="${c.functional_limitations||''}" placeholder="e.g. Limited ROM left arm, non-weight bearing" style="font-size:15px;"></div>
+      <div class="sheet-row"><div class="slbl">Communication Needs</div><input class="sinput" id="ce-communication-needs" type="text" value="${c.communication_needs||''}" placeholder="e.g. Hard of hearing, speaks Tagalog" style="font-size:15px;"></div>
+      <div class="srow2">
+        <div><div class="slbl">Fall Risk</div>
+          <select class="sselect" id="ce-fall-risk">
+            <option value="" ${!c.fall_risk?'selected':''}>Not assessed</option>
+            <option value="Low" ${c.fall_risk==='Low'?'selected':''}>Low</option>
+            <option value="Medium" ${c.fall_risk==='Medium'?'selected':''}>Medium</option>
+            <option value="High" ${c.fall_risk==='High'?'selected':''}>High</option>
+          </select>
+        </div>
+        <div><div class="slbl">Admission Date</div><input class="sinput" id="ce-admission-date" type="date" value="${c.admission_date||''}" style="font-size:15px;"></div>
+      </div>
+      <div style="margin:14px 0 10px;font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--teal2);">Power of Attorney (updated)</div>
       <div style="margin:14px 0 10px;font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--teal2);">Emergency Contacts</div>
       ${c.emergency_contact_1_name?`<div class="cpf"><div class="cpf-lbl">EC 1</div><div class="cpf-val">${c.emergency_contact_1_name} · ${c.emergency_contact_1_relation||''} · <a href="tel:${c.emergency_contact_1_phone||''}">${c.emergency_contact_1_phone||'—'}</a></div></div>`:''}
       ${c.emergency_contact_2_name?`<div class="cpf"><div class="cpf-lbl">EC 2</div><div class="cpf-val">${c.emergency_contact_2_name} · ${c.emergency_contact_2_relation||''} · <a href="tel:${c.emergency_contact_2_phone||''}">${c.emergency_contact_2_phone||'—'}</a></div></div>`:''}
@@ -9209,6 +9245,13 @@ async function savePSWEdits(pswId, pswName) {
     if (pswAddr   !== undefined) payload.address                  = pswAddr   || null;
     if (pswEC     !== undefined) payload.emergency_contact        = pswEC     || null;
     if (pswStart  !== undefined) payload.start_date               = pswStart  || null;
+    // S38 additional compliance fields
+    const covidVaxDt = document.getElementById('pe-covid-vax-date')?.value       ?? undefined;
+    const bankInst   = document.getElementById('pe-banking-institution')?.value?.trim() ?? undefined;
+    const bankLast4  = document.getElementById('pe-banking-last4')?.value?.trim() ?? undefined;
+    if (covidVaxDt !== undefined) payload.covid_vax_date        = covidVaxDt || null;
+    if (bankInst   !== undefined) payload.banking_institution   = bankInst   || null;
+    if (bankLast4  !== undefined) payload.banking_account_last4 = bankLast4  || null;
     const res = await fetch(`${API}/hq/psw/${encodeURIComponent(pswName)}`, {
       method: 'PATCH',
       headers: {'Content-Type': 'application/json', 'x-hq-token': window._hqToken || sessionStorage.getItem('hq_token') || ''},
@@ -9258,6 +9301,15 @@ async function saveClientEdits(clientId) {
     const assessmentDate    = document.getElementById('ce-assessment-date')?.value || '';
     const reassessmentDue   = document.getElementById('ce-reassessment-due')?.value || '';
     const familyContactName = document.getElementById('ce-family-name')?.value?.trim() || '';
+    // S38 new PHIPA fields
+    const healthCardNumber  = document.getElementById('ce-health-card-number')?.value?.trim() || '';
+    const healthCardExpiry  = document.getElementById('ce-health-card-expiry')?.value || '';
+    const diagnosisVal      = document.getElementById('ce-diagnosis')?.value?.trim() || '';
+    const funcLimitations   = document.getElementById('ce-functional-limitations')?.value?.trim() || '';
+    const commNeeds         = document.getElementById('ce-communication-needs')?.value?.trim() || '';
+    const fallRisk          = document.getElementById('ce-fall-risk')?.value || '';
+    const admissionDate     = document.getElementById('ce-admission-date')?.value || '';
+    const poaRelation       = document.getElementById('ce-poa-relation')?.value?.trim() || '';
     const payload = { operator_id: currentOp, assigned_psw: psw, client_rate: clientRate,
       psw_rate: pswRate, care_notes: careNotes };
     if (firstName)          payload.first_name               = firstName;
@@ -9282,11 +9334,19 @@ async function saveClientEdits(clientId) {
     if (dnrStatus)         payload.dnr_status               = dnrStatus;
     if (poaName)           payload.poa_name                 = poaName;
     if (poaPhone)          payload.poa_phone                = poaPhone;
+    if (poaRelation)       payload.poa_relation             = poaRelation;
     if (homeAccess)        payload.home_access_instructions = homeAccess;
     if (insuranceProvider) payload.insurance_provider       = insuranceProvider;
     if (insurancePolicy)   payload.insurance_policy         = insurancePolicy;
     if (assessmentDate)    payload.assessment_date          = assessmentDate;
     if (reassessmentDue)   payload.reassessment_due         = reassessmentDue;
+    if (healthCardNumber)  payload.health_card_number       = healthCardNumber;
+    if (healthCardExpiry)  payload.health_card_expiry       = healthCardExpiry;
+    if (diagnosisVal)      payload.diagnosis                = diagnosisVal;
+    if (funcLimitations)   payload.functional_limitations   = funcLimitations;
+    if (commNeeds)         payload.communication_needs      = commNeeds;
+    if (fallRisk)          payload.fall_risk                = fallRisk;
+    if (admissionDate)     payload.admission_date           = admissionDate;
     const res = await fetch(`${API}/hq/client/${clientId}`, {
       method: 'PATCH',
       headers: {'Content-Type': 'application/json', 'x-hq-token': window._hqToken || sessionStorage.getItem('hq_token') || ''},
@@ -10490,6 +10550,12 @@ async function uploadPSWDoc(event, pswName, docType) {
 
 // ── VISIT EDIT ──
 let _vemVisitId = null;
+
+function openVisitEditById(visitId) {
+  const v = (D.visits || []).find(x => x.id === visitId) || (window._visitMap || {})[visitId];
+  if (!v) { showToast('Visit not found', 'err'); return; }
+  openVisitEdit(v);
+}
 
 function openVisitEdit(visitData) {
   if (typeof visitData === 'string') { try { visitData = JSON.parse(visitData); } catch(e) { return; } }
