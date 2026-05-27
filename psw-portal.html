@@ -1010,6 +1010,14 @@ a{color:inherit;text-decoration:none;}
 <!-- MESSAGES -->
 <div class="section" id="sect-messages">
   <div class="section-header"><span class="section-title">Message Lance</span></div>
+  <!-- Incident history — read-only, only shows if PSW has incident records -->
+  <div id="psw-incident-history" style="display:none;margin-bottom:16px;background:var(--bg2);border:1px solid var(--border);border-radius:12px;overflow:hidden;">
+    <div style="padding:12px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
+      <span style="font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);">Incident Records</span>
+      <span id="psw-incident-count" style="font-family:var(--mono);font-size:11px;color:var(--muted);"></span>
+    </div>
+    <div id="psw-incident-list" style="padding:0 14px;"></div>
+  </div>
   <div class="msg-thread" id="msg-thread">
     <div class="skeleton-row" style="border-radius:10px;height:44px;max-width:70%;margin-left:auto;"></div>
     <div class="skeleton-row" style="border-radius:10px;height:44px;max-width:80%;"></div>
@@ -1660,7 +1668,6 @@ async function loadSchedule() {
     activeVisit = d.active_visit || null;
     updateShiftUI();
     renderWeek();
-    renderHomeFeed();
     renderAvailableShifts(); // Build 7
   } catch (e) { console.error('loadSchedule:', e); }
 }
@@ -2065,7 +2072,7 @@ async function doCheckIn() {
     });
     // Store optimistic active visit locally
     activeVisit = { id: 'queued-' + Date.now(), client_name: clientName, time_in: new Date().toTimeString().slice(0,5), checkin_time: new Date().toISOString() };
-    updateShiftUI(); renderWeek(); renderHomeFeed();
+    updateShiftUI(); renderWeek(); loadHomeData();
     haptic(200); // Build 3
     showToast('Queued — will sync when back online', 'warn');
     showSect('checklist');
@@ -2176,7 +2183,7 @@ async function confirmCheckin() {
       directives_acknowledged: directivesAcknowledged
     });
     activeVisit = { id: 'queued-' + Date.now(), client_name: clientName, time_in: new Date().toTimeString().slice(0,5), checkin_time: new Date().toISOString() };
-    updateShiftUI(); renderWeek(); renderHomeFeed();
+    updateShiftUI(); renderWeek(); loadHomeData();
     haptic(200);
     showToast('Queued -- syncs when back online', 'warn');
     showSect('checklist');
@@ -2193,7 +2200,7 @@ async function confirmCheckin() {
     const d = await res.json();
     if (!res.ok) throw new Error(d.error || 'Check-in failed');
     activeVisit = { id: d.visit_id, client_name: clientName, time_in: d.time_in, checkin_time: d.checkin_time || new Date().toISOString() };
-    updateShiftUI(); renderWeek(); renderHomeFeed();
+    updateShiftUI(); renderWeek(); loadHomeData();
     haptic(200);
     showToast(d.resumed ? 'Resuming visit — ' + clientName : 'Signed in — ' + clientName, 'ok');
     showSect('checklist');
@@ -2545,17 +2552,39 @@ function toggleDetail(id) {
 async function loadMessages(scroll=true) {
   const el = document.getElementById('msg-thread');
   try {
-    const res = await fetch(`${API}/psw/notes/${encodeURIComponent(pswName)}?pin=${pswPin}&operator_id=${pswOperatorId}`);
-    const d = await res.json();
+    // Load messages and PSW incident history in parallel
+    const [msgRes, incRes] = await Promise.all([
+      fetch(`${API}/psw/notes/${encodeURIComponent(pswName)}?pin=${pswPin}&operator_id=${pswOperatorId}`),
+      fetch(`${API}/psw/incidents?psw_name=${encodeURIComponent(pswName)}&pin=${pswPin}&operator_id=${pswOperatorId}`)
+        .then(r => r.json()).catch(() => ({ incidents: [] }))
+    ]);
+    const d = await msgRes.json();
     const notes = d.notes || [];
+    // Render incident history (read-only)
+    const incidents = incRes.incidents || [];
+    const incContainer = document.getElementById('psw-incident-history');
+    const incList = document.getElementById('psw-incident-list');
+    const incCount = document.getElementById('psw-incident-count');
+    if (incidents.length > 0 && incContainer && incList) {
+      incContainer.style.display = 'block';
+      if (incCount) incCount.textContent = incidents.length + ' record' + (incidents.length !== 1 ? 's' : '');
+      incList.innerHTML = incidents.map(inc => `
+        <div style="padding:12px 0;border-bottom:1px solid var(--border);">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+            <span style="font-size:13px;font-weight:600;color:var(--text);">${inc.visit_date || '—'}</span>
+            <span style="font-family:var(--mono);font-size:10px;padding:2px 7px;border-radius:100px;border:1px solid ${inc.resolved ? 'rgba(90,170,122,.3)' : 'rgba(224,154,61,.3)'};color:${inc.resolved ? '#5aaa7a' : '#e09a3d'};">${inc.resolved ? 'RESOLVED' : 'OPEN'}</span>
+          </div>
+          <div style="font-size:12px;color:var(--muted);margin-bottom:2px;">Client: ${inc.client_name || '—'}</div>
+          ${inc.resolved && inc.resolution_note ? `<div style="font-size:12px;color:var(--text);background:var(--bg3);border-radius:6px;padding:6px 8px;margin-top:6px;">Resolution: ${inc.resolution_note}</div>` : ''}
+        </div>`).join('');
+    }
     const unreadNotes = notes.filter(n => n.sender === 'lance' && !n.read_at);
     window._unreadNotes = unreadNotes; // store for renderHomeFeed
     const unread = unreadNotes.length;
     const badge = document.getElementById('msg-badge');
     const dot = document.getElementById('bnav-msg-dot');
     if (unread > 0) { badge.textContent = unread; badge.style.display = 'inline-flex'; dot.classList.add('show'); }
-    else { badge.style.display = 'none'; dot.classList.remove('show'); }
-    renderHomeFeed(); // re-render home feed to show/hide schedule alerts
+    else { badge.style.display = 'none'; dot.classList.remove('show'); } // re-render home feed to show/hide schedule alerts
     if (!notes.length) { el.innerHTML = '<div class="empty-state">No messages yet</div>'; return; }
     el.innerHTML = notes.map(n => `<div class="msg-bubble ${n.sender==='lance'?'msg-lance':'msg-psw'}"><div class="msg-text">${escHtml(n.message)}</div><div class="msg-time">${ago(n.created_at)}</div></div>`).join('');
     if (scroll) el.scrollTop = el.scrollHeight;
@@ -2930,7 +2959,7 @@ function showSect(name) {
   if (name === 'messages') loadMessages();
   if (name === 'schedule') { loadSchedule(); }
   if (name === 'pay') loadPaySummary();
-  if (name === 'home') { loadHomeData(); if (scheduleData) renderHomeFeed(); }
+  if (name === 'home') { loadHomeData(); }
   if (name === 'live') renderLiveOps();
   if (name === 'checklist') loadVisitForms();
   if (name === 'checklist') {
@@ -3040,13 +3069,19 @@ function openClientSheetByName(clientName) {
 
   let body = '';
 
-  // Care info
+  // Care info — show all care plan fields including those from care_plans table
   const careFields = [
     dobStr ? field('Date of Birth', dobStr) : '',
-    field('Care notes', c.care_notes || c.care_plan),
+    field('Care Notes', c.care_notes || c.care_plan),
+    c.summary ? field('Summary', c.summary) : '',
+    c.goals ? field('Goals', c.goals) : '',
+    c.daily_routine ? field('Daily Routine', c.daily_routine) : '',
+    c.preferences ? field('Preferences', c.preferences) : '',
     field('Mobility', c.mobility_level),
     field('Cognitive', c.cognitive_status),
-    field('Care type', c.care_type),
+    field('Care Type', c.care_type),
+    c.allergies ? field('Allergies', c.allergies, true) : '',
+    c.medications ? field('Medications', c.medications) : '',
   ].filter(Boolean).join('');
   body += section('Care Profile', careFields);
 
