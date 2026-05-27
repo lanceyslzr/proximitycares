@@ -263,7 +263,7 @@ a{color:inherit;text-decoration:none;}
 .mood-lbl{font-family:var(--mono);font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;}
 
 /* MESSAGES */
-.msg-thread{padding:12px 14px;display:flex;flex-direction:column;gap:10px;min-height:200px;}
+.msg-thread{padding:12px 14px;display:flex;flex-direction:column;gap:10px;min-height:200px;max-height:calc(100dvh - 280px);overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;}
 .msg-bubble{padding:10px 13px;border-radius:10px;max-width:84%;}
 .msg-lance{background:var(--teal);color:#fff;margin-left:auto;border-radius:10px 10px 3px 10px;}
 .msg-psw{background:var(--bg3);color:var(--text);border:1px solid var(--border);border-radius:10px 10px 10px 3px;}
@@ -2196,6 +2196,7 @@ async function confirmCheckin() {
     updateShiftUI(); renderWeek(); loadHomeData();
     haptic(200);
     showToast('Queued -- syncs when back online', 'warn');
+    injectClientChecklistTasks(clientName);
     showSect('checklist');
     if (btn) { btn.textContent = 'Sign In Now'; btn.disabled = false; }
     return;
@@ -2213,6 +2214,7 @@ async function confirmCheckin() {
     updateShiftUI(); renderWeek(); loadHomeData();
     haptic(200);
     showToast(d.resumed ? 'Resuming visit — ' + clientName : 'Signed in — ' + clientName, 'ok');
+    injectClientChecklistTasks(clientName);
     showSect('checklist');
     loadVisitForms().catch(() => {});
   } catch (e) { showToast(e.message, 'err'); }
@@ -2529,7 +2531,67 @@ function restoreChecklist() {
     updateClCount();
   } catch {}
 }
+// S38 — Client-specific checklist injection
+// Reads daily_routine from care_plans (served via /psw/clients endpoint)
+// Called on checkin — injects client-specific tasks above Observations
+function injectClientChecklistTasks(clientName) {
+  try {
+    // Remove any previously injected client tasks
+    document.querySelectorAll('.cl-item.client-task').forEach(el => el.remove());
+    const clSection = document.querySelector('#sect-checklist > div[style*="padding:0 12px"]');
+    if (!clSection) return;
+
+    // Find client in cached data
+    const clients = window._pswClients || scheduleData?.clients || [];
+    const c = clients.find(cl => {
+      const full = ((cl.first_name||'') + ' ' + (cl.last_name||'')).trim();
+      return full.toLowerCase() === clientName.toLowerCase() ||
+             (cl.client_name||'').toLowerCase() === clientName.toLowerCase() ||
+             (cl.first_name||'').toLowerCase() === clientName.split(' ')[0].toLowerCase();
+    });
+
+    const routine = c?.daily_routine || c?.care_plan_routine || '';
+    if (!routine || routine.trim().length < 3) return;
+
+    // Parse routine into tasks — split on newlines or periods followed by capitals
+    const lines = routine.split(/
+|(?<=\.)\s+(?=[A-Z])/).map(l => l.replace(/^[-•*\d.]+\s*/, '').trim()).filter(l => l.length > 2 && l.length < 120);
+    if (!lines.length) return;
+
+    // Build section header + task items
+    const header = document.createElement('div');
+    header.className = 'cl-section-title';
+    header.style.cssText = 'color:var(--teal2);';
+    header.textContent = clientName.split(' ')[0] + "'s Routine";
+
+    // Find insertion point: before Observations section
+    const obsTitle = Array.from(clSection.querySelectorAll('.cl-section-title')).find(el => el.textContent.includes('Observations'));
+    const customInput = clSection.querySelector('#cl-custom-input')?.closest('div[style]');
+    const insertBefore = customInput || obsTitle;
+    if (!insertBefore) return;
+
+    clSection.insertBefore(header, insertBefore);
+
+    lines.forEach(line => {
+      const item = document.createElement('div');
+      item.className = 'cl-item client-task';
+      item.setAttribute('onclick', 'toggleCl(this)');
+      item.innerHTML = '<div class="cl-box"></div><span class="cl-label">' + line + '</span>';
+      clSection.insertBefore(item, insertBefore);
+    });
+
+    updateClCount();
+    // Highlight the cl-visit-name with client name
+    const visitLabel = document.getElementById('cl-visit-name');
+    if (visitLabel) visitLabel.textContent = clientName;
+  } catch (e) { /* non-fatal — generic checklist still works */ }
+}
+
 function resetChecklist() {
+  // Remove client-specific tasks injected on checkin
+  document.querySelectorAll('.cl-item.client-task').forEach(el => el.remove());
+  const visitLabel = document.getElementById('cl-visit-name');
+  if (visitLabel) visitLabel.textContent = '';
   // Remove dynamically added custom tasks first
   document.querySelectorAll('#sect-checklist .cl-item').forEach(el => {
     const hasRemoveBtn = el.querySelector('button[aria-label="Remove"]');
