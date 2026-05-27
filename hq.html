@@ -2694,7 +2694,7 @@ body.sidebar-hidden #sidebar-reopen-tab{ display:flex; }
   <div class="sheet-body" id="client-sheet-body" style="padding-bottom:80px;"></div>
   <!-- Sticky save footer — always visible, no hunting for button -->
   <div id="client-sheet-save-bar" style="display:none;position:sticky;bottom:0;left:0;right:0;padding:10px 14px calc(10px + env(safe-area-inset-bottom));background:var(--bg2);border-top:1px solid var(--border);display:flex;gap:8px;z-index:10;">
-    <button class="sbtn" style="flex:2;background:var(--gold-mid);color:var(--gold);border-color:var(--gold-border);" id="client-save-btn" onclick="">Save Changes</button>
+    <button class="sbtn" style="flex:2;background:var(--gold-mid);color:var(--gold);border-color:var(--gold-border);" id="client-save-btn" onclick="saveClientCarePlan()">Save Changes</button>
     <button class="sbtn ghost" style="flex:1;" onclick="closeSheet('client-sheet')">Cancel</button>
   </div>
 </div>
@@ -7843,11 +7843,18 @@ function _cpTab(el, bodyId) {
   tabs.forEach(t => t.classList.remove('active'));
   el.classList.add('active');
   const sheet = el.closest('.prof-tab-body, .sheet-body') || el.closest('[id="client-sheet-body"]');
-  // Walk up to find sibling prof-tab-body elements
   const parent = el.closest('.sheet-body') || el.parentNode.parentNode;
   parent.querySelectorAll('.prof-tab-body').forEach(b => b.classList.remove('active'));
   const target = document.getElementById(bodyId);
   if (target) target.classList.add('active');
+  // Care Plan tab: load notes + show save bar
+  const saveBar = document.getElementById('client-sheet-save-bar');
+  if (bodyId === 'cpt-care') {
+    if (window._activeClientSlug) loadClientNotes(window._activeClientSlug);
+    if (saveBar) saveBar.style.display = 'flex';
+  } else {
+    if (saveBar) saveBar.style.display = 'none';
+  }
 }
 function _ppTab(el, bodyId) { _cpTab(el, bodyId); }
 
@@ -8102,6 +8109,7 @@ function openClientDetail(id) {
   const name = `${c.first_name||''} ${c.last_name||''}`.trim();
   const slug = c.portal_slug || '';
   document.getElementById('client-sheet-title').textContent = name;
+  window._activeClientSlug = slug; // Track for save + notes
   // Alert badges
   const alertBadges = getAlertBadges(c);
   const twoPswHeader = c.requires_two_psw
@@ -8209,6 +8217,21 @@ function openClientDetail(id) {
       </div>
       <div class="sheet-row"><div class="slbl">Care Directives</div><textarea class="sinput" id="ce-care-directives" rows="2" style="min-height:64px;resize:none;" placeholder="DNR, transfer assist, dietary restrictions...">${c.care_directives||''}</textarea></div>
       <div class="sheet-row"><div class="slbl">Care Notes</div><textarea class="sinput" id="ce-care-notes" rows="3" style="min-height:80px;resize:none;" placeholder="Internal care notes...">${c.care_notes||''}</textarea></div>
+      <div class="sheet-row"><div class="slbl">Goals</div><textarea class="sinput" id="ce-care-goals" rows="2" style="min-height:56px;resize:vertical;" placeholder="Care goals and outcomes...">${c.care_plan_goals||''}</textarea></div>
+      <div class="sheet-row"><div class="slbl">Daily Routine</div><textarea class="sinput" id="ce-care-routine" rows="2" style="min-height:56px;resize:vertical;" placeholder="Morning routine, meal times, preferences...">${c.daily_routine||''}</textarea></div>
+      <div class="sheet-row"><div class="slbl">Allergies</div><input class="sinput" id="ce-allergies" type="text" value="${c.allergies||''}" placeholder="Known allergies..." style="font-size:15px;"></div>
+      <div class="sheet-row"><div class="slbl">Medications</div><textarea class="sinput" id="ce-medications" rows="2" style="min-height:56px;resize:vertical;" placeholder="Medication name, dose, frequency...">${c.medications||''}</textarea></div>
+      <div class="sheet-row"><div class="slbl">Reason for Change</div><input class="sinput" id="ce-change-reason" type="text" placeholder="e.g. Updated after family meeting on May 26" style="font-size:13px;"></div>
+      <!-- Client Notes (HQ Internal) -->
+      <div style="margin:18px 0 10px;font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);">Internal Notes</div>
+      <div style="display:flex;gap:8px;margin-bottom:10px;">
+        <textarea class="sinput" id="ce-note-input" rows="2" style="flex:1;min-height:52px;resize:none;font-size:13px;" placeholder="Add a note about this client (internal only)..."></textarea>
+        <div style="display:flex;flex-direction:column;gap:6px;">
+          <button id="ce-note-add-btn" onclick="addClientNote()" style="padding:8px 14px;background:rgba(200,169,110,.12);border:1px solid rgba(200,169,110,.3);border-radius:6px;font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--gold);cursor:pointer;min-height:44px;white-space:nowrap;">Add Note</button>
+          <label style="display:flex;align-items:center;gap:5px;font-family:var(--mono);font-size:9px;color:var(--muted);cursor:pointer;white-space:nowrap;"><input type="checkbox" id="ce-note-notify-psw" style="margin:0;">Notify PSW</label>
+        </div>
+      </div>
+      <div id="ce-notes-list" style="min-height:40px;"></div>
       <div style="margin:14px 0 10px;font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--teal2);">Assigned PSW</div>
       <select class="sselect" id="ce-psw">${getMergedPSWList().filter(p=>p.source==='live').map(p=>`<option value="${p.name}" ${p.name===c.assigned_psw?'selected':''}>${p.name}</option>`).join('')}</select>
       <div style="margin-top:14px;" id="ce-two-psw-row">
@@ -10520,11 +10543,13 @@ async function saveVisitEdit() {
     if (!r.ok) throw new Error(d.error || 'Save failed');
     closeVisitEdit();
     showToast('Visit updated ✓ — PSW notified', 'ok');
+    closeVisitEdit();
     await renderVisits();
     await loadAll(false);
   } catch(e) {
-    btn.textContent = 'Save & Notify'; btn.disabled = false;
     showToast('Error: ' + e.message, 'err');
+  } finally {
+    btn.textContent = 'Save & Notify'; btn.disabled = false;
   }
 }
 
@@ -11117,6 +11142,92 @@ function autoVscExpiry(checkDate) {
   expEl.value = d.toISOString().slice(0, 10);
 }
 // ── END BUILD 2 ───────────────────────────────────────────────
+
+
+// ── CLIENT CARE PLAN SAVE ────────────────────────────────────────────────────
+async function saveClientCarePlan() {
+  const slug = window._activeClientSlug;
+  if (!slug) { showToast('No client selected', 'err'); return; }
+  const btn = document.getElementById('client-save-btn');
+  if (btn) { btn.textContent = 'Saving...'; btn.disabled = true; }
+  try {
+    // Gather all editable fields from the Care Plan tab
+    const fields = {};
+    const careType = document.getElementById('ce-care-type');
+    const careDirectives = document.getElementById('ce-care-directives');
+    const careNotes = document.getElementById('ce-care-notes');
+    const careGoals = document.getElementById('ce-care-goals');
+    const careRoutine = document.getElementById('ce-care-routine');
+    const allergies = document.getElementById('ce-allergies');
+    const medications = document.getElementById('ce-medications');
+
+    if (careType) fields.care_type = careType.value.trim();
+    if (careDirectives) fields.care_directives = careDirectives.value.trim();
+    if (careNotes) fields.care_notes = careNotes.value.trim();
+    if (careGoals) fields.goals = careGoals.value.trim();
+    if (careRoutine) fields.daily_routine = careRoutine.value.trim();
+    if (allergies) fields.allergies = allergies.value.trim();
+    if (medications) fields.medications = medications.value.trim();
+
+    const reasonEl = document.getElementById('ce-change-reason');
+    const reason = reasonEl ? reasonEl.value.trim() : 'Care plan updated from HQ';
+
+    const r = await hqFetch(`${API}/client/care-plan`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', 'x-hq-token': window._hqToken || sessionStorage.getItem('hq_token') || '' },
+      body: JSON.stringify({ client_slug: slug, operator_id: currentOp, reason_for_change: reason, updated_by: 'lance', ...fields })
+    });
+    const d = await r.json();
+    if (!r.ok || !d.success) throw new Error(d.error || 'Save failed');
+    showToast('Care plan saved ✓ — PSW and family notified', 'ok');
+    const saveBar = document.getElementById('client-sheet-save-bar');
+    if (saveBar) saveBar.style.display = 'none';
+    await loadAll(false);
+  } catch(e) { showToast(e.message, 'err'); }
+  finally { if (btn) { btn.textContent = 'Save Changes'; btn.disabled = false; } }
+}
+
+// ── CLIENT NOTES (HQ INTERNAL) ───────────────────────────────────────────────
+async function loadClientNotes(slug) {
+  const el = document.getElementById('ce-notes-list');
+  if (!el) return;
+  el.innerHTML = '<div style="font-size:12px;color:var(--muted);padding:8px 0;">Loading...</div>';
+  try {
+    const r = await hqFetch(`${API}/hq/client/${slug}/notes?operator_id=${currentOp}`);
+    const d = await r.json();
+    const notes = d.notes || [];
+    if (!notes.length) { el.innerHTML = '<div style="font-size:12px;color:var(--muted);padding:8px 0;">No notes yet.</div>'; return; }
+    el.innerHTML = notes.map(n => `
+      <div style="padding:10px 0;border-bottom:1px solid var(--border);">
+        <div style="font-size:13px;color:var(--text);line-height:1.6;">${escHtml(n.note)}</div>
+        <div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:4px;">${n.created_by || 'lance'} · ${new Date(n.created_at).toLocaleString('en-CA',{timeZone:'America/Toronto',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'})}</div>
+      </div>`).join('');
+  } catch(e) { el.innerHTML = '<div style="font-size:12px;color:var(--red);">Could not load notes</div>'; }
+}
+
+async function addClientNote() {
+  const slug = window._activeClientSlug;
+  if (!slug) return;
+  const input = document.getElementById('ce-note-input');
+  const notifyEl = document.getElementById('ce-note-notify-psw');
+  const note = input ? input.value.trim() : '';
+  if (!note) { showToast('Enter a note first', 'err'); return; }
+  const btn = document.getElementById('ce-note-add-btn');
+  if (btn) { btn.textContent = 'Adding...'; btn.disabled = true; }
+  try {
+    const r = await hqFetch(`${API}/hq/client/${slug}/note`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-hq-token': window._hqToken || sessionStorage.getItem('hq_token') || '' },
+      body: JSON.stringify({ operator_id: currentOp, note, created_by: 'lance', notify_psw: notifyEl?.checked || false })
+    });
+    const d = await r.json();
+    if (!r.ok || !d.success) throw new Error(d.error || 'Failed');
+    if (input) input.value = '';
+    showToast('Note added ✓', 'ok');
+    await loadClientNotes(slug);
+  } catch(e) { showToast(e.message, 'err'); }
+  finally { if (btn) { btn.textContent = 'Add Note'; btn.disabled = false; } }
+}
 
 </script>
 <div class="demo-tip" id="demo-tip"></div>
