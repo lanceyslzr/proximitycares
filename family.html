@@ -13,10 +13,10 @@
 <style>
 /* ── MOBILE RESET: Android overflow, box-sizing, safe-area ── */
 *,*::before,*::after{box-sizing:border-box;min-width:0}
-html{overflow-x:clip;overflow-y:auto;overscroll-behavior-y:contain;
-     -webkit-text-size-adjust:100%;text-size-adjust:100%;max-width:100%}
+html{overflow:hidden;overscroll-behavior:none;
+     -webkit-text-size-adjust:100%;text-size-adjust:100%;max-width:100%;height:100dvh;}
 html,body{overflow-x:clip}
-body{overflow-x:clip;min-height:100vh;min-height:100dvh;margin:0;
+body{overflow:hidden;height:100dvh;margin:0;
      -webkit-tap-highlight-color:transparent;overflow-wrap:anywhere;word-break:break-word}
 img,picture,video,canvas,svg{max-width:100%;height:auto;display:block}
 table{width:100%;max-width:100%;table-layout:fixed}
@@ -514,7 +514,98 @@ button:active{transform:scale(0.98);}
 
 /* ── FAMILY PORTAL RESPONSIVE BREAKPOINTS ── */
 
-/* ── mobile base rules (moved before @media) ── */
+/* ── mobile base rules (moved before 
+/* ── FIXED VIEWPORT ── */
+/* ── 4-TAB NAVIGATION REFINEMENT ── */
+.fp-tab-bar{
+  position:fixed;bottom:0;left:0;right:0;
+  display:flex;
+  background:var(--bg2,#f2ede4);
+  border-top:1px solid var(--border,rgba(0,0,0,.1));
+  z-index:100;
+  padding-bottom:env(safe-area-inset-bottom);
+}
+.fp-tab{
+  flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:8px 4px;gap:3px;cursor:pointer;
+  font-family:var(--mono,DM Mono,monospace);font-size:9px;letter-spacing:1px;
+  text-transform:uppercase;color:var(--muted,#6b7280);
+  transition:color .15s;touch-action:manipulation;min-height:56px;
+}
+.fp-tab.active{color:var(--teal2,#1e7d96);}
+.fp-tab svg{width:20px;height:20px;stroke-width:1.8;}
+
+/* ── VISIT CARD — premium family view ── */
+.fp-visit-card{
+  background:var(--bg,#faf8f4);
+  border:1px solid var(--border,rgba(0,0,0,.08));
+  border-radius:14px;padding:16px;margin-bottom:12px;
+  transition:border-color .2s,box-shadow .2s;
+}
+.fp-visit-card:hover{
+  border-color:var(--teal2,#1e7d96);
+  box-shadow:0 2px 12px rgba(30,125,150,.08);
+}
+.fp-visit-status{
+  display:inline-flex;align-items:center;gap:5px;
+  font-family:var(--mono,DM Mono,monospace);font-size:10px;letter-spacing:1px;
+  font-weight:600;text-transform:uppercase;
+  padding:2px 8px;border-radius:100px;margin-bottom:10px;
+}
+.fp-visit-live{background:rgba(30,138,82,.1);color:#1e8a52;border:1px solid rgba(30,138,82,.2);}
+.fp-visit-upcoming{background:rgba(30,125,150,.1);color:#1e7d96;border:1px solid rgba(30,125,150,.2);}
+.fp-visit-done{background:rgba(107,114,128,.1);color:#6b7280;border:1px solid rgba(107,114,128,.15);}
+
+/* ── CAREGIVER CHIP ── */
+.fp-caregiver-chip{
+  display:flex;align-items:center;gap:10px;
+  padding:10px 12px;
+  background:var(--bg2,#f2ede4);
+  border-radius:10px;margin-top:8px;
+}
+.fp-caregiver-avatar{
+  width:36px;height:36px;border-radius:50%;
+  background:linear-gradient(135deg,#1e7d96,#1e8a52);
+  display:flex;align-items:center;justify-content:center;
+  font-family:DM Mono,monospace;font-size:13px;font-weight:700;color:#fff;
+  flex-shrink:0;
+}
+.fp-caregiver-name{font-size:14px;font-weight:600;color:var(--text,#1a1a18);}
+.fp-caregiver-role{font-family:DM Mono,monospace;font-size:10px;color:var(--muted,#6b7280);text-transform:uppercase;letter-spacing:1px;}
+
+/* ── CARE PLAN SECTION ── */
+.fp-care-section{
+  background:var(--bg,#faf8f4);border:1px solid var(--border,rgba(0,0,0,.08));
+  border-radius:14px;padding:16px;margin-bottom:12px;
+}
+.fp-care-label{
+  font-family:DM Mono,monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;
+  color:var(--teal2,#1e7d96);margin-bottom:10px;font-weight:600;
+}
+.fp-care-item{
+  display:flex;align-items:flex-start;gap:10px;
+  padding:8px 0;border-bottom:1px solid var(--border,rgba(0,0,0,.06));
+  font-size:14px;color:var(--text,#1a1a18);line-height:1.5;
+}
+.fp-care-item:last-child{border-bottom:none;padding-bottom:0;}
+.fp-care-dot{width:6px;height:6px;border-radius:50%;background:var(--teal2,#1e7d96);flex-shrink:0;margin-top:6px;}
+
+/* ── SCROLLBAR ── */
+*::-webkit-scrollbar{width:3px;}
+*::-webkit-scrollbar-track{background:transparent;}
+*::-webkit-scrollbar-thumb{background:rgba(0,0,0,.1);border-radius:3px;}
+
+/* ── SKELETON SHIMMER ── */
+@keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
+.fp-skeleton{
+  background:linear-gradient(90deg,var(--bg2,#f2ede4) 25%,rgba(0,0,0,.04) 50%,var(--bg2,#f2ede4) 75%);
+  background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:8px;
+}
+
+/* ── SECTION PADDING FOR FIXED BOTTOM NAV ── */
+.fp-content{padding-bottom:calc(72px + env(safe-area-inset-bottom));}
+
+@media) ── */
 .hero-status-line1{font-size:var(--fs-xl,1.75rem);font-weight:650;line-height:1.3;color:var(--text);margin:0 0 6px;}
 .hero-status-line2{font-size:var(--fs-base,1rem);color:var(--muted);line-height:1.5;}
 .hero-status-dot{width:10px;height:10px;border-radius:50%;background:var(--c-good,#4a9a6e);position:absolute;top:24px;right:24px;animation:heropulse 2.2s cubic-bezier(.22,.61,.36,1) infinite;}
