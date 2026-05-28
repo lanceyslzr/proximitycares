@@ -174,11 +174,19 @@ async function loadFamilyNotes() {
 
 /* ── MOBILE RESET: Android overflow, box-sizing, safe-area ── */
 *,*::before,*::after{box-sizing:border-box;min-width:0}
-html{overflow-x:clip;overflow-y:auto;overscroll-behavior-y:contain;
-     -webkit-text-size-adjust:100%;text-size-adjust:100%;max-width:100%}
+html{overflow:hidden;overscroll-behavior:none;
+     -webkit-text-size-adjust:100%;text-size-adjust:100%;max-width:100%;
+     height:100%;height:100dvh}
 html,body{overflow-x:clip}
-body{overflow-x:clip;min-height:100vh;min-height:100dvh;margin:0;
+body{overflow:hidden;height:100%;height:100dvh;margin:0;
      -webkit-tap-highlight-color:transparent;overflow-wrap:anywhere;word-break:break-word}
+/* ── ENTERPRISE APP SHELL — fixed viewport, inner scroll ── */
+#app{
+  display:flex;flex-direction:column;
+  height:100dvh;height:100%;
+  overflow:hidden;position:relative;
+}
+.topbar{flex-shrink:0;}
 img,picture,video,canvas,svg{max-width:100%;height:auto;display:block}
 table{width:100%;max-width:100%;table-layout:fixed}
 pre,code{max-width:100%;white-space:pre-wrap;word-break:break-word}
@@ -323,7 +331,13 @@ button:active{transform:scale(0.98);}
 .nbadge{background:var(--teal);color:#fff;border-radius:100px;font-size:11px;min-width:15px;height:15px;padding:0 3px;display:inline-flex;align-items:center;justify-content:center;}
 
 /* SECTIONS */
-.section{display:none;padding-top:16px;padding-bottom:8px;opacity:0;transition:opacity 150ms ease;}
+.section{display:none;flex:1;min-height:0;
+  overflow-y:auto;overflow-x:hidden;
+  -webkit-overflow-scrolling:touch;
+  overscroll-behavior-y:contain;
+  padding-top:16px;padding-bottom:8px;
+  opacity:0;transition:opacity 150ms ease;}
+.section.active{display:block;opacity:1;}
 .section.active{display:block;}
 .section.visible{opacity:1;}
 .section.active{display:block;}
@@ -826,6 +840,7 @@ button,.sbtn,.btn,.bnav-item,.nav-tab,.icon-btn{
 /* ── SECTION CONTENT PADDING FOR BOTTOM NAV ── */
 .section { padding-bottom: calc(70px + env(safe-area-inset-bottom)); }
 
+
 /* ── HIDE OLD TIME ROW ON MOBILE — KPI grid replaces it ── */
 
 /* ═══ MOBILE: Schedule toolbar horizontal scroll ═══ */
@@ -1115,6 +1130,108 @@ body.sidebar-hidden #sidebar-reopen-tab{ display:flex; }
 .doc-vault-upload{cursor:pointer;padding:3px 8px;background:rgba(109,189,212,.1);border:1px solid rgba(109,189,212,.25);border-radius:4px;font-family:var(--mono);font-size:10px;color:var(--teal2);letter-spacing:1px;}
 
 /* ── MEDIA QUERIES — last, after all base CSS ── */
+
+/* ── ENTERPRISE STATUS PILLS — 5-color semantic system ── */
+.status-pill{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:100px;font-family:var(--mono);font-size:10px;letter-spacing:1px;font-weight:600;text-transform:uppercase;white-space:nowrap;}
+.status-scheduled{background:rgba(61,138,184,.12);color:var(--teal2);border:1px solid rgba(61,138,184,.25);}
+.status-completed{background:rgba(109,185,116,.12);color:var(--green2);border:1px solid rgba(109,185,116,.25);}
+.status-open{background:rgba(200,169,110,.12);color:var(--gold);border:1px solid rgba(200,169,110,.25);}
+.status-missed{background:rgba(224,85,85,.12);color:#e05555;border:1px solid rgba(224,85,85,.25);}
+.status-cancelled{background:rgba(107,114,128,.12);color:var(--muted);border:1px solid rgba(107,114,128,.2);}
+
+/* ── SCROLLBAR STYLING — subtle enterprise look ── */
+.section::-webkit-scrollbar{width:4px;}
+.section::-webkit-scrollbar-track{background:transparent;}
+.section::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px;}
+.section::-webkit-scrollbar-thumb:hover{background:var(--muted);}
+.section{scrollbar-width:thin;scrollbar-color:var(--border) transparent;}
+
+/* ── STICKY ENTITY PROFILE HEADER ── */
+.entity-header-sticky{
+  position:sticky;top:0;z-index:50;
+  background:var(--bg);
+  border-bottom:1px solid var(--border);
+  padding:12px 16px;
+  display:flex;align-items:center;gap:12px;
+  backdrop-filter:blur(8px);
+  -webkit-backdrop-filter:blur(8px);
+}
+.entity-header-avatar{
+  width:40px;height:40px;border-radius:50%;
+  background:linear-gradient(135deg,var(--teal2),var(--green2));
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--mono);font-size:14px;font-weight:700;color:#fff;
+  flex-shrink:0;
+}
+.entity-header-name{font-size:15px;font-weight:600;color:var(--text);line-height:1.2;}
+.entity-header-meta{font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-top:2px;}
+.entity-header-actions{margin-left:auto;display:flex;gap:8px;}
+
+/* ── IMPROVED SKELETON LOADERS ── */
+@keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
+.skeleton-row{
+  background:linear-gradient(90deg,var(--bg2) 25%,var(--bg3) 50%,var(--bg2) 75%);
+  background-size:200% 100%;
+  animation:shimmer 1.5s infinite;
+  border-radius:6px;
+}
+
+/* ── SIDEBAR RAIL MODE — 64px icon-only ── */
+body.sidebar-rail .sn-label{opacity:0;width:0;overflow:hidden;transition:opacity .15s,width .2s;}
+body.sidebar-rail .sidebar-section{opacity:0;height:0;overflow:hidden;margin:0;padding:0;}
+body.sidebar-rail .sidebar-logo{font-size:0;width:0;overflow:hidden;}
+body.sidebar-rail .sn-item{justify-content:center;padding:10px 0;}
+body.sidebar-rail .sidebar-head{justify-content:center;padding:12px 0;}
+body.sidebar-rail .sidebar-close{display:none;}
+body.sidebar-rail .sidebar{width:64px;overflow:visible;}
+
+/* ── KPI TILE HOVER STATE ── */
+.kpi-tile{transition:background .15s,transform .1s;}
+.kpi-tile:hover{background:var(--bg3);transform:translateY(-1px);}
+
+/* ── SECTION HEADER REFINEMENT ── */
+.section-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 16px 10px;
+  position:sticky;top:0;z-index:10;
+  background:var(--bg);
+  border-bottom:1px solid var(--border);
+  backdrop-filter:blur(8px);
+}
+
+/* ── TODAY SUB-TABS ── */
+.today-tabs{
+  display:flex;gap:0;
+  border-bottom:1px solid var(--border);
+  padding:0 16px;
+  background:var(--bg);
+  flex-shrink:0;
+}
+.today-tab{
+  padding:10px 16px;
+  font-family:var(--mono);font-size:11px;letter-spacing:1.5px;text-transform:uppercase;
+  color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;
+  margin-bottom:-1px;transition:color .15s,border-color .15s;
+  white-space:nowrap;touch-action:manipulation;min-height:44px;
+  display:flex;align-items:center;gap:6px;
+}
+.today-tab.active{color:var(--teal2);border-bottom-color:var(--teal2);}
+.today-tab-badge{
+  background:var(--red,#e05555);color:#fff;
+  border-radius:100px;padding:1px 5px;font-size:9px;font-weight:700;
+  min-width:16px;text-align:center;
+}
+.today-tab-panel{display:none;}
+.today-tab-panel.active{display:block;}
+
+/* ── COMMAND PALETTE HINT ── */
+.cmd-hint{
+  font-family:var(--mono);font-size:10px;color:var(--muted);
+  background:var(--bg3);border:1px solid var(--border);
+  border-radius:4px;padding:2px 6px;letter-spacing:.5px;
+  white-space:nowrap;
+}
+
 @media(max-width:min(1024px,100%)){
   .section{padding-top:16px;padding-left:8px;padding-right:8px;}
   .sect-head-row{flex-wrap:wrap;gap:6px;}
@@ -1322,13 +1439,20 @@ body.sidebar-hidden #sidebar-reopen-tab{ display:flex; }
   .sidebar-collapse-btn{display:flex !important;}
   .sidebar-close{display:none;}
   /* Push content right when sidebar is open on desktop */
-  /* Content offset: full sidebar or rail */
+  /* Content offset: offset right of fixed sidebar */
+  .topbar,.stats-strip{margin-left:240px;}
+  .section{margin-left:240px;}
+  body.sidebar-rail .topbar,body.sidebar-rail .stats-strip,body.sidebar-rail .section{margin-left:64px;}
+  body.sidebar-hidden .topbar,body.sidebar-hidden .stats-strip,body.sidebar-hidden .section{margin-left:0;}
+  /* Sections fill the content-shell height minus topbar */
   .section{
-    margin-left:240px;
-    transition:margin-left .2s cubic-bezier(.4,0,.2,1);
-  }
-  body.sidebar-rail .section{
-    margin-left:60px;
+    flex:1;
+    min-height:0;
+    overflow-y:auto;
+    overflow-x:hidden;
+    -webkit-overflow-scrolling:touch;
+    overscroll-behavior-y:contain;
+    margin-left:0;
   }
   
   
@@ -1549,6 +1673,19 @@ body.sidebar-hidden #sidebar-reopen-tab{ display:flex; }
   <div class="section-header">
     <span class="section-title">Today</span>
     <span style="font-family:var(--mono);font-size:11px;color:var(--muted2);letter-spacing:1px;" id="today-updated">—</span>
+  </div>
+
+  <!-- ── TODAY SUB-TABS ── -->
+  <div class="today-tabs">
+    <div class="today-tab active" id="tt-today" onclick="switchTodayTab('today')">Today</div>
+    <div class="today-tab" id="tt-open" onclick="switchTodayTab('open')">
+      Open Shifts
+      <span class="today-tab-badge" id="tt-open-badge" style="display:none;"></span>
+    </div>
+    <div class="today-tab" id="tt-alerts" onclick="switchTodayTab('alerts')">
+      Alerts
+      <span class="today-tab-badge" id="tt-alerts-badge" style="display:none;"></span>
+    </div>
   </div>
 
   <!-- ── KPI TILES (mobile + desktop) ── -->
@@ -9953,7 +10090,34 @@ function closeFAB() {
 
 // ── BATCH 3 — TODAY VIEW ──
 let _cosLoaded = false;
+// ── TODAY SUB-TABS ──
+function switchTodayTab(tab) {
+  document.querySelectorAll('.today-tab').forEach(el => el.classList.remove('active'));
+  const el = document.getElementById('tt-' + tab);
+  if (el) el.classList.add('active');
+
+  // Update open shifts badge
+  const vacant = (D.bookings || []).filter(b => {
+    if (b.status === 'cancelled' || b.deleted_at) return false;
+    const today = new Date().toLocaleDateString('en-CA', {timeZone:'America/Toronto'});
+    return b.scheduled_date === today && (!b.assigned_to || !b.assigned_to.trim());
+  }).length;
+  const openBadge = document.getElementById('tt-open-badge');
+  if (openBadge) {
+    openBadge.textContent = vacant;
+    openBadge.style.display = vacant > 0 ? 'inline-block' : 'none';
+  }
+  // Update alerts badge
+  const alerts = (D.counts?.incidents || 0) + vacant;
+  const alertBadge = document.getElementById('tt-alerts-badge');
+  if (alertBadge) {
+    alertBadge.textContent = alerts;
+    alertBadge.style.display = alerts > 0 ? 'inline-block' : 'none';
+  }
+}
+
 function renderToday() {
+  setTimeout(() => switchTodayTab(document.querySelector('.today-tab.active')?.id?.replace('tt-','') || 'today'), 100);
   const now = new Date();
   const today = now.toLocaleDateString('en-CA',{timeZone:'America/Toronto'});
   const clients = D.clients||[];
@@ -11343,6 +11507,28 @@ async function addClientNote() {
     await loadClientNotes(slug);
   } catch(e) { showToast(e.message, 'err'); }
   finally { if (btn) { btn.textContent = 'Add Note'; btn.disabled = false; } }
+}
+
+// ── PREMIUM UX: Cmd+K search shortcut ──
+document.addEventListener('keydown', function(e) {
+  if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+    e.preventDefault();
+    if (typeof toggleSearch === 'function') toggleSearch();
+  }
+  // Escape closes any open sheet
+  if (e.key === 'Escape') {
+    if (typeof closeAllSheets === 'function') closeAllSheets();
+  }
+});
+
+// ── PREMIUM UX: Active section gets flex layout ──
+function _applyActiveSectionFlex() {
+  document.querySelectorAll('.section').forEach(s => {
+    if (s.style.display !== 'none' && s.style.display !== '') {
+      s.style.flex = '1';
+      s.style.minHeight = '0';
+    }
+  });
 }
 
 </script>
