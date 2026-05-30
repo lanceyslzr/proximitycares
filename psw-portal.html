@@ -1017,7 +1017,10 @@ a{color:inherit;text-decoration:none;}
 
 <!-- MESSAGES -->
 <div class="section" id="sect-messages">
-  <div class="section-header"><span class="section-title">Message Lance</span></div>
+  <div class="section-header">
+    <span class="section-title">Message HQ</span>
+    <span style="font-family:var(--mono);font-size:10px;color:var(--teal2);letter-spacing:.5px;">Lance notified instantly</span>
+  </div>
   <!-- Incident history — read-only, only shows if PSW has incident records -->
   <div id="psw-incident-history" style="display:none;margin-bottom:16px;background:var(--bg2);border:1px solid var(--border);border-radius:12px;overflow:hidden;">
     <div style="padding:12px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
@@ -2705,14 +2708,30 @@ async function loadMessages(scroll=true) {
 async function sendMsg() {
   const msg = document.getElementById('msg-input').value.trim();
   if (!msg) return;
+  const btn = document.querySelector('.msg-send');
+  if (btn) btn.disabled = true;
   try {
-    const res = await fetch(`${API}/psw/note`, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({psw_name:pswName,sender:'psw',message:msg,pin:pswPin,operator_id:pswOperatorId})});
+    // /psw/message-hq sets direction:'psw_to_hq', read:false, emails Lance immediately,
+    // and stores in psw_notes so it appears in the HQ inbox panel.
+    const res = await fetch(`${API}/psw/message-hq`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        operator_id: pswOperatorId,
+        psw_name: pswName,
+        message: msg
+      })
+    });
     const d = await res.json();
-    if (!d.success) throw new Error();
+    if (!d.success) throw new Error(d.error || 'Send failed');
     document.getElementById('msg-input').value = '';
-    showToast('Sent', 'ok');
+    showToast('Sent — Lance has been notified', 'ok');
     await loadMessages();
-  } catch { showToast('Send failed', 'err'); }
+  } catch(e) {
+    showToast(e.message || 'Send failed', 'err');
+  } finally {
+    if (btn) btn.disabled = false;
+  }
 }
 
 // ── DOCUMENTS ──
