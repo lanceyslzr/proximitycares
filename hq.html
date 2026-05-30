@@ -2188,6 +2188,7 @@ body.sidebar-rail .sidebar{width:64px;overflow:visible;}
       <div class="sect-action" onclick="toggleAttendance()">⬤ Live</div>
       <div class="sect-action" onclick="exportPayrollCSV()">↓ CSV</div>
       <div class="sect-action" onclick="runVisitFlags()">✦ Flag</div>
+      <button onclick="openBulkVisitEdit('')" style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;padding:6px 14px;background:rgba(61,138,122,.08);border:1px solid rgba(61,138,122,.25);border-radius:5px;color:var(--teal2);cursor:pointer;min-height:44px;touch-action:manipulation;">⊘ Bulk Edit</button>
       <button onclick="openAddVisit()" style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;padding:6px 14px;background:rgba(200,169,110,.08);border:1px solid rgba(200,169,110,.25);border-radius:5px;color:var(--gold);cursor:pointer;min-height:44px;touch-action:manipulation;">+ Add Visit</button>
     </div>
   </div>
@@ -2720,7 +2721,13 @@ body.sidebar-rail .sidebar{width:64px;overflow:visible;}
 <div class="notif-panel" id="notif-panel">
   <div class="notif-head">
     <span class="notif-title">Notifications</span>
-    <span class="notif-clear" onclick="document.getElementById('notif-panel').classList.remove('open')">Close</span>
+    <div style="display:flex;align-items:center;gap:10px;">
+      <span onclick="toggleNotifications();openPSWInbox();" style="font-family:var(--mono);font-size:10px;color:var(--teal2);cursor:pointer;letter-spacing:.5px;display:flex;align-items:center;gap:4px;">
+        <span id="psw-inbox-notif-dot" style="display:none;width:7px;height:7px;border-radius:50%;background:var(--teal2);flex-shrink:0;"></span>
+        PSW Messages
+      </span>
+      <span class="notif-clear" onclick="document.getElementById('notif-panel').classList.remove('open')">Close</span>
+    </div>
   </div>
   <div id="notif-list"><div class="notif-empty">No alerts right now</div></div>
 </div>
@@ -3480,6 +3487,8 @@ async function loadAll(spin=false) {
     _mergedPSWCache = null;
     window._pswsRendered = false;
     renderAll();
+    // Fetch PSW inbox unread count in background — updates bell badge
+    fetchPSWInboxCount();
     // renderAll() restores the saved tab via showSect(saved) at the end.
     // showSect('schedule') already calls refreshGrid() — so on tab restore we're covered.
     // But if schedule was already the active section before renderAll ran (e.g. URL param),
@@ -4467,6 +4476,7 @@ function renderPSWs() {
         <div class="card-act" onclick="openPSWMsg('${p.name}')">Message</div>
         <div class="card-act" onclick="showSect('schedule');setTimeout(()=>openAddShift(this.closest('.card').querySelector('[data-psw-name]')?.dataset.pswName||'',''),150);">+ Shift</div>
         ${(pStatus === 'pending_review' || pStatus === 'invited') ? `<div class="card-act" style="color:var(--green2);border-color:rgba(74,154,110,.3);background:rgba(74,154,110,.06);" onclick="approvePSW('${p.name}')">✓ Approve</div>` : ''}
+        <div class="card-act" onclick="openBulkVisitEdit('${p.name}')">Bulk Edit</div>
         <div class="card-act ok" data-psw-id="${p.id||''}" data-psw-name="${p.name}" data-psw-source="${p.source||'live'}" onclick="if(this.dataset.pswSource==='live'){openPSWDetail(this.dataset.pswId||this.dataset.pswName);}else{showToast('PSW not yet activated in Supabase','err');}">View</div>
       </div>
     </div>`;
@@ -7910,6 +7920,7 @@ async function openPSWDetail(pswId) {
       <button class="sbtn" onclick="openHoursPanel('psw','${name}')">&#9201; Hours</button>
       <button class="sbtn" onclick="openPSWMsg('${name}');closeSheet('psw-detail-sheet');">Message</button>
       <button class="sbtn" style="background:rgba(109,185,116,.1);color:var(--green2);border-color:rgba(109,185,116,.25);" onclick="openPSWPaystubPicker('${name}','${p.email||rec.email||''}',${p.psw_rate||rec.psw_rate||19})">Pay Stub</button>
+      <button class="sbtn" onclick="openBulkVisitEdit('${name}');closeSheet('psw-detail-sheet');">Bulk Edit</button>
       <button class="sbtn" style="background:rgba(109,185,116,.06);color:var(--green2);border-color:rgba(109,185,116,.2);" onclick="confirmPaymentModal('${name}','${p.email||rec.email||String()}')">✓ Payment Sent</button>
     </div>
     <div class="prof-tabs">
@@ -10092,6 +10103,7 @@ function runGlobalSearch(q) {
 
 // ── BATCH 3 — NOTIFICATIONS ──
 let _notifOpen = false;
+let _pswUnreadCount = 0; // unread PSW→HQ messages — fetched on loadAll, shown in bell
 function toggleNotifications() {
   _notifOpen = !_notifOpen;
   document.getElementById('notif-panel').classList.toggle('open', _notifOpen);
@@ -10123,6 +10135,11 @@ function updateNotifications() {
   // Missing PIPEDA consent
   const noConsent = (D.clients||[]).filter(c => !c.consent_given);
   if (noConsent.length) alerts.push({ dot:'nd-gold', text:`${noConsent.length} client${noConsent.length!==1?'s':''} missing PIPEDA consent`, sub:noConsent.map(c=>(c.first_name||'')+' '+(c.last_name||'')).join(', '), action:()=>{ toggleNotifications(); showSect('clients'); } });
+
+  // PSW → HQ messages (unread)
+  if (_pswUnreadCount > 0) {
+    alerts.push({ dot:'nd-teal', text:`${_pswUnreadCount} message${_pswUnreadCount!==1?'s':''} from PSW${_pswUnreadCount!==1?'s':''}`, sub:'Tap to read and reply', action:()=>{ toggleNotifications(); openPSWInbox(); } });
+  }
 
   // Update bell badge
   const badgeEl = document.getElementById('bell-badge');
@@ -11864,6 +11881,28 @@ function _applyActiveSectionFlex() {
   </div>
 </div>
 
+<!-- ── PSW MESSAGES INBOX SHEET ───────────────────────────────────────────── -->
+<div class="sheet" id="psw-inbox-sheet" style="z-index:1054;">
+  <div class="sheet-handle"></div>
+  <div class="sheet-header">
+    <div>
+      <div style="font-family:var(--mono);font-size:12px;letter-spacing:2px;text-transform:uppercase;color:var(--text);">PSW Messages</div>
+      <div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:3px;" id="psw-inbox-meta">Messages from your team</div>
+    </div>
+    <button class="sheet-close" onclick="closeSheet('psw-inbox-sheet')">✕</button>
+  </div>
+  <!-- PSW filter -->
+  <div style="padding:10px 16px 0;display:flex;gap:8px;align-items:center;">
+    <select id="psw-inbox-filter" class="sselect" style="flex:1;font-size:14px;padding:10px 12px;" onchange="openPSWInbox(this.value)">
+      <option value="">All PSWs</option>
+    </select>
+    <button onclick="openPSWInbox(document.getElementById('psw-inbox-filter').value)" style="padding:10px 16px;border-radius:8px;border:1px solid var(--border2);background:var(--bg3);font-family:var(--mono);font-size:10px;letter-spacing:1px;color:var(--teal2);cursor:pointer;min-height:44px;">Refresh</button>
+  </div>
+  <div class="sheet-body" id="psw-inbox-body" style="padding-top:12px;">
+    <div class="empty-state" style="padding:24px 0;">Loading messages...</div>
+  </div>
+</div>
+
 <!-- ── PSW PAY STUB PICKER SHEET ──────────────────────────────────────────── -->
 <div class="sheet" id="psw-paystub-picker-sheet" style="z-index:1053;">
   <div class="sheet-handle"></div>
@@ -12163,6 +12202,121 @@ async function sendPickedInvoice() {
 </script>
 
 <script>
+// ── PSW → HQ MESSAGE INBOX ──────────────────────────────────────────────────
+async function fetchPSWInboxCount() {
+  // Background fetch — just the unread count to drive the bell badge
+  try {
+    var r = await fetch(API + '/hq/messages/inbox?operator_id=' + currentOp + '&unread_only=true', {
+      headers: { 'x-hq-token': window._hqToken || sessionStorage.getItem('hq_token') || '' }
+    });
+    var d = await r.json();
+    _pswUnreadCount = d.unread_count || 0;
+    // Update the dot in the notif panel header
+    var dot = document.getElementById('psw-inbox-notif-dot');
+    if (dot) dot.style.display = _pswUnreadCount > 0 ? 'inline-block' : 'none';
+    updateNotifications();
+  } catch(e) {}
+}
+
+async function openPSWInbox(pswFilter) {
+  // Populate PSW filter dropdown from D.psws
+  var filterSel = document.getElementById('psw-inbox-filter');
+  if (filterSel && filterSel.options.length <= 1) {
+    (D.psws||[]).forEach(function(p) {
+      var opt = document.createElement('option');
+      opt.value = p.full_name || p.name || '';
+      opt.textContent = p.full_name || p.name || '';
+      filterSel.appendChild(opt);
+    });
+  }
+  if (filterSel && pswFilter !== undefined) filterSel.value = pswFilter || '';
+
+  openSheet('psw-inbox-sheet');
+  var body = document.getElementById('psw-inbox-body');
+  if (body) body.innerHTML = '<div class="empty-state" style="padding:24px 0;">Loading...</div>';
+
+  try {
+    var url = API + '/hq/messages/inbox?operator_id=' + currentOp;
+    if (pswFilter) url += '&psw_name=' + encodeURIComponent(pswFilter);
+    var r = await fetch(url, {
+      headers: { 'x-hq-token': window._hqToken || sessionStorage.getItem('hq_token') || '' }
+    });
+    var d = await r.json();
+    var msgs = d.messages || [];
+
+    // Update meta line
+    var meta = document.getElementById('psw-inbox-meta');
+    if (meta) {
+      var unread = msgs.filter(function(m){ return !m.read; }).length;
+      meta.textContent = msgs.length + ' message' + (msgs.length !== 1 ? 's' : '') +
+        (unread > 0 ? ' · ' + unread + ' unread' : ' · all read');
+    }
+
+    if (!msgs.length) {
+      if (body) body.innerHTML = '<div class="empty-state" style="padding:32px 0;">No messages from PSWs' + (pswFilter ? ' for ' + escHtml(pswFilter) : '') + '</div>';
+      return;
+    }
+
+    // Render messages — grouped by PSW
+    var byPSW = {};
+    msgs.forEach(function(m) {
+      var name = m.psw_name || 'Unknown';
+      if (!byPSW[name]) byPSW[name] = [];
+      byPSW[name].push(m);
+    });
+
+    var html = Object.entries(byPSW).map(function(entry) {
+      var pswName = entry[0];
+      var pswMsgs = entry[1];
+      var hasUnread = pswMsgs.some(function(m){ return !m.read; });
+      var rows = pswMsgs.map(function(m) {
+        var time = new Date(m.created_at).toLocaleString('en-CA', {
+          timeZone: 'America/Toronto', month: 'short', day: 'numeric',
+          hour: '2-digit', minute: '2-digit'
+        });
+        return '<div style="padding:10px 14px;background:' + (m.read ? 'transparent' : 'rgba(61,138,122,.04)') + ';border-left:' + (m.read ? '2px solid transparent' : '2px solid var(--teal2)') + ';margin-bottom:2px;">' +
+          '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">' +
+            '<div style="font-family:var(--mono);font-size:10px;color:var(--muted);">' + time + '</div>' +
+            (!m.read ? '<div style="font-family:var(--mono);font-size:9px;letter-spacing:1px;color:var(--teal2);background:rgba(61,138,122,.1);padding:1px 6px;border-radius:4px;">NEW</div>' : '') +
+          '</div>' +
+          '<div style="font-size:13px;color:var(--text);line-height:1.6;white-space:pre-wrap;">' + escHtml(m.message || '') + '</div>' +
+        '</div>';
+      }).join('');
+
+      return '<div style="margin-bottom:8px;border:1px solid var(--border' + (hasUnread ? '2' : '') + ');border-radius:10px;overflow:hidden;">' +
+        '<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--bg3);border-bottom:1px solid var(--border);">' +
+          '<div style="font-weight:500;font-size:13px;color:var(--text);">' + escHtml(pswName) + '</div>' +
+          '<div style="display:flex;gap:8px;">' +
+            (hasUnread ? '<span style="font-family:var(--mono);font-size:9px;letter-spacing:1px;padding:2px 7px;border-radius:100px;border:1px solid rgba(61,138,122,.4);color:var(--teal2);">' + pswMsgs.filter(function(m){return !m.read;}).length + ' new</span>' : '') +
+            '<span onclick="openPSWMsg(\'' + escHtml(pswName) + '\');closeSheet(\'psw-inbox-sheet\');" style="font-family:var(--mono);font-size:10px;color:var(--teal2);cursor:pointer;padding:2px 6px;border-radius:4px;border:1px solid rgba(61,138,122,.3);letter-spacing:.5px;">Reply</span>' +
+          '</div>' +
+        '</div>' +
+        rows +
+      '</div>';
+    }).join('');
+
+    if (body) body.innerHTML = html;
+
+    // Mark all unread as read (fire-and-forget)
+    msgs.filter(function(m){ return !m.read; }).forEach(function(m) {
+      fetch(API + '/hq/messages/' + m.id + '/read', {
+        method: 'PATCH',
+        headers: { 'x-hq-token': window._hqToken || sessionStorage.getItem('hq_token') || '' }
+      }).catch(function(){});
+    });
+
+    // Reset unread count and refresh bell
+    _pswUnreadCount = 0;
+    var dot = document.getElementById('psw-inbox-notif-dot');
+    if (dot) dot.style.display = 'none';
+    updateNotifications();
+
+  } catch(err) {
+    if (body) body.innerHTML = '<div class="empty-state">Error loading messages</div>';
+  }
+}
+// ── END PSW INBOX ────────────────────────────────────────────────────────────
+
 // ── PSW PAY STUB PICKER ──────────────────────────────────────────────────────
 var _pspClient = null; // { pswName, pswEmail, pswRate }
 
