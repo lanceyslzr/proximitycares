@@ -1627,6 +1627,7 @@ body.sidebar-rail .sidebar{width:64px;overflow:visible;}
   <div class="stat-card" onclick="showSect('clients')" style="cursor:pointer;" title="View clients"><div class="stat-val" id="s-clients">—</div><div class="stat-lbl">Clients</div></div>
   <div class="stat-card" onclick="showSect('schedule')" style="cursor:pointer;" title="View schedule"><div class="stat-val" id="s-bookings">—</div><div class="stat-lbl">Upcoming</div></div>
   <div class="stat-card" onclick="showSect('visits')" style="cursor:pointer;" title="View visits"><div class="stat-val" id="s-visits">—</div><div class="stat-lbl">Visits</div></div>
+  <div class="stat-card" onclick="showSect('revenue')" style="cursor:pointer;" title="View revenue"><div class="stat-val" id="s-margin" style="color:var(--green2);">—</div><div class="stat-lbl">Margin</div></div>
 </div>
 
 <!-- nav-tabs hidden — replaced by sidebar nav (Batch 3) -->
@@ -3475,6 +3476,7 @@ async function loadAll(spin=false) {
     // Invalidate lazy caches so next render fetches fresh data
     window._sentimentData = null;
     window._arData = null;
+    window._overtimeFlags = null;
     _mergedPSWCache = null;
     window._pswsRendered = false;
     renderAll();
@@ -3572,6 +3574,13 @@ function renderStats() {
   document.getElementById('s-bookings').textContent = c.bookings_upcoming||0;
   document.getElementById('s-visits').textContent = c.visits_total || (D.visits||[]).length || 0;
   document.getElementById('leads-badge').textContent = c.leads||0;
+  // Margin from invoice data (set by server in counts.margin_month)
+  const marginEl = document.getElementById('s-margin');
+  if (marginEl) {
+    const margin = c.margin_month;
+    marginEl.textContent = margin != null ? '$' + Math.round(margin).toLocaleString() : '—';
+    marginEl.style.color = margin > 0 ? 'var(--green2)' : margin < 0 ? 'var(--red)' : 'var(--muted)';
+  }
 
   // Lead monthly totals
   const now = new Date();
@@ -3831,7 +3840,7 @@ function renderClients() {
     // BUILD 29 — overdue badge
     const overdueInv = (window._arData||[]).find(inv => inv.client_name === name && inv.overdue);
     const overdueBadge = overdueInv
-      ? `<div style="font-family:var(--mono);font-size:11px;letter-spacing:1px;padding:2px 6px;border-radius:100px;border:1px solid rgba(224,85,85,.4);color:var(--red);margin-top:2px;">OVERDUE $${parseFloat(overdueInv.total_amount||0).toFixed(0)}</div>`
+      ? `<div style="font-family:var(--mono);font-size:11px;letter-spacing:1px;padding:2px 6px;border-radius:100px;border:1px solid rgba(224,85,85,.4);color:var(--red);margin-top:2px;">OVERDUE $${parseFloat(overdueInv.client_total||0).toFixed(0)}</div>`
       : '';
     // C2 — consent badge
     const consentBadge = !c.consent_given
@@ -3865,7 +3874,7 @@ function renderClients() {
       </div>
       <div class="card-info-strip">${lastVisitChip}${pswChip}</div>
       <div class="card-actions">
-        <div class="card-act" data-cn="${name.replace(/"/g,'&quot;')}" data-em="${(c.family_email||c.email||'').replace(/"/g,'&quot;')}" data-pw="${(c.assigned_psw||'').replace(/"/g,'&quot;')}" data-cr="${c.client_rate||22}" data-pr="${c.psw_rate||19}" onclick="genInvoice(this.dataset.cn,this.dataset.em,this.dataset.pw,parseFloat(this.dataset.cr),parseFloat(this.dataset.pr))">Invoice</div>
+        <div class="card-act" data-cn="${name.replace(/"/g,'&quot;')}" data-em="${(c.family_email||c.email||'').replace(/"/g,'&quot;')}" data-pw="${(c.assigned_psw||'').replace(/"/g,'&quot;')}" data-cr="${c.client_rate||22}" data-pr="${c.psw_rate||19}" onclick="openInvoicePicker(this.dataset.cn,this.dataset.em,this.dataset.pw,parseFloat(this.dataset.cr),parseFloat(this.dataset.pr))">Invoice</div>
         <div class="card-act primary" onclick="openClientSchedule('${name}')">Schedule</div>
         <div class="card-act" onclick="openClientDetail('${c.id}')">View</div>
         <div class="card-act ok" onclick="triggerOnboardClient('${c.portal_slug||''}')">Welcome</div>
@@ -4386,6 +4395,13 @@ function renderCertExpiry() {
 
 function renderPSWs() {
   renderCertExpiry();
+  // Fetch overtime flags lazily if not loaded
+  if (!window._overtimeFlags) {
+    fetch(`${API}/hq/overtime-flags?operator_id=${currentOp}`, { headers: { 'x-hq-token': window._hqToken || sessionStorage.getItem('hq_token') || '' } })
+      .then(r => r.json())
+      .then(d => { if (d.success) { window._overtimeFlags = d.flags || []; renderPSWs(); } })
+      .catch(() => {});
+  }
   const el = document.getElementById('psws-list');
   if (!el.querySelector('.card')) showSkeleton('psws-list', 6, true);
   const merged = getMergedPSWList();
@@ -4407,6 +4423,11 @@ function renderPSWs() {
     const probationSoon = onProbation && p.probation_end <= in90;
     const probationBadge = onProbation
       ? `<span style="font-family:var(--mono);font-size:11px;letter-spacing:1px;padding:2px 6px;border-radius:100px;border:1px solid ${probationSoon?'rgba(224,85,85,.4)':'rgba(224,154,61,.4)'};color:${probationSoon?'var(--red)':'var(--amber)'};margin-left:4px;">PROBATION${probationSoon?' ⚠':''}</span>`
+      : '';
+    // Overtime flag — ESA 44h/week
+    const otFlag = (window._overtimeFlags||[]).find(f => f.psw_name === p.name);
+    const otBadge = otFlag
+      ? `<span style="font-family:var(--mono);font-size:11px;letter-spacing:1px;padding:2px 6px;border-radius:100px;border:1px solid rgba(224,85,85,.5);color:var(--red);background:rgba(224,85,85,.08);margin-left:4px;" title="Overtime: ${otFlag.total_overtime_hours}h · $${otFlag.overtime_premium_owing} premium owing">⚠ OT ${otFlag.total_overtime_hours}h</span>`
       : '';
     // On-shift status
     const todayStr2 = new Date().toLocaleDateString('en-CA',{timeZone:'America/Toronto'});
@@ -4435,7 +4456,7 @@ function renderPSWs() {
       <div class="card-header" data-psw-id="${p.id||''}" data-psw-name="${p.name}" data-psw-source="${p.source||'live'}" onclick="if(this.dataset.pswSource==='live'){openPSWDetail(this.dataset.pswId||this.dataset.pswName);}else{showToast('PSW not yet activated in Supabase','err');}" style="cursor:pointer;">
         <div style="display:flex;align-items:center;gap:11px;flex:1;">
           <div class="avatar">${ini}</div>
-          <div><div class="card-name">${p.name}${probationBadge}</div><div class="card-sub">${p.psw_code||p.id?'<span style="font-family:var(--mono);font-size:12px;color:var(--teal3);">'+(p.psw_code||'')+'</span> · ':''} ${email||'No email on file'}</div></div>
+          <div><div class="card-name">${p.name}${probationBadge}${otBadge}</div><div class="card-sub">${p.psw_code||p.id?'<span style="font-family:var(--mono);font-size:12px;color:var(--teal3);">'+(p.psw_code||'')+'</span> · ':''} ${email||'No email on file'}</div></div>
         </div>
         ${activeShift ? '<span class="badge" style="background:rgba(74,154,110,.15);color:var(--green2);border:1px solid rgba(74,154,110,.3);">On Shift</span>' : statusBadge}
       </div>
@@ -7694,6 +7715,15 @@ async function renderRevenue() {
     const invoices = arData.invoices || [];
     const totalOut = arData.total_outstanding || 0;
     const overdueCount = arData.overdue_count || 0;
+    const agingSummary = arData.aging_summary || {};
+
+    // Aging bucket label styles
+    const bucketStyle = {
+      'current':  { bg: 'rgba(61,138,122,.08)',  border: 'rgba(61,138,122,.3)',  color: 'var(--teal2)',  label: 'Current' },
+      '31-60':    { bg: 'rgba(212,160,61,.08)',   border: 'rgba(212,160,61,.3)',  color: 'var(--amber)',  label: '31-60d' },
+      '61-90':    { bg: 'rgba(224,120,61,.08)',   border: 'rgba(224,120,61,.3)',  color: 'var(--amber)',  label: '61-90d' },
+      '90+':      { bg: 'rgba(224,85,85,.08)',    border: 'rgba(224,85,85,.3)',   color: 'var(--red)',    label: '90d+' },
+    };
 
     let arHtml = `<div style="margin:0 12px 16px;">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
@@ -7704,6 +7734,20 @@ async function renderRevenue() {
         </div>
       </div>`;
 
+    // Aging bucket summary strip
+    const buckets = Object.entries(agingSummary).filter(([,v]) => v > 0);
+    if (buckets.length > 1) {
+      arHtml += `<div style="display:grid;grid-template-columns:repeat(${buckets.length},1fr);gap:6px;margin-bottom:12px;">`;
+      buckets.forEach(([bucket, amt]) => {
+        const s = bucketStyle[bucket] || bucketStyle['current'];
+        arHtml += `<div style="padding:8px 10px;background:${s.bg};border:1px solid ${s.border};border-radius:6px;text-align:center;">
+          <div style="font-family:var(--mono);font-size:12px;color:${s.color};font-weight:500;">$${parseFloat(amt).toFixed(0)}</div>
+          <div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;margin-top:2px;">${s.label}</div>
+        </div>`;
+      });
+      arHtml += '</div>';
+    }
+
     // Split into unpaid and paid
     const unpaidInvs = invoices.filter(i => !i.paid);
     const paidInvs   = invoices.filter(i =>  i.paid);
@@ -7713,14 +7757,25 @@ async function renderRevenue() {
     } else {
       unpaidInvs.forEach(inv => {
         const isOverdue = inv.overdue || inv.days_outstanding >= 30;
-        arHtml += `<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:${isOverdue ? 'rgba(224,85,85,.04)' : 'var(--bg2)'};border:1px solid ${isOverdue ? 'rgba(224,85,85,.25)' : 'var(--border)'};border-radius:6px;margin-bottom:4px;">
-          <div>
-            <div style="font-size:12px;font-weight:500;color:var(--text);">${inv.client_name||'—'}</div>
-            <div style="font-family:var(--mono);font-size:11px;color:${isOverdue ? 'var(--red)' : 'var(--muted)'};margin-top:2px;">${inv.month||''} ${inv.year||''} · ${inv.days_outstanding}d outstanding${isOverdue ? ' · OVERDUE' : ''}</div>
+        const bucket = inv.aging_bucket || 'current';
+        const bs = bucketStyle[bucket] || bucketStyle['current'];
+        // Period: prefer explicit start_date/end_date, fall back to month/year
+        const periodLabel = inv.start_date && inv.end_date
+          ? `${inv.start_date} → ${inv.end_date}`
+          : `${inv.month||''} ${inv.year||''}`;
+        arHtml += `<div style="padding:10px 12px;background:${isOverdue ? 'rgba(224,85,85,.04)' : 'var(--bg2)'};border:1px solid ${isOverdue ? 'rgba(224,85,85,.25)' : 'var(--border)'};border-radius:6px;margin-bottom:6px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+            <div>
+              <div style="font-size:12px;font-weight:500;color:var(--text);">${inv.client_name||'—'}</div>
+              <div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:2px;">${periodLabel} · ${inv.days_outstanding}d outstanding</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <span style="font-family:var(--mono);font-size:9px;letter-spacing:1px;padding:2px 6px;border-radius:4px;background:${bs.bg};border:1px solid ${bs.border};color:${bs.color};">${bs.label}</span>
+              <div style="font-family:var(--mono);font-size:14px;font-weight:600;color:${isOverdue ? 'var(--red)' : 'var(--teal2)'};">$${parseFloat(inv.client_total||0).toFixed(0)}</div>
+            </div>
           </div>
-          <div style="display:flex;align-items:center;gap:8px;">
-            <div style="font-family:var(--mono);font-size:13px;color:${isOverdue ? 'var(--red)' : 'var(--teal2)'};">$${parseFloat(inv.total_amount||0).toFixed(0)}</div>
-            <button onclick="markInvoicePaid('${inv.id}')" style="font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;padding:5px 9px;border-radius:4px;border:1px solid rgba(74,154,110,.4);background:rgba(74,154,110,.08);color:var(--green2);cursor:pointer;min-height:44px;touch-action:manipulation;">Mark Paid</button>
+          <div style="display:flex;gap:6px;">
+            <button onclick="markInvoicePaid('${inv.id}')" style="flex:1;font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;padding:8px 10px;border-radius:6px;border:1px solid rgba(74,154,110,.4);background:rgba(74,154,110,.08);color:var(--green2);cursor:pointer;min-height:44px;touch-action:manipulation;">✓ Mark Paid</button>
           </div>
         </div>`;
       });
@@ -7733,12 +7788,15 @@ async function renderRevenue() {
         <div style="font-family:var(--mono);font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--muted2);margin-bottom:10px;">Payment History</div>`;
       paidInvs.forEach(inv => {
         const paidDate = inv.paid_at ? new Date(inv.paid_at).toLocaleDateString('en-CA',{month:'short',day:'numeric',year:'numeric'}) : '—';
+        const periodLabel = inv.start_date && inv.end_date
+          ? `${inv.start_date} → ${inv.end_date}`
+          : `${inv.month||''} ${inv.year||''}`;
         arHtml += `<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:rgba(109,185,116,.03);border:1px solid rgba(109,185,116,.15);border-radius:6px;margin-bottom:4px;">
           <div>
             <div style="font-size:12px;font-weight:500;color:var(--text);">${inv.client_name||'—'}</div>
-            <div style="font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:2px;">${inv.month||''} ${inv.year||''} · Paid ${paidDate}</div>
+            <div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:2px;">${periodLabel} · Paid ${paidDate}${inv.receipt_number ? ' · <span style="color:var(--teal2);">'+inv.receipt_number+'</span>' : ''}</div>
           </div>
-          <div style="font-family:var(--mono);font-size:13px;color:var(--green2);">$${parseFloat(inv.total_amount||0).toFixed(0)} ✓</div>
+          <div style="font-family:var(--mono);font-size:13px;color:var(--green2);">$${parseFloat(inv.client_total||0).toFixed(0)} ✓</div>
         </div>`;
       });
       arHtml += '</div>';
@@ -7830,11 +7888,11 @@ async function openPSWDetail(pswId) {
       .filter(v => (v.psw_name||'').trim() === name.trim())
       .sort((a,b) => (b.visit_date||'').localeCompare(a.visit_date||''))
       .slice(0, 30);
-    const pswTotalHrs = pswVisits.reduce((s,v)=>s+parseFloat(v.hours_worked||0),0);
+    const pswTotalHrs = pswVisits.reduce((s,v)=>s+parseFloat(v.manual_hours_override??v.hours_worked??0),0);
 
     const pswVisitRows = pswVisits.length
       ? pswVisits.map(v => {
-          const hrs = parseFloat(v.hours_worked||0);
+          const hrs = parseFloat(v.manual_hours_override??v.hours_worked??0);
           const statusDot = v.status==='completed'?'var(--green2)':v.status==='in_progress'?'var(--teal2)':'var(--muted)';
           return `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);">
             <div style="width:7px;height:7px;border-radius:50%;background:${statusDot};flex-shrink:0;"></div>
@@ -7851,7 +7909,7 @@ async function openPSWDetail(pswId) {
     <div class="prof-act-row">
       <button class="sbtn" onclick="openHoursPanel('psw','${name}')">&#9201; Hours</button>
       <button class="sbtn" onclick="openPSWMsg('${name}');closeSheet('psw-detail-sheet');">Message</button>
-      <button class="sbtn" style="background:rgba(109,185,116,.1);color:var(--green2);border-color:rgba(109,185,116,.25);" onclick="openPaystubModal('${name}','${p.email||rec.email||String()}',${p.psw_rate||rec.psw_rate||19})">Paystub</button>
+      <button class="sbtn" style="background:rgba(109,185,116,.1);color:var(--green2);border-color:rgba(109,185,116,.25);" onclick="openPSWPaystubPicker('${name}','${p.email||rec.email||''}',${p.psw_rate||rec.psw_rate||19})">Pay Stub</button>
       <button class="sbtn" style="background:rgba(109,185,116,.06);color:var(--green2);border-color:rgba(109,185,116,.2);" onclick="confirmPaymentModal('${name}','${p.email||rec.email||String()}')">✓ Payment Sent</button>
     </div>
     <div class="prof-tabs">
@@ -11778,6 +11836,84 @@ function _applyActiveSectionFlex() {
   </div>
 </div>
 
+<!-- ── BULK VISIT EDIT SHEET ─────────────────────────────────────────────── -->
+<div class="sheet" id="bulk-visit-edit-sheet" style="z-index:602;">
+  <div class="sheet-handle"></div>
+  <div class="sheet-header">
+    <div>
+      <div style="font-family:var(--mono);font-size:12px;letter-spacing:2px;text-transform:uppercase;color:var(--text);">Bulk Edit Visits</div>
+      <div style="font-family:var(--mono);font-size:10px;color:var(--amber);margin-top:2px;">Pre-payday corrections · writes manual_hours_override</div>
+    </div>
+    <button class="sheet-close" onclick="closeSheet('bulk-visit-edit-sheet')">✕</button>
+  </div>
+  <div class="sheet-body" style="padding:16px;">
+    <div class="srow2" style="margin-bottom:14px;">
+      <div>
+        <div class="slbl">PSW</div>
+        <select class="sselect" id="bve-psw" onchange="loadBulkVisits()">
+          <option value="">Select PSW...</option>
+        </select>
+      </div>
+      <div>
+        <div class="slbl">Month</div>
+        <input class="sinput" type="month" id="bve-month" onchange="loadBulkVisits()" style="font-size:16px;">
+      </div>
+    </div>
+    <div id="bve-visit-list" style="min-height:60px;font-family:var(--mono);font-size:12px;color:var(--muted);"></div>
+    <button id="bve-submit-btn" class="sbtn" onclick="submitBulkEdit()" disabled style="opacity:0.4;margin-top:12px;">Save All Corrections</button>
+  </div>
+</div>
+
+<!-- ── PSW PAY STUB PICKER SHEET ──────────────────────────────────────────── -->
+<div class="sheet" id="psw-paystub-picker-sheet" style="z-index:1053;">
+  <div class="sheet-handle"></div>
+  <div class="sheet-header">
+    <div>
+      <div style="font-family:var(--mono);font-size:12px;letter-spacing:2px;text-transform:uppercase;color:var(--text);">PSW Pay Stub</div>
+      <div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:3px;" id="psp-meta"></div>
+    </div>
+    <button class="sheet-close" onclick="closeSheet('psw-paystub-picker-sheet')">✕</button>
+  </div>
+  <div class="sheet-body">
+    <div class="slbl" style="margin-bottom:8px;">Pay Period</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px;">
+      <button id="psp-preset-last" onclick="setPaystubPeriod('last')" style="padding:10px 6px;border-radius:8px;border:1px solid var(--border);background:var(--bg3);font-family:var(--mono);font-size:10px;letter-spacing:1px;color:var(--muted);min-height:44px;cursor:pointer;transition:all .15s;">Last Month</button>
+      <button id="psp-preset-this" onclick="setPaystubPeriod('this')" style="padding:10px 6px;border-radius:8px;border:1px solid var(--border);background:var(--bg3);font-family:var(--mono);font-size:10px;letter-spacing:1px;color:var(--muted);min-height:44px;cursor:pointer;transition:all .15s;">This Month</button>
+      <button id="psp-preset-custom" onclick="setPaystubPeriod('custom')" style="padding:10px 6px;border-radius:8px;border:1px solid var(--border);background:var(--bg3);font-family:var(--mono);font-size:10px;letter-spacing:1px;color:var(--muted);min-height:44px;cursor:pointer;transition:all .15s;">Custom</button>
+    </div>
+    <div class="srow2" style="margin-bottom:14px;">
+      <div><div class="slbl">Start Date</div><input class="sinput" type="date" id="psp-start" oninput="clearPaystubPreview()" style="font-size:16px;"></div>
+      <div><div class="slbl">End Date</div><input class="sinput" type="date" id="psp-end" oninput="clearPaystubPreview()" style="font-size:16px;"></div>
+    </div>
+    <button onclick="previewPSWPaystub()" style="width:100%;padding:14px;border-radius:8px;border:1px solid var(--green2);background:rgba(109,185,116,.08);color:var(--green2);font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;cursor:pointer;min-height:44px;margin-bottom:14px;touch-action:manipulation;">Preview Period →</button>
+    <!-- Preview box -->
+    <div id="psp-preview-box" style="display:none;border-radius:10px;border:1px solid var(--border2);background:var(--bg3);padding:16px 16px 12px;margin-bottom:16px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+        <div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);">Preview</div>
+        <div id="psp-preview-badge" style="font-family:var(--mono);font-size:9px;padding:2px 8px;border-radius:4px;background:rgba(109,185,116,.1);color:var(--green2);letter-spacing:1px;"></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;text-align:center;margin-bottom:12px;">
+        <div style="background:var(--bg2);border-radius:8px;padding:12px 6px;">
+          <div id="psp-prev-visits" style="font-family:var(--mono);font-size:24px;color:var(--teal2);line-height:1;margin-bottom:4px;">—</div>
+          <div style="font-family:var(--mono);font-size:8px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;">Visits</div>
+        </div>
+        <div style="background:var(--bg2);border-radius:8px;padding:12px 6px;">
+          <div id="psp-prev-hours" style="font-family:var(--mono);font-size:24px;color:var(--teal2);line-height:1;margin-bottom:4px;">—</div>
+          <div style="font-family:var(--mono);font-size:8px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;">Hours</div>
+        </div>
+        <div style="background:var(--bg2);border-radius:8px;padding:12px 6px;">
+          <div id="psp-prev-total" style="font-family:var(--mono);font-size:22px;color:var(--green2);line-height:1;margin-bottom:4px;">—</div>
+          <div style="font-family:var(--mono);font-size:8px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;">Pay</div>
+        </div>
+      </div>
+      <div id="psp-prev-dates" style="font-family:var(--mono);font-size:9px;color:var(--muted2);line-height:1.8;border-top:1px solid var(--border);padding-top:10px;word-break:break-word;"></div>
+      <div id="psp-ot-warning" style="display:none;margin-top:10px;padding:8px 10px;background:rgba(224,85,85,.06);border:1px solid rgba(224,85,85,.3);border-radius:6px;font-family:var(--mono);font-size:10px;color:var(--red);line-height:1.5;"></div>
+    </div>
+    <button id="psp-send-btn" onclick="sendPSWPaystub()" disabled style="width:100%;padding:15px;border-radius:10px;background:var(--teal);color:#fff;font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;cursor:pointer;border:none;min-height:52px;opacity:0.35;transition:opacity .2s;touch-action:manipulation;">Send Pay Stub PDF</button>
+    <div style="font-family:var(--mono);font-size:9px;color:var(--muted);text-align:center;margin-top:8px;letter-spacing:.5px;">Preview first · PDF emailed directly to PSW</div>
+  </div>
+</div>
+
 <!-- ── INVOICE PICKER SHEET ──────────────────────────────────────────────── -->
 <!-- Opens from client sheet. Select period → preview → send. No accidental fires. -->
 <div class="sheet" id="invoice-picker-sheet" style="z-index:1052;">
@@ -12027,6 +12163,235 @@ async function sendPickedInvoice() {
 </script>
 
 <script>
+// ── PSW PAY STUB PICKER ──────────────────────────────────────────────────────
+var _pspClient = null; // { pswName, pswEmail, pswRate }
+
+function openPSWPaystubPicker(pswName, pswEmail, pswRate) {
+  _pspClient = { pswName, pswEmail: pswEmail || '', pswRate: parseFloat(pswRate) || 19 };
+  var metaEl = document.getElementById('psp-meta');
+  if (metaEl) metaEl.textContent = pswName + (pswEmail ? ' · ' + pswEmail : '');
+  // Populate PSW dropdown in bulk edit sheet
+  var bvePsw = document.getElementById('bve-psw');
+  if (bvePsw) bvePsw.value = pswName;
+  setPaystubPeriod('last');
+  clearPaystubPreview();
+  openSheet('psw-paystub-picker-sheet');
+}
+
+function setPaystubPeriod(preset) {
+  var now = new Date();
+  var startDate, endDate;
+  ['last','this','custom'].forEach(function(p) {
+    var el = document.getElementById('psp-preset-' + p);
+    if (!el) return;
+    var active = (p === preset);
+    el.style.borderColor = active ? 'var(--green2)' : 'var(--border)';
+    el.style.color       = active ? 'var(--green2)' : 'var(--muted)';
+    el.style.background  = active ? 'rgba(109,185,116,.08)' : 'var(--bg3)';
+    el.style.fontWeight  = active ? '600' : '400';
+  });
+  if (preset === 'last') {
+    startDate = new Date(now.getFullYear(), now.getMonth()-1, 1).toISOString().slice(0,10);
+    endDate   = new Date(now.getFullYear(), now.getMonth(),  0).toISOString().slice(0,10);
+  } else if (preset === 'this') {
+    startDate = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0,10);
+    endDate   = now.toISOString().slice(0,10);
+  }
+  if (startDate) document.getElementById('psp-start').value = startDate;
+  if (endDate)   document.getElementById('psp-end').value   = endDate;
+  clearPaystubPreview();
+}
+
+function clearPaystubPreview() {
+  var box = document.getElementById('psp-preview-box');
+  if (box) box.style.display = 'none';
+  var btn = document.getElementById('psp-send-btn');
+  if (btn) { btn.disabled = true; btn.style.opacity = '0.35'; btn.textContent = 'Send Pay Stub PDF'; }
+  ['psp-prev-visits','psp-prev-hours','psp-prev-total'].forEach(function(id) {
+    var el = document.getElementById(id); if (el) el.textContent = '—';
+  });
+  var dates = document.getElementById('psp-prev-dates'); if (dates) dates.textContent = '';
+  var ot = document.getElementById('psp-ot-warning'); if (ot) ot.style.display = 'none';
+}
+
+function previewPSWPaystub() {
+  var start = document.getElementById('psp-start').value;
+  var end   = document.getElementById('psp-end').value;
+  if (!start || !end) { showToast('Select start and end dates', 'err'); return; }
+  if (start > end)    { showToast('Start must be before end', 'err'); return; }
+  if (!_pspClient)    { showToast('No PSW selected', 'err'); return; }
+
+  // Client-side preview from D.visits (already loaded, last 90 days)
+  var pswVisits = (D.visits||[]).filter(function(v) {
+    return (v.psw_name||'').trim() === (_pspClient.pswName||'').trim()
+      && v.visit_date >= start
+      && v.visit_date <= end;
+  }).sort(function(a,b) { return (a.visit_date||'').localeCompare(b.visit_date||''); });
+
+  var totalHours = pswVisits.reduce(function(s,v) {
+    return s + parseFloat(v.manual_hours_override != null ? v.manual_hours_override : (v.hours_worked || 0));
+  }, 0);
+  totalHours = Math.round(totalHours * 100) / 100;
+  var pswTotal = Math.round(totalHours * _pspClient.pswRate * 100) / 100;
+
+  document.getElementById('psp-prev-visits').textContent = pswVisits.length;
+  document.getElementById('psp-prev-hours').textContent  = totalHours.toFixed(2);
+  document.getElementById('psp-prev-total').textContent  = '$' + pswTotal.toFixed(2);
+  document.getElementById('psp-preview-badge').textContent = pswVisits.length + ' visit' + (pswVisits.length === 1 ? '' : 's');
+
+  if (pswVisits.length) {
+    var fmt = function(ds) { return new Date(ds+'T12:00:00').toLocaleDateString('en-CA',{weekday:'short',month:'short',day:'numeric'}); };
+    document.getElementById('psp-prev-dates').textContent = pswVisits.map(function(v){ return fmt(v.visit_date); }).join('  ·  ');
+  } else {
+    document.getElementById('psp-prev-dates').textContent = 'No visits found in D.visits for this period. Server will re-query on send.';
+  }
+
+  // Overtime warning — flag if any week exceeds 44h (simple check)
+  var weekMap = {};
+  pswVisits.forEach(function(v) {
+    var d = new Date(v.visit_date+'T12:00:00');
+    var day = d.getDay() === 0 ? 6 : d.getDay()-1;
+    var mon = new Date(d); mon.setDate(d.getDate()-day);
+    var wk = mon.toISOString().slice(0,10);
+    weekMap[wk] = (weekMap[wk]||0) + parseFloat(v.manual_hours_override!=null?v.manual_hours_override:(v.hours_worked||0));
+  });
+  var otWeeks = Object.entries(weekMap).filter(function(e){ return e[1]>44; });
+  var otEl = document.getElementById('psp-ot-warning');
+  if (otWeeks.length && otEl) {
+    var premium = otWeeks.reduce(function(s,e){ return s+(e[1]-44)*_pspClient.pswRate*0.5; }, 0);
+    otEl.style.display = 'block';
+    otEl.textContent = '⚠ Overtime detected in ' + otWeeks.length + ' week(s). Ontario ESA 1.5x premium ~$' + premium.toFixed(2) + ' may apply. Review before sending.';
+  }
+
+  document.getElementById('psp-preview-box').style.display = 'block';
+  var sendBtn = document.getElementById('psp-send-btn');
+  sendBtn.disabled = false;
+  sendBtn.style.opacity = '1';
+  showToast(pswVisits.length + ' visits · ' + totalHours.toFixed(2) + 'h · $' + pswTotal.toFixed(2), 'ok');
+}
+
+async function sendPSWPaystub() {
+  var start = document.getElementById('psp-start').value;
+  var end   = document.getElementById('psp-end').value;
+  if (!start || !end || !_pspClient) return;
+  var btn = document.getElementById('psp-send-btn');
+  btn.disabled = true; btn.style.opacity = '0.5'; btn.textContent = 'Sending...';
+  var months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  var endDt  = new Date(end + 'T12:00:00');
+  try {
+    var r = await fetch(API + '/paystub/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-hq-token': (window._hqToken || sessionStorage.getItem('hq_token') || '') },
+      body: JSON.stringify({
+        operator_id: currentOp,
+        psw_name:    _pspClient.pswName,
+        psw_email:   _pspClient.pswEmail,
+        start_date:  start,
+        end_date:    end,
+        psw_rate:    _pspClient.pswRate,
+        month:       months[endDt.getMonth()],
+        year:        endDt.getFullYear()
+      })
+    });
+    var d = await r.json();
+    if (d.error) throw new Error(d.error);
+    showToast('Pay stub sent ✓ · ' + d.total_hours + 'h · $' + d.psw_total.toFixed(2), 'ok');
+    closeSheet('psw-paystub-picker-sheet');
+    closeSheet('psw-detail-sheet');
+  } catch(err) {
+    showToast(err.message || 'Send failed', 'err');
+    btn.disabled = false; btn.style.opacity = '1'; btn.textContent = 'Send Pay Stub PDF';
+  }
+}
+// ── END PSW PAY STUB PICKER ──────────────────────────────────────────────────
+
+// ── BULK VISIT EDIT ──────────────────────────────────────────────────────────
+var _bulkVisitEdits = {}; // { visitId: { time_in, time_out, manual_hours } }
+
+function openBulkVisitEdit(pswName) {
+  _bulkVisitEdits = {};
+  // Populate PSW dropdown
+  var sel = document.getElementById('bve-psw');
+  if (sel) {
+    sel.innerHTML = '<option value="">Select PSW...</option>' +
+      (D.psws||[]).map(p => `<option value="${p.full_name||p.name||''}">${p.full_name||p.name||''}</option>`).join('');
+    if (pswName) sel.value = pswName;
+  }
+  // Default to current month
+  var now = new Date();
+  var monthInput = document.getElementById('bve-month');
+  if (monthInput) monthInput.value = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0');
+  if (pswName) loadBulkVisits();
+  openSheet('bulk-visit-edit-sheet');
+}
+
+function loadBulkVisits() {
+  var pswName = (document.getElementById('bve-psw')?.value||'').trim();
+  var monthVal = document.getElementById('bve-month')?.value;
+  var listEl = document.getElementById('bve-visit-list');
+  var submitBtn = document.getElementById('bve-submit-btn');
+  if (!pswName || !monthVal || !listEl) return;
+  var [yr, mo] = monthVal.split('-').map(Number);
+  var startDate = `${yr}-${String(mo).padStart(2,'0')}-01`;
+  var endDate   = new Date(yr, mo, 0).toISOString().slice(0,10);
+  var visits = (D.visits||[]).filter(v =>
+    (v.psw_name||'').trim() === pswName &&
+    v.visit_date >= startDate && v.visit_date <= endDate
+  ).sort((a,b) => (a.visit_date||'').localeCompare(b.visit_date||''));
+  if (!visits.length) {
+    listEl.innerHTML = '<div style="padding:12px 0;color:var(--muted);font-family:var(--mono);font-size:12px;">No visits in D.visits for this period.</div>';
+    if (submitBtn) { submitBtn.disabled = true; submitBtn.style.opacity = '0.4'; }
+    return;
+  }
+  _bulkVisitEdits = {};
+  listEl.innerHTML = visits.map(v => {
+    var curHrs = parseFloat(v.manual_hours_override != null ? v.manual_hours_override : (v.hours_worked||0)).toFixed(2);
+    return `<div style="padding:8px 0;border-bottom:1px solid var(--border);">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+        <div style="font-family:var(--mono);font-size:11px;color:var(--text);">${v.visit_date} · ${v.client_name||'—'}</div>
+        <div style="font-family:var(--mono);font-size:11px;color:var(--teal2);">${curHrs}h</div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;">
+        <input class="sinput" placeholder="Time In" style="font-size:14px;padding:8px;" value="${v.time_in||''}"
+          oninput="_bveSet('${v.id}','time_in',this.value)">
+        <input class="sinput" placeholder="Time Out" style="font-size:14px;padding:8px;" value="${v.time_out||''}"
+          oninput="_bveSet('${v.id}','time_out',this.value)">
+        <input class="sinput" type="number" step="0.25" placeholder="Hrs" style="font-size:14px;padding:8px;" value="${curHrs}"
+          oninput="_bveSet('${v.id}','manual_hours',this.value)">
+      </div>
+    </div>`;
+  }).join('');
+  if (submitBtn) { submitBtn.disabled = false; submitBtn.style.opacity = '1'; }
+}
+
+function _bveSet(visitId, field, value) {
+  if (!_bulkVisitEdits[visitId]) _bulkVisitEdits[visitId] = { id: visitId };
+  _bulkVisitEdits[visitId][field] = value;
+}
+
+async function submitBulkEdit() {
+  var edits = Object.values(_bulkVisitEdits).filter(e => Object.keys(e).length > 1);
+  if (!edits.length) { showToast('No changes to save', 'err'); return; }
+  var btn = document.getElementById('bve-submit-btn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Saving...'; }
+  try {
+    var r = await fetch(API + '/hq/visits/bulk-edit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-hq-token': (window._hqToken || sessionStorage.getItem('hq_token') || '') },
+      body: JSON.stringify({ operator_id: currentOp, edited_by: 'lance', visits: edits })
+    });
+    var d = await r.json();
+    if (d.error) throw new Error(d.error);
+    showToast(`Saved ${d.succeeded}/${d.total} visits ✓`, 'ok');
+    loadAll(false);
+    closeSheet('bulk-visit-edit-sheet');
+  } catch(err) {
+    showToast(err.message || 'Bulk edit failed', 'err');
+    if (btn) { btn.disabled = false; btn.textContent = 'Save All Corrections'; btn.style.opacity = '1'; }
+  }
+}
+// ── END BULK VISIT EDIT ──────────────────────────────────────────────────────
+
 // ── EDIT VISIT ──
 function openEditVisit(id, psw, client, date, timeIn, timeOut, hours) {
   document.getElementById('ev-id').value = id;
