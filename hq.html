@@ -8310,7 +8310,7 @@ function openClientDetail(id) {
   document.getElementById('client-sheet-body').innerHTML = `
     <div class="prof-act-row">
       <button class="sbtn" onclick="closeSheet('client-sheet');openClientSchedule('${name}')">+ Shift</button>
-      <button class="sbtn" style="background:rgba(200,169,110,.1);color:var(--gold);border-color:rgba(200,169,110,.3);" onclick="genInvoice('${name}','${c.family_email||c.email||''}','${c.assigned_psw||''}',${c.client_rate||22},${c.psw_rate||19});closeSheet('client-sheet');">Invoice</button>
+      <button class="sbtn" style="background:rgba(200,169,110,.1);color:var(--gold);border-color:rgba(200,169,110,.3);" onclick="openInvoicePicker('${name}','${c.family_email||c.email||''}','${c.assigned_psw||''}',${c.client_rate||22},${c.psw_rate||19})">Invoice</button>
       <button class="sbtn" onclick="openHoursPanel('client','${name}')">⏱ Hours</button>
     </div>
     <div class="prof-tabs">
@@ -8521,7 +8521,7 @@ function openClientDetail(id) {
         <div><div class="slbl">Reassessment Due</div><input class="sinput" id="ce-reassessment-due" type="date" value="${c.reassessment_due||''}" style="font-size:15px;"></div>
       </div>
       <button class="sbtn" style="margin-top:12px;background:rgba(200,169,110,.12);color:var(--gold);border-color:rgba(200,169,110,.3);" onclick="saveClientEdits('${id}')">Save Billing</button>
-      <div style="margin:16px 0 8px;"><button class="sbtn" onclick="genInvoice('${name}','${c.family_email||c.email||''}','${c.assigned_psw||''}',${c.client_rate||22},${c.psw_rate||19});closeSheet('client-sheet');">Generate Invoice</button></div>
+      <div style="margin:16px 0 8px;"><button class="sbtn" style="background:rgba(200,169,110,.1);color:var(--gold);border-color:rgba(200,169,110,.3);" onclick="openInvoicePicker('${name}','${c.family_email||c.email||''}','${c.assigned_psw||''}',${c.client_rate||22},${c.psw_rate||19})">Generate Invoice</button></div>
       <button class="sbtn ghost" style="margin-top:4px;" onclick="triggerOnboardClient('${slug}');closeSheet('client-sheet');">Resend Welcome Email</button>
     </div>
 
@@ -11777,6 +11777,254 @@ function _applyActiveSectionFlex() {
     <button class="sbtn" id="av-submit-btn" onclick="submitAddVisit()">Add Visit</button>
   </div>
 </div>
+
+<!-- ── INVOICE PICKER SHEET ──────────────────────────────────────────────── -->
+<!-- Opens from client sheet. Select period → preview → send. No accidental fires. -->
+<div class="sheet" id="invoice-picker-sheet" style="z-index:1052;">
+  <div class="sheet-handle"></div>
+  <div class="sheet-header">
+    <div>
+      <div style="font-family:var(--mono);font-size:12px;letter-spacing:2px;text-transform:uppercase;color:var(--text);">Generate Invoice</div>
+      <div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:3px;" id="inv-pick-meta"></div>
+    </div>
+    <button class="sheet-close" onclick="closeSheet('invoice-picker-sheet')">✕</button>
+  </div>
+  <div class="sheet-body">
+
+    <!-- Period presets -->
+    <div class="slbl" style="margin-bottom:8px;">Billing Period</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px;">
+      <button id="inv-preset-last" onclick="setInvPeriod('last')" style="padding:10px 6px;border-radius:8px;border:1px solid var(--border);background:var(--bg3);font-family:var(--mono);font-size:10px;letter-spacing:1px;color:var(--muted);min-height:44px;cursor:pointer;touch-action:manipulation;transition:all .15s;">Last Month</button>
+      <button id="inv-preset-this" onclick="setInvPeriod('this')" style="padding:10px 6px;border-radius:8px;border:1px solid var(--border);background:var(--bg3);font-family:var(--mono);font-size:10px;letter-spacing:1px;color:var(--muted);min-height:44px;cursor:pointer;touch-action:manipulation;transition:all .15s;">This Month</button>
+      <button id="inv-preset-custom" onclick="setInvPeriod('custom')" style="padding:10px 6px;border-radius:8px;border:1px solid var(--border);background:var(--bg3);font-family:var(--mono);font-size:10px;letter-spacing:1px;color:var(--muted);min-height:44px;cursor:pointer;touch-action:manipulation;transition:all .15s;">Custom</button>
+    </div>
+
+    <!-- Date range pickers (always visible) -->
+    <div class="srow2" style="margin-bottom:14px;">
+      <div>
+        <div class="slbl">Start Date</div>
+        <input class="sinput" type="date" id="inv-start" oninput="clearInvPreview()" style="font-size:16px;">
+      </div>
+      <div>
+        <div class="slbl">End Date</div>
+        <input class="sinput" type="date" id="inv-end" oninput="clearInvPreview()" style="font-size:16px;">
+      </div>
+    </div>
+
+    <!-- Preview button -->
+    <button onclick="previewInvoicePick()" style="width:100%;padding:14px;border-radius:8px;border:1px solid var(--teal2);background:rgba(61,138,122,.08);color:var(--teal2);font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;cursor:pointer;min-height:44px;margin-bottom:14px;touch-action:manipulation;">Preview Period →</button>
+
+    <!-- Preview result (hidden until loaded) -->
+    <div id="inv-preview-box" style="display:none;border-radius:10px;border:1px solid var(--border2);background:var(--bg3);padding:16px 16px 12px;margin-bottom:16px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+        <div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);">Preview</div>
+        <div id="inv-preview-badge" style="font-family:var(--mono);font-size:9px;padding:2px 8px;border-radius:4px;background:rgba(61,138,122,.1);color:var(--green2);letter-spacing:1px;"></div>
+      </div>
+      <!-- Three stat cells -->
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;text-align:center;margin-bottom:12px;">
+        <div style="background:var(--bg2);border-radius:8px;padding:12px 6px;">
+          <div id="inv-prev-visits" style="font-family:var(--mono);font-size:24px;color:var(--teal2);line-height:1;margin-bottom:4px;">—</div>
+          <div style="font-family:var(--mono);font-size:8px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;">Visits</div>
+        </div>
+        <div style="background:var(--bg2);border-radius:8px;padding:12px 6px;">
+          <div id="inv-prev-hours" style="font-family:var(--mono);font-size:24px;color:var(--teal2);line-height:1;margin-bottom:4px;">—</div>
+          <div style="font-family:var(--mono);font-size:8px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;">Hours</div>
+        </div>
+        <div style="background:var(--bg2);border-radius:8px;padding:12px 6px;">
+          <div id="inv-prev-total" style="font-family:var(--mono);font-size:22px;color:var(--gold);line-height:1;margin-bottom:4px;">—</div>
+          <div style="font-family:var(--mono);font-size:8px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;">Total</div>
+        </div>
+      </div>
+      <!-- Visit date list -->
+      <div id="inv-prev-dates" style="font-family:var(--mono);font-size:9px;color:var(--muted2);line-height:1.8;border-top:1px solid var(--border);padding-top:10px;word-break:break-word;"></div>
+    </div>
+
+    <!-- Send button (disabled until previewed) -->
+    <button id="inv-send-btn" onclick="sendPickedInvoice()" disabled style="width:100%;padding:15px;border-radius:10px;background:var(--teal);color:#fff;font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;cursor:pointer;border:none;min-height:52px;opacity:0.35;transition:opacity .2s;touch-action:manipulation;">Send Invoice &amp; Pay Stub</button>
+    <div style="font-family:var(--mono);font-size:9px;color:var(--muted);text-align:center;margin-top:8px;letter-spacing:.5px;">Preview first · Invoice + PSW pay stub sent simultaneously</div>
+
+  </div>
+</div>
+
+<script>
+// ── INVOICE PICKER ───────────────────────────────────────────────────────────
+var _invPickClient = null; // { name, email, pswName, pswEmail, clientRate, pswRate }
+
+function openInvoicePicker(name, email, pswName, clientRate, pswRate) {
+  // Look up PSW email from loaded data for pay stub delivery
+  var pswEmail = '';
+  try {
+    var pswRec = (D.psws||[]).find(function(p){ return p.full_name === pswName; });
+    pswEmail = pswRec ? (pswRec.email||'') : '';
+  } catch(e){}
+
+  _invPickClient = {
+    name: name,
+    email: email,
+    pswName: pswName,
+    pswEmail: pswEmail,
+    clientRate: parseFloat(clientRate) || 22,
+    pswRate:    parseFloat(pswRate)    || 19
+  };
+
+  var metaEl = document.getElementById('inv-pick-meta');
+  if (metaEl) metaEl.textContent = name + (pswName ? ' · ' + pswName : '');
+
+  // Default to last month — most common billing scenario
+  setInvPeriod('last');
+  clearInvPreview();
+  openSheet('invoice-picker-sheet');
+}
+
+function setInvPeriod(preset) {
+  var now = new Date();
+  var startDate, endDate;
+
+  // Style the active preset button
+  ['last','this','custom'].forEach(function(p) {
+    var el = document.getElementById('inv-preset-' + p);
+    if (!el) return;
+    var active = (p === preset);
+    el.style.borderColor = active ? 'var(--teal2)'                : 'var(--border)';
+    el.style.color        = active ? 'var(--teal2)'                : 'var(--muted)';
+    el.style.background   = active ? 'rgba(61,138,122,.08)'        : 'var(--bg3)';
+    el.style.fontWeight   = active ? '600'                         : '400';
+  });
+
+  if (preset === 'last') {
+    var firstLast = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    var lastLast  = new Date(now.getFullYear(), now.getMonth(), 0);
+    startDate = firstLast.toISOString().slice(0, 10);
+    endDate   = lastLast.toISOString().slice(0, 10);
+  } else if (preset === 'this') {
+    var firstThis = new Date(now.getFullYear(), now.getMonth(), 1);
+    startDate = firstThis.toISOString().slice(0, 10);
+    endDate   = now.toISOString().slice(0, 10);
+  }
+  // 'custom' — leave existing date values, just style the button
+
+  if (startDate) document.getElementById('inv-start').value = startDate;
+  if (endDate)   document.getElementById('inv-end').value   = endDate;
+
+  clearInvPreview();
+}
+
+function clearInvPreview() {
+  var box = document.getElementById('inv-preview-box');
+  if (box) box.style.display = 'none';
+  var btn = document.getElementById('inv-send-btn');
+  if (btn) { btn.disabled = true; btn.style.opacity = '0.35'; btn.textContent = 'Send Invoice & Pay Stub'; }
+  // Reset stat cells
+  ['inv-prev-visits','inv-prev-hours','inv-prev-total'].forEach(function(id){
+    var el = document.getElementById(id); if(el) el.textContent = '—';
+  });
+  var dates = document.getElementById('inv-prev-dates');
+  if (dates) dates.textContent = '';
+  var badge = document.getElementById('inv-preview-badge');
+  if (badge) badge.textContent = '';
+}
+
+async function previewInvoicePick() {
+  var start = document.getElementById('inv-start').value;
+  var end   = document.getElementById('inv-end').value;
+  if (!start || !end) { showToast('Select start and end dates', 'err'); return; }
+  if (start > end)    { showToast('Start date must be before end date', 'err'); return; }
+  if (!_invPickClient){ showToast('No client selected', 'err'); return; }
+  if (!_invPickClient.pswName) { showToast('Client has no PSW assigned', 'err'); return; }
+
+  showToast('Checking visits...', 'ok');
+  try {
+    var r = await fetch(API + '/invoice/preview', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-hq-token': (window._hqToken || sessionStorage.getItem('hq_token') || '') },
+      body: JSON.stringify({
+        client_name:  _invPickClient.name,
+        psw_name:     _invPickClient.pswName,
+        start_date:   start,
+        end_date:     end,
+        client_rate:  _invPickClient.clientRate,
+        psw_rate:     _invPickClient.pswRate,
+        operator_id:  currentOp
+      })
+    });
+    var d = await r.json();
+    if (d.error) throw new Error(d.error);
+
+    // Populate stat cells
+    document.getElementById('inv-prev-visits').textContent = d.visits_count;
+    document.getElementById('inv-prev-hours').textContent  = d.total_hours.toFixed(2);
+    document.getElementById('inv-prev-total').textContent  = '$' + d.client_total.toFixed(2);
+    document.getElementById('inv-preview-badge').textContent = d.visits_count + ' visit' + (d.visits_count === 1 ? '' : 's');
+
+    // Visit dates list
+    if (d.visit_dates && d.visit_dates.length) {
+      var fmt = function(ds) {
+        return new Date(ds + 'T12:00:00').toLocaleDateString('en-CA', { weekday:'short', month:'short', day:'numeric' });
+      };
+      document.getElementById('inv-prev-dates').textContent = d.visit_dates.map(fmt).join('  ·  ');
+    } else {
+      document.getElementById('inv-prev-dates').textContent = 'No visits logged in this period.';
+    }
+
+    document.getElementById('inv-preview-box').style.display = 'block';
+
+    if (d.visits_count > 0) {
+      var sendBtn = document.getElementById('inv-send-btn');
+      sendBtn.disabled    = false;
+      sendBtn.style.opacity = '1';
+      showToast(d.visits_count + ' visits · ' + d.total_hours + 'h · $' + d.client_total.toFixed(2), 'ok');
+    } else {
+      showToast('No visits found in this period — check the dates', 'err');
+    }
+  } catch(err) {
+    showToast(err.message || 'Preview failed', 'err');
+  }
+}
+
+async function sendPickedInvoice() {
+  var start = document.getElementById('inv-start').value;
+  var end   = document.getElementById('inv-end').value;
+  if (!start || !end || !_invPickClient) return;
+
+  var btn = document.getElementById('inv-send-btn');
+  btn.disabled = true; btn.style.opacity = '0.5'; btn.textContent = 'Sending...';
+
+  // Derive month label from end date (e.g. end=2026-05-29 → "May 2026")
+  var months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  var endDt  = new Date(end + 'T12:00:00');
+  var month  = months[endDt.getMonth()];
+  var year   = endDt.getFullYear();
+
+  try {
+    var r = await fetch(API + '/invoice/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-hq-token': (window._hqToken || sessionStorage.getItem('hq_token') || '') },
+      body: JSON.stringify({
+        client_name:  _invPickClient.name,
+        client_email: _invPickClient.email,
+        psw_name:     _invPickClient.pswName,
+        psw_email:    _invPickClient.pswEmail,
+        month:        month,
+        year:         year,
+        start_date:   start,   // ← explicit: never defaults to 1st of month again
+        end_date:     end,
+        client_rate:  _invPickClient.clientRate,
+        psw_rate:     _invPickClient.pswRate,
+        operator_id:  currentOp
+      })
+    });
+    var d = await r.json();
+    if (d.error) throw new Error(d.error);
+    showToast('Invoice sent ✓  · ' + d.total_hours + 'h · $' + d.client_total.toFixed(2), 'ok');
+    closeSheet('invoice-picker-sheet');
+    closeSheet('client-sheet');
+  } catch(err) {
+    showToast(err.message || 'Send failed', 'err');
+    btn.disabled = false; btn.style.opacity = '1'; btn.textContent = 'Send Invoice & Pay Stub';
+  }
+}
+// ── END INVOICE PICKER ───────────────────────────────────────────────────────
+</script>
 
 <script>
 // ── EDIT VISIT ──
