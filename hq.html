@@ -7763,6 +7763,35 @@ async function markInvoicePaid(id) {
 }
 
 // ── PSW PROFILE DRAWER ──
+// ── SHIFT REMINDER — sends a reminder message to the PSW for their upcoming shift ──
+async function _sendShiftReminder() {
+  const pswName = _sdPSW;
+  const phone = _sdPhone;
+  const bookingId = _sdBookingId;
+  if (!pswName) { showToast('No PSW selected', 'err'); return; }
+  const btn = document.getElementById('sd-reminder-btn');
+  if (btn) { btn.textContent = 'Sending...'; btn.disabled = true; }
+  try {
+    const res = await hqFetch(`${API}/psw/note`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        operator_id: currentOp,
+        psw_name: pswName,
+        note: `Shift reminder from HQ: Please confirm your upcoming shift. Contact HQ if you have any questions.`,
+        source: 'hq-reminder'
+      })
+    });
+    const d = await res.json();
+    if (!d.success) throw new Error(d.error || 'Failed');
+    showToast(`Reminder sent to ${pswName.split(' ')[0]}`, 'ok');
+  } catch(e) {
+    showToast(e.message || 'Could not send reminder', 'err');
+  } finally {
+    if (btn) { btn.textContent = '📞 Remind'; btn.disabled = false; }
+  }
+}
+
 async function openPSWDetail(pswId) {
   const p = (D.psws||[]).find(x=>x.id===pswId || x.full_name===pswId);
   if (!p) return;
@@ -9336,7 +9365,7 @@ async function submitManualVisit() {
     closeSheet('manual-visit-sheet');
     // Clear fields
     ['mv-psw','mv-client','mv-time-in','mv-time-out','mv-reason'].forEach(id => { const el = document.getElementById(id); if(el) el.value=''; });
-    await loadAll(false);
+    await loadAll(true); // Force fresh fetch so visit is confirmed in DB before rendering
   } catch(e) { showToast(e.message || 'Could not submit', 'err'); }
 }
 
