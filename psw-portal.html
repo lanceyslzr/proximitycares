@@ -1071,6 +1071,43 @@ a{color:inherit;text-decoration:none;}
 
 <!-- BOTTOM NAV -->
 <!-- SOS EMERGENCY SHEET -->
+<!-- ── NAVIGATE MAP SHEET ─────────────────────────────────────────────────── -->
+<div id="nav-map-sheet" style="display:none;position:fixed;inset:0;z-index:900;background:var(--bg);flex-direction:column;">
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--border);background:var(--bg2);flex-shrink:0;">
+    <div>
+      <div style="font-family:var(--mono);font-size:12px;letter-spacing:2px;text-transform:uppercase;color:var(--text);" id="nav-map-title">Navigation</div>
+      <div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:2px;" id="nav-map-subtitle">Loading...</div>
+    </div>
+    <button onclick="closeNavigateSheet()" style="font-family:var(--mono);font-size:18px;color:var(--muted);background:none;border:none;cursor:pointer;padding:4px 8px;min-height:44px;touch-action:manipulation;">✕</button>
+  </div>
+  <div id="nav-map-container" style="flex:1;min-height:0;position:relative;">
+    <div id="nav-map" style="width:100%;height:100%;"></div>
+    <div id="nav-map-loading" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:var(--bg);z-index:10;">
+      <div style="text-align:center;">
+        <div style="font-family:var(--mono);font-size:13px;color:var(--teal2);letter-spacing:1px;margin-bottom:8px;">📍 Locating...</div>
+        <div style="font-family:var(--mono);font-size:11px;color:var(--muted);">Getting your GPS position</div>
+      </div>
+    </div>
+  </div>
+  <div style="padding:14px 16px;background:var(--bg2);border-top:1px solid var(--border);flex-shrink:0;">
+    <div style="display:flex;gap:8px;margin-bottom:10px;">
+      <div style="flex:1;padding:10px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;text-align:center;">
+        <div style="font-family:var(--mono);font-size:20px;color:var(--teal2);" id="nav-distance">—</div>
+        <div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-top:2px;">Distance</div>
+      </div>
+      <div style="flex:1;padding:10px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;text-align:center;">
+        <div style="font-family:var(--mono);font-size:20px;color:var(--gold);" id="nav-eta">—</div>
+        <div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-top:2px;">Drive est.</div>
+      </div>
+    </div>
+    <div id="nav-address" style="font-family:var(--mono);font-size:11px;color:var(--muted2);margin-bottom:10px;text-align:center;line-height:1.5;"></div>
+    <div style="display:flex;gap:8px;">
+      <button id="nav-gmaps-btn" onclick="openInGoogleMaps()" style="flex:1;padding:13px;background:rgba(61,138,122,.12);border:1px solid rgba(61,138,122,.3);border-radius:8px;font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--teal2);cursor:pointer;min-height:44px;touch-action:manipulation;">Open in Google Maps ↗</button>
+      <button onclick="closeNavigateSheet()" style="padding:13px 16px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;font-family:var(--mono);font-size:11px;color:var(--muted);cursor:pointer;min-height:44px;touch-action:manipulation;">Done</button>
+    </div>
+  </div>
+</div>
+
 <div class="sos-sheet-overlay" id="sos-sheet-overlay" onclick="closeSOS()"></div>
 <div class="sos-sheet" id="sos-sheet">
   <div style="width:36px;height:4px;background:var(--border2);border-radius:2px;margin:12px auto 0;"></div>
@@ -1784,8 +1821,175 @@ function renderHomeFeed() {
   const allVisits = scheduleData?.completed_visits || [];
   const todayV = allVisits.filter(v => v.visit_date === today);
   const bookings = scheduleData?.bookings || [];
-  const todayBookings = bookings.filter(b => b.scheduled_date === today);
   document.getElementById('s-today').textContent = todayV.length + (activeVisit ? 1 : 0);
+
+  if (!_homeDataReady) {
+    const monthV = allVisits.filter(v => (v.visit_date||'').startsWith(monthStr));
+    const monthHrs = monthV.reduce((s,v) => s + parseFloat(v.hours_worked||0), 0);
+    document.getElementById('s-month').textContent = monthV.length;
+    document.getElementById('s-hours').textContent = monthHrs.toFixed(1) + 'h';
+  }
+  const upd = document.getElementById('home-last-updated');
+  if (upd) upd.textContent = new Date().toLocaleTimeString('en-CA',{hour:'2-digit',minute:'2-digit'});
+  const rows = [];
+
+  // ── Schedule change alerts ────────────────────────────────────
+  if (window._unreadNotes && window._unreadNotes.length > 0) {
+    window._unreadNotes.slice(0,3).forEach(n => {
+      rows.push(`<div class="feed-row" onclick="showSect('messages')" style="background:rgba(61,138,122,0.08);border:1px solid rgba(61,138,122,0.2);border-radius:8px;cursor:pointer;margin-bottom:2px;">
+        <div class="feed-dot" style="background:var(--teal2);box-shadow:0 0 6px rgba(61,138,122,0.6);"></div>
+        <div class="feed-body">
+          <div class="feed-client" style="color:var(--teal2);">Schedule Update</div>
+          <div class="feed-meta" style="color:var(--text2);">${n.message.slice(0,80)}${n.message.length>80?'…':''}</div>
+        </div>
+        <div class="feed-right"><div class="feed-time" style="color:var(--teal2);font-size:11px;">Tap →</div></div>
+      </div>`);
+    });
+  }
+
+  // ── Active visit ──────────────────────────────────────────────
+  if (activeVisit) {
+    const tin = activeVisit.time_in || (activeVisit.checkin_time||'').slice(11,16) || '—';
+    rows.push(`<div class="feed-row">
+      <div class="feed-dot active"></div>
+      <div class="feed-body"><div class="feed-client">${activeVisit.client_name||'—'}</div><div class="feed-meta">In progress · Started ${tin}</div></div>
+      <div class="feed-right">
+        <div class="feed-hrs" id="feed-elapsed" style="color:var(--amber);">— elapsed</div>
+        <button onclick="openCheckout()" style="font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--amber);background:rgba(224,154,61,.1);border:1px solid rgba(224,154,61,.3);border-radius:4px;padding:4px 8px;cursor:pointer;margin-top:4px;touch-action:manipulation;">Check Out</button>
+      </div>
+    </div>`);
+  }
+
+  // ── ALL upcoming bookings — group by day ──────────────────────
+  // Sort by date+time so today comes first, future days follow in order
+  const upcomingBookings = bookings
+    .filter(b => b.scheduled_date >= today && b.status !== 'cancelled' && !b.deleted_at)
+    .sort((a,b) => {
+      const da = (a.scheduled_date||'') + (a.scheduled_time||'00:00');
+      const db = (b.scheduled_date||'') + (b.scheduled_time||'00:00');
+      return da.localeCompare(db);
+    });
+
+  // Group by date
+  const byDate = {};
+  upcomingBookings.forEach(b => {
+    const d = b.scheduled_date || today;
+    if (!byDate[d]) byDate[d] = [];
+    byDate[d].push(b);
+  });
+
+  const dayNames = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+  Object.keys(byDate).sort().forEach(dateStr => {
+    const dayBookings = byDate[dateStr];
+    const isToday = dateStr === today;
+
+    // Day header
+    const dt = new Date(dateStr + 'T12:00:00');
+    const dayLabel = isToday ? 'Today' : dayNames[dt.getDay()] + ' · ' + monthNames[dt.getMonth()] + ' ' + dt.getDate();
+    rows.push(`<div style="font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);padding:10px 0 4px;border-top:1px solid var(--border);margin-top:4px;">${dayLabel}</div>`);
+
+    dayBookings.forEach(b => {
+      // Check status using booking_id match (not just client name — avoids hiding same-client visits)
+      const completedVisit = allVisits.find(v =>
+        v.visit_date === b.scheduled_date &&
+        v.client_name === b.client_name &&
+        v.status === 'completed' &&
+        (!b.booking_id || v.booking_id === b.id || !v.booking_id)
+      );
+      const isActive = activeVisit && activeVisit.client_name === b.client_name && b.scheduled_date === today;
+
+      if (isActive) return; // Already shown in active visit banner above
+
+      const _safeName = (b.client_name||'').replace(/'/g,'').replace(/"/g,'');
+      const _safeId = b.id || '';
+
+      if (completedVisit) {
+        // Show as done — still visible so PSW can see their full day
+        const hrs = parseFloat(completedVisit.hours_worked||0).toFixed(1);
+        rows.push(`<div class="feed-row">
+          <div class="feed-dot done"></div>
+          <div class="feed-body"><div class="feed-client">${b.client_name||'—'}</div><div class="feed-meta">${completedVisit.time_in||'—'} – ${completedVisit.time_out||'—'} · Done</div></div>
+          <div class="feed-right"><div class="feed-hrs">${hrs}h</div><div class="feed-time" style="color:var(--green2);font-size:11px;">✓</div></div>
+        </div>`);
+        return;
+      }
+
+      // Upcoming — show handoff from last visit with this client
+      const lastVisit = allVisits.filter(v => v.client_name === b.client_name && v.visit_date < dateStr)
+        .sort((a,z) => (z.visit_date||'').localeCompare(a.visit_date||''))[0];
+      const handoff = lastVisit
+        ? `<div style="margin-top:6px;padding:6px 8px;background:var(--bg3);border:1px solid var(--border);border-radius:5px;font-size:11px;color:var(--muted2);line-height:1.5;">
+            <span style="color:var(--teal2);font-family:var(--mono);font-size:11px;">Last visit ${fmtd(lastVisit.visit_date)}</span>
+            ${lastVisit.client_mood ? ` · Mood: ${lastVisit.client_mood}` : ''}
+            ${lastVisit.visit_summary ? `<br>${lastVisit.visit_summary.slice(0,80)}${lastVisit.visit_summary.length>80?'…':''}` : ''}
+          </div>`
+        : '';
+
+      if (isToday && !activeVisit) {
+        // Today + no active visit → tappable sign-in
+        rows.push(`<div class="feed-row" onclick="doCheckInFromShift('${_safeName}')" style="cursor:pointer;">
+          <div class="feed-dot upcoming"></div>
+          <div class="feed-body"><div class="feed-client">${b.client_name||'—'}</div><div class="feed-meta">Upcoming · ${b.scheduled_time||'TBD'}${b.duration_minutes?' · '+(b.duration_minutes/60).toFixed(1)+'h':''}</div>${handoff}</div>
+          <div class="feed-right">
+            <button onclick="event.stopPropagation();openNavigateSheet('${_safeName}','${_safeId}')" style="font-family:var(--mono);font-size:10px;color:var(--teal2);background:rgba(61,138,122,.08);border:1px solid rgba(61,138,122,.25);border-radius:4px;padding:3px 7px;cursor:pointer;margin-bottom:4px;display:block;touch-action:manipulation;">🗺 Map</button>
+            <div style="color:var(--teal2);font-weight:600;font-family:var(--mono);font-size:11px;">Sign In →</div>
+          </div>
+        </div>`);
+      } else if (isToday && activeVisit) {
+        // Today but blocked by active visit
+        rows.push(`<div class="feed-row" style="opacity:0.6;">
+          <div class="feed-dot upcoming"></div>
+          <div class="feed-body"><div class="feed-client">${b.client_name||'—'}</div><div class="feed-meta">Upcoming · ${b.scheduled_time||'TBD'} · Finish active visit first</div></div>
+          <div class="feed-right"><div class="feed-time" style="color:var(--muted);font-size:11px;">⏳ Waiting</div></div>
+        </div>`);
+      } else {
+        // Future day — show with map button
+        rows.push(`<div class="feed-row">
+          <div class="feed-dot" style="background:var(--border2);"></div>
+          <div class="feed-body"><div class="feed-client">${b.client_name||'—'}</div><div class="feed-meta">${b.scheduled_time||'TBD'}${b.duration_minutes?' · '+(b.duration_minutes/60).toFixed(1)+'h':''}</div></div>
+          <div class="feed-right">
+            <button onclick="openNavigateSheet('${_safeName}','${_safeId}')" style="font-family:var(--mono);font-size:10px;color:var(--muted2);background:var(--bg3);border:1px solid var(--border);border-radius:4px;padding:3px 7px;cursor:pointer;touch-action:manipulation;">🗺 Map</button>
+          </div>
+        </div>`);
+      }
+    });
+  });
+
+  // ── Recent past visits (last 4) ───────────────────────────────
+  const pastVisits = allVisits.filter(v => v.visit_date < today)
+    .sort((a,b) => (b.visit_date||'').localeCompare(a.visit_date||''))
+    .slice(0, 4);
+  if (pastVisits.length > 0) {
+    rows.push(`<div style="font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);padding:10px 0 4px;border-top:1px solid var(--border);margin-top:4px;">Recent</div>`);
+    pastVisits.forEach((v, vi) => {
+      const hrs = parseFloat(v.hours_worked||0);
+      const _vid = 'feedv' + vi;
+      window['_feedVisit_'+_vid] = v;
+      rows.push(`<div class="feed-row" onclick="openVisitDetail('${_vid}')" style="cursor:pointer;">
+        <div class="feed-dot past"></div>
+        <div class="feed-body"><div class="feed-client">${v.client_name||'—'}</div><div class="feed-meta">${fmtd(v.visit_date)} · ${v.time_in||'—'}${v.time_out?' – '+v.time_out:''}</div></div>
+        <div class="feed-right"><div class="feed-hrs" style="color:var(--muted2);">${hrs.toFixed(1)}h</div><div style="font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:2px;">Details ›</div></div>
+      </div>`);
+    });
+  }
+
+  if (!upcomingBookings.length && !pastVisits.length && !activeVisit) {
+    rows.push('<div class="empty-state" style="padding:24px;">No visits yet — sign in to your first shift</div>');
+  }
+
+  el.innerHTML = rows.join('');
+
+  if (activeVisit?.checkin_time) {
+    const feedEl = document.getElementById('feed-elapsed');
+    if (feedEl) {
+      const mins = Math.round((Date.now() - new Date(activeVisit.checkin_time)) / 60000);
+      const h = Math.floor(mins/60), m = mins%60;
+      feedEl.textContent = (h > 0 ? `${h}h ${m}m` : `${m}m`) + ' elapsed';
+    }
+  }
+}
 
   // s-month and s-hours — use pay summary data (already fetched, always correct)
   // pay summary reads all visits directly, not limited by loadSchedule date window
@@ -4698,6 +4902,190 @@ async function submitInviteProfile() {
 
 
 // ── CUSTOM TASK (Other) ───────────────────────────────────────────────────────
+// ── BUILT-IN GPS NAVIGATION MAP ──────────────────────────────────────────────
+// Uses Leaflet.js + OpenStreetMap (free, no API key)
+// PSW taps "Map" on any visit → in-app map shows their position + client position + route line
+
+let _navLeafletLoaded = false;
+let _navMap = null;
+let _navClientName = null;
+let _navGMapsUrl = null;
+let _navPswMarker = null;
+let _navClientMarker = null;
+let _navRouteLine = null;
+
+function loadLeaflet(cb) {
+  if (_navLeafletLoaded && window.L) { cb(); return; }
+  // Load Leaflet CSS
+  if (!document.getElementById('leaflet-css')) {
+    const link = document.createElement('link');
+    link.id = 'leaflet-css'; link.rel = 'stylesheet';
+    link.href = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css';
+    document.head.appendChild(link);
+  }
+  // Load Leaflet JS
+  const s = document.createElement('script');
+  s.src = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js';
+  s.onload = () => { _navLeafletLoaded = true; cb(); };
+  s.onerror = () => { showToast('Map library failed to load — check connection', 'err'); };
+  document.head.appendChild(s);
+}
+
+function openNavigateSheet(clientName, bookingId) {
+  _navClientName = clientName;
+  _navGMapsUrl = null;
+
+  // Show sheet
+  const sheet = document.getElementById('nav-map-sheet');
+  sheet.style.display = 'flex';
+
+  // Set title
+  document.getElementById('nav-map-title').textContent = clientName || 'Navigation';
+  document.getElementById('nav-map-subtitle').textContent = 'Locating...';
+  document.getElementById('nav-distance').textContent = '—';
+  document.getElementById('nav-eta').textContent = '—';
+  document.getElementById('nav-address').textContent = '';
+  document.getElementById('nav-map-loading').style.display = 'flex';
+
+  loadLeaflet(() => {
+    // Destroy previous map instance
+    if (_navMap) { _navMap.remove(); _navMap = null; _navPswMarker = null; _navClientMarker = null; _navRouteLine = null; }
+
+    // Init map
+    _navMap = L.map('nav-map', { zoomControl: true, attributionControl: false });
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19
+    }).addTo(_navMap);
+
+    // Find client lat/lng from scheduleData
+    const clients = scheduleData?.clients || [];
+    const clientObj = clients.find(c => {
+      const full = ((c.first_name||'')+' '+(c.last_name||'')).trim();
+      return full.toLowerCase() === (clientName||'').toLowerCase() ||
+             full.toLowerCase().startsWith((clientName||'').split(' ')[0].toLowerCase());
+    });
+
+    const clientLat = clientObj?.lat ? parseFloat(clientObj.lat) : null;
+    const clientLng = clientObj?.lng ? parseFloat(clientObj.lng) : null;
+    const clientAddress = clientObj ? [clientObj.address].filter(Boolean).join(', ') : (clientName + ', Mississauga ON');
+
+    document.getElementById('nav-address').textContent = clientAddress || clientName;
+
+    // Custom marker icons
+    const pswIcon = L.divIcon({
+      html: '<div style="width:16px;height:16px;border-radius:50%;background:#3d8a7a;border:3px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,0.4);"></div>',
+      iconSize: [16,16], iconAnchor: [8,8], className: ''
+    });
+    const clientIcon = L.divIcon({
+      html: '<div style="display:flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:50%;background:#c8a96e;border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,0.4);font-size:14px;">🏠</div>',
+      iconSize: [32,32], iconAnchor: [16,16], className: ''
+    });
+
+    // Get PSW current position
+    navigator.geolocation.getCurrentPosition(pos => {
+      const pswLat = pos.coords.latitude;
+      const pswLng = pos.coords.longitude;
+
+      // PSW marker
+      _navPswMarker = L.marker([pswLat, pswLng], { icon: pswIcon })
+        .bindPopup('<b>You are here</b>')
+        .addTo(_navMap);
+
+      if (clientLat && clientLng) {
+        // Client marker
+        _navClientMarker = L.marker([clientLat, clientLng], { icon: clientIcon })
+          .bindPopup(`<b>${clientName}</b><br>${clientAddress}`)
+          .addTo(_navMap);
+        _navClientMarker.openPopup();
+
+        // Straight-line route
+        _navRouteLine = L.polyline([[pswLat, pswLng], [clientLat, clientLng]], {
+          color: '#3d8a7a', weight: 3, dashArray: '8,6', opacity: 0.8
+        }).addTo(_navMap);
+
+        // Fit both markers in view
+        _navMap.fitBounds([[pswLat, pswLng], [clientLat, clientLng]], { padding: [40,40] });
+
+        // Calculate distance
+        const distKm = haversineDistance(pswLat, pswLng, clientLat, clientLng);
+        const distStr = distKm < 1 ? Math.round(distKm*1000) + ' m' : distKm.toFixed(1) + ' km';
+        const etaMins = Math.round(distKm / 0.5); // ~30km/h city driving
+        const etaStr = etaMins < 60 ? etaMins + ' min' : Math.floor(etaMins/60) + 'h ' + (etaMins%60) + 'm';
+        document.getElementById('nav-distance').textContent = distStr;
+        document.getElementById('nav-eta').textContent = etaStr;
+
+        // Build Google Maps URL
+        _navGMapsUrl = `https://maps.google.com/maps/dir/${pswLat},${pswLng}/${clientLat},${clientLng}`;
+        document.getElementById('nav-map-subtitle').textContent = distStr + ' away · tap map to explore';
+
+        // Fetch OSRM route for a realistic path (free routing API)
+        fetch(`https://router.project-osrm.org/route/v1/driving/${pswLng},${pswLat};${clientLng},${clientLat}?overview=full&geometries=geojson`)
+          .then(r => r.json())
+          .then(rd => {
+            if (rd.routes && rd.routes[0]) {
+              // Remove straight-line, draw real road route
+              if (_navRouteLine) { _navMap.removeLayer(_navRouteLine); }
+              const coords = rd.routes[0].geometry.coordinates.map(c => [c[1], c[0]]);
+              _navRouteLine = L.polyline(coords, { color: '#3d8a7a', weight: 4, opacity: 0.85 }).addTo(_navMap);
+              const realKm = (rd.routes[0].distance / 1000).toFixed(1);
+              const realMins = Math.round(rd.routes[0].duration / 60);
+              const realEta = realMins < 60 ? realMins + ' min' : Math.floor(realMins/60) + 'h ' + (realMins%60) + 'm';
+              document.getElementById('nav-distance').textContent = realKm + ' km';
+              document.getElementById('nav-eta').textContent = realEta;
+              document.getElementById('nav-map-subtitle').textContent = realKm + ' km · ' + realEta + ' drive';
+            }
+          })
+          .catch(() => {}); // OSRM fallback — straight line stays shown
+
+      } else {
+        // No geocoded client lat/lng — center on PSW, show note
+        _navMap.setView([pswLat, pswLng], 14);
+        document.getElementById('nav-map-subtitle').textContent = 'Client address not geocoded — using Google Maps';
+        document.getElementById('nav-address').textContent = (clientAddress || clientName) + ' · address not yet geocoded in system';
+        // Build Google Maps URL using address string
+        _navGMapsUrl = `https://maps.google.com/maps/dir/${pswLat},${pswLng}/${encodeURIComponent(clientAddress||clientName)}`;
+        document.getElementById('nav-distance').textContent = '—';
+        document.getElementById('nav-eta').textContent = 'See Maps';
+      }
+
+      document.getElementById('nav-map-loading').style.display = 'none';
+
+    }, _geoErr => {
+      // GPS failed — if we have client coords, show those; else show fallback
+      if (clientLat && clientLng) {
+        _navMap.setView([clientLat, clientLng], 15);
+        _navClientMarker = L.marker([clientLat, clientLng], { icon: clientIcon })
+          .bindPopup(`<b>${clientName}</b>`)
+          .addTo(_navMap);
+        _navGMapsUrl = `https://maps.google.com/?q=${clientLat},${clientLng}`;
+        document.getElementById('nav-map-subtitle').textContent = 'GPS unavailable — showing client location';
+      } else {
+        _navMap.setView([43.5890, -79.6441], 13); // Mississauga default
+        document.getElementById('nav-map-subtitle').textContent = 'GPS unavailable — open in Google Maps for directions';
+        _navGMapsUrl = `https://maps.google.com/maps?q=${encodeURIComponent(clientAddress||clientName)}`;
+      }
+      document.getElementById('nav-map-loading').style.display = 'none';
+    }, { timeout: 10000, maximumAge: 30000 });
+  });
+}
+
+function closeNavigateSheet() {
+  const sheet = document.getElementById('nav-map-sheet');
+  sheet.style.display = 'none';
+  if (_navMap) { _navMap.remove(); _navMap = null; }
+}
+
+function openInGoogleMaps() {
+  if (_navGMapsUrl) window.open(_navGMapsUrl, '_blank');
+  else {
+    const clients = scheduleData?.clients || [];
+    const c = clients.find(cl => ((cl.first_name||'')+' '+(cl.last_name||'')).trim().toLowerCase() === (_navClientName||'').toLowerCase());
+    const addr = c?.address || ((_navClientName||'') + ' Mississauga ON');
+    window.open('https://maps.google.com/?q=' + encodeURIComponent(addr), '_blank');
+  }
+}
+// ── END NAVIGATION MAP ───────────────────────────────────────────────────────
+
 function addCustomTask() {
   const input = document.getElementById('cl-custom-input');
   if (!input) return;
