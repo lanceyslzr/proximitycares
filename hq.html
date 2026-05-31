@@ -12522,34 +12522,47 @@ function loadBulkVisits() {
   var [yr, mo] = monthVal.split('-').map(Number);
   var startDate = `${yr}-${String(mo).padStart(2,'0')}-01`;
   var endDate   = new Date(yr, mo, 0).toISOString().slice(0,10);
-  var visits = (D.visits||[]).filter(v =>
-    (v.psw_name||'').trim() === pswName &&
-    v.visit_date >= startDate && v.visit_date <= endDate
-  ).sort((a,b) => (a.visit_date||'').localeCompare(b.visit_date||''));
-  if (!visits.length) {
-    listEl.innerHTML = '<div style="padding:12px 0;color:var(--muted);font-family:var(--mono);font-size:12px;">No visits in D.visits for this period.</div>';
-    if (submitBtn) { submitBtn.disabled = true; submitBtn.style.opacity = '0.4'; }
-    return;
-  }
+
+  // Show loading state — do not filter stale D.visits
+  listEl.innerHTML = '<div style="padding:12px 0;color:var(--muted);font-family:var(--mono);font-size:12px;">Loading visits...</div>';
+  if (submitBtn) { submitBtn.disabled = true; submitBtn.style.opacity = '0.4'; }
   _bulkVisitEdits = {};
-  listEl.innerHTML = visits.map(v => {
-    var curHrs = parseFloat(v.manual_hours_override != null ? v.manual_hours_override : (v.hours_worked||0)).toFixed(2);
-    return `<div style="padding:8px 0;border-bottom:1px solid var(--border);">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
-        <div style="font-family:var(--mono);font-size:11px;color:var(--text);">${v.visit_date} · ${v.client_name||'—'}</div>
-        <div style="font-family:var(--mono);font-size:11px;color:var(--teal2);">${curHrs}h</div>
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;">
-        <input class="sinput" placeholder="Time In" style="font-size:14px;padding:8px;" value="${v.time_in||''}"
-          oninput="_bveSet('${v.id}','time_in',this.value)">
-        <input class="sinput" placeholder="Time Out" style="font-size:14px;padding:8px;" value="${v.time_out||''}"
-          oninput="_bveSet('${v.id}','time_out',this.value)">
-        <input class="sinput" type="number" step="0.25" placeholder="Hrs" style="font-size:14px;padding:8px;" value="${curHrs}"
-          oninput="_bveSet('${v.id}','manual_hours',this.value)">
-      </div>
-    </div>`;
-  }).join('');
-  if (submitBtn) { submitBtn.disabled = false; submitBtn.style.opacity = '1'; }
+
+  // Fetch fresh from server — supports any date range, any PSW, no 90-day limit
+  fetch(`${API}/hq/visits?operator_id=${currentOp}&psw_name=${encodeURIComponent(pswName)}&from_date=${startDate}&to_date=${endDate}&limit=500`, {
+    headers: { 'x-hq-token': window._hqToken || sessionStorage.getItem('hq_token') || '' }
+  })
+    .then(r => r.json())
+    .then(d => {
+      var visits = (d.visits||[])
+        .filter(v => v.visit_date >= startDate && v.visit_date <= endDate)
+        .sort((a,b) => (a.visit_date||'').localeCompare(b.visit_date||''));
+      if (!visits.length) {
+        listEl.innerHTML = '<div style="padding:12px 0;color:var(--muted);font-family:var(--mono);font-size:12px;">No visits found for this PSW and period.</div>';
+        return;
+      }
+      listEl.innerHTML = visits.map(v => {
+        var curHrs = parseFloat(v.manual_hours_override != null ? v.manual_hours_override : (v.hours_worked||0)).toFixed(2);
+        return `<div style="padding:8px 0;border-bottom:1px solid var(--border);">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+            <div style="font-family:var(--mono);font-size:11px;color:var(--text);">${v.visit_date} · ${v.client_name||'—'}</div>
+            <div style="font-family:var(--mono);font-size:11px;color:var(--teal2);">${curHrs}h</div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;">
+            <input class="sinput" placeholder="Time In" style="font-size:14px;padding:8px;" value="${v.time_in||''}"
+              oninput="_bveSet('${v.id}','time_in',this.value)">
+            <input class="sinput" placeholder="Time Out" style="font-size:14px;padding:8px;" value="${v.time_out||''}"
+              oninput="_bveSet('${v.id}','time_out',this.value)">
+            <input class="sinput" type="number" step="0.25" placeholder="Hrs" style="font-size:14px;padding:8px;" value="${curHrs}"
+              oninput="_bveSet('${v.id}','manual_hours',this.value)">
+          </div>
+        </div>`;
+      }).join('');
+      if (submitBtn) { submitBtn.disabled = false; submitBtn.style.opacity = '1'; }
+    })
+    .catch(err => {
+      listEl.innerHTML = `<div style="padding:12px 0;color:var(--red);font-family:var(--mono);font-size:12px;">Failed to load visits: ${err.message}</div>`;
+    });
 }
 
 function _bveSet(visitId, field, value) {
