@@ -4949,6 +4949,11 @@ async function renderVisits() {
 
     if (!visits.length) { el.innerHTML = '<div class="empty-state"><div class="empty-state-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div><div class="empty-state-title">No visits this period</div><div class="empty-state-sub">Completed visits will appear here once PSWs check out.</div></div>'; return; }
 
+    // Populate _visitMap for every rendered visit — fixes edit modal silently failing
+    // Previously only populated inside incident HTML helper, missing all non-incident visits
+    window._visitMap = window._visitMap || {};
+    visits.forEach(v => { if (v.id) window._visitMap[v.id] = v; });
+
     el.innerHTML = visits.map((v, i) => {
       const tasks = Array.isArray(v.tasks_completed) ? v.tasks_completed.join(', ') : (v.tasks_completed || '');
       const mood = v.client_mood || '';
@@ -10182,10 +10187,39 @@ function switchTodayTab(tab) {
   const el = document.getElementById('tt-' + tab);
   if (el) el.classList.add('active');
   // Navigate to relevant section for Open Shifts and Alerts
-  if (tab === 'open') { showSect('schedule'); return; }
+  if (tab === 'open') {
+    showSect('schedule');
+    // Reset active tab back to Today so renderToday() doesn't re-trigger navigation on next visit
+    document.querySelectorAll('.today-tab').forEach(e => e.classList.remove('active'));
+    const todayEl = document.getElementById('tt-today');
+    if (todayEl) todayEl.classList.add('active');
+    return;
+  }
   if (tab === 'alerts') {
-    const inc = document.getElementById('today-incidents-banner') || document.querySelector('.incidents-banner');
-    if (inc) inc.scrollIntoView({behavior:'smooth',block:'start'});
+    const today = new Date().toLocaleDateString('en-CA',{timeZone:'America/Toronto'});
+    const hasIncidents = (D.visits||[]).some(v => v.incident_reported && !v.incident_resolved);
+    const hasVacant = (D.bookings||[]).some(b =>
+      b.scheduled_date === today && (!b.assigned_to||!b.assigned_to.trim()) && b.status !== 'cancelled' && !b.deleted_at
+    );
+    // Navigate to the section where action is needed
+    if (hasIncidents) { showSect('visits'); }
+    else if (hasVacant) { showSect('schedule'); }
+    else {
+      // No active alerts — scroll to alert banners within Today
+      const incEl = document.getElementById('today-incident-alert');
+      const vacEl = document.getElementById('today-vacant-alert');
+      const cancelEl = document.getElementById('cancel-req-alert');
+      const target = (incEl?.style.display !== 'none' && incEl)
+                  || (vacEl?.style.display !== 'none' && vacEl)
+                  || (cancelEl?.style.display !== 'none' && cancelEl);
+      if (target) target.scrollIntoView({behavior:'smooth', block:'start'});
+      else showToast('No active alerts right now ✓', 'ok');
+    }
+    // Reset active tab back to Today so renderToday() doesn't re-trigger navigation
+    document.querySelectorAll('.today-tab').forEach(e => e.classList.remove('active'));
+    const todayEl = document.getElementById('tt-today');
+    if (todayEl) todayEl.classList.add('active');
+    return;
   }
 
   // Update open shifts badge
@@ -10294,7 +10328,7 @@ function renderToday() {
             <div class="tsr-action-row">
               ${_safePSW ? `<div class="tsr-act" onclick="event.stopPropagation();openPSWMsg('${_safePSW}')"><svg width="11" height="11" viewBox="0 0 12 12" fill="none" style="display:inline;vertical-align:middle;margin-right:3px"><path d="M1 1h10v7H7l-3 3V8H1V1z" stroke="#6dbdd4" stroke-width="1.2" stroke-linejoin="round"/></svg>Message ${_safePSW.split(' ')[0]}</div>` : ''}
               <div class="tsr-act" onclick="event.stopPropagation();showSect('schedule')"><svg width="11" height="11" viewBox="0 0 12 12" fill="none" style="display:inline;vertical-align:middle;margin-right:3px"><rect x="1" y="2" width="10" height="9" rx="1" stroke="#a8bfc4" stroke-width="1.2"/><line x1="1" y1="5" x2="11" y2="5" stroke="#a8bfc4" stroke-width="1.1"/><line x1="4" y1="1" x2="4" y2="3" stroke="#a8bfc4" stroke-width="1.2"/><line x1="8" y1="1" x2="8" y2="3" stroke="#a8bfc4" stroke-width="1.2"/></svg>Schedule</div>
-              ${hasVisit && _safeClient ? `<div class="tsr-act ok" onclick="event.stopPropagation();(() => { const _c = (D.clients||[]).find(c => ((c.first_name||'')+' '+(c.last_name||'')).trim()==='${_safeClient}'); if(_c) genInvoice('${_safeClient}', _c.family_email||_c.email||'', _c.assigned_psw||'', _c.client_rate||22, _c.psw_rate||19); else showToast('Client not found', 'err'); })()"><svg width="11" height="11" viewBox="0 0 12 12" fill="none" style="display:inline;vertical-align:middle;margin-right:3px"><rect x="1" y="1" width="10" height="10" rx="1" stroke="#6db974" stroke-width="1.2"/><line x1="3" y1="4" x2="9" y2="4" stroke="#6db974" stroke-width="1.1"/><line x1="3" y1="6" x2="9" y2="6" stroke="#6db974" stroke-width="1.1"/><line x1="3" y1="8" x2="7" y2="8" stroke="#6db974" stroke-width="1.1"/></svg>Invoice</div>` : ''}
+              ${hasVisit && _safeClient ? `<div class="tsr-act ok" onclick="event.stopPropagation();(() => { const _c = (D.clients||[]).find(c => ((c.first_name||'')+' '+(c.last_name||'')).trim()==='${_safeClient}'); if(_c) openInvoicePicker('${_safeClient}', _c.family_email||_c.email||'', _c.assigned_psw||'', _c.client_rate||22, _c.psw_rate||19); else showToast('Client not found', 'err'); })()"><svg width="11" height="11" viewBox="0 0 12 12" fill="none" style="display:inline;vertical-align:middle;margin-right:3px"><rect x="1" y="1" width="10" height="10" rx="1" stroke="#6db974" stroke-width="1.2"/><line x1="3" y1="4" x2="9" y2="4" stroke="#6db974" stroke-width="1.1"/><line x1="3" y1="6" x2="9" y2="6" stroke="#6db974" stroke-width="1.1"/><line x1="3" y1="8" x2="7" y2="8" stroke="#6db974" stroke-width="1.1"/></svg>Invoice</div>` : ''}
               ${isActive && _safeClient ? `<div class="tsr-act warn" onclick="event.stopPropagation();showSect('visits')"><svg width="11" height="11" viewBox="0 0 12 12" fill="none" style="display:inline;vertical-align:middle;margin-right:3px"><rect x="2" y="1" width="8" height="10" rx="1" stroke="#a8bfc4" stroke-width="1.2"/><line x1="4" y1="4" x2="8" y2="4" stroke="#a8bfc4" stroke-width="1.1"/><line x1="4" y1="6.5" x2="8" y2="6.5" stroke="#a8bfc4" stroke-width="1.1"/><line x1="4" y1="9" x2="6" y2="9" stroke="#a8bfc4" stroke-width="1.1"/></svg>Visit Log</div>` : ''}
             </div>
           </div>
