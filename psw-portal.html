@@ -4341,8 +4341,11 @@ async function loadShiftOffers() {
     if (!r.ok) return;
     const d = await r.json();
     const declinedIds = _getDeclinedIds();
-    // All offers shown — declined ones marked visually, not hidden
-    const offers = d.offers || [];
+    // Filter out test offers (client='Test', date in far future) and declined ones that haven't been dismissed
+    const offers = (d.offers || []).filter(o =>
+      (o.client_name||'').toLowerCase() !== 'test' &&
+      (o.scheduled_date||'') < '2090-01-01'  // filter out far-future test dates (e.g. 2099-01-01)
+    );
     const section = document.getElementById('shift-offers-section');
     const list = document.getElementById('shift-offers-list');
     if (!section || !list) return;
@@ -4359,7 +4362,7 @@ async function loadShiftOffers() {
         ${!declined ? `<div class="offer-actions">
           <button class="offer-accept" onclick="respondToOffer('${o.id}','accept')">✓ Accept</button>
           <button class="offer-decline" onclick="respondToOffer('${o.id}','decline')">Decline</button>
-        </div>` : ''}
+        </div>` : `<button onclick="(function(el){el.closest('.shift-offer-card').remove();const r=document.querySelectorAll('.shift-offer-card').length;if(!r){const s=document.getElementById('shift-offers-section');if(s)s.style.display='none';}})(this)" style="margin-top:8px;font-family:var(--mono);font-size:10px;letter-spacing:1px;color:var(--muted);background:none;border:1px solid var(--border);border-radius:6px;padding:4px 10px;cursor:pointer;pointer-events:all;touch-action:manipulation;">✕ Dismiss</button>`}
       </div>`;
     }).join('');
   } catch {}
