@@ -856,20 +856,7 @@ a{color:inherit;text-decoration:none;}
 <div class="section" id="sect-schedule">
   <div class="section-header"><span class="section-title">My Schedule</span></div>
 
-  <div id="signin-card" class="signin-card">
-    <div class="signin-card-hdr">
-      <div class="signin-card-title">Sign In to a Visit</div>
-      <div class="signin-card-sub">Tap sign in when you arrive</div>
-    </div>
-    <div class="signin-card-body">
-      <div class="form-row">
-        <label class="form-label">Client</label>
-        <select class="form-select" id="signin-client"><option value="">Loading clients...</option></select>
-      </div>
-      <button class="sbtn" onclick="doCheckIn()" id="signin-btn">Sign In Now</button>
-    </div>
-  </div>
-
+  <!-- Active visit card — shown only during a live visit -->
   <div id="active-visit-card" class="active-visit-card" style="display:none;">
     <div class="active-visit-lbl">Visit in progress</div>
     <div class="active-visit-client" id="av-client">—</div>
@@ -884,7 +871,20 @@ a{color:inherit;text-decoration:none;}
     <button class="sos-btn" onclick="openSOS()">Emergency Contacts + SOS</button>
   </div>
 
-  <!-- Available shifts (Build 7) -->
+  <!-- ── ALAYACARE-STYLE WEEK STRIP ──────────────────────────── -->
+  <div id="sched-week-nav" style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px 6px;">
+    <button onclick="shiftWeek(-1)" style="background:none;border:none;color:var(--teal2);font-size:20px;cursor:pointer;padding:4px 8px;min-height:44px;touch-action:manipulation;">‹</button>
+    <div id="sched-week-range" style="font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:1px;"></div>
+    <button onclick="shiftWeek(1)" style="background:none;border:none;color:var(--teal2);font-size:20px;cursor:pointer;padding:4px 8px;min-height:44px;touch-action:manipulation;">›</button>
+  </div>
+  <div id="sched-strip" style="display:flex;gap:4px;padding:0 12px 10px;overflow-x:auto;-webkit-overflow-scrolling:touch;"></div>
+  <div id="sched-day-hours" style="display:flex;justify-content:space-between;padding:4px 14px 6px;font-family:var(--mono);font-size:11px;">
+    <span id="sched-day-label" style="color:var(--teal2);"></span>
+    <span id="sched-day-total" style="color:var(--gold);"></span>
+  </div>
+  <div id="sched-day-cards" style="padding:0 12px 12px;"></div>
+
+  <!-- Available shifts -->
   <div id="avail-shifts-section" style="display:none;">
     <div class="section-header" style="padding-top:4px;">
       <span class="section-title">Available Shifts</span>
@@ -893,30 +893,7 @@ a{color:inherit;text-decoration:none;}
     <div id="avail-shifts-list"></div>
   </div>
 
-  <!-- MINI CALENDAR -->
-  <div class="mini-cal" id="mini-cal">
-    <div class="mini-cal-hdr">
-      <div class="mini-cal-nav" onclick="miniCalPrev()">‹</div>
-      <div class="mini-cal-title" id="mini-cal-title">May 2026</div>
-      <div class="mini-cal-nav" onclick="miniCalNext()">›</div>
-    </div>
-    <div class="mini-cal-grid" id="mini-cal-grid"></div>
-  </div>
-
-  <!-- SCHEDULE HOURS SUMMARY -->
-  <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px 4px;">
-    <div style="font-family:var(--mono);font-size:11px;color:var(--teal2);" id="sched-hours-label"></div>
-    <div style="font-family:var(--mono);font-size:11px;color:var(--gold);" id="sched-done-label"></div>
-  </div>
-
-  <div class="week-nav">
-    <button class="week-btn" onclick="shiftWeek(-1)">← Prev</button>
-    <div class="week-lbl" id="week-label">This Week</div>
-    <button class="week-btn" onclick="shiftWeek(1)">Next →</button>
-  </div>
-  <div id="schedule-days"></div>
-
-  <!-- SHIFT OFFERS SECTION -->
+  <!-- Shift offers -->
   <div id="shift-offers-section" style="display:none;padding:0 0 8px;">
     <div style="padding:10px 12px 6px;font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);"><svg width="11" height="11" viewBox="0 0 12 12" fill="none" style="display:inline;vertical-align:middle;margin-right:5px"><path d="M7 1L3 7h4l-2 4 6-6H7L9 1z" fill="#c9a96e"/></svg>Open Shifts — Tap to Accept</div>
     <div id="shift-offers-list"></div>
@@ -1945,10 +1922,22 @@ function renderHomeFeed() {
           <div class="feed-right"><div class="feed-time" style="color:var(--muted);font-size:11px;">⏳ Waiting</div></div>
         </div>`);
       } else {
-        // Future day — show with map button
+        // Future day — show with address + care notes + map button
+        const clientObj = (scheduleData?.clients || scheduleData?.assigned_clients || window._pswClients || []).find(c => {
+          const full = ((c.first_name||'')+' '+(c.last_name||'')).trim();
+          return full.toLowerCase() === (b.client_name||'').toLowerCase() ||
+                 full.toLowerCase().startsWith((b.client_name||'').split(' ')[0].toLowerCase());
+        });
+        const addr = clientObj?.address || '';
+        const notes = clientObj?.care_notes || '';
         rows.push(`<div class="feed-row">
           <div class="feed-dot" style="background:var(--border2);"></div>
-          <div class="feed-body"><div class="feed-client">${b.client_name||'—'}</div><div class="feed-meta">${b.scheduled_time||'TBD'}${b.duration_minutes?' · '+(b.duration_minutes/60).toFixed(1)+'h':''}</div></div>
+          <div class="feed-body">
+            <div class="feed-client">${b.client_name||'—'}</div>
+            <div class="feed-meta">${b.scheduled_time||'TBD'}${b.duration_minutes?' · '+(b.duration_minutes/60).toFixed(1)+'h':''}</div>
+            ${addr ? `<div style="font-family:var(--mono);font-size:11px;color:var(--muted2);margin-top:3px;">📍 ${addr}</div>` : ''}
+            ${notes ? `<div style="font-size:11px;color:var(--muted2);margin-top:4px;line-height:1.5;">${notes.slice(0,100)}${notes.length>100?'…':''}</div>` : ''}
+          </div>
           <div class="feed-right">
             <button onclick="openNavigateSheet('${_safeName}','${_safeId}')" style="font-family:var(--mono);font-size:10px;color:var(--muted2);background:var(--bg3);border:1px solid var(--border);border-radius:4px;padding:3px 7px;cursor:pointer;touch-action:manipulation;">🗺 Map</button>
           </div>
@@ -1990,164 +1979,138 @@ function renderHomeFeed() {
     }
   }
 }
-
-  // s-month and s-hours — use pay summary data (already fetched, always correct)
-  // pay summary reads all visits directly, not limited by loadSchedule date window
-  // s-month + s-hours: loadHomeData owns these. Only set here if loadHomeData hasn't run yet.
-  // _homeDataReady flag prevents loadSchedule's repeated renderHomeFeed calls from overwriting correct values.
-  if (!_homeDataReady) {
-    const monthV = allVisits.filter(v => (v.visit_date||'').startsWith(monthStr));
-    const monthHrs = monthV.reduce((s,v) => s + parseFloat(v.hours_worked||0), 0);
-    document.getElementById('s-month').textContent = monthV.length;
-    document.getElementById('s-hours').textContent = monthHrs.toFixed(1) + 'h';
-  }
-  const upd = document.getElementById('home-last-updated');
-  if (upd) upd.textContent = new Date().toLocaleTimeString('en-CA',{hour:'2-digit',minute:'2-digit'});
-  const rows = [];
-
-  // ── Schedule change alerts — unread messages from lance shown at top ──
-  if (window._unreadNotes && window._unreadNotes.length > 0) {
-    window._unreadNotes.slice(0,3).forEach(n => {
-      rows.push(`<div class="feed-row" onclick="showSect('messages')" style="background:rgba(61,138,122,0.08);border:1px solid rgba(61,138,122,0.2);border-radius:8px;cursor:pointer;margin-bottom:2px;">
-        <div class="feed-dot" style="background:var(--teal2);box-shadow:0 0 6px rgba(61,138,122,0.6);"></div>
-        <div class="feed-body">
-          <div class="feed-client" style="color:var(--teal2);">Schedule Update</div>
-          <div class="feed-meta" style="color:var(--text2);">${n.message.slice(0,80)}${n.message.length>80?'…':''}</div>
-        </div>
-        <div class="feed-right"><div class="feed-time" style="color:var(--teal2);font-size:11px;">Tap →</div></div>
-      </div>`);
-    });
-  }
-
-  if (activeVisit) {
-    const tin = activeVisit.time_in || (activeVisit.checkin_time||'').slice(11,16) || '—';
-    rows.push(`<div class="feed-row">
-      <div class="feed-dot active"></div>
-      <div class="feed-body"><div class="feed-client">${activeVisit.client_name||'—'}</div><div class="feed-meta">In progress · Started ${tin}</div></div>
-      <div class="feed-right">
-        <div class="feed-hrs" id="feed-elapsed" style="color:var(--amber);">— elapsed</div>
-        <button onclick="openCheckout()" style="font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--amber);background:rgba(224,154,61,.1);border:1px solid rgba(224,154,61,.3);border-radius:4px;padding:4px 8px;cursor:pointer;margin-top:4px;touch-action:manipulation;">Check Out</button>
-      </div>
-    </div>`);
-  }
-  todayV.forEach(v => {
-    const hrs = parseFloat(v.hours_worked||0);
-    rows.push(`<div class="feed-row">
-      <div class="feed-dot done"></div>
-      <div class="feed-body"><div class="feed-client">${v.client_name||'—'}</div><div class="feed-meta">${v.time_in||'—'} – ${v.time_out||'—'}</div></div>
-      <div class="feed-right"><div class="feed-hrs">${hrs.toFixed(1)}h</div><div class="feed-time">${v.client_mood||''}</div></div>
-    </div>`);
-  });
-  todayBookings.forEach(b => {
-    const done = todayV.some(v => v.client_name === b.client_name);
-    const active = activeVisit && activeVisit.client_name === b.client_name;
-    if (done || active) return;
-    // Shift handoff — find last visit with this client
-    const lastVisit = allVisits.filter(v => v.client_name === b.client_name && v.visit_date !== today)
-      .sort((a,z) => (z.visit_date||'').localeCompare(a.visit_date||''))[0];
-    const handoff = lastVisit
-      ? `<div style="margin-top:6px;padding:6px 8px;background:var(--bg3);border:1px solid var(--border);border-radius:5px;font-size:11px;color:var(--muted2);line-height:1.5;">
-          <span style="color:var(--teal2);font-family:var(--mono);font-size:11px;">Last visit ${fmtd(lastVisit.visit_date)}</span>
-          ${lastVisit.client_mood ? ` · Mood: ${lastVisit.client_mood}` : ''}
-          ${lastVisit.visit_summary ? `<br>${lastVisit.visit_summary.slice(0,80)}${lastVisit.visit_summary.length>80?'…':''}` : ''}
-        </div>`
-      : '';
-    const _safeFeedName = (b.client_name||'').replace(/'/g,'').replace(/"/g,'');
-    rows.push(`<div class="feed-row" onclick="doCheckInFromShift('${_safeFeedName}')" style="cursor:pointer;">
-      <div class="feed-dot upcoming"></div>
-      <div class="feed-body"><div class="feed-client">${b.client_name||'—'}</div><div class="feed-meta">Upcoming · ${b.scheduled_time||'TBD'}</div>${handoff}</div>
-      <div class="feed-right"><div class="feed-time" style="color:var(--teal2);font-weight:600;">Tap to Sign In →</div></div>
-    </div>`);
-  });
-  allVisits.filter(v => v.visit_date !== today).slice(0, 4).forEach((v, vi) => {
-    const hrs = parseFloat(v.hours_worked||0);
-    const _vid = 'feedv' + vi;
-    window['_feedVisit_'+_vid] = v;
-    rows.push(`<div class="feed-row" onclick="openVisitDetail('${_vid}')" style="cursor:pointer;">
-      <div class="feed-dot past"></div>
-      <div class="feed-body"><div class="feed-client">${v.client_name||'—'}</div><div class="feed-meta">${fmtd(v.visit_date)} · ${v.time_in||'—'}${v.time_out?' – '+v.time_out:''}</div></div>
-      <div class="feed-right"><div class="feed-hrs" style="color:var(--muted2);">${hrs.toFixed(1)}h</div><div style="font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:2px;">Details ›</div></div>
-    </div>`);
-  });
-  el.innerHTML = rows.length ? rows.join('') : '<div class="empty-state" style="padding:24px;">No visits yet — sign in to your first shift</div>';
-  if (activeVisit?.checkin_time) {
-    const feedEl = document.getElementById('feed-elapsed');
-    if (feedEl) {
-      const mins = Math.round((Date.now() - new Date(activeVisit.checkin_time)) / 60000);
-      const h = Math.floor(mins/60), m = mins%60;
-      feedEl.textContent = (h > 0 ? `${h}h ${m}m` : `${m}m`) + ' elapsed';
-    }
-  }
-}
+// ── ALAYACARE-STYLE SCHEDULE STRIP ───────────────────────────────────────────
+let _selectedSchedDay = null; // YYYY-MM-DD
 
 function renderWeek() {
-  renderMiniCal();
-  const el = document.getElementById('schedule-days');
-  const today = new Date(); today.setHours(12,0,0,0);
-  const startOfWeek = new Date(today);
-  const dow = today.getDay() === 0 ? 6 : today.getDay() - 1;
-  startOfWeek.setDate(today.getDate() - dow + (weekOffset * 14));
-  const days = Array.from({length:14}, (_,i) => { const d = new Date(startOfWeek); d.setDate(startOfWeek.getDate()+i); return d; });
-  document.getElementById('week-label').textContent = `${fmtd(days[0].toISOString().slice(0,10))} – ${fmtd(days[13].toISOString().slice(0,10))}`;
   const bookings = scheduleData?.bookings || [];
-  const visits = scheduleData?.completed_visits || [];
-  const todayStr = new Date().toLocaleDateString('en-CA',{timeZone:'America/Toronto'});
-  el.innerHTML = days.map((d, i) => {
-    const ds = d.toISOString().slice(0,10);
-    const isToday = ds === todayStr;
-    const dayLabel = d.toLocaleDateString('en-CA', {weekday:'short',month:'short',day:'numeric'});
-    const dayVisits = visits.filter(v => v.visit_date === ds);
-    const dayBookings = bookings.filter(b => b.scheduled_date === ds);
-    let rows = '';
-    // Time-off blocks for this day
-    const timeOffToday = (scheduleData?.time_off || []).filter(t =>
-      t.from_date <= ds && t.to_date >= ds
-    );
-    timeOffToday.forEach(t => {
-      const typeLabel = { vacation:'🌴 Vacation', sick:'🤒 Sick', off:'⏸ Off' };
-      const typeColor = { vacation:'rgba(200,169,110,.15)', sick:'rgba(224,85,85,.12)', off:'rgba(100,100,120,.15)' };
-      const typeBorder= { vacation:'rgba(200,169,110,.4)', sick:'rgba(224,85,85,.35)', off:'rgba(100,100,120,.35)' };
-      rows += `<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border-radius:8px;background:${typeColor[t.type]||typeColor.off};border:1px solid ${typeBorder[t.type]||typeBorder.off};margin-bottom:4px;">
-        <div>
-          <div style="font-size:13px;font-weight:600;color:var(--text);">${typeLabel[t.type]||t.type}</div>
-          ${t.note?`<div style="font-size:11px;color:var(--muted);margin-top:2px;">${t.note}</div>`:''}
-        </div>
-        <span style="font-family:var(--mono);font-size:10px;letter-spacing:1px;color:var(--muted);">ALL DAY</span>
-      </div>`;
+  const visits   = scheduleData?.completed_visits || [];
+  const clients  = scheduleData?.clients || scheduleData?.assigned_clients || window._pswClients || [];
+  const today = new Date().toLocaleDateString('en-CA',{timeZone:'America/Toronto'});
+
+  const base = new Date(today + 'T12:00:00');
+  const dow  = base.getDay() === 0 ? 6 : base.getDay() - 1;
+  const startOfWeek = new Date(base);
+  startOfWeek.setDate(base.getDate() - dow + weekOffset * 7);
+
+  const days = Array.from({length:7}, (_,i) => {
+    const d = new Date(startOfWeek);
+    d.setDate(startOfWeek.getDate() + i);
+    return d.toLocaleDateString('en-CA',{timeZone:'America/Toronto'});
+  });
+
+  const wl = document.getElementById('sched-week-range');
+  if (wl) {
+    const fmt = ds => { const d = new Date(ds+'T12:00:00'); return d.toLocaleDateString('en-CA',{month:'short',day:'numeric'}); };
+    wl.textContent = fmt(days[0]) + ' â ' + fmt(days[6]);
+  }
+
+  if (!_selectedSchedDay || !days.includes(_selectedSchedDay)) {
+    _selectedSchedDay = days.includes(today) ? today : days[0];
+  }
+
+  const dayLetters = ['M','T','W','T','F','S','S'];
+  const strip = document.getElementById('sched-strip');
+  if (strip) {
+    strip.innerHTML = days.map((ds, i) => {
+      const hasShift = bookings.some(b => b.scheduled_date === ds) || visits.some(v => v.visit_date === ds);
+      const isToday  = ds === today;
+      const isSel    = ds === _selectedSchedDay;
+      const dayNum   = new Date(ds+'T12:00:00').getDate();
+      return '<div onclick="selectSchedDay(\'' + ds + '\')" style="' +
+        'flex:1;min-width:40px;display:flex;flex-direction:column;align-items:center;' +
+        'padding:8px 4px;border-radius:10px;cursor:pointer;transition:background .15s;' +
+        'background:' + (isSel ? 'var(--teal)' : isToday ? 'rgba(61,138,122,0.12)' : 'var(--bg3)') + ';' +
+        'border:1px solid ' + (isSel ? 'var(--teal)' : isToday ? 'rgba(61,138,122,0.3)' : 'var(--border)') + ';' +
+        'touch-action:manipulation;">' +
+        '<div style="font-family:var(--mono);font-size:10px;letter-spacing:1px;color:' + (isSel ? '#fff' : 'var(--muted)') + ';">' + dayLetters[i] + '</div>' +
+        '<div style="font-size:16px;font-weight:600;margin:2px 0;color:' + (isSel ? '#fff' : isToday ? 'var(--teal2)' : 'var(--text)') + ';">' + dayNum + '</div>' +
+        '<div style="width:5px;height:5px;border-radius:50%;margin-top:2px;background:' + (hasShift ? (isSel ? 'rgba(255,255,255,0.8)' : 'var(--teal2)') : 'transparent') + ';"></div>' +
+        '</div>';
+    }).join('');
+  }
+
+  renderSchedDayCards(_selectedSchedDay, days, bookings, visits, clients, today);
+  renderAvailableShifts();
+}
+
+function selectSchedDay(ds) {
+  _selectedSchedDay = ds;
+  const bookings = scheduleData?.bookings || [];
+  const visits   = scheduleData?.completed_visits || [];
+  const clients  = scheduleData?.clients || scheduleData?.assigned_clients || window._pswClients || [];
+  const today = new Date().toLocaleDateString('en-CA',{timeZone:'America/Toronto'});
+  renderWeek();
+}
+
+function renderSchedDayCards(ds, days, bookings, visits, clients, today) {
+  const lbl  = document.getElementById('sched-day-label');
+  const tot  = document.getElementById('sched-day-total');
+  const el   = document.getElementById('sched-day-cards');
+  if (!el) return;
+
+  const d = new Date(ds+'T12:00:00');
+  const isToday = ds === today;
+  const dayFull = d.toLocaleDateString('en-CA',{weekday:'long',month:'long',day:'numeric'});
+  if (lbl) lbl.textContent = isToday ? 'Today â ' + dayFull : dayFull;
+
+  const dayBookings = bookings.filter(b => b.scheduled_date === ds).sort((a,b) => (a.scheduled_time||'').localeCompare(b.scheduled_time||''));
+  const dayVisits   = visits.filter(v => v.visit_date === ds);
+
+  const totalH = dayBookings.reduce((s,b) => s + (b.duration_minutes||0)/60, 0);
+  if (tot) tot.textContent = totalH > 0 ? totalH.toFixed(1)+'h scheduled' : '';
+
+  if (!dayBookings.length && !dayVisits.length) {
+    el.innerHTML = '<div style="padding:20px 0;text-align:center;font-family:var(--mono);font-size:12px;color:var(--muted);">No shifts scheduled</div>';
+    return;
+  }
+
+  el.innerHTML = dayBookings.map(b => {
+    const client = clients.find(c => {
+      const full = ((c.first_name||'')+' '+(c.last_name||'')).trim();
+      return full.toLowerCase() === (b.client_name||'').toLowerCase() ||
+             full.toLowerCase().startsWith((b.client_name||'').split(' ')[0].toLowerCase());
     });
-    dayVisits.forEach(v => {
-      rows += `<div class="sched-shift"><div><div class="shift-client">${v.client_name||'—'}</div><div class="shift-time">${v.time_in||'—'} – ${v.time_out||'—'} · ${v.hours_worked||0}h</div></div><div class="shift-badge done">Done</div></div>`;
-    });
-    if (isToday && activeVisit) {
-      const tin = activeVisit.time_in || (activeVisit.checkin_time||'').slice(11,16) || '—';
-      rows += `<div class="sched-shift" style="background:rgba(224,154,61,.04);"><div><div class="shift-client">${activeVisit.client_name}</div><div class="shift-time">Started ${tin} · In progress</div></div><button onclick="openCheckout()" style="font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--amber);background:rgba(224,154,61,.1);border:1px solid rgba(224,154,61,.3);border-radius:5px;padding:5px 10px;cursor:pointer;min-height:44px;touch-action:manipulation;">Check Out</button></div>`;
-    }
-    dayBookings.forEach(b => {
-      const done = dayVisits.some(v => v.client_name === b.client_name);
-      const active = activeVisit && activeVisit.client_name === b.client_name && isToday;
-      if (done || active) return;
-      if (isToday && !activeVisit) {
-        const safeName = (b.client_name||'').replace(/"/g,'&quot;');
-        rows += `<div class="sched-shift" style="background:rgba(61,138,122,.03);">
-          <div style="flex:1;min-width:0;" onclick="openClientSheetByName('${safeName}')" class="shift-client-tap">
-            <div class="shift-client" style="display:flex;align-items:center;gap:5px;">${b.client_name||'—'}<span style="font-family:var(--mono);font-size:11px;color:var(--teal2);letter-spacing:1px;">Info ›</span></div>
-            <div class="shift-time">${b.scheduled_time||'TBD'}</div>
-          </div>
-          <button class="sched-signin-btn" data-checkin="${safeName}"
-            style="font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#fff;background:var(--teal);border:none;border-radius:6px;padding:7px 14px;cursor:pointer;min-height:44px;white-space:nowrap;touch-action:manipulation;flex-shrink:0;">Sign In</button>
-        </div>`;
-      } else {
-        const _safeFC = (b.client_name||'').replace(/'/g,'').replace(/"/g,'');
-      rows += `<div class="sched-shift"><div style="flex:1;min-width:0;" onclick="openClientSheetByName('${_safeFC}')" ><div class="shift-client" style="display:flex;align-items:center;gap:5px;">${b.client_name||'—'}<span style="font-family:var(--mono);font-size:11px;color:var(--teal2);letter-spacing:1px;">Info ›</span></div><div class="shift-time">${b.scheduled_time||'TBD'} · ${fmtd(b.scheduled_date)}</div></div><div style="display:flex;gap:6px;align-items:center;"><div class="shift-badge upcoming">Upcoming</div><button onclick="openCancelShift('${b.id}','${(b.client_name||'').replace(/'/g,'')}','${b.scheduled_date}','${b.scheduled_time||''}')" style="font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;padding:5px 9px;border-radius:5px;border:1px solid rgba(224,154,61,.3);background:rgba(224,154,61,.04);color:var(--amber);cursor:pointer;min-height:44px;touch-action:manipulation;">Can't Make</button></div></div>`;
-      }
-    });
-    if (!rows) rows = `<div class="sched-empty">No shifts</div>`;
-    // Week separator between day 7 and 8
-    const weekBreak = i === 6 ? `<div style="margin:8px 12px 0;font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);padding:6px 0;border-top:1px solid var(--border);">Week 2</div>` : '';
-    return weekBreak + `<div class="sched-day${isToday?' today-day':''}" id="sched-day-${ds}" ><div class="sched-day-hdr${isToday?' today-hdr':''}" ><div class="sched-day-lbl ${isToday?'today':''}">${isToday?'⬤ ':''}${dayLabel}${isToday?' — TODAY':''}</div></div>${rows}</div>`;
+    const address   = client?.address || '';
+    const careNotes = client?.care_notes || '';
+    const done = dayVisits.some(v => v.client_name === b.client_name);
+    const isActive = activeVisit && activeVisit.client_name === b.client_name && isToday;
+    const durH = b.duration_minutes ? (b.duration_minutes/60).toFixed(1) : null;
+    const endTime = (b.scheduled_time && b.duration_minutes) ? (() => {
+      const [hh,mm] = b.scheduled_time.split(':').map(Number);
+      const endMins = hh*60 + mm + b.duration_minutes;
+      return String(Math.floor(endMins/60)%24).padStart(2,'0')+':'+String(endMins%60).padStart(2,'0');
+    })() : null;
+    const timeStr = b.scheduled_time ? (endTime ? b.scheduled_time+' â '+endTime : b.scheduled_time) : 'TBD';
+    const _safe = (b.client_name||'').replace(/'/g,'').replace(/"/g,'');
+    return '<div style="background:var(--bg2);border:1px solid ' + (isActive ? 'rgba(224,154,61,.4)' : 'var(--border)') + ';border-radius:12px;padding:14px;margin-bottom:8px;' + (done ? 'opacity:0.65;' : '') + '">' +
+      '<div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px;">' +
+        '<div style="flex:1;min-width:0;">' +
+          '<div style="font-size:15px;font-weight:600;color:var(--text);margin-bottom:2px;">' + (b.client_name||'—') + '</div>' +
+          '<div style="font-family:var(--mono);font-size:12px;color:' + (isActive ? 'var(--amber)' : done ? 'var(--green2)' : 'var(--teal2)') + ';"><span>' +
+            (isActive ? 'â In progress' : done ? 'â Done' : timeStr) + (durH && !done && !isActive ? ' Â· '+durH+'h' : '') +
+          '</span></div></div>' +
+        '<div style="font-family:var(--mono);font-size:10px;letter-spacing:1px;color:var(--muted);margin-left:8px;padding:2px 6px;border:1px solid var(--border);border-radius:4px;">$</div>' +
+      '</div>' +
+      (address ? '<div style="display:flex;align-items:center;gap:5px;margin-bottom:6px;font-family:var(--mono);font-size:11px;color:var(--muted2);">âð ' + address + '</div>' : '') +
+      (careNotes ? '<div style="font-size:11px;color:var(--muted2);line-height:1.55;margin-bottom:8px;padding:8px;background:var(--bg3);border-radius:6px;border:1px solid var(--border);">' + careNotes.slice(0,160) + (careNotes.length>160 ? 'â¦' : '') + '</div>' : '') +
+      (!done && !isActive && isToday ?
+        '<div style="display:flex;gap:8px;margin-top:4px;">' +
+          '<button onclick="doCheckInFromShift(\''+_safe+'\')" style="flex:1;padding:11px;background:var(--teal);border:none;border-radius:8px;font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#fff;cursor:pointer;min-height:44px;touch-action:manipulation;">Sign In</button>' +
+          '<button onclick="openNavigateSheet(\''+_safe+'\',\'' + (b.id||'') + '\')" style="padding:11px 14px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;font-family:var(--mono);font-size:11px;color:var(--muted2);cursor:pointer;min-height:44px;touch-action:manipulation;">ðº</button>' +
+          '<button onclick="openCancelShift(\'' + (b.id||'') + '\',\''+_safe+'\',\'' + b.scheduled_date + '\',\'' + (b.scheduled_time||'') + '\')" style="padding:11px 14px;background:rgba(224,154,61,.06);border:1px solid rgba(224,154,61,.25);border-radius:8px;font-family:var(--mono);font-size:11px;color:var(--amber);cursor:pointer;min-height:44px;touch-action:manipulation;">Can't Make</button>' +
+        '</div>' : '') +
+      (!done && !isActive && !isToday ?
+        '<div style="display:flex;gap:8px;margin-top:4px;">' +
+          '<button onclick="openNavigateSheet(\''+_safe+'\',\'' + (b.id||'') + '\')" style="flex:1;padding:10px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;font-family:var(--mono);font-size:11px;color:var(--muted2);cursor:pointer;min-height:44px;touch-action:manipulation;">ðº Map</button>' +
+          '<button onclick="openCancelShift(\'' + (b.id||'') + '\',\''+_safe+'\',\'' + b.scheduled_date + '\',\'' + (b.scheduled_time||'') + '\')" style="flex:1;padding:10px;background:rgba(224,154,61,.06);border:1px solid rgba(224,154,61,.25);border-radius:8px;font-family:var(--mono);font-size:11px;color:var(--amber);cursor:pointer;min-height:44px;touch-action:manipulation;">Can't Make</button>' +
+        '</div>' : '') +
+      '</div>';
   }).join('');
 }
-function shiftWeek(dir) { weekOffset += dir; renderWeek(); }
+
+function shiftWeek(dir) { weekOffset += dir; _selectedSchedDay = null; renderWeek(); }
+// ── END SCHEDULE STRIP ────────────────────────────────────────────────────────
 
 // ── BUILD 7: AVAILABLE SHIFTS ──
 function renderAvailableShifts() {
@@ -2761,8 +2724,7 @@ function injectClientChecklistTasks(clientName) {
     if (!routine || routine.trim().length < 3) return;
 
     // Parse routine into tasks — split on newlines or periods followed by capitals
-    const lines = routine.split(/
-|(?<=\.)\s+(?=[A-Z])/).map(l => l.replace(/^[-•*\d.]+\s*/, '').trim()).filter(l => l.length > 2 && l.length < 120);
+    const lines = routine.split('\n').flatMap(l => l.split(/(?<=\.)\s+(?=[A-Z])/)).map(l => l.replace(/^[-•*\d.]+\s*/, '').trim()).filter(l => l.length > 2 && l.length < 120);
     if (!lines.length) return;
 
     // Build section header + task items
@@ -4967,7 +4929,7 @@ function openNavigateSheet(clientName, bookingId) {
 
     const clientLat = clientObj?.lat ? parseFloat(clientObj.lat) : null;
     const clientLng = clientObj?.lng ? parseFloat(clientObj.lng) : null;
-    const clientAddress = clientObj ? [clientObj.address].filter(Boolean).join(', ') : (clientName + ', Mississauga ON');
+    const clientAddress = clientObj?.address || '';
 
     document.getElementById('nav-address').textContent = clientAddress || clientName;
 
@@ -5038,12 +5000,12 @@ function openNavigateSheet(clientName, bookingId) {
           .catch(() => {}); // OSRM fallback — straight line stays shown
 
       } else {
-        // No geocoded client lat/lng — center on PSW, show note
+        // No geocoded lat/lng — center on PSW, build Google Maps with address
         _navMap.setView([pswLat, pswLng], 14);
-        document.getElementById('nav-map-subtitle').textContent = 'Client address not geocoded — using Google Maps';
-        document.getElementById('nav-address').textContent = (clientAddress || clientName) + ' · address not yet geocoded in system';
-        // Build Google Maps URL using address string
-        _navGMapsUrl = `https://maps.google.com/maps/dir/${pswLat},${pswLng}/${encodeURIComponent(clientAddress||clientName)}`;
+        document.getElementById('nav-map-subtitle').textContent = 'Client not yet geocoded — opening in Google Maps';
+        const gmapsAddr = clientAddress || (clientName + ' Mississauga ON');
+        document.getElementById('nav-address').textContent = gmapsAddr;
+        _navGMapsUrl = `https://maps.google.com/maps/dir/${pswLat},${pswLng}/${encodeURIComponent(gmapsAddr)}`;
         document.getElementById('nav-distance').textContent = '—';
         document.getElementById('nav-eta').textContent = 'See Maps';
       }
