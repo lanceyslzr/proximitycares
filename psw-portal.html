@@ -263,7 +263,7 @@ a{color:inherit;text-decoration:none;}
 .mood-lbl{font-family:var(--mono);font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;}
 
 /* MESSAGES */
-.msg-thread{padding:12px 14px;display:flex;flex-direction:column;gap:10px;min-height:200px;max-height:calc(100dvh - 280px);overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;}
+.msg-thread{padding:12px 14px 90px;display:flex;flex-direction:column;gap:10px;min-height:200px;max-height:calc(100dvh - 220px);overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;}
 .msg-bubble{padding:10px 13px;border-radius:10px;max-width:84%;}
 .msg-lance{background:var(--teal);color:#fff;margin-left:auto;border-radius:10px 10px 3px 10px;}
 .msg-psw{background:var(--bg3);color:var(--text);border:1px solid var(--border);border-radius:10px 10px 10px 3px;}
@@ -4314,20 +4314,54 @@ function _getDeclinedIds() {
   try {
     const stored = localStorage.getItem('psw_declined_offers');
     const parsed = stored ? JSON.parse(stored) : [];
-    // Auto-expire after 7 days
-    const cutoff = Date.now() - 7 * 24 * 3600000;
+    // Auto-expire after 30 days (was 7 — extended so PSW doesn't re-see old declined offers)
+    const cutoff = Date.now() - 30 * 24 * 3600000;
     const fresh = parsed.filter(e => e.ts > cutoff);
-    return new Set(fresh.map(e => e.id));
+    // Always return string IDs — prevents type mismatch when server returns int vs string
+    return new Set(fresh.map(e => String(e.id)));
   } catch { return new Set(); }
 }
 function _addDeclinedId(id) {
   try {
     const stored = localStorage.getItem('psw_declined_offers');
     const parsed = stored ? JSON.parse(stored) : [];
-    const cutoff = Date.now() - 7 * 24 * 3600000;
+    const cutoff = Date.now() - 30 * 24 * 3600000;
     const fresh = parsed.filter(e => e.ts > cutoff);
-    fresh.push({ id, ts: Date.now() });
+    // Store as string to avoid type mismatch on retrieval
+    if (!fresh.find(e => String(e.id) === String(id))) {
+      fresh.push({ id: String(id), ts: Date.now() });
+    }
     localStorage.setItem('psw_declined_offers', JSON.stringify(fresh));
+  } catch {}
+}
+
+async function loadShiftOffers() {
+  try {
+    const r = await fetch(`${API}/psw/shift-offers?psw_name=${encodeURIComponent(pswName)}&pin=${pswPin}&operator_id=${pswOperatorId}`);
+    if (!r.ok) return;
+    const d = await r.json();
+    const declinedIds = _getDeclinedIds();
+    // All offers shown — declined ones marked visually, not hidden
+    const offers = d.offers || [];
+    const section = document.getElementById('shift-offers-section');
+    const list = document.getElementById('shift-offers-list');
+    if (!section || !list) return;
+    if (!offers.length) { section.style.display = 'none'; return; }
+    section.style.display = 'block';
+    list.innerHTML = offers.map(o => {
+      const declined = declinedIds.has(String(o.id));
+      return `
+      <div class="shift-offer-card" id="offer-${o.id}" style="${declined ? 'opacity:0.45;pointer-events:none;' : ''}">
+        ${declined ? `<div style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:4px;">You declined this shift</div>` : '<div class="shift-offer-lbl">Open Shift</div>'}
+        <div style="font-size:14px;font-weight:500;color:var(--text);margin-bottom:2px;">${o.client_name||'—'}</div>
+        <div style="font-family:var(--mono);font-size:11px;color:var(--muted2);">${o.scheduled_date||'—'} · ${o.scheduled_time||'TBD'} · ${o.duration_minutes ? (o.duration_minutes/60).toFixed(1)+'h' : '—'}</div>
+        ${o.client_area ? `<div style="font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:2px;"> ${o.client_area}</div>` : ''}
+        ${!declined ? `<div class="offer-actions">
+          <button class="offer-accept" onclick="respondToOffer('${o.id}','accept')">✓ Accept</button>
+          <button class="offer-decline" onclick="respondToOffer('${o.id}','decline')">Decline</button>
+        </div>` : ''}
+      </div>`;
+    }).join('');
   } catch {}
 }
 
@@ -4359,6 +4393,32 @@ async function loadShiftOffers() {
 }
 
 async function respondToOffer(offerId, response) {
+  const offerIdStr = String(offerId); // always use string
+  // Immediately update card UI before server round-trip
+  const el = document.getElementById('offer-' + offerId);
+  if (el && response === 'decline') {
+    // Mark as declined — dim and disable, don't remove
+    _addDeclinedId(offerIdStr);
+    el.style.opacity = '0.45';
+    el.style.pointerEvents = 'none';
+    const lbl = el.querySelector('.shift-offer-lbl');
+    if (lbl) { lbl.textContent = 'You declined this shift'; lbl.style.color = 'var(--muted)'; }
+    const actions = el.querySelector('.offer-actions');
+    if (actions) actions.remove();
+    // Add dismiss X so PSW can clean up declined cards
+    const xBtn = document.createElement('button');
+    xBtn.textContent = '✕ Dismiss';
+    xBtn.style.cssText = 'margin-top:8px;font-family:var(--mono);font-size:10px;letter-spacing:1px;color:var(--muted);background:none;border:1px solid var(--border);border-radius:6px;padding:4px 10px;cursor:pointer;pointer-events:all;touch-action:manipulation;';
+    xBtn.onclick = (e) => { e.stopPropagation(); el.remove(); const r = document.querySelectorAll('.shift-offer-card').length; if(!r){const s=document.getElementById('shift-offers-section');if(s)s.style.display='none';} };
+    el.appendChild(xBtn);
+    showToast('Shift declined', 'ok');
+  } else if (el && response === 'accept') {
+    // Show loading state
+    el.style.opacity = '0.7';
+    el.style.pointerEvents = 'none';
+    const lbl = el.querySelector('.shift-offer-lbl');
+    if (lbl) lbl.textContent = 'Processing...';
+  }
   try {
     const r = await fetch(`${API}/psw/shift-offer/respond`, {
       method: 'POST', headers: {'Content-Type':'application/json'},
@@ -4366,24 +4426,33 @@ async function respondToOffer(offerId, response) {
     });
     const d = await r.json();
     if (response === 'accept') {
-      showToast('Shift accepted — coordinator confirmed', 'ok');
+      if (!r.ok) throw new Error(d.error || 'Failed to accept');
+      // Remove the accepted card cleanly
+      if (el) {
+        el.style.transition = 'opacity .3s';
+        el.style.opacity = '0';
+        setTimeout(() => {
+          el.remove();
+          const remaining = document.querySelectorAll('.shift-offer-card').length;
+          if (!remaining) { const s = document.getElementById('shift-offers-section'); if (s) s.style.display = 'none'; }
+        }, 300);
+      }
+      const bookingMsg = d.booking_assigned
+        ? 'Shift added to your schedule ✓'
+        : 'Shift accepted — coordinator will add to your schedule ✓';
+      showToast(bookingMsg, 'ok');
       haptic([50,30,50]);
-      await loadSchedule();
-    } else {
-      // Track decline locally so auto-refresh doesn't re-show the offer
-      _addDeclinedId(offerId);
-      showToast('Shift declined', 'ok');
+      // Reload schedule to show the new booking
+      setTimeout(() => loadSchedule(), 400);
     }
-    const el = document.getElementById('offer-' + offerId);
-    if (el) el.remove();
-    // Hide section if no offers left
-    const remaining = document.querySelectorAll('.shift-offer-card').length;
-    if (!remaining) { const s = document.getElementById('shift-offers-section'); if (s) s.style.display = 'none'; }
-  } catch {
-    if (response === 'accept') showToast('Request sent', 'ok');
-    else { _addDeclinedId(offerId); }
-    const el = document.getElementById('offer-' + offerId);
-    if (el) el.remove();
+    // Decline: UI already updated optimistically above
+  } catch(err) {
+    // Server unreachable — for decline, localStorage already updated, UI already set
+    if (response === 'accept') {
+      showToast('Request sent — coordinator will confirm', 'ok');
+      // Revert loading state if server failed
+      if (el) { el.style.opacity = '0.45'; el.style.pointerEvents = 'none'; }
+    }
   }
 }
 
