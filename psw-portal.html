@@ -1775,15 +1775,19 @@ function updateShiftUI() {
   const noShift = document.getElementById('cl-no-shift');
   const clName = document.getElementById('cl-visit-name');
   if (activeVisit) {
-    signinCard.style.display = 'none';
-    activeCard.style.display = 'block';
-    document.getElementById('av-client').textContent = activeVisit.client_name || '—';
+    if (signinCard) signinCard.style.display = 'none';
+    if (activeCard) activeCard.style.display = 'block';
+    const avClient = document.getElementById('av-client');
+    const avTimein = document.getElementById('av-timein');
+    const haClient = document.getElementById('home-active-client');
+    const haTimein = document.getElementById('home-active-timein');
+    if (avClient) avClient.textContent = activeVisit.client_name || '—';
     const tin = activeVisit.time_in || (activeVisit.checkin_time||'').slice(11,16) || '—';
-    document.getElementById('av-timein').textContent = tin;
-    homeBanner.classList.add('show');
-    document.getElementById('home-active-client').textContent = activeVisit.client_name || '—';
-    document.getElementById('home-active-timein').textContent = 'Started at ' + tin;
-    pill.style.display = 'block';
+    if (avTimein) avTimein.textContent = tin;
+    if (homeBanner) homeBanner.classList.add('show');
+    if (haClient) haClient.textContent = activeVisit.client_name || '—';
+    if (haTimein) haTimein.textContent = 'Started at ' + tin;
+    if (pill) pill.style.display = 'block';
     if (noShift) noShift.style.display = 'none';
     if (clName) clName.textContent = activeVisit.client_name || '';
     startElapsed();
@@ -1791,10 +1795,10 @@ function updateShiftUI() {
     // Only show manual signin card if no shifts are scheduled for today
     const todayStr = new Date().toLocaleDateString('en-CA',{timeZone:'America/Toronto'});
     const todayBookings = (scheduleData?.bookings || []).filter(b => b.scheduled_date === todayStr);
-    signinCard.style.display = todayBookings.length ? 'none' : 'block';
-    activeCard.style.display = 'none';
-    homeBanner.classList.remove('show');
-    pill.style.display = 'none';
+    if (signinCard) signinCard.style.display = todayBookings.length ? 'none' : 'block';
+    if (activeCard) activeCard.style.display = 'none';
+    if (homeBanner) homeBanner.classList.remove('show');
+    if (pill) pill.style.display = 'none';
     if (noShift) noShift.style.display = 'block';
     if (clName) clName.textContent = '';
     stopElapsed();
