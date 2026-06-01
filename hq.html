@@ -2442,7 +2442,6 @@ body.sidebar-rail .sidebar{width:64px;overflow:visible;}
     <div class="sched-toolbar-row" style="display:flex;gap:6px;overflow-x:auto;overflow-y:hidden;flex-wrap:nowrap;scrollbar-width:none;-ms-overflow-style:none;-webkit-overflow-scrolling:touch;max-width:100%;padding-bottom:2px;">
       <div class="sect-action" onclick="openAddShift('','')">+ Shift</div>
       <div class="sect-action" onclick="openBulkSchedule()" style="color:var(--gold);border-color:rgba(200,169,110,.3);">+ Bulk Week</div>
-      <div class="sect-action" onclick="openCopyWeeksSheet()" style="color:var(--teal3);border-color:rgba(125,202,189,.3);">⧉ Copy Week</div>
       <div class="sect-action" onclick="openCopyWeeksSheet()" style="color:var(--teal3);border-color:rgba(125,202,189,.3);">⧉ Copy Weeks</div>
       <div class="sect-action" onclick="openImportBookings()" style="color:var(--teal3);border-color:rgba(125,202,189,.3);">↑ Import CSV</div>
       <div class="sect-action" onclick="openSwapSheet()" style="color:var(--purple2);border-color:rgba(160,96,224,.3);">⇄ Swap</div>
@@ -7586,16 +7585,28 @@ async function renderRevenue() {
   // Get date range from selected period
   const { fromDate, toDate, label: periodLabel } = getRevDateRange(_revPeriod);
 
-  // Fetch real visit data for revenue calculation
-  const visits = D.visits || [];
+  // Fetch visits from server for the selected date range
+  // D.visits is capped at 500 recent rows — historical data requires a server fetch
+  let visits = [];
+  try {
+    const revRes = await hqFetch(`${API}/hq/visits?operator_id=${currentOp}&from_date=${fromDate}&limit=2000`);
+    const revD = await revRes.json();
+    const allFetched = revD.visits || [];
+    visits = allFetched.filter(v => {
+      const d = v.visit_date || '';
+      return d >= fromDate && d <= toDate;
+    });
+  } catch {
+    // Fallback to D.visits if server fetch fails
+    visits = (D.visits || []).filter(v => {
+      const d = v.visit_date || '';
+      return d >= fromDate && d <= toDate;
+    });
+  }
 
-  // Filter visits by selected period
-  const periodVisits = visits.filter(v => {
-    const d = v.visit_date || '';
-    return d >= fromDate && d <= toDate;
-  });
-  const monthVisits = periodVisits; // alias for downstream code
-  const monthHours = periodVisits.reduce((s,v) => s + parseFloat(v.hours_worked||0), 0);
+  const periodVisits = visits;
+  const monthVisits = periodVisits;
+  const monthHours = periodVisits.reduce((s,v) => s + parseFloat(v.manual_hours_override ?? v.hours_worked ?? 0), 0);
 
   // Revenue per client this month (hours × client_rate)
   const clientRevMap = {};
@@ -7606,7 +7617,7 @@ async function renderRevenue() {
     });
     const rate = c?.client_rate || 22;
     const pswRate = c?.psw_rate || 19;
-    const hrs = parseFloat(v.hours_worked||0);
+    const hrs = parseFloat(v.manual_hours_override ?? v.hours_worked ?? 0);
     if (!clientRevMap[v.client_name]) clientRevMap[v.client_name] = {billed:0, cost:0, hours:0, visits:0};
     clientRevMap[v.client_name].billed += hrs * rate;
     clientRevMap[v.client_name].cost += hrs * pswRate;
@@ -8303,6 +8314,212 @@ function openPaystubModal(pswName, pswEmail, defaultRate) {
   }, 100);
 }
 
+// ── CLIENT AVAILABILITY STATUS ────────────────────────────────────────────────
+function setClientAvailability(clientId, clientName, status, btn) {
+  const container = btn?.closest('#cpt-status');
+  if (container) {
+    container.querySelectorAll('button[onclick*="setClientAvailability"]').forEach(b => {
+      b.style.borderColor='var(--border)'; b.style.background='var(--bg3)'; b.style.color='var(--muted)';
+      b.textContent = b.textContent.replace(' ✓','');
+    });
+    const colors   = {active:'rgba(109,185,116,.3)',on_hold:'rgba(224,154,61,.3)',away:'rgba(61,138,122,.3)',vacation:'rgba(200,169,110,.3)',hospital:'rgba(224,85,85,.3)'};
+    const bg       = {active:'rgba(109,185,116,.08)',on_hold:'rgba(224,154,61,.06)',away:'rgba(61,138,122,.06)',vacation:'rgba(200,169,110,.06)',hospital:'rgba(224,85,85,.06)'};
+    const txtCol   = {active:'var(--green2)',on_hold:'var(--amber)',away:'var(--teal2)',vacation:'var(--gold)',hospital:'var(--red)'};
+    btn.style.borderColor = colors[status]||'var(--teal2)';
+    btn.style.background  = bg[status]||'rgba(61,138,122,.06)';
+    btn.style.color       = txtCol[status]||'var(--teal2)';
+    btn.textContent = btn.textContent.trim() + ' ✓';
+  }
+  btn.dataset.pendingStatus = status;
+}
+
+async function saveClientAvailability(clientId, clientName) {
+  const btn       = document.querySelector('#cpt-status button[data-pending-status]');
+  const status    = btn?.dataset?.pendingStatus || 'active';
+  const fromDate  = document.getElementById('cl-avail-from')?.value;
+  const untilDate = document.getElementById('cl-avail-until')?.value;
+  const note      = (document.getElementById('cl-avail-note')?.value||'').trim();
+  try {
+    const r = await hqFetch(`${API}/hq/client/availability`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ operator_id:currentOp, client_id:clientId, client_name:clientName, status, from_date:fromDate, until_date:untilDate, note })
+    });
+    const d = await r.json();
+    if (!r.ok || !d.success) throw new Error(d.error||'Failed');
+    showToast(`${clientName} status updated to ${status.replace(/_/g,' ')} ✓`, 'ok');
+    loadAll(false);
+  } catch(e) { showToast(e.message||'Failed to update status','err'); }
+}
+// ── END CLIENT AVAILABILITY ───────────────────────────────────────────────────
+
+// ── CLIENT SEND PAYMENT SHEET ─────────────────────────────────────────────────
+let _cspClientName = '', _cspEmail = '', _cspRate = 22, _cspPayType = 'full', _cspInvoiceTotal = 0;
+
+function openClientSendPayment(clientName, clientEmail, clientRate) {
+  _cspClientName  = clientName || '';
+  _cspEmail       = clientEmail || '';
+  _cspRate        = parseFloat(clientRate) || 22;
+  _cspPayType     = 'full';
+  _cspInvoiceTotal = 0;
+
+  document.getElementById('csp-meta').textContent = clientName + ' · $' + _cspRate + '/hr';
+  document.getElementById('csp-amount').value = '';
+  document.getElementById('csp-notes').value = '';
+  document.getElementById('csp-email').value = clientEmail || '';
+  document.getElementById('csp-summary').style.display = 'none';
+  document.getElementById('csp-owed-row').style.display = 'none';
+  cspSetType('full');
+  cspSetPreset('last');
+  openSheet('client-send-payment-sheet');
+}
+
+function cspSetPreset(preset) {
+  const now = new Date();
+  const tz = {timeZone:'America/Toronto'};
+  let from, to;
+  if (preset === 'last') {
+    const first = new Date(now.getFullYear(), now.getMonth()-1, 1);
+    const last  = new Date(now.getFullYear(), now.getMonth(), 0);
+    from = first.toLocaleDateString('en-CA', tz);
+    to   = last.toLocaleDateString('en-CA', tz);
+  } else if (preset === 'this') {
+    from = now.toLocaleDateString('en-CA', tz).slice(0,7) + '-01';
+    to   = now.toLocaleDateString('en-CA', tz);
+  } else { return; }
+  document.getElementById('csp-from').value = from;
+  document.getElementById('csp-to').value   = to;
+  ['last','this','custom'].forEach(p => {
+    const btn = document.getElementById('csp-pre-'+p);
+    if (!btn) return;
+    const active = p === preset;
+    btn.style.borderColor = active ? 'rgba(61,138,122,.4)' : 'var(--border)';
+    btn.style.background  = active ? 'rgba(61,138,122,.1)' : 'var(--bg3)';
+    btn.style.color       = active ? 'var(--teal2)' : 'var(--muted)';
+  });
+  cspLoadVisits();
+}
+
+function cspSetType(type) {
+  _cspPayType = type;
+  const pb = document.getElementById('csp-type-partial');
+  const fb = document.getElementById('csp-type-full');
+  const nt = document.getElementById('csp-type-note');
+  if (type === 'partial') {
+    pb.style.borderColor='rgba(200,169,110,.5)'; pb.style.background='rgba(200,169,110,.1)'; pb.style.color='var(--gold)';
+    fb.style.borderColor='var(--border)'; fb.style.background='var(--bg3)'; fb.style.color='var(--muted)';
+    if (nt) nt.style.display = 'block';
+  } else {
+    fb.style.borderColor='rgba(109,185,116,.4)'; fb.style.background='rgba(109,185,116,.08)'; fb.style.color='var(--green2)';
+    pb.style.borderColor='var(--border)'; pb.style.background='var(--bg3)'; pb.style.color='var(--muted)';
+    if (nt) nt.style.display = 'none';
+  }
+  cspUpdateOwed();
+}
+
+function cspLoadVisits() {
+  const from = document.getElementById('csp-from')?.value;
+  const to   = document.getElementById('csp-to')?.value;
+  const sum  = document.getElementById('csp-summary');
+  if (!from || !to || !_cspClientName) { if (sum) sum.style.display = 'none'; return; }
+
+  // Fetch visits from server for accurate historical data (D.visits is limited to 500 recent)
+  hqFetch(`${API}/hq/visits?operator_id=${currentOp}&from_date=${from}&limit=500`)
+    .then(r => r.json())
+    .then(d => {
+      const allV = (d.visits || []).filter(v =>
+        (v.client_name||'').toLowerCase() === _cspClientName.toLowerCase() &&
+        v.visit_date >= from && v.visit_date <= to && v.status === 'completed'
+      );
+      const totalHrs  = allV.reduce((s,v) => s + parseFloat(v.manual_hours_override ?? v.hours_worked ?? 0), 0);
+      _cspInvoiceTotal = totalHrs * _cspRate;
+
+      document.getElementById('csp-sum-visits').textContent = allV.length + ' visit' + (allV.length!==1?'s':'') + ' in period';
+      document.getElementById('csp-sum-hours').textContent  = totalHrs.toFixed(1) + 'h · $' + _cspRate + '/hr';
+      document.getElementById('csp-sum-total').textContent  = '$' + _cspInvoiceTotal.toFixed(2);
+      if (sum) sum.style.display = 'block';
+
+      const amtInput = document.getElementById('csp-amount');
+      if (amtInput && (!amtInput.value || parseFloat(amtInput.value) === 0)) {
+        amtInput.value = _cspInvoiceTotal > 0 ? _cspInvoiceTotal.toFixed(2) : '';
+      }
+      cspUpdateOwed();
+
+      // Cache for submitClientPayment
+      window._cspVisits = allV;
+    })
+    .catch(() => {
+      // Fallback to D.visits
+      const allV = (D.visits||[]).filter(v =>
+        (v.client_name||'').toLowerCase() === _cspClientName.toLowerCase() &&
+        v.visit_date >= from && v.visit_date <= to
+      );
+      const totalHrs = allV.reduce((s,v) => s + parseFloat(v.manual_hours_override ?? v.hours_worked ?? 0), 0);
+      _cspInvoiceTotal = totalHrs * _cspRate;
+      if (sum) { document.getElementById('csp-sum-total').textContent = '$' + _cspInvoiceTotal.toFixed(2); sum.style.display = 'block'; }
+      window._cspVisits = allV;
+    });
+}
+
+function cspUpdateOwed() {
+  const amount = parseFloat(document.getElementById('csp-amount')?.value||0);
+  const owed   = _cspInvoiceTotal - amount;
+  const owedRow = document.getElementById('csp-owed-row');
+  const owedAmt = document.getElementById('csp-owed-amt');
+  if (_cspPayType === 'partial' && owed > 0.01 && amount > 0) {
+    if (owedRow) owedRow.style.display = 'block';
+    if (owedAmt) owedAmt.textContent = '$' + owed.toFixed(2) + ' remaining';
+  } else {
+    if (owedRow) owedRow.style.display = 'none';
+  }
+}
+
+async function submitClientPayment() {
+  const from   = (document.getElementById('csp-from')?.value||'').trim();
+  const to     = (document.getElementById('csp-to')?.value||'').trim();
+  const amount = parseFloat(document.getElementById('csp-amount')?.value||'0');
+  const email  = (document.getElementById('csp-email')?.value||'').trim();
+  const notes  = (document.getElementById('csp-notes')?.value||'').trim();
+  const btn    = document.getElementById('csp-send-btn');
+
+  if (!amount || amount <= 0) { showToast('Enter the amount received', 'err'); return; }
+  if (!email)                 { showToast('Family email required', 'err'); return; }
+  if (!from || !to)           { showToast('Select a billing period', 'err'); return; }
+
+  const fmtDate = s => new Date(s+'T12:00:00').toLocaleDateString('en-CA',{month:'short',day:'numeric',year:'numeric',timeZone:'America/Toronto'});
+  const periodLabel = fmtDate(from) + ' – ' + fmtDate(to);
+  const visits = window._cspVisits || [];
+  const totalHrs = visits.reduce((s,v) => s + parseFloat(v.manual_hours_override ?? v.hours_worked ?? 0), 0);
+  const owed = Math.max(0, _cspInvoiceTotal - amount);
+
+  if (btn) { btn.disabled = true; btn.textContent = 'Sending...'; }
+  try {
+    const r = await hqFetch(`${API}/hq/client/confirm-payment`, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({
+        operator_id: currentOp, client_name: _cspClientName,
+        amount: amount.toFixed(2), period_label: periodLabel,
+        from_date: from, to_date: to, payment_type: _cspPayType,
+        visits_count: visits.length, hours_worked: totalHrs.toFixed(1),
+        invoice_total: _cspInvoiceTotal.toFixed(2),
+        amount_owed: owed.toFixed(2),
+        email_override: email, notes: notes || undefined
+      })
+    });
+    const d = await r.json();
+    if (!r.ok || !d.success) throw new Error(d.error || 'Send failed');
+    closeSheet('client-send-payment-sheet');
+    const label = _cspPayType === 'partial' ? 'Partial payment confirmation' : 'Payment confirmation';
+    showToast(`${label} sent to ${_cspClientName}'s family ✓`, 'ok');
+    loadAll(false);
+  } catch(e) {
+    showToast(e.message || 'Failed to send', 'err');
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = 'Send Confirmation'; }
+  }
+}
+// ── END CLIENT SEND PAYMENT SHEET ────────────────────────────────────────────
+
 // ── SEND PAY SHEET ────────────────────────────────────────────────────────────
 let _sspPswName = '', _sspPswEmail = '', _sspPswRate = 19, _sspPayType = 'full';
 
@@ -8575,6 +8792,7 @@ function openClientDetail(id) {
       <button class="sbtn" onclick="closeSheet('client-sheet');openClientSchedule('${name}')">+ Shift</button>
       <button class="sbtn" style="background:rgba(200,169,110,.1);color:var(--gold);border-color:rgba(200,169,110,.3);" onclick="openInvoicePicker('${name}','${c.family_email||c.email||''}','${c.assigned_psw||''}',${c.client_rate||22},${c.psw_rate||19})">Invoice</button>
       <button class="sbtn" onclick="openHoursPanel('client','${name}')">⏱ Hours</button>
+      <button class="sbtn" data-csp-name="${name}" data-csp-email="${c.family_email||c.email||''}" data-csp-rate="${c.client_rate||22}" onclick="openClientSendPayment(this.dataset.cspName,this.dataset.cspEmail,parseFloat(this.dataset.cspRate))" style="background:rgba(109,185,116,.06);color:var(--green2);border-color:rgba(109,185,116,.2);">Send Payment</button>
     </div>
     <div class="prof-tabs">
       <div class="prof-tab active" onclick="_cpTab(this,'cpt-info')">Info</div>
@@ -8582,6 +8800,8 @@ function openClientDetail(id) {
       <div class="prof-tab" onclick="_cpTab(this,'cpt-docs')">Documents</div>
       <div class="prof-tab" onclick="_cpTab(this,'cpt-billing')">Billing</div>
       <div class="prof-tab" onclick="_cpTab(this,'cpt-portal')">Portal</div>
+      <div class="prof-tab" onclick="_cpTab(this,'cpt-status')">Status</div>
+      <div class="prof-tab" onclick="_cpTab(this,'cpt-cnotes');loadFileNotes('client','${name}')">File Notes</div>
     </div>
 
     <!-- TAB: INFO -->
@@ -8814,6 +9034,41 @@ function openClientDetail(id) {
         </div>
         <div style="display:none;padding:0 14px;">${clientVisitRows}</div>
       </div>
+    </div>
+
+    <!-- ── CLIENT STATUS TAB ── -->
+    <div class="prof-tab-body" id="cpt-status">
+      <div style="font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:12px;">Client Status</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px;">
+        <button onclick="setClientAvailability('${id}','${name}','active',this)" style="grid-column:1/-1;padding:12px;border-radius:8px;border:1px solid rgba(109,185,116,.3);background:rgba(109,185,116,.08);font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--green2);cursor:pointer;min-height:48px;touch-action:manipulation;">Active ✓</button>
+        <button onclick="setClientAvailability('${id}','${name}','on_hold',this)" style="padding:12px;border-radius:8px;border:1px solid var(--border);background:var(--bg3);font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);cursor:pointer;min-height:48px;touch-action:manipulation;">On Hold</button>
+        <button onclick="setClientAvailability('${id}','${name}','away',this)" style="padding:12px;border-radius:8px;border:1px solid var(--border);background:var(--bg3);font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);cursor:pointer;min-height:48px;touch-action:manipulation;">Away</button>
+        <button onclick="setClientAvailability('${id}','${name}','vacation',this)" style="padding:12px;border-radius:8px;border:1px solid var(--border);background:var(--bg3);font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);cursor:pointer;min-height:48px;touch-action:manipulation;">Vacation</button>
+        <button onclick="setClientAvailability('${id}','${name}','hospital',this)" style="padding:12px;border-radius:8px;border:1px solid var(--border);background:var(--bg3);font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);cursor:pointer;min-height:48px;touch-action:manipulation;">Hospital</button>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;">
+        <div><div style="font-family:var(--mono);font-size:10px;text-transform:uppercase;color:var(--muted);margin-bottom:4px;">From</div><input type="date" id="cl-avail-from" class="sinput" style="font-size:13px;padding:10px;"></div>
+        <div><div style="font-family:var(--mono);font-size:10px;text-transform:uppercase;color:var(--muted);margin-bottom:4px;">Until</div><input type="date" id="cl-avail-until" class="sinput" style="font-size:13px;padding:10px;"></div>
+      </div>
+      <input type="text" id="cl-avail-note" class="sinput" placeholder="e.g. hospital stay, out of town" style="font-size:13px;padding:10px;margin-bottom:12px;">
+      <button onclick="saveClientAvailability('${id}','${name}')" style="width:100%;padding:13px;background:rgba(61,138,122,.1);border:1px solid rgba(61,138,122,.3);border-radius:8px;font-family:var(--mono);font-size:12px;letter-spacing:1px;text-transform:uppercase;color:var(--teal2);cursor:pointer;min-height:44px;touch-action:manipulation;">Save Status</button>
+    </div>
+
+    <!-- ── CLIENT FILE NOTES TAB ── -->
+    <div class="prof-tab-body" id="cpt-cnotes">
+      <div style="display:flex;gap:8px;margin-bottom:14px;">
+        <select id="fn-type-client" class="sselect" style="flex:0 0 140px;font-size:12px;">
+          <option value="general">General Note</option>
+          <option value="care_plan">Care Plan Change</option>
+          <option value="medication">Medication Change</option>
+          <option value="doctors_note">Doctor's Note</option>
+          <option value="incident">Incident Note</option>
+          <option value="hospital">Hospital/Medical</option>
+        </select>
+        <textarea id="fn-text-client" class="sinput" placeholder="Add a note..." rows="2" style="flex:1;font-size:13px;resize:none;padding:10px;"></textarea>
+      </div>
+      <button onclick="addFileNote('client','${name}')" style="width:100%;padding:12px;background:rgba(61,138,122,.1);border:1px solid rgba(61,138,122,.3);border-radius:8px;font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--teal2);cursor:pointer;min-height:44px;touch-action:manipulation;margin-bottom:16px;">+ Add Note</button>
+      <div id="fn-list-client"><div style="font-family:var(--mono);font-size:12px;color:var(--muted);text-align:center;padding:16px 0;">Loading notes...</div></div>
     </div>
   `
   loadCarePlan(slug);
@@ -12355,6 +12610,84 @@ function _applyActiveSectionFlex() {
 
 <!-- ── INVOICE PICKER SHEET ──────────────────────────────────────────────── -->
 <!-- Opens from client sheet. Select period → preview → send. No accidental fires. -->
+<!-- ── CLIENT SEND PAYMENT SHEET ──────────────────────────────────────────── -->
+<div class="sheet" id="client-send-payment-sheet" style="z-index:1055;">
+  <div class="sheet-handle"></div>
+  <div class="sheet-header">
+    <div>
+      <div class="sheet-label">Send Payment Confirmation</div>
+      <div id="csp-meta" style="font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:2px;"></div>
+    </div>
+    <button class="sheet-close" onclick="closeSheet('client-send-payment-sheet')">✕</button>
+  </div>
+  <div style="padding:0 16px 24px;overflow-y:auto;max-height:calc(88vh - 80px);">
+    <div style="margin-bottom:14px;">
+      <div style="font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:8px;">Billing Period</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;">
+        <button onclick="cspSetPreset('last')" id="csp-pre-last" style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;padding:6px 12px;border-radius:5px;border:1px solid rgba(61,138,122,.4);background:rgba(61,138,122,.1);color:var(--teal2);cursor:pointer;min-height:36px;touch-action:manipulation;">Last Month</button>
+        <button onclick="cspSetPreset('this')" id="csp-pre-this" style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;padding:6px 12px;border-radius:5px;border:1px solid var(--border);background:var(--bg3);color:var(--muted);cursor:pointer;min-height:36px;touch-action:manipulation;">This Month</button>
+        <button onclick="cspSetPreset('custom')" id="csp-pre-custom" style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;padding:6px 12px;border-radius:5px;border:1px solid var(--border);background:var(--bg3);color:var(--muted);cursor:pointer;min-height:36px;touch-action:manipulation;">Custom</button>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+        <div>
+          <div style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:4px;">From</div>
+          <input type="date" id="csp-from" class="sinput" onchange="cspLoadVisits()" style="font-size:13px;padding:10px;">
+        </div>
+        <div>
+          <div style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:4px;">To</div>
+          <input type="date" id="csp-to" class="sinput" onchange="cspLoadVisits()" style="font-size:13px;padding:10px;">
+        </div>
+      </div>
+    </div>
+    <!-- Invoice summary -->
+    <div id="csp-summary" style="padding:12px 14px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;margin-bottom:14px;display:none;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+        <div>
+          <div id="csp-sum-visits" style="font-family:var(--mono);font-size:12px;color:var(--muted);"></div>
+          <div id="csp-sum-hours" style="font-family:var(--mono);font-size:12px;color:var(--muted);margin-top:2px;"></div>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-bottom:2px;">Invoice Total</div>
+          <div id="csp-sum-total" style="font-family:var(--mono);font-size:20px;color:var(--gold);"></div>
+        </div>
+      </div>
+    </div>
+    <!-- Amount paid -->
+    <div style="margin-bottom:14px;">
+      <div style="font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;">Amount Received ($)</div>
+      <input type="number" id="csp-amount" class="sinput" step="0.01" min="0" placeholder="Enter amount received" style="font-size:20px;padding:12px;font-family:var(--mono);" oninput="cspUpdateOwed()">
+    </div>
+    <!-- Amount owed display -->
+    <div id="csp-owed-row" style="display:none;padding:10px 14px;background:rgba(224,154,61,.06);border:1px solid rgba(224,154,61,.2);border-radius:8px;margin-bottom:14px;">
+      <div style="font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--amber);margin-bottom:4px;">Balance Remaining</div>
+      <div id="csp-owed-amt" style="font-family:var(--mono);font-size:18px;color:var(--amber);"></div>
+    </div>
+    <!-- Payment type -->
+    <div style="margin-bottom:14px;">
+      <div style="font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:8px;">Payment Status</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+        <button id="csp-type-partial" onclick="cspSetType('partial')" style="padding:12px;border-radius:8px;border:1px solid var(--border);background:var(--bg3);font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);cursor:pointer;min-height:48px;touch-action:manipulation;">Partial Received</button>
+        <button id="csp-type-full" onclick="cspSetType('full')" style="padding:12px;border-radius:8px;border:1px solid rgba(109,185,116,.4);background:rgba(109,185,116,.08);font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--green2);cursor:pointer;min-height:48px;touch-action:manipulation;">Paid in Full ✓</button>
+      </div>
+      <div id="csp-type-note" style="font-family:var(--mono);font-size:11px;color:var(--amber);margin-top:6px;display:none;">A follow-up invoice will indicate the remaining balance.</div>
+    </div>
+    <!-- Note + Email -->
+    <div style="margin-bottom:14px;">
+      <div style="font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;">Note to Family (optional)</div>
+      <textarea id="csp-notes" class="sinput" placeholder="e.g. Thank you for your prompt payment" rows="2" style="font-size:13px;padding:10px;resize:none;width:100%;"></textarea>
+    </div>
+    <div style="margin-bottom:20px;">
+      <div style="font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;">Family Email</div>
+      <input type="email" id="csp-email" class="sinput" placeholder="Family contact email" style="font-size:13px;padding:10px;">
+    </div>
+    <div style="display:flex;gap:8px;">
+      <button onclick="submitClientPayment()" id="csp-send-btn" style="flex:2;padding:14px;background:rgba(109,185,116,.12);border:1px solid rgba(109,185,116,.35);border-radius:8px;font-family:var(--mono);font-size:12px;letter-spacing:1px;text-transform:uppercase;color:var(--green2);cursor:pointer;min-height:50px;touch-action:manipulation;">Send Confirmation</button>
+      <button onclick="closeSheet('client-send-payment-sheet')" style="flex:1;padding:14px;background:none;border:1px solid var(--border);border-radius:8px;font-family:var(--mono);font-size:12px;color:var(--muted);cursor:pointer;min-height:50px;touch-action:manipulation;">Cancel</button>
+    </div>
+  </div>
+</div>
+<!-- ── END CLIENT SEND PAYMENT SHEET ──────────────────────────────────────── -->
+
 <div class="sheet" id="invoice-picker-sheet" style="z-index:1052;">
   <div class="sheet-handle"></div>
   <div class="sheet-header">
