@@ -1103,9 +1103,9 @@ body.sidebar-hidden #sidebar-reopen-tab{ display:flex; }
 
 
 /* ── PROFILE TABS (client + PSW detail sheets) — S36 ── */
-.prof-tabs{display:flex;gap:2px;padding:0 16px 0;margin-bottom:0;overflow-x:auto;scrollbar-width:none;border-bottom:1px solid var(--border);background:var(--bg2);}
+.prof-tabs{display:flex;gap:2px;padding:0 16px 0;margin-bottom:0;overflow-x:auto;scrollbar-width:none;border-bottom:1px solid var(--border);background:var(--bg2);-webkit-overflow-scrolling:touch;}
 .prof-tabs::-webkit-scrollbar{display:none;}
-.prof-tab{font-family:var(--mono);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;padding:10px 12px;cursor:pointer;color:var(--muted2);border-bottom:2px solid transparent;white-space:nowrap;min-height:36px;display:flex;align-items:center;touch-action:manipulation;transition:color .15s,border-color .15s;}
+.prof-tab{font-family:var(--mono);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;padding:10px 12px;cursor:pointer;color:var(--muted2);border-bottom:2px solid transparent;white-space:nowrap;min-height:36px;display:flex;align-items:center;touch-action:manipulation;transition:color .15s,border-color .15s;flex-shrink:0;white-space:nowrap;}
 .prof-tab:hover{color:var(--text);}
 .prof-tab.active{color:var(--teal2);border-bottom-color:var(--teal2);}
 .prof-tab-body{display:none;padding:14px 16px 80px;}
@@ -2414,10 +2414,16 @@ body.sidebar-rail .sidebar{width:64px;overflow:visible;}
     <button onclick="openBroadcastSheet()" class="broadcast-btn"><svg width="11" height="11" viewBox="0 0 12 12" fill="none" style="display:inline;vertical-align:middle;margin-right:4px"><path d="M7 1L3 7h4l-2 4 6-6H7L9 1z" fill="#c9a96e"/></svg>Broadcast Open Shift</button>
     <button onclick="openTimeOffSheet()" style="font-family:var(--mono);font-size:11px;letter-spacing:1px;padding:8px 14px;background:rgba(224,85,85,.08);border:1px solid rgba(224,85,85,.2);border-radius:7px;color:var(--red);cursor:pointer;min-height:40px;display:flex;align-items:center;gap:6px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="12" height="12"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/><path d="M9 16l2 2 4-4"/></svg>Time Off</button>
   </div>
-  <!-- Shift offers history -->
-  <div id="shift-offers-hq-section" style="display:none;margin-top:10px;">
-    <div style="padding:8px 12px 4px;font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);">Recent Shift Offers</div>
-    <div style="margin:0 12px 8px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;overflow:hidden;" id="shift-offers-hq-list">
+  <!-- Shift offers history — collapsable -->
+  <div id="shift-offers-hq-section" style="display:none;margin-top:4px;padding:0 12px;">
+    <div onclick="window._offersExpanded=!window._offersExpanded;document.getElementById('shift-offers-hq-list').style.display=window._offersExpanded?'block':'none';document.getElementById('offers-chevron').style.transform=window._offersExpanded?'rotate(180deg)':'rotate(0deg)';" style="font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);display:flex;align-items:center;justify-content:space-between;cursor:pointer;padding:6px 0;">
+      <span>⚡ Recent Shift Offers</span>
+      <div style="display:flex;align-items:center;gap:6px;">
+        <span id="offers-count" style="font-family:var(--mono);font-size:11px;padding:2px 6px;background:rgba(200,169,110,.1);border:1px solid rgba(200,169,110,.25);border-radius:4px;color:var(--gold);">0</span>
+        <span id="offers-chevron" style="font-size:11px;color:var(--gold);transition:transform .2s;">▾</span>
+      </div>
+    </div>
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:8px;overflow:hidden;display:none;" id="shift-offers-hq-list">
       <div class="empty-state" style="padding:12px;">Loading offers...</div>
     </div>
   </div>
@@ -3334,9 +3340,13 @@ async function loadShiftOffersHQ() {
     const section = document.getElementById('shift-offers-hq-section');
     const list = document.getElementById('shift-offers-hq-list');
     if (!section || !list) return;
-    if (!offers.length) { section.style.display = 'none'; return; }
+    const filtered = offers.filter(o => o.client_name !== 'Test' && o.client_name !== 'test' && (o.scheduled_date||'') < '2090-01-01').slice(0,10);
+    if (!filtered.length) { section.style.display = 'none'; return; }
     section.style.display = 'block';
-    list.innerHTML = offers.filter(o => o.client_name !== 'Test' && o.client_name !== 'test' && (o.scheduled_date||'') < '2090-01-01').slice(0,10).map(o => `
+    // Update count badge
+    const countEl = document.getElementById('offers-count');
+    if (countEl) countEl.textContent = filtered.length;
+    list.innerHTML = filtered.map(o => `
       <div class="offer-history-row" id="hq-offer-${o.id}">
         <div style="flex:1;min-width:0;">
           <div style="font-size:12px;font-weight:500;color:var(--text);">${escHtml(o.client_name||'—')}</div>
@@ -7519,7 +7529,7 @@ async function executeSwap() {
 }
 
 // ── REVENUE PERIOD FILTER ─────────────────────────────────────────────────────
-let _revPeriod = 'month'; // today | week | month | lastmonth | year
+let _revPeriod = 'lastmonth'; // default to last month where real data exists // today | week | month | lastmonth | year
 
 function setRevPeriod(period) {
   _revPeriod = period;
@@ -7589,7 +7599,7 @@ async function renderRevenue() {
   // D.visits is capped at 500 recent rows — historical data requires a server fetch
   let visits = [];
   try {
-    const revRes = await hqFetch(`${API}/hq/visits?operator_id=${currentOp}&from_date=${fromDate}&limit=2000`);
+    const revRes = await hqFetch(`${API}/hq/visits?operator_id=${currentOp}&from_date=${fromDate}&to_date=${toDate}&limit=2000`);
     const revD = await revRes.json();
     const allFetched = revD.visits || [];
     visits = allFetched.filter(v => {
@@ -8157,7 +8167,16 @@ async function openPSWDetail(pswId) {
           const colors = {active:'rgba(109,185,116,.3)','not_available':'rgba(224,85,85,.3)',sick:'rgba(224,154,61,.3)',away:'rgba(61,138,122,.3)',vacation:'rgba(200,169,110,.3)'};
           const bg     = {active:'rgba(109,185,116,.08)','not_available':'rgba(224,85,85,.06)',sick:'rgba(224,154,61,.06)',away:'rgba(61,138,122,.06)',vacation:'rgba(200,169,110,.06)'};
           const txtCol = {active:'var(--green2)','not_available':'var(--red)',sick:'var(--amber)',away:'var(--teal2)',vacation:'var(--gold)'};
-          const cur = (p.status||'active');
+          // Read cached availability status from localStorage (set on save) or availability_note
+          let cur = 'active';
+          try {
+            const cached = localStorage.getItem('psw_avail_status_' + (p.id||p.full_name||name));
+            if (cached) { cur = cached; }
+            else if (p.availability_note) {
+              const an = JSON.parse(p.availability_note);
+              cur = an.availability_status || p.status || 'active';
+            } else { cur = p.status || 'active'; }
+          } catch { cur = p.status || 'active'; }
           const isActive = cur === st;
           return `<button onclick="setPSWAvailability('${p.id}','${name}','${st}',this)"
             style="padding:12px 8px;border-radius:8px;border:1px solid ${isActive?colors[st]:'var(--border)'};background:${isActive?bg[st]:'var(--bg3)'};font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:${isActive?txtCol[st]:'var(--muted)'};cursor:pointer;min-height:48px;touch-action:manipulation;${st==='active'&&isActive?'grid-column:1/-1;':''}">
@@ -8225,6 +8244,10 @@ function _cpTab(el, bodyId) {
     if (saveBar) saveBar.style.display = 'flex';
   } else {
     if (saveBar) saveBar.style.display = 'none';
+  }
+  // Status tab: apply cached availability status to buttons
+  if (bodyId === 'cpt-status' && window._activeClientId) {
+    setTimeout(() => initClientStatusTab(window._activeClientId), 30);
   }
 }
 function _ppTab(el, bodyId) { _cpTab(el, bodyId); }
@@ -8314,6 +8337,27 @@ function openPaystubModal(pswName, pswEmail, defaultRate) {
   }, 100);
 }
 
+// ── STATUS TAB INIT — apply cached status on tab open ────────────────────────
+function initClientStatusTab(clientId) {
+  let cur = 'active';
+  try { const c = localStorage.getItem('cl_avail_status_' + clientId); if (c) cur = c; } catch {}
+  const container = document.getElementById('cpt-status-btns-' + clientId);
+  if (!container) return;
+  const colors = {active:'rgba(109,185,116,.3)',on_hold:'rgba(224,154,61,.3)',away:'rgba(61,138,122,.3)',vacation:'rgba(200,169,110,.3)',hospital:'rgba(224,85,85,.3)'};
+  const bg = {active:'rgba(109,185,116,.08)',on_hold:'rgba(224,154,61,.06)',away:'rgba(61,138,122,.06)',vacation:'rgba(200,169,110,.06)',hospital:'rgba(224,85,85,.06)'};
+  const tc = {active:'var(--green2)',on_hold:'var(--amber)',away:'var(--teal2)',vacation:'var(--gold)',hospital:'var(--red)'};
+  const labels = {active:'Active',on_hold:'On Hold',away:'Away',vacation:'Vacation',hospital:'Hospital'};
+  container.querySelectorAll('button[onclick*="setClientAvailability"]').forEach(b => {
+    const m = b.getAttribute('onclick').match(/'([a-z_]+)',this\)/);
+    if (!m) return;
+    const st = m[1]; const isAct = st === cur;
+    b.style.borderColor = isAct ? (colors[st]||'var(--teal2)') : 'var(--border)';
+    b.style.background  = isAct ? (bg[st]||'var(--bg3)')       : 'var(--bg3)';
+    b.style.color       = isAct ? (tc[st]||'var(--text)')       : 'var(--muted)';
+    b.textContent = (labels[st]||st) + (isAct ? ' ✓' : '');
+  });
+}
+
 // ── CLIENT AVAILABILITY STATUS ────────────────────────────────────────────────
 function setClientAvailability(clientId, clientName, status, btn) {
   const container = btn?.closest('#cpt-status');
@@ -8346,6 +8390,8 @@ async function saveClientAvailability(clientId, clientName) {
     });
     const d = await r.json();
     if (!r.ok || !d.success) throw new Error(d.error||'Failed');
+    // Cache so next open shows correct status
+    localStorage.setItem('cl_avail_status_' + clientId, status);
     showToast(`${clientName} status updated to ${status.replace(/_/g,' ')} ✓`, 'ok');
     loadAll(false);
   } catch(e) { showToast(e.message||'Failed to update status','err'); }
@@ -8756,6 +8802,7 @@ function openClientDetail(id) {
   const slug = c.portal_slug || '';
   document.getElementById('client-sheet-title').textContent = name;
   window._activeClientSlug = slug; // Track for save + notes
+  window._activeClientId   = id;   // Track for status tab init
   // Alert badges
   const alertBadges = getAlertBadges(c);
   const twoPswHeader = c.requires_two_psw
@@ -9039,8 +9086,8 @@ function openClientDetail(id) {
     <!-- ── CLIENT STATUS TAB ── -->
     <div class="prof-tab-body" id="cpt-status">
       <div style="font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:12px;">Client Status</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px;">
-        <button onclick="setClientAvailability('${id}','${name}','active',this)" style="grid-column:1/-1;padding:12px;border-radius:8px;border:1px solid rgba(109,185,116,.3);background:rgba(109,185,116,.08);font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--green2);cursor:pointer;min-height:48px;touch-action:manipulation;">Active ✓</button>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px;" id="cpt-status-btns-${id}">
+        <button onclick="setClientAvailability('${id}','${name}','active',this)" style="grid-column:1/-1;padding:12px;border-radius:8px;border:1px solid var(--border);background:var(--bg3);font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);cursor:pointer;min-height:48px;touch-action:manipulation;">Active</button>
         <button onclick="setClientAvailability('${id}','${name}','on_hold',this)" style="padding:12px;border-radius:8px;border:1px solid var(--border);background:var(--bg3);font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);cursor:pointer;min-height:48px;touch-action:manipulation;">On Hold</button>
         <button onclick="setClientAvailability('${id}','${name}','away',this)" style="padding:12px;border-radius:8px;border:1px solid var(--border);background:var(--bg3);font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);cursor:pointer;min-height:48px;touch-action:manipulation;">Away</button>
         <button onclick="setClientAvailability('${id}','${name}','vacation',this)" style="padding:12px;border-radius:8px;border:1px solid var(--border);background:var(--bg3);font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);cursor:pointer;min-height:48px;touch-action:manipulation;">Vacation</button>
@@ -9922,6 +9969,8 @@ async function savePSWAvailability(pswId, pswName) {
     });
     const d = await r.json();
     if (!r.ok || !d.success) throw new Error(d.error || 'Failed');
+    // Cache the new status so next time the detail opens it shows correctly
+    localStorage.setItem('psw_avail_status_' + (pswId||pswName), status);
     showToast(`${pswName} status updated to ${status.replace(/_/g,' ')} ✓`, 'ok');
     loadAll(false);
   } catch(e) { showToast(e.message || 'Failed to update status', 'err'); }
