@@ -5010,7 +5010,7 @@ async function renderVisits() {
           <div id="vforms-${vid}" data-visit-id="${v.id||''}" data-client="${v.client_name||''}" style="padding-bottom:4px;"></div>
         </div>
         <div style="display:flex;gap:8px;padding:8px 14px;border-top:1px solid var(--border);background:var(--bg2);">
-          <button onclick="event.stopPropagation();openVisitEditById(v.id)" style="padding:6px 14px;background:rgba(201,169,110,.1);border:1px solid rgba(201,169,110,.25);border-radius:5px;font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--gold);cursor:pointer;min-height:44px;">Edit Times</button>
+          <button onclick="event.stopPropagation();openVisitEditById('${v.id}')" style="padding:6px 14px;background:rgba(201,169,110,.1);border:1px solid rgba(201,169,110,.25);border-radius:5px;font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--gold);cursor:pointer;min-height:44px;">Edit Times</button>
           ${v.verified ? '<span style="font-family:var(--mono);font-size:10px;color:var(--green2);letter-spacing:1px;padding:6px 8px;">VERIFIED</span>' : `<button onclick="verifyVisit('${v.id}')" style="padding:6px 14px;background:rgba(109,185,116,.08);border:1px solid rgba(109,185,116,.2);border-radius:5px;font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--green2);cursor:pointer;min-height:44px;">Verify</button>`}
         </div>
       </div>`;
@@ -7999,6 +7999,8 @@ async function openPSWDetail(pswId) {
       <div class="prof-tab" onclick="_ppTab(this,'ppt-certs')">Certifications</div>
       <div class="prof-tab" onclick="_ppTab(this,'ppt-docs')">Documents</div>
       <div class="prof-tab" onclick="_ppTab(this,'ppt-schedule')">Schedule</div>
+      <div class="prof-tab" onclick="_ppTab(this,'ppt-status')">Status</div>
+      <div class="prof-tab" onclick="_ppTab(this,'ppt-notes');loadFileNotes('psw','${name}')">File Notes</div>
       <div class="prof-tab" onclick="_ppTab(this,'ppt-edit')">Edit</div>
     </div>
 
@@ -8136,6 +8138,61 @@ async function openPSWDetail(pswId) {
       <div class="sheet-row"><div class="slbl">Probation End Date</div><input class="sinput" id="pe-probation-end" type="date" value="${p.probation_end||''}" style="font-size:16px;"></div>
       <div class="sheet-row"><div class="slbl">Internal Notes</div><textarea class="sinput" id="pe-notes" rows="2" style="min-height:60px;resize:none;" placeholder="Notes about this PSW...">${p.notes||rec.notes||''}</textarea></div>
       <button class="sbtn" style="background:rgba(200,169,110,.12);color:var(--gold);border:1px solid rgba(200,169,110,.3);margin-bottom:8px;" onclick="savePSWEdits('${p.id}','${name}')">Save Changes</button>
+    </div>
+
+    <!-- ── STATUS TAB ── -->
+    <div class="prof-tab-body" id="ppt-status">
+      <div style="font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:12px;">Availability Status</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px;">
+        ${['active','not_available','sick','away','vacation'].map(st => {
+          const labels = {active:'Available',not_available:'Not Available',sick:'Sick',away:'Away',vacation:'Vacation'};
+          const colors = {active:'rgba(109,185,116,.3)','not_available':'rgba(224,85,85,.3)',sick:'rgba(224,154,61,.3)',away:'rgba(61,138,122,.3)',vacation:'rgba(200,169,110,.3)'};
+          const bg     = {active:'rgba(109,185,116,.08)','not_available':'rgba(224,85,85,.06)',sick:'rgba(224,154,61,.06)',away:'rgba(61,138,122,.06)',vacation:'rgba(200,169,110,.06)'};
+          const txtCol = {active:'var(--green2)','not_available':'var(--red)',sick:'var(--amber)',away:'var(--teal2)',vacation:'var(--gold)'};
+          const cur = (p.status||'active');
+          const isActive = cur === st;
+          return `<button onclick="setPSWAvailability('${p.id}','${name}','${st}',this)"
+            style="padding:12px 8px;border-radius:8px;border:1px solid ${isActive?colors[st]:'var(--border)'};background:${isActive?bg[st]:'var(--bg3)'};font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:${isActive?txtCol[st]:'var(--muted)'};cursor:pointer;min-height:48px;touch-action:manipulation;${st==='active'&&isActive?'grid-column:1/-1;':''}">
+            ${labels[st]}${isActive?' ✓':''}
+          </button>`;
+        }).join('')}
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;">
+        <div>
+          <div style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:4px;">From</div>
+          <input type="date" id="psw-avail-from" class="sinput" value="${new Date().toLocaleDateString('en-CA',{timeZone:'America/Toronto'})}" style="font-size:13px;padding:10px;">
+        </div>
+        <div>
+          <div style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:4px;">Until</div>
+          <input type="date" id="psw-avail-until" class="sinput" style="font-size:13px;padding:10px;">
+        </div>
+      </div>
+      <div style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:4px;">Note (optional)</div>
+      <input type="text" id="psw-avail-note" class="sinput" placeholder="e.g. medical leave, family emergency" style="font-size:13px;padding:10px;margin-bottom:12px;">
+      <button onclick="savePSWAvailability('${p.id}','${name}')"
+        style="width:100%;padding:13px;background:rgba(61,138,122,.1);border:1px solid rgba(61,138,122,.3);border-radius:8px;font-family:var(--mono);font-size:12px;letter-spacing:1px;text-transform:uppercase;color:var(--teal2);cursor:pointer;min-height:44px;touch-action:manipulation;">
+        Save Status
+      </button>
+    </div>
+
+    <!-- ── FILE NOTES TAB ── -->
+    <div class="prof-tab-body" id="ppt-notes">
+      <div style="display:flex;gap:8px;margin-bottom:14px;">
+        <select id="fn-type-psw" class="sselect" style="flex:0 0 140px;font-size:12px;">
+          <option value="general">General Note</option>
+          <option value="care_plan">Care Plan Change</option>
+          <option value="medication">Medication Change</option>
+          <option value="doctors_note">Doctor's Note</option>
+          <option value="incident">Incident Note</option>
+          <option value="performance">Performance Note</option>
+        </select>
+        <textarea id="fn-text-psw" class="sinput" placeholder="Add a note..." rows="2" style="flex:1;font-size:13px;resize:none;padding:10px;"></textarea>
+      </div>
+      <button onclick="addFileNote('psw','${name}')"
+        style="width:100%;padding:12px;background:rgba(61,138,122,.1);border:1px solid rgba(61,138,122,.3);border-radius:8px;font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--teal2);cursor:pointer;min-height:44px;touch-action:manipulation;margin-bottom:16px;">
+        + Add Note
+      </button>
+      <div id="fn-list-psw"><div style="font-family:var(--mono);font-size:12px;color:var(--muted);text-align:center;padding:16px 0;">Loading notes...</div></div>
     </div>
   `;
   } catch {
@@ -9577,6 +9634,95 @@ async function submitManualVisit() {
     await loadAll(true); // Force fresh fetch so visit is confirmed in DB before rendering
   } catch(e) { showToast(e.message || 'Could not submit', 'err'); }
 }
+
+// ── PSW AVAILABILITY STATUS ───────────────────────────────────────────────────
+function setPSWAvailability(pswId, pswName, status, btn) {
+  // Update button UI immediately
+  const container = btn.closest('[id="ppt-status"]') || btn.parentElement;
+  if (container) {
+    container.querySelectorAll('button[onclick*="setPSWAvailability"]').forEach(b => {
+      b.style.borderColor = 'var(--border)'; b.style.background = 'var(--bg3)'; b.style.color = 'var(--muted)';
+      b.textContent = b.textContent.replace(' ✓','');
+    });
+    const colors = {active:'rgba(109,185,116,.3)',not_available:'rgba(224,85,85,.3)',sick:'rgba(224,154,61,.3)',away:'rgba(61,138,122,.3)',vacation:'rgba(200,169,110,.3)'};
+    const bg     = {active:'rgba(109,185,116,.08)',not_available:'rgba(224,85,85,.06)',sick:'rgba(224,154,61,.06)',away:'rgba(61,138,122,.06)',vacation:'rgba(200,169,110,.06)'};
+    const txtCol = {active:'var(--green2)',not_available:'var(--red)',sick:'var(--amber)',away:'var(--teal2)',vacation:'var(--gold)'};
+    btn.style.borderColor = colors[status]||'var(--teal2)';
+    btn.style.background  = bg[status]||'rgba(61,138,122,.06)';
+    btn.style.color       = txtCol[status]||'var(--teal2)';
+    btn.textContent = btn.textContent.trim() + ' ✓';
+  }
+  btn.dataset.pendingStatus = status;
+}
+
+async function savePSWAvailability(pswId, pswName) {
+  const btn = document.querySelector('#ppt-status button[data-pending-status]');
+  const status     = btn?.dataset?.pendingStatus || 'active';
+  const fromDate   = document.getElementById('psw-avail-from')?.value;
+  const untilDate  = document.getElementById('psw-avail-until')?.value;
+  const note       = (document.getElementById('psw-avail-note')?.value||'').trim();
+
+  try {
+    const r = await hqFetch(`${API}/hq/psw/availability`, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ operator_id: currentOp, psw_id: pswId, psw_name: pswName, status, from_date: fromDate, until_date: untilDate, note })
+    });
+    const d = await r.json();
+    if (!r.ok || !d.success) throw new Error(d.error || 'Failed');
+    showToast(`${pswName} status updated to ${status.replace(/_/g,' ')} ✓`, 'ok');
+    loadAll(false);
+  } catch(e) { showToast(e.message || 'Failed to update status', 'err'); }
+}
+
+// ── FILE NOTES (PSW + CLIENT) ─────────────────────────────────────────────────
+async function loadFileNotes(entityType, entityName) {
+  const listEl = document.getElementById(`fn-list-${entityType}`);
+  if (!listEl) return;
+  listEl.innerHTML = '<div style="font-family:var(--mono);font-size:12px;color:var(--muted);text-align:center;padding:16px 0;">Loading...</div>';
+  try {
+    const r = await hqFetch(`${API}/hq/file-notes?operator_id=${currentOp}&entity_type=${entityType}&entity_name=${encodeURIComponent(entityName)}`);
+    const d = await r.json();
+    const notes = d.notes || [];
+    if (!notes.length) { listEl.innerHTML = '<div style="font-family:var(--mono);font-size:12px;color:var(--muted);text-align:center;padding:20px 0;">No notes yet</div>'; return; }
+    const typeColors = { care_plan:'var(--teal2)', medication:'var(--amber)', doctors_note:'var(--green2)', incident:'var(--red)', performance:'var(--gold)', general:'var(--muted2)' };
+    const typeLabels = { care_plan:'Care Plan', medication:'Medication', doctors_note:"Doctor's Note", incident:'Incident', performance:'Performance', general:'General' };
+    listEl.innerHTML = notes.map(n => {
+      const type = n.payload?.note_type || 'general';
+      const text = n.payload?.note_text || n.payload?.text || '';
+      const addedBy = n.payload?.added_by || 'HQ';
+      const color = typeColors[type] || 'var(--muted2)';
+      return `<div style="padding:10px 12px;background:var(--bg2);border:1px solid var(--border);border-left:3px solid ${color};border-radius:6px;margin-bottom:6px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+          <span style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:${color};">${typeLabels[type]||type}</span>
+          <span style="font-family:var(--mono);font-size:10px;color:var(--muted);">${fmtd(n.created_at)} · ${addedBy}</span>
+        </div>
+        <div style="font-size:13px;color:var(--text);line-height:1.5;">${escHtml(text)}</div>
+      </div>`;
+    }).join('');
+  } catch(e) { listEl.innerHTML = '<div style="font-family:var(--mono);font-size:12px;color:var(--red);padding:12px 0;">Failed to load notes</div>'; }
+}
+
+async function addFileNote(entityType, entityName) {
+  const typeEl = document.getElementById(`fn-type-${entityType}`);
+  const textEl = document.getElementById(`fn-text-${entityType}`);
+  const noteType = typeEl?.value || 'general';
+  const noteText = (textEl?.value||'').trim();
+  if (!noteText) { showToast('Enter a note first', 'err'); return; }
+  try {
+    const r = await hqFetch(`${API}/hq/file-notes`, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ operator_id: currentOp, entity_type: entityType, entity_name: entityName, note_type: noteType, note_text: noteText, added_by: 'lance' })
+    });
+    const d = await r.json();
+    if (!r.ok || !d.success) throw new Error(d.error || 'Failed');
+    if (textEl) textEl.value = '';
+    showToast('Note added ✓', 'ok');
+    loadFileNotes(entityType, entityName);
+  } catch(e) { showToast(e.message || 'Failed to add note', 'err'); }
+}
+// ── END STATUS + FILE NOTES ───────────────────────────────────────────────────
 
 async function savePSWEdits(pswId, pswName) {
   const rate = parseFloat(document.getElementById('pe-rate')?.value) || 19;
