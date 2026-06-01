@@ -263,13 +263,13 @@ a{color:inherit;text-decoration:none;}
 .mood-lbl{font-family:var(--mono);font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;}
 
 /* MESSAGES */
-.msg-thread{padding:12px 14px 90px;display:flex;flex-direction:column;gap:10px;min-height:200px;max-height:calc(100dvh - 220px);overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;}
+.msg-thread{padding:12px 14px 16px;display:flex;flex-direction:column;gap:10px;flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;}
 .msg-bubble{padding:10px 13px;border-radius:10px;max-width:84%;}
 .msg-lance{background:var(--teal);color:#fff;margin-left:auto;border-radius:10px 10px 3px 10px;}
 .msg-psw{background:var(--bg3);color:var(--text);border:1px solid var(--border);border-radius:10px 10px 10px 3px;}
 .msg-text{font-size:13px;line-height:1.5;}
 .msg-time{font-family:var(--mono);font-size:11px;opacity:.55;margin-top:3px;}
-.msg-input-wrap{position:sticky;bottom:calc(64px + var(--safe-bottom));background:var(--bg2);border-top:1px solid var(--border);padding:10px 12px;display:flex;gap:8px;align-items:flex-end;}
+.msg-input-wrap{flex-shrink:0;position:relative;background:var(--bg2);border-top:1px solid var(--border);padding:10px 12px calc(10px + env(safe-area-inset-bottom));display:flex;gap:8px;align-items:flex-end;}
 .msg-input{flex:1;background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:10px 13px;border-radius:16px;font-size:16px;resize:none;max-height:100px;}
 .msg-input:focus{outline:none;border-color:var(--teal2);}
 .msg-send{width:42px;height:42px;border-radius:50%;background:var(--teal);color:#fff;font-size:16px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;border:none;touch-action:manipulation;}
@@ -1022,13 +1022,13 @@ a{color:inherit;text-decoration:none;}
 </div>
 
 <!-- MESSAGES -->
-<div class="section" id="sect-messages">
-  <div class="section-header">
+<div class="section" id="sect-messages" style="display:flex;flex-direction:column;height:calc(100dvh - 64px);padding:0;overflow:hidden;">
+  <div class="section-header" style="flex-shrink:0;padding:12px 14px;">
     <span class="section-title">Message HQ</span>
     <span style="font-family:var(--mono);font-size:10px;color:var(--teal2);letter-spacing:.5px;">Lance notified instantly</span>
   </div>
   <!-- Incident history — read-only, only shows if PSW has incident records -->
-  <div id="psw-incident-history" style="display:none;margin-bottom:16px;background:var(--bg2);border:1px solid var(--border);border-radius:12px;overflow:hidden;">
+  <div id="psw-incident-history" style="display:none;flex-shrink:0;margin:0 12px 8px;background:var(--bg2);border:1px solid var(--border);border-radius:12px;overflow:hidden;">
     <div onclick="toggleIncidentHistory()" style="padding:12px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;cursor:pointer;touch-action:manipulation;">
       <span style="font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);">Incident Records</span>
       <div style="display:flex;align-items:center;gap:8px;">
