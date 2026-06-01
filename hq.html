@@ -2503,7 +2503,16 @@ body.sidebar-rail .sidebar{width:64px;overflow:visible;}
 </div>
 
 <div class="section" id="sect-revenue">
-  <div class="section-header"><span class="section-title">Revenue & Analytics</span></div>
+  <div class="section-header" style="flex-wrap:wrap;gap:8px;">
+    <span class="section-title">Revenue & Analytics</span>
+    <div style="display:flex;gap:4px;flex-wrap:wrap;">
+      <button onclick="setRevPeriod('today')" id="rev-tab-today" class="rev-tab" style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;padding:5px 10px;border-radius:5px;border:1px solid var(--border2);background:var(--bg3);color:var(--muted2);cursor:pointer;min-height:32px;touch-action:manipulation;">Today</button>
+      <button onclick="setRevPeriod('week')" id="rev-tab-week" class="rev-tab" style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;padding:5px 10px;border-radius:5px;border:1px solid var(--border2);background:var(--bg3);color:var(--muted2);cursor:pointer;min-height:32px;touch-action:manipulation;">This Week</button>
+      <button onclick="setRevPeriod('month')" id="rev-tab-month" class="rev-tab" style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;padding:5px 10px;border-radius:5px;border:1px solid rgba(61,138,122,.4);background:rgba(61,138,122,.1);color:var(--teal2);cursor:pointer;min-height:32px;touch-action:manipulation;">This Month</button>
+      <button onclick="setRevPeriod('lastmonth')" id="rev-tab-lastmonth" class="rev-tab" style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;padding:5px 10px;border-radius:5px;border:1px solid var(--border2);background:var(--bg3);color:var(--muted2);cursor:pointer;min-height:32px;touch-action:manipulation;">Last Month</button>
+      <button onclick="setRevPeriod('year')" id="rev-tab-year" class="rev-tab" style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;padding:5px 10px;border-radius:5px;border:1px solid var(--border2);background:var(--bg3);color:var(--muted2);cursor:pointer;min-height:32px;touch-action:manipulation;">This Year</button>
+    </div>
+  </div>
   <div id="revenue-content"><div class="empty-state">Loading analytics...</div></div>
 </div>
 
@@ -7513,6 +7522,57 @@ async function executeSwap() {
   btn.disabled = false; btn.textContent = 'Execute Swap';
 }
 
+// ── REVENUE PERIOD FILTER ─────────────────────────────────────────────────────
+let _revPeriod = 'month'; // today | week | month | lastmonth | year
+
+function setRevPeriod(period) {
+  _revPeriod = period;
+  // Update tab styling
+  document.querySelectorAll('.rev-tab').forEach(btn => {
+    const isActive = btn.id === 'rev-tab-' + period;
+    btn.style.borderColor = isActive ? 'rgba(61,138,122,.4)' : 'var(--border2)';
+    btn.style.background  = isActive ? 'rgba(61,138,122,.1)' : 'var(--bg3)';
+    btn.style.color       = isActive ? 'var(--teal2)' : 'var(--muted2)';
+  });
+  renderRevenue().catch(() => {});
+}
+
+function getRevDateRange(period) {
+  const now = new Date();
+  const tz = {timeZone:'America/Toronto'};
+  const todayStr = now.toLocaleDateString('en-CA', tz);
+  let fromDate, toDate, label;
+  if (period === 'today') {
+    fromDate = toDate = todayStr;
+    label = 'Today';
+  } else if (period === 'week') {
+    const d = new Date(now);
+    const dow = d.getDay() === 0 ? 6 : d.getDay() - 1;
+    d.setDate(d.getDate() - dow);
+    fromDate = d.toLocaleDateString('en-CA', tz);
+    const end = new Date(d); end.setDate(d.getDate() + 6);
+    toDate = end.toLocaleDateString('en-CA', tz);
+    label = 'This Week';
+  } else if (period === 'month') {
+    fromDate = todayStr.slice(0,7) + '-01';
+    const end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+    toDate = end.toLocaleDateString('en-CA', tz);
+    label = todayStr.slice(0,7);
+  } else if (period === 'lastmonth') {
+    const first = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const last  = new Date(now.getFullYear(), now.getMonth(), 0);
+    fromDate = first.toLocaleDateString('en-CA', tz);
+    toDate   = last.toLocaleDateString('en-CA', tz);
+    label = first.toLocaleDateString('en-CA', {month:'long', year:'numeric', ...tz});
+  } else if (period === 'year') {
+    fromDate = now.getFullYear() + '-01-01';
+    toDate = now.getFullYear() + '-12-31';
+    label = String(now.getFullYear());
+  }
+  return { fromDate, toDate, label };
+}
+// ── END REVENUE PERIOD FILTER ─────────────────────────────────────────────────
+
 // ── REVENUE ANALYTICS ──
 async function renderRevenue() {
   const el = document.getElementById('revenue-content');
@@ -7526,13 +7586,19 @@ async function renderRevenue() {
   const now = new Date();
   const monthStr = now.toLocaleDateString('en-CA',{timeZone:'America/Toronto'}).slice(0,7);
 
+  // Get date range from selected period
+  const { fromDate, toDate, label: periodLabel } = getRevDateRange(_revPeriod);
+
   // Fetch real visit data for revenue calculation
-  // Use D.visits already loaded — no duplicate fetch needed
   const visits = D.visits || [];
 
-  // Month visits
-  const monthVisits = visits.filter(v => (v.visit_date||'').startsWith(monthStr));
-  const monthHours = monthVisits.reduce((s,v) => s + parseFloat(v.hours_worked||0), 0);
+  // Filter visits by selected period
+  const periodVisits = visits.filter(v => {
+    const d = v.visit_date || '';
+    return d >= fromDate && d <= toDate;
+  });
+  const monthVisits = periodVisits; // alias for downstream code
+  const monthHours = periodVisits.reduce((s,v) => s + parseFloat(v.hours_worked||0), 0);
 
   // Revenue per client this month (hours × client_rate)
   const clientRevMap = {};
@@ -7566,9 +7632,9 @@ async function renderRevenue() {
   const weekBookings = bookings.filter(b => { const d = new Date(b.scheduled_date); return d >= now && d <= weekEnd; });
 
   const kpis = [
-    { label: 'Month Billed', val: '$'+totalBilled.toFixed(0), sub: monthHours.toFixed(1)+'h worked', color: 'var(--teal2)' },
-    { label: 'Month Cost', val: '$'+totalCost.toFixed(0), sub: 'PSW wages', color: 'var(--text)' },
-    { label: 'Month Margin', val: '$'+totalMargin.toFixed(0), sub: (totalBilled>0?(totalMargin/totalBilled*100).toFixed(1):0)+'% margin · '+monthVisits.length+' visits', color: totalMargin>0?'var(--green2)':'var(--red)' },
+    { label: periodLabel+' Billed', val: '$'+totalBilled.toFixed(0), sub: monthHours.toFixed(1)+'h worked', color: 'var(--teal2)' },
+    { label: periodLabel+' Cost', val: '$'+totalCost.toFixed(0), sub: 'PSW wages', color: 'var(--text)' },
+    { label: periodLabel+' Margin', val: '$'+totalMargin.toFixed(0), sub: (totalBilled>0?(totalMargin/totalBilled*100).toFixed(1):0)+'% margin · '+monthVisits.length+' visits', color: totalMargin>0?'var(--green2)':'var(--red)' },
     { label: 'Active Clients', val: clients.length, sub: 'on service', color: 'var(--text)' },
     { label: 'Shifts This Week', val: weekBookings.length, sub: 'upcoming', color: 'var(--gold)' },
     { label: 'Active PSWs', val: pswCount, sub: 'on roster', color: 'var(--text)' },
@@ -7584,9 +7650,9 @@ async function renderRevenue() {
   });
   html += '</div>';
 
-  // Client revenue breakdown this month
+  // Client revenue breakdown for selected period
   html += `<div style="margin:0 12px 16px;">
-    <div style="font-family:var(--mono);font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--muted2);margin-bottom:10px;">This Month — Per Client</div>`;
+    <div style="font-family:var(--mono);font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--muted2);margin-bottom:10px;">${periodLabel} — Per Client</div>`;
   if (Object.keys(clientRevMap).length) {
     Object.entries(clientRevMap).filter(([name]) => name && name !== 'null' && name.trim()).forEach(([name, r]) => {
       const c = clients.find(cl => `${cl.first_name||''} ${cl.last_name||''}`.trim() === name);
@@ -7602,7 +7668,7 @@ async function renderRevenue() {
       </div>`;
     });
   } else {
-    html += '<div style="font-family:var(--mono);font-size:12px;color:var(--muted);padding:12px 0;">No visits logged this month yet</div>';
+    html += `<div style="font-family:var(--mono);font-size:12px;color:var(--muted);padding:12px 0;">No visits logged for ${periodLabel} yet</div>`;
   }
 
   // All clients rates reference
@@ -7673,7 +7739,7 @@ async function renderRevenue() {
 
   if (Object.keys(pswHoursMap).length) {
     html += `<div style="margin:0 12px 16px;">
-      <div style="font-family:var(--mono);font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--muted2);margin-bottom:10px;">Hours by PSW — This Month</div>
+      <div style="font-family:var(--mono);font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--muted2);margin-bottom:10px;">Hours by PSW — ${periodLabel}</div>
       <div style="display:flex;flex-direction:column;gap:6px;">`;
     Object.entries(pswHoursMap)
       .sort((a,b) => b[1].hours - a[1].hours)
@@ -11661,7 +11727,7 @@ function _applyActiveSectionFlex() {
 <div class="demo-tip" id="demo-tip"></div>
 
 <!-- VISIT EDIT MODAL -->
-<div id="visit-edit-modal" style="display:none;position:fixed;inset:0;z-index:999;background:rgba(0,0,0,.75);align-items:center;justify-content:center;padding:20px;">
+<div id="visit-edit-modal" style="display:none;position:fixed;inset:0;z-index:1052;background:rgba(0,0,0,.75);align-items:center;justify-content:center;padding:20px;">
   <div style="background:var(--bg2);border:1px solid var(--border2);border-radius:10px;padding:28px;width:100%;max-width:400px;position:relative;">
     <div style="font-family:var(--mono);font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--gold);margin-bottom:4px;">Edit Visit Times</div>
     <div id="vem-meta" style="font-size:14px;color:var(--text);margin-bottom:20px;"></div>
@@ -11888,7 +11954,7 @@ function _applyActiveSectionFlex() {
 </div>
 
 <!-- ── BULK VISIT EDIT SHEET ─────────────────────────────────────────────── -->
-<div class="sheet" id="bulk-visit-edit-sheet" style="z-index:602;">
+<div class="sheet" id="bulk-visit-edit-sheet" style="z-index:1052;">
   <div class="sheet-handle"></div>
   <div class="sheet-header">
     <div>
