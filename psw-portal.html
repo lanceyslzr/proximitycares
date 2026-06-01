@@ -1872,14 +1872,13 @@ function renderHomeFeed() {
     const dayLabel = isToday ? 'Today' : dayNames[dt.getDay()] + ' · ' + monthNames[dt.getMonth()] + ' ' + dt.getDate();
     rows.push(`<div style="font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);padding:10px 0 4px;border-top:1px solid var(--border);margin-top:4px;">${dayLabel}</div>`);
 
-    dayBookings.forEach(b => {
-      // Check status using booking_id match (not just client name — avoids hiding same-client visits)
-      const completedVisit = allVisits.find(v =>
-        v.visit_date === b.scheduled_date &&
-        v.client_name === b.client_name &&
-        v.status === 'completed' &&
-        (!b.booking_id || v.booking_id === b.id || !v.booking_id)
-      );
+    // Sort day bookings by time so consumed-visit set is applied in chronological order
+    const dayBookingsSorted = [...dayBookings].sort((a,z) => _timeToMins(a.scheduled_time) - _timeToMins(z.scheduled_time));
+    const _consumedVisitIds = new Set(); // each completed visit claimed by at most one booking
+
+    dayBookingsSorted.forEach(b => {
+      // Find matching completed visit using consumed-set (no double-claiming)
+      const completedVisit = matchVisitToBooking(b, allVisits, _consumedVisitIds);
       const isActive = activeVisit && activeVisit.client_name === b.client_name && b.scheduled_date === today;
 
       if (isActive) return; // Already shown in active visit banner above
@@ -2070,7 +2069,11 @@ function renderSchedDayCards(ds, days, bookings, visits, clients, today) {
     return;
   }
 
-  el.innerHTML = dayBookings.map(b => {
+  el.innerHTML = (() => {
+    // Build done set: position-based — first N bookings done where N = # completed visits for that client
+    const _dayDoneSet = buildDoneSet(dayBookings, dayVisits);
+
+    return dayBookings.map(b => {
     const client = clients.find(c => {
       const full = ((c.first_name||'')+' '+(c.last_name||'')).trim();
       return full.toLowerCase() === (b.client_name||'').toLowerCase() ||
@@ -2078,7 +2081,7 @@ function renderSchedDayCards(ds, days, bookings, visits, clients, today) {
     });
     const address   = client?.address || '';
     const careNotes = client?.care_notes || '';
-    const done = dayVisits.some(v => v.client_name === b.client_name);
+    const done = _dayDoneSet.has(b.id); // position-based: only true for the Nth booking if N visits done
     const isActive = activeVisit && activeVisit.client_name === b.client_name && isToday;
     const durH = b.duration_minutes ? (b.duration_minutes/60).toFixed(1) : null;
     const endTime = (b.scheduled_time && b.duration_minutes) ? (() => {
@@ -2112,12 +2115,76 @@ function renderSchedDayCards(ds, days, bookings, visits, clients, today) {
         '</div>' : '') +
       '</div>';
   }).join('');
+  })(); // close IIFE for _dayDoneSet scope
 }
 
 function shiftWeek(dir) { weekOffset += dir; _selectedSchedDay = null; renderWeek(); }
 // ── END SCHEDULE STRIP ────────────────────────────────────────────────────────
 
 // ── BUILD 7: AVAILABLE SHIFTS ──
+// ── BOOKING DONE UTILITIES ───────────────────────────────────────────────────
+// Core problem: same client multiple visits per day — one completion was
+// marking ALL same-client bookings as done. Fix: position-based matching.
+
+function _timeToMins(str) {
+  if (!str) return 0;
+  const p = (str || '').split(':');
+  return parseInt(p[0]||0, 10) * 60 + parseInt(p[1]||0, 10);
+}
+
+// Returns a Set of booking IDs that are definitively done.
+// Algorithm: for each client, sort their bookings by time.
+// Mark the first N bookings done where N = number of completed visits for that client that day.
+// This correctly handles Jane Doe 3x: 1 done = first booking done, 2 pending.
+function buildDoneSet(dayBookings, dayVisits) {
+  const clientBookings = {};
+  dayBookings.forEach(b => {
+    const k = b.client_name || '';
+    if (!clientBookings[k]) clientBookings[k] = [];
+    clientBookings[k].push(b);
+  });
+  Object.values(clientBookings).forEach(arr =>
+    arr.sort((a, z) => _timeToMins(a.scheduled_time) - _timeToMins(z.scheduled_time))
+  );
+  const clientDone = {};
+  (dayVisits || []).forEach(v => {
+    const k = v.client_name || '';
+    clientDone[k] = (clientDone[k] || 0) + 1;
+  });
+  const doneSet = new Set();
+  Object.entries(clientBookings).forEach(([name, bookings]) => {
+    const n = clientDone[name] || 0;
+    bookings.slice(0, n).forEach(b => doneSet.add(b.id));
+  });
+  return doneSet;
+}
+
+// For renderHomeFeed: consumed-visit matching so the same completed visit
+// can't be claimed by two bookings. Returns the matched visit or null.
+function matchVisitToBooking(booking, completedVisits, consumedIds) {
+  // Exact booking_id match first
+  if (booking.id) {
+    const exact = completedVisits.find(v => !consumedIds.has(v.id) && v.booking_id === booking.id);
+    if (exact) { consumedIds.add(exact.id); return exact; }
+  }
+  // Time-proximity match — closest unclaimed visit within 3h of scheduled_time
+  const bMins = _timeToMins(booking.scheduled_time);
+  const candidates = completedVisits
+    .filter(v =>
+      !consumedIds.has(v.id) &&
+      v.client_name === booking.client_name &&
+      v.visit_date === booking.scheduled_date
+    )
+    .sort((a, z) => Math.abs(_timeToMins(a.time_in) - bMins) - Math.abs(_timeToMins(z.time_in) - bMins));
+  const best = candidates[0];
+  if (best && Math.abs(_timeToMins(best.time_in) - bMins) <= 180) {
+    consumedIds.add(best.id);
+    return best;
+  }
+  return null;
+}
+// ── END BOOKING DONE UTILITIES ────────────────────────────────────────────────
+
 function renderAvailableShifts() {
   loadShiftOffers().catch(() => {});
   const section = document.getElementById('avail-shifts-section');
@@ -3617,8 +3684,9 @@ function renderLiveOps() {
   // Upcoming today
   const upcomingEl = document.getElementById('live-upcoming-list');
   const todayBookings = bookings.filter(b => b.scheduled_date === today);
+  const _liveDoneSet = buildDoneSet(todayBookings, todayVisits);
   const pendingBookings = todayBookings.filter(b => {
-    const done = todayVisits.some(v => v.client_name === b.client_name);
+    const done = _liveDoneSet.has(b.id);
     const active = activeVisit && activeVisit.client_name === b.client_name;
     return !done && !active;
   });
@@ -3818,8 +3886,9 @@ function updateTodayProgress() {
 
   // Next visit card
   const now = new Date();
+  const _homeDoneSet = buildDoneSet(todayBookings, todayDone);
   const upcoming = todayBookings.filter(b => {
-    const isDone = todayDone.some(v => v.client_name === b.client_name);
+    const isDone = _homeDoneSet.has(b.id);
     const isActive = activeVisit && activeVisit.client_name === b.client_name;
     if (isDone || isActive) return false;
     if (b.scheduled_time) {
@@ -3954,8 +4023,9 @@ function openCalPopup(dateStr) {
       });
     });
 
+    const _calDoneSet = buildDoneSet(bookings, completed);
     bookings.forEach(b => {
-      const isDone = completed.some(v => v.client_name === b.client_name);
+      const isDone = _calDoneSet.has(b.id);
       const isActive = activeVisit && activeVisit.client_name === b.client_name && dateStr === today;
       if (!isDone && !isActive) {
         rows.push({
@@ -4132,8 +4202,10 @@ function openRouteMap() {
 function headingToNextClient() {
   const today = new Date().toLocaleDateString('en-CA',{timeZone:'America/Toronto'});
   const done = (scheduleData?.completed_visits||[]).filter(v => v.visit_date === today);
-  const upcoming = (scheduleData?.bookings||[])
-    .filter(b => b.scheduled_date === today && !done.some(v => v.client_name === b.client_name) && (!activeVisit || activeVisit.client_name !== b.client_name))
+  const todayB = (scheduleData?.bookings||[]).filter(b => b.scheduled_date === today);
+  const _navDoneSet = buildDoneSet(todayB, done);
+  const upcoming = todayB
+    .filter(b => !_navDoneSet.has(b.id) && (!activeVisit || activeVisit.client_name !== b.client_name))
     .sort((a,b) => (a.scheduled_time||'').localeCompare(b.scheduled_time||''));
   if (!upcoming.length) { showToast('No upcoming visits today', 'err'); closeDrawer(); return; }
   const next = upcoming[0];
