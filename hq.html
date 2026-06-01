@@ -2367,7 +2367,10 @@ body.sidebar-rail .sidebar{width:64px;overflow:visible;}
 <div class="section" id="sect-crm">
   <div class="section-header">
     <span class="section-title">Client Pipeline</span>
-    <div class="sect-action" onclick="renderCRM()">↻ Refresh</div>
+    <div style="display:flex;gap:6px;">
+      <div class="sect-action" style="background:rgba(109,185,116,.08);color:var(--green2);border-color:rgba(109,185,116,.25);" onclick="openCloseDealSheet()">✓ Close Deal</div>
+      <div class="sect-action" onclick="renderCRM()">↻ Refresh</div>
+    </div>
   </div>
   <div class="crm-board" id="crm-board">
     <div class="crm-col"><div class="crm-col-head"><span class="crm-col-name">Inquiry</span><span class="crm-col-count" id="crm-count-cold">0</span></div><div class="crm-col-body" id="crm-cold" ondragover="crmDragOver(event)" ondrop="crmDrop(event,'cold')" ondragleave="crmDragLeave(event)"></div></div>
@@ -8358,6 +8361,63 @@ function initClientStatusTab(clientId) {
   });
 }
 
+// ── CLOSE DEAL — Operator Activation ─────────────────────────────────────────
+function openCloseDealSheet() {
+  document.getElementById('cd-result').style.display = 'none';
+  const btn = document.getElementById('cd-submit-btn');
+  if (btn) { btn.disabled = false; btn.textContent = '✓ Activate Operator & Send Credentials'; }
+  openSheet('close-deal-sheet');
+}
+
+async function submitCloseDeal() {
+  const agency   = (document.getElementById('cd-agency')?.value||'').trim();
+  const name     = (document.getElementById('cd-name')?.value||'').trim();
+  const email    = (document.getElementById('cd-email')?.value||'').trim();
+  const phone    = (document.getElementById('cd-phone')?.value||'').trim();
+  const province = document.getElementById('cd-province')?.value || 'ON';
+  const plan     = document.getElementById('cd-plan')?.value || 'done-for-you';
+  const invoiceR = parseFloat(document.getElementById('cd-invoice-rate')?.value||22);
+  const pswR     = parseFloat(document.getElementById('cd-psw-rate')?.value||19);
+  const notes    = (document.getElementById('cd-notes')?.value||'').trim();
+  const btn      = document.getElementById('cd-submit-btn');
+
+  if (!agency) { showToast('Agency name required','err'); return; }
+  if (!name)   { showToast('Owner name required','err'); return; }
+  if (!email || !email.includes('@')) { showToast('Valid email required','err'); return; }
+
+  if (btn) { btn.disabled = true; btn.textContent = 'Activating...'; }
+
+  try {
+    const r = await hqFetch(`${API}/operator/manual-close`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        secret:'proximity-admin-2026',
+        agency_name:agency, owner_name:name, owner_email:email,
+        owner_phone:phone||null, province, plan,
+        invoice_rate:invoiceR, psw_rate:pswR, notes:notes||null
+      })
+    });
+    const d = await r.json();
+    if (!r.ok || !d.success) throw new Error(d.error||'Activation failed');
+
+    const resultEl = document.getElementById('cd-result');
+    const detailEl = document.getElementById('cd-result-details');
+    if (resultEl) resultEl.style.display = 'block';
+    if (detailEl) detailEl.innerHTML =
+      `Operator ID: ${d.operator_id}<br>` +
+      `HQ PIN: <strong style="color:var(--gold);letter-spacing:4px;">${d.hq_pin}</strong><br>` +
+      `URL: <a href="${d.hq_url}" target="_blank" style="color:var(--teal2);">${d.hq_url}</a><br>` +
+      `Credentials emailed to ${email}`;
+
+    showToast(`${agency} activated! Credentials sent ✓`, 'ok');
+    loadAll(false);
+  } catch(e) {
+    showToast(e.message||'Activation failed','err');
+    if (btn) { btn.disabled = false; btn.textContent = '✓ Activate Operator & Send Credentials'; }
+  }
+}
+// ── END CLOSE DEAL ────────────────────────────────────────────────────────────
+
 // ── CLIENT AVAILABILITY STATUS ────────────────────────────────────────────────
 function setClientAvailability(clientId, clientName, status, btn) {
   const container = btn?.closest('#cpt-status');
@@ -12660,6 +12720,81 @@ function _applyActiveSectionFlex() {
 <!-- ── INVOICE PICKER SHEET ──────────────────────────────────────────────── -->
 <!-- Opens from client sheet. Select period → preview → send. No accidental fires. -->
 <!-- ── CLIENT SEND PAYMENT SHEET ──────────────────────────────────────────── -->
+<!-- ── CLOSE DEAL SHEET ──────────────────────────────────────────────────── -->
+<div class="sheet" id="close-deal-sheet" style="z-index:1058;">
+  <div class="sheet-handle"></div>
+  <div class="sheet-header">
+    <div>
+      <div class="sheet-label">Close Deal — Activate Operator</div>
+      <div style="font-family:var(--mono);font-size:11px;color:var(--green2);margin-top:2px;">Sends credentials + spins up HQ immediately</div>
+    </div>
+    <button class="sheet-close" onclick="closeSheet('close-deal-sheet')">✕</button>
+  </div>
+  <div style="padding:0 16px 32px;overflow-y:auto;max-height:calc(88vh - 80px);">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
+      <div style="grid-column:1/-1;">
+        <div style="font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:4px;">Agency Name *</div>
+        <input id="cd-agency" class="sinput" type="text" placeholder="e.g. LCM Experts Home Care" style="font-size:14px;padding:11px;">
+      </div>
+      <div>
+        <div style="font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:4px;">Owner Name *</div>
+        <input id="cd-name" class="sinput" type="text" placeholder="Jennifer Crowley" style="font-size:14px;padding:11px;">
+      </div>
+      <div>
+        <div style="font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:4px;">Owner Email *</div>
+        <input id="cd-email" class="sinput" type="email" placeholder="jennifer@lcmexperts.com" style="font-size:14px;padding:11px;">
+      </div>
+      <div>
+        <div style="font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:4px;">Phone</div>
+        <input id="cd-phone" class="sinput" type="tel" placeholder="+1 406 555 0100" style="font-size:14px;padding:11px;">
+      </div>
+      <div>
+        <div style="font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:4px;">Province</div>
+        <select id="cd-province" class="sselect" style="font-size:13px;">
+          <option value="ON">Ontario</option>
+          <option value="BC">British Columbia</option>
+          <option value="AB">Alberta</option>
+          <option value="SK">Saskatchewan</option>
+          <option value="MB">Manitoba</option>
+          <option value="QC">Quebec</option>
+          <option value="NS">Nova Scotia</option>
+          <option value="NB">New Brunswick</option>
+          <option value="NL">Newfoundland</option>
+          <option value="PEI">PEI</option>
+          <option value="MT">Montana (US)</option>
+          <option value="OTHER">Other</option>
+        </select>
+      </div>
+      <div>
+        <div style="font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:4px;">Plan</div>
+        <select id="cd-plan" class="sselect" style="font-size:13px;">
+          <option value="done-for-you">Done For You — $3,500 + $500/mo</option>
+          <option value="essentials">Essentials — $3,000 + $500/mo</option>
+          <option value="scale">Scale With Me — $5,000 + $750/mo</option>
+        </select>
+      </div>
+      <div>
+        <div style="font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:4px;">Client Rate ($/hr)</div>
+        <input id="cd-invoice-rate" class="sinput" type="number" value="22" min="15" max="60" style="font-size:16px;padding:11px;font-family:var(--mono);">
+      </div>
+      <div>
+        <div style="font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:4px;">PSW Rate ($/hr)</div>
+        <input id="cd-psw-rate" class="sinput" type="number" value="19" min="15" max="40" style="font-size:16px;padding:11px;font-family:var(--mono);">
+      </div>
+      <div style="grid-column:1/-1;">
+        <div style="font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:4px;">Notes (internal)</div>
+        <input id="cd-notes" class="sinput" type="text" placeholder="e.g. Closed on call June 1. Jennifer was referred by..." style="font-size:13px;padding:11px;">
+      </div>
+    </div>
+    <div id="cd-result" style="display:none;padding:14px;background:rgba(109,185,116,.06);border:1px solid rgba(109,185,116,.25);border-radius:8px;margin-bottom:12px;">
+      <div style="font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--green2);margin-bottom:8px;">✓ Operator Activated</div>
+      <div id="cd-result-details" style="font-family:var(--mono);font-size:12px;color:var(--muted);line-height:1.8;"></div>
+    </div>
+    <button onclick="submitCloseDeal()" id="cd-submit-btn" style="width:100%;padding:15px;background:rgba(109,185,116,.12);border:1px solid rgba(109,185,116,.35);border-radius:8px;font-family:var(--mono);font-size:12px;letter-spacing:1px;text-transform:uppercase;color:var(--green2);cursor:pointer;min-height:52px;touch-action:manipulation;">✓ Activate Operator &amp; Send Credentials</button>
+  </div>
+</div>
+<!-- ── END CLOSE DEAL SHEET ──────────────────────────────────────────────── -->
+
 <div class="sheet" id="client-send-payment-sheet" style="z-index:1055;">
   <div class="sheet-handle"></div>
   <div class="sheet-header">
