@@ -1000,9 +1000,12 @@ a{color:inherit;text-decoration:none;}
   </div>
   <!-- Incident history — read-only, only shows if PSW has incident records -->
   <div id="psw-incident-history" style="display:none;margin-bottom:16px;background:var(--bg2);border:1px solid var(--border);border-radius:12px;overflow:hidden;">
-    <div style="padding:12px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
+    <div onclick="toggleIncidentHistory()" style="padding:12px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;cursor:pointer;touch-action:manipulation;">
       <span style="font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);">Incident Records</span>
-      <span id="psw-incident-count" style="font-family:var(--mono);font-size:11px;color:var(--muted);"></span>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span id="psw-incident-count" style="font-family:var(--mono);font-size:11px;color:var(--muted);"></span>
+        <span id="psw-incident-toggle" style="font-family:var(--mono);font-size:14px;color:var(--muted);">▲</span>
+      </div>
     </div>
     <div id="psw-incident-list" style="padding:0 14px;"></div>
   </div>
@@ -1642,12 +1645,14 @@ function unlockApp() {
   fetchPSWEmail();
   loadAll();
   restoreChecklist();
+  setTimeout(restoreChecklistState, 2000); // restore after loadSchedule brings back active visit
   initPullToRefresh(); // Build 4
   startIdleTimer();    // Build 6
-  // Delegated Sign In listener for schedule tab shift cards (data-checkin — never inline onclick)
+  // Delegated Sign In listener — sched-day-cards replaces old schedule-days
   if (!window._schedListenerSet) {
     window._schedListenerSet = true;
-    document.getElementById('schedule-days').addEventListener('click', function(e) {
+    const schedEl = document.getElementById('sched-day-cards');
+    if (schedEl) schedEl.addEventListener('click', function(e) {
       const btn = e.target.closest('.sched-signin-btn');
       if (!btn) return;
       const clientName = btn.dataset.checkin;
@@ -2635,6 +2640,7 @@ function toggleCl(el) {
   el.querySelector('.cl-box').textContent = el.classList.contains('done') ? '✓' : '';
   haptic(30); // Build 3 — subtle tap on each task
   updateClCount(); saveChecklist();
+  saveChecklistState(); // persist per active visit to sessionStorage
 }
 function updateClCount() {
   const total = document.querySelectorAll('#sect-checklist .cl-item').length;
@@ -3282,7 +3288,18 @@ function showSect(name) {
   const bnavs = document.querySelectorAll('.bnav-item');
   if (bi >= 0 && bnavs[bi]) bnavs[bi].classList.add('active');
   if (name === 'messages') loadMessages();
-  if (name === 'schedule') { loadSchedule(); }
+  if (name === 'schedule') {
+    // Render immediately with cached data — don't wait for fetch
+    if (scheduleData) renderWeek();
+    else {
+      // Show loading state in strip while first fetch completes
+      const strip = document.getElementById('sched-strip');
+      const cards = document.getElementById('sched-day-cards');
+      if (strip) strip.innerHTML = '<div style="flex:1;text-align:center;font-family:var(--mono);font-size:11px;color:var(--muted);padding:12px 0;letter-spacing:1px;">Loading...</div>';
+      if (cards) cards.innerHTML = '';
+    }
+    loadSchedule(); // refresh in background — calls renderWeek() on completion
+  }
   if (name === 'pay') loadPaySummary();
   if (name === 'home') { loadHomeData(); }
   if (name === 'live') renderLiveOps();
@@ -4344,9 +4361,23 @@ async function submitForm(formIdx) {
     if (savedName && savedPin) {
       pswName = savedName; pswPin = savedPin;
       fetch(`${API}/psw/notes/${encodeURIComponent(savedName)}?pin=${savedPin}&operator_id=${pswOperatorId}`)
-        .then(r => { if (r.ok) { unlockApp(); } else { sessionStorage.removeItem('psw_name'); sessionStorage.removeItem('psw_pin'); } })
-        .catch(() => { /* Railway down — stay on lock screen */ sessionStorage.removeItem('psw_name'); sessionStorage.removeItem('psw_pin'); })
-        .catch(() => { unlockApp(); }); // offline — restore anyway
+        .then(r => {
+          if (r.ok) {
+            unlockApp(); // 200 — valid session, unlock
+          } else if (r.status === 401) {
+            // Only clear on explicit auth failure — PIN wrong or PSW deactivated
+            sessionStorage.removeItem('psw_name');
+            sessionStorage.removeItem('psw_pin');
+          } else {
+            // Server error (5xx), deploy in progress, etc — keep credentials and unlock
+            // PSW shouldn't be locked out because Railway is restarting
+            unlockApp();
+          }
+        })
+        .catch(() => {
+          // Network down — restore anyway so refresh doesn't log them out
+          unlockApp();
+        });
     }
   } catch(e) {}
 })();
@@ -5047,6 +5078,41 @@ function openInGoogleMaps() {
   }
 }
 // ── END NAVIGATION MAP ───────────────────────────────────────────────────────
+
+// ── INCIDENT HISTORY COLLAPSE ─────────────────────────────────────────────
+let _incidentExpanded = true;
+function toggleIncidentHistory() {
+  _incidentExpanded = !_incidentExpanded;
+  const list = document.getElementById('psw-incident-list');
+  const toggle = document.getElementById('psw-incident-toggle');
+  if (list) list.style.display = _incidentExpanded ? '' : 'none';
+  if (toggle) toggle.textContent = _incidentExpanded ? '▲' : '▼';
+}
+
+// ── CHECKLIST PERSISTENCE — saves to sessionStorage per visit ─────────────
+// Called whenever a checklist item is toggled
+function saveChecklistState() {
+  if (!activeVisit?.id) return;
+  try {
+    const items = [];
+    document.querySelectorAll('.cl-item').forEach((el, i) => {
+      items.push(el.classList.contains('done') ? 1 : 0);
+    });
+    sessionStorage.setItem('cl_state_' + activeVisit.id, JSON.stringify(items));
+  } catch(e) {}
+}
+function restoreChecklistState() {
+  if (!activeVisit?.id) return;
+  try {
+    const saved = sessionStorage.getItem('cl_state_' + activeVisit.id);
+    if (!saved) return;
+    const items = JSON.parse(saved);
+    document.querySelectorAll('.cl-item').forEach((el, i) => {
+      if (items[i]) el.classList.add('done');
+    });
+    updateClCount();
+  } catch(e) {}
+}
 
 function addCustomTask() {
   const input = document.getElementById('cl-custom-input');
