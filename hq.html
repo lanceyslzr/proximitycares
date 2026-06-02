@@ -2191,6 +2191,7 @@ body.sidebar-rail .sidebar{width:64px;overflow:visible;}
       <div class="sect-action" onclick="runVisitFlags()">✦ Flag</div>
       <button onclick="openBulkVisitEdit('')" style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;padding:6px 14px;background:rgba(61,138,122,.08);border:1px solid rgba(61,138,122,.25);border-radius:5px;color:var(--teal2);cursor:pointer;min-height:44px;touch-action:manipulation;">⊘ Bulk Edit</button>
       <button onclick="openAddVisit()" style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;padding:6px 14px;background:rgba(200,169,110,.08);border:1px solid rgba(200,169,110,.25);border-radius:5px;color:var(--gold);cursor:pointer;min-height:44px;touch-action:manipulation;">+ Add Visit</button>
+      <button onclick="openTimesheetApproval()" style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;padding:6px 14px;background:rgba(61,138,122,.08);border:1px solid rgba(61,138,122,.25);border-radius:5px;color:var(--teal2);cursor:pointer;min-height:44px;touch-action:manipulation;">&#x2713; Timesheet</button>
     </div>
   </div>
   <div id="incidents-list" style="display:none;"></div>
@@ -2231,6 +2232,50 @@ body.sidebar-rail .sidebar{width:64px;overflow:visible;}
     <button onclick="openManualVisitSheet()" style="flex-shrink:0;font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;padding:6px 12px;border-radius:6px;border:1px solid rgba(200,169,110,.3);background:rgba(200,169,110,.08);color:var(--gold);cursor:pointer;min-height:44px;white-space:nowrap;">+ Manual Visit</button>
   </div>
   <div id="visits-list"><div class="empty-state">Loading visits...</div></div>
+</div>
+
+<!-- TIMESHEET APPROVAL SHEET -->
+<div class="sheet" id="timesheet-sheet" style="z-index:1052;">
+  <div class="sheet-header">
+    <div class="sheet-title">Timesheet Approval</div>
+    <button class="sheet-close" onclick="closeSheet('timesheet-sheet')">&#x2715;</button>
+  </div>
+  <div style="padding:0 14px 10px;">
+    <div style="font-family:var(--mono);font-size:11px;color:var(--muted2);line-height:1.7;margin-bottom:10px;">Review and approve visits before locking the pay period. Auto-approve clean visits, manually review flagged ones.</div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;">
+      <button onclick="setTSPeriod('thismonth')" id="ts-thismonth" style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;padding:5px 10px;border-radius:5px;border:1px solid rgba(61,138,122,.4);background:rgba(61,138,122,.1);color:var(--teal2);cursor:pointer;min-height:32px;touch-action:manipulation;">This Month</button>
+      <button onclick="setTSPeriod('lastmonth')" id="ts-lastmonth" style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;padding:5px 10px;border-radius:5px;border:1px solid var(--border2);background:var(--bg3);color:var(--muted2);cursor:pointer;min-height:32px;touch-action:manipulation;">Last Month</button>
+      <button onclick="setTSPeriod('custom')" id="ts-custom" style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;padding:5px 10px;border-radius:5px;border:1px solid var(--border2);background:var(--bg3);color:var(--muted2);cursor:pointer;min-height:32px;touch-action:manipulation;">Custom</button>
+    </div>
+    <div id="ts-custom-range" style="display:none;gap:8px;align-items:center;margin-bottom:10px;flex-wrap:wrap;">
+      <input type="date" id="ts-from" style="font-family:var(--mono);font-size:11px;padding:6px 8px;border-radius:6px;border:1px solid var(--border2);background:var(--bg2);color:var(--text);min-height:36px;">
+      <span style="font-family:var(--mono);font-size:11px;color:var(--muted);">to</span>
+      <input type="date" id="ts-to" style="font-family:var(--mono);font-size:11px;padding:6px 8px;border-radius:6px;border:1px solid var(--border2);background:var(--bg2);color:var(--text);min-height:36px;">
+    </div>
+    <button onclick="runTSPreview()" id="ts-preview-btn" style="width:100%;padding:11px;border-radius:8px;border:1px solid rgba(61,138,122,.3);background:rgba(61,138,122,.08);color:var(--teal2);font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;min-height:44px;touch-action:manipulation;margin-bottom:10px;">Preview Visits</button>
+  </div>
+  <div id="ts-preview-result" style="padding:0 14px;display:none;">
+    <div id="ts-lock-banner" style="display:none;padding:10px 12px;background:rgba(224,154,61,.06);border:1px solid rgba(224,154,61,.25);border-radius:8px;margin-bottom:10px;font-family:var(--mono);font-size:11px;color:var(--amber);"></div>
+    <div id="ts-summary" style="padding:10px 12px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;margin-bottom:10px;font-family:var(--mono);font-size:12px;color:var(--muted2);"></div>
+    <div id="ts-auto-section" style="display:none;margin-bottom:12px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+        <div style="font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--green2);">&#x2713; Auto-Approvable</div>
+        <button onclick="approveAll()" id="ts-approve-all-btn" style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;padding:5px 10px;border-radius:5px;border:1px solid rgba(109,185,116,.4);background:rgba(109,185,116,.08);color:var(--green2);cursor:pointer;min-height:32px;touch-action:manipulation;">Approve All</button>
+      </div>
+      <div id="ts-auto-list"></div>
+    </div>
+    <div id="ts-review-section" style="display:none;margin-bottom:12px;">
+      <div style="font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--amber);margin-bottom:6px;">&#x26A0; Needs Review</div>
+      <div id="ts-review-list"></div>
+    </div>
+    <div id="ts-lock-section" style="display:none;margin-bottom:8px;">
+      <div style="font-family:var(--mono);font-size:11px;color:var(--muted2);margin-bottom:8px;line-height:1.6;">Once approved, lock the pay period to prevent further edits. Unlock anytime from this sheet.</div>
+      <textarea id="ts-lock-note" placeholder="Optional: reason for locking this period..." style="width:100%;background:var(--bg3);border:1px solid var(--border2);color:var(--text);padding:10px 12px;font-size:13px;border-radius:8px;resize:none;min-height:60px;font-family:var(--sans);box-sizing:border-box;margin-bottom:8px;outline:none;"></textarea>
+      <button onclick="lockPeriod()" id="ts-lock-btn" style="width:100%;padding:13px;border-radius:8px;border:none;background:var(--teal);color:#fff;font-family:var(--mono);font-size:12px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;min-height:48px;touch-action:manipulation;margin-bottom:8px;">Lock Pay Period</button>
+      <button onclick="unlockPeriod()" id="ts-unlock-btn" style="display:none;width:100%;padding:11px;border-radius:8px;border:1px solid rgba(224,154,61,.3);background:rgba(224,154,61,.06);color:var(--amber);font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;min-height:44px;touch-action:manipulation;margin-bottom:8px;">Unlock Period</button>
+    </div>
+    <button onclick="closeSheet('timesheet-sheet')" style="width:100%;padding:11px;background:none;border:1px solid var(--border);color:var(--muted2);border-radius:8px;font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;min-height:44px;">Close</button>
+  </div>
 </div>
 
 <!-- EC-6 — MANUAL VISIT SHEET -->
@@ -5262,6 +5307,7 @@ function openSheet(id) {
   document.getElementById(id).classList.add('open');
   if (id === 'batch-invoice-sheet') setBatchPeriod('thismonth');
   if (id === 'ar-aging-sheet') { _agingFilter = 'all'; loadAgingReport(); setAgingFilter('all'); }
+  if (id === 'timesheet-sheet') setTSPeriod('thismonth');
 }
 function closeSheet(id) {
   document.getElementById(id).classList.remove('open');
@@ -8239,6 +8285,195 @@ async function markInvoicePaidFromAging(id) {
     showToast('Invoice marked paid ✓', 'ok');
     loadAgingReport();
   } catch { showToast('Could not mark paid', 'err'); }
+}
+
+// ── TIMESHEET APPROVAL ──
+let _tsPeriod = 'thismonth';
+let _tsFromDate = '', _tsToDate = '';
+let _tsAutoIds = [];
+let _tsPreviewData = null;
+
+function openTimesheetApproval() {
+  _tsPeriod = 'thismonth';
+  openSheet('timesheet-sheet');
+}
+
+function setTSPeriod(period) {
+  _tsPeriod = period;
+  const now = new Date();
+  const toISO = d => d.toISOString().slice(0, 10);
+  const y = now.getFullYear(), m = now.getMonth();
+  ['thismonth','lastmonth','custom'].forEach(p => {
+    const btn = document.getElementById('ts-' + p);
+    if (!btn) return;
+    const isActive = p === period;
+    if (isActive) { btn.style.borderColor = 'rgba(61,138,122,.4)'; btn.style.background = 'rgba(61,138,122,.1)'; btn.style.color = 'var(--teal2)'; }
+    else { btn.style.borderColor = 'var(--border2)'; btn.style.background = 'var(--bg3)'; btn.style.color = 'var(--muted2)'; }
+  });
+  const cr = document.getElementById('ts-custom-range');
+  if (period === 'custom') {
+    if (cr) cr.style.display = 'flex';
+  } else {
+    if (cr) cr.style.display = 'none';
+    if (period === 'thismonth') {
+      _tsFromDate = toISO(new Date(y, m, 1));
+      _tsToDate   = toISO(new Date(y, m + 1, 0));
+    } else {
+      _tsFromDate = toISO(new Date(y, m - 1, 1));
+      _tsToDate   = toISO(new Date(y, m, 0));
+    }
+  }
+  const pr = document.getElementById('ts-preview-result');
+  if (pr) pr.style.display = 'none';
+}
+
+async function runTSPreview() {
+  if (_tsPeriod === 'custom') {
+    _tsFromDate = document.getElementById('ts-from')?.value || '';
+    _tsToDate   = document.getElementById('ts-to')?.value   || '';
+    if (!_tsFromDate || !_tsToDate) { showToast('Select a date range first', 'err'); return; }
+  }
+  const btn = document.getElementById('ts-preview-btn');
+  btn.textContent = 'Loading...'; btn.disabled = true;
+  try {
+    const res = await hqFetch(`${API}/hq/timesheet/preview`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-hq-token': window._hqToken || sessionStorage.getItem('hq_token') || '' },
+      body: JSON.stringify({ operator_id: currentOp, from_date: _tsFromDate, to_date: _tsToDate })
+    });
+    const d = await res.json();
+    if (!d.success) throw new Error(d.error || 'Preview failed');
+    _tsPreviewData = d;
+    _tsAutoIds = (d.auto_approvable || []).map(v => v.id);
+    renderTSPreview(d);
+  } catch (e) { showToast(e.message || 'Preview failed', 'err'); }
+  btn.textContent = 'Preview Visits'; btn.disabled = false;
+}
+
+function renderTSPreview(d) {
+  const pr = document.getElementById('ts-preview-result');
+  pr.style.display = 'block';
+
+  // Lock banner
+  const lb = document.getElementById('ts-lock-banner');
+  if (d.already_locked && d.lock_info) {
+    lb.style.display = 'block';
+    lb.textContent = `⚠ Period locked by ${d.lock_info.locked_by} on ${new Date(d.lock_info.locked_at).toLocaleDateString('en-CA')}${d.lock_info.lock_note ? ' — ' + d.lock_info.lock_note : ''}`;
+  } else { lb.style.display = 'none'; }
+
+  // Summary
+  document.getElementById('ts-summary').innerHTML =
+    `${d.total_visits} unverified visits · ${d.total_hours.toFixed(1)}h · ${_tsFromDate} → ${_tsToDate} · ${(d.auto_approvable||[]).length} auto-approvable · ${(d.needs_review||[]).length} need review`;
+
+  // Auto-approvable list
+  const autoSec = document.getElementById('ts-auto-section');
+  const autoList = document.getElementById('ts-auto-list');
+  if (d.auto_approvable && d.auto_approvable.length) {
+    autoSec.style.display = 'block';
+    autoList.innerHTML = d.auto_approvable.map(v =>
+      `<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:rgba(109,185,116,.03);border:1px solid rgba(109,185,116,.15);border-radius:6px;margin-bottom:4px;">
+        <div><div style="font-size:12px;font-weight:500;color:var(--text);">${v.psw_name} — ${v.client_name}</div><div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:2px;">${v.visit_date} · ${v.time_in||'—'}–${v.time_out||'—'} · ${v.hours.toFixed(1)}h · ${v.tasks_count} tasks</div></div>
+        <span style="font-family:var(--mono);font-size:10px;color:var(--green2);">clean</span>
+      </div>`
+    ).join('');
+  } else { autoSec.style.display = 'none'; }
+
+  // Needs review list
+  const revSec = document.getElementById('ts-review-section');
+  const revList = document.getElementById('ts-review-list');
+  if (d.needs_review && d.needs_review.length) {
+    revSec.style.display = 'block';
+    revList.innerHTML = d.needs_review.map(v =>
+      `<div style="padding:10px 12px;background:rgba(224,154,61,.03);border:1px solid rgba(224,154,61,.2);border-radius:6px;margin-bottom:6px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+          <div><div style="font-size:12px;font-weight:500;color:var(--text);">${v.psw_name} — ${v.client_name}</div><div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:2px;">${v.visit_date} · ${v.time_in||'—'}–${v.time_out||'—'} · ${v.hours.toFixed(1)}h</div></div>
+          <button onclick="approveSingle('${v.id}',this)" style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;padding:5px 10px;border-radius:5px;border:1px solid rgba(109,185,116,.4);background:rgba(109,185,116,.08);color:var(--green2);cursor:pointer;min-height:32px;touch-action:manipulation;">Approve</button>
+        </div>
+        <div style="font-family:var(--mono);font-size:11px;color:var(--amber);">${v.flags.map(f => '⚠ ' + f).join(' · ')}</div>
+      </div>`
+    ).join('');
+  } else { revSec.style.display = 'none'; }
+
+  // Lock section
+  const lockSec = document.getElementById('ts-lock-section');
+  lockSec.style.display = 'block';
+  const lockBtn  = document.getElementById('ts-lock-btn');
+  const unlockBtn = document.getElementById('ts-unlock-btn');
+  if (d.already_locked) {
+    lockBtn.style.display = 'none';
+    unlockBtn.style.display = 'block';
+  } else {
+    lockBtn.style.display = 'block';
+    unlockBtn.style.display = 'none';
+  }
+}
+
+async function approveAll() {
+  if (!_tsAutoIds.length) { showToast('Nothing to approve', 'err'); return; }
+  const btn = document.getElementById('ts-approve-all-btn');
+  btn.textContent = 'Approving...'; btn.disabled = true;
+  try {
+    const res = await hqFetch(`${API}/hq/timesheet/approve`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-hq-token': window._hqToken || sessionStorage.getItem('hq_token') || '' },
+      body: JSON.stringify({ operator_id: currentOp, visit_ids: _tsAutoIds, approved_by: 'hq' })
+    });
+    const d = await res.json();
+    if (!d.success) throw new Error(d.error || 'Approve failed');
+    showToast(`${d.approved} visit${d.approved !== 1 ? 's' : ''} approved ✓`, 'ok');
+    runTSPreview();
+  } catch (e) { showToast(e.message || 'Approve failed', 'err'); btn.textContent = 'Approve All'; btn.disabled = false; }
+}
+
+async function approveSingle(id, btn) {
+  if (!id) return;
+  const orig = btn.textContent;
+  btn.textContent = '...'; btn.disabled = true;
+  try {
+    const res = await hqFetch(`${API}/hq/timesheet/approve`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-hq-token': window._hqToken || sessionStorage.getItem('hq_token') || '' },
+      body: JSON.stringify({ operator_id: currentOp, visit_ids: [id], approved_by: 'hq' })
+    });
+    const d = await res.json();
+    if (!d.success) throw new Error(d.error || 'Approve failed');
+    btn.textContent = '✓ Done'; btn.style.color = 'var(--green2)';
+    showToast('Visit approved ✓', 'ok');
+  } catch (e) { btn.textContent = orig; btn.disabled = false; showToast(e.message || 'Failed', 'err'); }
+}
+
+async function lockPeriod() {
+  const note = document.getElementById('ts-lock-note')?.value.trim() || '';
+  const btn = document.getElementById('ts-lock-btn');
+  btn.textContent = 'Locking...'; btn.disabled = true;
+  try {
+    const res = await hqFetch(`${API}/hq/timesheet/lock`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-hq-token': window._hqToken || sessionStorage.getItem('hq_token') || '' },
+      body: JSON.stringify({ operator_id: currentOp, from_date: _tsFromDate, to_date: _tsToDate, locked_by: 'hq', lock_note: note })
+    });
+    const d = await res.json();
+    if (!d.success) throw new Error(d.error || 'Lock failed');
+    showToast('Pay period locked ✓', 'ok');
+    runTSPreview();
+  } catch (e) { showToast(e.message || 'Lock failed', 'err'); btn.textContent = 'Lock Pay Period'; btn.disabled = false; }
+}
+
+async function unlockPeriod() {
+  if (!confirm('Unlock this pay period? Visits will be editable again.')) return;
+  const btn = document.getElementById('ts-unlock-btn');
+  btn.textContent = 'Unlocking...'; btn.disabled = true;
+  try {
+    const res = await hqFetch(`${API}/hq/timesheet/lock`, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json', 'x-hq-token': window._hqToken || sessionStorage.getItem('hq_token') || '' },
+      body: JSON.stringify({ operator_id: currentOp, from_date: _tsFromDate, to_date: _tsToDate })
+    });
+    const d = await res.json();
+    if (!d.success) throw new Error(d.error || 'Unlock failed');
+    showToast('Pay period unlocked', 'ok');
+    runTSPreview();
+  } catch (e) { showToast(e.message || 'Unlock failed', 'err'); btn.textContent = 'Unlock Period'; btn.disabled = false; }
 }
 
 // ── RISK DIGEST TRIGGER ──
