@@ -6814,7 +6814,7 @@ function _renderHoursPanel() {
 }
 function _showShiftDetail(b, props) {
   const m = document.getElementById('shift-detail-modal');
-  if (!m) { openEditShift(b.id); return; }
+  if (!m) { openEditShift(b.id, b.client_name, b.assigned_to, b.scheduled_date, b.scheduled_time, b.duration_minutes); return; }
   const dur = (b.duration_minutes||60)/60;
   const isLive = props.isLive;
   const isConflict = props.isConflict;
@@ -6867,7 +6867,7 @@ function _showShiftDetail(b, props) {
   }
   const delBtn = document.getElementById('sd-delete');
   if (delBtn) delBtn.dataset.bookingId = b.id;
-  if (_elEdit)  _elEdit.onclick  = () => { m.style.display='none'; openEditShift(b.id); };
+  if (_elEdit)  _elEdit.onclick  = () => { m.style.display='none'; openEditShift(b.id, b.client_name, b.assigned_to, b.scheduled_date, b.scheduled_time, b.duration_minutes); };
   if (_elClose) _elClose.onclick = () => { m.style.display='none'; };
   m.style.display = 'flex';
 }
