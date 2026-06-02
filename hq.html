@@ -2510,15 +2510,52 @@ body.sidebar-rail .sidebar{width:64px;overflow:visible;}
 <div class="section" id="sect-revenue">
   <div class="section-header" style="flex-wrap:wrap;gap:8px;">
     <span class="section-title">Revenue & Analytics</span>
-    <div style="display:flex;gap:4px;flex-wrap:wrap;">
+    <div style="display:flex;gap:4px;flex-wrap:wrap;align-items:center;">
       <button onclick="setRevPeriod('today')" id="rev-tab-today" class="rev-tab" style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;padding:5px 10px;border-radius:5px;border:1px solid var(--border2);background:var(--bg3);color:var(--muted2);cursor:pointer;min-height:32px;touch-action:manipulation;">Today</button>
       <button onclick="setRevPeriod('week')" id="rev-tab-week" class="rev-tab" style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;padding:5px 10px;border-radius:5px;border:1px solid var(--border2);background:var(--bg3);color:var(--muted2);cursor:pointer;min-height:32px;touch-action:manipulation;">This Week</button>
       <button onclick="setRevPeriod('month')" id="rev-tab-month" class="rev-tab" style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;padding:5px 10px;border-radius:5px;border:1px solid rgba(61,138,122,.4);background:rgba(61,138,122,.1);color:var(--teal2);cursor:pointer;min-height:32px;touch-action:manipulation;">This Month</button>
       <button onclick="setRevPeriod('lastmonth')" id="rev-tab-lastmonth" class="rev-tab" style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;padding:5px 10px;border-radius:5px;border:1px solid var(--border2);background:var(--bg3);color:var(--muted2);cursor:pointer;min-height:32px;touch-action:manipulation;">Last Month</button>
       <button onclick="setRevPeriod('year')" id="rev-tab-year" class="rev-tab" style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;padding:5px 10px;border-radius:5px;border:1px solid var(--border2);background:var(--bg3);color:var(--muted2);cursor:pointer;min-height:32px;touch-action:manipulation;">This Year</button>
+      <button onclick="openSheet('batch-invoice-sheet')" style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;padding:5px 10px;border-radius:5px;border:1px solid rgba(200,169,110,.4);background:rgba(200,169,110,.08);color:var(--gold);cursor:pointer;min-height:32px;touch-action:manipulation;">Batch Invoice</button>
     </div>
   </div>
   <div id="revenue-content"><div class="empty-state">Loading analytics...</div></div>
+</div>
+
+<!-- BATCH INVOICE SHEET -->
+<div class="sheet" id="batch-invoice-sheet" style="z-index:1052;">
+  <div class="sheet-header">
+    <div class="sheet-title">Batch Invoice</div>
+    <button class="sheet-close" onclick="closeSheet('batch-invoice-sheet')">&#x2715;</button>
+  </div>
+  <div style="padding:0 14px 10px;">
+    <div style="font-family:var(--mono);font-size:11px;color:var(--muted2);line-height:1.7;margin-bottom:12px;">Generate invoices for all active clients in a billing period. Preview first — nothing sends until you confirm.</div>
+    <div style="display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap;">
+      <button onclick="setBatchPeriod('thismonth')" id="bp-thismonth" style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;padding:5px 10px;border-radius:5px;border:1px solid rgba(61,138,122,.4);background:rgba(61,138,122,.1);color:var(--teal2);cursor:pointer;min-height:32px;touch-action:manipulation;">This Month</button>
+      <button onclick="setBatchPeriod('lastmonth')" id="bp-lastmonth" style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;padding:5px 10px;border-radius:5px;border:1px solid var(--border2);background:var(--bg3);color:var(--muted2);cursor:pointer;min-height:32px;touch-action:manipulation;">Last Month</button>
+      <button onclick="setBatchPeriod('custom')" id="bp-custom" style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;padding:5px 10px;border-radius:5px;border:1px solid var(--border2);background:var(--bg3);color:var(--muted2);cursor:pointer;min-height:32px;touch-action:manipulation;">Custom</button>
+    </div>
+    <div id="batch-custom-range" style="display:none;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap;">
+      <input type="date" id="batch-from" style="font-family:var(--mono);font-size:11px;padding:6px 8px;border-radius:6px;border:1px solid var(--border2);background:var(--bg2);color:var(--text);min-height:36px;">
+      <span style="font-family:var(--mono);font-size:11px;color:var(--muted);">to</span>
+      <input type="date" id="batch-to" style="font-family:var(--mono);font-size:11px;padding:6px 8px;border-radius:6px;border:1px solid var(--border2);background:var(--bg2);color:var(--text);min-height:36px;">
+    </div>
+    <button onclick="runBatchPreview()" id="batch-preview-btn" style="width:100%;padding:11px;border-radius:8px;border:1px solid rgba(61,138,122,.3);background:rgba(61,138,122,.08);color:var(--teal2);font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;min-height:44px;touch-action:manipulation;margin-bottom:10px;">Preview Invoices</button>
+  </div>
+  <div id="batch-preview-result" style="padding:0 14px;display:none;">
+    <div style="font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:8px;">Preview</div>
+    <div id="batch-client-list" style="margin-bottom:12px;"></div>
+    <div id="batch-summary" style="padding:10px 12px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;margin-bottom:12px;font-family:var(--mono);font-size:12px;color:var(--muted2);"></div>
+    <div style="margin-bottom:10px;">
+      <label style="display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:11px;color:var(--muted2);cursor:pointer;">
+        <input type="checkbox" id="batch-force" style="width:16px;height:16px;accent-color:var(--amber);">
+        Re-send already invoiced clients (override duplicate check)
+      </label>
+    </div>
+    <button onclick="runBatchSend()" id="batch-send-btn" style="width:100%;padding:13px;border-radius:8px;border:none;background:var(--teal);color:#fff;font-family:var(--mono);font-size:12px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;min-height:48px;touch-action:manipulation;margin-bottom:8px;opacity:.4;pointer-events:none;" disabled>Send All Invoices</button>
+    <button onclick="closeSheet('batch-invoice-sheet')" style="width:100%;padding:11px;background:none;border:1px solid var(--border);color:var(--muted2);border-radius:8px;font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;min-height:44px;">Cancel</button>
+  </div>
+  <div id="batch-sending-result" style="padding:0 14px 14px;display:none;"></div>
 </div>
 
 
@@ -5199,6 +5236,7 @@ function showSect(name) {
 function openSheet(id) {
   document.getElementById('sheet-overlay').classList.add('open');
   document.getElementById(id).classList.add('open');
+  if (id === 'batch-invoice-sheet') setBatchPeriod('thismonth');
 }
 function closeSheet(id) {
   document.getElementById(id).classList.remove('open');
@@ -7920,6 +7958,134 @@ async function markInvoicePaid(id) {
     showToast('Invoice marked paid ✓', 'ok');
     renderRevenue();
   } catch { showToast('Could not mark paid', 'err'); }
+}
+
+// ── BATCH INVOICING ──
+let _batchFromDate = '', _batchToDate = '', _batchPeriod = 'thismonth';
+
+function setBatchPeriod(period) {
+  _batchPeriod = period;
+  const now = new Date();
+  const toISO = d => d.toISOString().slice(0, 10);
+  const y = now.getFullYear(), m = now.getMonth();
+  ['thismonth','lastmonth','custom'].forEach(p => {
+    const btn = document.getElementById('bp-' + p);
+    if (btn) { btn.style.borderColor = 'var(--border2)'; btn.style.background = 'var(--bg3)'; btn.style.color = 'var(--muted2)'; }
+  });
+  const active = document.getElementById('bp-' + period);
+  if (active) { active.style.borderColor = 'rgba(61,138,122,.4)'; active.style.background = 'rgba(61,138,122,.1)'; active.style.color = 'var(--teal2)'; }
+  const cr = document.getElementById('batch-custom-range');
+  if (period === 'custom') {
+    if (cr) cr.style.display = 'flex';
+  } else {
+    if (cr) cr.style.display = 'none';
+    if (period === 'thismonth') {
+      _batchFromDate = toISO(new Date(y, m, 1));
+      _batchToDate   = toISO(new Date(y, m + 1, 0));
+    } else {
+      _batchFromDate = toISO(new Date(y, m - 1, 1));
+      _batchToDate   = toISO(new Date(y, m, 0));
+    }
+  }
+  // Reset preview when period changes
+  const pr = document.getElementById('batch-preview-result');
+  if (pr) pr.style.display = 'none';
+  const sr = document.getElementById('batch-sending-result');
+  if (sr) { sr.style.display = 'none'; sr.innerHTML = ''; }
+}
+
+async function runBatchPreview() {
+  if (_batchPeriod === 'custom') {
+    _batchFromDate = document.getElementById('batch-from')?.value || '';
+    _batchToDate   = document.getElementById('batch-to')?.value   || '';
+    if (!_batchFromDate || !_batchToDate) { showToast('Select a date range first', 'err'); return; }
+  }
+  const btn = document.getElementById('batch-preview-btn');
+  btn.textContent = 'Loading...'; btn.disabled = true;
+  try {
+    const res = await hqFetch(`${API}/hq/invoices/batch-preview`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json', 'x-hq-token': window._hqToken || sessionStorage.getItem('hq_token') || '' },
+      body: JSON.stringify({ operator_id: currentOp, from_date: _batchFromDate, to_date: _batchToDate })
+    });
+    const d = await res.json();
+    if (!d.success) throw new Error(d.error || 'Preview failed');
+
+    const clients = d.clients || [];
+    const sendable = clients.filter(c => c.can_send);
+
+    let listHtml = '';
+    clients.forEach(c => {
+      const statusColor = c.can_send ? 'var(--green2)' : 'var(--muted)';
+      const statusBg    = c.can_send ? 'rgba(106,201,138,.1)' : 'var(--bg3)';
+      const statusBorder= c.can_send ? 'rgba(106,201,138,.25)' : 'var(--border)';
+      const statusLabel = c.can_send ? 'Ready' : (c.skip_reason || 'Skip');
+      listHtml += `<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--bg2);border:1px solid var(--border);border-radius:6px;margin-bottom:4px;">
+        <div>
+          <div style="font-size:12px;font-weight:500;color:var(--text);">${c.client_name}</div>
+          <div style="font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:2px;">${c.visits_count} visit${c.visits_count !== 1 ? 's' : ''} · ${c.total_hours.toFixed(1)}h · $${c.client_rate}/hr</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <div style="font-family:var(--mono);font-size:13px;color:var(--teal2);">${c.can_send ? '$' + c.client_total.toFixed(0) : '—'}</div>
+          <span style="font-family:var(--mono);font-size:10px;padding:2px 7px;border-radius:100px;border:1px solid ${statusBorder};background:${statusBg};color:${statusColor};">${statusLabel}</span>
+        </div>
+      </div>`;
+    });
+    document.getElementById('batch-client-list').innerHTML = listHtml;
+    document.getElementById('batch-summary').innerHTML =
+      `${sendable.length} of ${clients.length} clients ready &nbsp;·&nbsp; $${d.total_billed.toFixed(2)} total &nbsp;·&nbsp; ${_batchFromDate} → ${_batchToDate}`;
+
+    const sendBtn = document.getElementById('batch-send-btn');
+    if (sendable.length > 0) {
+      sendBtn.disabled = false; sendBtn.style.opacity = '1'; sendBtn.style.pointerEvents = 'auto';
+      sendBtn.textContent = `Send ${sendable.length} Invoice${sendable.length !== 1 ? 's' : ''}`;
+    } else {
+      sendBtn.disabled = true; sendBtn.style.opacity = '.4'; sendBtn.style.pointerEvents = 'none';
+      sendBtn.textContent = 'No Invoices to Send';
+    }
+    document.getElementById('batch-preview-result').style.display = 'block';
+  } catch (e) { showToast(e.message || 'Preview failed', 'err'); }
+  btn.textContent = 'Preview Invoices'; btn.disabled = false;
+}
+
+async function runBatchSend() {
+  const force = document.getElementById('batch-force')?.checked || false;
+  const sendBtn = document.getElementById('batch-send-btn');
+  sendBtn.textContent = 'Sending...'; sendBtn.disabled = true; sendBtn.style.opacity = '.6';
+
+  const sr = document.getElementById('batch-sending-result');
+  sr.innerHTML = '<div style="font-family:var(--mono);font-size:11px;color:var(--muted);padding:8px 0;">Sending invoices — this may take a minute...</div>';
+  sr.style.display = 'block';
+
+  try {
+    const res = await hqFetch(`${API}/hq/invoices/batch-send`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json', 'x-hq-token': window._hqToken || sessionStorage.getItem('hq_token') || '' },
+      body: JSON.stringify({ operator_id: currentOp, from_date: _batchFromDate, to_date: _batchToDate, force })
+    });
+    const d = await res.json();
+    if (!d.success) throw new Error(d.error || 'Batch send failed');
+
+    const results = d.results || [];
+    let resHtml = `<div style="font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:10px;">Results</div>`;
+    resHtml += `<div style="padding:10px 12px;background:rgba(61,138,122,.06);border:1px solid rgba(61,138,122,.2);border-radius:8px;margin-bottom:10px;font-family:var(--mono);font-size:12px;color:var(--teal2);">
+      ${d.invoices_sent} sent · ${d.skipped_count} skipped · ${d.failed_count} failed · $${d.total_billed.toFixed(2)} billed
+    </div>`;
+    results.forEach(r => {
+      const color  = r.success ? 'var(--green2)' : r.skipped ? 'var(--muted)' : 'var(--red)';
+      const label  = r.success ? `$${parseFloat(r.client_total||0).toFixed(0)} sent` : r.skipped || r.error || '—';
+      resHtml += `<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:var(--bg2);border:1px solid var(--border);border-radius:6px;margin-bottom:4px;">
+        <div style="font-size:12px;color:var(--text);">${r.client}</div>
+        <div style="font-family:var(--mono);font-size:11px;color:${color};">${label}</div>
+      </div>`;
+    });
+    resHtml += `<button onclick="closeSheet('batch-invoice-sheet');renderRevenue();" style="width:100%;margin-top:10px;padding:11px;background:var(--teal);color:#fff;border:none;border-radius:8px;font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;min-height:44px;">Done — View Revenue</button>`;
+    sr.innerHTML = resHtml;
+    document.getElementById('batch-preview-result').style.display = 'none';
+    if (d.invoices_sent > 0) showToast(`${d.invoices_sent} invoice${d.invoices_sent !== 1 ? 's' : ''} sent ✓`, 'ok');
+  } catch (e) {
+    sr.innerHTML = `<div style="font-family:var(--mono);font-size:12px;color:var(--red);padding:8px 0;">${e.message || 'Send failed'}</div>`;
+    showToast('Batch send failed', 'err');
+    sendBtn.textContent = 'Send All Invoices'; sendBtn.disabled = false; sendBtn.style.opacity = '1';
+  }
 }
 
 // ── PSW PROFILE DRAWER ──
