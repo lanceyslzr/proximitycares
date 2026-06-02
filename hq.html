@@ -2517,6 +2517,7 @@ body.sidebar-rail .sidebar{width:64px;overflow:visible;}
       <button onclick="setRevPeriod('lastmonth')" id="rev-tab-lastmonth" class="rev-tab" style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;padding:5px 10px;border-radius:5px;border:1px solid var(--border2);background:var(--bg3);color:var(--muted2);cursor:pointer;min-height:32px;touch-action:manipulation;">Last Month</button>
       <button onclick="setRevPeriod('year')" id="rev-tab-year" class="rev-tab" style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;padding:5px 10px;border-radius:5px;border:1px solid var(--border2);background:var(--bg3);color:var(--muted2);cursor:pointer;min-height:32px;touch-action:manipulation;">This Year</button>
       <button onclick="openSheet('batch-invoice-sheet')" style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;padding:5px 10px;border-radius:5px;border:1px solid rgba(200,169,110,.4);background:rgba(200,169,110,.08);color:var(--gold);cursor:pointer;min-height:32px;touch-action:manipulation;">Batch Invoice</button>
+      <button onclick="openAgingReport()" style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;padding:5px 10px;border-radius:5px;border:1px solid rgba(224,85,85,.3);background:rgba(224,85,85,.06);color:var(--red);cursor:pointer;min-height:32px;touch-action:manipulation;">AR Aging</button>
     </div>
   </div>
   <div id="revenue-content"><div class="empty-state">Loading analytics...</div></div>
@@ -2556,6 +2557,25 @@ body.sidebar-rail .sidebar{width:64px;overflow:visible;}
     <button onclick="closeSheet('batch-invoice-sheet')" style="width:100%;padding:11px;background:none;border:1px solid var(--border);color:var(--muted2);border-radius:8px;font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;min-height:44px;">Cancel</button>
   </div>
   <div id="batch-sending-result" style="padding:0 14px 14px;display:none;"></div>
+</div>
+
+<!-- AR AGING REPORT SHEET -->
+<div class="sheet" id="ar-aging-sheet" style="z-index:1052;">
+  <div class="sheet-header">
+    <div class="sheet-title">Accounts Receivable</div>
+    <button class="sheet-close" onclick="closeSheet('ar-aging-sheet')">&#x2715;</button>
+  </div>
+  <div style="padding:0 14px 6px;">
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;">
+      <button onclick="setAgingFilter('all')" id="af-all" style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;padding:5px 10px;border-radius:5px;border:1px solid rgba(61,138,122,.4);background:rgba(61,138,122,.1);color:var(--teal2);cursor:pointer;min-height:32px;touch-action:manipulation;">All</button>
+      <button onclick="setAgingFilter('current')" id="af-current" style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;padding:5px 10px;border-radius:5px;border:1px solid var(--border2);background:var(--bg3);color:var(--muted2);cursor:pointer;min-height:32px;touch-action:manipulation;">0-30d</button>
+      <button onclick="setAgingFilter('31-60')" id="af-31-60" style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;padding:5px 10px;border-radius:5px;border:1px solid var(--border2);background:var(--bg3);color:var(--muted2);cursor:pointer;min-height:32px;touch-action:manipulation;">31-60d</button>
+      <button onclick="setAgingFilter('61-90')" id="af-61-90" style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;padding:5px 10px;border-radius:5px;border:1px solid var(--border2);background:var(--bg3);color:var(--muted2);cursor:pointer;min-height:32px;touch-action:manipulation;">61-90d</button>
+      <button onclick="setAgingFilter('90+')" id="af-90plus" style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;padding:5px 10px;border-radius:5px;border:1px solid rgba(224,85,85,.3);background:rgba(224,85,85,.06);color:var(--red);cursor:pointer;min-height:32px;touch-action:manipulation;">90d+</button>
+    </div>
+    <div id="ar-aging-summary" style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:12px;"></div>
+  </div>
+  <div id="ar-aging-list" style="padding:0 14px 14px;"><div class="empty-state" style="padding:20px;">Loading...</div></div>
 </div>
 
 
@@ -5237,6 +5257,7 @@ function openSheet(id) {
   document.getElementById('sheet-overlay').classList.add('open');
   document.getElementById(id).classList.add('open');
   if (id === 'batch-invoice-sheet') setBatchPeriod('thismonth');
+  if (id === 'ar-aging-sheet') { _agingFilter = 'all'; setAgingFilter('all'); }
 }
 function closeSheet(id) {
   document.getElementById(id).classList.remove('open');
@@ -8086,6 +8107,170 @@ async function runBatchSend() {
     showToast('Batch send failed', 'err');
     sendBtn.textContent = 'Send All Invoices'; sendBtn.disabled = false; sendBtn.style.opacity = '1';
   }
+}
+
+// ── AR AGING REPORT ──
+let _agingFilter = 'all';
+let _agingData = null;
+
+const _agingBucketStyle = {
+  'current': { bg: 'rgba(61,138,122,.08)',  border: 'rgba(61,138,122,.3)',  color: 'var(--teal2)',  label: '0-30d' },
+  '31-60':   { bg: 'rgba(212,160,61,.08)',  border: 'rgba(212,160,61,.3)',  color: 'var(--amber)',  label: '31-60d' },
+  '61-90':   { bg: 'rgba(224,120,61,.08)',  border: 'rgba(224,120,61,.3)',  color: 'var(--amber)',  label: '61-90d' },
+  '90+':     { bg: 'rgba(224,85,85,.08)',   border: 'rgba(224,85,85,.3)',   color: 'var(--red)',    label: '90d+' }
+};
+
+function openAgingReport() {
+  _agingFilter = 'all';
+  openSheet('ar-aging-sheet');
+  loadAgingReport();
+}
+
+async function loadAgingReport() {
+  const listEl = document.getElementById('ar-aging-list');
+  const sumEl  = document.getElementById('ar-aging-summary');
+  if (listEl) listEl.innerHTML = '<div class="empty-state" style="padding:20px;">Loading...</div>';
+
+  try {
+    const res = await hqFetch(`${API}/hq/ar?operator_id=${currentOp}&include_paid=true`);
+    const d = await res.json();
+    _agingData = d;
+    renderAgingList();
+
+    // Summary bucket strip — unpaid only
+    const unpaid = (d.invoices || []).filter(i => !i.paid);
+    const byBucket = { current: 0, '31-60': 0, '61-90': 0, '90+': 0 };
+    unpaid.forEach(i => { byBucket[i.aging_bucket] = (byBucket[i.aging_bucket] || 0) + parseFloat(i.client_total || 0); });
+    if (sumEl) {
+      sumEl.innerHTML = Object.entries(byBucket).map(([bucket, amt]) => {
+        const s = _agingBucketStyle[bucket];
+        return `<div style="padding:8px 10px;background:${s.bg};border:1px solid ${s.border};border-radius:6px;text-align:center;">
+          <div style="font-family:var(--mono);font-size:13px;font-weight:500;color:${s.color};">$${parseFloat(amt).toFixed(0)}</div>
+          <div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;margin-top:2px;">${s.label}</div>
+        </div>`;
+      }).join('');
+    }
+  } catch (e) {
+    if (listEl) listEl.innerHTML = '<div class="empty-state" style="padding:20px;">Could not load AR data</div>';
+  }
+}
+
+function setAgingFilter(filter) {
+  _agingFilter = filter;
+  ['all','current','31-60','61-90','90+'].forEach(f => {
+    const id = f === 'all' ? 'af-all' : f === '90+' ? 'af-90plus' : 'af-' + f;
+    const btn = document.getElementById(id);
+    if (!btn) return;
+    const isActive = f === filter;
+    if (isActive) {
+      const s = f === 'all' ? { border: 'rgba(61,138,122,.4)', bg: 'rgba(61,138,122,.1)', color: 'var(--teal2)' }
+               : f === '90+' ? { border: 'rgba(224,85,85,.3)', bg: 'rgba(224,85,85,.1)', color: 'var(--red)' }
+               : _agingBucketStyle[f] || { border: 'rgba(61,138,122,.4)', bg: 'rgba(61,138,122,.1)', color: 'var(--teal2)' };
+      btn.style.borderColor = s.border; btn.style.background = s.bg; btn.style.color = s.color;
+    } else {
+      btn.style.borderColor = 'var(--border2)'; btn.style.background = 'var(--bg3)'; btn.style.color = 'var(--muted2)';
+    }
+  });
+  renderAgingList();
+}
+
+function renderAgingList() {
+  const listEl = document.getElementById('ar-aging-list');
+  if (!listEl || !_agingData) return;
+  const invoices = _agingData.invoices || [];
+  const unpaid = invoices.filter(i => !i.paid);
+  const paid   = invoices.filter(i =>  i.paid);
+
+  const filtered = _agingFilter === 'all' ? unpaid : unpaid.filter(i => i.aging_bucket === _agingFilter);
+
+  let html = '';
+
+  if (!filtered.length && _agingFilter === 'all') {
+    html += '<div style="font-family:var(--mono);font-size:12px;color:var(--teal2);padding:12px 0;">All invoices paid ✓</div>';
+  } else if (!filtered.length) {
+    html += '<div style="font-family:var(--mono);font-size:12px;color:var(--muted);padding:12px 0;">No invoices in this bucket</div>';
+  } else {
+    html += `<div style="font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:8px;">${filtered.length} unpaid · $${filtered.reduce((s,i) => s + parseFloat(i.client_total||0), 0).toFixed(0)} outstanding</div>`;
+    filtered.forEach(inv => {
+      const bs = _agingBucketStyle[inv.aging_bucket] || _agingBucketStyle['current'];
+      const isOverdue = inv.days_outstanding >= 30;
+      const periodLabel = inv.start_date && inv.end_date
+        ? `${inv.start_date} → ${inv.end_date}`
+        : `${inv.month||''} ${inv.year||''}`;
+      const hasEmail = !!(inv.family_email || inv.client_email);
+      const reminderTip = hasEmail ? '' : 'No email on file';
+      html += `<div style="padding:10px 12px;background:${isOverdue?'rgba(224,85,85,.03)':'var(--bg2)'};border:1px solid ${isOverdue?'rgba(224,85,85,.2)':'var(--border)'};border-radius:8px;margin-bottom:6px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+          <div>
+            <div style="font-size:12px;font-weight:500;color:var(--text);">${inv.client_name||'—'}</div>
+            <div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:2px;">${periodLabel} · ${inv.days_outstanding}d outstanding</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span style="font-family:var(--mono);font-size:9px;padding:2px 6px;border-radius:4px;background:${bs.bg};border:1px solid ${bs.border};color:${bs.color};">${bs.label}</span>
+            <div style="font-family:var(--mono);font-size:14px;font-weight:600;color:${isOverdue?'var(--red)':'var(--teal2)'};">$${parseFloat(inv.client_total||0).toFixed(0)}</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:6px;">
+          <button onclick="sendInvoiceReminder('${inv.id}',this)" ${hasEmail?'':'disabled title="'+reminderTip+'"'} style="flex:1;font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;padding:8px 10px;border-radius:6px;border:1px solid rgba(200,169,110,.35);background:rgba(200,169,110,.07);color:var(--gold);cursor:pointer;min-height:44px;touch-action:manipulation;${hasEmail?'':'opacity:.4;cursor:not-allowed;'}">Send Reminder</button>
+          <button onclick="markInvoicePaidFromAging('${inv.id}')" style="flex:1;font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;padding:8px 10px;border-radius:6px;border:1px solid rgba(74,154,110,.4);background:rgba(74,154,110,.08);color:var(--green2);cursor:pointer;min-height:44px;touch-action:manipulation;">&#x2713; Mark Paid</button>
+        </div>
+      </div>`;
+    });
+  }
+
+  // Paid history at bottom
+  if (paid.length && _agingFilter === 'all') {
+    html += `<div style="font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin:12px 0 8px;">Payment history</div>`;
+    paid.slice(0, 10).forEach(inv => {
+      const paidDate = inv.paid_at ? new Date(inv.paid_at).toLocaleDateString('en-CA',{month:'short',day:'numeric',year:'numeric'}) : '—';
+      const periodLabel = inv.start_date && inv.end_date ? `${inv.start_date} → ${inv.end_date}` : `${inv.month||''} ${inv.year||''}`;
+      html += `<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:rgba(109,185,116,.03);border:1px solid rgba(109,185,116,.15);border-radius:6px;margin-bottom:4px;">
+        <div>
+          <div style="font-size:12px;font-weight:500;color:var(--text);">${inv.client_name||'—'}</div>
+          <div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:2px;">${periodLabel} · Paid ${paidDate}${inv.receipt_number?' · <span style="color:var(--teal2);">'+inv.receipt_number+'</span>':''}</div>
+        </div>
+        <div style="font-family:var(--mono);font-size:13px;color:var(--green2);">$${parseFloat(inv.client_total||0).toFixed(0)} &#x2713;</div>
+      </div>`;
+    });
+  }
+
+  listEl.innerHTML = html;
+}
+
+async function sendInvoiceReminder(id, btn) {
+  if (!id) return;
+  const orig = btn.textContent;
+  btn.textContent = 'Sending...'; btn.disabled = true;
+  try {
+    const res = await hqFetch(`${API}/hq/ar/send-reminder/${id}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-hq-token': window._hqToken || sessionStorage.getItem('hq_token') || '' },
+      body: JSON.stringify({ operator_id: currentOp })
+    });
+    const d = await res.json();
+    if (!d.success) throw new Error(d.error || 'Send failed');
+    btn.textContent = 'Sent ✓';
+    btn.style.color = 'var(--green2)';
+    btn.style.borderColor = 'rgba(74,154,110,.4)';
+    btn.style.background = 'rgba(74,154,110,.08)';
+    showToast('Reminder sent ✓', 'ok');
+  } catch (e) {
+    btn.textContent = orig; btn.disabled = false;
+    showToast(e.message || 'Could not send reminder', 'err');
+  }
+}
+
+async function markInvoicePaidFromAging(id) {
+  try {
+    const res = await hqFetch(`${API}/hq/ar/mark-paid/${id}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-hq-token': window._hqToken || sessionStorage.getItem('hq_token') || '' },
+      body: JSON.stringify({ operator_id: currentOp })
+    });
+    if (!res.ok) throw new Error();
+    showToast('Invoice marked paid ✓', 'ok');
+    loadAgingReport(); // refresh sheet — do NOT call renderRevenue() which would close the sheet
+  } catch { showToast('Could not mark paid', 'err'); }
 }
 
 // ── PSW PROFILE DRAWER ──
