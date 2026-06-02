@@ -1734,6 +1734,10 @@ body.sidebar-rail .sidebar{width:64px;overflow:visible;}
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="13" height="13"><rect x="4" y="5" width="16" height="16" rx="2"/><path d="M8 3v4M16 3v4M4 11h16"/></svg>
       Schedule
     </button>
+    <button onclick="runRiskDigest(this)" style="flex:1 1 auto;min-width:0;min-height:44px;padding:0 12px;background:rgba(224,85,85,.06);border:1px solid rgba(224,85,85,.25);border-radius:var(--r10);color:var(--red);font-family:var(--mono);font-size:11px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;touch-action:manipulation;">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="13" height="13"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      Risk Digest
+    </button>
   </div>
 
   <!-- ── CHIEF OF STAFF ── -->
@@ -5257,7 +5261,7 @@ function openSheet(id) {
   document.getElementById('sheet-overlay').classList.add('open');
   document.getElementById(id).classList.add('open');
   if (id === 'batch-invoice-sheet') setBatchPeriod('thismonth');
-  if (id === 'ar-aging-sheet') { _agingFilter = 'all'; setAgingFilter('all'); }
+  if (id === 'ar-aging-sheet') { _agingFilter = 'all'; loadAgingReport(); setAgingFilter('all'); }
 }
 function closeSheet(id) {
   document.getElementById(id).classList.remove('open');
@@ -8123,31 +8127,24 @@ const _agingBucketStyle = {
 function openAgingReport() {
   _agingFilter = 'all';
   openSheet('ar-aging-sheet');
-  loadAgingReport();
 }
 
 async function loadAgingReport() {
   const listEl = document.getElementById('ar-aging-list');
   const sumEl  = document.getElementById('ar-aging-summary');
   if (listEl) listEl.innerHTML = '<div class="empty-state" style="padding:20px;">Loading...</div>';
-
   try {
     const res = await hqFetch(`${API}/hq/ar?operator_id=${currentOp}&include_paid=true`);
     const d = await res.json();
     _agingData = d;
     renderAgingList();
-
-    // Summary bucket strip — unpaid only
     const unpaid = (d.invoices || []).filter(i => !i.paid);
     const byBucket = { current: 0, '31-60': 0, '61-90': 0, '90+': 0 };
     unpaid.forEach(i => { byBucket[i.aging_bucket] = (byBucket[i.aging_bucket] || 0) + parseFloat(i.client_total || 0); });
     if (sumEl) {
       sumEl.innerHTML = Object.entries(byBucket).map(([bucket, amt]) => {
         const s = _agingBucketStyle[bucket];
-        return `<div style="padding:8px 10px;background:${s.bg};border:1px solid ${s.border};border-radius:6px;text-align:center;">
-          <div style="font-family:var(--mono);font-size:13px;font-weight:500;color:${s.color};">$${parseFloat(amt).toFixed(0)}</div>
-          <div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;margin-top:2px;">${s.label}</div>
-        </div>`;
+        return `<div style="padding:8px 10px;background:${s.bg};border:1px solid ${s.border};border-radius:6px;text-align:center;"><div style="font-family:var(--mono);font-size:13px;font-weight:500;color:${s.color};">$${parseFloat(amt).toFixed(0)}</div><div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;margin-top:2px;">${s.label}</div></div>`;
       }).join('');
     }
   } catch (e) {
@@ -8180,11 +8177,8 @@ function renderAgingList() {
   const invoices = _agingData.invoices || [];
   const unpaid = invoices.filter(i => !i.paid);
   const paid   = invoices.filter(i =>  i.paid);
-
   const filtered = _agingFilter === 'all' ? unpaid : unpaid.filter(i => i.aging_bucket === _agingFilter);
-
   let html = '';
-
   if (!filtered.length && _agingFilter === 'all') {
     html += '<div style="font-family:var(--mono);font-size:12px;color:var(--teal2);padding:12px 0;">All invoices paid ✓</div>';
   } else if (!filtered.length) {
@@ -8194,83 +8188,80 @@ function renderAgingList() {
     filtered.forEach(inv => {
       const bs = _agingBucketStyle[inv.aging_bucket] || _agingBucketStyle['current'];
       const isOverdue = inv.days_outstanding >= 30;
-      const periodLabel = inv.start_date && inv.end_date
-        ? `${inv.start_date} → ${inv.end_date}`
-        : `${inv.month||''} ${inv.year||''}`;
+      const periodLabel = inv.start_date && inv.end_date ? `${inv.start_date} → ${inv.end_date}` : `${inv.month||''} ${inv.year||''}`;
       const hasEmail = !!(inv.family_email || inv.client_email);
-      const reminderTip = hasEmail ? '' : 'No email on file';
       html += `<div style="padding:10px 12px;background:${isOverdue?'rgba(224,85,85,.03)':'var(--bg2)'};border:1px solid ${isOverdue?'rgba(224,85,85,.2)':'var(--border)'};border-radius:8px;margin-bottom:6px;">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
-          <div>
-            <div style="font-size:12px;font-weight:500;color:var(--text);">${inv.client_name||'—'}</div>
-            <div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:2px;">${periodLabel} · ${inv.days_outstanding}d outstanding</div>
-          </div>
-          <div style="display:flex;align-items:center;gap:8px;">
-            <span style="font-family:var(--mono);font-size:9px;padding:2px 6px;border-radius:4px;background:${bs.bg};border:1px solid ${bs.border};color:${bs.color};">${bs.label}</span>
-            <div style="font-family:var(--mono);font-size:14px;font-weight:600;color:${isOverdue?'var(--red)':'var(--teal2)'};">$${parseFloat(inv.client_total||0).toFixed(0)}</div>
-          </div>
+          <div><div style="font-size:12px;font-weight:500;color:var(--text);">${inv.client_name||'—'}</div><div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:2px;">${periodLabel} · ${inv.days_outstanding}d outstanding</div></div>
+          <div style="display:flex;align-items:center;gap:8px;"><span style="font-family:var(--mono);font-size:9px;padding:2px 6px;border-radius:4px;background:${bs.bg};border:1px solid ${bs.border};color:${bs.color};">${bs.label}</span><div style="font-family:var(--mono);font-size:14px;font-weight:600;color:${isOverdue?'var(--red)':'var(--teal2)'};">$${parseFloat(inv.client_total||0).toFixed(0)}</div></div>
         </div>
         <div style="display:flex;gap:6px;">
-          <button onclick="sendInvoiceReminder('${inv.id}',this)" ${hasEmail?'':'disabled title="'+reminderTip+'"'} style="flex:1;font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;padding:8px 10px;border-radius:6px;border:1px solid rgba(200,169,110,.35);background:rgba(200,169,110,.07);color:var(--gold);cursor:pointer;min-height:44px;touch-action:manipulation;${hasEmail?'':'opacity:.4;cursor:not-allowed;'}">Send Reminder</button>
+          <button onclick="sendInvoiceReminder('${inv.id}',this)" ${hasEmail?'':'disabled title="No email on file"'} style="flex:1;font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;padding:8px 10px;border-radius:6px;border:1px solid rgba(200,169,110,.35);background:rgba(200,169,110,.07);color:var(--gold);cursor:pointer;min-height:44px;touch-action:manipulation;${hasEmail?'':'opacity:.4;cursor:not-allowed;'}">Send Reminder</button>
           <button onclick="markInvoicePaidFromAging('${inv.id}')" style="flex:1;font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;padding:8px 10px;border-radius:6px;border:1px solid rgba(74,154,110,.4);background:rgba(74,154,110,.08);color:var(--green2);cursor:pointer;min-height:44px;touch-action:manipulation;">&#x2713; Mark Paid</button>
         </div>
       </div>`;
     });
   }
-
-  // Paid history at bottom
   if (paid.length && _agingFilter === 'all') {
     html += `<div style="font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin:12px 0 8px;">Payment history</div>`;
-    paid.slice(0, 10).forEach(inv => {
+    paid.slice(0,10).forEach(inv => {
       const paidDate = inv.paid_at ? new Date(inv.paid_at).toLocaleDateString('en-CA',{month:'short',day:'numeric',year:'numeric'}) : '—';
       const periodLabel = inv.start_date && inv.end_date ? `${inv.start_date} → ${inv.end_date}` : `${inv.month||''} ${inv.year||''}`;
-      html += `<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:rgba(109,185,116,.03);border:1px solid rgba(109,185,116,.15);border-radius:6px;margin-bottom:4px;">
-        <div>
-          <div style="font-size:12px;font-weight:500;color:var(--text);">${inv.client_name||'—'}</div>
-          <div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:2px;">${periodLabel} · Paid ${paidDate}${inv.receipt_number?' · <span style="color:var(--teal2);">'+inv.receipt_number+'</span>':''}</div>
-        </div>
-        <div style="font-family:var(--mono);font-size:13px;color:var(--green2);">$${parseFloat(inv.client_total||0).toFixed(0)} &#x2713;</div>
-      </div>`;
+      html += `<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:rgba(109,185,116,.03);border:1px solid rgba(109,185,116,.15);border-radius:6px;margin-bottom:4px;"><div><div style="font-size:12px;font-weight:500;color:var(--text);">${inv.client_name||'—'}</div><div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:2px;">${periodLabel} · Paid ${paidDate}${inv.receipt_number?' · <span style="color:var(--teal2);">'+inv.receipt_number+'</span>':''}</div></div><div style="font-family:var(--mono);font-size:13px;color:var(--green2);">$${parseFloat(inv.client_total||0).toFixed(0)} &#x2713;</div></div>`;
     });
   }
-
   listEl.innerHTML = html;
 }
 
 async function sendInvoiceReminder(id, btn) {
   if (!id) return;
-  const orig = btn.textContent;
+  const orig = btn.innerHTML;
   btn.textContent = 'Sending...'; btn.disabled = true;
   try {
     const res = await hqFetch(`${API}/hq/ar/send-reminder/${id}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'x-hq-token': window._hqToken || sessionStorage.getItem('hq_token') || '' },
+      method: 'POST', headers: { 'Content-Type': 'application/json', 'x-hq-token': window._hqToken || sessionStorage.getItem('hq_token') || '' },
       body: JSON.stringify({ operator_id: currentOp })
     });
     const d = await res.json();
     if (!d.success) throw new Error(d.error || 'Send failed');
-    btn.textContent = 'Sent ✓';
-    btn.style.color = 'var(--green2)';
-    btn.style.borderColor = 'rgba(74,154,110,.4)';
-    btn.style.background = 'rgba(74,154,110,.08)';
+    btn.textContent = 'Sent ✓'; btn.style.color = 'var(--green2)'; btn.style.borderColor = 'rgba(74,154,110,.4)'; btn.style.background = 'rgba(74,154,110,.08)';
     showToast('Reminder sent ✓', 'ok');
-  } catch (e) {
-    btn.textContent = orig; btn.disabled = false;
-    showToast(e.message || 'Could not send reminder', 'err');
-  }
+  } catch (e) { btn.innerHTML = orig; btn.disabled = false; showToast(e.message || 'Could not send reminder', 'err'); }
 }
 
 async function markInvoicePaidFromAging(id) {
   try {
     const res = await hqFetch(`${API}/hq/ar/mark-paid/${id}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'x-hq-token': window._hqToken || sessionStorage.getItem('hq_token') || '' },
+      method: 'POST', headers: { 'Content-Type': 'application/json', 'x-hq-token': window._hqToken || sessionStorage.getItem('hq_token') || '' },
       body: JSON.stringify({ operator_id: currentOp })
     });
     if (!res.ok) throw new Error();
     showToast('Invoice marked paid ✓', 'ok');
-    loadAgingReport(); // refresh sheet — do NOT call renderRevenue() which would close the sheet
+    loadAgingReport();
   } catch { showToast('Could not mark paid', 'err'); }
+}
+
+// ── RISK DIGEST TRIGGER ──
+async function runRiskDigest(btn) {
+  const orig = btn ? btn.innerHTML : '';
+  if (btn) { btn.textContent = 'Sending...'; btn.disabled = true; btn.style.opacity = '.6'; }
+  try {
+    const res = await hqFetch(`${API}/hq/risk-digest`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-hq-token': window._hqToken || sessionStorage.getItem('hq_token') || '' },
+      body: JSON.stringify({ operator_id: currentOp, force: true })
+    });
+    const d = await res.json();
+    if (!d.success) throw new Error(d.error || 'Digest failed');
+    if (d.email_sent) {
+      showToast('Risk digest sent — ' + d.flags + ' signal' + (d.flags !== 1 ? 's' : '') + ' flagged ✓', 'ok');
+    } else {
+      showToast(d.skipped || 'No risk signals found — no email sent', 'ok');
+    }
+  } catch (e) {
+    showToast(e.message || 'Could not send risk digest', 'err');
+  }
+  if (btn) { btn.innerHTML = orig; btn.disabled = false; btn.style.opacity = '1'; }
 }
 
 // ── PSW PROFILE DRAWER ──
