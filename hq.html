@@ -216,14 +216,14 @@ input,select,textarea{font-family:var(--sans);font-size:16px;}
 a{color:inherit;text-decoration:none;}
 
 /* LOCK */
-#lock{position:fixed;inset:0;background:var(--bg);z-index:999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px;}
-.lock-logo{font-family:var(--serif);font-size:30px;color:var(--text);font-weight:300;letter-spacing:2px;}
+#lock{position:fixed;inset:0;background:var(--bg);z-index:999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px;text-align:center;padding:20px;}
+.lock-logo{font-family:var(--serif);font-size:30px;color:var(--text);font-weight:300;letter-spacing:2px;text-align:center;width:100%;max-width:320px;}
 .lock-logo em{color:var(--teal2);font-style:italic;}
 .lock-sub{font-family:var(--mono);font-size:12px;letter-spacing:3px;text-transform:uppercase;color:var(--muted2);}
-.lock-dots{display:flex;gap:14px;}
+.lock-dots{display:flex;gap:14px;justify-content:center;}
 .lock-dot{width:13px;height:13px;border-radius:50%;border:1px solid var(--border2);background:transparent;transition:background .15s;}
 .lock-dot.filled{background:var(--teal2);border-color:var(--teal2);}
-.lock-pad{display:grid;grid-template-columns:repeat(3,72px);gap:10px;}
+.lock-pad{display:grid;grid-template-columns:repeat(3,72px);gap:10px;margin:0 auto;}
 .lock-key{width:72px;height:72px;border-radius:50%;border:1px solid var(--border2);background:var(--bg2);color:var(--text);font-size:22px;font-weight:300;display:flex;align-items:center;justify-content:center;transition:background .12s;user-select:none;}
 .lock-key:active{background:var(--bg3);border-color:var(--teal2);}
 button{transition:transform 50ms ease;touch-action:manipulation;-webkit-tap-highlight-color:transparent;}
@@ -1589,7 +1589,7 @@ body.sidebar-rail .sidebar{width:64px;overflow:visible;}
     <div style="font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:1px;">example: proximitycares.ca/hq.html?op=your-agency-id</div>
   </div>
   <!-- PIN pad — hidden if no ?op= -->
-  <div id="lock-pin-section">
+  <div id="lock-pin-section" style="display:flex;flex-direction:column;align-items:center;gap:20px;">
     <div class="lock-dots" id="lock-dots">
       <div class="lock-dot" id="d0"></div><div class="lock-dot" id="d1"></div>
       <div class="lock-dot" id="d2"></div><div class="lock-dot" id="d3"></div>
@@ -1600,7 +1600,7 @@ body.sidebar-rail .sidebar{width:64px;overflow:visible;}
       <button class="lock-key" onclick="lk('7')">7</button><button class="lock-key" onclick="lk('8')">8</button><button class="lock-key" onclick="lk('9')">9</button>
       <div class="lock-key empty"></div><button class="lock-key" onclick="lk('0')">0</button><button class="lock-key del" onclick="ld()">⌫</button>
     </div>
-    <div class="lock-err" id="lock-err">Incorrect PIN</div>
+    <div class="lock-err" id="lock-err" style="text-align:center;">Incorrect PIN</div>
   </div>
 </div>
 
@@ -3176,8 +3176,8 @@ body.sidebar-rail .sidebar{width:64px;overflow:visible;}
 </div>
 
 <!-- SHIFT DETAIL MODAL -->
-<div class="shift-detail-overlay" id="shift-detail-modal" onclick="this.style.display='none'">
-  <div class="shift-detail-box" onclick="event.stopPropagation()">
+<div class="shift-detail-overlay" id="shift-detail-modal" onclick="if(event.target===this)this.style.display='none'">
+  <div class="shift-detail-box">
     <div class="sd-title" id="sd-title"></div>
     <div class="sd-row" id="sd-psw"></div>
     <div id="sd-psw-contact" style="display:none;margin:-6px 0 10px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
@@ -3282,9 +3282,11 @@ let currentOp = window._hqOperatorId || sessionStorage.getItem('hq_operator_id')
       if (logoEl && d.agency_name && d.agency_name !== 'Proximity Care Services') {
         logoEl.textContent = d.agency_name;
         logoEl.style.fontFamily = 'var(--sans)';
-        logoEl.style.fontSize = '18px';
+        logoEl.style.fontSize = '20px';
+        logoEl.style.letterSpacing = '0';
+        logoEl.style.textAlign = 'center';
       }
-      if (subEl) subEl.textContent = 'Operator Dashboard';
+      if (subEl) { subEl.textContent = 'Operator Dashboard'; subEl.style.textAlign = 'center'; }
       // Apply brand colors if provided
       if (d.brand_primary) {
         document.documentElement.style.setProperty('--teal', d.brand_primary);
@@ -7656,7 +7658,7 @@ async function deleteShift(id, skipConfirm) {
 
 // ── BATCH 4 — SERIES CANCEL ──
 // Delegated listener for shift detail modal buttons (data-attribute safe)
-document.addEventListener('click', async e => {
+(document.getElementById('shift-detail-modal') || document).addEventListener('click', async e => {
   // Delete shift
   const delBtn = e.target.closest('#sd-delete');
   if (delBtn && delBtn.dataset.bookingId) {
