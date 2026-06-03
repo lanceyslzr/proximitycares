@@ -835,8 +835,8 @@ button,.sbtn,.btn,.bnav-item,.nav-tab,.icon-btn{
 
 /* ═══ MOBILE: Schedule toolbar horizontal scroll ═══ */
 .sched-toolbar-row::-webkit-scrollbar{display:none;}
-.sched-toolbar-fade{position:absolute;right:0;top:0;bottom:0;width:40px;background:linear-gradient(to right,transparent,var(--bg));pointer-events:none;z-index:2;display:flex;align-items:center;justify-content:flex-end;padding-right:6px;}
-.sched-toolbar-fade span{font-size:14px;color:var(--muted2);}
+.sched-toolbar-fade{position:absolute;right:0;top:0;bottom:0;width:44px;background:linear-gradient(to right,transparent,var(--bg2) 60%);pointer-events:none;z-index:5;display:flex;align-items:center;justify-content:flex-end;padding-right:8px;}
+.sched-toolbar-fade span{font-size:16px;color:var(--muted2);font-weight:300;}
 
 /* ═══ NEW MOBILE VIEW: HQ Today dashboard reflows for mobile ═══ */
 
@@ -3312,7 +3312,7 @@ body.sidebar-rail .sidebar{width:64px;overflow:visible;}
 </div>
 
 <!-- SHIFT DETAIL MODAL -->
-<div class="shift-detail-overlay" id="shift-detail-modal">
+<div class="shift-detail-overlay" id="shift-detail-modal" >
   <div class="shift-detail-box">
     <div class="sd-title" id="sd-title"></div>
     <div class="sd-row" id="sd-psw"></div>
@@ -6597,21 +6597,18 @@ async function refreshGrid() {
   renderPSWGrid();
 }
 
-// Hide toolbar scroll arrow when fully scrolled right
-(function() {
-  const initToolbarArrow = () => {
+(function(){
+  const init = () => {
     const row = document.querySelector('.sched-toolbar-row');
     const fade = document.querySelector('.sched-toolbar-fade');
     if (!row || !fade) return;
-    const update = () => {
-      const atEnd = row.scrollLeft + row.clientWidth >= row.scrollWidth - 4;
-      fade.style.display = atEnd ? 'none' : 'flex';
-    };
-    row.addEventListener('scroll', update, { passive: true });
-    update();
+    const check = () => { fade.style.display = row.scrollLeft + row.clientWidth >= row.scrollWidth - 2 ? 'none' : 'flex'; };
+    row.addEventListener('scroll', check, {passive:true});
+    window.addEventListener('resize', check);
+    check();
   };
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initToolbarArrow);
-  else setTimeout(initToolbarArrow, 500);
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+  else setTimeout(init, 600);
 })();
 
 function setSchedHQView(v) {
@@ -9372,15 +9369,14 @@ async function openPSWDetail(pswId) {
           const colors = {active:'rgba(109,185,116,.3)','not_available':'rgba(224,85,85,.3)',sick:'rgba(224,154,61,.3)',away:'rgba(61,138,122,.3)',vacation:'rgba(200,169,110,.3)'};
           const bg     = {active:'rgba(109,185,116,.08)','not_available':'rgba(224,85,85,.06)',sick:'rgba(224,154,61,.06)',away:'rgba(61,138,122,.06)',vacation:'rgba(200,169,110,.06)'};
           const txtCol = {active:'var(--green2)','not_available':'var(--red)',sick:'var(--amber)',away:'var(--teal2)',vacation:'var(--gold)'};
-          // Read current status: availability jsonb is the ground truth (written by server)
-          // localStorage is instant cache after a save, before next loadAll
+          // Read current status from availability jsonb (ground truth) or localStorage cache
           let cur = 'active';
           try {
             const cached = localStorage.getItem('psw_avail_status_' + (p.id||p.full_name||name));
             if (cached) {
               cur = cached;
             } else if (p.availability && typeof p.availability === 'object' && p.availability.status) {
-              cur = p.availability.status; // jsonb written by /hq/psw/availability
+              cur = p.availability.status;
             } else {
               cur = p.status || 'active';
             }
@@ -11246,14 +11242,11 @@ async function savePSWAvailability(pswId, pswName) {
     });
     const d = await r.json();
     if (!r.ok || !d.success) throw new Error(d.error || 'Failed');
-    // Cache the new status — localStorage is instant, loadAll is async
     localStorage.setItem('psw_avail_status_' + (pswId||pswName), status);
-    // Patch D.psws in memory immediately — status AND availability.status
     if (D.psws) {
       const pswEntry = D.psws.find(p => String(p.id) === String(pswId) || p.full_name === pswName || p.name === pswName);
       if (pswEntry) {
         pswEntry.status = status;
-        // Also patch the availability jsonb so the tab reads correctly without full reload
         if (!pswEntry.availability || typeof pswEntry.availability !== 'object') pswEntry.availability = {};
         pswEntry.availability.status = status;
       }
