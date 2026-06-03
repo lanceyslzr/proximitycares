@@ -303,7 +303,7 @@ button:active{transform:scale(0.98);}
 .cm-cancel-btn{background:var(--bg3);border-color:var(--border2)!important;color:var(--muted2);}
 
 /* ── SHIFT DETAIL MODAL ── */
-.shift-detail-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:1058;display:none;align-items:center;justify-content:center;padding:16px;}
+.shift-detail-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:1062;display:none;align-items:center;justify-content:center;padding:16px;}
 .shift-detail-box{background:var(--bg2);border:1px solid var(--border2);border-radius:12px;padding:20px;max-width:340px;width:100%;}
 .sd-title{font-size:16px;font-weight:500;color:var(--text);margin-bottom:4px;}
 .sd-row{font-family:var(--mono);font-size:11px;color:var(--muted2);margin-bottom:4px;}
@@ -905,10 +905,12 @@ body.sidebar-hidden #sidebar-reopen-tab{ display:flex; }
 .op-name-text{font-size:11px;color:var(--muted);}
 
 /* ── STATS STRIP REFRESH ── */
-.stats-strip{background:var(--bg2);border-bottom:1px solid var(--border);}
-.stat-card{padding:10px 4px;}
-.stat-val{font-size:20px;}
-.stat-lbl{font-size:10px;letter-spacing:1.5px;}
+.stats-strip{background:var(--bg2);border-bottom:1px solid var(--border);display:flex;overflow-x:auto;scrollbar-width:none;}
+.stats-strip::-webkit-scrollbar{display:none;}
+.stat-card{padding:8px 10px;flex:1;min-width:72px;}
+.stat-val{font-size:18px;}
+.stat-lbl{font-size:10px;letter-spacing:1px;}
+.stat-card-margin{display:none;}
 
 /* ── CARD REFRESH ── */
 .card{border-radius:var(--r10);border-color:var(--border);}
@@ -1647,7 +1649,7 @@ body.sidebar-rail .sidebar{width:64px;overflow:visible;}
   <div class="stat-card" onclick="showSect('clients')" style="cursor:pointer;" title="View clients"><div class="stat-val" id="s-clients">—</div><div class="stat-lbl">Clients</div></div>
   <div class="stat-card" onclick="showSect('schedule')" style="cursor:pointer;" title="View schedule"><div class="stat-val" id="s-bookings">—</div><div class="stat-lbl">Upcoming</div></div>
   <div class="stat-card" onclick="showSect('visits')" style="cursor:pointer;" title="View visits"><div class="stat-val" id="s-visits">—</div><div class="stat-lbl">Visits</div></div>
-  <div class="stat-card" onclick="showSect('revenue')" style="cursor:pointer;" title="View revenue"><div class="stat-val" id="s-margin" style="color:var(--green2);">—</div><div class="stat-lbl">Margin</div></div>
+  <div class="stat-card stat-card-margin" onclick="showSect('revenue')" style="cursor:pointer;" title="View revenue"><div class="stat-val" id="s-margin" style="color:var(--green2);">—</div><div class="stat-lbl">Margin</div></div>
 </div>
 
 <!-- nav-tabs hidden — replaced by sidebar nav (Batch 3) -->
@@ -5455,6 +5457,9 @@ function closeSheet(id) {
 function closeAllSheets() {
   document.querySelectorAll('.sheet').forEach(s=>s.classList.remove('open'));
   document.getElementById('sheet-overlay').classList.remove('open');
+  // Also remove dynamically-created copy-weeks elements (not .sheet class, missed by above)
+  document.getElementById('copy-weeks-sheet')?.remove();
+  document.getElementById('copy-weeks-overlay')?.remove();
 }
 
 // ── HELPERS ──
@@ -9266,27 +9271,30 @@ async function submitCloseDeal() {
 // ── END CLOSE DEAL ────────────────────────────────────────────────────────────
 
 // ── CLIENT AVAILABILITY STATUS ────────────────────────────────────────────────
+let _pendingClientStatus = 'active'; // module-level — immune to DOM re-renders
 function setClientAvailability(clientId, clientName, status, btn) {
-  const container = btn?.closest('#cpt-status');
+  _pendingClientStatus = status; // store reliably at module level
+  const container = btn?.closest('[id^="cpt-status"]') || btn?.parentElement;
   if (container) {
-    container.querySelectorAll('button[onclick*="setClientAvailability"]').forEach(b => {
+    container.querySelectorAll('button').forEach(b => {
+      if (!b.getAttribute('onclick')?.includes('setClientAvailability')) return;
       b.style.borderColor='var(--border)'; b.style.background='var(--bg3)'; b.style.color='var(--muted)';
       b.textContent = b.textContent.replace(' ✓','');
     });
     const colors   = {active:'rgba(109,185,116,.3)',on_hold:'rgba(224,154,61,.3)',away:'rgba(61,138,122,.3)',vacation:'rgba(200,169,110,.3)',hospital:'rgba(224,85,85,.3)'};
     const bg       = {active:'rgba(109,185,116,.08)',on_hold:'rgba(224,154,61,.06)',away:'rgba(61,138,122,.06)',vacation:'rgba(200,169,110,.06)',hospital:'rgba(224,85,85,.06)'};
     const txtCol   = {active:'var(--green2)',on_hold:'var(--amber)',away:'var(--teal2)',vacation:'var(--gold)',hospital:'var(--red)'};
-    btn.style.borderColor = colors[status]||'var(--teal2)';
-    btn.style.background  = bg[status]||'rgba(61,138,122,.06)';
-    btn.style.color       = txtCol[status]||'var(--teal2)';
-    btn.textContent = btn.textContent.trim() + ' ✓';
+    if (btn) {
+      btn.style.borderColor = colors[status]||'var(--teal2)';
+      btn.style.background  = bg[status]||'rgba(61,138,122,.06)';
+      btn.style.color       = txtCol[status]||'var(--teal2)';
+      btn.textContent = btn.textContent.trim() + ' ✓';
+    }
   }
-  btn.dataset.pendingStatus = status;
 }
 
 async function saveClientAvailability(clientId, clientName) {
-  const btn       = document.querySelector('#cpt-status button[data-pending-status]');
-  const status    = btn?.dataset?.pendingStatus || 'active';
+  const status    = _pendingClientStatus || 'active'; // read module-level variable — never stale
   const fromDate  = document.getElementById('cl-avail-from')?.value;
   const untilDate = document.getElementById('cl-avail-until')?.value;
   const note      = (document.getElementById('cl-avail-note')?.value||'').trim();
@@ -10849,28 +10857,30 @@ async function submitManualVisit() {
 }
 
 // ── PSW AVAILABILITY STATUS ───────────────────────────────────────────────────
+let _pendingPSWStatus = 'active'; // module-level — immune to DOM re-renders
 function setPSWAvailability(pswId, pswName, status, btn) {
-  // Update button UI immediately
-  const container = btn.closest('[id="ppt-status"]') || btn.parentElement;
+  _pendingPSWStatus = status; // store reliably at module level
+  const container = btn?.closest('[id^="ppt-status"]') || btn?.parentElement;
   if (container) {
-    container.querySelectorAll('button[onclick*="setPSWAvailability"]').forEach(b => {
+    container.querySelectorAll('button').forEach(b => {
+      if (!b.getAttribute('onclick')?.includes('setPSWAvailability')) return;
       b.style.borderColor = 'var(--border)'; b.style.background = 'var(--bg3)'; b.style.color = 'var(--muted)';
       b.textContent = b.textContent.replace(' ✓','');
     });
     const colors = {active:'rgba(109,185,116,.3)',not_available:'rgba(224,85,85,.3)',sick:'rgba(224,154,61,.3)',away:'rgba(61,138,122,.3)',vacation:'rgba(200,169,110,.3)'};
     const bg     = {active:'rgba(109,185,116,.08)',not_available:'rgba(224,85,85,.06)',sick:'rgba(224,154,61,.06)',away:'rgba(61,138,122,.06)',vacation:'rgba(200,169,110,.06)'};
     const txtCol = {active:'var(--green2)',not_available:'var(--red)',sick:'var(--amber)',away:'var(--teal2)',vacation:'var(--gold)'};
-    btn.style.borderColor = colors[status]||'var(--teal2)';
-    btn.style.background  = bg[status]||'rgba(61,138,122,.06)';
-    btn.style.color       = txtCol[status]||'var(--teal2)';
-    btn.textContent = btn.textContent.trim() + ' ✓';
+    if (btn) {
+      btn.style.borderColor = colors[status]||'var(--teal2)';
+      btn.style.background  = bg[status]||'rgba(61,138,122,.06)';
+      btn.style.color       = txtCol[status]||'var(--teal2)';
+      btn.textContent = btn.textContent.trim() + ' ✓';
+    }
   }
-  btn.dataset.pendingStatus = status;
 }
 
 async function savePSWAvailability(pswId, pswName) {
-  const btn = document.querySelector('#ppt-status button[data-pending-status]');
-  const status     = btn?.dataset?.pendingStatus || 'active';
+  const status     = _pendingPSWStatus || 'active'; // read module-level — never stale
   const fromDate   = document.getElementById('psw-avail-from')?.value;
   const untilDate  = document.getElementById('psw-avail-until')?.value;
   const note       = (document.getElementById('psw-avail-note')?.value||'').trim();
