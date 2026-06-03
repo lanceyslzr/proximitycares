@@ -1581,19 +1581,27 @@ body.sidebar-rail .sidebar{width:64px;overflow:visible;}
 
 <!-- LOCK -->
 <div id="lock">
-  <div class="lock-logo">Proximity <em>HQ</em></div>
-  <div class="lock-sub">Agency Dashboard</div>
-  <div class="lock-dots" id="lock-dots">
-    <div class="lock-dot" id="d0"></div><div class="lock-dot" id="d1"></div>
-    <div class="lock-dot" id="d2"></div><div class="lock-dot" id="d3"></div>
+  <div class="lock-logo" id="lock-logo">Proximity <em>HQ</em></div>
+  <div class="lock-sub" id="lock-sub">Agency Dashboard</div>
+  <!-- No-op screen shown when no ?op= param present -->
+  <div id="lock-no-op" style="display:none;padding:24px 16px;text-align:center;">
+    <div style="font-family:var(--mono);font-size:12px;color:var(--muted2);letter-spacing:1px;line-height:1.8;margin-bottom:12px;">No agency link detected.<br>Use the link sent to you by Proximity Systems.</div>
+    <div style="font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:1px;">example: proximitycares.ca/hq.html?op=your-agency-id</div>
   </div>
-  <div class="lock-pad">
-    <button class="lock-key" onclick="lk('1')">1</button><button class="lock-key" onclick="lk('2')">2</button><button class="lock-key" onclick="lk('3')">3</button>
-    <button class="lock-key" onclick="lk('4')">4</button><button class="lock-key" onclick="lk('5')">5</button><button class="lock-key" onclick="lk('6')">6</button>
-    <button class="lock-key" onclick="lk('7')">7</button><button class="lock-key" onclick="lk('8')">8</button><button class="lock-key" onclick="lk('9')">9</button>
-    <div class="lock-key empty"></div><button class="lock-key" onclick="lk('0')">0</button><button class="lock-key del" onclick="ld()">⌫</button>
+  <!-- PIN pad — hidden if no ?op= -->
+  <div id="lock-pin-section">
+    <div class="lock-dots" id="lock-dots">
+      <div class="lock-dot" id="d0"></div><div class="lock-dot" id="d1"></div>
+      <div class="lock-dot" id="d2"></div><div class="lock-dot" id="d3"></div>
+    </div>
+    <div class="lock-pad">
+      <button class="lock-key" onclick="lk('1')">1</button><button class="lock-key" onclick="lk('2')">2</button><button class="lock-key" onclick="lk('3')">3</button>
+      <button class="lock-key" onclick="lk('4')">4</button><button class="lock-key" onclick="lk('5')">5</button><button class="lock-key" onclick="lk('6')">6</button>
+      <button class="lock-key" onclick="lk('7')">7</button><button class="lock-key" onclick="lk('8')">8</button><button class="lock-key" onclick="lk('9')">9</button>
+      <div class="lock-key empty"></div><button class="lock-key" onclick="lk('0')">0</button><button class="lock-key del" onclick="ld()">⌫</button>
+    </div>
+    <div class="lock-err" id="lock-err">Incorrect PIN</div>
   </div>
-  <div class="lock-err" id="lock-err">Incorrect PIN</div>
 </div>
 
 <!-- APP -->
@@ -3189,7 +3197,47 @@ let lockIn = '';
     }
   } catch(e) {}
 })();
-let currentOp = window._hqOperatorId || sessionStorage.getItem('hq_operator_id') || 'proximity-care';
+let currentOp = window._hqOperatorId || sessionStorage.getItem('hq_operator_id') || new URLSearchParams(window.location.search).get('op') || 'proximity-care';
+
+// ── OPERATOR LOCK SCREEN INIT ──
+// Runs immediately on page load (before session restore check)
+(function initLockScreen() {
+  const urlOp = new URLSearchParams(window.location.search).get('op');
+  const storedOp = sessionStorage.getItem('hq_operator_id');
+  const hasOp = urlOp || storedOp;
+
+  // Gap 2: No ?op= param and no stored session — hide PIN pad, show guidance
+  if (!hasOp) {
+    const noOp = document.getElementById('lock-no-op');
+    const pinSec = document.getElementById('lock-pin-section');
+    if (noOp) noOp.style.display = 'block';
+    if (pinSec) pinSec.style.display = 'none';
+    return; // Stop here — do not load branding or allow PIN entry
+  }
+
+  const opId = urlOp || storedOp;
+
+  // Gap 1: Load agency branding onto lock screen before user sees PIN pad
+  fetch(`${API}/hq/branding?operator_id=${encodeURIComponent(opId)}`)
+    .then(r => r.json())
+    .then(d => {
+      if (!d.success) return;
+      const logoEl = document.getElementById('lock-logo');
+      const subEl  = document.getElementById('lock-sub');
+      if (logoEl && d.agency_name && d.agency_name !== 'Proximity Care Services') {
+        logoEl.textContent = d.agency_name;
+        logoEl.style.fontFamily = 'var(--sans)';
+        logoEl.style.fontSize = '18px';
+      }
+      if (subEl) subEl.textContent = 'Operator Dashboard';
+      // Apply brand colors if provided
+      if (d.brand_primary) {
+        document.documentElement.style.setProperty('--teal', d.brand_primary);
+        document.documentElement.style.setProperty('--teal2', d.brand_primary);
+      }
+    })
+    .catch(() => {}); // Non-fatal — fallback to default Proximity branding
+})();
 let currentOpName = window._hqOperatorName || sessionStorage.getItem('hq_operator_name') || 'My Agency';
 let D = {};
 let activeLead = null;
