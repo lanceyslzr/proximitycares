@@ -835,8 +835,8 @@ button,.sbtn,.btn,.bnav-item,.nav-tab,.icon-btn{
 
 /* ═══ MOBILE: Schedule toolbar horizontal scroll ═══ */
 .sched-toolbar-row::-webkit-scrollbar{display:none;}
-.sched-toolbar-fade{position:absolute;right:0;top:0;bottom:0;width:44px;background:linear-gradient(to right,transparent,var(--bg2) 60%);pointer-events:none;z-index:5;display:flex;align-items:center;justify-content:flex-end;padding-right:8px;}
-.sched-toolbar-fade span{font-size:16px;color:var(--muted2);font-weight:300;}
+.sched-toolbar-fade{position:absolute;right:0;top:0;bottom:0;width:44px;background:linear-gradient(to right,transparent,var(--bg2) 65%);pointer-events:none;z-index:5;display:flex;align-items:center;justify-content:flex-end;padding-right:8px;}
+.sched-toolbar-fade span{font-size:16px;color:var(--muted2);}
 
 /* ═══ NEW MOBILE VIEW: HQ Today dashboard reflows for mobile ═══ */
 
@@ -6598,17 +6598,17 @@ async function refreshGrid() {
 }
 
 (function(){
-  const init = () => {
-    const row = document.querySelector('.sched-toolbar-row');
-    const fade = document.querySelector('.sched-toolbar-fade');
-    if (!row || !fade) return;
-    const check = () => { fade.style.display = row.scrollLeft + row.clientWidth >= row.scrollWidth - 2 ? 'none' : 'flex'; };
-    row.addEventListener('scroll', check, {passive:true});
-    window.addEventListener('resize', check);
+  function initArrow(){
+    var row=document.querySelector('.sched-toolbar-row');
+    var fade=document.querySelector('.sched-toolbar-fade');
+    if(!row||!fade)return;
+    function check(){fade.style.display=(row.scrollLeft+row.clientWidth>=row.scrollWidth-2)?'none':'flex';}
+    row.addEventListener('scroll',check,{passive:true});
+    window.addEventListener('resize',check);
     check();
-  };
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
-  else setTimeout(init, 600);
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',initArrow);
+  else setTimeout(initArrow,800);
 })();
 
 function setSchedHQView(v) {
@@ -9369,17 +9369,15 @@ async function openPSWDetail(pswId) {
           const colors = {active:'rgba(109,185,116,.3)','not_available':'rgba(224,85,85,.3)',sick:'rgba(224,154,61,.3)',away:'rgba(61,138,122,.3)',vacation:'rgba(200,169,110,.3)'};
           const bg     = {active:'rgba(109,185,116,.08)','not_available':'rgba(224,85,85,.06)',sick:'rgba(224,154,61,.06)',away:'rgba(61,138,122,.06)',vacation:'rgba(200,169,110,.06)'};
           const txtCol = {active:'var(--green2)','not_available':'var(--red)',sick:'var(--amber)',away:'var(--teal2)',vacation:'var(--gold)'};
-          // Read current status from availability jsonb (ground truth) or localStorage cache
+          // Read cached availability status from localStorage (set on save) or availability_note
           let cur = 'active';
           try {
             const cached = localStorage.getItem('psw_avail_status_' + (p.id||p.full_name||name));
-            if (cached) {
-              cur = cached;
-            } else if (p.availability && typeof p.availability === 'object' && p.availability.status) {
-              cur = p.availability.status;
-            } else {
-              cur = p.status || 'active';
-            }
+            if (cached) { cur = cached; }
+            else if (p.availability_note) {
+              const an = JSON.parse(p.availability_note);
+              cur = an.availability_status || p.status || 'active';
+            } else { cur = p.status || 'active'; }
           } catch { cur = p.status || 'active'; }
           const isActive = cur === st;
           return `<button onclick="setPSWAvailability('${p.id}','${name}','${st}',this)"
@@ -9544,7 +9542,15 @@ function openPaystubModal(pswName, pswEmail, defaultRate) {
 // ── STATUS TAB INIT — apply cached status on tab open ────────────────────────
 function initClientStatusTab(clientId) {
   let cur = 'active';
-  try { const c = localStorage.getItem('cl_avail_status_' + clientId); if (c) cur = c; } catch {}
+  // Ground truth: D.clients (live from server). localStorage is fast cache on same device.
+  try {
+    const live = D.clients && D.clients.find(c => String(c.id) === String(clientId));
+    if (live && live.status) { cur = live.status; }
+    else {
+      const cached = localStorage.getItem('cl_avail_status_' + clientId);
+      if (cached) cur = cached;
+    }
+  } catch {}
   const container = document.getElementById('cpt-status-btns-' + clientId);
   if (!container) return;
   const colors = {active:'rgba(109,185,116,.3)',on_hold:'rgba(224,154,61,.3)',away:'rgba(61,138,122,.3)',vacation:'rgba(200,169,110,.3)',hospital:'rgba(224,85,85,.3)'};
@@ -9656,11 +9662,12 @@ async function saveClientAvailability(clientId, clientName) {
     if (!r.ok || !d.success) throw new Error(d.error||'Failed');
     // Cache so next open shows correct status
     localStorage.setItem('cl_avail_status_' + clientId, status);
-    // Immediately patch D.clients in memory so card badge updates without waiting for loadAll
     if (D.clients) {
       const clientEntry = D.clients.find(c => String(c.id) === String(clientId) || (`${c.first_name||''} ${c.last_name||''}`.trim()) === clientName);
-      if (clientEntry) clientEntry.status = status;
+      if (clientEntry) { clientEntry.status = status; }
     }
+    // Re-init the status tab buttons immediately so they reflect the new status
+    setTimeout(() => initClientStatusTab(clientId), 100);
     renderClients();
     showToast(`${clientName} status updated to ${status.replace(/_/g,' ')} ✓`, 'ok');
     loadAll(false);
@@ -11242,14 +11249,12 @@ async function savePSWAvailability(pswId, pswName) {
     });
     const d = await r.json();
     if (!r.ok || !d.success) throw new Error(d.error || 'Failed');
+    // Cache the new status so next time the detail opens it shows correctly
     localStorage.setItem('psw_avail_status_' + (pswId||pswName), status);
+    // Immediately patch D.psws in memory so card badge updates without waiting for loadAll
     if (D.psws) {
       const pswEntry = D.psws.find(p => String(p.id) === String(pswId) || p.full_name === pswName || p.name === pswName);
-      if (pswEntry) {
-        pswEntry.status = status;
-        if (!pswEntry.availability || typeof pswEntry.availability !== 'object') pswEntry.availability = {};
-        pswEntry.availability.status = status;
-      }
+      if (pswEntry) pswEntry.status = status;
     }
     renderPSWs();
     showToast(`${pswName} status updated to ${status.replace(/_/g,' ')} ✓`, 'ok');
