@@ -2548,15 +2548,15 @@ body.sidebar-rail .sidebar{width:64px;overflow:visible;}
     </div>
   </div>
 
-  <div class="section-header" id="sched-section-label-row">
+  <div class="section-header" id="sched-section-label-row" style="padding-bottom:0;">
     <span class="section-title">Schedule</span>
-    <div style="display:flex;align-items:center;gap:6px;">
+  </div>
+  <div class="section-header" style="padding-top:4px;align-items:center;">
+    <div style="display:flex;align-items:center;gap:5px;margin-right:8px;flex-shrink:0;">
       <button id="sched-view-grid" onclick="setSchedHQView('grid')" style="font-family:var(--mono);font-size:11px;letter-spacing:1px;padding:6px 10px;background:rgba(61,138,122,.15);border:1px solid rgba(61,138,122,.3);border-radius:var(--r6);color:var(--teal2);cursor:pointer;min-height:36px;touch-action:manipulation;">⊞ Grid</button>
       <button id="sched-view-cal" onclick="setSchedHQView('cal')" style="font-family:var(--mono);font-size:11px;letter-spacing:1px;padding:6px 10px;background:none;border:1px solid var(--border);border-radius:var(--r6);color:var(--muted2);cursor:pointer;min-height:36px;touch-action:manipulation;">▦ Cal</button>
     </div>
-  </div>
-  <div class="section-header" style="padding-top:0;">
-    <div class="sched-toolbar-row" style="display:flex;gap:6px;overflow-x:auto;overflow-y:hidden;flex-wrap:nowrap;scrollbar-width:none;-ms-overflow-style:none;-webkit-overflow-scrolling:touch;max-width:100%;padding-bottom:2px;">
+    <div class="sched-toolbar-row" style="display:flex;gap:5px;overflow-x:auto;overflow-y:hidden;flex-wrap:nowrap;scrollbar-width:none;-ms-overflow-style:none;-webkit-overflow-scrolling:touch;max-width:100%;padding-bottom:2px;padding-right:4px;">
       <div class="sect-action" onclick="openAddShift('','')">+ Shift</div>
       <div class="sect-action" onclick="openBulkSchedule()" style="color:var(--gold);border-color:rgba(200,169,110,.3);">+ Bulk Week</div>
       <div class="sect-action" onclick="openCopyWeeksSheet()" style="color:var(--teal3);border-color:rgba(125,202,189,.3);">⧉ Copy Weeks</div>
@@ -3333,6 +3333,7 @@ body.sidebar-rail .sidebar{width:64px;overflow:visible;}
     </div>
     <div class="sd-btns">
       <button class="sd-edit-btn" id="sd-edit" style="touch-action:manipulation;">Edit</button>
+      <button id="sd-hours-btn" style="flex:1;padding:9px;border-radius:6px;font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;min-height:44px;border:1px solid rgba(61,138,122,.3);background:rgba(61,138,122,.08);color:var(--teal2);touch-action:manipulation;">⏱ Hours</button>
       <button class="sd-delete-btn" id="sd-delete" data-booking-id="" style="touch-action:manipulation;">Remove</button>
       <button class="sd-close-btn" id="sd-close" style="touch-action:manipulation;">✕</button>
     </div>
@@ -6425,7 +6426,7 @@ function renderPSWGrid() {
   el.style.display = 'block';
 
   const allPSWs    = (D.psws || []).filter(p => p.status === 'active' || !p.status);
-  const allClients = (D.clients || []).filter(c => c.status === 'active' || !c.status);
+  const allClients = (D.clients || []).filter(c => c.status !== 'inactive');
   const bookings   = D.bookings || [];
   const visits     = D.visits || [];
 
@@ -6557,7 +6558,7 @@ function renderPSWGrid() {
           const chipCls = isUnassigned ? 'gc-open' : isLive ? 'gc-live' : b.status === 'completed' ? 'gc-done' : 'gc-scheduled';
           const timeStr = b.scheduled_time ? b.scheduled_time.slice(0,5) : '';
           html += `<div class="grid-chip ${chipCls}" onclick="_showShiftDetail(window._bookingMap&&window._bookingMap[b.id]?window._bookingMap[b.id]:b,{})">
-            <div class="gc-client" onclick="event.stopPropagation();openHoursPanel('${_schedAxis==='psw'?'client':'psw'}','${escHtml(_schedAxis==='psw'?(b.client_name||''):(b.assigned_to||''))}')" style="cursor:pointer;">${escHtml(chipLabel)}</div>
+            <div class="gc-client">${escHtml(chipLabel)}</div>
             <div class="gc-time">${timeStr}</div>
           </div>`;
         });
@@ -6686,7 +6687,7 @@ function _renderCustomCal() {
   const bookings = D.bookings || [];
   const visits   = D.visits   || [];
   const psws     = (D.psws    || []).filter(p => p.status === 'active' || !p.status);
-  const clients  = (D.clients || []).filter(c => c.status === 'active' || !c.status);
+  const clients  = (D.clients || []).filter(c => c.status !== 'inactive');
   const todayStr = new Date().toLocaleDateString('en-CA',{timeZone:'America/Toronto'});
   const liveSet  = new Set(visits.filter(v=>v.status==='in_progress').map(v=>v.client_name));
 
@@ -7178,6 +7179,8 @@ function _showShiftDetail(b, props) {
     swapBtn.onclick = () => { m.style.display = 'none'; openSwapSheet(b.assigned_to || ''); };
   }
   if (_elEdit)  _elEdit.onclick  = () => { m.style.display = 'none'; openEditShift(b.id, b.client_name, b.assigned_to, b.scheduled_date, b.scheduled_time, b.duration_minutes); };
+  const hoursBtn = document.getElementById('sd-hours-btn');
+  if (hoursBtn) hoursBtn.onclick = () => { m.style.display = 'none'; openHoursPanel(b.assigned_to ? 'psw' : 'client', b.assigned_to || b.client_name); };
   if (_elClose) _elClose.onclick = () => { m.style.display = 'none'; };
   m.style.display = 'flex';
 }
