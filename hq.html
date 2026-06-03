@@ -1722,6 +1722,17 @@ body.sidebar-rail .sidebar{width:64px;overflow:visible;}
     <div style="font-size:12px;color:var(--muted2);margin-top:3px;" id="today-incident-msg">—</div>
   </div>
 
+  <!-- ── UNASSIGNED SHIFTS (NEXT 7 DAYS) ── -->
+  <div id="today-unassigned-alert" style="display:none;margin:0 12px 8px;padding:10px 14px;background:var(--amber-dim);border:1px solid var(--amber-border);border-radius:var(--r8);">
+    <div style="display:flex;align-items:center;justify-content:space-between;">
+      <div style="flex:1;cursor:pointer;" onclick="showSect('schedule')">
+        <div style="font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--amber);display:flex;align-items:center;gap:6px;"><span class="dot dot-amber"></span>Unassigned Shifts</div>
+        <div style="font-size:12px;color:var(--muted2);margin-top:3px;" id="today-unassigned-msg">—</div>
+      </div>
+      <button onclick="dismissUnassignedBanner()" style="background:none;border:none;color:var(--muted);font-size:16px;cursor:pointer;padding:4px 6px;line-height:1;flex-shrink:0;touch-action:manipulation;" title="Dismiss">✕</button>
+    </div>
+  </div>
+
   <!-- ── CANCELLATION REQUESTS ── -->
   <div id="cancel-req-alert" style="display:none;margin:0 12px 8px;">
     <div style="font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--amber);margin-bottom:6px;padding:0 2px;display:flex;align-items:center;gap:6px;"><span class="dot dot-amber"></span>Cancellation Requests</div>
@@ -8339,6 +8350,13 @@ async function markInvoicePaidFromAging(id) {
   } catch { showToast('Could not mark paid', 'err'); }
 }
 
+// ── UNASSIGNED SHIFT BANNER ──
+function dismissUnassignedBanner() {
+  sessionStorage.setItem('ua_banner_dismissed', '1');
+  const el = document.getElementById('today-unassigned-alert');
+  if (el) el.style.display = 'none';
+}
+
 // ── TIMESHEET APPROVAL ──
 let _tsPeriod = 'thismonth';
 let _tsFromDate = '', _tsToDate = '';
@@ -11563,6 +11581,29 @@ function renderToday() {
   if (incAlertEl && incMsgEl) {
     incAlertEl.style.display = incidents.length ? 'block' : 'none';
     if (incidents.length) incMsgEl.textContent = `${incidents.length} unresolved incident${incidents.length!==1?'s':''}`;
+  }
+
+  // Unassigned shifts — next 7 days (client-side, uses D.bookings already loaded)
+  const _uaBannerDismissed = sessionStorage.getItem('ua_banner_dismissed');
+  const uaAlertEl = document.getElementById('today-unassigned-alert');
+  const uaMsgEl   = document.getElementById('today-unassigned-msg');
+  if (uaAlertEl && uaMsgEl && !_uaBannerDismissed) {
+    const in7days = new Date(now); in7days.setDate(in7days.getDate() + 7);
+    const in7str  = in7days.toLocaleDateString('en-CA', { timeZone: 'America/Toronto' });
+    const unassigned7 = bookings.filter(b =>
+      (!b.assigned_to || !b.assigned_to.trim()) &&
+      b.scheduled_date >= today &&
+      b.scheduled_date <= in7str &&
+      b.status !== 'cancelled'
+    );
+    if (unassigned7.length) {
+      uaAlertEl.style.display = 'block';
+      const dates = [...new Set(unassigned7.map(b => b.scheduled_date))].sort();
+      const earliest = dates[0];
+      uaMsgEl.textContent = `${unassigned7.length} shift${unassigned7.length!==1?'s':''} in the next 7 days have no PSW assigned — earliest ${earliest}`;
+    } else {
+      uaAlertEl.style.display = 'none';
+    }
   }
 
   // Today's shifts list
