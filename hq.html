@@ -303,7 +303,7 @@ button:active{transform:scale(0.98);}
 .cm-cancel-btn{background:var(--bg3);border-color:var(--border2)!important;color:var(--muted2);}
 
 /* ── SHIFT DETAIL MODAL ── */
-.shift-detail-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:500;display:none;align-items:center;justify-content:center;padding:16px;}
+.shift-detail-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:1058;display:none;align-items:center;justify-content:center;padding:16px;}
 .shift-detail-box{background:var(--bg2);border:1px solid var(--border2);border-radius:12px;padding:20px;max-width:340px;width:100%;}
 .sd-title{font-size:16px;font-weight:500;color:var(--text);margin-bottom:4px;}
 .sd-row{font-family:var(--mono);font-size:11px;color:var(--muted2);margin-bottom:4px;}
@@ -987,6 +987,7 @@ body.sidebar-hidden #sidebar-reopen-tab{ display:flex; }
   flex-shrink:0;
   overflow-y:auto; /* allow vacant list to expand without clipping */
   overflow-x:hidden;
+  max-height:45vh; /* never consume more than half the screen on mobile */
 }
 /* Grid wrap: fills schedule-board, scrolls both axes, sticky th at top:0 */
 .psw-grid-wrap{
@@ -1345,6 +1346,13 @@ body.sidebar-rail .sidebar{width:64px;overflow:visible;}
 @media(max-width:768px){
   .sched-toolbar-row{margin-right:-12px;padding-right:12px;}
   .sched-toolbar-row .sect-action{font-size:11px;padding:8px 10px;}
+  /* Fix 3: Compact broadcast+timeoff row on mobile */
+  #sched-broadcast-row{padding:4px 12px 0;}
+  #sched-broadcast-row .broadcast-btn{padding:6px 10px;font-size:10px;min-height:32px;}
+  /* Fix 4: Reduce week-nav padding on mobile */
+  #sched-week-nav{padding:0 12px 4px;}
+  /* Hide redundant Schedule label row on mobile — nav tab already says it */
+  #sched-section-label-row{display:none;}
 }
 @media(max-width:768px){
   /* Section headers: stack title above actions */
@@ -2476,7 +2484,7 @@ body.sidebar-rail .sidebar{width:64px;overflow:visible;}
   </div>
 
   <!-- Broadcast + Time Off buttons -->
-  <div style="margin:10px 12px 0;display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+  <div id="sched-broadcast-row" style="margin:10px 12px 0;display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
     <button onclick="openBroadcastSheet()" class="broadcast-btn"><svg width="11" height="11" viewBox="0 0 12 12" fill="none" style="display:inline;vertical-align:middle;margin-right:4px"><path d="M7 1L3 7h4l-2 4 6-6H7L9 1z" fill="#c9a96e"/></svg>Broadcast Open Shift</button>
     <button onclick="openTimeOffSheet()" style="font-family:var(--mono);font-size:11px;letter-spacing:1px;padding:8px 14px;background:rgba(224,85,85,.08);border:1px solid rgba(224,85,85,.2);border-radius:7px;color:var(--red);cursor:pointer;min-height:40px;display:flex;align-items:center;gap:6px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="12" height="12"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/><path d="M9 16l2 2 4-4"/></svg>Time Off</button>
   </div>
@@ -2503,7 +2511,7 @@ body.sidebar-rail .sidebar{width:64px;overflow:visible;}
     </div>
     <div id="vacant-list" style="display:none;margin-bottom:8px;"></div>
   </div>
-  <div class="section-header">
+  <div class="section-header" id="sched-section-label-row">
     <span class="section-title">Schedule</span>
     <div style="display:flex;align-items:center;gap:6px;">
       <button id="sched-view-grid" onclick="setSchedHQView('grid')" style="font-family:var(--mono);font-size:11px;letter-spacing:1px;padding:6px 10px;background:rgba(61,138,122,.15);border:1px solid rgba(61,138,122,.3);border-radius:var(--r6);color:var(--teal2);cursor:pointer;min-height:36px;touch-action:manipulation;">⊞ Grid</button>
@@ -3258,10 +3266,16 @@ let currentOp = window._hqOperatorId || sessionStorage.getItem('hq_operator_id')
 // Runs immediately on page load (before session restore check)
 (function initLockScreen() {
   const urlOp = new URLSearchParams(window.location.search).get('op');
-  const storedOp = sessionStorage.getItem('hq_operator_id');
+  // sessionStorage is wiped on every PWA cold launch — use localStorage as fallback
+  const storedOp = sessionStorage.getItem('hq_operator_id') || localStorage.getItem('hq_operator_id_persist');
   const hasOp = urlOp || storedOp;
 
-  // Gap 2: No ?op= param and no stored session — hide PIN pad, show guidance
+  // If URL has ?op=, persist it to localStorage so PWA launches remember it
+  if (urlOp) {
+    try { localStorage.setItem('hq_operator_id_persist', urlOp); } catch(e) {}
+  }
+
+  // No ?op= param and no stored op anywhere — hide PIN pad, show guidance
   if (!hasOp) {
     const noOp = document.getElementById('lock-no-op');
     const pinSec = document.getElementById('lock-pin-section');
@@ -3271,6 +3285,8 @@ let currentOp = window._hqOperatorId || sessionStorage.getItem('hq_operator_id')
   }
 
   const opId = urlOp || storedOp;
+  // Sync to sessionStorage so the rest of the app can read it normally
+  try { sessionStorage.setItem('hq_operator_id', opId); } catch(e) {}
 
   // Gap 1: Load agency branding onto lock screen before user sees PIN pad
   fetch(`${API}/hq/branding?operator_id=${encodeURIComponent(opId)}`)
@@ -6922,6 +6938,7 @@ function _renderHoursPanel() {
   `;
 }
 function _showShiftDetail(b, props) {
+  closeAllSheets(); // ensure sheet-overlay (z-1045) is closed before modal (z-1058) opens
   const m = document.getElementById('shift-detail-modal');
   if (!m) { openEditShift(b.id, b.client_name, b.assigned_to, b.scheduled_date, b.scheduled_time, b.duration_minutes); return; }
   const dur = (b.duration_minutes||60)/60;
