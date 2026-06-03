@@ -1355,8 +1355,11 @@ body.sidebar-rail .sidebar{width:64px;overflow:visible;}
   #sched-broadcast-row .broadcast-btn{padding:6px 10px;font-size:10px;min-height:32px;}
   /* Fix 4: Reduce week-nav padding on mobile */
   #sched-week-nav{padding:0 12px 4px;}
-  /* Hide redundant Schedule label row on mobile — nav tab already says it */
-  #sched-section-label-row{display:none;}
+  /* Hide ONLY the redundant "Schedule" label on mobile (nav tab already says it),
+     NOT the whole row — the row also holds the Grid/Cal view toggle, which must
+     stay visible/clickable. (Fix: aa270e9 hid the row → toggle 0×0 → e2e HQ-390 fail) */
+  #sched-section-label-row{padding-top:0;margin-top:0;justify-content:flex-end;}
+  #sched-section-label-row .section-title{display:none;}
 }
 @media(max-width:768px){
   /* Section headers: stack title above actions */
