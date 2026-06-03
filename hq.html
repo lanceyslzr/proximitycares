@@ -2073,8 +2073,11 @@ body.sidebar-rail .sidebar{width:64px;overflow:visible;}
     <div style="font-family:var(--mono);font-size:12px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);margin-bottom:6px;padding-bottom:8px;border-bottom:1px solid var(--border);">Bulk Import — 50 PSWs or Clients at Once</div>
     <p style="font-size:12px;color:var(--muted2);line-height:1.6;margin-bottom:14px;">Upload a CSV to activate multiple PSWs or onboard multiple clients in one shot. Each row fires the full welcome email flow.</p>
     <div style="margin-bottom:18px;">
-      <div style="font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted2);margin-bottom:6px;">Import PSWs</div>
-      <p style="font-size:11px;color:var(--muted);margin-bottom:8px;font-family:var(--mono);">first_name, last_name, email, phone</p>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+        <div style="font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted2);">Import PSWs</div>
+        <button onclick="downloadPSWTemplate()" style="font-family:var(--mono);font-size:10px;letter-spacing:1px;padding:4px 10px;border-radius:4px;border:1px solid rgba(200,169,110,.3);background:rgba(200,169,110,.06);color:var(--gold);cursor:pointer;min-height:32px;touch-action:manipulation;">&#x2193; Template</button>
+      </div>
+      <p style="font-size:11px;color:var(--muted);margin-bottom:8px;font-family:var(--mono);">first_name, last_name, email, phone, psw_rate (optional)</p>
       <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px;">
         <input type="file" id="bulk-psw-csv" accept=".csv" style="font-size:12px;color:var(--text);flex:1;min-width:0;background:var(--bg3);border:1px solid var(--border2);padding:8px;border-radius:6px;">
         <button class="sect-action" onclick="bulkImportPSWs()" style="white-space:nowrap;">↑ Import PSWs</button>
@@ -2082,8 +2085,11 @@ body.sidebar-rail .sidebar{width:64px;overflow:visible;}
       <div id="bulk-psw-result" style="display:none;font-size:12px;color:var(--teal2);font-family:var(--mono);padding:8px 10px;background:rgba(61,138,122,.06);border:1px solid rgba(61,138,122,.2);border-radius:6px;line-height:1.6;"></div>
     </div>
     <div>
-      <div style="font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted2);margin-bottom:6px;">Import Clients</div>
-      <p style="font-size:11px;color:var(--muted);margin-bottom:8px;font-family:var(--mono);">first_name, last_name, family_email, family_phone, family_name, assigned_psw, care_notes</p>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+        <div style="font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted2);">Import Clients</div>
+        <button onclick="downloadClientTemplate()" style="font-family:var(--mono);font-size:10px;letter-spacing:1px;padding:4px 10px;border-radius:4px;border:1px solid rgba(200,169,110,.3);background:rgba(200,169,110,.06);color:var(--gold);cursor:pointer;min-height:32px;touch-action:manipulation;">&#x2193; Template</button>
+      </div>
+      <p style="font-size:11px;color:var(--muted);margin-bottom:8px;font-family:var(--mono);">first_name, last_name, family_email, family_name, assigned_psw, client_rate, psw_rate, care_notes</p>
       <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px;">
         <input type="file" id="bulk-client-csv" accept=".csv" style="font-size:12px;color:var(--text);flex:1;min-width:0;background:var(--bg3);border:1px solid var(--border2);padding:8px;border-radius:6px;">
         <button class="sect-action" onclick="bulkImportClients()" style="white-space:nowrap;">↑ Import Clients</button>
@@ -2635,6 +2641,55 @@ body.sidebar-rail .sidebar{width:64px;overflow:visible;}
   <div id="ar-aging-list" style="padding:0 14px 14px;"><div class="empty-state" style="padding:20px;">Loading...</div></div>
 </div>
 
+
+<!-- CLIENT STATEMENT SHEET -->
+<div class="sheet" id="client-statement-sheet" style="z-index:1052;">
+  <div class="sheet-handle"></div>
+  <div class="sheet-header">
+    <div>
+      <div class="sheet-label">Client Statement</div>
+      <div id="cs-stmt-meta" style="font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:2px;"></div>
+    </div>
+    <button class="sheet-close" onclick="closeSheet('client-statement-sheet')">&#x2715;</button>
+  </div>
+  <div style="padding:0 16px 24px;">
+    <div style="font-family:var(--mono);font-size:11px;color:var(--muted2);line-height:1.7;margin-bottom:14px;">Download a full account statement — visit log, invoice history, and running balance for any date range.</div>
+    <!-- Period presets -->
+    <div style="margin-bottom:14px;">
+      <div style="font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:8px;">Period</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;">
+        <button onclick="csStmtPreset('last')" id="csstmt-pre-last" style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;padding:6px 12px;border-radius:5px;border:1px solid rgba(61,138,122,.4);background:rgba(61,138,122,.1);color:var(--teal2);cursor:pointer;min-height:36px;touch-action:manipulation;">Last Month</button>
+        <button onclick="csStmtPreset('this')" id="csstmt-pre-this" style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;padding:6px 12px;border-radius:5px;border:1px solid var(--border);background:var(--bg3);color:var(--muted);cursor:pointer;min-height:36px;touch-action:manipulation;">This Month</button>
+        <button onclick="csStmtPreset('3m')" id="csstmt-pre-3m" style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;padding:6px 12px;border-radius:5px;border:1px solid var(--border);background:var(--bg3);color:var(--muted);cursor:pointer;min-height:36px;touch-action:manipulation;">Last 3 Months</button>
+        <button onclick="csStmtPreset('ytd')" id="csstmt-pre-ytd" style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;padding:6px 12px;border-radius:5px;border:1px solid var(--border);background:var(--bg3);color:var(--muted);cursor:pointer;min-height:36px;touch-action:manipulation;">Year to Date</button>
+        <button onclick="csStmtPreset('custom')" id="csstmt-pre-custom" style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;padding:6px 12px;border-radius:5px;border:1px solid var(--border);background:var(--bg3);color:var(--muted);cursor:pointer;min-height:36px;touch-action:manipulation;">Custom</button>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+        <div>
+          <div style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:4px;">From</div>
+          <input type="date" id="csstmt-from" class="sinput" style="font-size:13px;padding:10px;">
+        </div>
+        <div>
+          <div style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:4px;">To</div>
+          <input type="date" id="csstmt-to" class="sinput" style="font-size:13px;padding:10px;">
+        </div>
+      </div>
+    </div>
+    <!-- What's included -->
+    <div style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:12px 14px;margin-bottom:16px;">
+      <div style="font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:8px;">Statement Includes</div>
+      <div style="font-size:12px;color:var(--muted2);line-height:1.8;">
+        <span style="color:var(--teal2);">&#x2713;</span> Visit log — date, PSW, hours, rate, amount per visit<br>
+        <span style="color:var(--teal2);">&#x2713;</span> Invoice history — periods billed, amounts, paid status<br>
+        <span style="color:var(--teal2);">&#x2713;</span> Summary — total hours, total billed, paid, outstanding
+      </div>
+    </div>
+    <button onclick="downloadClientStatement()" style="width:100%;padding:14px;background:rgba(200,169,110,.08);border:1px solid rgba(200,169,110,.3);border-radius:8px;font-family:var(--mono);font-size:12px;letter-spacing:1px;text-transform:uppercase;color:var(--gold);cursor:pointer;min-height:50px;touch-action:manipulation;display:flex;align-items:center;justify-content:center;gap:8px;">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="14" height="14"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Download Statement CSV
+    </button>
+  </div>
+</div>
 
 <!-- OPERATOR FORMS — hidden from nav, accessed via operator.html but functions kept here -->
 <div style="display:none;" id="operator-forms-hidden">
@@ -8339,6 +8394,134 @@ async function markInvoicePaidFromAging(id) {
   } catch { showToast('Could not mark paid', 'err'); }
 }
 
+// ── CLIENT STATEMENT ──
+let _csStmtClientName = '';
+
+function openClientStatement(clientName) {
+  _csStmtClientName = clientName || '';
+  const metaEl = document.getElementById('cs-stmt-meta');
+  if (metaEl) metaEl.textContent = clientName;
+  csStmtPreset('last'); // default to last month
+  openSheet('client-statement-sheet');
+}
+
+function csStmtPreset(preset) {
+  const now = new Date();
+  const tz = { timeZone: 'America/Toronto' };
+  let from, to;
+  const y = now.getFullYear(), m = now.getMonth();
+  if (preset === 'last') {
+    from = new Date(y, m - 1, 1).toLocaleDateString('en-CA', tz);
+    to   = new Date(y, m, 0).toLocaleDateString('en-CA', tz);
+  } else if (preset === 'this') {
+    from = new Date(y, m, 1).toLocaleDateString('en-CA', tz);
+    to   = now.toLocaleDateString('en-CA', tz);
+  } else if (preset === '3m') {
+    from = new Date(y, m - 3, 1).toLocaleDateString('en-CA', tz);
+    to   = now.toLocaleDateString('en-CA', tz);
+  } else if (preset === 'ytd') {
+    from = new Date(y, 0, 1).toLocaleDateString('en-CA', tz);
+    to   = now.toLocaleDateString('en-CA', tz);
+  } else {
+    // custom — just highlight the button
+    ['last','this','3m','ytd','custom'].forEach(p => {
+      const btn = document.getElementById('csstmt-pre-' + p);
+      if (!btn) return;
+      const isActive = p === preset;
+      btn.style.borderColor = isActive ? 'rgba(61,138,122,.4)' : 'var(--border)';
+      btn.style.background  = isActive ? 'rgba(61,138,122,.1)' : 'var(--bg3)';
+      btn.style.color       = isActive ? 'var(--teal2)' : 'var(--muted)';
+    });
+    return;
+  }
+  document.getElementById('csstmt-from').value = from;
+  document.getElementById('csstmt-to').value   = to;
+  ['last','this','3m','ytd','custom'].forEach(p => {
+    const btn = document.getElementById('csstmt-pre-' + p);
+    if (!btn) return;
+    const isActive = p === preset;
+    btn.style.borderColor = isActive ? 'rgba(61,138,122,.4)' : 'var(--border)';
+    btn.style.background  = isActive ? 'rgba(61,138,122,.1)' : 'var(--bg3)';
+    btn.style.color       = isActive ? 'var(--teal2)' : 'var(--muted)';
+  });
+}
+
+function downloadClientStatement() {
+  const from = document.getElementById('csstmt-from')?.value;
+  const to   = document.getElementById('csstmt-to')?.value;
+  if (!from || !to) { showToast('Select a period first', 'err'); return; }
+  if (!_csStmtClientName) { showToast('No client selected', 'err'); return; }
+  const token = window._hqToken || sessionStorage.getItem('hq_token') || '';
+  const params = new URLSearchParams({
+    operator_id: currentOp,
+    client_name: _csStmtClientName,
+    from_date: from,
+    to_date: to
+  });
+  showToast('Generating statement…', 'ok');
+  fetch(`${API}/hq/client-statement?${params.toString()}`, { headers: { 'x-hq-token': token } })
+  .then(async r => {
+    if (!r.ok) { const d = await r.json().catch(()=>({})); showToast(d.error || 'No data found for this period', 'err'); return; }
+    const blob = await r.blob();
+    const safeName = _csStmtClientName.replace(/[^a-z0-9]/gi, '_');
+    const filename = `Statement_${safeName}_${from}_to_${to}.csv`;
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = filename;
+    document.body.appendChild(a); a.click();
+    setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 1000);
+    showToast('Statement downloaded ✓', 'ok');
+  })
+  .catch(() => showToast('Could not generate statement', 'err'));
+}
+
+// ── PAYROLL CSV DOWNLOAD ──
+function downloadPayrollCSV() {
+  const from = document.getElementById('ssp-from')?.value;
+  const to   = document.getElementById('ssp-to')?.value;
+  const psw  = _sspPswName || '';
+  if (!from || !to) { showToast('Select a pay period first', 'err'); return; }
+  const token = window._hqToken || sessionStorage.getItem('hq_token') || '';
+  const params = new URLSearchParams({ operator_id: currentOp, from_date: from, to_date: to });
+  if (psw) params.append('psw_name', psw);
+  showToast('Generating CSV…', 'ok');
+  fetch(`${API}/hq/payroll-csv?${params.toString()}`, { headers: { 'x-hq-token': token } })
+  .then(async r => {
+    if (!r.ok) { const d = await r.json().catch(()=>({})); showToast(d.error || 'No visits found for this period', 'err'); return; }
+    const blob = await r.blob();
+    const safePSW = (psw || 'all').replace(/[^a-z0-9]/gi, '_');
+    const filename = `Payroll_${safePSW}_${from}_to_${to}.csv`;
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = filename;
+    document.body.appendChild(a); a.click();
+    setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 1000);
+    showToast('Payroll CSV downloaded ✓', 'ok');
+  })
+  .catch(() => showToast('Could not generate CSV', 'err'));
+}
+
+// ── IMPORT TEMPLATE DOWNLOADS ──
+function downloadPSWTemplate() {
+  const csv = ['first_name,last_name,email,phone,psw_rate,city,languages','Carolina,Hermida,carolina@email.com,647-555-0101,22.00,Mississauga,English'].join('\n');
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = 'PSW_Import_Template.csv';
+  document.body.appendChild(a); a.click();
+  setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 1000);
+  showToast('PSW template downloaded ✓', 'ok');
+}
+
+function downloadClientTemplate() {
+  const csv = ['first_name,last_name,family_email,family_phone,family_name,assigned_psw,client_rate,psw_rate,care_notes','Rosetta,Ferrari,family@email.com,905-555-0202,Maria Ferrari,Carolina Hermida,28.00,22.00,Requires assistance with morning routine'].join('\n');
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = 'Client_Import_Template.csv';
+  document.body.appendChild(a); a.click();
+  setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 1000);
+  showToast('Client template downloaded ✓', 'ok');
+}
+
 // ── TIMESHEET APPROVAL ──
 let _tsPeriod = 'thismonth';
 let _tsFromDate = '', _tsToDate = '';
@@ -9535,6 +9718,7 @@ function openClientDetail(id) {
       <button class="sbtn" style="background:rgba(200,169,110,.1);color:var(--gold);border-color:rgba(200,169,110,.3);" onclick="openInvoicePicker('${name}','${c.family_email||c.email||''}','${c.assigned_psw||''}',${c.client_rate||22},${c.psw_rate||19})">Invoice</button>
       <button class="sbtn" onclick="openHoursPanel('client','${name}')">⏱ Hours</button>
       <button class="sbtn" data-csp-name="${name}" data-csp-email="${c.family_email||c.email||''}" data-csp-rate="${c.client_rate||22}" onclick="openClientSendPayment(this.dataset.cspName,this.dataset.cspEmail,parseFloat(this.dataset.cspRate))" style="background:rgba(109,185,116,.06);color:var(--green2);border-color:rgba(109,185,116,.2);">Send Payment</button>
+      <button class="sbtn" data-cn="${name}" onclick="openClientStatement(this.dataset.cn)" style="background:rgba(200,169,110,.06);color:var(--gold);border-color:rgba(200,169,110,.25);">Statement</button>
     </div>
     <div class="prof-tabs">
       <div class="prof-tab active" onclick="_cpTab(this,'cpt-info')">Info</div>
@@ -13295,7 +13479,7 @@ function _applyActiveSectionFlex() {
       <input type="email" id="ssp-email" class="sinput" placeholder="PSW email" style="font-size:13px;padding:10px;">
     </div>
     <!-- Actions -->
-    <div style="display:flex;gap:8px;">
+    <div style="display:flex;gap:8px;margin-bottom:8px;">
       <button onclick="submitSendPay()" id="ssp-send-btn"
         style="flex:2;padding:14px;background:rgba(109,185,116,.12);border:1px solid rgba(109,185,116,.35);border-radius:8px;font-family:var(--mono);font-size:12px;letter-spacing:1px;text-transform:uppercase;color:var(--green2);cursor:pointer;min-height:50px;touch-action:manipulation;">
         Send Pay
@@ -13305,6 +13489,10 @@ function _applyActiveSectionFlex() {
         Cancel
       </button>
     </div>
+    <button onclick="downloadPayrollCSV()" style="width:100%;padding:12px;background:rgba(200,169,110,.06);border:1px solid rgba(200,169,110,.25);border-radius:8px;font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--gold);cursor:pointer;min-height:44px;touch-action:manipulation;display:flex;align-items:center;justify-content:center;gap:6px;">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="13" height="13"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Download Payroll CSV
+    </button>
   </div>
 </div>
 <!-- ── END SEND PAY SHEET ──────────────────────────────────────────────────── -->
