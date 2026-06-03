@@ -835,7 +835,7 @@ button,.sbtn,.btn,.bnav-item,.nav-tab,.icon-btn{
 
 /* ═══ MOBILE: Schedule toolbar horizontal scroll ═══ */
 .sched-toolbar-row::-webkit-scrollbar{display:none;}
-.sched-toolbar-fade{position:absolute;right:0;top:0;bottom:0;width:44px;background:linear-gradient(to right,transparent,var(--bg2) 65%);pointer-events:none;z-index:5;display:flex;align-items:center;justify-content:flex-end;padding-right:8px;}
+.sched-toolbar-fade{position:absolute;right:0;top:0;bottom:0;width:44px;background:linear-gradient(to right,transparent,var(--bg2) 65%);pointer-events:none;z-index:15;display:flex;align-items:center;justify-content:flex-end;padding-right:8px;}
 .sched-toolbar-fade span{font-size:16px;color:var(--muted2);}
 
 /* ═══ NEW MOBILE VIEW: HQ Today dashboard reflows for mobile ═══ */
@@ -2558,7 +2558,7 @@ body.sidebar-rail .sidebar{width:64px;overflow:visible;}
       <button id="sched-view-grid" onclick="setSchedHQView('grid')" style="font-family:var(--mono);font-size:11px;letter-spacing:1px;padding:6px 10px;background:rgba(61,138,122,.15);border:1px solid rgba(61,138,122,.3);border-radius:var(--r6);color:var(--teal2);cursor:pointer;min-height:36px;touch-action:manipulation;">⊞ Grid</button>
       <button id="sched-view-cal" onclick="setSchedHQView('cal')" style="font-family:var(--mono);font-size:11px;letter-spacing:1px;padding:6px 10px;background:none;border:1px solid var(--border);border-radius:var(--r6);color:var(--muted2);cursor:pointer;min-height:36px;touch-action:manipulation;">▦ Cal</button>
     </div>
-    <div class="sched-toolbar-row" style="display:flex;gap:5px;overflow-x:auto;overflow-y:hidden;flex-wrap:nowrap;scrollbar-width:none;-ms-overflow-style:none;-webkit-overflow-scrolling:touch;max-width:100%;padding-bottom:2px;padding-right:4px;">
+    <div class="sched-toolbar-row" style="display:flex;gap:5px;overflow-x:auto;overflow-y:hidden;flex-wrap:nowrap;scrollbar-width:none;-ms-overflow-style:none;-webkit-overflow-scrolling:touch;flex:1;min-width:0;padding-bottom:2px;">
       <div class="sect-action" onclick="openAddShift('','')">+ Shift</div>
       <div class="sect-action" onclick="openBulkSchedule()" style="color:var(--gold);border-color:rgba(200,169,110,.3);">+ Bulk Week</div>
       <div class="sect-action" onclick="openCopyWeeksSheet()" style="color:var(--teal3);border-color:rgba(125,202,189,.3);">⧉ Copy Weeks</div>
@@ -6560,7 +6560,7 @@ function renderPSWGrid() {
           const isUnassigned = !b.assigned_to || b.assigned_to.trim() === '';
           const chipCls = isUnassigned ? 'gc-open' : isLive ? 'gc-live' : b.status === 'completed' ? 'gc-done' : 'gc-scheduled';
           const timeStr = b.scheduled_time ? b.scheduled_time.slice(0,5) : '';
-          html += `<div class="grid-chip ${chipCls}" onclick="_showShiftDetail(window._bookingMap&&window._bookingMap[b.id]?window._bookingMap[b.id]:b,{})">
+          html += `<div class="grid-chip ${chipCls}" data-bid="${b.id}" onclick="var _b=window._bookingMap&&window._bookingMap['${b.id}'];if(_b){_showShiftDetail(_b,{});}else{showToast('Tap again — loading...','ok');}" style="cursor:pointer;">
             <div class="gc-client">${escHtml(chipLabel)}</div>
             <div class="gc-time">${timeStr}</div>
           </div>`;
