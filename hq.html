@@ -987,7 +987,8 @@ body.sidebar-hidden #sidebar-reopen-tab{ display:flex; }
   flex-shrink:0;
   overflow-y:auto; /* allow vacant list to expand without clipping */
   overflow-x:hidden;
-  max-height:45vh; /* never consume more than half the screen on mobile */
+  /* max-height moved to @media(max-width:768px) — global 45vh clipped the
+     view-toggle/filters at narrow widths (S-fix: e2e HQ-mobile-390 not visible) */
 }
 /* Grid wrap: fills schedule-board, scrolls both axes, sticky th at top:0 */
 .psw-grid-wrap{
@@ -1257,6 +1258,9 @@ body.sidebar-rail .sidebar{width:64px;overflow:visible;}
   .section{padding:16px 0 64px;}
   .sheet-inner{max-width:100%;border-radius:16px 16px 0 0;}
   .today-time-row{grid-template-columns:repeat(2,1fr);}
+  /* Cap the schedule fixed-top on mobile so the grid/cal area stays visible —
+     60vh leaves the view-toggle + filter row reachable (not clipped like the old global 45vh) */
+  #sect-schedule .sched-fixed-top{max-height:60vh;}
 }
 @media(max-width:480px){
   .topbar .logo{font-size:14px;}
@@ -1728,6 +1732,17 @@ body.sidebar-rail .sidebar{width:64px;overflow:visible;}
   <div id="today-incident-alert" style="display:none;margin:0 12px 8px;padding:10px 14px;background:var(--red-dim);border:1px solid var(--red-border);border-radius:var(--r8);cursor:pointer;" onclick="showSect('visits')">
     <div style="font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--red);display:flex;align-items:center;gap:6px;"><span class="dot dot-red dot-pulse"></span>Open Incidents</div>
     <div style="font-size:12px;color:var(--muted2);margin-top:3px;" id="today-incident-msg">—</div>
+  </div>
+
+  <!-- ── UNASSIGNED SHIFTS (NEXT 7 DAYS) ── -->
+  <div id="today-unassigned-alert" style="display:none;margin:0 12px 8px;padding:10px 14px;background:var(--amber-dim);border:1px solid var(--amber-border);border-radius:var(--r8);">
+    <div style="display:flex;align-items:center;justify-content:space-between;">
+      <div style="flex:1;cursor:pointer;" onclick="showSect('schedule')">
+        <div style="font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--amber);display:flex;align-items:center;gap:6px;"><span class="dot dot-amber"></span>Unassigned Shifts</div>
+        <div style="font-size:12px;color:var(--muted2);margin-top:3px;" id="today-unassigned-msg">—</div>
+      </div>
+      <button onclick="dismissUnassignedBanner()" style="background:none;border:none;color:var(--muted);font-size:16px;cursor:pointer;padding:4px 6px;line-height:1;flex-shrink:0;touch-action:manipulation;" title="Dismiss">✕</button>
+    </div>
   </div>
 
   <!-- ── CANCELLATION REQUESTS ── -->
@@ -6991,10 +7006,30 @@ function _showShiftDetail(b, props) {
       if (swapBtn) swapBtn.dataset.psw = b.assigned_to || '';
     } else { seriesRow.style.display = 'none'; }
   }
+  // Wire ALL buttons with direct onclick — immune to z-index/bubbling/delegation issues
   const delBtn = document.getElementById('sd-delete');
-  if (delBtn) delBtn.dataset.bookingId = b.id;
-  if (_elEdit)  _elEdit.onclick  = () => { m.style.display='none'; openEditShift(b.id, b.client_name, b.assigned_to, b.scheduled_date, b.scheduled_time, b.duration_minutes); };
-  if (_elClose) _elClose.onclick = () => { m.style.display='none'; };
+  if (delBtn) {
+    delBtn.dataset.bookingId = b.id;
+    delBtn.onclick = () => { m.style.display = 'none'; deleteShift(b.id); };
+  }
+  const cancelThisBtn = document.getElementById('sd-cancel-this');
+  if (cancelThisBtn) {
+    cancelThisBtn.dataset.bookingId = b.id;
+    cancelThisBtn.onclick = () => { m.style.display = 'none'; cancelSeries(b.id, null, 'this'); };
+  }
+  const cancelFutureBtn = document.getElementById('sd-cancel-future');
+  if (cancelFutureBtn) {
+    cancelFutureBtn.dataset.bookingId = b.id;
+    cancelFutureBtn.dataset.seriesId  = b.series_id || '';
+    cancelFutureBtn.onclick = () => { m.style.display = 'none'; cancelSeries(b.id, b.series_id, 'future'); };
+  }
+  const swapBtn = document.getElementById('sd-swap');
+  if (swapBtn) {
+    swapBtn.dataset.psw = b.assigned_to || '';
+    swapBtn.onclick = () => { m.style.display = 'none'; openSwapSheet(b.assigned_to || ''); };
+  }
+  if (_elEdit)  _elEdit.onclick  = () => { m.style.display = 'none'; openEditShift(b.id, b.client_name, b.assigned_to, b.scheduled_date, b.scheduled_time, b.duration_minutes); };
+  if (_elClose) _elClose.onclick = () => { m.style.display = 'none'; };
   m.style.display = 'flex';
 }
 
@@ -7674,37 +7709,8 @@ async function deleteShift(id, skipConfirm) {
 }
 
 // ── BATCH 4 — SERIES CANCEL ──
-// Delegated listener for shift detail modal buttons (data-attribute safe)
-(document.getElementById('shift-detail-modal') || document).addEventListener('click', async e => {
-  // Delete shift
-  const delBtn = e.target.closest('#sd-delete');
-  if (delBtn && delBtn.dataset.bookingId) {
-    document.getElementById('shift-detail-modal').style.display = 'none';
-    deleteShift(delBtn.dataset.bookingId);
-    return;
-  }
-  // Cancel this shift only
-  const cancelThis = e.target.closest('#sd-cancel-this');
-  if (cancelThis && cancelThis.dataset.bookingId) {
-    document.getElementById('shift-detail-modal').style.display = 'none';
-    await cancelSeries(cancelThis.dataset.bookingId, null, 'this');
-    return;
-  }
-  // Cancel this + all future in series
-  const cancelFuture = e.target.closest('#sd-cancel-future');
-  if (cancelFuture && cancelFuture.dataset.bookingId) {
-    document.getElementById('shift-detail-modal').style.display = 'none';
-    await cancelSeries(cancelFuture.dataset.bookingId, cancelFuture.dataset.seriesId, 'future');
-    return;
-  }
-  // Swap PSW from shift detail
-  const swapBtn = e.target.closest('#sd-swap');
-  if (swapBtn) {
-    document.getElementById('shift-detail-modal').style.display = 'none';
-    openSwapSheet(swapBtn.dataset.psw);
-    return;
-  }
-});
+// Direct onclick handlers assigned in _showShiftDetail — no bubbling/delegation needed
+// This approach is immune to z-index, stopPropagation, and sheet-overlay issues
 
 async function cancelSeries(bookingId, seriesId, mode) {
   try {
@@ -8539,6 +8545,13 @@ function downloadClientTemplate() {
   document.body.appendChild(a); a.click();
   setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 1000);
   showToast('Client template downloaded ✓', 'ok');
+}
+
+// ── UNASSIGNED SHIFT BANNER ──
+function dismissUnassignedBanner() {
+  sessionStorage.setItem('ua_banner_dismissed', '1');
+  const el = document.getElementById('today-unassigned-alert');
+  if (el) el.style.display = 'none';
 }
 
 // ── TIMESHEET APPROVAL ──
@@ -11766,6 +11779,27 @@ function renderToday() {
   if (incAlertEl && incMsgEl) {
     incAlertEl.style.display = incidents.length ? 'block' : 'none';
     if (incidents.length) incMsgEl.textContent = `${incidents.length} unresolved incident${incidents.length!==1?'s':''}`;
+  }
+
+  // Unassigned shifts next 7 days — client-side from D.bookings
+  const _uaDismissed = sessionStorage.getItem('ua_banner_dismissed');
+  const uaAlertEl = document.getElementById('today-unassigned-alert');
+  const uaMsgEl   = document.getElementById('today-unassigned-msg');
+  if (uaAlertEl && uaMsgEl && !_uaDismissed) {
+    const in7 = new Date(now); in7.setDate(in7.getDate() + 7);
+    const in7str = in7.toLocaleDateString('en-CA', { timeZone: 'America/Toronto' });
+    const unassigned7 = bookings.filter(b =>
+      (!b.assigned_to || !b.assigned_to.trim()) &&
+      b.scheduled_date >= today && b.scheduled_date <= in7str &&
+      b.status !== 'cancelled'
+    );
+    if (unassigned7.length) {
+      uaAlertEl.style.display = 'block';
+      const earliest = [...new Set(unassigned7.map(b => b.scheduled_date))].sort()[0];
+      uaMsgEl.textContent = `${unassigned7.length} shift${unassigned7.length!==1?'s':''} in the next 7 days have no PSW assigned — earliest ${earliest}`;
+    } else {
+      uaAlertEl.style.display = 'none';
+    }
   }
 
   // Today's shifts list
