@@ -5272,7 +5272,7 @@ function showSect(name) {
   const tm=['today','overview','leads','clients','psws','onboard','bookings','messages','visits','activity','schedule','crm','applicants','revenue'];
   const ti=tm.indexOf(name); if(ti>=0&&tabs[ti]) tabs[ti].classList.add('active');
   // Bottom nav: today, clients, schedule, visits, menu(last)
-  const bm=['today','clients','schedule','visits'];
+  const bm=['today','schedule','clients','messages'];
   const bi=bm.indexOf(name);
   const bnavs=document.querySelectorAll('.bnav-item');
   if(bi>=0&&bnavs[bi]) bnavs[bi].classList.add('active');
@@ -6393,6 +6393,10 @@ function _renderCustomCal() {
   const el = document.getElementById('schedule-board');
   if (!el) return;
   try {
+
+  // Rebuild _bookingMap from D.bookings so cal view chips always have full booking data
+  window._bookingMap = window._bookingMap || {};
+  (D.bookings || []).forEach(b => { if (b.id) window._bookingMap[b.id] = b; });
 
   const bookings = D.bookings || [];
   const visits   = D.visits   || [];
@@ -9029,6 +9033,12 @@ async function saveClientAvailability(clientId, clientName) {
     if (!r.ok || !d.success) throw new Error(d.error||'Failed');
     // Cache so next open shows correct status
     localStorage.setItem('cl_avail_status_' + clientId, status);
+    // Immediately patch D.clients in memory so card badge updates without waiting for loadAll
+    if (D.clients) {
+      const clientEntry = D.clients.find(c => String(c.id) === String(clientId) || (`${c.first_name||''} ${c.last_name||''}`.trim()) === clientName);
+      if (clientEntry) clientEntry.status = status;
+    }
+    renderClients();
     showToast(`${clientName} status updated to ${status.replace(/_/g,' ')} ✓`, 'ok');
     loadAll(false);
   } catch(e) { showToast(e.message||'Failed to update status','err'); }
@@ -10608,6 +10618,12 @@ async function savePSWAvailability(pswId, pswName) {
     if (!r.ok || !d.success) throw new Error(d.error || 'Failed');
     // Cache the new status so next time the detail opens it shows correctly
     localStorage.setItem('psw_avail_status_' + (pswId||pswName), status);
+    // Immediately patch D.psws in memory so card badge updates without waiting for loadAll
+    if (D.psws) {
+      const pswEntry = D.psws.find(p => String(p.id) === String(pswId) || p.full_name === pswName || p.name === pswName);
+      if (pswEntry) pswEntry.status = status;
+    }
+    renderPSWs();
     showToast(`${pswName} status updated to ${status.replace(/_/g,' ')} ✓`, 'ok');
     loadAll(false);
   } catch(e) { showToast(e.message || 'Failed to update status', 'err'); }
@@ -12205,8 +12221,8 @@ const _RV_COLORS = [
 const _RV_SLOT_H  = 44;   // px per 30-min slot
 const _RV_COL_W   = 130;  // px per PSW column
 const _RV_TIME_W  = 52;   // px for time label
-const _RV_START   = 6;    // 06:00
-const _RV_END     = 22;   // 22:00
+const _RV_START   = 0;    // 00:00 (midnight — show all hours including 3am visits)
+const _RV_END     = 24;   // 24:00
 let   _rvActive   = false;
 let   _rvDate     = new Date().toLocaleDateString('en-CA',{timeZone:'America/Toronto'});
 let   _rvDragSrc  = null; // { bookingId, pswName }
@@ -12390,7 +12406,7 @@ function renderResourceView() {
       });
 
       const _rvEmpty = !cellBookings.length && !spanning.length;
-      html += `<div style="width:${_RV_COL_W}px;flex-shrink:0;border-left:1px solid var(--border);position:relative;${_rvEmpty?'cursor:pointer;':''}" ` + (_rvEmpty ? `onclick="openAddShift('${p.name.replace(/'/g,'\\\'')}','${_rvDate}')"` : '') + `>`;
+      html += `<div style="width:${_RV_COL_W}px;flex-shrink:0;border-left:1px solid var(--border);position:relative;overflow:hidden;${_rvEmpty?'cursor:pointer;':''}" ` + (_rvEmpty ? `onclick="openAddShift('${p.name.replace(/'/g,'\\\'')}','${_rvDate}')"` : '') + `>`;
       // (cell click handled above)
 
       cellBookings.forEach(b => {
@@ -12425,7 +12441,7 @@ function renderResourceView() {
         const bMins = toMins(b.scheduled_time||'09:00');
         return bMins === slotMins;
       });
-      html += `<div style="width:${_RV_COL_W}px;flex-shrink:0;border-left:1px solid var(--border);position:relative;">`;
+      html += `<div style="width:${_RV_COL_W}px;flex-shrink:0;border-left:1px solid var(--border);position:relative;overflow:hidden;">`;
       uCell.forEach(b => {
         const durSlots = Math.max(1, Math.round((b.duration_minutes||60)/30));
         const chipH = durSlots * _RV_SLOT_H - 4;
