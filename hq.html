@@ -978,8 +978,8 @@ body.sidebar-hidden #sidebar-reopen-tab{ display:flex; }
 #sect-schedule.active{
   display:flex;
   flex-direction:column;
-  height:calc(100vh - 54px);
-  height:calc(100dvh - 54px);
+  height:calc(100vh - 54px - 82px);
+  height:calc(100dvh - 54px - 82px);
   overflow:hidden;
   padding-bottom:0;
 }
@@ -1253,7 +1253,7 @@ body.sidebar-rail .sidebar{width:64px;overflow:visible;}
   .today-time-row{gap:6px}
 }
 @media(max-width:768px){
-  .section{padding:16px 0 80px;}
+  .section{padding:16px 0 64px;}
   .sheet-inner{max-width:100%;border-radius:16px 16px 0 0;}
   .today-time-row{grid-template-columns:repeat(2,1fr);}
 }
@@ -1467,7 +1467,7 @@ body.sidebar-rail .sidebar{width:64px;overflow:visible;}
 @media(min-width:769px){.ov-kpi-row{grid-template-columns:repeat(4,1fr);}}
 
 @media(max-width:768px){
-  #sect-schedule.active{height:calc(100dvh - 52px);}
+  #sect-schedule.active{height:calc(100dvh - 52px - 82px);}
   .psw-grid{min-width:420px;width:auto;max-width:none;table-layout:auto;}
   .psw-grid th{top:52px;z-index:100;min-width:72px;}
   .psw-grid th.col-name{min-width:80px;max-width:80px;top:52px;z-index:101;}
@@ -1720,17 +1720,6 @@ body.sidebar-rail .sidebar{width:64px;overflow:visible;}
   <div id="today-incident-alert" style="display:none;margin:0 12px 8px;padding:10px 14px;background:var(--red-dim);border:1px solid var(--red-border);border-radius:var(--r8);cursor:pointer;" onclick="showSect('visits')">
     <div style="font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--red);display:flex;align-items:center;gap:6px;"><span class="dot dot-red dot-pulse"></span>Open Incidents</div>
     <div style="font-size:12px;color:var(--muted2);margin-top:3px;" id="today-incident-msg">—</div>
-  </div>
-
-  <!-- ── UNASSIGNED SHIFTS (NEXT 7 DAYS) ── -->
-  <div id="today-unassigned-alert" style="display:none;margin:0 12px 8px;padding:10px 14px;background:var(--amber-dim);border:1px solid var(--amber-border);border-radius:var(--r8);">
-    <div style="display:flex;align-items:center;justify-content:space-between;">
-      <div style="flex:1;cursor:pointer;" onclick="showSect('schedule')">
-        <div style="font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--amber);display:flex;align-items:center;gap:6px;"><span class="dot dot-amber"></span>Unassigned Shifts</div>
-        <div style="font-size:12px;color:var(--muted2);margin-top:3px;" id="today-unassigned-msg">—</div>
-      </div>
-      <button onclick="dismissUnassignedBanner()" style="background:none;border:none;color:var(--muted);font-size:16px;cursor:pointer;padding:4px 6px;line-height:1;flex-shrink:0;touch-action:manipulation;" title="Dismiss">✕</button>
-    </div>
   </div>
 
   <!-- ── CANCELLATION REQUESTS ── -->
@@ -2565,7 +2554,7 @@ body.sidebar-rail .sidebar{width:64px;overflow:visible;}
 
   <!-- Grid/board fills remaining height and scrolls independently -->
   <div id="schedule-board" style="flex:1;min-height:0;"></div>
-  <div id="resource-board" style="display:none;flex:1;min-height:0;overflow:auto;"></div>
+  <div id="resource-board" style="display:none;flex:1;min-height:0;overflow:auto;transform:translateZ(0);"></div>
 </div>
 
 <!-- ── HOURS PANEL — slide-up, triggered from any PSW/client name ── -->
@@ -3132,8 +3121,8 @@ body.sidebar-rail .sidebar{width:64px;overflow:visible;}
 </div>
 
 <!-- SHIFT DETAIL MODAL -->
-<div class="shift-detail-overlay" id="shift-detail-modal">
-  <div class="shift-detail-box">
+<div class="shift-detail-overlay" id="shift-detail-modal" onclick="this.style.display='none'">
+  <div class="shift-detail-box" onclick="event.stopPropagation()">
     <div class="sd-title" id="sd-title"></div>
     <div class="sd-row" id="sd-psw"></div>
     <div id="sd-psw-contact" style="display:none;margin:-6px 0 10px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
@@ -3155,9 +3144,9 @@ body.sidebar-rail .sidebar{width:64px;overflow:visible;}
       <button id="sd-swap" data-psw="" style="flex:1;padding:8px 4px;border-radius:6px;font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;min-height:44px;border:1px solid rgba(200,169,110,.3);background:rgba(200,169,110,.08);color:var(--gold);touch-action:manipulation;">Swap PSW</button>
     </div>
     <div class="sd-btns">
-      <button class="sd-edit-btn" id="sd-edit">Edit</button>
-      <button class="sd-delete-btn" id="sd-delete" data-booking-id="">Remove</button>
-      <button class="sd-close-btn" id="sd-close">✕</button>
+      <button class="sd-edit-btn" id="sd-edit" style="touch-action:manipulation;">Edit</button>
+      <button class="sd-delete-btn" id="sd-delete" data-booking-id="" style="touch-action:manipulation;">Remove</button>
+      <button class="sd-close-btn" id="sd-close" style="touch-action:manipulation;">✕</button>
     </div>
   </div>
 </div>
@@ -8350,13 +8339,6 @@ async function markInvoicePaidFromAging(id) {
   } catch { showToast('Could not mark paid', 'err'); }
 }
 
-// ── UNASSIGNED SHIFT BANNER ──
-function dismissUnassignedBanner() {
-  sessionStorage.setItem('ua_banner_dismissed', '1');
-  const el = document.getElementById('today-unassigned-alert');
-  if (el) el.style.display = 'none';
-}
-
 // ── TIMESHEET APPROVAL ──
 let _tsPeriod = 'thismonth';
 let _tsFromDate = '', _tsToDate = '';
@@ -11581,29 +11563,6 @@ function renderToday() {
   if (incAlertEl && incMsgEl) {
     incAlertEl.style.display = incidents.length ? 'block' : 'none';
     if (incidents.length) incMsgEl.textContent = `${incidents.length} unresolved incident${incidents.length!==1?'s':''}`;
-  }
-
-  // Unassigned shifts — next 7 days (client-side, uses D.bookings already loaded)
-  const _uaBannerDismissed = sessionStorage.getItem('ua_banner_dismissed');
-  const uaAlertEl = document.getElementById('today-unassigned-alert');
-  const uaMsgEl   = document.getElementById('today-unassigned-msg');
-  if (uaAlertEl && uaMsgEl && !_uaBannerDismissed) {
-    const in7days = new Date(now); in7days.setDate(in7days.getDate() + 7);
-    const in7str  = in7days.toLocaleDateString('en-CA', { timeZone: 'America/Toronto' });
-    const unassigned7 = bookings.filter(b =>
-      (!b.assigned_to || !b.assigned_to.trim()) &&
-      b.scheduled_date >= today &&
-      b.scheduled_date <= in7str &&
-      b.status !== 'cancelled'
-    );
-    if (unassigned7.length) {
-      uaAlertEl.style.display = 'block';
-      const dates = [...new Set(unassigned7.map(b => b.scheduled_date))].sort();
-      const earliest = dates[0];
-      uaMsgEl.textContent = `${unassigned7.length} shift${unassigned7.length!==1?'s':''} in the next 7 days have no PSW assigned — earliest ${earliest}`;
-    } else {
-      uaAlertEl.style.display = 'none';
-    }
   }
 
   // Today's shifts list
