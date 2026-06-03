@@ -2531,6 +2531,23 @@ body.sidebar-rail .sidebar{width:64px;overflow:visible;}
     </div>
     <div id="vacant-list" style="display:none;margin-bottom:8px;"></div>
   </div>
+  <!-- ── RECURRING TEMPLATES PANEL ── -->
+  <div id="sched-templates-section" style="display:none;padding:0 12px;margin-bottom:4px;">
+    <div onclick="window._templatesExpanded=!window._templatesExpanded;document.getElementById('sched-templates-list').style.display=window._templatesExpanded?'block':'none';document.getElementById('templates-chevron').style.transform=window._templatesExpanded?'rotate(180deg)':'rotate(0deg)';" style="font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--purple2);display:flex;align-items:center;justify-content:space-between;cursor:pointer;padding:6px 0;">
+      <span>↻ Recurring Templates</span>
+      <div style="display:flex;align-items:center;gap:6px;">
+        <span id="templates-count" style="font-family:var(--mono);font-size:11px;padding:2px 6px;background:rgba(160,96,224,.1);border:1px solid rgba(160,96,224,.25);border-radius:4px;color:var(--purple2);">0</span>
+        <span id="templates-chevron" style="font-size:11px;color:var(--purple2);transition:transform .2s;">▾</span>
+      </div>
+    </div>
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:8px;overflow:hidden;display:none;" id="sched-templates-list">
+      <div id="templates-list-body"><div style="padding:12px 14px;font-family:var(--mono);font-size:12px;color:var(--muted);">Loading templates...</div></div>
+      <div style="padding:8px 12px;border-top:1px solid var(--border);">
+        <button onclick="openTemplateSheet()" style="font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;padding:6px 12px;border-radius:6px;border:1px solid rgba(160,96,224,.3);background:rgba(160,96,224,.08);color:var(--purple2);cursor:pointer;min-height:36px;touch-action:manipulation;">+ New Template</button>
+      </div>
+    </div>
+  </div>
+
   <div class="section-header" id="sched-section-label-row">
     <span class="section-title">Schedule</span>
     <div style="display:flex;align-items:center;gap:6px;">
@@ -2543,6 +2560,7 @@ body.sidebar-rail .sidebar{width:64px;overflow:visible;}
       <div class="sect-action" onclick="openAddShift('','')">+ Shift</div>
       <div class="sect-action" onclick="openBulkSchedule()" style="color:var(--gold);border-color:rgba(200,169,110,.3);">+ Bulk Week</div>
       <div class="sect-action" onclick="openCopyWeeksSheet()" style="color:var(--teal3);border-color:rgba(125,202,189,.3);">⧉ Copy Weeks</div>
+      <div class="sect-action" onclick="openTemplateSheet()" style="color:var(--purple2);border-color:rgba(160,96,224,.3);">↻ Templates</div>
       <div class="sect-action" onclick="openImportBookings()" style="color:var(--teal3);border-color:rgba(125,202,189,.3);">↑ Import CSV</div>
       <div class="sect-action" onclick="openSwapSheet()" style="color:var(--purple2);border-color:rgba(160,96,224,.3);">⇄ Swap</div>
       <div class="sect-action" id="map-toggle-btn" onclick="toggleLiveMap()" style="color:var(--teal2);border-color:rgba(61,138,122,.3);">⬤ Live Map</div>
@@ -2669,6 +2687,93 @@ body.sidebar-rail .sidebar{width:64px;overflow:visible;}
   <div id="ar-aging-list" style="padding:0 14px 14px;"><div class="empty-state" style="padding:20px;">Loading...</div></div>
 </div>
 
+
+<!-- SCHEDULE TEMPLATES SHEET -->
+<div class="sheet" id="schedule-template-sheet" style="z-index:1052;">
+  <div class="sheet-handle"></div>
+  <div class="sheet-header">
+    <div>
+      <div class="sheet-label">Recurring Template</div>
+      <div style="font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:2px;">Set once — auto-generates bookings every week</div>
+    </div>
+    <button class="sheet-close" onclick="closeSheet('schedule-template-sheet')">&#x2715;</button>
+  </div>
+  <div style="padding:0 16px 32px;">
+    <!-- Client + PSW -->
+    <div class="srow2" style="margin-bottom:13px;">
+      <div>
+        <div class="slbl">Client</div>
+        <select class="sselect" id="tmpl-client" style="font-size:14px;"></select>
+      </div>
+      <div>
+        <div class="slbl">PSW</div>
+        <select class="sselect" id="tmpl-psw" style="font-size:14px;"></select>
+      </div>
+    </div>
+    <!-- Days of week -->
+    <div style="margin-bottom:13px;">
+      <div class="slbl">Days of Week</div>
+      <div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:4px;">
+        <button class="tmpl-day-btn" data-dow="1" onclick="_tmplToggleDay(this)" style="font-family:var(--mono);font-size:11px;letter-spacing:1px;padding:8px 10px;border-radius:6px;border:1px solid var(--border);background:var(--bg3);color:var(--muted);cursor:pointer;min-height:40px;min-width:44px;touch-action:manipulation;">MON</button>
+        <button class="tmpl-day-btn" data-dow="2" onclick="_tmplToggleDay(this)" style="font-family:var(--mono);font-size:11px;letter-spacing:1px;padding:8px 10px;border-radius:6px;border:1px solid var(--border);background:var(--bg3);color:var(--muted);cursor:pointer;min-height:40px;min-width:44px;touch-action:manipulation;">TUE</button>
+        <button class="tmpl-day-btn" data-dow="3" onclick="_tmplToggleDay(this)" style="font-family:var(--mono);font-size:11px;letter-spacing:1px;padding:8px 10px;border-radius:6px;border:1px solid var(--border);background:var(--bg3);color:var(--muted);cursor:pointer;min-height:40px;min-width:44px;touch-action:manipulation;">WED</button>
+        <button class="tmpl-day-btn" data-dow="4" onclick="_tmplToggleDay(this)" style="font-family:var(--mono);font-size:11px;letter-spacing:1px;padding:8px 10px;border-radius:6px;border:1px solid var(--border);background:var(--bg3);color:var(--muted);cursor:pointer;min-height:40px;min-width:44px;touch-action:manipulation;">THU</button>
+        <button class="tmpl-day-btn" data-dow="5" onclick="_tmplToggleDay(this)" style="font-family:var(--mono);font-size:11px;letter-spacing:1px;padding:8px 10px;border-radius:6px;border:1px solid var(--border);background:var(--bg3);color:var(--muted);cursor:pointer;min-height:40px;min-width:44px;touch-action:manipulation;">FRI</button>
+        <button class="tmpl-day-btn" data-dow="6" onclick="_tmplToggleDay(this)" style="font-family:var(--mono);font-size:11px;letter-spacing:1px;padding:8px 10px;border-radius:6px;border:1px solid var(--border);background:var(--bg3);color:var(--muted);cursor:pointer;min-height:40px;min-width:44px;touch-action:manipulation;">SAT</button>
+        <button class="tmpl-day-btn" data-dow="0" onclick="_tmplToggleDay(this)" style="font-family:var(--mono);font-size:11px;letter-spacing:1px;padding:8px 10px;border-radius:6px;border:1px solid var(--border);background:var(--bg3);color:var(--muted);cursor:pointer;min-height:40px;min-width:44px;touch-action:manipulation;">SUN</button>
+      </div>
+    </div>
+    <!-- Time + Duration -->
+    <div class="srow2" style="margin-bottom:13px;">
+      <div>
+        <div class="slbl">Start Time</div>
+        <input type="time" id="tmpl-time" class="sinput" value="09:00" style="font-size:14px;padding:10px;">
+      </div>
+      <div>
+        <div class="slbl">Duration</div>
+        <select class="sselect" id="tmpl-duration" style="font-size:14px;">
+          <option value="60">1 hour</option>
+          <option value="120">2 hours</option>
+          <option value="180">3 hours</option>
+          <option value="240">4 hours</option>
+          <option value="300">5 hours</option>
+          <option value="360">6 hours</option>
+          <option value="420">7 hours</option>
+          <option value="480" selected>8 hours</option>
+          <option value="540">9 hours</option>
+          <option value="600">10 hours</option>
+          <option value="720">12 hours</option>
+        </select>
+      </div>
+    </div>
+    <!-- Start date + End date -->
+    <div class="srow2" style="margin-bottom:13px;">
+      <div>
+        <div class="slbl">Start Date</div>
+        <input type="date" id="tmpl-start-date" class="sinput" style="font-size:14px;padding:10px;">
+      </div>
+      <div>
+        <div class="slbl">End Date (optional)</div>
+        <input type="date" id="tmpl-end-date" class="sinput" style="font-size:14px;padding:10px;">
+      </div>
+    </div>
+    <!-- Generate ahead -->
+    <div class="sheet-row" style="margin-bottom:13px;">
+      <div class="slbl">Generate Ahead</div>
+      <select class="sselect" id="tmpl-weeks-ahead" style="font-size:14px;">
+        <option value="1">1 week</option>
+        <option value="2" selected>2 weeks</option>
+        <option value="4">4 weeks</option>
+      </select>
+    </div>
+    <!-- Notes -->
+    <div class="sheet-row" style="margin-bottom:16px;">
+      <div class="slbl">Notes (optional)</div>
+      <input type="text" id="tmpl-notes" class="sinput" placeholder="e.g. client prefers morning visit" style="font-size:14px;">
+    </div>
+    <button onclick="saveScheduleTemplate()" id="tmpl-save-btn" class="sbtn">Save Template</button>
+  </div>
+</div>
 
 <!-- CLIENT STATEMENT SHEET -->
 <div class="sheet" id="client-statement-sheet" style="z-index:1052;">
@@ -5426,6 +5531,8 @@ function showSect(name) {
     const _mb = document.getElementById('bn-msg-badge');
     if (_mb) _mb.style.display = 'none';
   }
+  // Load recurring templates when schedule section opens
+  if (name === 'schedule') { try { loadTemplates(); } catch(e) {} }
   // Highlight relevant stat card for active section
   const _statMap = { leads:'s-leads', clients:'s-clients', visits:'s-visits', schedule:'s-upcoming' };
   document.querySelectorAll('.stat-card').forEach(c => c.classList.remove('hi'));
@@ -8459,6 +8566,192 @@ async function markInvoicePaidFromAging(id) {
     showToast('Invoice marked paid ✓', 'ok');
     loadAgingReport();
   } catch { showToast('Could not mark paid', 'err'); }
+}
+
+// ── SCHEDULE TEMPLATES ──
+// Module-level state — immune to DOM re-renders (lesson from status bug)
+let D_templates = [];
+const _templateMap = new Map(); // id -> template object
+
+async function loadTemplates() {
+  try {
+    const r = await hqFetch(`${API}/hq/schedule-templates?operator_id=${currentOp}`);
+    const d = await r.json();
+    if (!d.success) return;
+    D_templates = d.templates || [];
+    _templateMap.clear();
+    D_templates.forEach(t => _templateMap.set(t.id, t));
+    renderTemplateList();
+  } catch(e) {}
+}
+
+function renderTemplateList() {
+  const section = document.getElementById('sched-templates-section');
+  const countEl = document.getElementById('templates-count');
+  const bodyEl  = document.getElementById('templates-list-body');
+  if (!section || !countEl || !bodyEl) return;
+
+  const active = D_templates.filter(t => t.status !== 'ended');
+  countEl.textContent = active.length;
+  section.style.display = active.length ? 'block' : 'none';
+
+  if (!active.length) {
+    bodyEl.innerHTML = '<div style="padding:12px 14px;font-family:var(--mono);font-size:12px;color:var(--muted);">No active templates. Click + New Template to set one up.</div>';
+    return;
+  }
+
+  const dayNames = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  // Use innerHTML = array.map().join('') — not +=  (lesson from innerHTML bug)
+  bodyEl.innerHTML = active.map(t => {
+    const days = (t.days_of_week || []).sort().map(d => dayNames[d]).join(', ');
+    const hrs = (t.duration_minutes / 60).toFixed(1);
+    const isPaused = t.status === 'paused';
+    const statusColor = isPaused ? 'var(--amber)' : 'var(--teal2)';
+    const statusLabel = isPaused ? 'Paused' : 'Active';
+    return `<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--border);">
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:13px;font-weight:500;color:var(--text);">${escHtml(t.client_name)}${t.assigned_to ? ' · ' + escHtml(t.assigned_to.split(' ')[0]) : ''}</div>
+        <div style="font-family:var(--mono);font-size:11px;color:var(--muted2);margin-top:2px;">${days} · ${t.scheduled_time} · ${hrs}h</div>
+      </div>
+      <span style="font-family:var(--mono);font-size:10px;letter-spacing:1px;padding:2px 6px;border-radius:4px;color:${statusColor};border:1px solid ${statusColor};opacity:.8;">${statusLabel}</span>
+      <button data-tmpl-id="${t.id}" onclick="_tmplToggleStatus(this.dataset.tmplId)" style="font-family:var(--mono);font-size:10px;letter-spacing:1px;padding:5px 8px;border-radius:5px;border:1px solid var(--border);background:var(--bg3);color:var(--muted);cursor:pointer;min-height:32px;touch-action:manipulation;">${isPaused ? 'Resume' : 'Pause'}</button>
+      <button data-tmpl-id="${t.id}" onclick="_tmplDelete(this.dataset.tmplId)" style="font-family:var(--mono);font-size:10px;letter-spacing:1px;padding:5px 8px;border-radius:5px;border:1px solid rgba(224,85,85,.3);background:rgba(224,85,85,.06);color:var(--red);cursor:pointer;min-height:32px;touch-action:manipulation;">End</button>
+    </div>`;
+  }).join('');
+}
+
+async function _tmplToggleStatus(id) {
+  const tmpl = _templateMap.get(id);
+  if (!tmpl) return;
+  const newStatus = tmpl.status === 'paused' ? 'active' : 'paused';
+  try {
+    const r = await hqFetch(`${API}/hq/schedule-template/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ operator_id: currentOp, status: newStatus })
+    });
+    const d = await r.json();
+    if (!d.success) throw new Error(d.error || 'Failed');
+    // Update module-level state directly — no DOM re-read
+    tmpl.status = newStatus;
+    renderTemplateList();
+    showToast(`Template ${newStatus === 'paused' ? 'paused' : 'resumed'} ✓`, 'ok');
+  } catch(e) { showToast(e.message || 'Failed', 'err'); }
+}
+
+async function _tmplDelete(id) {
+  if (!confirm('End this recurring template? Existing bookings are not affected.')) return;
+  try {
+    const r = await hqFetch(`${API}/hq/schedule-template/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ operator_id: currentOp, status: 'ended' })
+    });
+    const d = await r.json();
+    if (!d.success) throw new Error(d.error || 'Failed');
+    // Remove from module-level state
+    D_templates = D_templates.filter(t => t.id !== id);
+    _templateMap.delete(id);
+    renderTemplateList();
+    showToast('Template ended ✓', 'ok');
+  } catch(e) { showToast(e.message || 'Failed', 'err'); }
+}
+
+function _tmplToggleDay(btn) {
+  const active = btn.style.background.includes('96,224');
+  btn.style.background  = active ? 'var(--bg3)' : 'rgba(160,96,224,.15)';
+  btn.style.borderColor = active ? 'var(--border)' : 'rgba(160,96,224,.4)';
+  btn.style.color       = active ? 'var(--muted)' : 'var(--purple2)';
+}
+
+function openTemplateSheet() {
+  // Populate client + PSW dropdowns from D (always live — no hardcoding)
+  const clients = (D.clients || []).map(c => `${c.first_name||''} ${c.last_name||''}`.trim()).filter(Boolean).sort();
+  const psws    = getMergedPSWList().map(p => p.name).filter(Boolean).sort();
+
+  const clientSel = document.getElementById('tmpl-client');
+  const pswSel    = document.getElementById('tmpl-psw');
+  if (clientSel) clientSel.innerHTML = '<option value="">Select client...</option>' + clients.map(n => `<option value="${escHtml(n)}">${escHtml(n)}</option>`).join('');
+  if (pswSel)    pswSel.innerHTML    = '<option value="">Unassigned</option>' + psws.map(n => `<option value="${escHtml(n)}">${escHtml(n)}</option>`).join('');
+
+  // Reset day buttons
+  document.querySelectorAll('.tmpl-day-btn').forEach(btn => {
+    btn.style.background  = 'var(--bg3)';
+    btn.style.borderColor = 'var(--border)';
+    btn.style.color       = 'var(--muted)';
+  });
+
+  // Default start date to today
+  const today = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Toronto' });
+  const startEl = document.getElementById('tmpl-start-date');
+  if (startEl) startEl.value = today;
+  const endEl = document.getElementById('tmpl-end-date');
+  if (endEl) endEl.value = '';
+
+  openSheet('schedule-template-sheet');
+}
+
+async function saveScheduleTemplate() {
+  const clientName = document.getElementById('tmpl-client')?.value;
+  const pswName    = document.getElementById('tmpl-psw')?.value || '';
+  const time       = document.getElementById('tmpl-time')?.value;
+  const duration   = parseInt(document.getElementById('tmpl-duration')?.value) || 480;
+  const startDate  = document.getElementById('tmpl-start-date')?.value;
+  const endDate    = document.getElementById('tmpl-end-date')?.value || null;
+  const weeksAhead = parseInt(document.getElementById('tmpl-weeks-ahead')?.value) || 2;
+  const notes      = document.getElementById('tmpl-notes')?.value?.trim() || null;
+
+  // Read days from button state — not from DOM query after re-render
+  const daysOfWeek = Array.from(document.querySelectorAll('.tmpl-day-btn'))
+    .filter(btn => btn.style.background.includes('96,224'))
+    .map(btn => parseInt(btn.dataset.dow));
+
+  if (!clientName) { showToast('Select a client', 'err'); return; }
+  if (!time) { showToast('Set a start time', 'err'); return; }
+  if (!daysOfWeek.length) { showToast('Select at least one day', 'err'); return; }
+
+  const btn = document.getElementById('tmpl-save-btn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Saving...'; }
+
+  try {
+    const r = await hqFetch(`${API}/hq/schedule-template`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        operator_id: currentOp,
+        client_name: clientName,
+        assigned_to: pswName || null,
+        days_of_week: daysOfWeek,
+        scheduled_time: time,
+        duration_minutes: duration,
+        start_date: startDate,
+        end_date: endDate,
+        generate_weeks_ahead: weeksAhead,
+        notes
+      })
+    });
+    const d = await r.json();
+    if (!d.success) throw new Error(d.error || 'Failed to save template');
+
+    // Add to module-level state immediately — no loadAll needed
+    if (d.template) {
+      D_templates.unshift(d.template);
+      _templateMap.set(d.template.id, d.template);
+    }
+    renderTemplateList();
+    closeSheet('schedule-template-sheet');
+    showToast('Template saved ✓', 'ok');
+
+    // Trigger an immediate generation run so bookings appear right away
+    hqFetch(`${API}/hq/template-generate`, { method: 'POST', headers: { 'Content-Type': 'application/json' } })
+      .then(() => { loadAll(false); })
+      .catch(() => {});
+
+  } catch(e) {
+    showToast(e.message || 'Failed', 'err');
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = 'Save Template'; }
+  }
 }
 
 // ── CLIENT STATEMENT ──
