@@ -292,7 +292,7 @@ button:active{transform:scale(0.98);}
 #fc-cal { background: var(--bg); }
 
 /* ── CONFLICT MODAL ── */
-.conflict-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:500;display:none;align-items:center;justify-content:center;padding:16px;}
+.conflict-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:1500;display:none;align-items:center;justify-content:center;padding:16px;}
 .conflict-modal-box{background:var(--bg2);border:1px solid var(--red);border-radius:12px;padding:20px;max-width:360px;width:100%;}
 .conflict-modal-title{font-family:var(--mono);font-size:12px;letter-spacing:2px;text-transform:uppercase;color:var(--red);margin-bottom:12px;}
 .conflict-modal-reason{font-size:13px;color:var(--text);margin-bottom:8px;line-height:1.5;}
@@ -835,7 +835,7 @@ button,.sbtn,.btn,.bnav-item,.nav-tab,.icon-btn{
 
 /* ═══ MOBILE: Schedule toolbar horizontal scroll ═══ */
 .sched-toolbar-row::-webkit-scrollbar{display:none;}
-.sched-toolbar-fade{position:absolute;right:0;top:0;bottom:0;width:44px;background:linear-gradient(to right,transparent,var(--bg2) 65%);pointer-events:none;z-index:15;display:flex;align-items:center;justify-content:flex-end;padding-right:8px;}
+.sched-toolbar-fade{position:absolute;right:0;top:0;bottom:0;width:44px;background:linear-gradient(to right,transparent,var(--bg2) 65%);pointer-events:none;z-index:5;display:flex;align-items:center;justify-content:flex-end;padding-right:8px;}
 .sched-toolbar-fade span{font-size:16px;color:var(--muted2);}
 
 /* ═══ NEW MOBILE VIEW: HQ Today dashboard reflows for mobile ═══ */
@@ -6428,6 +6428,10 @@ function renderPSWGrid() {
   if (schedHQView !== 'grid') return;
   el.style.display = 'block';
 
+  // Populate _bookingMap so chip onclicks can look up full booking data by id
+  window._bookingMap = {};
+  (D.bookings || []).forEach(b => { if (b.id) window._bookingMap[b.id] = b; });
+
   const allPSWs    = (D.psws || []).filter(p => p.status === 'active' || !p.status);
   const allClients = (D.clients || []).filter(c => c.status !== 'inactive');
   const bookings   = D.bookings || [];
@@ -6560,7 +6564,7 @@ function renderPSWGrid() {
           const isUnassigned = !b.assigned_to || b.assigned_to.trim() === '';
           const chipCls = isUnassigned ? 'gc-open' : isLive ? 'gc-live' : b.status === 'completed' ? 'gc-done' : 'gc-scheduled';
           const timeStr = b.scheduled_time ? b.scheduled_time.slice(0,5) : '';
-          html += `<div class="grid-chip ${chipCls}" data-bid="${b.id}" onclick="var _b=window._bookingMap&&window._bookingMap['${b.id}'];if(_b){_showShiftDetail(_b,{});}else{showToast('Tap again — loading...','ok');}" style="cursor:pointer;">
+          html += `<div class="grid-chip ${chipCls}" onclick="_showShiftDetail(window._bookingMap['${b.id}'],{})">
             <div class="gc-client">${escHtml(chipLabel)}</div>
             <div class="gc-time">${timeStr}</div>
           </div>`;
