@@ -1,30 +1,33 @@
 // Proximity HQ Service Worker
-const CACHE = 'proximity-hq-v1';
+const CACHE = 'proximity-hq-v12';
 const STATIC = [
-  '/hq.html',
   '/hq-manifest.json',
   '/icon-192.png',
   '/favicon-32.png',
   'https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&display=swap'
 ];
 
-// Install — cache static assets
+// Install — cache static assets (NOT hq.html — always fetch fresh)
 self.addEventListener('install', e => {
   e.waitUntil(
     caches.open(CACHE).then(cache => cache.addAll(STATIC)).then(() => self.skipWaiting())
   );
 });
 
-// Activate — clean old caches
+// Activate — clean ALL old caches including proximity-hq-v1 through v11
 self.addEventListener('activate', e => {
   e.waitUntil(
     caches.keys().then(keys =>
-      Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))
+      Promise.all(keys.filter(k => k !== CACHE).map(k => {
+        console.log('[SW] Deleting old cache:', k);
+        return caches.delete(k);
+      }))
     ).then(() => self.clients.claim())
   );
 });
 
-// Fetch — cache first for static, network first for API
+// Fetch — NETWORK FIRST for hq.html (always get latest version)
+// Cache first only for fonts/icons
 self.addEventListener('fetch', e => {
   const url = new URL(e.request.url);
 
@@ -40,7 +43,17 @@ self.addEventListener('fetch', e => {
     return;
   }
 
-  // Cache first for static assets
+  // hq.html — ALWAYS network first, never serve stale
+  if (url.pathname === '/hq.html' || url.pathname === '/') {
+    e.respondWith(
+      fetch(e.request, { cache: 'no-store' }).catch(() =>
+        caches.match('/hq.html')
+      )
+    );
+    return;
+  }
+
+  // Static assets (fonts, icons) — cache first
   e.respondWith(
     caches.match(e.request).then(cached => {
       if (cached) return cached;
