@@ -3221,7 +3221,7 @@ body.sidebar-rail .sidebar{width:64px;overflow:visible;}
       <button onclick="broadcastShift(window._sdBookingId)" style="width:100%;padding:10px;border-radius:6px;font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;min-height:44px;border:1px solid rgba(200,169,110,.3);background:rgba(200,169,110,.08);color:var(--gold);"><svg width="12" height="12" viewBox="0 0 14 14" fill="none" style="display:inline;vertical-align:middle;margin-right:3px"><circle cx="7" cy="7" r="6" stroke="#c9a96e" stroke-width="1.2"/><circle cx="7" cy="7" r="3.5" stroke="#c9a96e" stroke-width="1" opacity="0.6"/><circle cx="7" cy="7" r="1.2" fill="#c9a96e"/></svg>Broadcast to Available PSWs</button>
     </div>
     <!-- Series actions — shown only when shift has a series_id -->
-    <div id="sd-series-row" style="display:none;margin-bottom:10px;display:flex;gap:6px;">
+    <div id="sd-series-row" style="display:none;margin-bottom:10px;gap:6px;">
       <button id="sd-cancel-this" data-booking-id="" style="flex:1;padding:8px 4px;border-radius:6px;font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;min-height:44px;border:1px solid rgba(224,85,85,.25);background:rgba(224,85,85,.06);color:var(--red);touch-action:manipulation;">Cancel This</button>
       <button id="sd-cancel-future" data-booking-id="" data-series-id="" style="flex:1;padding:8px 4px;border-radius:6px;font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;min-height:44px;border:1px solid rgba(224,85,85,.4);background:rgba(224,85,85,.12);color:var(--red);touch-action:manipulation;">Cancel All Future</button>
       <button id="sd-swap" data-psw="" style="flex:1;padding:8px 4px;border-radius:6px;font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;min-height:44px;border:1px solid rgba(200,169,110,.3);background:rgba(200,169,110,.08);color:var(--gold);touch-action:manipulation;">Swap PSW</button>
@@ -3848,12 +3848,38 @@ function renderStats() {
   document.getElementById('s-bookings').textContent = c.bookings_upcoming||0;
   document.getElementById('s-visits').textContent = c.visits_total || (D.visits||[]).length || 0;
   document.getElementById('leads-badge').textContent = c.leads||0;
-  // Margin from invoice data (set by server in counts.margin_month)
+  // Margin: compute from D.bookings + D.clients for current month
+  // This is always live — doesn't require an invoice to have been generated
   const marginEl = document.getElementById('s-margin');
   if (marginEl) {
-    const margin = c.margin_month;
-    marginEl.textContent = margin != null ? '$' + Math.round(margin).toLocaleString() : '—';
-    marginEl.style.color = margin > 0 ? 'var(--green2)' : margin < 0 ? 'var(--red)' : 'var(--muted)';
+    try {
+      const now2 = new Date();
+      const monthStart = new Date(now2.getFullYear(), now2.getMonth(), 1).toLocaleDateString('en-CA', { timeZone: 'America/Toronto' });
+      const monthEnd   = new Date(now2.getFullYear(), now2.getMonth()+1, 0).toLocaleDateString('en-CA', { timeZone: 'America/Toronto' });
+      const clientMap  = {};
+      (D.clients || []).forEach(cl => {
+        const n = ((cl.first_name||'') + ' ' + (cl.last_name||'')).trim();
+        clientMap[n] = { clientRate: parseFloat(cl.client_rate) || 22, pswRate: parseFloat(cl.psw_rate) || 19 };
+      });
+      let revenue = 0, cost = 0;
+      (D.bookings || []).forEach(b => {
+        if (b.status === 'cancelled' || b.deleted_at) return;
+        if (!b.scheduled_date || b.scheduled_date < monthStart || b.scheduled_date > monthEnd) return;
+        const hrs = (parseInt(b.duration_minutes) || 480) / 60;
+        const rates = clientMap[b.client_name] || { clientRate: 22, pswRate: 19 };
+        revenue += hrs * rates.clientRate;
+        cost    += hrs * rates.pswRate;
+      });
+      const margin = Math.round(revenue - cost);
+      const revRound = Math.round(revenue);
+      marginEl.textContent = '$' + margin.toLocaleString();
+      marginEl.title = `Revenue: $${revRound.toLocaleString()} · Cost: $${Math.round(cost).toLocaleString()} · Margin: $${margin.toLocaleString()}`;
+      marginEl.style.color = margin > 0 ? 'var(--green2)' : margin < 0 ? 'var(--red)' : 'var(--muted)';
+    } catch(_) {
+      const margin = c.margin_month;
+      marginEl.textContent = margin != null ? '$' + Math.round(margin).toLocaleString() : '—';
+      marginEl.style.color = margin > 0 ? 'var(--green2)' : 'var(--muted)';
+    }
   }
 
   // Lead monthly totals
@@ -4144,7 +4170,12 @@ function renderClients() {
           <div class="avatar">${ini}</div>
           <div><div class="card-name">${name}</div><div class="card-sub">${c.client_code?'<span style="font-family:var(--mono);color:var(--teal3);">'+c.client_code+'</span> · ':''} ${c.portal_slug||c.email||'—'}${refSource}</div></div>
         </div>
-        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">${onShiftChip||'<span class="badge b-active">Active</span>'}${sentBadge}${overdueBadge}${consentBadge}${twoPswBadge}</div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">${onShiftChip||(()=>{
+          const _st=c.status||'active';
+          const _stColors={active:'b-active',on_hold:'b-warn',away:'b-info',vacation:'b-booked',hospital:'b-dead',inactive:'b-dead'};
+          const _stLabels={active:'Active',on_hold:'On Hold',away:'Away',vacation:'Vacation',hospital:'Hospital',inactive:'Inactive'};
+          return '<span class="badge '+(_stColors[_st]||'b-active')+'">'+(_stLabels[_st]||_st)+'</span>';
+        })()}${sentBadge}${overdueBadge}${consentBadge}${twoPswBadge}</div>
       </div>
       <div class="card-info-strip">${lastVisitChip}${pswChip}</div>
       <div class="card-actions">
@@ -4685,13 +4716,16 @@ function renderPSWs() {
     const ini = p.name.split(' ').map(w=>w[0]).join('').toUpperCase();
     const email = p.email || null;
     const pStatus = p.status || (p.source === 'live' ? 'active' : 'inactive');
-    const statusBadge = pStatus === 'active'
-      ? '<span class="badge b-active">Active</span>'
-      : pStatus === 'pending_review'
-      ? '<span style="font-family:var(--mono);font-size:10px;letter-spacing:1px;padding:2px 8px;border-radius:100px;border:1px solid rgba(224,154,61,.4);color:var(--amber);">PENDING REVIEW</span>'
-      : pStatus === 'invited'
-      ? '<span style="font-family:var(--mono);font-size:10px;letter-spacing:1px;padding:2px 8px;border-radius:100px;border:1px solid rgba(61,138,122,.4);color:var(--teal2);">INVITED</span>'
-      : '<span class="badge b-pending">Not activated</span>';
+    const _pswStatusMap = {
+      active: '<span class="badge b-active">Active</span>',
+      not_available: '<span class="badge b-dead">Not Available</span>',
+      sick: '<span style="font-family:var(--mono);font-size:10px;letter-spacing:1px;padding:2px 8px;border-radius:100px;border:1px solid rgba(224,154,61,.4);color:var(--amber);">SICK</span>',
+      away: '<span style="font-family:var(--mono);font-size:10px;letter-spacing:1px;padding:2px 8px;border-radius:100px;border:1px solid rgba(61,138,122,.4);color:var(--teal2);">AWAY</span>',
+      vacation: '<span class="badge b-booked">Vacation</span>',
+      pending_review: '<span style="font-family:var(--mono);font-size:10px;letter-spacing:1px;padding:2px 8px;border-radius:100px;border:1px solid rgba(224,154,61,.4);color:var(--amber);">PENDING REVIEW</span>',
+      invited: '<span style="font-family:var(--mono);font-size:10px;letter-spacing:1px;padding:2px 8px;border-radius:100px;border:1px solid rgba(61,138,122,.4);color:var(--teal2);">INVITED</span>',
+    };
+    const statusBadge = _pswStatusMap[pStatus] || '<span class="badge b-pending">Not activated</span>';
     // C6 — probation badge
     const onProbation = p.probation_end && p.probation_end >= today;
     const probationSoon = onProbation && p.probation_end <= in90;
