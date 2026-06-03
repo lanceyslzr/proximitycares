@@ -303,8 +303,8 @@ button:active{transform:scale(0.98);}
 .cm-cancel-btn{background:var(--bg3);border-color:var(--border2)!important;color:var(--muted2);}
 
 /* ── SHIFT DETAIL MODAL ── */
-/* shift-detail is now a .sheet - see sheet CSS */
-/* shift-detail-box now inline in sheet */
+.shift-detail-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:1062;display:none;align-items:center;justify-content:center;padding:16px;}
+.shift-detail-box{background:var(--bg2);border:1px solid var(--border2);border-radius:12px;padding:20px;max-width:340px;width:100%;}
 .sd-title{font-size:16px;font-weight:500;color:var(--text);margin-bottom:4px;}
 .sd-row{font-family:var(--mono);font-size:11px;color:var(--muted2);margin-bottom:4px;}
 .sd-status{font-family:var(--mono);font-size:12px;letter-spacing:1px;margin-bottom:12px;}
@@ -835,6 +835,8 @@ button,.sbtn,.btn,.bnav-item,.nav-tab,.icon-btn{
 
 /* ═══ MOBILE: Schedule toolbar horizontal scroll ═══ */
 .sched-toolbar-row::-webkit-scrollbar{display:none;}
+.sched-toolbar-fade{position:absolute;right:0;top:0;bottom:0;width:40px;background:linear-gradient(to right,transparent,var(--bg));pointer-events:none;z-index:2;display:flex;align-items:center;justify-content:flex-end;padding-right:6px;}
+.sched-toolbar-fade span{font-size:14px;color:var(--muted2);}
 
 /* ═══ NEW MOBILE VIEW: HQ Today dashboard reflows for mobile ═══ */
 
@@ -2551,7 +2553,7 @@ body.sidebar-rail .sidebar{width:64px;overflow:visible;}
   <div class="section-header" id="sched-section-label-row" style="padding-bottom:0;">
     <span class="section-title">Schedule</span>
   </div>
-  <div class="section-header" style="padding-top:4px;align-items:center;overflow:hidden;gap:0;">
+  <div class="section-header" style="padding-top:4px;align-items:center;position:relative;">
     <div style="display:flex;align-items:center;gap:5px;margin-right:8px;flex-shrink:0;">
       <button id="sched-view-grid" onclick="setSchedHQView('grid')" style="font-family:var(--mono);font-size:11px;letter-spacing:1px;padding:6px 10px;background:rgba(61,138,122,.15);border:1px solid rgba(61,138,122,.3);border-radius:var(--r6);color:var(--teal2);cursor:pointer;min-height:36px;touch-action:manipulation;">⊞ Grid</button>
       <button id="sched-view-cal" onclick="setSchedHQView('cal')" style="font-family:var(--mono);font-size:11px;letter-spacing:1px;padding:6px 10px;background:none;border:1px solid var(--border);border-radius:var(--r6);color:var(--muted2);cursor:pointer;min-height:36px;touch-action:manipulation;">▦ Cal</button>
@@ -2567,6 +2569,7 @@ body.sidebar-rail .sidebar{width:64px;overflow:visible;}
       <div class="sect-action" id="resource-toggle-btn" onclick="toggleResourceView()" style="color:var(--gold);border-color:rgba(201,169,110,.3);">⊞ Resource</div>
       <div class="sect-action" onclick="schedHQView==='grid'?refreshGrid():renderSchedule()">↻</div>
     </div>
+    <div class="sched-toolbar-fade"><span>›</span></div>
   </div>
   <!-- Filter bar — axis toggle + shift filter + search -->
   <div id="sched-filter-bar" style="display:flex;align-items:center;gap:6px;padding:0 12px 10px;flex-wrap:wrap;">
@@ -3309,18 +3312,10 @@ body.sidebar-rail .sidebar{width:64px;overflow:visible;}
 </div>
 
 <!-- SHIFT DETAIL MODAL -->
-<div class="sheet" id="shift-detail-modal" style="z-index:1062;max-height:85vh;">
-  <div class="sheet-handle"></div>
-  <div style="padding:16px 18px 0;border-bottom:1px solid var(--border);">
-    <div style="display:flex;align-items:center;justify-content:space-between;">
-      <div class="sd-title" id="sd-title" style="font-size:16px;font-weight:500;color:var(--text);"></div>
-      <button id="sd-close" style="font-size:18px;color:var(--muted2);background:none;border:none;cursor:pointer;padding:4px 8px;min-height:44px;touch-action:manipulation;line-height:1;" class="sd-close-btn">&#x2715;</button>
-    </div>
-    <div class="sd-row" id="sd-psw" style="font-family:var(--mono);font-size:12px;color:var(--muted2);padding:4px 0 8px;"></div>
-  </div>
-  <div style="padding:14px 18px 32px;">
+<div class="shift-detail-overlay" id="shift-detail-modal">
+  <div class="shift-detail-box">
     <div class="sd-title" id="sd-title"></div>
-
+    <div class="sd-row" id="sd-psw"></div>
     <div id="sd-psw-contact" style="display:none;margin:-6px 0 10px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
       <a id="sd-psw-phone-link" href="" style="font-family:var(--mono);font-size:11px;letter-spacing:1px;padding:5px 12px;border-radius:6px;border:1px solid rgba(61,138,122,.3);background:rgba(61,138,122,.06);color:var(--teal2);text-decoration:none;display:inline-flex;align-items:center;gap:5px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="11" height="11"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.65 3.55 2 2 0 0 1 3.62 1.37h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg><span id="sd-psw-phone-txt">—</span></a>
       <button id="sd-reminder-btn" onclick="_sendShiftReminder()" style="font-family:var(--mono);font-size:11px;letter-spacing:1px;padding:5px 12px;border-radius:6px;border:1px solid rgba(200,169,110,.3);background:rgba(200,169,110,.06);color:var(--gold);cursor:pointer;display:inline-flex;align-items:center;gap:5px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="11" height="11"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>Send Reminder</button>
@@ -3343,7 +3338,7 @@ body.sidebar-rail .sidebar{width:64px;overflow:visible;}
       <button class="sd-edit-btn" id="sd-edit" style="touch-action:manipulation;">Edit</button>
       <button id="sd-hours-btn" style="flex:1;padding:9px;border-radius:6px;font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;min-height:44px;border:1px solid rgba(61,138,122,.3);background:rgba(61,138,122,.08);color:var(--teal2);touch-action:manipulation;">⏱ Hours</button>
       <button class="sd-delete-btn" id="sd-delete" data-booking-id="" style="touch-action:manipulation;">Remove</button>
-
+      <button class="sd-close-btn" id="sd-close" style="touch-action:manipulation;">✕</button>
     </div>
   </div>
 </div>
@@ -6602,6 +6597,23 @@ async function refreshGrid() {
   renderPSWGrid();
 }
 
+// Hide toolbar scroll arrow when fully scrolled right
+(function() {
+  const initToolbarArrow = () => {
+    const row = document.querySelector('.sched-toolbar-row');
+    const fade = document.querySelector('.sched-toolbar-fade');
+    if (!row || !fade) return;
+    const update = () => {
+      const atEnd = row.scrollLeft + row.clientWidth >= row.scrollWidth - 4;
+      fade.style.display = atEnd ? 'none' : 'flex';
+    };
+    row.addEventListener('scroll', update, { passive: true });
+    update();
+  };
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initToolbarArrow);
+  else setTimeout(initToolbarArrow, 500);
+})();
+
 function setSchedHQView(v) {
   schedHQView = v;
   // Update toggle button states
@@ -7168,29 +7180,29 @@ function _showShiftDetail(b, props) {
   const delBtn = document.getElementById('sd-delete');
   if (delBtn) {
     delBtn.dataset.bookingId = b.id;
-    delBtn.onclick = () => { closeSheet('shift-detail-modal'); deleteShift(b.id); };
+    delBtn.onclick = () => { m.style.display = 'none'; deleteShift(b.id); };
   }
   const cancelThisBtn = document.getElementById('sd-cancel-this');
   if (cancelThisBtn) {
     cancelThisBtn.dataset.bookingId = b.id;
-    cancelThisBtn.onclick = () => { closeSheet('shift-detail-modal'); cancelSeries(b.id, null, 'this'); };
+    cancelThisBtn.onclick = () => { m.style.display = 'none'; cancelSeries(b.id, null, 'this'); };
   }
   const cancelFutureBtn = document.getElementById('sd-cancel-future');
   if (cancelFutureBtn) {
     cancelFutureBtn.dataset.bookingId = b.id;
     cancelFutureBtn.dataset.seriesId  = b.series_id || '';
-    cancelFutureBtn.onclick = () => { closeSheet('shift-detail-modal'); cancelSeries(b.id, b.series_id, 'future'); };
+    cancelFutureBtn.onclick = () => { m.style.display = 'none'; cancelSeries(b.id, b.series_id, 'future'); };
   }
   const swapBtn = document.getElementById('sd-swap');
   if (swapBtn) {
     swapBtn.dataset.psw = b.assigned_to || '';
-    swapBtn.onclick = () => { closeSheet('shift-detail-modal'); openSwapSheet(b.assigned_to || ''); };
+    swapBtn.onclick = () => { m.style.display = 'none'; openSwapSheet(b.assigned_to || ''); };
   }
-  if (_elEdit)  _elEdit.onclick  = () => { closeSheet('shift-detail-modal'); openEditShift(b.id, b.client_name, b.assigned_to, b.scheduled_date, b.scheduled_time, b.duration_minutes); };
+  if (_elEdit)  _elEdit.onclick  = () => { m.style.display = 'none'; openEditShift(b.id, b.client_name, b.assigned_to, b.scheduled_date, b.scheduled_time, b.duration_minutes); };
   const hoursBtn = document.getElementById('sd-hours-btn');
-  if (hoursBtn) hoursBtn.onclick = () => { closeSheet('shift-detail-modal'); openHoursPanel(b.assigned_to ? 'psw' : 'client', b.assigned_to || b.client_name); };
-  if (_elClose) _elClose.onclick = () => { closeSheet('shift-detail-modal'); };
-  openSheet('shift-detail-modal');
+  if (hoursBtn) hoursBtn.onclick = () => { m.style.display = 'none'; openHoursPanel(b.assigned_to ? 'psw' : 'client', b.assigned_to || b.client_name); };
+  if (_elClose) _elClose.onclick = () => { m.style.display = 'none'; };
+  m.style.display = 'flex';
 }
 
 function _addMins(dtStr, mins) {
@@ -9360,15 +9372,18 @@ async function openPSWDetail(pswId) {
           const colors = {active:'rgba(109,185,116,.3)','not_available':'rgba(224,85,85,.3)',sick:'rgba(224,154,61,.3)',away:'rgba(61,138,122,.3)',vacation:'rgba(200,169,110,.3)'};
           const bg     = {active:'rgba(109,185,116,.08)','not_available':'rgba(224,85,85,.06)',sick:'rgba(224,154,61,.06)',away:'rgba(61,138,122,.06)',vacation:'rgba(200,169,110,.06)'};
           const txtCol = {active:'var(--green2)','not_available':'var(--red)',sick:'var(--amber)',away:'var(--teal2)',vacation:'var(--gold)'};
-          // Read cached availability status from localStorage (set on save) or availability_note
+          // Read current status: availability jsonb is the ground truth (written by server)
+          // localStorage is instant cache after a save, before next loadAll
           let cur = 'active';
           try {
             const cached = localStorage.getItem('psw_avail_status_' + (p.id||p.full_name||name));
-            if (cached) { cur = cached; }
-            else if (p.availability_note) {
-              const an = JSON.parse(p.availability_note);
-              cur = an.availability_status || p.status || 'active';
-            } else { cur = p.status || 'active'; }
+            if (cached) {
+              cur = cached;
+            } else if (p.availability && typeof p.availability === 'object' && p.availability.status) {
+              cur = p.availability.status; // jsonb written by /hq/psw/availability
+            } else {
+              cur = p.status || 'active';
+            }
           } catch { cur = p.status || 'active'; }
           const isActive = cur === st;
           return `<button onclick="setPSWAvailability('${p.id}','${name}','${st}',this)"
@@ -11231,12 +11246,17 @@ async function savePSWAvailability(pswId, pswName) {
     });
     const d = await r.json();
     if (!r.ok || !d.success) throw new Error(d.error || 'Failed');
-    // Cache the new status so next time the detail opens it shows correctly
+    // Cache the new status — localStorage is instant, loadAll is async
     localStorage.setItem('psw_avail_status_' + (pswId||pswName), status);
-    // Immediately patch D.psws in memory so card badge updates without waiting for loadAll
+    // Patch D.psws in memory immediately — status AND availability.status
     if (D.psws) {
       const pswEntry = D.psws.find(p => String(p.id) === String(pswId) || p.full_name === pswName || p.name === pswName);
-      if (pswEntry) pswEntry.status = status;
+      if (pswEntry) {
+        pswEntry.status = status;
+        // Also patch the availability jsonb so the tab reads correctly without full reload
+        if (!pswEntry.availability || typeof pswEntry.availability !== 'object') pswEntry.availability = {};
+        pswEntry.availability.status = status;
+      }
     }
     renderPSWs();
     showToast(`${pswName} status updated to ${status.replace(/_/g,' ')} ✓`, 'ok');
