@@ -2769,6 +2769,9 @@ async function doCheckOut() {
       activeVisit = null;
       stopElapsed(); resetChecklist(); updateShiftUI();
       haptic([100, 50, 100]);
+      window._lastVisitId = activeVisit?.id || payload.visit_id || null;
+      window._lastVisitMeta = activeVisit ? `${activeVisit.client_name} · ${activeVisit.time_in || '—'}` : '';
+      activeVisit = null;
       document.getElementById('success-title').textContent = 'Visit Complete';
       document.getElementById('success-msg').textContent = `${d2.hours_worked}h logged. Flagged for coordinator review (under 8 min).`;
       document.getElementById('success-overlay').classList.add('show');
