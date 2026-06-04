@@ -12807,6 +12807,36 @@ function closeVisitEdit() {
   _vemVisitId = null;
 }
 
+async function resetVisit() {
+  if (!_vemVisitId) return;
+  const v = (D.visits || []).find(x => x.id === _vemVisitId) || {};
+  const who = `${v.psw_name || 'PSW'} → ${v.client_name || 'client'} on ${v.visit_date || ''}`;
+  const reason = prompt(`Reset visit for ${who}?\n\nThis will:\n• Delete this visit record\n• Reset the booking back to Scheduled\n• Notify ${v.psw_name || 'the PSW'} to check in again\n\nEnter reason (optional):`);
+  if (reason === null) return; // user hit Cancel on prompt
+
+  const btn = document.getElementById('vem-reset-btn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Resetting...'; }
+
+  try {
+    const res = await hqFetch(`${API}/hq/visit/${_vemVisitId}`, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ operator_id: currentOp, reason: reason || '' })
+    });
+    const d = await res.json();
+    if (!d.success) throw new Error(d.error || 'Reset failed');
+
+    closeVisitEdit();
+    showToast(`Visit reset ✓${d.booking_reset ? ' — booking restored to Scheduled' : ''}`, 'ok');
+
+    // Refresh visits list and schedule grid
+    await loadAll(false);
+  } catch(e) {
+    showToast(e.message || 'Reset failed', 'err');
+    if (btn) { btn.disabled = false; btn.textContent = '⟳ Reset Visit — Delete & Restore Booking'; }
+  }
+}
+
 async function saveVisitEdit() {
   if (!_vemVisitId) return;
   const timeIn       = document.getElementById('vem-time-in').value;
@@ -13585,6 +13615,10 @@ function _applyActiveSectionFlex() {
       <button onclick="closeVisitEdit()"
  style="flex:1;padding:12px;background:none;border:1px solid var(--border);border-radius:6px;font-family:var(--mono);font-size:11px;color:var(--muted);cursor:pointer;letter-spacing:1px;">Cancel</button>
       <button id="vem-save-btn" onclick="saveVisitEdit()" style="flex:2;padding:12px;background:rgba(201,169,110,.12);border:1px solid rgba(201,169,110,.3);border-radius:6px;font-family:var(--mono);font-size:11px;color:var(--gold);cursor:pointer;letter-spacing:1px;">Save & Notify</button>
+    </div>
+    <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border);">
+      <button id="vem-reset-btn" onclick="resetVisit()" style="width:100%;padding:11px;background:rgba(224,85,85,.07);border:1px solid rgba(224,85,85,.25);border-radius:6px;font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--red);cursor:pointer;min-height:44px;touch-action:manipulation;">⟳ Reset Visit — Delete & Restore Booking</button>
+      <div style="font-size:11px;color:var(--muted);margin-top:6px;text-align:center;line-height:1.5;">Deletes this visit record and resets the booking so PSW can check in again. PSW will be notified.</div>
     </div>
   </div>
 </div>
