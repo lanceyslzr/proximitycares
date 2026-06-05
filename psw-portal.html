@@ -35,7 +35,7 @@ input,select,textarea,button{font:inherit;font-size:max(16px,1em);max-width:100%
 :root{
   --bg:#07090c;--bg2:#0d1117;--bg3:#111820;--bg4:#161e28;
   --accent:#6dbdd4;--teal:#6dbdd4;--teal2:#4a9bb3;--teal3:#a8d8e8;
-  --gold:#c9a96e;--amber:#d4a04a;--red:#e05555;
+  --gold:#c9a96e;--amber:#d4a04a;--purple2:#a060e0;--red:#e05555;
   --green:#6db974;--green2:#8dd493;
   --text:#f0ede8;--muted:#a8bfc4;--muted2:rgba(240,237,232,.65);--muted3:rgba(240,237,232,.85);
   --border:rgba(109,189,212,.12);--border2:rgba(109,189,212,.25);--border3:rgba(109,189,212,.4);
@@ -1067,6 +1067,74 @@ a{color:inherit;text-decoration:none;}
   <div style="margin:4px 12px 16px;padding:10px 14px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:1px;">
     Certifications are managed by your coordinator. Contact Lance to update your files.
   </div>
+
+  <!-- ONTARIO FORMS SECTION -->
+  <div style="padding:6px 12px 16px;">
+    <div style="font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:10px;">Ontario Forms</div>
+    <div style="display:flex;flex-direction:column;gap:8px;">
+      <div onclick="openFormSheet('incident')" style="background:var(--bg2);border:1px solid rgba(224,85,85,.3);border-left:3px solid var(--red);border-radius:10px;padding:14px;cursor:pointer;touch-action:manipulation;display:flex;align-items:center;justify-content:space-between;min-height:60px;">
+        <div><div style="font-size:14px;font-weight:600;color:var(--red);margin-bottom:3px;">⚠ Incident Report</div><div style="font-family:var(--mono);font-size:11px;color:var(--muted2);">Falls, injuries, unsafe conditions, medication errors</div></div>
+        <div style="font-size:18px;color:var(--muted);margin-left:8px;">›</div>
+      </div>
+      <div onclick="openFormSheet('careplan')" style="background:var(--bg2);border:1px solid rgba(61,138,122,.3);border-left:3px solid var(--teal2);border-radius:10px;padding:14px;cursor:pointer;touch-action:manipulation;display:flex;align-items:center;justify-content:space-between;min-height:60px;">
+        <div><div style="font-size:14px;font-weight:600;color:var(--teal2);margin-bottom:3px;">📋 Care Plan Update</div><div style="font-family:var(--mono);font-size:11px;color:var(--muted2);">Request changes to client's care plan or tasks</div></div>
+        <div style="font-size:18px;color:var(--muted);margin-left:8px;">›</div>
+      </div>
+      <div onclick="openFormSheet('timeoff')" style="background:var(--bg2);border:1px solid rgba(200,169,110,.3);border-left:3px solid var(--gold);border-radius:10px;padding:14px;cursor:pointer;touch-action:manipulation;display:flex;align-items:center;justify-content:space-between;min-height:60px;">
+        <div><div style="font-size:14px;font-weight:600;color:var(--gold);margin-bottom:3px;">📅 Time Off / Book-Off</div><div style="font-family:var(--mono);font-size:11px;color:var(--muted2);">Report dates you cannot work (sick, personal, medical)</div></div>
+        <div style="font-size:18px;color:var(--muted);margin-left:8px;">›</div>
+      </div>
+      <div onclick="openFormSheet('vacation')" style="background:var(--bg2);border:1px solid rgba(200,169,110,.3);border-left:3px solid var(--gold);border-radius:10px;padding:14px;cursor:pointer;touch-action:manipulation;display:flex;align-items:center;justify-content:space-between;min-height:60px;">
+        <div><div style="font-size:14px;font-weight:600;color:var(--gold);margin-bottom:3px;">🏖 Vacation Request</div><div style="font-family:var(--mono);font-size:11px;color:var(--muted2);">Planned vacation — ESA-tracked, 2 weeks/year Ontario</div></div>
+        <div style="font-size:18px;color:var(--muted);margin-left:8px;">›</div>
+      </div>
+      <div onclick="openFormSheet('concern')" style="background:var(--bg2);border:1px solid rgba(160,96,224,.3);border-left:3px solid var(--purple2);border-radius:10px;padding:14px;cursor:pointer;touch-action:manipulation;display:flex;align-items:center;justify-content:space-between;min-height:60px;">
+        <div><div style="font-size:14px;font-weight:600;color:var(--purple2);margin-bottom:3px;">💬 Client Concern</div><div style="font-family:var(--mono);font-size:11px;color:var(--muted2);">Report a concern about a client's health or safety</div></div>
+        <div style="font-size:18px;color:var(--muted);margin-left:8px;">›</div>
+      </div>
+      <div onclick="openFormSheet('mileage')" style="background:var(--bg2);border:1px solid rgba(61,138,122,.2);border-left:3px solid var(--teal2);border-radius:10px;padding:14px;cursor:pointer;touch-action:manipulation;display:flex;align-items:center;justify-content:space-between;min-height:60px;">
+        <div><div style="font-size:14px;font-weight:600;color:var(--teal2);margin-bottom:3px;">🚗 Mileage / Expense</div><div style="font-family:var(--mono);font-size:11px;color:var(--muted2);">Claim travel reimbursement ($0.72/km CRA 2024)</div></div>
+        <div style="font-size:18px;color:var(--muted);margin-left:8px;">›</div>
+      </div>
+      <div onclick="openFormSheet('latearrival')" style="background:var(--bg2);border:1px solid rgba(224,154,61,.3);border-left:3px solid var(--amber);border-radius:10px;padding:14px;cursor:pointer;touch-action:manipulation;display:flex;align-items:center;justify-content:space-between;min-height:60px;">
+        <div><div style="font-size:14px;font-weight:600;color:var(--amber);margin-bottom:3px;">🏠 Late Arrival / Early Departure</div><div style="font-family:var(--mono);font-size:11px;color:var(--muted2);">Notify HQ and family before a visit timing change</div></div>
+        <div style="font-size:18px;color:var(--muted);margin-left:8px;">›</div>
+      </div>
+      <div onclick="openFormSheet('equipment')" style="background:var(--bg2);border:1px solid rgba(107,114,128,.3);border-left:3px solid var(--muted2);border-radius:10px;padding:14px;cursor:pointer;touch-action:manipulation;display:flex;align-items:center;justify-content:space-between;min-height:60px;">
+        <div><div style="font-size:14px;font-weight:600;color:var(--muted2);margin-bottom:3px;">⚙ Equipment / Supply Issue</div><div style="font-family:var(--mono);font-size:11px;color:var(--muted2);">Missing, broken, or needed supplies at client's home</div></div>
+        <div style="font-size:18px;color:var(--muted);margin-left:8px;">›</div>
+      </div>
+    </div>
+    <div id="forms-submitted-list" style="margin-top:12px;"></div>
+  </div>
+</div>
+
+<!-- PSW FORM OVERLAY — shared sheet for all 8 forms -->
+<div id="psw-form-overlay" style="display:none;position:fixed;inset:0;z-index:600;background:rgba(0,0,0,.88);overflow-y:auto;-webkit-overflow-scrolling:touch;">
+  <div style="min-height:100%;display:flex;align-items:flex-start;justify-content:center;padding:16px;">
+    <div id="psw-form-box" style="background:var(--bg2);border:1px solid var(--border2);border-radius:16px;width:100%;max-width:480px;padding:20px;margin:auto;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;border-bottom:1px solid var(--border);padding-bottom:12px;">
+        <div>
+          <div id="psw-form-title" style="font-size:17px;font-weight:600;"></div>
+          <div id="psw-form-sub" style="font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:3px;"></div>
+        </div>
+        <button onclick="closeFormSheet()" style="font-size:20px;color:var(--muted2);background:none;border:none;cursor:pointer;padding:4px 8px;min-height:44px;touch-action:manipulation;">✕</button>
+      </div>
+      <div id="psw-form-fields"></div>
+      <!-- Signature canvas -->
+      <div style="margin-top:16px;">
+        <div style="font-family:var(--mono);font-size:11px;letter-spacing:1px;color:var(--muted);margin-bottom:5px;">PSW SIGNATURE <span style="color:var(--red);">*</span></div>
+        <div style="font-size:12px;color:var(--muted2);margin-bottom:8px;">Sign below using your finger or mouse</div>
+        <canvas id="psw-sig-canvas" width="440" height="120"
+          style="width:100%;height:120px;background:#fff;border:1px solid #ccc;border-radius:8px;display:block;touch-action:none;cursor:crosshair;"></canvas>
+        <button type="button" onclick="clearSigCanvas()"
+          style="margin-top:6px;padding:6px 14px;background:none;border:1px solid var(--border);border-radius:6px;font-family:var(--mono);font-size:11px;color:var(--muted);cursor:pointer;touch-action:manipulation;">✕ Clear</button>
+      </div>
+      <button id="psw-form-submit-btn" onclick="submitFormSheet()"
+        style="width:100%;margin-top:16px;padding:14px;background:var(--teal);color:#fff;border:none;border-radius:10px;font-family:var(--mono);font-size:12px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;min-height:48px;touch-action:manipulation;">Submit Form</button>
+      <div id="psw-form-error" style="display:none;margin-top:8px;padding:10px 12px;background:rgba(224,85,85,.1);border:1px solid rgba(224,85,85,.3);border-radius:8px;font-family:var(--mono);font-size:11px;color:var(--red);"></div>
+    </div>
+  </div>
 </div>
 
 <!-- PAY -->
@@ -1967,12 +2035,14 @@ function renderHomeFeed() {
       const _safeId = b.id || '';
 
       if (completedVisit) {
-        // Show as done — still visible so PSW can see their full day
         const hrs = parseFloat(completedVisit.hours_worked||0).toFixed(1);
-        rows.push(`<div class="feed-row">
+        rows.push(`<div class="feed-row" style="border-left:3px solid var(--green2);background:rgba(30,138,82,.06);border-radius:6px;padding-left:10px;">
           <div class="feed-dot done"></div>
-          <div class="feed-body"><div class="feed-client">${b.client_name||'—'}</div><div class="feed-meta">${completedVisit.time_in||'—'} – ${completedVisit.time_out||'—'} · Done</div></div>
-          <div class="feed-right"><div class="feed-hrs">${hrs}h</div><div class="feed-time" style="color:var(--green2);font-size:11px;">✓</div></div>
+          <div class="feed-body">
+            <div class="feed-client" style="color:var(--green2);">✓ ${b.client_name||'—'}</div>
+            <div class="feed-meta">${completedVisit.time_in||'—'} – ${completedVisit.time_out||'—'} · ${hrs}h · Completed</div>
+          </div>
+          <div class="feed-right"><div class="feed-hrs" style="color:var(--green2);">${hrs}h</div></div>
         </div>`);
         return;
       }
@@ -2172,7 +2242,10 @@ function renderSchedDayCards(ds, days, bookings, visits, clients, today) {
     })() : null;
     const timeStr = b.scheduled_time ? (endTime ? b.scheduled_time+' - '+endTime : b.scheduled_time) : 'TBD';
     const _safe = (b.client_name||'').replace(/'/g,'').replace(/"/g,'');
-    return '<div style="background:var(--bg2);border:1px solid ' + (isActive ? 'rgba(224,154,61,.4)' : 'var(--border)') + ';border-radius:12px;padding:14px;margin-bottom:8px;' + (done ? 'opacity:0.65;' : '') + '">' +
+    const _cardBg   = done ? 'rgba(30,138,82,.07)' : isActive ? 'rgba(224,154,61,.06)' : 'var(--bg2)';
+    const _cardBdr  = done ? 'rgba(30,138,82,.45)' : isActive ? 'rgba(224,154,61,.4)' : 'var(--border)';
+    const _cardLeft = done ? 'border-left:3px solid var(--green2);' : isActive ? 'border-left:3px solid var(--amber);' : '';
+    return '<div style="background:' + _cardBg + ';border:1px solid ' + _cardBdr + ';' + _cardLeft + 'border-radius:12px;padding:14px;margin-bottom:8px;">' +
       '<div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px;">' +
         '<div style="flex:1;min-width:0;">' +
           '<div style="font-size:15px;font-weight:600;color:var(--text);margin-bottom:2px;cursor:pointer;" onclick="openClientSheetByName(\'' + _safe + '\')">' + (b.client_name||'—') + ' <span style="font-family:var(--mono);font-size:11px;color:var(--teal2);">Info ›</span></div>' +
@@ -2879,6 +2952,273 @@ async function submitNote() {
     btn.textContent = 'Submit Note'; btn.disabled = false;
     showToast('Connection error — try again', 'err');
   }
+}
+
+// ══ PSW STANDALONE FORMS ══════════════════════════════════════════
+
+let _activeFormType = null;
+let _sigCanvas = null, _sigCtx = null, _sigDrawing = false, _sigHasData = false;
+
+const _formConfigs = {
+  incident: {
+    title: '⚠ Incident Report', sub: 'Ontario OHSA-aligned · Sent to HQ immediately',
+    color: 'var(--red)', notifyFamily: true,
+    fields: [
+      { id:'f_date',     label:'Date & Time of Incident',   type:'datetime-local', required:true },
+      { id:'f_client',   label:'Client Name (if applicable)',type:'client-select',  required:false },
+      { id:'f_location', label:'Location of Incident',       type:'text',  placeholder:'e.g. bathroom, kitchen', required:true },
+      { id:'f_type',     label:'Type of Incident',           type:'select', options:['Fall','Injury to client','Injury to PSW','Medication error','Unsafe condition','Behaviour incident','Other'], required:true },
+      { id:'f_desc',     label:'Description — What happened?', type:'textarea', placeholder:'Describe in detail...', required:true },
+      { id:'f_action',   label:'Immediate Action Taken',     type:'textarea', placeholder:'What did you do immediately?', required:true },
+      { id:'f_911',      label:'Was 911 called?',            type:'select', options:['No','Yes — ambulance','Yes — police'], required:true },
+      { id:'f_witness',  label:'Witness Name (if any)',      type:'text',  placeholder:'Leave blank if none', required:false },
+    ]
+  },
+  careplan: {
+    title: '📋 Care Plan Update Request', sub: 'Sent to HQ for review · Family notified on approval',
+    color: 'var(--teal2)', notifyFamily: true,
+    fields: [
+      { id:'f_client',   label:'Client Name',                type:'client-select', required:true },
+      { id:'f_change',   label:'What needs to change?',      type:'textarea', placeholder:'Describe the specific change...', required:true },
+      { id:'f_reason',   label:'Reason for Change',          type:'textarea', placeholder:'Why is this change needed?', required:true },
+      { id:'f_urgency',  label:'Urgency',                    type:'select', options:['Routine — next review cycle','Urgent — within 1 week','Critical — immediate'], required:true },
+      { id:'f_obs',      label:'Observations Supporting This', type:'textarea', placeholder:'What have you noticed?', required:false },
+    ]
+  },
+  timeoff: {
+    title: '📅 Time Off / Book-Off Request', sub: 'HQ will review and confirm · Short-notice flagged automatically',
+    color: 'var(--gold)', notifyFamily: false,
+    fields: [
+      { id:'f_from',  label:'From Date',    type:'date', required:true },
+      { id:'f_to',    label:'To Date',      type:'date', required:true },
+      { id:'f_type',  label:'Reason Type',  type:'select', options:['Sick / Illness','Personal','Family emergency','Medical appointment','Other'], required:true },
+      { id:'f_notes', label:'Additional Notes (optional)', type:'textarea', placeholder:'Anything HQ should know...', required:false },
+    ]
+  },
+  vacation: {
+    title: '🏖 Vacation Request', sub: 'Ontario ESA — 2 weeks/year · 2 weeks notice recommended',
+    color: 'var(--gold)', notifyFamily: false,
+    fields: [
+      { id:'f_from',  label:'Vacation Start Date',  type:'date', required:true },
+      { id:'f_to',    label:'Vacation End Date',    type:'date', required:true },
+      { id:'f_pay',   label:'Vacation Pay',         type:'select', options:['Pay with vacation (next payroll)','Already included in regular pay'], required:true },
+      { id:'f_notes', label:'Notes (optional)',     type:'textarea', placeholder:'Travel plans, coverage needed...', required:false },
+    ]
+  },
+  concern: {
+    title: '💬 Client Concern', sub: 'HQ reviews all concerns · Family notified if safety risk',
+    color: 'var(--purple2)', notifyFamily: true,
+    fields: [
+      { id:'f_client',   label:'Client Name',               type:'client-select', required:true },
+      { id:'f_type',     label:'Nature of Concern',         type:'select', options:['Health — physical symptoms','Safety — fall risk or hazard','Behaviour — mood or cognitive change','Family conflict','Environment — home condition','Financial abuse concern','Other'], required:true },
+      { id:'f_desc',     label:'Description',               type:'textarea', placeholder:'What you observed...', required:true },
+      { id:'f_duration', label:'How Long Observed?',        type:'select', options:['First time today','A few days','About a week','Several weeks','Months'], required:true },
+      { id:'f_urgency',  label:'Urgency',                   type:'select', options:['Low — monitoring','Medium — follow-up needed','High — this week','Critical — immediate'], required:true },
+      { id:'f_family',   label:'Does family know you are reporting?', type:'select', options:['Yes','No','Unknown'], required:true },
+    ]
+  },
+  mileage: {
+    title: '🚗 Mileage / Expense Claim', sub: 'CRA rate $0.72/km (2024) · Added to next payroll on approval',
+    color: 'var(--teal2)', notifyFamily: false,
+    fields: [
+      { id:'f_date',    label:'Date of Travel / Expense',   type:'date', required:true },
+      { id:'f_exptype', label:'Type',                       type:'select', options:['Mileage — client visit','Mileage — agency errand','Supplies purchased','Parking','Other expense'], required:true },
+      { id:'f_client',  label:'Client Name (if visit-related)', type:'client-select', required:false },
+      { id:'f_from',    label:'From (address / intersection)', type:'text', placeholder:'e.g. Home address', required:false },
+      { id:'f_to',      label:'To (address / intersection)',   type:'text', placeholder:'e.g. Client address', required:false },
+      { id:'f_km',      label:'Distance (km) — mileage only', type:'number', placeholder:'0', required:false },
+      { id:'f_amount',  label:'Amount ($) — non-mileage',     type:'number', placeholder:'0.00', required:false },
+      { id:'f_notes',   label:'Details',                      type:'textarea', placeholder:'Purpose of travel or expense...', required:true },
+    ]
+  },
+  latearrival: {
+    title: '🏠 Late Arrival / Early Departure', sub: 'Family notified automatically · HQ alerted for cover if needed',
+    color: 'var(--amber)', notifyFamily: true,
+    fields: [
+      { id:'f_client', label:'Client Name',          type:'client-select', required:true },
+      { id:'f_date',   label:'Date of Visit',        type:'date', required:true },
+      { id:'f_ltype',  label:'Type',                 type:'select', options:['Late arrival','Early departure','Both'], required:true },
+      { id:'f_time',   label:'Expected Arrival Time (if late)', type:'time', required:false },
+      { id:'f_reason', label:'Reason',               type:'select', options:['Traffic / transit','Personal emergency','Medical appointment','Car trouble','Weather','Other'], required:true },
+      { id:'f_cover',  label:'Cover Needed?',        type:'select', options:['No — I will still arrive','Yes — please arrange cover'], required:true },
+    ]
+  },
+  equipment: {
+    title: '⚙ Equipment / Supply Issue', sub: 'HQ coordinates replacement or delivery',
+    color: 'var(--muted2)', notifyFamily: false,
+    fields: [
+      { id:'f_client',  label:'Client Name',         type:'client-select', required:true },
+      { id:'f_equip',   label:'Equipment / Supply',  type:'text', placeholder:'e.g. gloves, blood pressure cuff', required:true },
+      { id:'f_issue',   label:'Issue Type',          type:'select', options:['Missing','Broken or damaged','Needs replacement','Additional quantity needed','Never received'], required:true },
+      { id:'f_urgency', label:'Urgency',             type:'select', options:['Routine — next visit','This week','Urgent — next shift'], required:true },
+      { id:'f_desc',    label:'Description (optional)', type:'textarea', placeholder:'Additional details...', required:false },
+    ]
+  }
+};
+
+// ── SIGNATURE CANVAS SETUP ──────────────────────────────────────
+function _initSigCanvas() {
+  const canvas = document.getElementById('psw-sig-canvas');
+  if (!canvas) return;
+  _sigCanvas = canvas;
+  _sigCtx = canvas.getContext('2d');
+  _sigHasData = false;
+
+  const getPos = e => {
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    if (e.touches) {
+      return { x: (e.touches[0].clientX - rect.left) * scaleX, y: (e.touches[0].clientY - rect.top) * scaleY };
+    }
+    return { x: (e.clientX - rect.left) * scaleX, y: (e.clientY - rect.top) * scaleY };
+  };
+
+  const start = e => { e.preventDefault(); _sigDrawing = true; const p = getPos(e); _sigCtx.beginPath(); _sigCtx.moveTo(p.x, p.y); };
+  const move  = e => { e.preventDefault(); if (!_sigDrawing) return; const p = getPos(e); _sigCtx.lineTo(p.x, p.y); _sigCtx.strokeStyle = '#000'; _sigCtx.lineWidth = 2.5; _sigCtx.lineCap = 'round'; _sigCtx.lineJoin = 'round'; _sigCtx.stroke(); _sigHasData = true; };
+  const end   = e => { e.preventDefault(); _sigDrawing = false; };
+
+  canvas.addEventListener('mousedown',  start);
+  canvas.addEventListener('mousemove',  move);
+  canvas.addEventListener('mouseup',    end);
+  canvas.addEventListener('mouseleave', end);
+  canvas.addEventListener('touchstart', start, { passive: false });
+  canvas.addEventListener('touchmove',  move,  { passive: false });
+  canvas.addEventListener('touchend',   end,   { passive: false });
+}
+
+function clearSigCanvas() {
+  if (!_sigCtx || !_sigCanvas) return;
+  _sigCtx.clearRect(0, 0, _sigCanvas.width, _sigCanvas.height);
+  _sigHasData = false;
+}
+
+// ── FORM OPEN / CLOSE / SUBMIT ──────────────────────────────────
+function openFormSheet(type) {
+  const cfg = _formConfigs[type];
+  if (!cfg) return;
+  _activeFormType = type;
+
+  document.getElementById('psw-form-title').textContent = cfg.title;
+  document.getElementById('psw-form-title').style.color = cfg.color;
+  document.getElementById('psw-form-sub').textContent = cfg.sub;
+
+  const clients = (scheduleData?.clients || scheduleData?.assigned_clients || []);
+  const clientOptions = clients.map(c => {
+    const name = ((c.first_name||'') + ' ' + (c.last_name||'')).trim();
+    return `<option value="${name}">${name}</option>`;
+  }).join('');
+
+  const baseStyle = 'width:100%;padding:11px 12px;background:var(--bg3);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-size:14px;font-family:var(--sans);box-sizing:border-box;outline:none;';
+
+  const fieldsHtml = cfg.fields.map(f => {
+    const lbl = `<div style="font-family:var(--mono);font-size:11px;letter-spacing:1px;color:var(--muted);margin-bottom:5px;margin-top:12px;">${f.label}${f.required ? ' <span style="color:var(--red);">*</span>' : ''}</div>`;
+    if (f.type === 'textarea')      return lbl + `<textarea id="${f.id}" placeholder="${f.placeholder||''}" style="${baseStyle}min-height:80px;resize:vertical;line-height:1.6;"></textarea>`;
+    if (f.type === 'select')        return lbl + `<select id="${f.id}" style="${baseStyle}"><option value="">Select...</option>${(f.options||[]).map(o=>`<option value="${o}">${o}</option>`).join('')}</select>`;
+    if (f.type === 'client-select') return lbl + `<select id="${f.id}" style="${baseStyle}"><option value="">Select client...</option>${clientOptions}</select>`;
+    return lbl + `<input type="${f.type}" id="${f.id}" placeholder="${f.placeholder||''}" style="${baseStyle}min-height:44px;">`;
+  }).join('');
+
+  document.getElementById('psw-form-fields').innerHTML = fieldsHtml;
+  document.getElementById('psw-form-error').style.display = 'none';
+  document.getElementById('psw-form-submit-btn').disabled = false;
+  document.getElementById('psw-form-submit-btn').textContent = 'Submit Form';
+  document.getElementById('psw-form-overlay').style.display = 'block';
+  document.body.style.overflow = 'hidden';
+
+  // Init signature canvas after overlay is visible
+  setTimeout(_initSigCanvas, 50);
+}
+
+function closeFormSheet() {
+  document.getElementById('psw-form-overlay').style.display = 'none';
+  document.body.style.overflow = '';
+  _activeFormType = null;
+  _sigCanvas = null; _sigCtx = null; _sigHasData = false;
+}
+
+async function submitFormSheet() {
+  const cfg = _formConfigs[_activeFormType];
+  if (!cfg) return;
+
+  // Validate required fields
+  const fields = {};
+  const missing = [];
+  for (const f of cfg.fields) {
+    const el = document.getElementById(f.id);
+    if (!el) continue;
+    const val = el.value?.trim() || '';
+    if (f.required && !val) { missing.push(f.label); continue; }
+    if (val) fields[f.id] = val;
+  }
+
+  // Validate signature
+  if (!_sigHasData) { missing.push('PSW Signature'); }
+
+  if (missing.length) {
+    const errEl = document.getElementById('psw-form-error');
+    errEl.textContent = 'Required: ' + missing.join(', ');
+    errEl.style.display = 'block';
+    return;
+  }
+
+  // Capture signature as base64 PNG
+  if (_sigCanvas && _sigHasData) {
+    fields.f_signature = _sigCanvas.toDataURL('image/png');
+  }
+
+  const clientField = cfg.fields.find(f => f.type === 'client-select' || f.id === 'f_client');
+  const clientName = clientField ? (fields[clientField.id] || null) : null;
+
+  const btn = document.getElementById('psw-form-submit-btn');
+  btn.disabled = true; btn.textContent = 'Submitting...';
+  document.getElementById('psw-form-error').style.display = 'none';
+
+  try {
+    const res = await fetch(`${API}/psw/form/submit`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        psw_name: pswName, pin: pswPin, operator_id: pswOperatorId,
+        form_type: _activeFormType,
+        client_name: clientName,
+        fields,
+        notify_family: cfg.notifyFamily && !!clientName
+      })
+    });
+    const d = await res.json();
+    if (!d.success) throw new Error(d.error || 'Submit failed');
+
+    _submittedForms.unshift({
+      type: _activeFormType,
+      ref: d.pdf_ref || '',
+      time: new Date().toLocaleTimeString('en-CA', { hour:'2-digit', minute:'2-digit' })
+    });
+    closeFormSheet();
+    showToast(`Form submitted${d.pdf_ref ? ' · ' + d.pdf_ref : ''} — HQ notified ✓`, 'ok');
+    _renderSubmittedForms();
+
+  } catch (e) {
+    btn.disabled = false; btn.textContent = 'Submit Form';
+    const errEl = document.getElementById('psw-form-error');
+    errEl.textContent = e.message || 'Submit failed — try again';
+    errEl.style.display = 'block';
+  }
+}
+
+const _submittedForms = [];
+function _renderSubmittedForms() {
+  const el = document.getElementById('forms-submitted-list');
+  if (!el || !_submittedForms.length) { if(el) el.innerHTML = ''; return; }
+  el.innerHTML = '<div style="font-family:var(--mono);font-size:11px;letter-spacing:1px;color:var(--muted);margin-bottom:8px;">Recently Submitted</div>' +
+    _submittedForms.slice(0,3).map(f => `
+      <div style="background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;margin-bottom:6px;display:flex;align-items:center;gap:10px;">
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:13px;font-weight:500;color:var(--text);">${_formConfigs[f.type]?.title || f.type}</div>
+          <div style="font-family:var(--mono);font-size:11px;color:var(--muted);">${f.time}${f.ref ? ' · ' + f.ref : ''}</div>
+        </div>
+        <div style="font-family:var(--mono);font-size:10px;padding:2px 7px;border-radius:4px;background:rgba(61,138,122,.1);color:var(--teal2);border:1px solid rgba(61,138,122,.25);">Sent ✓</div>
+      </div>`).join('');
 }
 
 // ── CHECKLIST ──
