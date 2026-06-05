@@ -1072,44 +1072,90 @@ a{color:inherit;text-decoration:none;}
   <div style="padding:6px 12px 16px;">
     <div style="font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:10px;">Ontario Forms</div>
     <div style="display:flex;flex-direction:column;gap:8px;">
-      <div onclick="openFormSheet('incident')" style="background:var(--bg2);border:1px solid rgba(224,85,85,.3);border-left:3px solid var(--red);border-radius:10px;padding:14px;cursor:pointer;touch-action:manipulation;display:flex;align-items:center;justify-content:space-between;min-height:60px;">
-        <div><div style="font-size:14px;font-weight:600;color:var(--red);margin-bottom:3px;">⚠ Incident Report</div><div style="font-family:var(--mono);font-size:11px;color:var(--muted2);">Falls, injuries, unsafe conditions, medication errors</div></div>
-        <div style="font-size:18px;color:var(--muted);margin-left:8px;">›</div>
+
+      <!-- Incident Report -->
+      <div onclick="openFormSheet('incident')" style="background:var(--bg2);border:1px solid rgba(224,85,85,.3);border-left:3px solid var(--red);border-radius:10px;padding:14px;cursor:pointer;touch-action:manipulation;display:flex;align-items:center;gap:12px;min-height:60px;">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="var(--red)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="M10 3L2 17h16L10 3z"/><line x1="10" y1="9" x2="10" y2="12"/><circle cx="10" cy="14.5" r=".5" fill="var(--red)"/></svg>
+        <div style="flex:1;min-width:0;"><div style="font-size:14px;font-weight:600;color:var(--red);margin-bottom:3px;">Incident Report</div><div style="font-family:var(--mono);font-size:11px;color:var(--muted2);">Falls, injuries, unsafe conditions</div></div>
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="var(--muted)" stroke-width="1.5" stroke-linecap="round"><path d="M6 4l4 4-4 4"/></svg>
       </div>
-      <div onclick="openFormSheet('careplan')" style="background:var(--bg2);border:1px solid rgba(61,138,122,.3);border-left:3px solid var(--teal2);border-radius:10px;padding:14px;cursor:pointer;touch-action:manipulation;display:flex;align-items:center;justify-content:space-between;min-height:60px;">
-        <div><div style="font-size:14px;font-weight:600;color:var(--teal2);margin-bottom:3px;">📋 Care Plan Update</div><div style="font-family:var(--mono);font-size:11px;color:var(--muted2);">Request changes to client's care plan or tasks</div></div>
-        <div style="font-size:18px;color:var(--muted);margin-left:8px;">›</div>
+
+      <!-- Critical Incident -->
+      <div onclick="openFormSheet('critical_incident')" style="background:var(--bg2);border:1px solid rgba(224,85,85,.5);border-left:3px solid var(--red);border-radius:10px;padding:14px;cursor:pointer;touch-action:manipulation;display:flex;align-items:center;gap:12px;min-height:60px;">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="var(--red)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><circle cx="10" cy="10" r="8"/><line x1="10" y1="6" x2="10" y2="10"/><circle cx="10" cy="13.5" r=".6" fill="var(--red)"/></svg>
+        <div style="flex:1;min-width:0;"><div style="font-size:14px;font-weight:600;color:var(--red);margin-bottom:3px;">Critical Incident</div><div style="font-family:var(--mono);font-size:11px;color:var(--muted2);">Hospitalization, unresponsive client, death, abuse</div></div>
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="var(--muted)" stroke-width="1.5" stroke-linecap="round"><path d="M6 4l4 4-4 4"/></svg>
       </div>
-      <div onclick="openFormSheet('timeoff')" style="background:var(--bg2);border:1px solid rgba(200,169,110,.3);border-left:3px solid var(--gold);border-radius:10px;padding:14px;cursor:pointer;touch-action:manipulation;display:flex;align-items:center;justify-content:space-between;min-height:60px;">
-        <div><div style="font-size:14px;font-weight:600;color:var(--gold);margin-bottom:3px;">📅 Time Off / Book-Off</div><div style="font-family:var(--mono);font-size:11px;color:var(--muted2);">Report dates you cannot work (sick, personal, medical)</div></div>
-        <div style="font-size:18px;color:var(--muted);margin-left:8px;">›</div>
+
+      <!-- Medication Discrepancy -->
+      <div onclick="openFormSheet('medication_discrepancy')" style="background:var(--bg2);border:1px solid rgba(224,85,85,.3);border-left:3px solid var(--red);border-radius:10px;padding:14px;cursor:pointer;touch-action:manipulation;display:flex;align-items:center;gap:12px;min-height:60px;">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="var(--red)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><rect x="5" y="3" width="10" height="14" rx="2"/><line x1="8" y1="7" x2="12" y2="7"/><line x1="8" y1="10" x2="12" y2="10"/><line x1="8" y1="13" x2="10" y2="13"/></svg>
+        <div style="flex:1;min-width:0;"><div style="font-size:14px;font-weight:600;color:var(--red);margin-bottom:3px;">Medication Discrepancy</div><div style="font-family:var(--mono);font-size:11px;color:var(--muted2);">Missed dose, wrong medication, administration error</div></div>
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="var(--muted)" stroke-width="1.5" stroke-linecap="round"><path d="M6 4l4 4-4 4"/></svg>
       </div>
-      <div onclick="openFormSheet('vacation')" style="background:var(--bg2);border:1px solid rgba(200,169,110,.3);border-left:3px solid var(--gold);border-radius:10px;padding:14px;cursor:pointer;touch-action:manipulation;display:flex;align-items:center;justify-content:space-between;min-height:60px;">
-        <div><div style="font-size:14px;font-weight:600;color:var(--gold);margin-bottom:3px;">🏖 Vacation Request</div><div style="font-family:var(--mono);font-size:11px;color:var(--muted2);">Planned vacation — ESA-tracked, 2 weeks/year Ontario</div></div>
-        <div style="font-size:18px;color:var(--muted);margin-left:8px;">›</div>
+
+      <!-- Refusal of Care -->
+      <div onclick="openFormSheet('refusal_of_care')" style="background:var(--bg2);border:1px solid rgba(224,154,61,.3);border-left:3px solid var(--amber);border-radius:10px;padding:14px;cursor:pointer;touch-action:manipulation;display:flex;align-items:center;gap:12px;min-height:60px;">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="var(--amber)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><circle cx="10" cy="10" r="8"/><line x1="6" y1="10" x2="14" y2="10"/></svg>
+        <div style="flex:1;min-width:0;"><div style="font-size:14px;font-weight:600;color:var(--amber);margin-bottom:3px;">Refusal of Care</div><div style="font-family:var(--mono);font-size:11px;color:var(--muted2);">Client declined a scheduled task or service</div></div>
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="var(--muted)" stroke-width="1.5" stroke-linecap="round"><path d="M6 4l4 4-4 4"/></svg>
       </div>
-      <div onclick="openFormSheet('concern')" style="background:var(--bg2);border:1px solid rgba(160,96,224,.3);border-left:3px solid var(--purple2);border-radius:10px;padding:14px;cursor:pointer;touch-action:manipulation;display:flex;align-items:center;justify-content:space-between;min-height:60px;">
-        <div><div style="font-size:14px;font-weight:600;color:var(--purple2);margin-bottom:3px;">💬 Client Concern</div><div style="font-family:var(--mono);font-size:11px;color:var(--muted2);">Report a concern about a client's health or safety</div></div>
-        <div style="font-size:18px;color:var(--muted);margin-left:8px;">›</div>
+
+      <!-- Workplace Injury -->
+      <div onclick="openFormSheet('workplace_injury')" style="background:var(--bg2);border:1px solid rgba(200,169,110,.3);border-left:3px solid var(--gold);border-radius:10px;padding:14px;cursor:pointer;touch-action:manipulation;display:flex;align-items:center;gap:12px;min-height:60px;">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="var(--gold)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="M10 2v6M10 2l-3 3M10 2l3 3"/><path d="M4 10h12M4 10v7a1 1 0 001 1h10a1 1 0 001-1v-7"/></svg>
+        <div style="flex:1;min-width:0;"><div style="font-size:14px;font-weight:600;color:var(--gold);margin-bottom:3px;">Workplace Injury / Near Miss</div><div style="font-family:var(--mono);font-size:11px;color:var(--muted2);">WSIB-reportable injury or near miss at a client home</div></div>
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="var(--muted)" stroke-width="1.5" stroke-linecap="round"><path d="M6 4l4 4-4 4"/></svg>
       </div>
-      <div onclick="openFormSheet('mileage')" style="background:var(--bg2);border:1px solid rgba(61,138,122,.2);border-left:3px solid var(--teal2);border-radius:10px;padding:14px;cursor:pointer;touch-action:manipulation;display:flex;align-items:center;justify-content:space-between;min-height:60px;">
-        <div><div style="font-size:14px;font-weight:600;color:var(--teal2);margin-bottom:3px;">🚗 Mileage / Expense</div><div style="font-family:var(--mono);font-size:11px;color:var(--muted2);">Claim travel reimbursement ($0.72/km CRA 2024)</div></div>
-        <div style="font-size:18px;color:var(--muted);margin-left:8px;">›</div>
+
+      <!-- Client Concern -->
+      <div onclick="openFormSheet('concern')" style="background:var(--bg2);border:1px solid rgba(160,96,224,.3);border-left:3px solid var(--purple2);border-radius:10px;padding:14px;cursor:pointer;touch-action:manipulation;display:flex;align-items:center;gap:12px;min-height:60px;">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="var(--purple2)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="M17 12a2 2 0 01-2 2H6l-3 3V5a2 2 0 012-2h10a2 2 0 012 2v7z"/></svg>
+        <div style="flex:1;min-width:0;"><div style="font-size:14px;font-weight:600;color:var(--purple2);margin-bottom:3px;">Client Concern</div><div style="font-family:var(--mono);font-size:11px;color:var(--muted2);">Health, safety, behaviour or environment concern</div></div>
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="var(--muted)" stroke-width="1.5" stroke-linecap="round"><path d="M6 4l4 4-4 4"/></svg>
       </div>
-      <div onclick="openFormSheet('latearrival')" style="background:var(--bg2);border:1px solid rgba(224,154,61,.3);border-left:3px solid var(--amber);border-radius:10px;padding:14px;cursor:pointer;touch-action:manipulation;display:flex;align-items:center;justify-content:space-between;min-height:60px;">
-        <div><div style="font-size:14px;font-weight:600;color:var(--amber);margin-bottom:3px;">🏠 Late Arrival / Early Departure</div><div style="font-family:var(--mono);font-size:11px;color:var(--muted2);">Notify HQ and family before a visit timing change</div></div>
-        <div style="font-size:18px;color:var(--muted);margin-left:8px;">›</div>
+
+      <!-- Care Plan Update -->
+      <div onclick="openFormSheet('careplan')" style="background:var(--bg2);border:1px solid rgba(61,138,122,.3);border-left:3px solid var(--teal2);border-radius:10px;padding:14px;cursor:pointer;touch-action:manipulation;display:flex;align-items:center;gap:12px;min-height:60px;">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="var(--teal2)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><rect x="4" y="3" width="12" height="14" rx="1.5"/><line x1="7" y1="7" x2="13" y2="7"/><line x1="7" y1="10" x2="13" y2="10"/><line x1="7" y1="13" x2="10" y2="13"/></svg>
+        <div style="flex:1;min-width:0;"><div style="font-size:14px;font-weight:600;color:var(--teal2);margin-bottom:3px;">Care Plan Update</div><div style="font-family:var(--mono);font-size:11px;color:var(--muted2);">Request changes to client tasks or care routine</div></div>
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="var(--muted)" stroke-width="1.5" stroke-linecap="round"><path d="M6 4l4 4-4 4"/></svg>
       </div>
-      <div onclick="openFormSheet('equipment')" style="background:var(--bg2);border:1px solid rgba(107,114,128,.3);border-left:3px solid var(--muted2);border-radius:10px;padding:14px;cursor:pointer;touch-action:manipulation;display:flex;align-items:center;justify-content:space-between;min-height:60px;">
-        <div><div style="font-size:14px;font-weight:600;color:var(--muted2);margin-bottom:3px;">⚙ Equipment / Supply Issue</div><div style="font-family:var(--mono);font-size:11px;color:var(--muted2);">Missing, broken, or needed supplies at client's home</div></div>
-        <div style="font-size:18px;color:var(--muted);margin-left:8px;">›</div>
+
+      <!-- Late Arrival -->
+      <div onclick="openFormSheet('latearrival')" style="background:var(--bg2);border:1px solid rgba(224,154,61,.3);border-left:3px solid var(--amber);border-radius:10px;padding:14px;cursor:pointer;touch-action:manipulation;display:flex;align-items:center;gap:12px;min-height:60px;">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="var(--amber)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><circle cx="10" cy="10" r="8"/><polyline points="10 6 10 10 13 12"/></svg>
+        <div style="flex:1;min-width:0;"><div style="font-size:14px;font-weight:600;color:var(--amber);margin-bottom:3px;">Late Arrival / Early Departure</div><div style="font-family:var(--mono);font-size:11px;color:var(--muted2);">Notify HQ and family of visit timing change</div></div>
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="var(--muted)" stroke-width="1.5" stroke-linecap="round"><path d="M6 4l4 4-4 4"/></svg>
       </div>
+
+      <!-- Time Off -->
+      <div onclick="openFormSheet('timeoff')" style="background:var(--bg2);border:1px solid rgba(200,169,110,.3);border-left:3px solid var(--gold);border-radius:10px;padding:14px;cursor:pointer;touch-action:manipulation;display:flex;align-items:center;gap:12px;min-height:60px;">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="var(--gold)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><rect x="3" y="4" width="14" height="13" rx="1.5"/><line x1="3" y1="8" x2="17" y2="8"/><line x1="7" y1="2" x2="7" y2="5"/><line x1="13" y1="2" x2="13" y2="5"/></svg>
+        <div style="flex:1;min-width:0;"><div style="font-size:14px;font-weight:600;color:var(--gold);margin-bottom:3px;">Time Off / Book-Off</div><div style="font-family:var(--mono);font-size:11px;color:var(--muted2);">Sick day, personal day, medical appointment</div></div>
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="var(--muted)" stroke-width="1.5" stroke-linecap="round"><path d="M6 4l4 4-4 4"/></svg>
+      </div>
+
+      <!-- Vacation -->
+      <div onclick="openFormSheet('vacation')" style="background:var(--bg2);border:1px solid rgba(200,169,110,.3);border-left:3px solid var(--gold);border-radius:10px;padding:14px;cursor:pointer;touch-action:manipulation;display:flex;align-items:center;gap:12px;min-height:60px;">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="var(--gold)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="M3 17c2-4 4-6 7-6s5 2 7 6"/><path d="M10 11V5"/><path d="M7 8l3-3 3 3"/></svg>
+        <div style="flex:1;min-width:0;"><div style="font-size:14px;font-weight:600;color:var(--gold);margin-bottom:3px;">Vacation Request</div><div style="font-family:var(--mono);font-size:11px;color:var(--muted2);">ESA-tracked — 2 weeks/year Ontario</div></div>
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="var(--muted)" stroke-width="1.5" stroke-linecap="round"><path d="M6 4l4 4-4 4"/></svg>
+      </div>
+
+      <!-- Equipment -->
+      <div onclick="openFormSheet('equipment')" style="background:var(--bg2);border:1px solid rgba(168,191,196,.2);border-left:3px solid var(--muted);border-radius:10px;padding:14px;cursor:pointer;touch-action:manipulation;display:flex;align-items:center;gap:12px;min-height:60px;">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="var(--muted2)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><circle cx="10" cy="10" r="3"/><path d="M10 2v2M10 16v2M2 10h2M16 10h2M4.22 4.22l1.42 1.42M14.36 14.36l1.42 1.42M4.22 15.78l1.42-1.42M14.36 5.64l1.42-1.42"/></svg>
+        <div style="flex:1;min-width:0;"><div style="font-size:14px;font-weight:600;color:var(--muted2);margin-bottom:3px;">Equipment / Supply Issue</div><div style="font-family:var(--mono);font-size:11px;color:var(--muted2);">Missing, broken, or needed supplies at client home</div></div>
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="var(--muted)" stroke-width="1.5" stroke-linecap="round"><path d="M6 4l4 4-4 4"/></svg>
+      </div>
+
     </div>
     <div id="forms-submitted-list" style="margin-top:12px;"></div>
   </div>
 </div>
 
-<!-- PSW FORM OVERLAY — shared sheet for all 8 forms -->
+<!-- PSW FORM OVERLAY — shared sheet for all 11 forms -->
 <div id="psw-form-overlay" style="display:none;position:fixed;inset:0;z-index:600;background:rgba(0,0,0,.88);overflow-y:auto;-webkit-overflow-scrolling:touch;">
   <div style="min-height:100%;display:flex;align-items:flex-start;justify-content:center;padding:16px;">
     <div id="psw-form-box" style="background:var(--bg2);border:1px solid var(--border2);border-radius:16px;width:100%;max-width:480px;padding:20px;margin:auto;">
@@ -1121,6 +1167,25 @@ a{color:inherit;text-decoration:none;}
         <button onclick="closeFormSheet()" style="font-size:20px;color:var(--muted2);background:none;border:none;cursor:pointer;padding:4px 8px;min-height:44px;touch-action:manipulation;">✕</button>
       </div>
       <div id="psw-form-fields"></div>
+
+      <!-- File / Photo Attachments -->
+      <div style="margin-top:16px;">
+        <div style="font-family:var(--mono);font-size:11px;letter-spacing:1px;color:var(--muted);margin-bottom:8px;">ATTACHMENTS <span style="color:var(--muted2);font-size:10px;">(optional · max 3 files · photos, PDFs)</span></div>
+        <div style="display:flex;gap:8px;margin-bottom:8px;">
+          <label style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:10px;background:var(--bg3);border:1px solid var(--border2);border-radius:8px;cursor:pointer;font-family:var(--mono);font-size:11px;color:var(--muted2);min-height:44px;touch-action:manipulation;">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="14" height="10" rx="1.5"/><circle cx="5.5" cy="7.5" r="1.5"/><path d="M1 11l3.5-3.5L8 11l2.5-2 4.5 4"/></svg>
+            Take Photo
+            <input type="file" id="attach-photo-input" accept="image/*" capture="environment" style="display:none;" onchange="handleAttachment(this)">
+          </label>
+          <label style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:10px;background:var(--bg3);border:1px solid var(--border2);border-radius:8px;cursor:pointer;font-family:var(--mono);font-size:11px;color:var(--muted2);min-height:44px;touch-action:manipulation;">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M13 10v3a1 1 0 01-1 1H4a1 1 0 01-1-1v-3"/><polyline points="5 6 8 3 11 6"/><line x1="8" y1="3" x2="8" y2="10"/></svg>
+            Attach File
+            <input type="file" id="attach-file-input" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" style="display:none;" onchange="handleAttachment(this)">
+          </label>
+        </div>
+        <div id="attach-chips" style="display:flex;flex-direction:column;gap:6px;"></div>
+      </div>
+
       <!-- Signature canvas -->
       <div style="margin-top:16px;">
         <div style="font-family:var(--mono);font-size:11px;letter-spacing:1px;color:var(--muted);margin-bottom:5px;">PSW SIGNATURE <span style="color:var(--red);">*</span></div>
@@ -2958,55 +3023,79 @@ async function submitNote() {
 
 let _activeFormType = null;
 let _sigCanvas = null, _sigCtx = null, _sigDrawing = false, _sigHasData = false;
+let _attachments = []; // { name, type, base64 } — max 3
 
 const _formConfigs = {
   incident: {
-    title: '⚠ Incident Report', sub: 'Ontario OHSA-aligned · Sent to HQ immediately',
+    title: 'Incident Report', sub: 'Ontario OHSA-aligned · Sent to HQ immediately',
     color: 'var(--red)', notifyFamily: true,
     fields: [
-      { id:'f_date',     label:'Date & Time of Incident',   type:'datetime-local', required:true },
-      { id:'f_client',   label:'Client Name (if applicable)',type:'client-select',  required:false },
-      { id:'f_location', label:'Location of Incident',       type:'text',  placeholder:'e.g. bathroom, kitchen', required:true },
-      { id:'f_type',     label:'Type of Incident',           type:'select', options:['Fall','Injury to client','Injury to PSW','Medication error','Unsafe condition','Behaviour incident','Other'], required:true },
+      { id:'f_date',     label:'Date & Time of Incident',      type:'datetime-local', required:true },
+      { id:'f_client',   label:'Client Name (if applicable)',  type:'client-select',  required:false },
+      { id:'f_location', label:'Location of Incident',         type:'text', placeholder:'e.g. bathroom, kitchen', required:true },
+      { id:'f_type',     label:'Type of Incident',             type:'select', options:['Fall','Injury to client','Injury to PSW','Medication error','Unsafe condition','Behaviour incident','Other'], required:true },
       { id:'f_desc',     label:'Description — What happened?', type:'textarea', placeholder:'Describe in detail...', required:true },
-      { id:'f_action',   label:'Immediate Action Taken',     type:'textarea', placeholder:'What did you do immediately?', required:true },
-      { id:'f_911',      label:'Was 911 called?',            type:'select', options:['No','Yes — ambulance','Yes — police'], required:true },
-      { id:'f_witness',  label:'Witness Name (if any)',      type:'text',  placeholder:'Leave blank if none', required:false },
+      { id:'f_action',   label:'Immediate Action Taken',       type:'textarea', placeholder:'What did you do immediately?', required:true },
+      { id:'f_911',      label:'Was 911 called?',              type:'select', options:['No','Yes — ambulance','Yes — police'], required:true },
+      { id:'f_witness',  label:'Witness Name (if any)',        type:'text', placeholder:'Leave blank if none', required:false },
     ]
   },
-  careplan: {
-    title: '📋 Care Plan Update Request', sub: 'Sent to HQ for review · Family notified on approval',
-    color: 'var(--teal2)', notifyFamily: true,
+  critical_incident: {
+    title: 'Critical Incident Report', sub: 'Mandatory escalation · HQ and family notified immediately',
+    color: 'var(--red)', notifyFamily: true,
     fields: [
-      { id:'f_client',   label:'Client Name',                type:'client-select', required:true },
-      { id:'f_change',   label:'What needs to change?',      type:'textarea', placeholder:'Describe the specific change...', required:true },
-      { id:'f_reason',   label:'Reason for Change',          type:'textarea', placeholder:'Why is this change needed?', required:true },
-      { id:'f_urgency',  label:'Urgency',                    type:'select', options:['Routine — next review cycle','Urgent — within 1 week','Critical — immediate'], required:true },
-      { id:'f_obs',      label:'Observations Supporting This', type:'textarea', placeholder:'What have you noticed?', required:false },
+      { id:'f_date',              label:'Date & Time',                    type:'datetime-local', required:true },
+      { id:'f_client',            label:'Client Name',                    type:'client-select', required:true },
+      { id:'f_critical_type',     label:'Type of Critical Incident',      type:'select', options:['Client found unresponsive','Unexpected hospitalization','Death of client','Alleged abuse or neglect','Missing client','Serious injury','Other'], required:true },
+      { id:'f_desc',              label:'Description — What happened?',   type:'textarea', placeholder:'Describe in full detail...', required:true },
+      { id:'f_action',            label:'Immediate Action Taken',         type:'textarea', placeholder:'What did you do? Who did you call?', required:true },
+      { id:'f_911_critical',      label:'Emergency services called?',     type:'select', options:['Yes — 911 called','No — not required','No — but should have been'], required:true },
+      { id:'f_emergency_response',label:'Emergency Response Details',     type:'textarea', placeholder:'Paramedic names, hospital name, police report #...', required:false },
+      { id:'f_other_agencies',    label:'Other agencies notified',        type:'text', placeholder:'e.g. family, physician, CCAC', required:false },
     ]
   },
-  timeoff: {
-    title: '📅 Time Off / Book-Off Request', sub: 'HQ will review and confirm · Short-notice flagged automatically',
+  medication_discrepancy: {
+    title: 'Medication Discrepancy', sub: 'MOHLTC-aligned · HQ and family notified',
+    color: 'var(--red)', notifyFamily: true,
+    fields: [
+      { id:'f_date',      label:'Date & Time of Discrepancy',  type:'datetime-local', required:true },
+      { id:'f_client',    label:'Client Name',                 type:'client-select', required:true },
+      { id:'f_med_name',  label:'Medication Name',             type:'text', placeholder:'e.g. Metformin 500mg', required:true },
+      { id:'f_med_error', label:'Type of Error',               type:'select', options:['Missed dose','Wrong medication given','Wrong dose','Wrong time','Medication not available','Client refused — see Refusal form','Other'], required:true },
+      { id:'f_desc',      label:'What happened?',              type:'textarea', placeholder:'Describe the discrepancy in detail...', required:true },
+      { id:'f_med_action',label:'Action Taken',                type:'textarea', placeholder:'What did you do after noticing the error?', required:true },
+      { id:'f_pharmacy',  label:'Pharmacy or physician notified?', type:'select', options:['No','Yes — pharmacy','Yes — physician','Yes — both'], required:true },
+    ]
+  },
+  refusal_of_care: {
+    title: 'Refusal of Care', sub: 'Documents client decision · Protects PSW legally',
+    color: 'var(--amber)', notifyFamily: true,
+    fields: [
+      { id:'f_date',          label:'Date & Time',                    type:'datetime-local', required:true },
+      { id:'f_client',        label:'Client Name',                    type:'client-select', required:true },
+      { id:'f_refused_task',  label:'Task or Service Refused',        type:'textarea', placeholder:'e.g. refused bath, refused medication, refused to let PSW in', required:true },
+      { id:'f_refused_reason',label:'Reason Given by Client',         type:'textarea', placeholder:'Exact words if possible...', required:false },
+      { id:'f_capacity',      label:'Did client appear to have capacity to decide?', type:'select', options:['Yes — appeared lucid and aware','Unsure — seemed confused','No — significant cognitive concern'], required:true },
+      { id:'f_action',        label:'Action You Took',                type:'textarea', placeholder:'What did you do after the refusal?', required:true },
+      { id:'f_family_notified',label:'Was family notified?',          type:'select', options:['Yes — family was reached','No — could not reach family','Not applicable'], required:true },
+    ]
+  },
+  workplace_injury: {
+    title: 'Workplace Injury / Near Miss', sub: 'WSIB Ontario · Submit within 24 hours of incident',
     color: 'var(--gold)', notifyFamily: false,
     fields: [
-      { id:'f_from',  label:'From Date',    type:'date', required:true },
-      { id:'f_to',    label:'To Date',      type:'date', required:true },
-      { id:'f_type',  label:'Reason Type',  type:'select', options:['Sick / Illness','Personal','Family emergency','Medical appointment','Other'], required:true },
-      { id:'f_notes', label:'Additional Notes (optional)', type:'textarea', placeholder:'Anything HQ should know...', required:false },
-    ]
-  },
-  vacation: {
-    title: '🏖 Vacation Request', sub: 'Ontario ESA — 2 weeks/year · 2 weeks notice recommended',
-    color: 'var(--gold)', notifyFamily: false,
-    fields: [
-      { id:'f_from',  label:'Vacation Start Date',  type:'date', required:true },
-      { id:'f_to',    label:'Vacation End Date',    type:'date', required:true },
-      { id:'f_pay',   label:'Vacation Pay',         type:'select', options:['Pay with vacation (next payroll)','Already included in regular pay'], required:true },
-      { id:'f_notes', label:'Notes (optional)',     type:'textarea', placeholder:'Travel plans, coverage needed...', required:false },
+      { id:'f_date',        label:'Date & Time of Incident',      type:'datetime-local', required:true },
+      { id:'f_client',      label:'Client Name (if at client home)', type:'client-select', required:false },
+      { id:'f_near_miss',   label:'Was this a near miss (no injury)?', type:'select', options:['No — injury occurred','Yes — near miss only'], required:true },
+      { id:'f_injury_type', label:'Type of Injury / Incident',    type:'select', options:['Slip, trip or fall','Strain or sprain (lifting)','Needle stick or sharps','Exposure to bodily fluids','Aggression or assault','Chemical exposure','Other'], required:true },
+      { id:'f_injury_body', label:'Body Part Affected',           type:'text', placeholder:'e.g. lower back, right hand', required:false },
+      { id:'f_desc',        label:'Description — What happened?', type:'textarea', placeholder:'Describe exactly what happened...', required:true },
+      { id:'f_treatment',   label:'Treatment Received',           type:'select', options:['None required','First aid on site','Walk-in clinic','Emergency room','Hospital admitted'], required:true },
+      { id:'f_wsib_required',label:'Is WSIB reporting required?', type:'select', options:['Yes — lost time or medical aid','Near miss — no WSIB required','Unsure — HQ to assess'], required:true },
     ]
   },
   concern: {
-    title: '💬 Client Concern', sub: 'HQ reviews all concerns · Family notified if safety risk',
+    title: 'Client Concern', sub: 'HQ reviews all concerns · Family notified if safety risk',
     color: 'var(--purple2)', notifyFamily: true,
     fields: [
       { id:'f_client',   label:'Client Name',               type:'client-select', required:true },
@@ -3017,22 +3106,19 @@ const _formConfigs = {
       { id:'f_family',   label:'Does family know you are reporting?', type:'select', options:['Yes','No','Unknown'], required:true },
     ]
   },
-  mileage: {
-    title: '🚗 Mileage / Expense Claim', sub: 'CRA rate $0.72/km (2024) · Added to next payroll on approval',
-    color: 'var(--teal2)', notifyFamily: false,
+  careplan: {
+    title: 'Care Plan Update Request', sub: 'Sent to HQ for review · Family notified on approval',
+    color: 'var(--teal2)', notifyFamily: true,
     fields: [
-      { id:'f_date',    label:'Date of Travel / Expense',   type:'date', required:true },
-      { id:'f_exptype', label:'Type',                       type:'select', options:['Mileage — client visit','Mileage — agency errand','Supplies purchased','Parking','Other expense'], required:true },
-      { id:'f_client',  label:'Client Name (if visit-related)', type:'client-select', required:false },
-      { id:'f_from',    label:'From (address / intersection)', type:'text', placeholder:'e.g. Home address', required:false },
-      { id:'f_to',      label:'To (address / intersection)',   type:'text', placeholder:'e.g. Client address', required:false },
-      { id:'f_km',      label:'Distance (km) — mileage only', type:'number', placeholder:'0', required:false },
-      { id:'f_amount',  label:'Amount ($) — non-mileage',     type:'number', placeholder:'0.00', required:false },
-      { id:'f_notes',   label:'Details',                      type:'textarea', placeholder:'Purpose of travel or expense...', required:true },
+      { id:'f_client',   label:'Client Name',                type:'client-select', required:true },
+      { id:'f_change',   label:'What needs to change?',      type:'textarea', placeholder:'Describe the specific change...', required:true },
+      { id:'f_reason',   label:'Reason for Change',          type:'textarea', placeholder:'Why is this change needed?', required:true },
+      { id:'f_urgency',  label:'Urgency',                    type:'select', options:['Routine — next review cycle','Urgent — within 1 week','Critical — immediate'], required:true },
+      { id:'f_obs',      label:'Observations Supporting This', type:'textarea', placeholder:'What have you noticed?', required:false },
     ]
   },
   latearrival: {
-    title: '🏠 Late Arrival / Early Departure', sub: 'Family notified automatically · HQ alerted for cover if needed',
+    title: 'Late Arrival / Early Departure', sub: 'Family notified automatically · HQ alerted for cover if needed',
     color: 'var(--amber)', notifyFamily: true,
     fields: [
       { id:'f_client', label:'Client Name',          type:'client-select', required:true },
@@ -3043,8 +3129,28 @@ const _formConfigs = {
       { id:'f_cover',  label:'Cover Needed?',        type:'select', options:['No — I will still arrive','Yes — please arrange cover'], required:true },
     ]
   },
+  timeoff: {
+    title: 'Time Off / Book-Off Request', sub: 'HQ will review and confirm · Short-notice flagged automatically',
+    color: 'var(--gold)', notifyFamily: false,
+    fields: [
+      { id:'f_from',  label:'From Date',    type:'date', required:true },
+      { id:'f_to',    label:'To Date',      type:'date', required:true },
+      { id:'f_type',  label:'Reason Type',  type:'select', options:['Sick / Illness','Personal','Family emergency','Medical appointment','Other'], required:true },
+      { id:'f_notes', label:'Additional Notes (optional)', type:'textarea', placeholder:'Anything HQ should know...', required:false },
+    ]
+  },
+  vacation: {
+    title: 'Vacation Request', sub: 'Ontario ESA — 2 weeks/year · 2 weeks notice recommended',
+    color: 'var(--gold)', notifyFamily: false,
+    fields: [
+      { id:'f_from',  label:'Vacation Start Date',  type:'date', required:true },
+      { id:'f_to',    label:'Vacation End Date',    type:'date', required:true },
+      { id:'f_pay',   label:'Vacation Pay',         type:'select', options:['Pay with vacation (next payroll)','Already included in regular pay'], required:true },
+      { id:'f_notes', label:'Notes (optional)',     type:'textarea', placeholder:'Travel plans, coverage needed...', required:false },
+    ]
+  },
   equipment: {
-    title: '⚙ Equipment / Supply Issue', sub: 'HQ coordinates replacement or delivery',
+    title: 'Equipment / Supply Issue', sub: 'HQ coordinates replacement or delivery',
     color: 'var(--muted2)', notifyFamily: false,
     fields: [
       { id:'f_client',  label:'Client Name',         type:'client-select', required:true },
@@ -3135,6 +3241,51 @@ function closeFormSheet() {
   document.body.style.overflow = '';
   _activeFormType = null;
   _sigCanvas = null; _sigCtx = null; _sigHasData = false;
+  _attachments = [];
+  const chipsEl = document.getElementById('attach-chips');
+  if (chipsEl) chipsEl.innerHTML = '';
+  const photoIn = document.getElementById('attach-photo-input');
+  const fileIn = document.getElementById('attach-file-input');
+  if (photoIn) photoIn.value = '';
+  if (fileIn) fileIn.value = '';
+}
+
+function _renderAttachChips() {
+  const el = document.getElementById('attach-chips');
+  if (!el) return;
+  el.innerHTML = _attachments.map((a, i) => `
+    <div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--bg3);border:1px solid var(--border2);border-radius:6px;">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="var(--teal2)" stroke-width="1.5" stroke-linecap="round"><rect x="2" y="1" width="10" height="12" rx="1"/><line x1="4" y1="5" x2="10" y2="5"/><line x1="4" y1="7.5" x2="10" y2="7.5"/><line x1="4" y1="10" x2="7" y2="10"/></svg>
+      <span style="font-family:var(--mono);font-size:11px;color:var(--text);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${a.name}</span>
+      <button onclick="_removeAttachment(${i})" style="background:none;border:none;color:var(--muted2);font-size:14px;cursor:pointer;padding:0 2px;min-height:32px;touch-action:manipulation;">✕</button>
+    </div>`).join('');
+}
+
+function _removeAttachment(i) {
+  _attachments.splice(i, 1);
+  _renderAttachChips();
+}
+
+function handleAttachment(input) {
+  const file = input.files[0];
+  if (!file) return;
+  input.value = '';
+
+  if (_attachments.length >= 3) {
+    showToast('Maximum 3 attachments per form', 'err');
+    return;
+  }
+  if (file.size > 5 * 1024 * 1024) {
+    showToast('File too large — max 5 MB per file', 'err');
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = e => {
+    _attachments.push({ name: file.name, type: file.type, base64: e.target.result });
+    _renderAttachChips();
+  };
+  reader.readAsDataURL(file);
 }
 
 async function submitFormSheet() {
@@ -3165,6 +3316,11 @@ async function submitFormSheet() {
   // Capture signature as base64 PNG
   if (_sigCanvas && _sigHasData) {
     fields.f_signature = _sigCanvas.toDataURL('image/png');
+  }
+
+  // Attach files — stored as array of { name, type, base64 }
+  if (_attachments.length > 0) {
+    fields.f_attachments = _attachments.map(a => ({ name: a.name, type: a.type, data: a.base64 }));
   }
 
   const clientField = cfg.fields.find(f => f.type === 'client-select' || f.id === 'f_client');
