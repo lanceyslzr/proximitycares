@@ -2619,6 +2619,38 @@ body.sidebar-rail .sidebar{width:64px;overflow:visible;}
   <div id="hours-panel-body" style="flex:1;overflow-y:auto;"></div>
 </div>
 
+<div class="section" id="sect-forms">
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:0 14px 12px;flex-wrap:wrap;gap:8px;">
+    <div>
+      <div style="font-family:var(--mono);font-size:12px;letter-spacing:2px;text-transform:uppercase;color:var(--muted2);">PSW Forms</div>
+      <div id="forms-unread-label" style="font-size:12px;color:var(--muted);margin-top:2px;"></div>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center;">
+      <select id="forms-filter-type" onchange="renderPSWForms()" style="padding:7px 10px;background:var(--bg2);border:1px solid var(--border2);border-radius:6px;color:var(--text);font-family:var(--mono);font-size:11px;cursor:pointer;">
+        <option value="">All Types</option>
+        <option value="incident">Incident Report</option>
+        <option value="careplan">Care Plan Update</option>
+        <option value="timeoff">Time Off</option>
+        <option value="vacation">Vacation</option>
+        <option value="concern">Client Concern</option>
+        <option value="mileage">Mileage / Expense</option>
+        <option value="latearrival">Late Arrival</option>
+        <option value="equipment">Equipment Issue</option>
+      </select>
+      <select id="forms-filter-status" onchange="renderPSWForms()" style="padding:7px 10px;background:var(--bg2);border:1px solid var(--border2);border-radius:6px;color:var(--text);font-family:var(--mono);font-size:11px;cursor:pointer;">
+        <option value="">All Status</option>
+        <option value="submitted">Unacknowledged</option>
+        <option value="acknowledged">Acknowledged</option>
+        <option value="resolved">Resolved</option>
+      </select>
+      <button onclick="loadPSWForms()" style="padding:7px 12px;background:var(--bg2);border:1px solid var(--border2);border-radius:6px;color:var(--muted2);font-family:var(--mono);font-size:11px;cursor:pointer;min-height:36px;">↺</button>
+    </div>
+  </div>
+  <div id="forms-list" style="padding:0 14px 24px;">
+    <div style="font-family:var(--mono);font-size:11px;color:var(--muted);padding:24px 0;text-align:center;">Loading forms...</div>
+  </div>
+</div>
+
 <div class="section" id="sect-revenue">
   <div class="section-header" style="flex-wrap:wrap;gap:8px;">
     <span class="section-title">Revenue & Analytics</span>
@@ -2982,6 +3014,11 @@ body.sidebar-rail .sidebar{width:64px;overflow:visible;}
     <div class="sn-item" id="sn-visits" onclick="showSect('visits');closeSidebar()">
       <div class="sn-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div>
       <span class="sn-label">Visits</span>
+    </div>
+    <div class="sn-item" id="sn-forms" onclick="showSect('forms');closeSidebar()">
+      <div class="sn-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg></div>
+      <span class="sn-label">Forms</span>
+      <span class="sn-badge" id="sn-forms-badge" style="display:none;"></span>
     </div>
     <div class="sn-item" id="sn-messages" onclick="showSect('messages');closeSidebar()">
       <div class="sn-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
@@ -3838,10 +3875,11 @@ async function loadAll(spin=false) {
     // Fetch window: 60 days back, 120 days forward for time-off blocks
     const _toWin = new Date(); _toWin.setDate(_toWin.getDate()+120);
     const _frWin = new Date(); _frWin.setDate(_frWin.getDate()-60);
-    const [overviewRes, visitsRes, timeOffRes] = await Promise.all([
+    const [overviewRes, visitsRes, timeOffRes, formsRes] = await Promise.all([
       fetch(`${API}/hq/overview?operator_id=${currentOp}`, { headers: _headers }),
       fetch(`${API}/hq/visits?operator_id=${currentOp}&limit=500&from_date=${new Date(Date.now()-90*86400000).toLocaleDateString('en-CA',{timeZone:'America/Toronto'})}`, { headers: _headers }),
-      fetch(`${API}/hq/psw-time-off?operator_id=${currentOp}&from_date=${_frWin.toLocaleDateString('en-CA',{timeZone:'America/Toronto'})}&to_date=${_toWin.toLocaleDateString('en-CA',{timeZone:'America/Toronto'})}`, { headers: _headers })
+      fetch(`${API}/hq/psw-time-off?operator_id=${currentOp}&from_date=${_frWin.toLocaleDateString('en-CA',{timeZone:'America/Toronto'})}&to_date=${_toWin.toLocaleDateString('en-CA',{timeZone:'America/Toronto'})}`, { headers: _headers }),
+      fetch(`${API}/hq/psw-forms?operator_id=${currentOp}&limit=200`, { headers: _headers })
     ]);
     const freshD = await overviewRes.json();
     if(!freshD.success) throw new Error('API error');
@@ -3853,6 +3891,15 @@ async function loadAll(spin=false) {
     try {
       const tod = await timeOffRes.json();
       if (tod.time_off) D.time_off = tod.time_off;
+    } catch {}
+    try {
+      const fd = await formsRes.json();
+      if (fd.success) {
+        window._pswForms = fd.forms || [];
+        const unread = fd.unacknowledged || 0;
+        const badge = document.getElementById('sn-forms-badge');
+        if (badge) { badge.textContent = unread; badge.style.display = unread > 0 ? '' : 'none'; }
+      }
     } catch {}
     // Invalidate lazy caches so next render fetches fresh data
     window._sentimentData = null;
@@ -3897,6 +3944,7 @@ function renderAll() {
   if (activeSect === 'activity') { renderActivity(); }
   if (activeSect === 'visits') { renderVisits(); }
   if (activeSect === 'crm') { renderCRM(); }
+  if (activeSect === 'forms') { renderPSWForms(); }
   if (activeSect === 'overview') { renderOverview(); }
   if (activeSect === 'revenue') { renderRevenue().catch(()=>{}); }
   if (activeSect === 'schedule') {
@@ -5508,6 +5556,205 @@ async function triggerSequences() {
   } catch { showToast('Sequences failed','err'); }
 }
 
+// ══ PSW FORMS INBOX ══════════════════════════════════════════════
+
+window._pswForms = window._pswForms || [];
+
+const _formTypeLabels = {
+  incident:   '⚠ Incident Report',
+  careplan:   '📋 Care Plan Update',
+  timeoff:    '📅 Time Off',
+  vacation:   '🏖 Vacation',
+  concern:    '💬 Client Concern',
+  mileage:    '🚗 Mileage / Expense',
+  latearrival:'🏠 Late Arrival',
+  equipment:  '⚙ Equipment Issue'
+};
+
+const _formTypeColors = {
+  incident:   'rgba(224,85,85,.15)',
+  careplan:   'rgba(61,138,122,.15)',
+  timeoff:    'rgba(200,169,110,.15)',
+  vacation:   'rgba(200,169,110,.15)',
+  concern:    'rgba(160,96,224,.15)',
+  mileage:    'rgba(61,138,122,.12)',
+  latearrival:'rgba(224,154,61,.15)',
+  equipment:  'rgba(107,114,128,.15)'
+};
+
+const _formTypeTextColors = {
+  incident:   'var(--red)',
+  careplan:   'var(--teal2)',
+  timeoff:    'var(--gold)',
+  vacation:   'var(--gold)',
+  concern:    '#a060e0',
+  mileage:    'var(--teal2)',
+  latearrival:'var(--amber)',
+  equipment:  'var(--muted2)'
+};
+
+const _fieldLabels = {
+  f_date:'Date / Time', f_client:'Client Name', f_location:'Location',
+  f_type:'Type', f_desc:'Description', f_action:'Immediate Action Taken',
+  f_911:'911 Called?', f_witness:'Witness', f_change:'Requested Change',
+  f_reason:'Reason', f_urgency:'Urgency', f_obs:'Observations',
+  f_from:'From Date / Address', f_to:'To Date / Address', f_notes:'Notes',
+  f_pay:'Vacation Pay', f_exptype:'Expense Type', f_km:'Distance (km)',
+  f_amount:'Amount ($)', f_ltype:'Type', f_time:'Expected Arrival Time',
+  f_cover:'Cover Needed?', f_equip:'Equipment / Supply', f_issue:'Issue Type',
+  f_duration:'Duration Observed', f_family:'Family Aware?',
+  f_signature:'PSW Signature'
+};
+
+async function loadPSWForms() {
+  const listEl = document.getElementById('forms-list');
+  if (listEl) listEl.innerHTML = '<div style="font-family:var(--mono);font-size:11px;color:var(--muted);padding:24px 0;text-align:center;">Loading...</div>';
+  try {
+    const res = await hqFetch(`${API}/hq/psw-forms?operator_id=${currentOp}&limit=200`);
+    const d = await res.json();
+    if (!d.success) throw new Error(d.error || 'Failed');
+    window._pswForms = d.forms || [];
+    const unread = d.unacknowledged || 0;
+    const badge = document.getElementById('sn-forms-badge');
+    if (badge) { badge.textContent = unread; badge.style.display = unread > 0 ? '' : 'none'; }
+    const lbl = document.getElementById('forms-unread-label');
+    if (lbl) lbl.textContent = unread > 0 ? `${unread} unacknowledged` : `${window._pswForms.length} total forms`;
+    renderPSWForms();
+  } catch(e) {
+    if (listEl) listEl.innerHTML = `<div style="font-family:var(--mono);font-size:11px;color:var(--red);padding:24px 0;text-align:center;">Failed to load forms — ${e.message}</div>`;
+  }
+}
+
+function renderPSWForms() {
+  const listEl = document.getElementById('forms-list');
+  if (!listEl) return;
+
+  const typeFilter   = document.getElementById('forms-filter-type')?.value   || '';
+  const statusFilter = document.getElementById('forms-filter-status')?.value || '';
+
+  let forms = (window._pswForms || []).filter(f => {
+    if (typeFilter   && f.form_type !== typeFilter)   return false;
+    if (statusFilter && f.status    !== statusFilter) return false;
+    return true;
+  });
+
+  if (!forms.length) {
+    listEl.innerHTML = '<div style="font-family:var(--mono);font-size:11px;color:var(--muted);padding:32px 0;text-align:center;">No forms found</div>';
+    return;
+  }
+
+  listEl.innerHTML = forms.map(f => {
+    const bgColor  = _formTypeColors[f.form_type]   || 'rgba(107,114,128,.1)';
+    const txtColor = _formTypeTextColors[f.form_type] || 'var(--muted)';
+    const label    = _formTypeLabels[f.form_type]   || f.form_type;
+    const submittedAt = f.submitted_at ? new Date(f.submitted_at).toLocaleString('en-CA', { timeZone:'America/Toronto', dateStyle:'medium', timeStyle:'short' }) : '—';
+    const acknowledgedAt = f.acknowledged_at ? new Date(f.acknowledged_at).toLocaleString('en-CA', { timeZone:'America/Toronto', dateStyle:'medium', timeStyle:'short' }) : null;
+
+    const statusPill = f.status === 'submitted'
+      ? `<span style="font-family:var(--mono);font-size:10px;padding:2px 8px;border-radius:20px;background:rgba(224,85,85,.12);color:var(--red);border:1px solid rgba(224,85,85,.25);">Unacknowledged</span>`
+      : f.status === 'acknowledged'
+      ? `<span style="font-family:var(--mono);font-size:10px;padding:2px 8px;border-radius:20px;background:rgba(200,169,110,.12);color:var(--gold);border:1px solid rgba(200,169,110,.25);">Acknowledged</span>`
+      : `<span style="font-family:var(--mono);font-size:10px;padding:2px 8px;border-radius:20px;background:rgba(61,138,122,.12);color:var(--teal2);border:1px solid rgba(61,138,122,.25);">Resolved</span>`;
+
+    // Build field rows — skip signature
+    const fieldRows = Object.entries(f.fields || {})
+      .filter(([k]) => k !== 'f_signature')
+      .map(([k, v]) => `
+        <div style="margin-bottom:8px;">
+          <div style="font-family:var(--mono);font-size:10px;letter-spacing:1px;color:var(--muted);margin-bottom:2px;">${(_fieldLabels[k] || k).toUpperCase()}</div>
+          <div style="font-size:13px;color:var(--text);">${String(v).replace(/</g,'&lt;')}</div>
+        </div>`).join('');
+
+    const sigPresent = f.fields?.f_signature ? `<div style="font-family:var(--mono);font-size:10px;color:var(--teal2);margin-top:4px;">✓ Signature attached</div>` : '';
+
+    const hqResponseHtml = f.hq_response
+      ? `<div style="margin-top:10px;padding:10px 12px;background:rgba(61,138,122,.07);border:1px solid rgba(61,138,122,.2);border-radius:8px;font-size:12px;color:var(--text);">
+           <span style="font-family:var(--mono);font-size:10px;color:var(--teal2);">HQ RESPONSE</span><br>${f.hq_response}
+         </div>` : '';
+
+    const ackedHtml = acknowledgedAt
+      ? `<div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:4px;">${f.status === 'resolved' ? 'Resolved' : 'Acknowledged'} ${acknowledgedAt}${f.acknowledged_by ? ' by ' + f.acknowledged_by : ''}</div>` : '';
+
+    const actionBtns = f.status === 'submitted' ? `
+      <button onclick="acknowledgePSWForm('${f.id}','acknowledged')" style="padding:8px 14px;background:rgba(200,169,110,.1);border:1px solid rgba(200,169,110,.3);border-radius:6px;font-family:var(--mono);font-size:11px;color:var(--gold);cursor:pointer;min-height:36px;touch-action:manipulation;">✓ Acknowledge</button>
+      <button onclick="acknowledgePSWForm('${f.id}','resolved')" style="padding:8px 14px;background:rgba(61,138,122,.1);border:1px solid rgba(61,138,122,.3);border-radius:6px;font-family:var(--mono);font-size:11px;color:var(--teal2);cursor:pointer;min-height:36px;touch-action:manipulation;">✓✓ Resolve</button>` : f.status === 'acknowledged' ? `
+      <button onclick="acknowledgePSWForm('${f.id}','resolved')" style="padding:8px 14px;background:rgba(61,138,122,.1);border:1px solid rgba(61,138,122,.3);border-radius:6px;font-family:var(--mono);font-size:11px;color:var(--teal2);cursor:pointer;min-height:36px;touch-action:manipulation;">✓✓ Mark Resolved</button>` : '';
+
+    const pdfBtn = f.pdf_data
+      ? `<button onclick="downloadFormPDF('${f.id}')" style="padding:8px 14px;background:var(--bg2);border:1px solid var(--border2);border-radius:6px;font-family:var(--mono);font-size:11px;color:var(--muted2);cursor:pointer;min-height:36px;touch-action:manipulation;">↓ PDF${f.pdf_ref ? ' · ' + f.pdf_ref : ''}</button>` : '';
+
+    return `<div style="background:var(--bg2);border:1px solid var(--border2);border-radius:12px;margin-bottom:10px;overflow:hidden;">
+      <!-- Form card header -->
+      <div style="padding:14px 16px;display:flex;align-items:flex-start;gap:12px;justify-content:space-between;">
+        <div style="flex:1;min-width:0;">
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px;">
+            <span style="font-size:13px;font-weight:600;color:${txtColor};">${label}</span>
+            ${statusPill}
+          </div>
+          <div style="font-family:var(--mono);font-size:11px;color:var(--muted);">${f.psw_name}${f.client_name ? ' · ' + f.client_name : ''} · ${submittedAt}</div>
+          ${ackedHtml}
+        </div>
+      </div>
+      <!-- Expandable fields -->
+      <details style="padding:0 16px 14px;">
+        <summary style="font-family:var(--mono);font-size:11px;color:var(--teal2);cursor:pointer;list-style:none;margin-bottom:10px;">View Details ›</summary>
+        <div style="border-top:1px solid var(--border);padding-top:12px;">
+          ${fieldRows}
+          ${sigPresent}
+          ${hqResponseHtml}
+        </div>
+      </details>
+      <!-- Action buttons -->
+      ${(actionBtns || pdfBtn) ? `<div style="padding:0 16px 14px;display:flex;gap:8px;flex-wrap:wrap;">${actionBtns}${pdfBtn}</div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+async function acknowledgePSWForm(id, status) {
+  const label = status === 'resolved' ? 'resolved' : 'acknowledged';
+  const response = prompt(`Mark this form as ${label}. Add a message to the PSW (optional):`);
+  if (response === null) return; // user cancelled
+
+  const form = (window._pswForms || []).find(f => f.id === id);
+  if (!form) return;
+
+  try {
+    const res = await hqFetch(`${API}/hq/psw-form/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ operator_id: currentOp, status, hq_response: response || '' })
+    });
+    const d = await res.json();
+    if (!d.success) throw new Error(d.error || 'Failed');
+
+    // Update in-memory
+    const idx = (window._pswForms || []).findIndex(f => f.id === id);
+    if (idx >= 0) {
+      window._pswForms[idx].status = status;
+      window._pswForms[idx].hq_response = response || null;
+      window._pswForms[idx].acknowledged_at = new Date().toISOString();
+      window._pswForms[idx].acknowledged_by = currentOp;
+    }
+
+    // Update badge
+    const unread = (window._pswForms || []).filter(f => f.status === 'submitted').length;
+    const badge = document.getElementById('sn-forms-badge');
+    if (badge) { badge.textContent = unread; badge.style.display = unread > 0 ? '' : 'none'; }
+    const lbl = document.getElementById('forms-unread-label');
+    if (lbl) lbl.textContent = unread > 0 ? `${unread} unacknowledged` : `${(window._pswForms||[]).length} total forms`;
+
+    renderPSWForms();
+    showToast(`Form ${label} ✓ — PSW notified`, 'ok');
+  } catch(e) {
+    showToast(e.message || 'Failed to update form', 'err');
+  }
+}
+
+function downloadFormPDF(id) {
+  const token = window._hqToken || sessionStorage.getItem('hq_token') || '';
+  window.open(`${API}/hq/psw-form/${id}/pdf?operator_id=${currentOp}&token=${token}`, '_blank');
+}
+
 // ── NAV ──
 function showSect(name) {
   // Push state so back button stays in-app
@@ -5555,7 +5802,7 @@ function showSect(name) {
   if(snEl) snEl.classList.add('active');
   // Update hidden nav-tab (index maintained for compatibility)
   const tabs=document.querySelectorAll('.nav-tab');
-  const tm=['today','overview','leads','clients','psws','onboard','bookings','messages','visits','activity','schedule','crm','applicants','revenue'];
+  const tm=['today','overview','leads','clients','psws','onboard','bookings','messages','visits','activity','schedule','crm','applicants','revenue','forms'];
   const ti=tm.indexOf(name); if(ti>=0&&tabs[ti]) tabs[ti].classList.add('active');
   // Bottom nav: today, clients, schedule, visits, menu(last)
   const bm=['today','schedule','clients','messages'];
@@ -5563,6 +5810,7 @@ function showSect(name) {
   const bnavs=document.querySelectorAll('.bnav-item');
   if(bi>=0&&bnavs[bi]) bnavs[bi].classList.add('active');
   if(name==='onboard') populateOnboardSelects();
+  if(name==='forms') loadPSWForms();
   if(name==='messages') {
     window._dirtyMessages=false; renderMessages(); loadFamilyNotes();
     // Auto-refresh messages every 30s while active
