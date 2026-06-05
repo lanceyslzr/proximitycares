@@ -1714,8 +1714,8 @@ body.sidebar-rail .sidebar{width:64px;overflow:visible;}
     </div>
     <div class="kpi-tile" onclick="showSect('revenue')" style="cursor:pointer;">
       <div class="kpi-val" id="kpi-rev" style="color:var(--muted);">—</div>
-      <div class="kpi-lbl">Revenue</div>
-      <div class="kpi-sub" id="kpi-rev-sub">This month</div>
+      <div class="kpi-lbl">Profit</div>
+      <div class="kpi-sub" id="kpi-rev-sub">Pay period</div>
     </div>
   </div>
 
@@ -13213,10 +13213,10 @@ Generate exactly 3 to 5 prioritized action items for the operator. Each item mus
     if (kpiAlertTile) kpiAlertTile.className = 'kpi-tile' + (totalAlerts > 0 ? ' kpi-alert' : '');
   }
 
-  const revMonth = (D.counts && D.counts.revenue_month != null) ? '$' + Math.round(D.counts.revenue_month).toLocaleString() : '—';
+  const marginPeriod = (D.counts && D.counts.margin_period != null) ? D.counts.margin_period : null;
   if (kpiRev) {
-    kpiRev.textContent = revMonth;
-    kpiRev.style.color = 'var(--teal2)';
+    kpiRev.textContent = marginPeriod != null ? '$' + Math.round(marginPeriod).toLocaleString() : '—';
+    kpiRev.style.color = marginPeriod > 0 ? 'var(--green2)' : marginPeriod < 0 ? 'var(--red)' : 'var(--muted)';
   }
 
 }
