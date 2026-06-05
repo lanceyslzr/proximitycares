@@ -2454,6 +2454,24 @@ body.sidebar-rail .sidebar{width:64px;overflow:visible;}
     <div class="sect-action" onclick="triggerSequences()">↻ Sequences</div>
   </div>
   <div id="activity-list"><div class="empty-state">Loading...</div></div>
+
+  <!-- Data Retention Panel -->
+  <div style="margin:16px 14px 0;padding:14px 16px;background:var(--bg2);border:1px solid var(--border);border-radius:10px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+      <div>
+        <div style="font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted2);">PIPEDA Data Retention</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:3px;">Anonymizes inactive records per PIPEDA minimums. Runs monthly automatically.</div>
+      </div>
+      <button onclick="runDataRetention()" style="padding:7px 14px;background:rgba(61,138,122,.08);border:1px solid rgba(61,138,122,.25);border-radius:6px;font-family:var(--mono);font-size:11px;letter-spacing:1px;color:var(--teal2);cursor:pointer;min-height:36px;touch-action:manipulation;white-space:nowrap;flex-shrink:0;margin-left:12px;">Run Now</button>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <div style="padding:6px 10px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;font-family:var(--mono);font-size:10px;color:var(--muted2);">Clients (inactive 7yr) → anonymized</div>
+      <div style="padding:6px 10px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;font-family:var(--mono);font-size:10px;color:var(--muted2);">PSWs (inactive 3yr) → anonymized</div>
+      <div style="padding:6px 10px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;font-family:var(--mono);font-size:10px;color:var(--muted2);">System logs (2yr+) → deleted</div>
+      <div style="padding:6px 10px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;font-family:var(--mono);font-size:10px;color:var(--muted2);">Audit log → never deleted</div>
+    </div>
+    <div id="retention-result" style="display:none;margin-top:10px;padding:10px 12px;background:rgba(61,138,122,.06);border:1px solid rgba(61,138,122,.2);border-radius:6px;font-family:var(--mono);font-size:11px;color:var(--teal2);line-height:1.6;"></div>
+  </div>
 </div>
 
 <!-- CRM — Tab 9 -->
@@ -2651,6 +2669,122 @@ body.sidebar-rail .sidebar{width:64px;overflow:visible;}
   </div>
   <div id="forms-list" style="padding:0 14px 24px;">
     <div style="font-family:var(--mono);font-size:11px;color:var(--muted);padding:24px 0;text-align:center;">Loading forms...</div>
+  </div>
+</div>
+
+<div class="section" id="sect-hq-forms">
+  <div class="section-header">
+    <span class="section-title">HQ Forms</span>
+    <div style="font-family:var(--mono);font-size:10px;letter-spacing:1px;color:var(--muted2);">Operator-generated documents</div>
+  </div>
+
+  <!-- PSW selector (shared across all three form panels) -->
+  <div style="padding:0 14px 14px;">
+    <div style="font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted2);margin-bottom:6px;">Select PSW</div>
+    <select id="hqf-psw-select" class="sselect" onchange="_hqfPSWChange()" style="width:100%;font-size:15px;">
+      <option value="">— Choose a PSW —</option>
+    </select>
+  </div>
+
+  <!-- Three form accordions -->
+  <div style="padding:0 14px 24px;display:flex;flex-direction:column;gap:12px;">
+
+    <!-- 1. Warning / Performance Notice (links to Block 3 HR tab) -->
+    <div style="border:1px solid rgba(224,85,85,.25);border-radius:10px;overflow:hidden;">
+      <div onclick="_hqfToggle('hqf-warning')" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:rgba(224,85,85,.04);cursor:pointer;user-select:none;">
+        <div>
+          <div style="font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--red);">Warning / Performance Notice</div>
+          <div style="font-size:12px;color:var(--muted2);margin-top:2px;">Verbal, written, final warning or PIP</div>
+        </div>
+        <span id="hqf-warning-chevron" style="font-size:14px;color:var(--red);transition:transform .2s;">▸</span>
+      </div>
+      <div id="hqf-warning" style="display:none;padding:14px;border-top:1px solid rgba(224,85,85,.15);">
+        <div class="sheet-row"><div class="slbl">Notice Type</div>
+          <select class="sselect" id="hqf-warn-type">
+            <option value="verbal_warning">Verbal Warning Record</option>
+            <option value="written_warning" selected>Written Warning</option>
+            <option value="final_warning">Final Written Warning</option>
+            <option value="performance_improvement">Performance Improvement Notice</option>
+          </select>
+        </div>
+        <div class="sheet-row"><div class="slbl">Infraction Date *</div><input class="sinput" id="hqf-warn-date" type="date" style="font-size:16px;"></div>
+        <div class="sheet-row"><div class="slbl">Infraction Type</div>
+          <select class="sselect" id="hqf-warn-infraction">
+            <option value="Late arrival">Late arrival</option>
+            <option value="No-show">No-show / Unexcused absence</option>
+            <option value="Documentation failure">Documentation failure</option>
+            <option value="Client conduct">Unprofessional conduct toward client</option>
+            <option value="Policy violation">Policy violation</option>
+            <option value="Safety incident">Safety incident</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+        <div class="sheet-row"><div class="slbl">Description *</div><textarea class="sinput" id="hqf-warn-desc" rows="3" style="min-height:72px;resize:none;" placeholder="Describe what happened in detail..."></textarea></div>
+        <div class="sheet-row"><div class="slbl">Corrective Action *</div><textarea class="sinput" id="hqf-warn-corrective" rows="2" style="min-height:60px;resize:none;" placeholder="What the PSW must do to correct the issue..."></textarea></div>
+        <div class="sheet-row"><div class="slbl">Consequences (optional)</div><textarea class="sinput" id="hqf-warn-consequences" rows="2" style="min-height:60px;resize:none;" placeholder="What happens if not corrected..."></textarea></div>
+        <button class="sbtn" style="background:rgba(224,85,85,.1);color:var(--red);border:1px solid rgba(224,85,85,.3);" onclick="_hqfIssueWarning()">Issue Notice + Notify PSW</button>
+      </div>
+    </div>
+
+    <!-- 2. Incident Investigation Record -->
+    <div style="border:1px solid rgba(200,169,110,.25);border-radius:10px;overflow:hidden;">
+      <div onclick="_hqfToggle('hqf-investigation')" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:rgba(200,169,110,.04);cursor:pointer;user-select:none;">
+        <div>
+          <div style="font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--gold);">Incident Investigation Record</div>
+          <div style="font-size:12px;color:var(--muted2);margin-top:2px;">OHSA-required employer investigation after an incident</div>
+        </div>
+        <span id="hqf-investigation-chevron" style="font-size:14px;color:var(--gold);transition:transform .2s;">▸</span>
+      </div>
+      <div id="hqf-investigation" style="display:none;padding:14px;border-top:1px solid rgba(200,169,110,.15);">
+        <div class="sheet-row"><div class="slbl">Incident Date *</div><input class="sinput" id="hqf-inv-date" type="date" style="font-size:16px;"></div>
+        <div class="sheet-row"><div class="slbl">PSW Form Ref (optional)</div><input class="sinput" id="hqf-inv-ref" type="text" placeholder="e.g. INC-2026-XXXXXX" style="font-size:15px;"></div>
+        <div class="sheet-row"><div class="slbl">Client Involved (optional)</div><input class="sinput" id="hqf-inv-client" type="text" placeholder="Client name if applicable" style="font-size:15px;"></div>
+        <div class="sheet-row"><div class="slbl">Investigation Findings *</div><textarea class="sinput" id="hqf-inv-findings" rows="3" style="min-height:72px;resize:none;" placeholder="What the investigation found — facts, timeline, evidence reviewed..."></textarea></div>
+        <div class="sheet-row"><div class="slbl">Root Cause</div><textarea class="sinput" id="hqf-inv-root" rows="2" style="min-height:60px;resize:none;" placeholder="Underlying cause of the incident..."></textarea></div>
+        <div class="sheet-row"><div class="slbl">Corrective Measures *</div><textarea class="sinput" id="hqf-inv-measures" rows="2" style="min-height:60px;resize:none;" placeholder="Actions taken to prevent recurrence..."></textarea></div>
+        <div class="sheet-row"><div class="slbl">Witnesses Interviewed</div><input class="sinput" id="hqf-inv-witnesses" type="text" placeholder="Names of anyone interviewed" style="font-size:15px;"></div>
+        <div class="sheet-row"><div class="slbl">Outcome</div><input class="sinput" id="hqf-inv-outcome" type="text" value="No further action" style="font-size:15px;"></div>
+        <button class="sbtn" style="background:rgba(200,169,110,.1);color:var(--gold);border:1px solid rgba(200,169,110,.3);" onclick="_hqfIssueInvestigation()">Generate Investigation Record</button>
+      </div>
+    </div>
+
+    <!-- 3. Performance Review -->
+    <div style="border:1px solid rgba(61,138,122,.25);border-radius:10px;overflow:hidden;">
+      <div onclick="_hqfToggle('hqf-review')" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:rgba(61,138,122,.04);cursor:pointer;user-select:none;">
+        <div>
+          <div style="font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--teal2);">PSW Performance Review</div>
+          <div style="font-size:12px;color:var(--muted2);margin-top:2px;">Semi-annual, annual, or probationary review</div>
+        </div>
+        <span id="hqf-review-chevron" style="font-size:14px;color:var(--teal2);transition:transform .2s;">▸</span>
+      </div>
+      <div id="hqf-review" style="display:none;padding:14px;border-top:1px solid rgba(61,138,122,.15);">
+        <div class="sheet-row"><div class="slbl">Review Type</div>
+          <select class="sselect" id="hqf-rev-type">
+            <option value="probation">Probationary Review</option>
+            <option value="semi_annual" selected>Semi-Annual Review</option>
+            <option value="annual">Annual Review</option>
+            <option value="pip_followup">PIP Follow-Up Review</option>
+          </select>
+        </div>
+        <div class="sheet-row"><div class="slbl">Review Period *</div><input class="sinput" id="hqf-rev-period" type="text" placeholder="e.g. Jan 2026 – Jun 2026" style="font-size:15px;"></div>
+        <div style="margin-bottom:10px;font-family:var(--mono);font-size:10px;letter-spacing:1px;color:var(--muted2);text-transform:uppercase;">Ratings (1 = Unsatisfactory · 5 = Excellent)</div>
+        ${['punctuality','documentation','client_care','communication','overall'].map(f => {
+          const labels = {punctuality:'Punctuality & Reliability',documentation:'Documentation & Reporting',client_care:'Client Care & Professionalism',communication:'Communication & Teamwork',overall:'OVERALL RATING'};
+          return `<div class="sheet-row"><div class="slbl">${labels[f]}</div>
+            <select class="sselect" id="hqf-rev-${f}">
+              <option value="">Not rated</option>
+              ${[1,2,3,4,5].map(n=>`<option value="${n}" ${n===3?'selected':''}>${n} — ${['','Unsatisfactory','Needs improvement','Satisfactory','Good','Excellent'][n]}</option>`).join('')}
+            </select>
+          </div>`;
+        }).join('')}
+        <div class="sheet-row"><div class="slbl">Strengths *</div><textarea class="sinput" id="hqf-rev-strengths" rows="2" style="min-height:60px;resize:none;" placeholder="What this PSW does well..."></textarea></div>
+        <div class="sheet-row"><div class="slbl">Areas for Improvement</div><textarea class="sinput" id="hqf-rev-improvement" rows="2" style="min-height:60px;resize:none;" placeholder="Where they need to grow..."></textarea></div>
+        <div class="sheet-row"><div class="slbl">Goals Next Period</div><textarea class="sinput" id="hqf-rev-goals" rows="2" style="min-height:60px;resize:none;" placeholder="Specific goals for the next review period..."></textarea></div>
+        <div class="sheet-row"><div class="slbl">Recommendation</div><input class="sinput" id="hqf-rev-recommendation" type="text" value="Continue employment" style="font-size:15px;"></div>
+        <button class="sbtn" style="background:rgba(61,138,122,.1);color:var(--teal2);border:1px solid rgba(61,138,122,.3);" onclick="_hqfIssueReview()">Generate Performance Review</button>
+      </div>
+    </div>
+
   </div>
 </div>
 
@@ -3022,6 +3156,10 @@ body.sidebar-rail .sidebar{width:64px;overflow:visible;}
       <div class="sn-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg></div>
       <span class="sn-label">Forms</span>
       <span class="sn-badge" id="sn-forms-badge" style="display:none;"></span>
+    </div>
+    <div class="sn-item" id="sn-hq-forms" onclick="showSect('hq-forms');closeSidebar()">
+      <div class="sn-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg></div>
+      <span class="sn-label">HQ Forms</span>
     </div>
     <div class="sn-item" id="sn-messages" onclick="showSect('messages');closeSidebar()">
       <div class="sn-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
@@ -3948,6 +4086,7 @@ function renderAll() {
   if (activeSect === 'visits') { renderVisits(); }
   if (activeSect === 'crm') { renderCRM(); }
   if (activeSect === 'forms') { renderPSWForms(); }
+  if (activeSect === 'hq-forms') { _hqfPopulatePSWs(); }
   if (activeSect === 'overview') { renderOverview(); }
   if (activeSect === 'revenue') { renderRevenue().catch(()=>{}); }
   if (activeSect === 'schedule') {
@@ -4479,6 +4618,285 @@ async function recordConsent(slug) {
     } catch {}
     loadAll(false); // background refresh
   } catch(e) { showToast(e.message || 'Could not record consent', 'err'); }
+}
+
+// ── S67 BLOCK 1 — Document generator functions ──────────────────
+async function generateServiceAgreement(slug) {
+  if (!confirm('Generate a Service Agreement PDF for this client and email it to the family?')) return;
+  showToast('Generating service agreement...', 'ok');
+  try {
+    const res = await hqFetch(`${API}/hq/generate-service-agreement`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ operator_id: currentOp, client_slug: slug })
+    });
+    const d = await res.json();
+    if (!d.success) throw new Error(d.error || 'Failed');
+    showToast(`Service agreement generated · ${d.doc_ref}${d.emailed ? ' · Emailed to family ✓' : ''}`, 'ok');
+    // Update in-memory so VIEW link appears immediately
+    const idx = (D.clients||[]).findIndex(c => c.portal_slug === slug);
+    if (idx >= 0) { D.clients[idx].service_agreement_url = d.pdf_url; openClientDetail(D.clients[idx].id); }
+    loadAll(false);
+  } catch(e) { showToast(e.message || 'Could not generate service agreement', 'err'); }
+}
+
+async function generateEmploymentAgreement(pswName) {
+  if (!confirm(`Generate an Employment Agreement PDF for ${pswName} and email it to them?`)) return;
+  showToast('Generating employment agreement...', 'ok');
+  try {
+    const res = await hqFetch(`${API}/hq/generate-employment-agreement`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ operator_id: currentOp, psw_name: pswName })
+    });
+    const d = await res.json();
+    if (!d.success) throw new Error(d.error || 'Failed');
+    showToast(`Employment agreement generated · ${d.doc_ref}${d.emailed ? ' · Emailed to PSW ✓' : ''}`, 'ok');
+    loadAll(false);
+  } catch(e) { showToast(e.message || 'Could not generate employment agreement', 'err'); }
+}
+
+async function generateConsentPDF(slug) {
+  if (!confirm('Generate a PIPEDA Consent PDF for this client and email it to the family?')) return;
+  showToast('Generating consent record...', 'ok');
+  try {
+    const res = await hqFetch(`${API}/hq/generate-consent-pdf`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ operator_id: currentOp, client_slug: slug, consent_version: '2.0' })
+    });
+    const d = await res.json();
+    if (!d.success) throw new Error(d.error || 'Failed');
+    showToast(`Consent PDF generated · ${d.doc_ref} v${d.consent_version}${d.emailed ? ' · Emailed to family ✓' : ''}`, 'ok');
+    const idx = (D.clients||[]).findIndex(c => c.portal_slug === slug);
+    if (idx >= 0) {
+      D.clients[idx].consent_given = true;
+      D.clients[idx].consent_date = new Date().toISOString();
+      D.clients[idx].consent_version = d.consent_version;
+      openClientDetail(D.clients[idx].id);
+    }
+    loadAll(false);
+  } catch(e) { showToast(e.message || 'Could not generate consent PDF', 'err'); }
+}
+
+// ── S67 BLOCK 7 — HQ Operator-Side Forms ────────────────────────
+
+// Populate PSW dropdown when HQ Forms section opens
+function _hqfPopulatePSWs() {
+  const sel = document.getElementById('hqf-psw-select');
+  if (!sel) return;
+  const current = sel.value;
+  sel.innerHTML = '<option value="">— Choose a PSW —</option>';
+  (D.psws || []).filter(p => p.status === 'active' || p.status === 'inactive').forEach(p => {
+    const name = p.full_name || p.name || '';
+    if (!name) return;
+    const opt = document.createElement('option');
+    opt.value = name;
+    opt.textContent = name + (p.status !== 'active' ? ' (inactive)' : '');
+    if (name === current) opt.selected = true;
+    sel.appendChild(opt);
+  });
+}
+
+function _hqfPSWChange() {
+  // Nothing extra needed — PSW name is read at submit time
+}
+
+// Accordion toggle
+function _hqfToggle(id) {
+  const body = document.getElementById(id);
+  const chevron = document.getElementById(id + '-chevron');
+  if (!body) return;
+  const open = body.style.display !== 'none';
+  body.style.display = open ? 'none' : 'block';
+  if (chevron) chevron.style.transform = open ? 'rotate(0deg)' : 'rotate(90deg)';
+}
+
+// Helper — get selected PSW name
+function _hqfGetPSW() {
+  const name = document.getElementById('hqf-psw-select')?.value?.trim();
+  if (!name) { showToast('Select a PSW first', 'err'); return null; }
+  return name;
+}
+
+// ── FORM 1: Warning / Performance Notice ─────────────────────────
+async function _hqfIssueWarning() {
+  const psw_name = _hqfGetPSW(); if (!psw_name) return;
+  const notice_type     = document.getElementById('hqf-warn-type')?.value;
+  const infraction_date = document.getElementById('hqf-warn-date')?.value;
+  const infraction_type = document.getElementById('hqf-warn-infraction')?.value;
+  const description     = document.getElementById('hqf-warn-desc')?.value?.trim();
+  const corrective      = document.getElementById('hqf-warn-corrective')?.value?.trim();
+  const consequences    = document.getElementById('hqf-warn-consequences')?.value?.trim();
+
+  if (!infraction_date || !description || !corrective) {
+    showToast('Infraction date, description, and corrective action are required', 'err'); return;
+  }
+  const labels = { verbal_warning:'Verbal Warning Record', written_warning:'Written Warning', final_warning:'Final Written Warning', performance_improvement:'Performance Improvement Notice' };
+  if (!confirm(`Issue a ${labels[notice_type]||notice_type} for ${psw_name}?\n\nThis will notify the PSW and create a permanent audit record.`)) return;
+
+  showToast('Generating notice...', 'ok');
+  try {
+    const res = await hqFetch(`${API}/hq/generate-warning-notice`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ operator_id: currentOp, psw_name, notice_type, infraction_date, infraction_type, description, corrective_action: corrective, consequences: consequences || null })
+    });
+    const d = await res.json();
+    if (!d.success) throw new Error(d.error || 'Failed');
+    showToast(`${labels[notice_type]||'Notice'} issued · ${d.doc_ref}${d.emailed?' · PSW notified ✓':''}`, 'ok');
+    ['hqf-warn-desc','hqf-warn-corrective','hqf-warn-consequences'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
+  } catch(e) { showToast(e.message || 'Could not issue notice', 'err'); }
+}
+
+// ── FORM 2: Incident Investigation Record ────────────────────────
+async function _hqfIssueInvestigation() {
+  const psw_name = _hqfGetPSW(); if (!psw_name) return;
+  const incident_date          = document.getElementById('hqf-inv-date')?.value;
+  const incident_ref           = document.getElementById('hqf-inv-ref')?.value?.trim() || null;
+  const client_name            = document.getElementById('hqf-inv-client')?.value?.trim() || null;
+  const investigation_findings = document.getElementById('hqf-inv-findings')?.value?.trim();
+  const root_cause             = document.getElementById('hqf-inv-root')?.value?.trim() || null;
+  const corrective_measures    = document.getElementById('hqf-inv-measures')?.value?.trim();
+  const witnesses_interviewed  = document.getElementById('hqf-inv-witnesses')?.value?.trim() || null;
+  const outcome                = document.getElementById('hqf-inv-outcome')?.value?.trim() || 'No further action';
+
+  if (!incident_date || !investigation_findings || !corrective_measures) {
+    showToast('Incident date, findings, and corrective measures are required', 'err'); return;
+  }
+  if (!confirm(`Generate an Incident Investigation Record for ${psw_name}?\n\nThis creates an OHSA-compliant investigation document and notifies the PSW.`)) return;
+
+  showToast('Generating investigation record...', 'ok');
+  try {
+    const res = await hqFetch(`${API}/hq/generate-incident-investigation`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ operator_id: currentOp, psw_name, client_name, incident_date, incident_ref, investigation_findings, root_cause, corrective_measures, witnesses_interviewed, outcome })
+    });
+    const d = await res.json();
+    if (!d.success) throw new Error(d.error || 'Failed');
+    showToast(`Investigation record generated · ${d.doc_ref}`, 'ok');
+    ['hqf-inv-findings','hqf-inv-root','hqf-inv-measures','hqf-inv-witnesses'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
+    document.getElementById('hqf-inv-outcome').value = 'No further action';
+    document.getElementById('hqf-inv-ref').value = '';
+    document.getElementById('hqf-inv-client').value = '';
+  } catch(e) { showToast(e.message || 'Could not generate investigation record', 'err'); }
+}
+
+// ── FORM 3: PSW Performance Review ───────────────────────────────
+async function _hqfIssueReview() {
+  const psw_name = _hqfGetPSW(); if (!psw_name) return;
+  const review_type              = document.getElementById('hqf-rev-type')?.value;
+  const review_period            = document.getElementById('hqf-rev-period')?.value?.trim();
+  const punctuality_rating       = document.getElementById('hqf-rev-punctuality')?.value;
+  const documentation_rating     = document.getElementById('hqf-rev-documentation')?.value;
+  const client_care_rating       = document.getElementById('hqf-rev-client_care')?.value;
+  const communication_rating     = document.getElementById('hqf-rev-communication')?.value;
+  const overall_rating           = document.getElementById('hqf-rev-overall')?.value;
+  const strengths                = document.getElementById('hqf-rev-strengths')?.value?.trim();
+  const areas_for_improvement    = document.getElementById('hqf-rev-improvement')?.value?.trim() || null;
+  const goals_next_period        = document.getElementById('hqf-rev-goals')?.value?.trim() || null;
+  const overall_recommendation   = document.getElementById('hqf-rev-recommendation')?.value?.trim() || 'Continue employment';
+
+  if (!review_period || !strengths) {
+    showToast('Review period and strengths are required', 'err'); return;
+  }
+  const labels = { probation:'Probationary Review', semi_annual:'Semi-Annual Review', annual:'Annual Review', pip_followup:'PIP Follow-Up Review' };
+  if (!confirm(`Generate a ${labels[review_type]||'Performance Review'} for ${psw_name}?\n\nThis will notify the PSW and create a permanent record.`)) return;
+
+  showToast('Generating performance review...', 'ok');
+  try {
+    const res = await hqFetch(`${API}/hq/generate-performance-review`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ operator_id: currentOp, psw_name, review_period, review_type, punctuality_rating, documentation_rating, client_care_rating, communication_rating, overall_rating, strengths, areas_for_improvement, goals_next_period, overall_recommendation })
+    });
+    const d = await res.json();
+    if (!d.success) throw new Error(d.error || 'Failed');
+    showToast(`Performance review generated · ${d.doc_ref}`, 'ok');
+    ['hqf-rev-strengths','hqf-rev-improvement','hqf-rev-goals'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
+    document.getElementById('hqf-rev-period').value = '';
+    document.getElementById('hqf-rev-recommendation').value = 'Continue employment';
+  } catch(e) { showToast(e.message || 'Could not generate performance review', 'err'); }
+}
+
+// ── S67 BLOCK 4 — Data Retention ────────────────────────────────
+async function runDataRetention() {
+  if (!confirm('Run PIPEDA data retention now?\n\nThis will:\n• Anonymize inactive client records older than 7 years\n• Anonymize inactive PSW records older than 3 years\n• Delete system logs older than 2 years\n\nAudit logs are never deleted. This action is logged.')) return;
+
+  const btn = document.querySelector('[onclick="runDataRetention()"]');
+  if (btn) { btn.textContent = 'Running...'; btn.disabled = true; }
+  const resultEl = document.getElementById('retention-result');
+  if (resultEl) { resultEl.style.display = 'none'; resultEl.textContent = ''; }
+
+  try {
+    const res = await hqFetch(`${API}/hq/data-retention-run`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ operator_id: currentOp })
+    });
+    const d = await res.json();
+    if (!d.success) throw new Error(d.error || 'Failed');
+
+    const summary = [
+      `Clients anonymized: ${d.clients_anonymized}`,
+      `PSWs anonymized: ${d.psws_anonymized}`,
+      `System log entries deleted: ${d.system_logs_deleted}`,
+      d.errors?.length ? `Errors: ${d.errors.length} (check Railway logs)` : 'No errors',
+      `Ran at: ${new Date(d.ran_at).toLocaleString('en-CA', { timeZone: 'America/Toronto' })}`
+    ].join('\n');
+
+    if (resultEl) { resultEl.textContent = summary; resultEl.style.display = 'block'; }
+    showToast(`Data retention complete · ${d.clients_anonymized} clients · ${d.psws_anonymized} PSWs · ${d.system_logs_deleted} logs`, 'ok');
+  } catch(e) {
+    showToast(e.message || 'Data retention failed', 'err');
+  } finally {
+    if (btn) { btn.textContent = 'Run Now'; btn.disabled = false; }
+  }
+}
+async function issueWarningNotice(pswName, pswId) {
+  const notice_type     = document.getElementById(`hr-notice-type-${pswId}`)?.value;
+  const infraction_date = document.getElementById(`hr-infraction-date-${pswId}`)?.value;
+  const infraction_type = document.getElementById(`hr-infraction-type-${pswId}`)?.value;
+  const description     = document.getElementById(`hr-description-${pswId}`)?.value?.trim();
+  const corrective      = document.getElementById(`hr-corrective-${pswId}`)?.value?.trim();
+  const consequences    = document.getElementById(`hr-consequences-${pswId}`)?.value?.trim();
+
+  if (!infraction_date || !description || !corrective) {
+    showToast('Infraction date, description, and corrective action are required', 'err'); return;
+  }
+
+  const labels = {
+    verbal_warning: 'Verbal Warning Record',
+    written_warning: 'Written Warning',
+    final_warning: 'Final Written Warning',
+    performance_improvement: 'Performance Improvement Notice'
+  };
+
+  if (!confirm(`Issue a ${labels[notice_type] || notice_type} for ${pswName}? This will notify the PSW and create a permanent audit record.`)) return;
+
+  showToast('Generating notice...', 'ok');
+  try {
+    const res = await hqFetch(`${API}/hq/generate-warning-notice`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        operator_id: currentOp,
+        psw_name: pswName,
+        notice_type,
+        infraction_date,
+        infraction_type,
+        description,
+        corrective_action: corrective,
+        consequences: consequences || null
+      })
+    });
+    const d = await res.json();
+    if (!d.success) throw new Error(d.error || 'Failed');
+    showToast(`${labels[notice_type] || 'Notice'} issued · ${d.doc_ref}${d.emailed ? ' · PSW notified ✓' : ''}`, 'ok');
+    // Clear fields after success
+    ['hr-description-', 'hr-corrective-', 'hr-consequences-'].forEach(id => {
+      const el = document.getElementById(id + pswId);
+      if (el) el.value = '';
+    });
+  } catch(e) { showToast(e.message || 'Could not issue notice', 'err'); }
 }
 
 async function genInvoice(clientName, clientEmail, pswName, clientRate, pswRate) {
@@ -5798,22 +6216,39 @@ function _openFormAttachment(formId, attachIndex) {
   if (!form) return;
   const attachList = Array.isArray(form.fields?.f_attachments) ? form.fields.f_attachments : [];
   const attach = attachList[attachIndex];
-  if (!attach?.data) { showToast('Attachment data not available', 'err'); return; }
-  try {
-    // Convert base64 data URL to blob and open
-    const [header, b64] = attach.data.split(',');
-    const mime = (header.match(/:(.*?);/) || [])[1] || attach.type || 'application/octet-stream';
-    const bytes = atob(b64);
-    const arr = new Uint8Array(bytes.length);
-    for (let i = 0; i < bytes.length; i++) arr[i] = bytes.charCodeAt(i);
-    const blob = new Blob([arr], { type: mime });
-    const url = URL.createObjectURL(blob);
-    window.open(url, '_blank');
-    // Revoke after short delay — tab has loaded by then
-    setTimeout(() => URL.revokeObjectURL(url), 10000);
-  } catch(e) {
-    showToast('Could not open attachment — ' + e.message, 'err');
+  if (!attach) { showToast('Attachment not found', 'err'); return; }
+
+  // New path: Supabase Storage URL (Block 6 migration)
+  if (attach.url) {
+    window.open(attach.url, '_blank');
+    return;
   }
+
+  // Legacy path: base64 data URL (pre-Block 6 forms)
+  if (attach.data) {
+    try {
+      const [header, b64] = attach.data.split(',');
+      const mime = (header.match(/:(.*?);/) || [])[1] || attach.type || 'application/octet-stream';
+      const bytes = atob(b64);
+      const arr = new Uint8Array(bytes.length);
+      for (let i = 0; i < bytes.length; i++) arr[i] = bytes.charCodeAt(i);
+      const blob = new Blob([arr], { type: mime });
+      const url = URL.createObjectURL(blob);
+      window.open(url, '_blank');
+      setTimeout(() => URL.revokeObjectURL(url), 10000);
+    } catch(e) {
+      showToast('Could not open attachment — ' + e.message, 'err');
+    }
+    return;
+  }
+
+  // Error state (upload failed, error field set)
+  if (attach.error) {
+    showToast('Attachment error: ' + attach.error, 'err');
+    return;
+  }
+
+  showToast('Attachment data not available', 'err');
 }
 
 // ── NAV ──
@@ -5863,7 +6298,7 @@ function showSect(name) {
   if(snEl) snEl.classList.add('active');
   // Update hidden nav-tab (index maintained for compatibility)
   const tabs=document.querySelectorAll('.nav-tab');
-  const tm=['today','overview','leads','clients','psws','onboard','bookings','messages','visits','activity','schedule','crm','applicants','revenue','forms'];
+  const tm=['today','overview','leads','clients','psws','onboard','bookings','messages','visits','activity','schedule','crm','applicants','revenue','forms','hq-forms'];
   const ti=tm.indexOf(name); if(ti>=0&&tabs[ti]) tabs[ti].classList.add('active');
   // Bottom nav: today, clients, schedule, visits, menu(last)
   const bm=['today','schedule','clients','messages'];
@@ -9535,6 +9970,7 @@ async function openPSWDetail(pswId) {
       <div class="prof-tab" onclick="_ppTab(this,'ppt-status')">Status</div>
       <div class="prof-tab" onclick="_ppTab(this,'ppt-notes');loadFileNotes('psw','${name}')">File Notes</div>
       <div class="prof-tab" onclick="_ppTab(this,'ppt-edit')">Edit</div>
+      <div class="prof-tab" onclick="_ppTab(this,'ppt-hr')" style="color:var(--red);">HR</div>
     </div>
 
     <div class="prof-tab-body active" id="ppt-info">
@@ -9632,7 +10068,7 @@ async function openPSWDetail(pswId) {
           {label:'CPR Certification',   field:'cpr_cert',     url:rec.cpr_cert_url,     expiry:rec.cpr_cert_expiry},
           {label:'First Aid',           field:'first_aid',    url:rec.first_aid_url,    expiry:rec.first_aid_expiry},
           {label:'Employment Agreement',field:'nacc_cert',    url:rec.employment_agreement_url||p.employment_agreement_url, expiry:null}
-        ].map(d => '<div class="doc-vault-row"><div class="doc-vault-name">'+d.label+'</div><div class="doc-vault-status">'+(d.url?'<a href="'+d.url+'" target="_blank">VIEW'+(d.expiry?' &#183; '+fmtd(d.expiry):'')+'</a>':'<span style="font-family:var(--mono);font-size:11px;color:var(--muted);">MISSING</span>')+'<label class="doc-vault-upload">UPLOAD<input type="file" accept=".pdf,.jpg,.jpeg,.png" style="display:none;" onchange="uploadPSWDoc(event,\''+name+'\',\''+d.field+'\')"></label></div></div>').join('')}
+        ].map(d => '<div class="doc-vault-row"><div class="doc-vault-name">'+d.label+'</div><div class="doc-vault-status">'+(d.url?'<a href="'+d.url+'" target="_blank">VIEW'+(d.expiry?' &#183; '+fmtd(d.expiry):'')+'</a>':'<span style="font-family:var(--mono);font-size:11px;color:var(--muted);">MISSING</span>')+(d.field==='nacc_cert'?'<button onclick="generateEmploymentAgreement(\''+name+'\')" style="padding:3px 8px;background:rgba(61,138,122,.1);border:1px solid rgba(61,138,122,.3);border-radius:4px;font-family:var(--mono);font-size:10px;color:var(--teal2);cursor:pointer;min-height:28px;touch-action:manipulation;">GENERATE</button>':'')+'<label class="doc-vault-upload">UPLOAD<input type="file" accept=".pdf,.jpg,.jpeg,.png" style="display:none;" onchange="uploadPSWDoc(event,\''+name+'\',\''+d.field+'\')"></label></div></div>').join('')}
       </div>
     </div>
 
@@ -9671,6 +10107,36 @@ async function openPSWDetail(pswId) {
       <div class="sheet-row"><div class="slbl">Probation End Date</div><input class="sinput" id="pe-probation-end" type="date" value="${p.probation_end||''}" style="font-size:16px;"></div>
       <div class="sheet-row"><div class="slbl">Internal Notes</div><textarea class="sinput" id="pe-notes" rows="2" style="min-height:60px;resize:none;" placeholder="Notes about this PSW...">${p.notes||rec.notes||''}</textarea></div>
       <button class="sbtn" style="background:rgba(200,169,110,.12);color:var(--gold);border:1px solid rgba(200,169,110,.3);margin-bottom:8px;" onclick="savePSWEdits('${p.id}','${name}')">Save Changes</button>
+    </div>
+
+    <!-- ── HR TAB — Warning / Performance Notices ── -->
+    <div class="prof-tab-body" id="ppt-hr">
+      <div style="font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--red);margin-bottom:12px;">Issue HR Notice</div>
+      <div style="padding:10px 12px;background:rgba(224,85,85,.05);border:1px solid rgba(224,85,85,.15);border-radius:8px;font-size:12px;color:var(--muted2);line-height:1.6;margin-bottom:14px;">This generates a formal employment notice PDF, notifies the PSW via their inbox, and creates a tamper-evident audit log entry. ESA-compliant. Use only after a documented incident.</div>
+      <div class="sheet-row"><div class="slbl">Notice Type</div>
+        <select class="sselect" id="hr-notice-type-${p.id}">
+          <option value="verbal_warning">Verbal Warning Record</option>
+          <option value="written_warning" selected>Written Warning</option>
+          <option value="final_warning">Final Written Warning</option>
+          <option value="performance_improvement">Performance Improvement Notice</option>
+        </select>
+      </div>
+      <div class="sheet-row"><div class="slbl">Infraction Date *</div><input class="sinput" id="hr-infraction-date-${p.id}" type="date" style="font-size:16px;" value="${new Date().toLocaleDateString('en-CA',{timeZone:'America/Toronto'})}"></div>
+      <div class="sheet-row"><div class="slbl">Infraction Type</div>
+        <select class="sselect" id="hr-infraction-type-${p.id}">
+          <option value="Late arrival">Late arrival</option>
+          <option value="No-show">No-show / Unexcused absence</option>
+          <option value="Documentation failure">Documentation failure</option>
+          <option value="Client conduct">Unprofessional conduct toward client</option>
+          <option value="Policy violation">Policy violation</option>
+          <option value="Safety incident">Safety incident</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
+      <div class="sheet-row"><div class="slbl">Description *</div><textarea class="sinput" id="hr-description-${p.id}" rows="3" style="min-height:72px;resize:none;" placeholder="Describe what happened in detail, including date, time, client involved, and any witnesses..."></textarea></div>
+      <div class="sheet-row"><div class="slbl">Corrective Action *</div><textarea class="sinput" id="hr-corrective-${p.id}" rows="2" style="min-height:60px;resize:none;" placeholder="What the PSW must do to correct the issue (e.g. attend training, follow schedule, submit documentation on time)..."></textarea></div>
+      <div class="sheet-row"><div class="slbl">Consequences (optional)</div><textarea class="sinput" id="hr-consequences-${p.id}" rows="2" style="min-height:60px;resize:none;" placeholder="What will happen if the issue is not corrected (e.g. further disciplinary action up to and including termination)..."></textarea></div>
+      <button class="sbtn" style="background:rgba(224,85,85,.1);color:var(--red);border:1px solid rgba(224,85,85,.3);margin-top:4px;" onclick="issueWarningNotice('${name}','${p.id}')">Issue Notice + Notify PSW</button>
     </div>
 
     <!-- ── STATUS TAB ── -->
@@ -10604,6 +11070,7 @@ function openClientDetail(id) {
             <div class="doc-vault-name">${d.label}</div>
             <div class="doc-vault-status">
               ${d.url?`<a href="${d.url}" target="_blank">VIEW</a>`:`<span style="font-family:var(--mono);font-size:11px;color:var(--muted);">MISSING</span>`}
+              ${d.type==='service_agreement'?`<button onclick="generateServiceAgreement('${slug}')" style="padding:3px 8px;background:rgba(61,138,122,.1);border:1px solid rgba(61,138,122,.3);border-radius:4px;font-family:var(--mono);font-size:10px;color:var(--teal2);cursor:pointer;min-height:28px;touch-action:manipulation;">GENERATE</button>`:''}
               <label class="doc-vault-upload">UPLOAD<input type="file" accept=".pdf,.jpg,.jpeg,.png" style="display:none;" onchange="uploadClientDoc(event,'${slug}','${d.type}')"></label>
             </div>
           </div>
@@ -10659,6 +11126,7 @@ function openClientDetail(id) {
             ${c.consent_given?`<div style="font-size:12px;color:var(--muted);margin-top:2px;">v${c.consent_version||'1.0'} · ${c.consent_date?new Date(c.consent_date).toLocaleDateString('en-CA'):'—'}</div>`:'<div style="font-size:12px;color:var(--muted);margin-top:2px;">Client has not provided consent</div>'}
           </div>
           ${!c.consent_given?`<button onclick="recordConsent('${slug}')" style="font-family:var(--mono);font-size:11px;letter-spacing:1px;padding:5px 10px;border-radius:5px;border:1px solid rgba(58,170,138,.4);background:rgba(58,170,138,.08);color:var(--green2);cursor:pointer;min-height:44px;">Record</button>`:''}
+          <button onclick="generateConsentPDF('${slug}')" style="font-family:var(--mono);font-size:11px;letter-spacing:1px;padding:5px 10px;border-radius:5px;border:1px solid rgba(61,138,122,.3);background:rgba(61,138,122,.08);color:var(--teal2);cursor:pointer;min-height:44px;">PDF</button>
         </div>
       </div>
       <div style="margin-bottom:10px;font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--teal2);">Visit History</div>
