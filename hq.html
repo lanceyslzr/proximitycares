@@ -2629,12 +2629,15 @@ body.sidebar-rail .sidebar{width:64px;overflow:visible;}
       <select id="forms-filter-type" onchange="renderPSWForms()" style="padding:7px 10px;background:var(--bg2);border:1px solid var(--border2);border-radius:6px;color:var(--text);font-family:var(--mono);font-size:11px;cursor:pointer;">
         <option value="">All Types</option>
         <option value="incident">Incident Report</option>
+        <option value="critical_incident">Critical Incident</option>
+        <option value="medication_discrepancy">Medication Discrepancy</option>
+        <option value="refusal_of_care">Refusal of Care</option>
+        <option value="workplace_injury">Workplace Injury</option>
+        <option value="concern">Client Concern</option>
         <option value="careplan">Care Plan Update</option>
+        <option value="latearrival">Late Arrival</option>
         <option value="timeoff">Time Off</option>
         <option value="vacation">Vacation</option>
-        <option value="concern">Client Concern</option>
-        <option value="mileage">Mileage / Expense</option>
-        <option value="latearrival">Late Arrival</option>
         <option value="equipment">Equipment Issue</option>
       </select>
       <select id="forms-filter-status" onchange="renderPSWForms()" style="padding:7px 10px;background:var(--bg2);border:1px solid var(--border2);border-radius:6px;color:var(--text);font-family:var(--mono);font-size:11px;cursor:pointer;">
@@ -5561,36 +5564,45 @@ async function triggerSequences() {
 window._pswForms = window._pswForms || [];
 
 const _formTypeLabels = {
-  incident:   '⚠ Incident Report',
-  careplan:   '📋 Care Plan Update',
-  timeoff:    '📅 Time Off',
-  vacation:   '🏖 Vacation',
-  concern:    '💬 Client Concern',
-  mileage:    '🚗 Mileage / Expense',
-  latearrival:'🏠 Late Arrival',
-  equipment:  '⚙ Equipment Issue'
+  incident:               'Incident Report',
+  critical_incident:      'Critical Incident',
+  medication_discrepancy: 'Medication Discrepancy',
+  refusal_of_care:        'Refusal of Care',
+  workplace_injury:       'Workplace Injury / Near Miss',
+  careplan:               'Care Plan Update',
+  timeoff:                'Time Off',
+  vacation:               'Vacation Request',
+  concern:                'Client Concern',
+  latearrival:            'Late Arrival',
+  equipment:              'Equipment Issue'
 };
 
 const _formTypeColors = {
-  incident:   'rgba(224,85,85,.15)',
-  careplan:   'rgba(61,138,122,.15)',
-  timeoff:    'rgba(200,169,110,.15)',
-  vacation:   'rgba(200,169,110,.15)',
-  concern:    'rgba(160,96,224,.15)',
-  mileage:    'rgba(61,138,122,.12)',
-  latearrival:'rgba(224,154,61,.15)',
-  equipment:  'rgba(107,114,128,.15)'
+  incident:               'rgba(224,85,85,.15)',
+  critical_incident:      'rgba(224,85,85,.22)',
+  medication_discrepancy: 'rgba(224,85,85,.12)',
+  refusal_of_care:        'rgba(224,154,61,.15)',
+  workplace_injury:       'rgba(200,169,110,.15)',
+  careplan:               'rgba(61,138,122,.15)',
+  timeoff:                'rgba(200,169,110,.15)',
+  vacation:               'rgba(200,169,110,.15)',
+  concern:                'rgba(160,96,224,.15)',
+  latearrival:            'rgba(224,154,61,.15)',
+  equipment:              'rgba(107,114,128,.15)'
 };
 
 const _formTypeTextColors = {
-  incident:   'var(--red)',
-  careplan:   'var(--teal2)',
-  timeoff:    'var(--gold)',
-  vacation:   'var(--gold)',
-  concern:    '#a060e0',
-  mileage:    'var(--teal2)',
-  latearrival:'var(--amber)',
-  equipment:  'var(--muted2)'
+  incident:               'var(--red)',
+  critical_incident:      'var(--red)',
+  medication_discrepancy: 'var(--red)',
+  refusal_of_care:        'var(--amber)',
+  workplace_injury:       'var(--gold)',
+  careplan:               'var(--teal2)',
+  timeoff:                'var(--gold)',
+  vacation:               'var(--gold)',
+  concern:                '#a060e0',
+  latearrival:            'var(--amber)',
+  equipment:              'var(--muted2)'
 };
 
 const _fieldLabels = {
@@ -5598,11 +5610,20 @@ const _fieldLabels = {
   f_type:'Type', f_desc:'Description', f_action:'Immediate Action Taken',
   f_911:'911 Called?', f_witness:'Witness', f_change:'Requested Change',
   f_reason:'Reason', f_urgency:'Urgency', f_obs:'Observations',
-  f_from:'From Date / Address', f_to:'To Date / Address', f_notes:'Notes',
-  f_pay:'Vacation Pay', f_exptype:'Expense Type', f_km:'Distance (km)',
-  f_amount:'Amount ($)', f_ltype:'Type', f_time:'Expected Arrival Time',
+  f_from:'From Date', f_to:'To Date', f_notes:'Notes',
+  f_pay:'Vacation Pay', f_ltype:'Type', f_time:'Expected Arrival Time',
   f_cover:'Cover Needed?', f_equip:'Equipment / Supply', f_issue:'Issue Type',
   f_duration:'Duration Observed', f_family:'Family Aware?',
+  f_critical_type:'Critical Incident Type', f_emergency_response:'Emergency Response',
+  f_911_critical:'Emergency Services Called?', f_other_agencies:'Other Agencies Notified',
+  f_med_name:'Medication Name', f_med_error:'Error Type', f_med_dose:'Dose / Amount',
+  f_med_action:'Action Taken', f_pharmacy:'Pharmacy Notified?',
+  f_refused_task:'Task Refused', f_refused_reason:'Reason Given by Client',
+  f_capacity:'Client Had Capacity?', f_family_notified:'Family Notified?',
+  f_injury_type:'Injury Type', f_injury_body:'Body Part Affected',
+  f_wsib_required:'WSIB Required?', f_near_miss:'Near Miss?',
+  f_treatment:'Treatment Received',
+  f_attachments:'Attached Files',
   f_signature:'PSW Signature'
 };
 
@@ -5656,14 +5677,28 @@ function renderPSWForms() {
       ? `<span style="font-family:var(--mono);font-size:10px;padding:2px 8px;border-radius:20px;background:rgba(200,169,110,.12);color:var(--gold);border:1px solid rgba(200,169,110,.25);">Acknowledged</span>`
       : `<span style="font-family:var(--mono);font-size:10px;padding:2px 8px;border-radius:20px;background:rgba(61,138,122,.12);color:var(--teal2);border:1px solid rgba(61,138,122,.25);">Resolved</span>`;
 
-    // Build field rows — skip signature
+    // Build field rows — skip signature and attachments (handled separately)
     const fieldRows = Object.entries(f.fields || {})
-      .filter(([k]) => k !== 'f_signature')
+      .filter(([k]) => k !== 'f_signature' && k !== 'f_attachments')
       .map(([k, v]) => `
         <div style="margin-bottom:8px;">
           <div style="font-family:var(--mono);font-size:10px;letter-spacing:1px;color:var(--muted);margin-bottom:2px;">${(_fieldLabels[k] || k).toUpperCase()}</div>
           <div style="font-size:13px;color:var(--text);">${String(v).replace(/</g,'&lt;')}</div>
         </div>`).join('');
+
+    // Attachment chips — each opens as a file in new tab (same pattern as doc viewer)
+    const attachList = Array.isArray(f.fields?.f_attachments) ? f.fields.f_attachments : [];
+    const attachHtml = attachList.length ? `
+      <div style="margin-top:8px;">
+        <div style="font-family:var(--mono);font-size:10px;letter-spacing:1px;color:var(--muted);margin-bottom:6px;">ATTACHMENTS (${attachList.length})</div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px;">
+          ${attachList.map((a, i) => `
+            <button onclick="_openFormAttachment('${f.id}',${i})" style="display:flex;align-items:center;gap:6px;padding:6px 10px;background:var(--bg3);border:1px solid var(--border2);border-radius:6px;font-family:var(--mono);font-size:11px;color:var(--teal2);cursor:pointer;min-height:36px;touch-action:manipulation;">
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="1" y="1" width="10" height="10" rx="1"/><line x1="3" y1="4" x2="9" y2="4"/><line x1="3" y1="6" x2="9" y2="6"/><line x1="3" y1="8" x2="6" y2="8"/></svg>
+              ${String(a.name || 'File ' + (i+1)).replace(/</g,'&lt;')}
+            </button>`).join('')}
+        </div>
+      </div>` : '';
 
     const sigPresent = f.fields?.f_signature ? `<div style="font-family:var(--mono);font-size:10px;color:var(--teal2);margin-top:4px;">✓ Signature attached</div>` : '';
 
@@ -5700,6 +5735,7 @@ function renderPSWForms() {
         <summary style="font-family:var(--mono);font-size:11px;color:var(--teal2);cursor:pointer;list-style:none;margin-bottom:10px;">View Details ›</summary>
         <div style="border-top:1px solid var(--border);padding-top:12px;">
           ${fieldRows}
+          ${attachHtml}
           ${sigPresent}
           ${hqResponseHtml}
         </div>
@@ -5753,6 +5789,31 @@ async function acknowledgePSWForm(id, status) {
 function downloadFormPDF(id) {
   const token = window._hqToken || sessionStorage.getItem('hq_token') || '';
   window.open(`${API}/hq/psw-form/${id}/pdf?operator_id=${currentOp}&token=${token}`, '_blank');
+}
+
+// Open a form attachment in a new tab from base64 data
+// Pattern matches doc viewer — creates blob URL and opens it
+function _openFormAttachment(formId, attachIndex) {
+  const form = (window._pswForms || []).find(f => f.id === formId);
+  if (!form) return;
+  const attachList = Array.isArray(form.fields?.f_attachments) ? form.fields.f_attachments : [];
+  const attach = attachList[attachIndex];
+  if (!attach?.data) { showToast('Attachment data not available', 'err'); return; }
+  try {
+    // Convert base64 data URL to blob and open
+    const [header, b64] = attach.data.split(',');
+    const mime = (header.match(/:(.*?);/) || [])[1] || attach.type || 'application/octet-stream';
+    const bytes = atob(b64);
+    const arr = new Uint8Array(bytes.length);
+    for (let i = 0; i < bytes.length; i++) arr[i] = bytes.charCodeAt(i);
+    const blob = new Blob([arr], { type: mime });
+    const url = URL.createObjectURL(blob);
+    window.open(url, '_blank');
+    // Revoke after short delay — tab has loaded by then
+    setTimeout(() => URL.revokeObjectURL(url), 10000);
+  } catch(e) {
+    showToast('Could not open attachment — ' + e.message, 'err');
+  }
 }
 
 // ── NAV ──
