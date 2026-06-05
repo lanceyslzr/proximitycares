@@ -3359,6 +3359,14 @@ async function submitFormSheet() {
     });
     closeFormSheet();
     showToast(`Form submitted${d.pdf_ref ? ' · ' + d.pdf_ref : ''} — HQ notified ✓`, 'ok');
+
+    // Surface attachment failures — PSW must know if a photo didn't upload
+    if (d.attachment_warnings && d.attachment_warnings.length > 0) {
+      setTimeout(() => {
+        showToast(`Attachment warning: ${d.attachment_warnings.join(' · ')} — retake and resubmit if needed`, 'warn');
+      }, 2000);
+    }
+
     _renderSubmittedForms();
 
   } catch (e) {
