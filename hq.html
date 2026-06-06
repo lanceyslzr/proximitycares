@@ -4117,15 +4117,34 @@ async function loadAll(spin=false) {
     const _headers = { 'x-hq-token': window._hqToken || sessionStorage.getItem('hq_token') || '' };
 
     // ── STEP 1: Overview — critical path ─────────────────────────────────────
-    // Only this fetch can kill loadAll. If it fails the agency has no data — correct to show error.
     const overviewRes = await fetch(`${API}/hq/overview?operator_id=${currentOp}`, { headers: _headers });
+
+    // 401 = session expired — show lock screen, stop polling, do not toast
+    if (overviewRes.status === 401) {
+      if (window._pollInterval) { clearTimeout(window._pollInterval); window._pollInterval = null; }
+      window._hqToken = null;
+      try { sessionStorage.removeItem('hq_auth'); } catch(e) {}
+      try { sessionStorage.removeItem('hq_token'); } catch(e) {}
+      lockIn = '';
+      for (let i = 0; i < 4; i++) { const d = document.getElementById('d'+i); if(d) d.classList.remove('filled'); }
+      const appEl = document.getElementById('app');
+      const lockEl = document.getElementById('lock');
+      if (appEl) appEl.style.display = 'none';
+      if (lockEl) lockEl.style.display = 'flex';
+      showToast('Session expired — please re-enter your PIN', 'err');
+      return;
+    }
+
+    // 5xx = server error — surface clearly, still recoverable
+    if (!overviewRes.ok) {
+      throw new Error(`Server error ${overviewRes.status}`);
+    }
+
     const freshD = await overviewRes.json();
     if (!freshD.success) throw new Error(freshD.error || 'Overview API error');
     D = freshD;
 
     // ── STEP 2: Secondary fetches — non-critical, fully isolated ─────────────
-    // Each fetch+parse is wrapped individually. A network failure on visits
-    // never kills the overview data that already loaded.
     const _toWin = new Date(); _toWin.setDate(_toWin.getDate()+120);
     const _frWin = new Date(); _frWin.setDate(_frWin.getDate()-60);
 
@@ -4166,11 +4185,11 @@ async function loadAll(spin=false) {
     try {
       renderAll();
     } catch(renderErr) {
-      // renderAll threw — isolate it: data is in D, sections work on navigate
       console.error('[Proximity HQ] renderAll error:', renderErr);
     }
 
     // ── STEP 4: Background tasks ──────────────────────────────────────────────
+    _hqFetchFails = 0; // reset backoff on success
     fetchPSWInboxCount();
     setTimeout(() => {
       const _activeSect = (document.querySelector('.section.active')?.id || '').replace('sect-','');
@@ -6094,13 +6113,26 @@ async function renderActivity() {
 
 // ── FOLLOW-UP / SEQUENCES ──
 async function triggerFollowUp() {
-  showToast('Running follow-up engine...','ok');
+  showToast('Running follow-up engine...', 'ok');
+  let followupOk = false;
+  let sentCount = 0;
   try {
-    const r=await fetch(`${API}/followup/run`,{method:'POST',headers:{'Content-Type':'application/json','x-hq-token':window._hqToken||sessionStorage.getItem('hq_token')||''},body:'{}'});
-    const d=await r.json();
-    showToast(d.ok?`Follow-up done ✓ — ${d.sent||0} sent`:'Follow-up failed','ok');
-    await loadAll(false);
-  } catch { showToast('Follow-up failed','err'); }
+    const r = await fetch(`${API}/followup/run`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-hq-token': window._hqToken || sessionStorage.getItem('hq_token') || '' },
+      body: '{}'
+    });
+    const d = await r.json();
+    followupOk = !!d.ok;
+    sentCount = d.sent || 0;
+  } catch(err) {
+    showToast('Follow-up failed — check connection', 'err');
+    return;
+  }
+  // Show accurate result before refreshing
+  showToast(followupOk ? `Follow-up done ✓ — ${sentCount} sent` : 'Follow-up ran but reported an error', followupOk ? 'ok' : 'err');
+  // Refresh data separately — failure here does NOT affect the follow-up result
+  try { await loadAll(false); } catch { /* non-critical */ }
 }
 
 async function triggerSequences() {
