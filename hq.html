@@ -5442,9 +5442,9 @@ function renderPSWs() {
       : '';
     // On-shift status
     const todayStr2 = new Date().toLocaleDateString('en-CA',{timeZone:'America/Toronto'});
-    const activeShift = (D.visits||[]).find(v => v.psw_name.trim()===p.name.trim() && v.visit_date===todayStr2 && v.time_in && !v.time_out);
-    const doneToday = (D.visits||[]).find(v => v.psw_name.trim()===p.name.trim() && v.visit_date===todayStr2 && v.time_out);
-    const pswVisits = (D.visits||[]).filter(v => v.psw_name.trim()===p.name.trim()).sort((a,b) => (b.visit_date||'').localeCompare(a.visit_date||''));
+    const activeShift = (D.visits||[]).find(v => (v.psw_name||'').trim()===p.name.trim() && v.visit_date===todayStr2 && v.time_in && !v.time_out);
+    const doneToday = (D.visits||[]).find(v => (v.psw_name||'').trim()===p.name.trim() && v.visit_date===todayStr2 && v.time_out);
+    const pswVisits = (D.visits||[]).filter(v => (v.psw_name||'').trim()===p.name.trim()).sort((a,b) => (b.visit_date||'').localeCompare(a.visit_date||''));
     const lastPswV = pswVisits[0];
     let shiftBar = '';
     if (activeShift) {
@@ -6546,7 +6546,7 @@ function renderCRM() {
     // Operator pipeline: merge Supabase operator leads with seed pipeline
     const supaLeads = (D.leads||[]).filter(l => l.lead_type === 'operator' || l.operator_id === 'proximity-systems');
     const seeds = CRM_SEED.filter(s => !supaLeads.some(l =>
-      l.email && s.email && l.email.toLowerCase() === s.email.toLowerCase()
+      l.email && s.email && (l.email||'').toLowerCase() === (s.email||'').toLowerCase()
     ));
     all = [...supaLeads, ...seeds];
   } else {
@@ -8273,7 +8273,7 @@ function openAddShift(pswName, date, clientName) {
   const scoreMap = {};
   if (clientName) {
     psws.forEach(p => {
-      const pswVisits = visits.filter(v => v.psw_name.trim() === p.name.trim() && v.client_name === clientName);
+      const pswVisits = visits.filter(v => (v.psw_name||'').trim() === p.name.trim() && v.client_name === clientName);
       const rated = pswVisits.filter(v => v.satisfaction_rating);
       const avg = rated.length ? (rated.reduce((s,v) => s + v.satisfaction_rating, 0) / rated.length).toFixed(1) : null;
       scoreMap[p.name] = { count: pswVisits.length, avg };
