@@ -4114,57 +4114,76 @@ async function loadAll(spin=false) {
   if(spin) { const b=document.getElementById('refresh-btn'); if(b){b.classList.add('refresh-spin'); setTimeout(()=>b.classList.remove('refresh-spin'),800);} }
   try {
     const _headers = { 'x-hq-token': window._hqToken || sessionStorage.getItem('hq_token') || '' };
-    // Fetch window: 60 days back, 120 days forward for time-off blocks
+
+    // ── STEP 1: Overview — critical path ─────────────────────────────────────
+    // Only this fetch can kill loadAll. If it fails the agency has no data — correct to show error.
+    const overviewRes = await fetch(`${API}/hq/overview?operator_id=${currentOp}`, { headers: _headers });
+    const freshD = await overviewRes.json();
+    if (!freshD.success) throw new Error(freshD.error || 'Overview API error');
+    D = freshD;
+
+    // ── STEP 2: Secondary fetches — non-critical, fully isolated ─────────────
+    // Each fetch+parse is wrapped individually. A network failure on visits
+    // never kills the overview data that already loaded.
     const _toWin = new Date(); _toWin.setDate(_toWin.getDate()+120);
     const _frWin = new Date(); _frWin.setDate(_frWin.getDate()-60);
-    const [overviewRes, visitsRes, timeOffRes, formsRes] = await Promise.all([
-      fetch(`${API}/hq/overview?operator_id=${currentOp}`, { headers: _headers }),
-      fetch(`${API}/hq/visits?operator_id=${currentOp}&limit=500&from_date=${new Date(Date.now()-90*86400000).toLocaleDateString('en-CA',{timeZone:'America/Toronto'})}`, { headers: _headers }),
-      fetch(`${API}/hq/psw-time-off?operator_id=${currentOp}&from_date=${_frWin.toLocaleDateString('en-CA',{timeZone:'America/Toronto'})}&to_date=${_toWin.toLocaleDateString('en-CA',{timeZone:'America/Toronto'})}`, { headers: _headers }),
+
+    await Promise.allSettled([
+      // Visits (90-day window)
+      fetch(`${API}/hq/visits?operator_id=${currentOp}&limit=500&from_date=${new Date(Date.now()-90*86400000).toLocaleDateString('en-CA',{timeZone:'America/Toronto'})}`, { headers: _headers })
+        .then(r => r.json())
+        .then(vd => { if (vd.visits) D.visits = vd.visits; })
+        .catch(() => {}),
+
+      // PSW time-off (±60/120 day window for schedule blocking)
+      fetch(`${API}/hq/psw-time-off?operator_id=${currentOp}&from_date=${_frWin.toLocaleDateString('en-CA',{timeZone:'America/Toronto'})}&to_date=${_toWin.toLocaleDateString('en-CA',{timeZone:'America/Toronto'})}`, { headers: _headers })
+        .then(r => r.json())
+        .then(tod => { if (tod.time_off) D.time_off = tod.time_off; })
+        .catch(() => {}),
+
+      // PSW forms (unread badge)
       fetch(`${API}/hq/psw-forms?operator_id=${currentOp}&limit=200`, { headers: _headers })
+        .then(r => r.json())
+        .then(fd => {
+          if (fd.success) {
+            window._pswForms = fd.forms || [];
+            const unread = fd.unacknowledged || 0;
+            const badge = document.getElementById('sn-forms-badge');
+            if (badge) { badge.textContent = unread; badge.style.display = unread > 0 ? '' : 'none'; }
+          }
+        })
+        .catch(() => {}),
     ]);
-    const freshD = await overviewRes.json();
-    if(!freshD.success) throw new Error('API error');
-    D = freshD;
-    try {
-      const vd = await visitsRes.json();
-      if (vd.visits) D.visits = vd.visits;
-    } catch {}
-    try {
-      const tod = await timeOffRes.json();
-      if (tod.time_off) D.time_off = tod.time_off;
-    } catch {}
-    try {
-      const fd = await formsRes.json();
-      if (fd.success) {
-        window._pswForms = fd.forms || [];
-        const unread = fd.unacknowledged || 0;
-        const badge = document.getElementById('sn-forms-badge');
-        if (badge) { badge.textContent = unread; badge.style.display = unread > 0 ? '' : 'none'; }
-      }
-    } catch {}
-    // Invalidate lazy caches so next render fetches fresh data
+
+    // ── STEP 3: Render ────────────────────────────────────────────────────────
     window._sentimentData = null;
     window._arData = null;
     window._overtimeFlags = null;
     _mergedPSWCache = null;
     window._pswsRendered = false;
-    renderAll();
-    // Fetch PSW inbox unread count in background — updates bell badge
+
+    try {
+      renderAll();
+    } catch(renderErr) {
+      // renderAll threw — isolate it: data is in D, sections work on navigate
+      console.error('[Proximity HQ] renderAll error:', renderErr);
+    }
+
+    // ── STEP 4: Background tasks ──────────────────────────────────────────────
     fetchPSWInboxCount();
-    // renderAll() restores the saved tab via showSect(saved) at the end.
-    // showSect('schedule') already calls refreshGrid() — so on tab restore we're covered.
-    // But if schedule was already the active section before renderAll ran (e.g. URL param),
-    // we need to explicitly refresh the grid here too.
-    // Use setTimeout(0) so the DOM settles after renderAll's showSect call first.
     setTimeout(() => {
       const _activeSect = (document.querySelector('.section.active')?.id || '').replace('sect-','');
       if (_activeSect === 'schedule' && schedHQView === 'grid') {
         refreshGrid();
       }
     }, 0);
-  } catch(err) { showToast('Failed to load data — check connection', 'err'); }
-  finally { _hqFetching = false; }
+
+  } catch(err) {
+    console.error('[Proximity HQ] loadAll critical error:', err.message || err);
+    showToast('Failed to load data — check connection', 'err');
+  } finally {
+    _hqFetching = false;
+  }
 }
 function renderAll() {
   // Always render these — stats and today are always visible
