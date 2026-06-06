@@ -13218,6 +13218,10 @@ Generate exactly 3 to 5 prioritized action items for the operator. Each item mus
     kpiRev.textContent = marginPeriod != null ? '$' + Math.round(marginPeriod).toLocaleString() : '—';
     kpiRev.style.color = marginPeriod > 0 ? 'var(--green2)' : marginPeriod < 0 ? 'var(--red)' : 'var(--muted)';
   }
+  const kpiRevSub = document.getElementById('kpi-rev-sub');
+  if (kpiRevSub && D.counts && D.counts.period_label) {
+    kpiRevSub.textContent = D.counts.period_label;
+  }
 
 }
 
