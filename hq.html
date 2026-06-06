@@ -4549,6 +4549,7 @@ function renderClients() {
     Promise.all(fetches).then(()=>renderClients()); // single re-render when both done
   }
   const el = document.getElementById('clients-list');
+  if (!el) return;
   if (!el.querySelector('.card')) showSkeleton('clients-list', 4, true);
   if(!clients.length) { el.innerHTML='<div class="empty-state"><div class="empty-state-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78z"/></svg></div><div class="empty-state-title">No active clients</div><div class="empty-state-sub">Onboard your first client to get started.</div></div>'; return; }
   el.innerHTML = clients.map(c => {
@@ -4581,7 +4582,7 @@ function renderClients() {
       ? `<span class="card-info-chip active">Last visit ${fmtd(lastV.visit_date)}${lastV.client_mood?' · '+lastV.client_mood:''}</span>`
       : `<span class="card-info-chip">No visits yet</span>`;
     const pswChip = c.assigned_psw
-      ? `<span class="card-info-chip">PSW: ${c.assigned_psw.split(' ')[0]}</span>`
+      ? `<span class="card-info-chip">PSW: ${(c.assigned_psw||'').split(' ')[0]}</span>`
       : `<span class="card-info-chip warn">⚑ Unassigned</span>`;
     const onShiftNow = (D.visits||[]).some(v => v.client_name===name && v.visit_date===new Date().toLocaleDateString('en-CA',{timeZone:'America/Toronto'}) && v.time_in && !v.time_out);
     const onShiftChip = onShiftNow ? `<span class="card-info-chip active" style="color:var(--green2);border-color:rgba(74,154,110,.3);">⬤ On Shift</span>` : '';
@@ -5409,12 +5410,13 @@ function renderPSWs() {
       .catch(() => {});
   }
   const el = document.getElementById('psws-list');
+  if (!el) return;
   if (!el.querySelector('.card')) showSkeleton('psws-list', 6, true);
   const merged = getMergedPSWList();
   const today = new Date().toLocaleDateString('en-CA',{timeZone:'America/Toronto'});
   const in90 = new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString().slice(0,10);
   el.innerHTML = merged.map(p => {
-    const ini = p.name.split(' ').map(w=>w[0]).join('').toUpperCase();
+    const ini = (p.name||'?').split(' ').map(w=>w[0]||'').join('').toUpperCase();
     const email = p.email || null;
     const pStatus = p.status || (p.source === 'live' ? 'active' : 'inactive');
     const _pswStatusMap = {
@@ -5615,7 +5617,7 @@ function renderMessages() {
   const clients = D.clients||[];
   Object.keys(byClient).forEach(key => {
     const name = key.replace('Family of ','');
-    const parts = name.split(' ');
+    const parts = (name||'').split(' ');
     const match = clients.find(c => c.first_name === parts[0] && (c.last_name||'') === (parts[1]||''));
     if (match) byClient[key].slug = match.portal_slug;
   });
@@ -11876,7 +11878,7 @@ function renderOverview() {
         let elapsedStr = '';
         if (r.status === 'active' && r.time_in) {
           try {
-            const [hh, mm] = r.time_in.split(':');
+            const [hh, mm] = (r.time_in||'00:00').split(':');
             const cdt = new Date(); cdt.setHours(parseInt(hh), parseInt(mm), 0, 0);
             const mins = Math.round((now - cdt) / 60000);
             elapsedStr = mins >= 60 ? `${Math.floor(mins/60)}h ${mins%60}m` : `${mins}m`;
@@ -13164,7 +13166,7 @@ function renderToday() {
         let elapsedStr = '';
         if (r.status === 'active' && r.time_in) {
           try {
-            const [hh, mm] = r.time_in.split(':');
+            const [hh, mm] = (r.time_in||'00:00').split(':');
             const cdt = new Date(); cdt.setHours(parseInt(hh), parseInt(mm), 0, 0);
             const mins = Math.round((now - cdt) / 60000);
             elapsedStr = mins >= 60 ? `${Math.floor(mins/60)}h ${mins%60}m` : `${mins}m`;
