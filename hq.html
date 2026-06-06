@@ -1671,6 +1671,7 @@ body.sidebar-rail .sidebar{width:64px;overflow:visible;}
   <div class="nav-tab" onclick="showSect('applicants')">Applicants <span class="nbadge" id="app-badge">0</span></div>
   <div class="nav-tab" onclick="showSect('revenue')">Revenue</div>
   <div class="nav-tab" onclick="showSect('help')">Help</div>
+  <div class="nav-tab" onclick="showSect('support')">Support <span class="nbadge" id="support-badge" style="display:none;">!</span></div>
 </div>
 
 <!-- TODAY — Real Time View -->
@@ -2009,6 +2010,39 @@ body.sidebar-rail .sidebar{width:64px;overflow:visible;}
 <!-- ONBOARD -->
 <div class="section" id="sect-onboard">
   <div class="section-header"><span class="section-title">Activate Staff + Onboard Clients</span></div>
+
+  <!-- ── ONBOARDING GUIDE ─────────────────────────────────────────────── -->
+  <div id="onboard-guide" style="margin-bottom:20px;">
+
+    <!-- Welcome header + progress -->
+    <div id="onboard-guide-header" style="padding:18px 16px;background:linear-gradient(135deg,rgba(61,138,122,.08),rgba(61,138,122,.03));border:1px solid rgba(61,138,122,.2);border-radius:10px;margin-bottom:12px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+        <div>
+          <div style="font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--teal2);margin-bottom:4px;">✦ Setup Guide</div>
+          <div style="font-size:15px;font-weight:600;color:var(--text);">Get your agency live in 10 steps</div>
+        </div>
+        <button onclick="dismissOnboardGuide()" id="onboard-dismiss-btn" style="font-family:var(--mono);font-size:10px;letter-spacing:1px;color:var(--muted);padding:4px 10px;border:1px solid var(--border);border-radius:4px;background:none;cursor:pointer;">Skip</button>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div style="flex:1;height:4px;background:var(--border);border-radius:2px;overflow:hidden;">
+          <div id="onboard-progress-bar" style="height:100%;background:var(--teal2);border-radius:2px;transition:width .4s ease;width:0%;"></div>
+        </div>
+        <div id="onboard-progress-label" style="font-family:var(--mono);font-size:11px;color:var(--muted);white-space:nowrap;">0 / 10</div>
+      </div>
+    </div>
+
+    <!-- Step list -->
+    <div id="onboard-steps-list" style="display:flex;flex-direction:column;gap:6px;"></div>
+
+    <!-- You're live celebration (hidden until step 10) -->
+    <div id="onboard-complete" style="display:none;padding:20px 16px;text-align:center;background:rgba(74,154,110,.08);border:1px solid rgba(74,154,110,.3);border-radius:10px;margin-top:12px;">
+      <div style="font-size:28px;margin-bottom:8px;">🎉</div>
+      <div style="font-family:var(--mono);font-size:13px;letter-spacing:2px;text-transform:uppercase;color:var(--green2);margin-bottom:6px;">You're live</div>
+      <div style="font-size:13px;color:var(--muted2);margin-bottom:14px;">Your agency is fully set up on Proximity Systems.</div>
+      <button onclick="dismissOnboardGuide()" style="font-family:var(--mono);font-size:11px;letter-spacing:1px;padding:8px 20px;border-radius:6px;border:1px solid rgba(74,154,110,.4);background:rgba(74,154,110,.1);color:var(--green2);cursor:pointer;">Dismiss guide</button>
+    </div>
+  </div>
+  <!-- ── END ONBOARDING GUIDE ──────────────────────────────────────────── -->
 
   <!-- SEND CLIENT INTAKE LINK -->
   <div class="card" style="padding:18px 16px;margin-bottom:16px;">
@@ -2444,8 +2478,75 @@ body.sidebar-rail .sidebar{width:64px;overflow:visible;}
       <div id="watchdog-summary" style="display:none;margin-top:8px;padding:10px 12px;border-radius:8px;font-family:var(--mono);font-size:11px;"></div>
     </div>
   </div>
+
+  <!-- ── SUPPORT TICKETS (operator side) ─────────────────────────── -->
+  <div style="margin-top:16px;">
+    <div style="font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--teal2);margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid var(--border);">✦ Contact Support</div>
+
+    <!-- Submit new ticket -->
+    <div class="card" style="padding:16px;margin-bottom:12px;">
+      <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:4px;">Open a support ticket</div>
+      <div style="font-size:12px;color:var(--muted2);margin-bottom:12px;">We respond within 4 hours Mon–Fri, 24 hours weekends.</div>
+      <div class="sheet-row"><div class="slbl">Subject</div><input class="sinput" id="sup-subject" placeholder="Briefly describe the issue"></div>
+      <div class="sheet-row">
+        <div class="slbl">Priority</div>
+        <select class="sselect" id="sup-priority">
+          <option value="medium">Medium — general question</option>
+          <option value="high">High — something is broken</option>
+          <option value="low">Low — feature request / feedback</option>
+        </select>
+      </div>
+      <div class="sheet-row"><div class="slbl">Message</div><textarea class="sinput" id="sup-message" rows="3" style="resize:vertical;" placeholder="Describe what happened, what you expected, and any steps to reproduce..."></textarea></div>
+      <button class="sbtn" id="sup-submit-btn" onclick="submitSupportTicket()">Submit Ticket</button>
+    </div>
+
+    <!-- My tickets list -->
+    <div>
+      <div style="font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:8px;">My Tickets</div>
+      <div id="sup-tickets-list"><div style="font-size:12px;color:var(--muted);padding:10px 0;">No tickets yet.</div></div>
+    </div>
+  </div>
+  <!-- ── END SUPPORT TICKETS ──────────────────────────────────────── -->
+
 </div>
 </div>
+</div>
+
+<!-- SUPPORT INBOX (Proximity Systems owner view — only visible to proximity-care) -->
+<div class="section" id="sect-support">
+  <div class="section-header">
+    <span class="section-title">Support Inbox</span>
+    <div class="sect-action" onclick="loadSupportInbox()">↻ Refresh</div>
+  </div>
+
+  <!-- Filter tabs -->
+  <div style="display:flex;gap:6px;margin:0 12px 12px;flex-wrap:wrap;">
+    <button onclick="filterSupportTickets('all')" id="sup-filter-all" class="sbtn ghost" style="font-size:11px;padding:4px 12px;">All</button>
+    <button onclick="filterSupportTickets('open')" id="sup-filter-open" class="sbtn ghost" style="font-size:11px;padding:4px 12px;">Open</button>
+    <button onclick="filterSupportTickets('in_progress')" id="sup-filter-inprog" class="sbtn ghost" style="font-size:11px;padding:4px 12px;">In Progress</button>
+    <button onclick="filterSupportTickets('resolved')" id="sup-filter-resolved" class="sbtn ghost" style="font-size:11px;padding:4px 12px;">Resolved</button>
+  </div>
+
+  <div id="sup-inbox-list" style="padding:0 12px;">
+    <div style="font-size:12px;color:var(--muted);padding:20px 0 10px;text-align:center;">Loading tickets...</div>
+  </div>
+
+  <!-- Reply sheet -->
+  <div id="sup-reply-overlay" style="display:none;position:fixed;inset:0;z-index:400;background:rgba(0,0,0,.7);" onclick="closeSupportReplySheet()"></div>
+  <div id="sup-reply-sheet" style="display:none;position:fixed;bottom:0;left:0;right:0;background:var(--bg2);border-radius:18px 18px 0 0;padding:20px;max-height:80vh;overflow-y:auto;z-index:401;">
+    <div style="width:36px;height:4px;background:var(--border2);border-radius:2px;margin:0 auto 16px;"></div>
+    <div style="font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--teal2);margin-bottom:4px;">Reply to Ticket</div>
+    <div id="sup-reply-ticket-info" style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:12px;"></div>
+    <div style="font-size:12px;color:var(--muted2);margin-bottom:6px;font-family:var(--mono);letter-spacing:1px;text-transform:uppercase;">Original message:</div>
+    <div id="sup-reply-original" style="font-size:12px;color:var(--muted2);background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:10px 12px;margin-bottom:12px;line-height:1.6;"></div>
+    <div style="font-size:12px;color:var(--muted2);margin-bottom:6px;font-family:var(--mono);letter-spacing:1px;text-transform:uppercase;">Your reply:</div>
+    <textarea id="sup-reply-text" class="sinput" rows="4" style="resize:vertical;margin-bottom:10px;" placeholder="Type your reply..."></textarea>
+    <div style="display:flex;gap:8px;margin-bottom:8px;">
+      <button onclick="sendSupportReply(false)" class="sbtn" style="flex:1;">Send Reply</button>
+      <button onclick="sendSupportReply(true)" style="flex:1;padding:12px;background:rgba(74,154,110,.15);border:1px solid rgba(74,154,110,.4);border-radius:8px;color:var(--green2);font-family:var(--mono);font-size:11px;letter-spacing:1px;cursor:pointer;min-height:44px;">✓ Resolve + Reply</button>
+    </div>
+    <button onclick="closeSupportReplySheet()" style="width:100%;padding:12px;background:none;border:1px solid var(--border);border-radius:8px;color:var(--muted2);font-family:var(--mono);font-size:12px;cursor:pointer;min-height:44px;">Cancel</button>
+  </div>
 </div>
 
 <div class="section" id="sect-activity">
@@ -4071,6 +4172,7 @@ function renderAll() {
   renderToday();
   renderVacantVisits();
   updateNotifications();
+  renderOnboardingGuide(); // S73: onboarding guide reads D data, safe to call always
 
   // Render only currently active section eagerly — defer others
   const activeSect = (document.querySelector('.section.active')?.id || '').replace('sect-','');
@@ -4089,6 +4191,8 @@ function renderAll() {
   if (activeSect === 'hq-forms') { _hqfPopulatePSWs(); }
   if (activeSect === 'overview') { renderOverview(); }
   if (activeSect === 'revenue') { renderRevenue().catch(()=>{}); }
+  if (activeSect === 'help') { loadSupportTickets(); }
+  if (activeSect === 'support') { loadSupportInbox(); }
   if (activeSect === 'schedule') {
     // Always show loading state in renderAll — never render from potentially stale D.bookings.
     // showSect('schedule') fires refreshGrid() which fetches the correct window then renders.
@@ -13224,6 +13328,304 @@ Generate exactly 3 to 5 prioritized action items for the operator. Each item mus
   }
 
 }
+
+// ── SUPPORT TICKETS — S74 ────────────────────────────────────────────────────
+
+// OPERATOR SIDE — submit a ticket
+async function submitSupportTicket() {
+  const subject = document.getElementById('sup-subject')?.value?.trim();
+  const message = document.getElementById('sup-message')?.value?.trim();
+  const priority = document.getElementById('sup-priority')?.value || 'medium';
+  const btn = document.getElementById('sup-submit-btn');
+  if (!subject || !message) return showToast('Subject and message required', 'err');
+  if (btn) { btn.disabled = true; btn.textContent = 'Sending...'; }
+  try {
+    const res = await hqFetch(`${API}/support/ticket`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ operator_id: currentOp, subject, message, priority })
+    });
+    const d = await res.json();
+    if (!d.success) throw new Error(d.error || 'Failed');
+    showToast('Ticket submitted — we\'ll respond within 4 hours ✓', 'ok');
+    if (document.getElementById('sup-subject')) document.getElementById('sup-subject').value = '';
+    if (document.getElementById('sup-message')) document.getElementById('sup-message').value = '';
+    loadSupportTickets();
+  } catch (err) {
+    showToast('Failed to submit ticket: ' + err.message, 'err');
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = 'Submit Ticket'; }
+  }
+}
+
+// OPERATOR SIDE — load their own tickets
+async function loadSupportTickets() {
+  const list = document.getElementById('sup-tickets-list');
+  if (!list) return;
+  try {
+    const res = await hqFetch(`${API}/support/tickets?operator_id=${currentOp}`);
+    const d = await res.json();
+    const tickets = d.tickets || [];
+    if (!tickets.length) {
+      list.innerHTML = '<div style="font-size:12px;color:var(--muted);padding:10px 0;">No tickets yet.</div>';
+      return;
+    }
+    const statusColor = s => s === 'resolved' ? 'var(--green2)' : s === 'in_progress' ? 'var(--teal2)' : 'var(--gold)';
+    const statusLabel = s => s === 'resolved' ? 'Resolved' : s === 'in_progress' ? 'In Progress' : 'Open';
+    list.innerHTML = tickets.map(t => `
+      <div style="border:1px solid var(--border);border-radius:8px;padding:12px 14px;margin-bottom:8px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+          <div style="font-size:13px;font-weight:600;color:var(--text);">${t.subject}</div>
+          <span style="font-family:var(--mono);font-size:10px;color:${statusColor(t.status)};letter-spacing:1px;">${statusLabel(t.status)}</span>
+        </div>
+        <div style="font-size:12px;color:var(--muted2);margin-bottom:6px;">${t.message.slice(0,100)}${t.message.length > 100 ? '...' : ''}</div>
+        ${t.reply ? `<div style="font-size:12px;color:var(--teal2);background:rgba(61,138,122,.06);border:1px solid rgba(61,138,122,.2);border-radius:6px;padding:8px 10px;margin-top:6px;"><span style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);">Response:</span><br>${t.reply}</div>` : ''}
+        <div style="font-size:11px;color:var(--muted);margin-top:6px;">${new Date(t.created_at).toLocaleDateString('en-CA',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'})}</div>
+      </div>`).join('');
+  } catch (err) {
+    list.innerHTML = '<div style="font-size:12px;color:var(--muted);">Failed to load tickets.</div>';
+  }
+}
+
+// OWNER SIDE — load all tickets across all operators
+let _supTickets = [];
+let _supFilter = 'all';
+
+async function loadSupportInbox() {
+  const list = document.getElementById('sup-inbox-list');
+  if (!list) return;
+  list.innerHTML = '<div style="font-size:12px;color:var(--muted);padding:20px 0 10px;text-align:center;">Loading...</div>';
+  try {
+    const res = await hqFetch(`${API}/hq/support/all`);
+    const d = await res.json();
+    _supTickets = d.tickets || [];
+    const openCount = d.open_count || 0;
+    // Update badge
+    const badge = document.getElementById('support-badge');
+    if (badge) { badge.textContent = openCount; badge.style.display = openCount > 0 ? 'inline' : 'none'; }
+    renderSupportInbox();
+  } catch (err) {
+    list.innerHTML = '<div style="font-size:12px;color:var(--muted);">Access restricted or failed to load.</div>';
+  }
+}
+
+function filterSupportTickets(filter) {
+  _supFilter = filter;
+  ['all','open','inprog','resolved'].forEach(f => {
+    const btn = document.getElementById('sup-filter-' + f);
+    if (btn) btn.style.opacity = f === filter.replace('in_progress','inprog') ? '1' : '0.4';
+  });
+  renderSupportInbox();
+}
+
+function renderSupportInbox() {
+  const list = document.getElementById('sup-inbox-list');
+  if (!list) return;
+  const filtered = _supFilter === 'all' ? _supTickets : _supTickets.filter(t => t.status === _supFilter);
+  if (!filtered.length) {
+    list.innerHTML = `<div style="font-size:12px;color:var(--muted);padding:20px 0 10px;text-align:center;">No ${_supFilter === 'all' ? '' : _supFilter + ' '}tickets.</div>`;
+    return;
+  }
+  const priorityColor = p => p === 'high' ? 'var(--red)' : p === 'low' ? 'var(--muted)' : 'var(--gold)';
+  const statusColor = s => s === 'resolved' ? 'var(--green2)' : s === 'in_progress' ? 'var(--teal2)' : 'var(--gold)';
+  const statusLabel = s => s === 'resolved' ? '✓ Resolved' : s === 'in_progress' ? '↻ In Progress' : '● Open';
+
+  list.innerHTML = '';
+  filtered.forEach(t => {
+    const div = document.createElement('div');
+    div.style.cssText = `border:1px solid ${t.status === 'open' ? 'rgba(200,169,110,.4)' : 'var(--border)'};border-radius:8px;padding:12px 14px;margin-bottom:8px;background:${t.status === 'open' ? 'rgba(200,169,110,.04)' : 'var(--bg2)'};`;
+    div.innerHTML = `
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;">
+        <div>
+          <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:2px;">${t.subject}</div>
+          <div style="font-size:12px;color:var(--teal2);">${t.agency_name || t.operator_id}</div>
+        </div>
+        <div style="text-align:right;flex-shrink:0;margin-left:8px;">
+          <div style="font-family:var(--mono);font-size:10px;color:${statusColor(t.status)};margin-bottom:2px;">${statusLabel(t.status)}</div>
+          <div style="font-family:var(--mono);font-size:10px;color:${priorityColor(t.priority)};">${(t.priority||'medium').toUpperCase()}</div>
+        </div>
+      </div>
+      <div style="font-size:12px;color:var(--muted2);line-height:1.5;margin-bottom:8px;">${(t.message||'').slice(0,150)}${(t.message||'').length > 150 ? '...' : ''}</div>
+      ${t.reply ? `<div style="font-size:11px;color:var(--muted);margin-bottom:6px;font-style:italic;">Replied: ${(t.reply||'').slice(0,80)}${(t.reply||'').length > 80 ? '...' : ''}</div>` : ''}
+      <div style="display:flex;gap:6px;align-items:center;">
+        <div style="flex:1;font-size:11px;color:var(--muted);">${new Date(t.created_at).toLocaleDateString('en-CA',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'})}</div>
+        <div id="sup-actions-${t.id}"></div>
+      </div>`;
+    list.appendChild(div);
+
+    // Add action buttons via JS (avoids quote escaping in onclick)
+    const actions = div.querySelector('#sup-actions-' + t.id);
+    if (t.status !== 'resolved' && actions) {
+      const replyBtn = document.createElement('button');
+      replyBtn.style.cssText = 'font-family:var(--mono);font-size:11px;letter-spacing:1px;padding:4px 12px;border:1px solid rgba(61,138,122,.4);border-radius:4px;background:rgba(61,138,122,.08);color:var(--teal2);cursor:pointer;min-height:32px;margin-right:6px;';
+      replyBtn.textContent = 'Reply';
+      replyBtn.onclick = () => openSupportReplySheet(t.id, t.subject, t.message, t.agency_name || t.operator_id);
+      actions.appendChild(replyBtn);
+
+      const resolveBtn = document.createElement('button');
+      resolveBtn.style.cssText = 'font-family:var(--mono);font-size:11px;letter-spacing:1px;padding:4px 12px;border:1px solid rgba(74,154,110,.4);border-radius:4px;background:rgba(74,154,110,.06);color:var(--green2);cursor:pointer;min-height:32px;';
+      resolveBtn.textContent = 'Resolve';
+      resolveBtn.onclick = () => markSupportResolved(t.id);
+      actions.appendChild(resolveBtn);
+    }
+  });
+}
+
+let _supActiveTicketId = null;
+function openSupportReplySheet(id, subject, message, agency) {
+  _supActiveTicketId = id;
+  const info = document.getElementById('sup-reply-ticket-info');
+  const orig = document.getElementById('sup-reply-original');
+  const text = document.getElementById('sup-reply-text');
+  if (info) info.textContent = `${agency} — ${subject}`;
+  if (orig) orig.textContent = message;
+  if (text) text.value = '';
+  document.getElementById('sup-reply-overlay').style.display = 'block';
+  document.getElementById('sup-reply-sheet').style.display = 'block';
+}
+function closeSupportReplySheet() {
+  document.getElementById('sup-reply-overlay').style.display = 'none';
+  document.getElementById('sup-reply-sheet').style.display = 'none';
+  _supActiveTicketId = null;
+}
+
+async function sendSupportReply(resolve = false) {
+  const reply = document.getElementById('sup-reply-text')?.value?.trim();
+  if (!reply) return showToast('Reply text required', 'err');
+  if (!_supActiveTicketId) return;
+  try {
+    const res = await hqFetch(`${API}/hq/support/reply/${_supActiveTicketId}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ reply, resolved: resolve })
+    });
+    const d = await res.json();
+    if (!d.success) throw new Error(d.error || 'Failed');
+    showToast(resolve ? 'Ticket resolved + reply sent ✓' : 'Reply sent ✓', 'ok');
+    closeSupportReplySheet();
+    loadSupportInbox();
+  } catch (err) {
+    showToast('Failed: ' + err.message, 'err');
+  }
+}
+
+async function markSupportResolved(id) {
+  try {
+    const res = await hqFetch(`${API}/hq/support/status/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: 'resolved' })
+    });
+    const d = await res.json();
+    if (!d.success) throw new Error(d.error || 'Failed');
+    showToast('Ticket marked resolved ✓', 'ok');
+    loadSupportInbox();
+  } catch (err) {
+    showToast('Failed: ' + err.message, 'err');
+  }
+}
+// ── END SUPPORT TICKETS ──────────────────────────────────────────────────────
+
+// ── ONBOARDING GUIDE (S73) ──────────────────────────────────────────────────
+const _ONBOARD_STEPS = [
+  { id: 1, title: 'Add your first client',        desc: 'Create a client record so you can schedule and bill.',          sect: 'clients',  detect: () => (D.clients||[]).length > 0 },
+  { id: 2, title: 'Invite your first PSW',         desc: 'Activate a PSW and send them their portal login.',             sect: 'psws',     detect: () => (D.psws||[]).filter(p=>p.status==='active').length > 0 },
+  { id: 3, title: 'Schedule your first visit',     desc: 'Book a shift on the schedule calendar.',                       sect: 'schedule', detect: () => (D.bookings||[]).length > 0 },
+  { id: 4, title: 'Set your billing rates',        desc: 'Confirm your client rate and PSW rate are correct.',           sect: 'clients',  detect: () => !!(D.counts && D.counts.clients > 0) },
+  { id: 5, title: 'Send a family portal link',     desc: 'Give a client\'s family real-time visibility into care.',      sect: 'onboard',  detect: () => (D.clients||[]).some(c=>c.portal_slug) },
+  { id: 6, title: 'Generate your first invoice',   desc: 'Create and send an invoice after a verified visit.',           sect: 'revenue',  detect: () => !!(D.counts && D.counts.revenue_month >= 0 && (D.clients||[]).length > 0) },
+  { id: 7, title: 'Read your first AI briefing',   desc: 'Open the Today section — Chief of Staff runs daily.',          sect: 'today',    detect: () => true },
+  { id: 8, title: 'Review your compliance docs',   desc: 'Check HQ Forms for PIPEDA consent and OHSA records.',          sect: 'hq-forms', detect: () => true },
+  { id: 9, title: 'Customize your branding',       desc: 'Set your agency name, logo, and accent color.',               sect: 'settings', detect: () => true },
+  { id: 10, title: 'Explore the CRM pipeline',     desc: 'Track leads from inquiry to signed client in one view.',       sect: 'crm',      detect: () => true },
+];
+
+function renderOnboardingGuide() {
+  const guide = document.getElementById('onboard-guide');
+  const stepsList = document.getElementById('onboard-steps-list');
+  const progressBar = document.getElementById('onboard-progress-bar');
+  const progressLabel = document.getElementById('onboard-progress-label');
+  const completeEl = document.getElementById('onboard-complete');
+  const headerEl = document.getElementById('onboard-guide-header');
+  const dismissBtn = document.getElementById('onboard-dismiss-btn');
+  if (!guide || !stepsList) return;
+
+  // Hide entire guide if dismissed or completed
+  const dismissed = localStorage.getItem(`onboard_dismissed_${currentOp}`);
+  const completed = D.onboarding_completed_at;
+  if (dismissed || completed) {
+    guide.style.display = 'none';
+    return;
+  }
+
+  // Auto-detect completed steps from D data
+  let completedCount = 0;
+  _ONBOARD_STEPS.forEach(s => {
+    if (s.detect()) completedCount = Math.max(completedCount, s.id);
+  });
+
+  // Sync to server if ahead of stored step
+  const storedStep = D.onboarding_step || 0;
+  if (completedCount > storedStep) {
+    fetch(`${API}/hq/onboarding-step`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ..._headers },
+      body: JSON.stringify({ operator_id: currentOp, step: completedCount })
+    }).catch(() => {});
+  }
+  const currentStep = Math.max(completedCount, storedStep);
+
+  // Progress bar
+  const pct = Math.round((currentStep / 10) * 100);
+  if (progressBar) progressBar.style.width = pct + '%';
+  if (progressLabel) progressLabel.textContent = `${currentStep} / 10`;
+
+  // All done
+  if (currentStep >= 10) {
+    if (headerEl) headerEl.style.display = 'none';
+    if (stepsList) stepsList.style.display = 'none';
+    if (completeEl) completeEl.style.display = 'block';
+    // Auto-save completed
+    fetch(`${API}/hq/onboarding-step`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ..._headers },
+      body: JSON.stringify({ operator_id: currentOp, step: 10 })
+    }).catch(() => {});
+    return;
+  }
+
+  // Render steps
+  stepsList.innerHTML = _ONBOARD_STEPS.map(s => {
+    const done = s.id <= currentStep;
+    const active = s.id === currentStep + 1;
+    return `<div style="display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:8px;border:1px solid ${active ? 'rgba(61,138,122,.35)' : 'var(--border)'};background:${active ? 'rgba(61,138,122,.05)' : 'var(--bg2)'};cursor:${done ? 'default' : 'pointer'};" onclick="${!done ? `showSect('${s.sect}')` : ''}">
+      <div style="width:22px;height:22px;border-radius:50%;border:1.5px solid ${done ? 'var(--green2)' : active ? 'var(--teal2)' : 'var(--border2)'};background:${done ? 'rgba(74,154,110,.15)' : 'none'};display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+        ${done ? '<span style="color:var(--green2);font-size:12px;">✓</span>' : `<span style="font-family:var(--mono);font-size:10px;color:${active ? 'var(--teal2)' : 'var(--muted)'};">${s.id}</span>`}
+      </div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:13px;font-weight:${active ? '600' : '400'};color:${done ? 'var(--muted)' : 'var(--text)'};text-decoration:${done ? 'line-through' : 'none'};">${s.title}</div>
+        ${active ? `<div style="font-size:11px;color:var(--muted2);margin-top:2px;">${s.desc}</div>` : ''}
+      </div>
+      ${active ? `<div style="font-family:var(--mono);font-size:10px;color:var(--teal2);letter-spacing:1px;white-space:nowrap;">Go →</div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+function advanceOnboardStep(step) {
+  if (!currentOp) return;
+  fetch(`${API}/hq/onboarding-step`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ..._headers },
+    body: JSON.stringify({ operator_id: currentOp, step })
+  }).then(() => renderOnboardingGuide()).catch(() => {});
+}
+
+function dismissOnboardGuide() {
+  localStorage.setItem(`onboard_dismissed_${currentOp}`, '1');
+  const guide = document.getElementById('onboard-guide');
+  if (guide) guide.style.display = 'none';
+}
+// ── END ONBOARDING GUIDE ─────────────────────────────────────────────────────
 
 // ── SESSION TIMEOUT (Build 6) ──
 let _hqIdleTimer = null;
