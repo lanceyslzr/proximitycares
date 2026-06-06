@@ -3804,6 +3804,7 @@ function updateDots() { for(let i=0;i<4;i++) document.getElementById('d'+i).clas
 
 // ── DATA ──
 let _hqFetching = false;
+let _hqFetchFails = 0; // consecutive loadAll failures for backoff
 
 // ── CANCELLATION REQUESTS ──
 async function loadCancellationRequests() {
@@ -4179,8 +4180,14 @@ async function loadAll(spin=false) {
     }, 0);
 
   } catch(err) {
-    console.error('[Proximity HQ] loadAll critical error:', err.message || err);
-    showToast('Failed to load data — check connection', 'err');
+    _hqFetchFails++;
+    const msg = err?.message || String(err);
+    console.error('[Proximity HQ] loadAll critical error:', msg);
+    // Only show toast on first failure — subsequent ones are backoff retries
+    if (_hqFetchFails === 1) {
+      const isBlocked = msg.includes('Failed to fetch') || msg.includes('NetworkError') || msg.includes('ERR_BLOCKED');
+      showToast(isBlocked ? 'Cannot reach server — check your ad blocker or network' : 'Failed to load data — check connection', 'err');
+    }
   } finally {
     _hqFetching = false;
   }
@@ -6089,9 +6096,9 @@ async function renderActivity() {
 async function triggerFollowUp() {
   showToast('Running follow-up engine...','ok');
   try {
-    const r=await fetch(`${API}/followup/run`,{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'});
+    const r=await fetch(`${API}/followup/run`,{method:'POST',headers:{'Content-Type':'application/json','x-hq-token':window._hqToken||sessionStorage.getItem('hq_token')||''},body:'{}'});
     const d=await r.json();
-    showToast(d.success?'Follow-up engine done ✓':'Failed','ok');
+    showToast(d.ok?`Follow-up done ✓ — ${d.sent||0} sent`:'Follow-up failed','ok');
     await loadAll(false);
   } catch { showToast('Follow-up failed','err'); }
 }
@@ -11390,16 +11397,34 @@ async function toggleFamilyContactPref(id, type, value) {
 window.addEventListener('online', () => { showToast('Back online', 'ok'); loadAll(false); });
 window.addEventListener('offline', () => { showToast('No connection — data may be stale', 'err'); });
 
-window._pollInterval = setInterval(async()=>{
-  if (document.hidden) return; // skip poll when tab is hidden
-  const prev=JSON.stringify(D?.counts||{});
-  await loadAll(false);
-  const curr=JSON.stringify(D?.counts||{});
-  if(prev!==curr){
-    const btn=document.getElementById('refresh-btn');
-    if(btn){btn.style.color='var(--teal2)';setTimeout(()=>{btn.style.color='';},1200);}
+// ── AUTO-POLL with exponential backoff on failure ──────────────────────────
+// Normally polls every 30s. On consecutive failures backs off up to 5 min.
+// Prevents hammering Railway when it's down or when an extension blocks it.
+let _pollBackoffMs = 30000;
+const _pollMaxMs   = 300000; // 5 min ceiling
+
+async function _doPoll() {
+  if (document.hidden) return; // skip when tab not visible
+  const prev = JSON.stringify(D?.counts||{});
+  try {
+    await loadAll(false);
+    // Success — reset backoff
+    _hqFetchFails = 0;
+    _pollBackoffMs = 30000;
+    const curr = JSON.stringify(D?.counts||{});
+    if (prev !== curr) {
+      const btn = document.getElementById('refresh-btn');
+      if (btn) { btn.style.color='var(--teal2)'; setTimeout(()=>{ btn.style.color=''; }, 1200); }
+    }
+  } catch {
+    // loadAll already logged the error — increment fail count, back off
+    _hqFetchFails++;
+    _pollBackoffMs = Math.min(_pollBackoffMs * 2, _pollMaxMs);
   }
-}, 30000);
+  // Schedule next poll at current backoff interval
+  window._pollInterval = setTimeout(_doPoll, _pollBackoffMs);
+}
+window._pollInterval = setTimeout(_doPoll, 30000);
 
 // Refetch when tab regains visibility (fixes stale data after tab switch)
 document.addEventListener('visibilitychange', () => {
