@@ -151,7 +151,8 @@ async function loadFamilyNotes() {
       el.innerHTML = '<div class="empty-state"><div class="empty-state-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></div><div class="empty-state-title">No private notes yet</div><div class="empty-state-sub">When families leave private notes, they appear here only.</div></div>';
       return;
     }
-    el.innerHTML = notes.map(n => `
+    try {
+      el.innerHTML = notes.map(n => `
       <div class="card" style="margin:0 0 8px;border-color:rgba(200,169,110,.2);">
         <div class="card-header">
           <div style="flex:1;min-width:0;">
@@ -162,6 +163,7 @@ async function loadFamilyNotes() {
           <div class="card-age">${ago(n.created_at)}</div>
         </div>
       </div>`).join('');
+    } catch(_mapErr) { console.error('[HQ] loadFamilyNotes render error:', _mapErr); el.innerHTML = '<div class=\"empty-state\" style=\"padding:20px;font-size:13px;color:var(--muted)\">Error loading data — please refresh</div>'; }
   } catch(e) {
     el.innerHTML = '<div class="empty-state"><div class="empty-state-title">Could not load notes</div></div>';
   }
@@ -5585,7 +5587,8 @@ function filterBookingsByDate(iso) {
   const el = document.getElementById('bookings-list');
   const filtered = activeCalDate ? bookings.filter(b => b.scheduled_date === activeCalDate) : bookings;
   if (!filtered.length) { el.innerHTML='<div class="empty-state">'+(activeCalDate?'No bookings on '+fmtd(activeCalDate):'No upcoming appointments')+'</div>'; return; }
-  el.innerHTML = filtered.map(b=>`
+  try {
+    el.innerHTML = filtered.map(b=>`
     <div class="card" style="cursor:pointer;" onclick="openAddShift('${b.assigned_to||''}','${b.scheduled_date}','${b.client_name||''}')">
       <div class="card-header">
         <div>
@@ -5601,6 +5604,7 @@ function filterBookingsByDate(iso) {
       </div>
       ${b.client_phone?`<div class="card-actions"><div class="card-act call" onclick="event.stopPropagation();window.location.href='tel:${b.client_phone}'">Call</div><div class="card-act" onclick="event.stopPropagation();window.location.href='sms:${b.client_phone}'">Text</div></div>`:''}
     </div>`).join('');
+  } catch(_mapErr) { console.error('[HQ] filterBookingsByDate render error:', _mapErr); el.innerHTML = '<div class=\"empty-state\" style=\"padding:20px;font-size:13px;color:var(--muted)\">Error loading data — please refresh</div>'; }
 }
 
 async function submitBooking() {
@@ -5751,7 +5755,8 @@ function renderPSWThreadRow() {
   if (!el) return;
   const psws = getMergedPSWList().filter(p => p.source === 'live' || p.email);
   if (!psws.length) { el.innerHTML = '<div style="font-family:var(--mono);font-size:12px;color:var(--muted);">No active PSWs</div>'; return; }
-  el.innerHTML = psws.map(p => {
+  try {
+    el.innerHTML = psws.map(p => {
     const ini = p.name.split(' ').map(w=>w[0]||'').join('').toUpperCase().slice(0,2);
     const isActive = activeThread === p.name;
     return `<div class="msg-avatar-chip" onclick="openThread('${p.name}')">
@@ -5762,6 +5767,7 @@ function renderPSWThreadRow() {
       <div class="msg-avatar-name">${p.name.split(' ')[0]}</div>
     </div>`;
   }).join('');
+  } catch(_mapErr) { console.error('[HQ] renderPSWThreadRow render error:', _mapErr); el.innerHTML = '<div class=\"empty-state\" style=\"padding:20px;font-size:13px;color:var(--muted)\">Error loading data — please refresh</div>'; }
 }
 
 async function openThread(name) {
@@ -6620,7 +6626,8 @@ function renderCRM() {
     const items = cols[stage];
     if(countEl) countEl.textContent = items.length;
     if(!items.length) { el.innerHTML = '<div class="crm-empty">Empty</div>'; return; }
-    el.innerHTML = items.map(l => {
+    try {
+      el.innerHTML = items.map(l => {
       const name = [l.first_name,l.last_name].filter(Boolean).join(' ') || l.email || l.phone || 'Unknown';
       const agency = l.care_needed_for || l.agency_name || '—';
       const city = l.city || '';
@@ -6651,6 +6658,7 @@ function renderCRM() {
         </div>
       </div>`;
     }).join('');
+    } catch(_mapErr) { console.error('[HQ] renderCRM render error:', _mapErr); el.innerHTML = '<div class=\"empty-state\" style=\"padding:20px;font-size:13px;color:var(--muted)\">Error loading data — please refresh</div>'; }
   });
 }
 
@@ -6776,7 +6784,8 @@ async function loadApplicants() {
     if(!apps.length) { el.innerHTML = '<div class="empty-state">No applications yet · <a href="https://proximitycares.ca/careers.html" target="_blank" style="color:var(--teal2)">View careers page</a></div>'; return; }
 
     const statusColor = {applied:'var(--amber)',qualified:'var(--teal2)',documents_complete:'var(--blue2)',rejected:'var(--red)',hired:'var(--green2)',active:'var(--green)'};
-    el.innerHTML = apps.map(a => {
+    try {
+      el.innerHTML = apps.map(a => {
       const name = [a.first_name,a.last_name].filter(Boolean).join(' ');
       const certs = a.certifications || '—';
       const st = a.status || 'applied';
@@ -6808,6 +6817,7 @@ async function loadApplicants() {
         </div>
       </div>`;
     }).join('');
+    } catch(_mapErr) { console.error('[HQ] loadApplicants render error:', _mapErr); el.innerHTML = '<div class=\"empty-state\" style=\"padding:20px;font-size:13px;color:var(--muted)\">Error loading data — please refresh</div>'; }
   } catch(err) { console.error('[loadApplicants] error:', err); el.innerHTML = '<div class="empty-state"><div class="empty-state-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div><div class="empty-state-title">Could not load applicants · ' + (err.message||'') + '</div></div>'; }
 }
 
@@ -11368,7 +11378,8 @@ async function loadFamilyContactsForClient(clientId, slug) {
       el.innerHTML = `<div style="font-family:var(--mono);font-size:12px;color:var(--muted);padding:4px 0;">No additional contacts — notifications go to primary family email</div>`;
       return;
     }
-    el.innerHTML = contacts.map(fc => `
+    try {
+      el.innerHTML = contacts.map(fc => `
       <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--bg2);border:1px solid var(--border);border-radius:6px;margin-bottom:4px;">
         <div>
           <div style="font-size:12px;font-weight:500;color:var(--text);">${fc.name} <span style="font-family:var(--mono);font-size:11px;color:var(--muted);">${fc.relationship||''}</span></div>
@@ -11383,6 +11394,7 @@ async function loadFamilyContactsForClient(clientId, slug) {
         </div>
         <button data-del-id="${fc.id}" data-del-name="${fc.name.replace(/"/g,'&quot;')}" onclick="removeFamilyContact(this.dataset.delId,this.dataset.delName,'${clientId}','${slug}')" style="font-size:13px;color:var(--muted);background:none;border:none;padding:4px;cursor:pointer;flex-shrink:0;">✕</button>
       </div>`).join('');
+    } catch(_mapErr) { console.error('[HQ] loadFamilyContactsForClient render error:', _mapErr); el.innerHTML = '<div class=\"empty-state\" style=\"padding:20px;font-size:13px;color:var(--muted)\">Error loading data — please refresh</div>'; }
   } catch { el.innerHTML = `<div style="font-family:var(--mono);font-size:12px;color:var(--red);">Could not load contacts</div>`; }
 }
 
@@ -11496,7 +11508,8 @@ function renderIncidents() {
     el.innerHTML = '<div class="empty-state"><div class="empty-state-icon" style="color:var(--green2);opacity:0.7;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div><div class="empty-state-title" style="color:var(--green2);">No open incidents</div><div class="empty-state-sub">All visits are clear.</div></div>';
     return;
   }
-  el.innerHTML = incidents.map(v => `
+  try {
+    el.innerHTML = incidents.map(v => `
     <div class="card" style="border-color:rgba(224,85,85,.3);margin:8px 12px;">
       <div class="card-header">
         <div style="flex:1;min-width:0;">
@@ -11512,6 +11525,7 @@ function renderIncidents() {
         <div class="card-act call" onclick="event.stopPropagation();openIncidentResolveById('${v.id}')">Resolve</div>
       </div>
     </div>`).join('');
+  } catch(_mapErr) { console.error('[HQ] renderIncidents render error:', _mapErr); el.innerHTML = '<div class=\"empty-state\" style=\"padding:20px;font-size:13px;color:var(--muted)\">Error loading data — please refresh</div>'; }
 }
 
 
@@ -11722,7 +11736,9 @@ async function renderAttendance() {
     const order = { checkedin:0, late:1, missed:2, off:3 };
     const rows = Object.values(pswStatus).sort((a,b) => order[a.status]-order[b.status]);
     if (!rows.length) { el.innerHTML = '<div class="empty-state" style="padding:14px;">No PSW data</div>'; return; }
-    el.innerHTML = rows.map(r => `<div class="att-row"><div class="att-dot ${r.status}"></div><div class="att-name">${r.name}</div><div class="att-client">${r.client}</div><div class="att-badge ${r.status}">${r.status === 'checkedin' ? 'On Shift' : r.status === 'late' ? 'Late' : r.status === 'missed' ? 'Missed' : 'Off'}</div></div>`).join('');
+    try {
+      el.innerHTML = rows.map(r => `<div class="att-row"><div class="att-dot ${r.status}"></div><div class="att-name">${r.name}</div><div class="att-client">${r.client}</div><div class="att-badge ${r.status}">${r.status === 'checkedin' ? 'On Shift' : r.status === 'late' ? 'Late' : r.status === 'missed' ? 'Missed' : 'Off'}</div></div>`).join('');
+    } catch(_mapErr) { console.error('[HQ] renderAttendance render error:', _mapErr); el.innerHTML = '<div class=\"empty-state\" style=\"padding:20px;font-size:13px;color:var(--muted)\">Error loading data — please refresh</div>'; }
     if (updEl) updEl.textContent = 'Updated ' + new Date().toLocaleTimeString('en-CA',{hour:'2-digit',minute:'2-digit'});
   } catch { el.innerHTML = '<div class="empty-state" style="padding:14px;">Could not load</div>'; }
 }
@@ -11759,13 +11775,17 @@ function renderVacantVisits() {
   const renderCard = b => `<div class="vacant-card"><div class="vacant-info"><div class="vacant-client">${b.client_name||'—'}</div><div class="vacant-time">${b.scheduled_date ? fmtd(b.scheduled_date) : '—'}${b.scheduled_time ? ' · '+b.scheduled_time : ''}</div></div><button class="vacant-btn" onclick="broadcastShift('${b.id}')"><svg width="12" height="12" viewBox="0 0 14 14" fill="none" style="display:inline;vertical-align:middle;margin-right:3px"><circle cx="7" cy="7" r="6" stroke="#c9a96e" stroke-width="1.2"/><circle cx="7" cy="7" r="3.5" stroke="#c9a96e" stroke-width="1" opacity="0.6"/><circle cx="7" cy="7" r="1.2" fill="#c9a96e"/></svg>Broadcast</button></div>`;
 
   if (vacant.length <= PREVIEW) {
-    el.innerHTML = vacant.map(renderCard).join('');
+    try {
+      el.innerHTML = vacant.map(renderCard).join('');
+    } catch(_mapErr) { console.error('[HQ] renderVacantVisits render error:', _mapErr); el.innerHTML = '<div class=\"empty-state\" style=\"padding:20px;font-size:13px;color:var(--muted)\">Error loading data — please refresh</div>'; }
   } else {
     const showing = window._vacantShowAll ? vacant : vacant.slice(0, PREVIEW);
     const btn = window._vacantShowAll
       ? `<div onclick="window._vacantShowAll=false;renderVacantVisits()" style="text-align:center;padding:6px;font-family:var(--mono);font-size:11px;color:var(--muted2);cursor:pointer;letter-spacing:1px;">▲ Show less</div>`
       : `<div onclick="window._vacantShowAll=true;renderVacantVisits()" style="text-align:center;padding:6px;font-family:var(--mono);font-size:11px;color:var(--amber);cursor:pointer;letter-spacing:1px;">▼ Show all ${vacant.length} vacant shifts</div>`;
-    el.innerHTML = showing.map(renderCard).join('') + btn;
+    try {
+      el.innerHTML = showing.map(renderCard).join('')
+    } catch(_mapErr) { console.error('[HQ] renderVacantVisits render error:', _mapErr); el.innerHTML = '<div class=\"empty-state\" style=\"padding:20px;font-size:13px;color:var(--muted)\">Error loading data — please refresh</div>'; } + btn;
   }
 }
 
@@ -14793,11 +14813,13 @@ async function loadClientNotes(slug) {
     const d = await r.json();
     const notes = d.notes || [];
     if (!notes.length) { el.innerHTML = '<div style="font-size:12px;color:var(--muted);padding:8px 0;">No notes yet.</div>'; return; }
-    el.innerHTML = notes.map(n => `
+    try {
+      el.innerHTML = notes.map(n => `
       <div style="padding:10px 0;border-bottom:1px solid var(--border);">
         <div style="font-size:13px;color:var(--text);line-height:1.6;">${escHtml(n.note)}</div>
         <div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:4px;">${n.created_by || 'lance'} · ${new Date(n.created_at).toLocaleString('en-CA',{timeZone:'America/Toronto',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'})}</div>
       </div>`).join('');
+    } catch(_mapErr) { console.error('[HQ] loadClientNotes render error:', _mapErr); el.innerHTML = '<div class=\"empty-state\" style=\"padding:20px;font-size:13px;color:var(--muted)\">Error loading data — please refresh</div>'; }
   } catch(e) { el.innerHTML = '<div style="font-size:12px;color:var(--red);">Could not load notes</div>'; }
 }
 
