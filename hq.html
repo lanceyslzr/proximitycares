@@ -13596,7 +13596,7 @@ function renderOnboardingGuide() {
   if (completedCount > storedStep) {
     fetch(`${API}/hq/onboarding-step`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', ..._headers },
+      headers: { 'Content-Type': 'application/json', 'x-hq-token': window._hqToken || sessionStorage.getItem('hq_token') || '' },
       body: JSON.stringify({ operator_id: currentOp, step: completedCount })
     }).catch(() => {});
   }
@@ -13615,7 +13615,7 @@ function renderOnboardingGuide() {
     // Auto-save completed
     fetch(`${API}/hq/onboarding-step`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', ..._headers },
+      headers: { 'Content-Type': 'application/json', 'x-hq-token': window._hqToken || sessionStorage.getItem('hq_token') || '' },
       body: JSON.stringify({ operator_id: currentOp, step: 10 })
     }).catch(() => {});
     return;
@@ -13642,7 +13642,7 @@ function advanceOnboardStep(step) {
   if (!currentOp) return;
   fetch(`${API}/hq/onboarding-step`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', ..._headers },
+    headers: { 'Content-Type': 'application/json', 'x-hq-token': window._hqToken || sessionStorage.getItem('hq_token') || '' },
     body: JSON.stringify({ operator_id: currentOp, step })
   }).then(() => renderOnboardingGuide()).catch(() => {});
 }
