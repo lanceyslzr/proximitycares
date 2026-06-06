@@ -4343,6 +4343,7 @@ function renderLeads() {
   if (!el.querySelector('.card')) showSkeleton('leads-list', 5);
   if(!leads.length) { el.innerHTML = '<div class="empty-state"><div class="empty-state-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div><div class="empty-state-title">No leads yet</div><div class="empty-state-sub">Leads from your website and cold outreach will appear here.</div></div>'; return; }
   const leadsToShow = leads.slice(0,100);
+  try {
   el.innerHTML = leadsToShow.map(l => {
     const name = [l.first_name,l.last_name].filter(Boolean).join(' ') || l.email?.split('@')[0] || l.phone || 'Lead #'+l.id?.slice(-4);
     const st = l.status||'new';
@@ -4380,6 +4381,7 @@ function renderLeads() {
       </div>
     </div>`;
   }).join('');
+  } catch(mapErr) { console.error('[HQ] renderLeads render error:', mapErr); el.innerHTML = '<div class="empty-state" style="padding:20px;font-size:13px;color:var(--muted);">Failed to render — please refresh</div>'; }
   // Attach swipe listeners after render
   leads.forEach(l => attachLeadSwipe(l.id));
 }
@@ -4552,6 +4554,7 @@ function renderClients() {
   if (!el) return;
   if (!el.querySelector('.card')) showSkeleton('clients-list', 4, true);
   if(!clients.length) { el.innerHTML='<div class="empty-state"><div class="empty-state-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78z"/></svg></div><div class="empty-state-title">No active clients</div><div class="empty-state-sub">Onboard your first client to get started.</div></div>'; return; }
+  try {
   el.innerHTML = clients.map(c => {
     const name = `${c.first_name||''} ${c.last_name||''}`.trim();
     const ini = name.split(' ').map(w=>w[0]||'').join('').toUpperCase().slice(0,2);
@@ -4609,6 +4612,7 @@ function renderClients() {
       </div>
     </div>`;
   }).join('');
+  } catch(mapErr) { console.error('[HQ] renderClients render error:', mapErr); el.innerHTML = '<div class="empty-state" style="padding:20px;font-size:13px;color:var(--muted);">Failed to render — please refresh</div>'; }
 }
 
 
@@ -5415,6 +5419,7 @@ function renderPSWs() {
   const merged = getMergedPSWList();
   const today = new Date().toLocaleDateString('en-CA',{timeZone:'America/Toronto'});
   const in90 = new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString().slice(0,10);
+  try {
   el.innerHTML = merged.map(p => {
     const ini = (p.name||'?').split(' ').map(w=>w[0]||'').join('').toUpperCase();
     const email = p.email || null;
@@ -5483,6 +5488,7 @@ function renderPSWs() {
       </div>
     </div>`;
   }).join('');
+  } catch(mapErr) { console.error('[HQ] renderPSWs render error:', mapErr); el.innerHTML = '<div class="empty-state" style="padding:20px;font-size:13px;color:var(--muted);">Failed to render — please refresh</div>'; }
 }
 
 async function openPSWMsg(name) {
