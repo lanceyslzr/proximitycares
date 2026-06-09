@@ -1757,29 +1757,28 @@ function resetIdleTimer() {
   idleTimer = setTimeout(lockApp, 15 * 60 * 1000); // 15 minutes
 }
 function lockApp() {
-  // Warn if locking during active visit (timer stops but visit remains in Supabase)
+  // SAFE LOCK — keeps pswPin in memory, shows PIN-only screen (step-2)
+  // PSW re-enters 4-digit PIN only. Name is never required again.
+  // This fires on 30-min idle, visibilitychange, or manual "Lock App" tap.
+  if (!appUnlocked) return;
   if (activeVisit) {
-    showToast('Visit in progress -- app locked. Re-enter PIN to continue.', 'warn');
-    // Save checklist state before locking so no tasks are lost on unlock
-    try { saveChecklist(); } catch {}
+    showToast('App locked. Re-enter PIN to continue.', 'warn');
+    try { saveChecklist(); } catch(e) {}
   }
   appUnlocked = false;
-  pswPin = '';
   lockIn = '';
-  try { sessionStorage.removeItem('psw_pin'); } catch {}
-  // Clear auto-refresh interval so it doesn't fire while locked
+  // pswPin deliberately NOT cleared — PIN-only re-entry
   if (window._autoRefreshInterval) {
     clearInterval(window._autoRefreshInterval);
     window._autoRefreshInterval = null;
   }
-  // Reset PIN dots
   for (let i = 0; i < 4; i++) {
     const d = document.getElementById('ld'+i);
     if (d) d.classList.remove('filled');
   }
-  // Back to step 1
-  document.getElementById('lock-step-1').classList.add('active');
-  document.getElementById('lock-step-2').classList.remove('active');
+  // Show PIN screen (step-2), hide name screen (step-1)
+  document.getElementById('lock-step-1').classList.remove('active');
+  document.getElementById('lock-step-2').classList.add('active');
   document.getElementById('app').style.display = 'none';
   document.getElementById('lock').style.display = 'flex';
   stopElapsed();
@@ -1863,7 +1862,7 @@ function unlockApp() {
   // Deferred restore: once active visit is known, re-run with the correct visit-keyed localStorage
   setTimeout(() => { if (activeVisit?.id) restoreChecklist(); }, 3500);
   initPullToRefresh(); // Build 4
-  startIdleTimer();    // Build 6
+  // startIdleTimer() — DISABLED: replaced by startPSWIdleTimer() (30-min lock, 12-hr signout)
   // Delegated Sign In listener — sched-day-cards replaces old schedule-days
   if (!window._schedListenerSet) {
     window._schedListenerSet = true;
@@ -3842,7 +3841,6 @@ async function loadHomeData() {
     const res = await fetch(`${API}/psw/pay-summary?psw_name=${encodeURIComponent(pswName)}&pin=${pswPin}&operator_id=${pswOperatorId}`);
     const d = await res.json();
     window._lastPayData = d; // Cache so loadPaySummary and renderHomeFeed can reuse
-    console.log('[PSW] pay-summary:', { success: d.success, rate: d.rate, current_period: d.current_period, periods_count: (d.periods||[]).length, periods_keys: (d.periods||[]).map(p => p.period_key + ':' + p.total_hours + 'h') });
     if (!d.success) { console.warn('[PSW] pay-summary failed:', d); return; }
 
     // Use current_period from server for ALL stats — it already sums the correct period
@@ -5659,8 +5657,8 @@ document.addEventListener('DOMContentLoaded', () => {
 // ── BANKING IDLE TIMER ──────────────────────────────────────────────
 // 5-min idle → lock (keeps session, requires PIN re-entry)
 // 60-min idle → full sign-out (PHIPA compliance)
-const IDLE_LOCK_MS    = 30 * 60 * 1000;
-const IDLE_SIGNOUT_MS = 12 * 60 * 60 * 1000;
+const IDLE_LOCK_MS    = 30 * 60 * 1000; // 30-min idle → lock (keep PIN in memory)
+const IDLE_SIGNOUT_MS = 12 * 60 * 60 * 1000; // 12-hour idle → full sign-out (PHIPA)
 let _pswIdleLock = null, _pswIdleSignout = null;
 
 function resetPSWIdleTimer() {
@@ -5680,17 +5678,8 @@ function resetPSWIdleTimer() {
     // Keep pswName and pswPin in memory — user just re-enters PIN
   }, IDLE_LOCK_MS);
   _pswIdleSignout = setTimeout(() => {
-    // Safe lock after 12hr idle — never fully signs out automatically
-    // Keeps pswName, pswPin, activeVisit, checklist — just shows PIN screen
-    // Carolina re-enters PIN and continues exactly where she was
-    if (!appUnlocked) return;
-    appUnlocked = false;
-    document.getElementById('app').style.display = 'none';
-    document.getElementById('lock').style.display = 'flex';
-    document.getElementById('lock-step-1').classList.remove('active');
-    document.getElementById('lock-step-2').classList.add('active');
-    lockIn = ''; updateDots();
-    // NOTE: pswName and pswPin stay in memory — PIN re-entry resumes session
+    // Full sign-out after 60 min idle
+    if (typeof signOut === 'function') signOut();
   }, IDLE_SIGNOUT_MS);
 }
 
