@@ -5659,8 +5659,8 @@ document.addEventListener('DOMContentLoaded', () => {
 // ── BANKING IDLE TIMER ──────────────────────────────────────────────
 // 5-min idle → lock (keeps session, requires PIN re-entry)
 // 60-min idle → full sign-out (PHIPA compliance)
-const IDLE_LOCK_MS    = 5  * 60 * 1000;
-const IDLE_SIGNOUT_MS = 60 * 60 * 1000;
+const IDLE_LOCK_MS    = 30 * 60 * 1000;
+const IDLE_SIGNOUT_MS = 12 * 60 * 60 * 1000;
 let _pswIdleLock = null, _pswIdleSignout = null;
 
 function resetPSWIdleTimer() {
@@ -5680,8 +5680,17 @@ function resetPSWIdleTimer() {
     // Keep pswName and pswPin in memory — user just re-enters PIN
   }, IDLE_LOCK_MS);
   _pswIdleSignout = setTimeout(() => {
-    // Full sign-out after 60 min idle
-    if (typeof signOut === 'function') signOut();
+    // Safe lock after 12hr idle — never fully signs out automatically
+    // Keeps pswName, pswPin, activeVisit, checklist — just shows PIN screen
+    // Carolina re-enters PIN and continues exactly where she was
+    if (!appUnlocked) return;
+    appUnlocked = false;
+    document.getElementById('app').style.display = 'none';
+    document.getElementById('lock').style.display = 'flex';
+    document.getElementById('lock-step-1').classList.remove('active');
+    document.getElementById('lock-step-2').classList.add('active');
+    lockIn = ''; updateDots();
+    // NOTE: pswName and pswPin stay in memory — PIN re-entry resumes session
   }, IDLE_SIGNOUT_MS);
 }
 
