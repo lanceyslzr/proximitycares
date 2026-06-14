@@ -255,7 +255,24 @@ button:active{transform:scale(0.98);}
 .section-title{font-family:var(--mono);font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:10px;}
 
 :root{
-  /* Calm family portal tokens — Research Report 2 */
+  /* ═══ SHARED DESIGN SYSTEM (matches index + all portals) ═══
+     Structure/surfaces/type are shared across every Proximity surface.
+     Per-portal identity: FAMILY = green primary. */
+  --rb-void:#06080c; --rb-base:#0a0e14; --rb-panel:#0e131b;
+  --rb-line:rgba(255,255,255,.07); --rb-line2:rgba(255,255,255,.13);
+  --rb-text:#eef2f6; --rb-dim:#a6b3bf; --rb-faint:rgba(238,242,246,.62);
+  --rb-primary:#34D399;        /* FAMILY identity = green */
+  --rb-primary-bright:#5ce0a8;
+  --rb-gold:#f0b549;
+  --rb-serif:'Fraunces',serif; --rb-sans:'Space Grotesk',sans-serif; --rb-mono:'DM Mono',monospace;
+  /* system color-map (shared across portals) */
+  --sys-gps:#38bdf8; --sys-invoice:#fbbf24; --sys-family:#34d399;
+  --sys-sched:#a78bfa; --sys-ai:#2dd4bf; --sys-lead:#fb7185;
+  /* signature motion */
+  --e:cubic-bezier(.22,1,.36,1); --e-snap:cubic-bezier(.34,1.56,.64,1);
+  --t1:120ms; --t2:200ms; --t3:340ms; --t4:560ms;
+
+  /* Legacy light tokens (kept for any stragglers) */
   --c-bg:#F7F8F5;
   --c-surface:#FFFFFF;
   --c-ink:#1B2A24;
@@ -268,19 +285,18 @@ button:active{transform:scale(0.98);}
   --fs-lg:1.375rem;
   --fs-xl:1.75rem;
   --lh-body:1.6;
-  /* Dark theme — matches PSW portal + HQ design system */
-  /* SKIN V2 — health-app dark: neutral surfaces, vivid care accents */
-  --bg:#050608;
-  --bg2:#0E1116;
+  /* ── Core vars now MAPPED onto the shared system (every existing rule inherits) ── */
+  --bg:var(--rb-void);
+  --bg2:var(--rb-panel);
   --bg3:#151A21;
-  --surface:#0E1116;
-  --border:rgba(255,255,255,.07);
-  --border2:rgba(255,255,255,.13);
-  --text:#F2F4F6;
-  --muted:#9AA7B0;
-  --muted2:#9AA7B0;
-  --accent:#34D399;
-  --teal:#2DBE8D;
+  --surface:var(--rb-panel);
+  --border:var(--rb-line);
+  --border2:var(--rb-line2);
+  --text:var(--rb-text);
+  --muted:var(--rb-dim);
+  --muted2:var(--rb-dim);
+  --accent:var(--rb-primary);
+  --teal:var(--rb-primary);
   --teal2:#3d8a7a;
   --teal3:#4d9a8a;
   --gold:#c8a96e;
@@ -530,7 +546,7 @@ button:active{transform:scale(0.98);}
 .fp-tab{
   flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
   padding:8px 4px;gap:3px;cursor:pointer;
-  font-family:var(--mono,DM Mono,monospace);font-size:9px;letter-spacing:1px;
+  font-family:var(--mono,DM Mono,monospace);font-size:10px;letter-spacing:1px;
   text-transform:uppercase;color:var(--muted,#6b7280);
   transition:color .15s;touch-action:manipulation;min-height:56px;
 }
@@ -742,10 +758,352 @@ button:active{transform:scale(0.98);}
   .content{padding:16px 14px;}
   .pin-btn{min-height:50px;font-size:18px;}
   .status-name{font-size:18px;}
-  .nav-label{font-size:9px;}
+  .nav-label{font-size:10px;}
 }
+
+/* ╔═══════════════════════════════════════════════════════════════╗
+   ║  FAMILY PORTAL — PREMIUM DEPTH (Pass 2: Home tab)              ║
+   ║  CSS only. Elevates flat cards to gradient+glow+depth.        ║
+   ║  Last-in-cascade: cleanly overrides duplicate class defs.    ║
+   ╚═══════════════════════════════════════════════════════════════╝ */
+
+/* ── STATUS CARD — the emotional centerpiece ── */
+.status-card{
+  background:linear-gradient(160deg,var(--rb-panel),var(--rb-base))!important;
+  border:1px solid var(--rb-line)!important; border-radius:20px!important;
+  padding:26px 24px!important; position:relative; overflow:hidden;
+  box-shadow:0 20px 50px -20px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,255,255,.04)!important;
+}
+.status-card::after{
+  content:''!important; position:absolute!important; top:-40px; right:-40px;
+  width:180px; height:180px; border-radius:50%;
+  background:radial-gradient(circle, color-mix(in srgb,var(--rb-primary) 14%,transparent), transparent 70%)!important;
+  pointer-events:none;
+}
+.status-card.status-active{
+  border-color:color-mix(in srgb,var(--rb-primary) 32%,transparent)!important;
+  box-shadow:0 20px 50px -20px rgba(0,0,0,.6), 0 0 0 1px color-mix(in srgb,var(--rb-primary) 12%,transparent),
+             inset 0 1px 0 rgba(255,255,255,.04)!important;
+}
+.status-card.status-active::after{
+  background:radial-gradient(circle, color-mix(in srgb,var(--rb-primary) 26%,transparent), transparent 70%)!important;
+}
+.status-card.status-complete{ border-color:color-mix(in srgb,var(--rb-primary) 18%,transparent)!important; }
+.status-card.status-none::after{ display:none!important; }
+
+.hero-status-line1{
+  font-family:var(--rb-serif)!important; font-size:clamp(22px,6vw,30px)!important;
+  font-weight:400!important; line-height:1.2!important; color:var(--rb-text)!important;
+  margin:0 0 8px!important; letter-spacing:-.01em; max-width:100%; overflow-wrap:break-word;
+}
+.hero-status-line2{
+  font-family:var(--rb-mono)!important; font-size:12px!important; color:var(--rb-dim)!important;
+  line-height:1.5!important; letter-spacing:.3px; overflow-wrap:break-word;
+}
+.hero-status-dot{
+  width:9px!important; height:9px!important; border-radius:50%!important;
+  background:var(--rb-primary)!important; box-shadow:0 0 10px var(--rb-primary)!important;
+  position:absolute!important; top:22px!important; right:22px!important;
+}
+
+/* ── CARDS — depth + hairline ── */
+.card{
+  background:linear-gradient(160deg,var(--rb-panel),var(--rb-base))!important;
+  border:1px solid var(--rb-line)!important; border-radius:14px!important; overflow:hidden;
+  box-shadow:0 12px 30px -18px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.03)!important;
+}
+
+/* ── PSW / CARE-TEAM CARD — depth + hover lift + glow ring ── */
+.psw-card{
+  background:linear-gradient(160deg,var(--rb-panel),var(--rb-base))!important;
+  border:1px solid var(--rb-line)!important; border-radius:14px!important;
+  transition:transform var(--t2) var(--e), border-color var(--t2) var(--e), box-shadow var(--t2) var(--e)!important;
+}
+.psw-card:hover{
+  transform:translateY(-2px); border-color:color-mix(in srgb,var(--rb-primary) 28%,transparent)!important;
+  box-shadow:0 14px 34px -16px rgba(0,0,0,.55)!important;
+}
+.psw-avatar{
+  background:color-mix(in srgb,var(--rb-primary) 14%,transparent)!important;
+  border:1px solid color-mix(in srgb,var(--rb-primary) 32%,transparent)!important;
+  color:var(--rb-primary)!important; font-family:var(--rb-sans)!important; font-weight:600!important;
+  box-shadow:0 0 16px -4px color-mix(in srgb,var(--rb-primary) 40%,transparent)!important;
+}
+.psw-name{ font-family:var(--rb-sans)!important; color:var(--rb-text)!important; }
+.psw-title{ font-family:var(--rb-mono)!important; color:var(--rb-dim)!important; font-size:11px!important; }
+
+/* ── SECTION LABELS — premium mono voice ── */
+.section-title{
+  font-family:var(--rb-mono)!important; font-size:10px!important; letter-spacing:2px!important;
+  text-transform:uppercase!important; color:var(--rb-faint)!important; font-weight:400!important;
+  margin-bottom:12px!important;
+}
+
+/* ── MOBILE SAFETY: nothing wraps/warps/overlaps down to 320px ── */
+@media(max-width:380px){
+  .status-card{ padding:22px 18px!important; }
+  .hero-status-line1{ font-size:clamp(20px,5.6vw,26px)!important; }
+  .psw-card{ padding:16px!important; gap:12px!important; }
+}
+
+/* ╔═══════════════════════════════════════════════════════════════╗
+   ║  FAMILY PORTAL — VISITS TAB DEPTH (Pass 3)                     ║
+   ║  CSS only. AI care summary = hero moment. Vitals/meds = chips. ║
+   ╚═══════════════════════════════════════════════════════════════╝ */
+
+/* ── VISIT ROW — tactile, depth on hover ── */
+.visit-row{
+  padding:15px 18px!important; gap:14px!important;
+  transition:background var(--t2) var(--e)!important;
+}
+.visit-row:hover{ background:rgba(255,255,255,.025)!important; }
+
+/* ── DATE BOX — recessed chip, serif number ── */
+.visit-date-box{
+  width:46px!important; flex-shrink:0!important; padding:7px 0!important; border-radius:10px!important;
+  background:#06090e!important; border:1px solid var(--rb-line)!important;
+  box-shadow:inset 0 1px 3px rgba(0,0,0,.5)!important;
+}
+.visit-date-day{
+  font-family:var(--rb-mono)!important; font-size:10px!important; letter-spacing:1px!important;
+  color:var(--rb-primary)!important; text-transform:uppercase!important; font-weight:400!important;
+}
+.visit-date-num{
+  font-family:var(--rb-serif)!important; font-size:22px!important; font-weight:400!important;
+  color:var(--rb-text)!important; line-height:1!important; margin-top:1px;
+}
+.visit-psw{ font-family:var(--rb-sans)!important; color:var(--rb-text)!important; font-weight:500!important; }
+.visit-time{ font-family:var(--rb-mono)!important; color:var(--rb-dim)!important; font-size:11px!important; }
+.visit-hours{ font-family:var(--rb-mono)!important; color:var(--rb-primary)!important; font-size:11px!important; font-weight:500!important; flex-shrink:0; }
+.visit-expand-btn{
+  font-family:var(--rb-mono)!important; font-size:10px!important; letter-spacing:.5px!important;
+  color:var(--rb-primary)!important; text-decoration:none!important; text-transform:uppercase;
+  margin-top:5px!important;
+}
+
+/* ── DETAIL PANEL — recessed readout screen ── */
+.visit-detail{
+  padding:16px 18px 18px!important; border-top:1px solid var(--rb-line)!important;
+  background:radial-gradient(ellipse at 50% 0%, color-mix(in srgb,var(--rb-primary) 5%,transparent), transparent 60%), #06090e!important;
+}
+.visit-detail-lbl{
+  font-family:var(--rb-mono)!important; font-size:10px!important; letter-spacing:1.5px!important;
+  text-transform:uppercase!important; color:var(--rb-faint)!important; font-weight:400!important;
+  margin:14px 0 5px!important;
+}
+.visit-detail-lbl:first-child{ margin-top:0!important; }
+.visit-detail-val{ font-family:var(--rb-sans)!important; font-size:13px!important; color:var(--rb-text)!important; line-height:1.6!important; }
+
+/* ── AI CARE SUMMARY = HERO MOMENT (first lbl+val in detail) ── */
+.visit-detail .visit-detail-lbl:first-child{
+  color:var(--rb-primary)!important; display:flex; align-items:center; gap:6px;
+}
+.visit-detail .visit-detail-lbl:first-child::before{
+  content:''; width:5px; height:5px; border-radius:50%; background:var(--rb-primary);
+  box-shadow:0 0 6px var(--rb-primary); display:inline-block;
+}
+.visit-detail .visit-detail-lbl:first-child + .visit-detail-val{
+  background:color-mix(in srgb,var(--rb-primary) 7%,transparent)!important;
+  border:1px solid color-mix(in srgb,var(--rb-primary) 20%,transparent)!important;
+  border-radius:10px!important; padding:12px 14px!important; margin-top:2px;
+  font-size:14px!important; color:var(--rb-text)!important;
+}
+
+/* ── VITALS — health-data chips ── */
+.vitals-compact{ display:flex!important; flex-wrap:wrap!important; gap:7px!important; margin-top:8px!important; }
+.vitals-compact > *{
+  font-family:var(--rb-mono)!important; font-size:11px!important;
+  background:color-mix(in srgb,var(--sys-gps) 10%,transparent)!important;
+  border:1px solid color-mix(in srgb,var(--sys-gps) 25%,transparent)!important;
+  color:var(--rb-text)!important; padding:4px 10px!important; border-radius:8px!important; white-space:nowrap;
+}
+
+/* ── STARS ── */
+.visit-stars.rated{ color:var(--rb-gold)!important; }
+.stars-label{ font-family:var(--rb-mono)!important; font-size:10px!important; color:var(--rb-faint)!important; letter-spacing:.5px; }
+.visit-stars.unrated .star-btn:hover,.visit-stars.unrated .star-btn:focus{ color:var(--rb-gold)!important; }
+
+/* ── MOBILE SAFETY — visits down to 320px ── */
+@media(max-width:380px){
+  .visit-row{ padding:13px 14px!important; gap:11px!important; }
+  .visit-date-box{ width:42px!important; }
+  .visit-detail{ padding:14px!important; }
+  .vitals-compact > *{ font-size:10px!important; padding:3px 8px!important; }
+}
+
+/* ╔═══════════════════════════════════════════════════════════════╗
+   ║  FAMILY PORTAL — CARE TAB DEPTH (Pass 4)                       ║
+   ║  CSS only. Plan reads beautifully; schedule matches visits.   ║
+   ╚═══════════════════════════════════════════════════════════════╝ */
+
+/* ── CARE PLAN BODY ── */
+.plan-text{
+  font-family:var(--rb-sans)!important; font-size:14px!important; color:var(--rb-text)!important;
+  line-height:1.75!important; padding:20px!important;
+}
+
+/* ── CARD ROWS (contact, fallback schedule) ── */
+.card-row{ padding:14px 18px!important; border-bottom:1px solid var(--rb-line)!important; transition:background var(--t2) var(--e)!important; }
+.card-row:hover{ background:rgba(255,255,255,.02)!important; }
+.card-row-label{ font-family:var(--rb-mono)!important; font-size:11px!important; letter-spacing:.5px; color:var(--rb-dim)!important; }
+.card-row-value{ font-family:var(--rb-sans)!important; font-size:14px!important; color:var(--rb-text)!important; font-weight:500!important; }
+.card-row-value.green{ color:var(--rb-primary)!important; }
+
+/* ── UPCOMING SCHEDULE — match the visits date-chip treatment ── */
+.upcoming-row{ padding:15px 18px!important; gap:14px!important; transition:background var(--t2) var(--e)!important; }
+.upcoming-row:hover{ background:rgba(255,255,255,.025)!important; }
+.upcoming-date{
+  width:46px!important; flex-shrink:0!important; padding:7px 0!important; border-radius:10px!important;
+  background:#06090e!important; border:1px solid var(--rb-line)!important;
+  box-shadow:inset 0 1px 3px rgba(0,0,0,.5)!important;
+}
+.upcoming-date-dow{
+  font-family:var(--rb-mono)!important; font-size:10px!important; letter-spacing:1px!important;
+  color:var(--rb-primary)!important; text-transform:uppercase!important; font-weight:400!important;
+}
+.upcoming-date-num{
+  font-family:var(--rb-serif)!important; font-size:22px!important; font-weight:400!important;
+  color:var(--rb-text)!important; line-height:1!important; margin-top:1px;
+}
+.upcoming-info{ flex:1!important; min-width:0!important; }
+.upcoming-psw{ font-family:var(--rb-sans)!important; font-size:14px!important; color:var(--rb-text)!important; font-weight:500!important;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.upcoming-time{ font-family:var(--rb-mono)!important; font-size:11px!important; color:var(--rb-dim)!important; margin-top:2px!important; }
+.upcoming-badge{
+  font-family:var(--rb-mono)!important; font-size:10px!important; letter-spacing:1px!important; text-transform:uppercase!important;
+  padding:4px 10px!important; border-radius:100px!important;
+  background:color-mix(in srgb,var(--rb-primary) 12%,transparent)!important;
+  border:1px solid color-mix(in srgb,var(--rb-primary) 28%,transparent)!important;
+  color:var(--rb-primary)!important; font-weight:400!important; flex-shrink:0!important;
+}
+
+/* ── MOBILE SAFETY — care tab down to 320px ── */
+@media(max-width:380px){
+  .plan-text{ padding:16px!important; }
+  .card-row{ padding:13px 14px!important; }
+  .upcoming-row{ padding:13px 14px!important; gap:11px!important; }
+  .upcoming-date{ width:42px!important; }
+  .card-row-label,.card-row-value{ font-size:13px!important; }
+}
+
+/* ╔═══════════════════════════════════════════════════════════════╗
+   ║  FAMILY PORTAL — ASK + BILLING DEPTH (Pass 5)                  ║
+   ║  CSS only. Invoices = receipt feel. Ask chat tactile.         ║
+   ╚═══════════════════════════════════════════════════════════════╝ */
+
+/* ── INVOICE ROWS — receipt feel (echoes index pricing) ── */
+.inv-row{ padding:16px 18px!important; border-bottom:1px solid var(--rb-line)!important; transition:background var(--t2) var(--e)!important; }
+.inv-row:hover{ background:rgba(255,255,255,.025)!important; }
+.inv-month{ font-family:var(--rb-sans)!important; font-size:14px!important; color:var(--rb-text)!important; font-weight:500!important; }
+.inv-amount{
+  font-family:var(--rb-serif)!important; font-size:22px!important; font-weight:400!important;
+  color:var(--rb-primary)!important; line-height:1; font-variant-numeric:tabular-nums;
+}
+.inv-status{
+  font-family:var(--rb-mono)!important; font-size:10px!important; letter-spacing:1px!important;
+  text-transform:uppercase!important; color:var(--rb-faint)!important; margin-top:4px!important;
+}
+.inv-row .inv-month + div{ font-family:var(--rb-mono)!important; }
+
+/* ── ASK CHAT — tactile suggested chips + send buttons ── */
+#ask-msgs > div{ font-family:var(--rb-sans)!important; }
+#ask-input,#coord-msg-input,#private-note-input,#feedback-psw-select{
+  font-family:var(--rb-sans)!important;
+  background:#06090e!important; border:1px solid var(--rb-line)!important;
+}
+#ask-input:focus,#coord-msg-input:focus{ border-color:color-mix(in srgb,var(--rb-primary) 35%,transparent)!important; outline:none!important; }
+
+/* ── MOBILE SAFETY — ask + billing down to 320px ── */
+@media(max-width:380px){
+  .inv-row{ padding:14px!important; }
+  .inv-amount{ font-size:20px!important; }
+}
+
+/* ╔═══════════════════════════════════════════════════════════════╗
+   ║  FAMILY PORTAL — ACCESS + FINAL SWEEP (Pass 6)                 ║
+   ║  CSS only. Gate, nav, topbar, access log → premium depth.     ║
+   ║  Completes the portal: every surface now has depth.           ║
+   ╚═══════════════════════════════════════════════════════════════╝ */
+
+/* ── PIN GATE — the first impression ── */
+/* ── GATE: matched to PSW lockscreen quality — cardless, centered, round keys ── */
+.gate-card{
+  background:transparent!important; border:none!important; box-shadow:none!important;
+  padding:0!important; border-radius:0!important;
+}
+.gate-inner{ max-width:min(360px,calc(100vw - 40px))!important; }
+.gate-brand{ font-family:var(--rb-mono)!important; font-size:11px!important; letter-spacing:3px!important;
+  text-transform:uppercase!important; color:var(--rb-dim)!important; font-weight:400!important; margin-bottom:6px!important; }
+.gate-brand em{ color:var(--rb-primary)!important; font-style:normal!important; }
+.gate-sub{ font-family:var(--rb-mono)!important; color:var(--rb-faint)!important; letter-spacing:3px!important;
+  font-size:11px!important; text-transform:uppercase!important; margin-bottom:40px!important; }
+/* standalone glowing mark (like PSW .lock-mark) */
+.gate-icon{
+  width:66px!important; height:66px!important; margin:0 auto 26px!important;
+  background:radial-gradient(circle, color-mix(in srgb,var(--rb-primary) 16%,transparent), color-mix(in srgb,var(--rb-primary) 5%,transparent))!important;
+  border:1px solid color-mix(in srgb,var(--rb-primary) 32%,transparent)!important;
+  box-shadow:0 0 44px -6px color-mix(in srgb,var(--rb-primary) 50%,transparent), inset 0 0 22px -10px color-mix(in srgb,var(--rb-primary) 45%,transparent)!important;
+  color:var(--rb-primary)!important;
+}
+/* "Welcome back." — elegant light serif, PSW-style */
+.gate-title{ font-family:var(--rb-serif)!important; font-size:32px!important; font-weight:300!important;
+  color:var(--rb-text)!important; letter-spacing:0!important; margin-bottom:8px!important; }
+.gate-hint{ font-family:var(--rb-sans)!important; color:var(--rb-dim)!important; font-size:14px!important;
+  line-height:1.6!important; margin-bottom:34px!important; }
+/* PIN dots — glow when filled */
+.pin-dots{ gap:16px!important; margin-bottom:38px!important; }
+.pin-dot{ width:13px!important; height:13px!important; border:1.5px solid var(--rb-line2)!important; }
+.pin-dot.filled{
+  background:var(--rb-primary)!important; border-color:var(--rb-primary)!important;
+  box-shadow:0 0 14px color-mix(in srgb,var(--rb-primary) 65%,transparent)!important;
+}
+/* ROUND keys — iOS passcode style, like PSW .lock-key (the big upgrade) */
+.pin-pad{ grid-template-columns:repeat(3,74px)!important; gap:18px!important; justify-content:center!important; }
+.pin-btn{
+  width:74px!important; height:74px!important; border-radius:50%!important; padding:0!important;
+  background:linear-gradient(160deg,#161d28,#0d1218)!important;
+  border:1px solid var(--rb-line2)!important;
+  color:var(--rb-text)!important; font-family:var(--rb-sans)!important; font-weight:300!important; font-size:26px!important;
+  box-shadow:0 4px 14px -5px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,255,255,.05)!important;
+  transition:transform var(--t1) var(--e), border-color var(--t1) var(--e), box-shadow var(--t1) var(--e)!important;
+}
+.pin-btn:hover{
+  border-color:color-mix(in srgb,var(--rb-primary) 30%,transparent)!important;
+  box-shadow:0 6px 18px -5px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,255,255,.08)!important;
+}
+.pin-btn:active{
+  background:radial-gradient(circle, color-mix(in srgb,var(--rb-primary) 24%,#161d28), color-mix(in srgb,var(--rb-primary) 8%,#0d1218))!important;
+  border-color:color-mix(in srgb,var(--rb-primary) 55%,transparent)!important;
+  box-shadow:0 0 26px -4px color-mix(in srgb,var(--rb-primary) 55%,transparent), inset 0 1px 0 rgba(255,255,255,.08)!important;
+  transform:scale(.93)!important;
+}
+.pin-btn.empty{ background:none!important; border:none!important; box-shadow:none!important; }
+.pin-btn.del{ color:var(--rb-dim)!important; }
+
+/* ── NAV BAR — active glow ── */
+.nav-btn.on .nav-label{ color:var(--rb-primary)!important; }
+.nav-btn.on .nav-icon{ color:var(--rb-primary)!important; filter:drop-shadow(0 0 6px color-mix(in srgb,var(--rb-primary) 60%,transparent)); }
+.nav-btn{ font-family:var(--rb-sans)!important; }
+
+/* ── TOPBAR ── */
+.tb-brand{ font-family:var(--rb-mono)!important; color:var(--rb-primary)!important; }
+.tb-brand em{ color:var(--rb-primary)!important; font-style:normal!important; }
+
+/* ── ACCESS LOG — depth rows ── */
+#access-log-list > div{ transition:background var(--t2) var(--e); }
+#access-log-list > div:hover{ background:rgba(255,255,255,.02); }
+
+/* ── SKELETON LOADERS — match dark panels ── */
+.skeleton-block{
+  background:linear-gradient(90deg,var(--rb-panel) 25%,var(--rb-base) 50%,var(--rb-panel) 75%)!important;
+  background-size:200% 100%!important; border:1px solid var(--rb-line)!important;
+}
+
+/* ── FINAL CONSISTENCY: any stray flat surface picks up depth ── */
+.section-title{ color:var(--rb-faint)!important; }
 </style>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..600;1,9..144,300..500&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
@@ -1840,7 +2198,7 @@ function visitRow(v) {
       <div class="visit-date-num">${num}</div>
     </div>
     <div class="visit-info" style="flex:1;min-width:0;">
-      <div class="visit-psw">${v.psw_name || fallbackPSW}${v.is_joint ? ' <span style=\"display:inline-flex;align-items:center;font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;padding:2px 6px;border-radius:100px;border:1px solid rgba(52,211,153,.3);color:var(--teal2);margin-left:6px;vertical-align:middle;\">joint</span>' : ''}</div>
+      <div class="visit-psw">${v.psw_name || fallbackPSW}${v.is_joint ? ' <span style=\"display:inline-flex;align-items:center;font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;padding:2px 6px;border-radius:100px;border:1px solid rgba(52,211,153,.3);color:var(--teal2);margin-left:6px;vertical-align:middle;\">joint</span>' : ''}</div>
       <div class="visit-time">${tin}${tout ? ' \u2013 ' + tout : ''}</div>
       ${!hasDetail ? starsHtml : '<div class="visit-expand-btn">View details \u203a</div>'}
     </div>
