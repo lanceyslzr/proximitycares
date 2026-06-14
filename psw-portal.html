@@ -662,7 +662,14 @@ a{color:inherit;text-decoration:none;}
     .stat-val{font-size:16px;}
 }
 
+/* INSTANT-LOAD: subtle updating cue (Pass 1) */
+#psw-updating-cue{ position:fixed; top:calc(10px + env(safe-area-inset-top)); left:50%; transform:translateX(-50%) translateY(-20px);
+  background:rgba(20,28,38,.92); color:#9fb4c4; font-family:'DM Mono',monospace; font-size:11px; letter-spacing:1px;
+  padding:6px 14px; border-radius:100px; border:1px solid rgba(255,255,255,.1); z-index:1500; opacity:0;
+  transition:opacity .25s ease, transform .25s ease; pointer-events:none; backdrop-filter:blur(6px); }
+#psw-updating-cue.show{ opacity:1; transform:translateX(-50%) translateY(0); }
 </style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 </head>
 <body>
 
@@ -1569,6 +1576,37 @@ a{color:inherit;text-decoration:none;}
 <script>
 const API = 'https://proximity-agent-production.up.railway.app';
 
+// ── REALTIME (Pass 2: instant push when HQ changes a shift/visit) ──
+// Config arrives from /psw/schedule-upcoming. Polling stays as fallback.
+let SUPA_URL = '', SUPA_ANON = '', _supaClient = null, _pswRealtimeCh = null;
+function getPSWSupaClient(){
+  if (!SUPA_URL || !SUPA_ANON || !window.supabase) return null;
+  if (!_supaClient) {
+    try { _supaClient = window.supabase.createClient(SUPA_URL, SUPA_ANON, { realtime: { params: { eventsPerSecond: 2 } } }); }
+    catch(e){ return null; }
+  }
+  return _supaClient;
+}
+function initPSWRealtime(){
+  const sb = getPSWSupaClient();
+  if (!sb || !pswName) return; // no config yet → 30s polling keeps working as fallback
+  if (_pswRealtimeCh) { try { sb.removeChannel(_pswRealtimeCh); } catch(e){} _pswRealtimeCh = null; }
+  try {
+    _pswRealtimeCh = sb
+      .channel('psw_' + pswName.replace(/[^a-z0-9]/gi,'_').toLowerCase())
+      .on('postgres_changes', { event:'*', schema:'public', table:'bookings', filter:'assigned_to=eq.'+pswName }, () => {
+        if (appUnlocked) { showUpdatingCue(true); loadSchedule(); }
+      })
+      .on('postgres_changes', { event:'*', schema:'public', table:'visits', filter:'psw_name=eq.'+pswName }, () => {
+        if (appUnlocked) { showUpdatingCue(true); loadSchedule(); loadHomeData(); }
+      })
+      .subscribe((status) => {
+        if (status === 'SUBSCRIBED') console.log('[PSW Realtime] connected');
+        else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') console.warn('[PSW Realtime] error — 30s polling continues as fallback');
+      });
+  } catch(e){ console.warn('[PSW Realtime] init failed — polling fallback active'); }
+}
+
 // ── XSS GUARD ──
 function escHtml(str) {
   if (str == null) return '';
@@ -1861,6 +1899,56 @@ async function verifyPin() {
   } catch { return false; }
 }
 
+// ── INSTANT-LOAD CACHE (Pass 1: render last-known data immediately on open) ──
+// Display-only cache. The live fetch always runs and overwrites. Actions never trust cache.
+function _pswCacheKey(kind){
+  var who = (pswName || 'anon').replace(/[^a-z0-9]/gi,'_').toLowerCase();
+  return 'psw_cache_' + who + '_' + kind;
+}
+function cachePSWData(kind, data){
+  try { localStorage.setItem(_pswCacheKey(kind), JSON.stringify({ t: Date.now(), d: data })); } catch(e){}
+}
+function getCachedPSWData(kind, maxAgeMs){
+  try {
+    var raw = localStorage.getItem(_pswCacheKey(kind));
+    if (!raw) return null;
+    var o = JSON.parse(raw);
+    if (maxAgeMs && (Date.now() - o.t) > maxAgeMs) return null;
+    return o.d;
+  } catch(e){ return null; }
+}
+// Render instantly from cache so shifts/pay show the moment the portal opens.
+function hydrateFromCache(){
+  try {
+    var sched = getCachedPSWData('sched', 24*60*60*1000); // up to 24h old, still better than blank
+    if (sched && sched.success) {
+      scheduleData = sched;
+      activeVisit = sched.active_visit || null;
+      try { updateShiftUI(); } catch(e){}
+      try { renderWeek(); } catch(e){}
+      try { renderAvailableShifts(); } catch(e){}
+    }
+    var home = getCachedPSWData('home', 24*60*60*1000);
+    if (home && home.success) {
+      window._lastPayData = home;
+      try { renderHomeFeed(); } catch(e){}
+    }
+    // subtle "updating" cue while the fresh fetch runs in the background
+    if (sched || home) showUpdatingCue(true);
+  } catch(e){}
+}
+function showUpdatingCue(on){
+  var el = document.getElementById('psw-updating-cue');
+  if (!el) {
+    if (!on) return;
+    el = document.createElement('div');
+    el.id = 'psw-updating-cue';
+    el.textContent = 'Updating…';
+    document.body.appendChild(el);
+  }
+  el.classList.toggle('show', !!on);
+}
+
 function unlockApp() {
   appUnlocked = true;
   try { sessionStorage.setItem('psw_name', pswName); sessionStorage.setItem('psw_pin', pswPin); } catch {}
@@ -1875,6 +1963,7 @@ function unlockApp() {
   document.getElementById('psw-name-display').textContent = pswName.split(' ')[0];
   // Show offline banner if already offline
   if (!navigator.onLine) updateOfflineBanner(true);
+  hydrateFromCache(); // Pass 1: paint last-known data INSTANTLY, before network returns
   fetchPSWEmail();
   loadAll();
   restoreChecklist(); // initial restore with global key (best-effort before visit loads)
@@ -1932,10 +2021,17 @@ async function loadSchedule() {
     const d = await res.json();
     if (!d.success) return;
     scheduleData = d;
+    cachePSWData('sched', d); // Pass 1: cache for instant render next open
+    // Pass 2: capture realtime config + connect (once)
+    if (d.supabase && !_supaClient) {
+      SUPA_URL = d.supabase.url || ''; SUPA_ANON = d.supabase.anon_key || '';
+      initPSWRealtime();
+    }
     activeVisit = d.active_visit || null;
     updateShiftUI();
     renderWeek();
     renderAvailableShifts(); // Build 7
+    showUpdatingCue(false); // fresh data in — hide the updating cue
   } catch (e) { console.error('loadSchedule:', e); }
 }
 
@@ -3862,6 +3958,7 @@ async function loadHomeData() {
     const d = await res.json();
     window._lastPayData = d; // Cache so loadPaySummary and renderHomeFeed can reuse
     if (!d.success) { console.warn('[PSW] pay-summary failed:', d); return; }
+    cachePSWData('home', d); // Pass 1: cache for instant render next open
 
     // Use current_period from server for ALL stats — it already sums the correct period
     // (April 27 – May 29 for last_friday schedule) and is TZ-safe.
