@@ -14,7 +14,7 @@
 <title>Proximity Care — PSW Portal</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;1,9..144,300&family=Space+Grotesk:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
 /* ── MOBILE RESET: Android overflow, box-sizing, safe-area ── */
 *,*::before,*::after{box-sizing:border-box;min-width:0}
@@ -41,6 +41,14 @@ input,select,textarea,button{font:inherit;font-size:max(16px,1em);max-width:100%
   --text:#F2F4F6;--muted:#9AA7B0;--muted2:rgba(242,244,246,.62);--muted3:rgba(242,244,246,.85);
   --border:rgba(255,255,255,.07);--border2:rgba(255,255,255,.13);--border3:rgba(255,255,255,.22);
   --mono:'DM Mono',monospace;--sans:'DM Sans',sans-serif;--serif:'Cormorant Garamond',serif;
+  /* --rb shared system (premium rebuild, additive, per-screen migration) */
+  --rb-void:#06080c;--rb-base:#0a0e14;--rb-panel:#0e131b;--rb-elev:#121826;
+  --rb-line:rgba(255,255,255,.07);--rb-line2:rgba(255,255,255,.13);
+  --rb-text:#eef2f6;--rb-dim:#a6b3bf;
+  --rb-serif:'Fraunces',serif;--rb-sans:'Space Grotesk','DM Sans',sans-serif;--rb-mono:'DM Mono',monospace;
+  --e:cubic-bezier(.22,1,.36,1);
+  /* PSW cyan identity */
+  --psw:#56C8F5;--psw-deep:#3DAEE0;--psw-light:#A8E2FF;--psw-ink:#04141C;--psw-glow:rgba(86,200,245,.16);
   --safe-bottom:env(safe-area-inset-bottom,0px);--safe-top:env(safe-area-inset-top,0px);
 }
 html{height:100%;background:var(--bg);}
@@ -49,32 +57,35 @@ button{font-family:var(--sans);cursor:pointer;border:none;background:none;}
 input,select,textarea{font-family:var(--sans);font-size:16px;}
 a{color:inherit;text-decoration:none;}
 
-/* LOCK */
-#lock{position:fixed;inset:0;background:var(--bg);z-index:999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px;padding:0 24px;}
-.lock-mark{width:64px;height:64px;border-radius:50%;border:1px solid rgba(86,200,245,.25);background:rgba(86,200,245,.07);box-shadow:0 0 36px rgba(86,200,245,.14);display:flex;align-items:center;justify-content:center;color:var(--accent);margin:0 auto 18px;}
-.lock-logo{font-family:var(--serif);font-size:34px;color:var(--text);font-weight:300;letter-spacing:2px;text-align:center;margin-bottom:2px;}
-.lock-logo em{color:var(--teal2);font-style:italic;}
-.lock-sub{font-family:var(--mono);font-size:12px;letter-spacing:3px;text-transform:uppercase;color:var(--muted2);}
+/* LOCK — premium rebuild on --rb, PSW cyan identity */
+#lock{position:fixed;inset:0;background:radial-gradient(120% 80% at 50% -10%,rgba(86,200,245,.06),transparent 60%),var(--rb-void);z-index:999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:26px;padding:0 24px;}
+.lock-mark{position:relative;width:72px;height:72px;border-radius:22px;border:1px solid rgba(86,200,245,.28);background:linear-gradient(160deg,rgba(86,200,245,.12),rgba(86,200,245,.03));box-shadow:0 18px 50px -14px var(--psw-glow),inset 0 1px 0 rgba(255,255,255,.06);display:flex;align-items:center;justify-content:center;color:var(--psw-light);margin:0 auto 20px;}
+.lock-logo{font-family:var(--rb-serif);font-size:36px;color:var(--rb-text);font-weight:300;letter-spacing:.5px;text-align:center;margin-bottom:3px;line-height:1;}
+.lock-logo em{color:var(--psw);font-style:italic;font-weight:400;}
+.lock-sub{font-family:var(--rb-mono);font-size:11px;letter-spacing:4px;text-transform:uppercase;color:var(--rb-dim);}
 .lock-step{display:none;flex-direction:column;align-items:center;gap:16px;width:100%;max-width:320px;}
 .lock-step.active{display:flex;}
-.lock-label{font-family:var(--mono);font-size:12px;letter-spacing:2px;text-transform:uppercase;color:var(--muted2);}
-.lock-input{width:100%;background:var(--bg2);border:1px solid var(--border);color:var(--text);padding:15px 16px;font-size:16px;border-radius:14px;text-align:center;transition:border-color .15s,box-shadow .15s;}
-.lock-input:focus{outline:none;border-color:rgba(86,200,245,.5);box-shadow:0 0 0 4px rgba(86,200,245,.12);}
-.lock-input::placeholder{color:var(--muted);}
-.lock-input:focus{outline:none;border-color:var(--teal2);}
-.lock-btn{width:100%;background:linear-gradient(135deg,#56C8F5,#3DAEE0);color:#04141C;padding:16px;font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:2.5px;text-transform:uppercase;border-radius:14px;border:none;cursor:pointer;box-shadow:0 8px 24px rgba(86,200,245,.22);transition:transform .12s,box-shadow .12s;}
-.lock-btn:active{transform:scale(.97);box-shadow:0 4px 14px rgba(86,200,245,.18);}
-.lock-btn:active{background:var(--teal2);}
+.lock-label{font-family:var(--rb-mono);font-size:11px;letter-spacing:2.5px;text-transform:uppercase;color:var(--rb-dim);}
+.lock-input{width:100%;background:var(--rb-panel);border:1px solid var(--rb-line2);color:var(--rb-text);padding:16px;font-family:var(--rb-sans);font-size:16px;border-radius:14px;text-align:center;transition:border-color .18s var(--e),box-shadow .18s var(--e);}
+.lock-input:focus{outline:none;border-color:var(--psw);box-shadow:0 0 0 4px var(--psw-glow);}
+.lock-input::placeholder{color:var(--rb-dim);opacity:.7;}
+.lock-bio{width:100%;padding:14px;display:flex;align-items:center;justify-content:center;gap:10px;background:linear-gradient(160deg,rgba(86,200,245,.10),rgba(86,200,245,.03));border:1px solid rgba(86,200,245,.3);border-radius:14px;color:var(--psw-light);font-family:var(--rb-sans);font-size:14px;font-weight:500;cursor:pointer;margin-bottom:6px;touch-action:manipulation;transition:transform .12s var(--e);}
+.lock-bio:active{transform:scale(.98);}
+.lock-bio svg{width:20px;height:20px;color:var(--psw);flex-shrink:0;}
+.lock-btn{width:100%;background:linear-gradient(135deg,var(--psw),var(--psw-deep));color:var(--psw-ink);padding:16px;font-family:var(--rb-mono);font-size:11px;font-weight:500;letter-spacing:2.5px;text-transform:uppercase;border-radius:14px;border:none;cursor:pointer;box-shadow:0 12px 30px -8px var(--psw-glow);transition:transform .12s var(--e),box-shadow .12s var(--e);}
+.lock-btn:active{transform:scale(.97);box-shadow:0 6px 16px -8px var(--psw-glow);}
 .lock-dots{display:flex;gap:14px;justify-content:center;}
-.lock-dot{width:13px;height:13px;border-radius:50%;border:1px solid var(--border2);background:transparent;transition:all .15s;}
-.lock-dot.filled{background:var(--teal2);border-color:var(--teal2);}
-.lock-pad{display:grid;grid-template-columns:repeat(3,72px);gap:10px;justify-content:center;}
-.lock-key{width:72px;height:72px;border-radius:50%;border:1px solid var(--border2);background:var(--bg2);color:var(--text);font-size:22px;font-weight:300;display:flex;align-items:center;justify-content:center;transition:all .12s;user-select:none;touch-action:manipulation;}
-.lock-key:active{background:var(--bg3);border-color:var(--teal2);}
-.lock-key.del{font-size:16px;color:var(--muted2);}
+.lock-dot{width:12px;height:12px;border-radius:50%;border:1px solid var(--rb-line2);background:transparent;transition:all .18s var(--e);}
+.lock-dot.filled{background:var(--psw);border-color:var(--psw);box-shadow:0 0 12px var(--psw-glow);}
+.lock-pad{display:grid;grid-template-columns:repeat(3,72px);gap:12px;justify-content:center;}
+.lock-key{width:72px;height:72px;border-radius:50%;border:1px solid var(--rb-line2);background:var(--rb-panel);color:var(--rb-text);font-family:var(--rb-sans);font-size:24px;font-weight:300;display:flex;align-items:center;justify-content:center;transition:all .12s var(--e);user-select:none;touch-action:manipulation;}
+.lock-key:active{background:var(--rb-elev);border-color:var(--psw);color:var(--psw-light);}
+.lock-key.del{color:var(--rb-dim);}
+.lock-key.del svg{width:22px;height:22px;}
 .lock-key.empty{background:none;border:none;pointer-events:none;}
-.lock-err{font-family:var(--mono);font-size:11px;color:var(--red);letter-spacing:1px;opacity:0;transition:opacity .3s;text-align:center;}
+.lock-err{font-family:var(--rb-mono);font-size:11px;color:var(--red);letter-spacing:1px;opacity:0;transition:opacity .3s;text-align:center;}
 .lock-err.show{opacity:1;}
+
 
 /* TOPBAR */
 .topbar{position:sticky;top:0;z-index:100;height:54px;display:flex;align-items:center;justify-content:space-between;padding:0 14px;background:rgba(7,9,12,.96);border-bottom:1px solid var(--border);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);}
@@ -726,7 +737,7 @@ a{color:inherit;text-decoration:none;}
 </div>
 
 <div id="lock">
-  <div class="lock-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" width="26" height="26"><path d="M12 21s-7-4.6-9.3-9A5.6 5.6 0 0 1 12 6.4 5.6 5.6 0 0 1 21.3 12c-2.3 4.4-9.3 9-9.3 9Z"/></svg></div>
+  <div class="lock-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" width="30" height="30" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21c4.5-4.2 7-7.6 7-11a7 7 0 1 0-14 0c0 3.4 2.5 6.8 7 11Z"/><circle cx="12" cy="10" r="2.4"/></svg></div>
   <div class="lock-logo" id="branding-lock-logo">Proximity <em>Care</em></div>
   <div class="lock-sub">PSW Portal</div>
   <div class="lock-step active" id="lock-step-1">
@@ -736,9 +747,9 @@ a{color:inherit;text-decoration:none;}
   </div>
   <div class="lock-step" id="lock-step-2">
     <div class="lock-label" id="lock-pin-label">Enter your PIN</div>
-    <!-- E1: Biometric button — shown if WebAuthn credential registered -->
-    <button id="biometric-btn" onclick="tryBiometric()" style="display:none;width:100%;padding:14px;background:rgba(74,154,110,.12);border:1.5px solid rgba(74,154,110,.35);border-radius:12px;color:var(--green,#4a9a6e);font-size:14px;font-weight:600;font-family:var(--sans);cursor:pointer;margin-bottom:14px;touch-action:manipulation;">
-      <span id="biometric-icon">⬡</span> Use Face ID / Fingerprint
+    <!-- E1: Biometric button, shown if WebAuthn credential registered -->
+    <button id="biometric-btn" class="lock-bio" onclick="tryBiometric()" style="display:none;">
+      <span id="biometric-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5.2 11a6.8 6.8 0 0 1 13.6 0"/><path d="M7.5 12.4a4.5 4.5 0 0 1 9 0c0 2.4-.4 4.6-1.2 6.6"/><path d="M9.8 12.6a2.2 2.2 0 0 1 4.4 0c0 3.1-.7 6-2 8.4"/><path d="M12 13v3.5"/><path d="M6.6 16.8c.5 1.6.6 3.1.4 4.6"/></svg></span> Use Face ID / Fingerprint
     </button>
     <div class="lock-dots">
       <div class="lock-dot" id="ld0"></div><div class="lock-dot" id="ld1"></div>
@@ -748,11 +759,12 @@ a{color:inherit;text-decoration:none;}
       <button class="lock-key" onclick="lk('1')">1</button><button class="lock-key" onclick="lk('2')">2</button><button class="lock-key" onclick="lk('3')">3</button>
       <button class="lock-key" onclick="lk('4')">4</button><button class="lock-key" onclick="lk('5')">5</button><button class="lock-key" onclick="lk('6')">6</button>
       <button class="lock-key" onclick="lk('7')">7</button><button class="lock-key" onclick="lk('8')">8</button><button class="lock-key" onclick="lk('9')">9</button>
-      <div class="lock-key empty"></div><button class="lock-key" onclick="lk('0')">0</button><button class="lock-key del" onclick="ld()">⌫</button>
+      <div class="lock-key empty"></div><button class="lock-key" onclick="lk('0')">0</button><button class="lock-key del" onclick="ld()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 5.5 3.5 12l6 6.5H20a1.5 1.5 0 0 0 1.5-1.5V7A1.5 1.5 0 0 0 20 5.5Z"/><path d="m13 9.5 4 5"/><path d="m17 9.5-4 5"/></svg></button>
     </div>
     <div class="lock-err" id="lock-err">Incorrect PIN. Try again.</div>
   </div>
 </div>
+
 
 <!-- APP -->
 <div id="app" style="display:none;">
@@ -5516,10 +5528,7 @@ function initBiometricBtn() {
   const credId = localStorage.getItem(WA_STORE + '_' + (pswName||''));
   const btn = document.getElementById('biometric-btn');
   if (btn && credId && waSupported()) {
-    btn.style.display = 'block';
-    // Update icon based on device capability
-    PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable?.()
-      .then(ok => { if (ok && btn) btn.querySelector('#biometric-icon').textContent = '⬡'; });
+    btn.style.display = 'flex';
   }
 }
 
