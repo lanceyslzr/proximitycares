@@ -184,6 +184,52 @@ a{color:inherit;text-decoration:none;}
 @keyframes ptr-spin{to{transform:translateX(-50%) rotate(360deg);}}
 .ptr-spinner.spinning{animation:ptr-spin .6s linear infinite;}
 
+/* ── LIVING HOME (elevated) ── */
+.home-hero{position:relative;margin:14px 12px 12px;padding:18px;border-radius:20px;overflow:hidden;
+  background:linear-gradient(165deg,rgba(86,200,245,.07),rgba(255,255,255,.012)),var(--rb-panel);
+  border:1px solid var(--rb-line2);box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 20px 50px -28px rgba(0,0,0,.9);
+  display:flex;align-items:center;justify-content:space-between;gap:16px;}
+.home-aura{position:absolute;inset:-50% -15% auto -15%;height:200%;z-index:0;pointer-events:none;opacity:.8;
+  background:radial-gradient(50% 60% at 18% 28%,rgba(86,200,245,.20),transparent 70%),radial-gradient(45% 55% at 88% 18%,rgba(61,174,224,.15),transparent 70%);
+  filter:blur(10px);animation:auraDrift 16s ease-in-out infinite;}
+@keyframes auraDrift{0%,100%{transform:translate3d(0,0,0) scale(1);}50%{transform:translate3d(5%,4%,0) scale(1.09);}}
+.home-hero-l{position:relative;z-index:1;min-width:0;}
+.home-greet-ey{font-family:var(--rb-mono);font-size:10px;letter-spacing:2.5px;text-transform:uppercase;color:var(--psw-light);}
+.home-greet{font-family:var(--rb-serif);font-size:26px;font-weight:400;color:var(--rb-text);line-height:1.1;margin-top:5px;letter-spacing:-.3px;}
+.home-greet-sub{font-family:var(--rb-mono);font-size:11px;color:var(--rb-dim);margin-top:6px;letter-spacing:.4px;}
+.day-ring-wrap{position:relative;z-index:1;width:84px;height:84px;flex-shrink:0;display:flex;align-items:center;justify-content:center;}
+.day-ring{width:84px;height:84px;transform:rotate(-90deg);}
+.day-ring .trk{fill:none;stroke:var(--rb-line2);stroke-width:7;}
+.day-ring .fil{fill:none;stroke:url(#dayGrad);stroke-width:7;stroke-linecap:round;filter:drop-shadow(0 0 6px var(--psw-glow));transition:stroke-dashoffset 1.3s var(--e);}
+.day-ring-c{position:absolute;display:flex;flex-direction:column;align-items:center;}
+.day-ring-c b{font-family:var(--rb-mono);font-size:21px;font-weight:500;color:var(--rb-text);line-height:1;}
+.day-ring-c span{font-family:var(--rb-mono);font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--rb-dim);margin-top:3px;}
+
+/* today's route mini map */
+.route-card{margin:0 12px 12px;border-radius:20px;overflow:hidden;border:1px solid var(--rb-line2);
+  background:var(--rb-panel);box-shadow:inset 0 1px 0 rgba(255,255,255,.04),0 20px 50px -30px rgba(0,0,0,.9);}
+.route-hd{display:flex;align-items:center;justify-content:space-between;padding:13px 16px;}
+.route-hd-l{display:flex;align-items:center;gap:10px;}
+.route-hd-icon{width:30px;height:30px;border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  background:linear-gradient(160deg,rgba(86,200,245,.16),rgba(86,200,245,.04));border:1px solid rgba(86,200,245,.28);color:var(--psw-light);}
+.route-hd-icon svg{width:16px;height:16px;}
+.route-hd-t{font-family:var(--rb-sans);font-size:14px;font-weight:600;color:var(--rb-text);letter-spacing:-.2px;}
+.route-hd-s{font-family:var(--rb-mono);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--rb-dim);margin-top:2px;}
+.route-map{width:100%;height:200px;background:var(--rb-base);position:relative;}
+.route-empty{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:20px;text-align:center;}
+.route-empty svg{width:26px;height:26px;color:var(--rb-dim);opacity:.7;}
+.route-empty div{font-family:var(--rb-mono);font-size:11px;color:var(--rb-dim);letter-spacing:.5px;line-height:1.6;max-width:240px;}
+.route-map .leaflet-container{background:var(--rb-base);}
+.route-pin{display:flex !important;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50% 50% 50% 0;
+  background:linear-gradient(160deg,var(--psw),var(--psw-deep));transform:rotate(-45deg);box-shadow:0 4px 12px -2px var(--psw-glow),0 0 0 2px rgba(6,8,12,.7);}
+.route-pin b{transform:rotate(45deg);font-family:var(--rb-mono);font-size:12px;font-weight:600;color:var(--psw-ink);}
+.route-me{width:16px;height:16px;border-radius:50%;background:var(--psw);box-shadow:0 0 0 4px rgba(86,200,245,.28);animation:mePulse 2s ease-in-out infinite;}
+@keyframes mePulse{0%,100%{box-shadow:0 0 0 4px rgba(86,200,245,.28);}50%{box-shadow:0 0 0 9px rgba(86,200,245,.04);}}
+
+/* living next-visit countdown pill */
+.tnc-countdown{display:inline-flex;align-items:center;gap:7px;font-family:var(--rb-mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--psw);background:rgba(86,200,245,.1);border:1px solid rgba(86,200,245,.28);border-radius:100px;padding:5px 12px;margin-bottom:9px;}
+.tnc-countdown .dot{width:6px;height:6px;border-radius:50%;background:var(--psw);box-shadow:0 0 8px var(--psw);animation:mePulse 2s ease-in-out infinite;}
+
 /* SIGNIN CARD */
 .signin-card{margin:10px 12px 8px;background:var(--bg2);border:1px solid var(--border2);border-radius:10px;overflow:hidden;}
 .signin-card-hdr{padding:12px 14px;border-bottom:1px solid var(--border);}
@@ -803,6 +849,40 @@ a{color:inherit;text-decoration:none;}
     <svg width="12" height="12" viewBox="0 0 12 12" fill="none" style="display:inline;vertical-align:middle;margin-right:4px"><path d="M7 1L3 7h4l-2 4 6-6H7L9 1z" fill="currentColor"/></svg><span>You're offline. Visits will sync when back online</span>
   </div>
 
+  <!-- LIVING HOME: greeting + day ring -->
+  <div class="home-hero" id="home-hero" style="display:none;">
+    <div class="home-aura"></div>
+    <div class="home-hero-l">
+      <div class="home-greet-ey" id="home-greet-ey">Welcome</div>
+      <div class="home-greet" id="home-greet">Hello</div>
+      <div class="home-greet-sub" id="home-greet-sub">&nbsp;</div>
+    </div>
+    <div class="day-ring-wrap">
+      <svg class="day-ring" viewBox="0 0 84 84">
+        <defs><linearGradient id="dayGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#3DAEE0"/><stop offset="1" stop-color="#56C8F5"/></linearGradient></defs>
+        <circle class="trk" cx="42" cy="42" r="35"/>
+        <circle class="fil" id="day-ring-fill" cx="42" cy="42" r="35"/>
+      </svg>
+      <div class="day-ring-c"><b id="day-ring-count">0</b><span id="day-ring-lbl">Visits</span></div>
+    </div>
+  </div>
+
+  <!-- LIVING HOME: today's route map -->
+  <div class="route-card" id="route-card" style="display:none;">
+    <div class="route-hd">
+      <div class="route-hd-l">
+        <div class="route-hd-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 20l-5.5 2V6L9 4m0 16 6-2m-6 2V4m6 14 5.5 2V6L15 4m0 14V4m-6 0 6 2"/></svg></div>
+        <div><div class="route-hd-t">Today's Route</div><div class="route-hd-s" id="route-hd-s">Your visits today</div></div>
+      </div>
+    </div>
+    <div class="route-map" id="route-map">
+      <div class="route-empty" id="route-empty">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21c4.5-4.2 7-7.6 7-11a7 7 0 1 0-14 0c0 3.4 2.5 6.8 7 11Z"/><circle cx="12" cy="10" r="2.4"/></svg>
+        <div>Route appears once your client addresses are on file</div>
+      </div>
+    </div>
+  </div>
+
   <div class="stats-strip">
     <div class="stat-card hi"><div class="stat-val" id="s-today">—</div><div class="stat-lbl">Today</div></div>
     <div class="stat-card"><div class="stat-val" id="s-month">—</div><div class="stat-lbl">Period</div></div>
@@ -824,6 +904,7 @@ a{color:inherit;text-decoration:none;}
 
   <!-- NEXT VISIT CARD -->
   <div class="today-next-card" id="today-next-card" style="display:none;">
+    <div class="tnc-countdown" id="tnc-countdown" style="display:none;"><span class="dot"></span><span id="tnc-countdown-txt">—</span></div>
     <div class="today-next-label">Next Visit</div>
     <div class="today-next-client" id="tnc-client">—</div>
     <div class="today-next-time" id="tnc-time">—</div>
@@ -4218,7 +4299,7 @@ function showSect(name) {
   }
   if (name === 'pay') loadPaySummary();
   if (name === 'documents') loadDocuments();
-  if (name === 'home') { loadHomeData(); }
+  if (name === 'home') { loadHomeData(); if (_homeMap) setTimeout(() => { try { _homeMap.invalidateSize(); } catch (e) {} }, 150); }
   if (name === 'live') renderLiveOps();
   if (name === 'checklist') loadVisitForms();
   if (name === 'checklist') {
@@ -4721,6 +4802,7 @@ function updateTodayProgress() {
   const todayDone = (scheduleData.completed_visits||[]).filter(v => v.visit_date === today);
   const total = todayBookings.length;
   const done = todayDone.length;
+  window._homeDone = done; window._homeTotal = total;
 
   const bar = document.getElementById('today-progress-bar');
   const fill = document.getElementById('today-progress-fill');
@@ -4752,6 +4834,7 @@ function updateTodayProgress() {
   const nextCard = document.getElementById('today-next-card');
   if (upcoming.length > 0 && !activeVisit) {
     const next = upcoming[0];
+    window._homeNext = next;
     window._nextVisitClientName = next.client_name || '';
     document.getElementById('tnc-client').textContent = next.client_name || '—';
     document.getElementById('tnc-time').textContent = next.scheduled_time || 'TBD';
@@ -4768,6 +4851,7 @@ function updateTodayProgress() {
 
     if (nextCard) nextCard.style.display = 'block';
   } else {
+    window._homeNext = null;
     if (nextCard) nextCard.style.display = 'none';
   }
 
@@ -4777,6 +4861,144 @@ function updateTodayProgress() {
   const doneEl = document.getElementById('sched-done-label');
   if (hoursEl && totalHours > 0) hoursEl.textContent = totalHours.toFixed(1) + 'h scheduled today';
   if (doneEl && total > 0) doneEl.textContent = done + '/' + total + ' Done';
+  renderHomeLiving();
+}
+
+// ── LIVING HOME ──
+let _homeCountdownTimer = null;
+let _routeMapInit = false;
+let _homeMap = null;
+let _heroRevealed = false;
+
+function animateCount(el, from, to, dur){
+  const start = performance.now();
+  (function step(now){
+    const p = Math.min((now - start) / dur, 1);
+    const e = 1 - Math.pow(1 - p, 3);
+    el.textContent = Math.round(from + (to - from) * e);
+    if (p < 1) requestAnimationFrame(step);
+  })(start);
+}
+
+function updateNextCountdown(){
+  const pill = document.getElementById('tnc-countdown');
+  const txt = document.getElementById('tnc-countdown-txt');
+  if (!pill || !txt) return;
+  const next = window._homeNext;
+  if (!next || !next.scheduled_time || (typeof activeVisit !== 'undefined' && activeVisit)) { pill.style.display = 'none'; return; }
+  const parts = String(next.scheduled_time).split(':');
+  const t = new Date(); t.setHours(parseInt(parts[0]) || 0, parseInt(parts[1]) || 0, 0, 0);
+  const diff = Math.round((t - new Date()) / 60000);
+  let label;
+  if (diff <= 0 && diff > -30) label = 'Starting now';
+  else if (diff <= 0) label = 'Overdue';
+  else if (diff < 60) label = 'In ' + diff + ' min';
+  else { const H = Math.floor(diff / 60), M = diff % 60; label = 'In ' + H + 'h' + (M ? ' ' + M + 'm' : ''); }
+  txt.textContent = label;
+  pill.style.display = 'inline-flex';
+}
+
+function renderHomeLiving(){
+  try {
+    const hero = document.getElementById('home-hero');
+    if (!hero) return;
+    const h = new Date().getHours();
+    const part = h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening';
+    const first = (typeof pswName !== 'undefined' && pswName ? pswName : '').split(' ')[0] || 'there';
+    const ey = document.getElementById('home-greet-ey');
+    const gr = document.getElementById('home-greet');
+    const sub = document.getElementById('home-greet-sub');
+    if (ey) ey.textContent = part;
+    if (gr) gr.textContent = first + '.';
+    const done = window._homeDone || 0, total = window._homeTotal || 0;
+    if (sub) {
+      sub.textContent = total === 0 ? 'No visits scheduled today'
+        : done >= total ? 'All visits done today. Nice work.'
+        : (total - done) + ' visit' + ((total - done) !== 1 ? 's' : '') + ' left today';
+    }
+    hero.style.display = 'flex';
+
+    const r = 35, C = 2 * Math.PI * r;
+    const fill = document.getElementById('day-ring-fill');
+    if (fill) {
+      fill.style.strokeDasharray = C;
+      const pct = total > 0 ? done / total : 0;
+      requestAnimationFrame(() => { fill.style.strokeDashoffset = C * (1 - pct); });
+    }
+    const cnt = document.getElementById('day-ring-count');
+    const lbl = document.getElementById('day-ring-lbl');
+    if (cnt) { if (!_heroRevealed) animateCount(cnt, 0, done, 900); else cnt.textContent = done; }
+    if (lbl) lbl.textContent = 'of ' + total;
+    _heroRevealed = true;
+
+    updateNextCountdown();
+    if (!_homeCountdownTimer) _homeCountdownTimer = setInterval(updateNextCountdown, 30000);
+
+    initRouteMap();
+  } catch (e) {}
+}
+
+function initRouteMap(){
+  try {
+    const card = document.getElementById('route-card');
+    const empty = document.getElementById('route-empty');
+    const sub = document.getElementById('route-hd-s');
+    if (!card) return;
+
+    const today = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Toronto' });
+    const todayBookings = (scheduleData && scheduleData.bookings || []).filter(b => b.scheduled_date === today && b.status !== 'cancelled');
+    const clients = (scheduleData && scheduleData.clients) || [];
+    const stops = [], seen = new Set();
+    todayBookings.sort((a, b) => (a.scheduled_time || '').localeCompare(b.scheduled_time || '')).forEach(b => {
+      const c = clients.find(cl => {
+        const full = ((cl.first_name || '') + ' ' + (cl.last_name || '')).trim().toLowerCase();
+        const fn = (b.client_name || '').split(' ')[0].toLowerCase();
+        return full === (b.client_name || '').toLowerCase() || (fn && full.startsWith(fn));
+      });
+      const lat = c && (c.lat || c.latitude), lng = c && (c.lng || c.longitude);
+      if (lat && lng) {
+        const key = lat + ',' + lng;
+        if (!seen.has(key)) { seen.add(key); stops.push({ name: b.client_name, lat: parseFloat(lat), lng: parseFloat(lng) }); }
+      }
+    });
+
+    card.style.display = 'block';
+    if (!stops.length) {
+      if (empty) empty.style.display = 'flex';
+      if (sub) sub.textContent = 'Addresses not on file yet';
+      return;
+    }
+    if (empty) empty.style.display = 'none';
+    if (sub) sub.textContent = stops.length + ' stop' + (stops.length !== 1 ? 's' : '') + ' today';
+    if (_routeMapInit && _homeMap) return;
+
+    loadLeaflet(() => {
+      try {
+        if (_homeMap) { _homeMap.remove(); _homeMap = null; }
+        _homeMap = L.map('route-map', { zoomControl: false, attributionControl: false, scrollWheelZoom: false });
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png', { maxZoom: 19, subdomains: 'abcd' }).addTo(_homeMap);
+        const bounds = [];
+        stops.forEach((s, i) => {
+          const icon = L.divIcon({ className: '', html: '<div class="route-pin"><b>' + (i + 1) + '</b></div>', iconSize: [26, 26], iconAnchor: [13, 26] });
+          L.marker([s.lat, s.lng], { icon }).addTo(_homeMap).on('click', () => openNavigateSheet(s.name, ''));
+          bounds.push([s.lat, s.lng]);
+        });
+        if (stops.length > 1) L.polyline(bounds, { color: '#56C8F5', weight: 2, opacity: .45, dashArray: '5,7' }).addTo(_homeMap);
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(pos => {
+            try {
+              const me = L.divIcon({ className: '', html: '<div class="route-me"></div>', iconSize: [16, 16], iconAnchor: [8, 8] });
+              L.marker([pos.coords.latitude, pos.coords.longitude], { icon: me }).addTo(_homeMap);
+            } catch (e) {}
+          }, () => {}, { timeout: 6000, maximumAge: 60000 });
+        }
+        if (bounds.length === 1) _homeMap.setView(bounds[0], 14);
+        else _homeMap.fitBounds(bounds, { padding: [30, 30], maxZoom: 14 });
+        setTimeout(() => { try { _homeMap.invalidateSize(); } catch (e) {} }, 200);
+        _routeMapInit = true;
+      } catch (e) { if (empty) empty.style.display = 'flex'; }
+    });
+  } catch (e) {}
 }
 
 function openTodayNextMap() {
