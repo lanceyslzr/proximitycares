@@ -59,7 +59,6 @@ a{color:inherit;text-decoration:none;}
 
 /* LOCK — premium rebuild on --rb, PSW cyan identity */
 #lock{position:fixed;inset:0;background:radial-gradient(120% 80% at 50% -10%,rgba(86,200,245,.06),transparent 60%),var(--rb-void);z-index:999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:26px;padding:0 24px;}
-.lock-mark{position:relative;width:72px;height:72px;border-radius:22px;border:1px solid rgba(86,200,245,.28);background:linear-gradient(160deg,rgba(86,200,245,.12),rgba(86,200,245,.03));box-shadow:0 18px 50px -14px var(--psw-glow),inset 0 1px 0 rgba(255,255,255,.06);display:flex;align-items:center;justify-content:center;color:var(--psw-light);margin:0 auto 20px;}
 .lock-logo{font-family:var(--rb-serif);font-size:36px;color:var(--rb-text);font-weight:300;letter-spacing:.5px;text-align:center;margin-bottom:3px;line-height:1;}
 .lock-logo em{color:var(--psw);font-style:italic;font-weight:400;}
 .lock-sub{font-family:var(--rb-mono);font-size:11px;letter-spacing:4px;text-transform:uppercase;color:var(--rb-dim);}
@@ -78,8 +77,8 @@ a{color:inherit;text-decoration:none;}
 .lock-dot{width:12px;height:12px;border-radius:50%;border:1px solid var(--rb-line2);background:transparent;transition:all .18s var(--e);}
 .lock-dot.filled{background:var(--psw);border-color:var(--psw);box-shadow:0 0 12px var(--psw-glow);}
 .lock-pad{display:grid;grid-template-columns:repeat(3,72px);gap:12px;justify-content:center;}
-.lock-key{width:72px;height:72px;border-radius:50%;border:1px solid var(--rb-line2);background:var(--rb-panel);color:var(--rb-text);font-family:var(--rb-sans);font-size:24px;font-weight:300;display:flex;align-items:center;justify-content:center;transition:all .12s var(--e);user-select:none;touch-action:manipulation;}
-.lock-key:active{background:var(--rb-elev);border-color:var(--psw);color:var(--psw-light);}
+.lock-key{width:72px;height:72px;border-radius:50%;border:1px solid var(--rb-line2);background:rgba(255,255,255,.025);color:var(--rb-text);font-family:var(--rb-sans);font-size:24px;font-weight:300;display:flex;align-items:center;justify-content:center;transition:all .12s var(--e);user-select:none;touch-action:manipulation;}
+.lock-key:active{background:rgba(255,255,255,.07);border-color:var(--rb-line2);color:var(--rb-text);}
 .lock-key.del{color:var(--rb-dim);}
 .lock-key.del svg{width:22px;height:22px;}
 .lock-key.empty{background:none;border:none;pointer-events:none;}
@@ -271,17 +270,17 @@ a{color:inherit;text-decoration:none;}
 .avail-shift-btn:active{transform:scale(.97);}
 
 /* CARDS */
-.card{margin:0 12px 8px;background:var(--bg2);border:1px solid var(--border);border-radius:10px;overflow:hidden;}
+.card{margin:0 12px 8px;background:var(--rb-panel);border:1px solid var(--rb-line);border-radius:14px;overflow:hidden;box-shadow:inset 0 1px 0 rgba(255,255,255,.03);}
 .card-header{padding:13px 14px;display:flex;align-items:flex-start;justify-content:space-between;gap:8px;}
 .card-header[onclick]{cursor:pointer;}
-.card-header[onclick]:active{background:var(--bg3);}
-.card-name{font-size:14px;font-weight:500;color:var(--text);}
-.card-sub{font-family:var(--mono);font-size:11px;color:var(--muted2);margin-top:3px;}
+.card-header[onclick]:active{background:var(--rb-elev);}
+.card-name{font-family:var(--rb-sans);font-size:14px;font-weight:500;color:var(--rb-text);letter-spacing:-.2px;}
+.card-sub{font-family:var(--rb-mono);font-size:11px;color:var(--rb-dim);margin-top:3px;}
 /* removed orphan */
 .card-right{display:flex;flex-direction:column;align-items:flex-end;gap:5px;flex-shrink:0;}
 
 /* BADGES */
-.badge{font-family:var(--mono);font-size:11px;letter-spacing:1.5px;text-transform:uppercase;padding:3px 8px;border-radius:100px;display:inline-block;}
+.badge{font-family:var(--rb-mono);font-size:11px;letter-spacing:1.5px;text-transform:uppercase;padding:3px 8px;border-radius:100px;display:inline-block;}
 .b-active{background:rgba(74,154,110,.15);color:var(--green2);border:1px solid rgba(74,154,110,.3);}
 /* removed orphan */
 /* removed orphan */
@@ -771,9 +770,8 @@ a{color:inherit;text-decoration:none;}
 </div>
 
 <div id="lock">
-  <div class="lock-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" width="30" height="30" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21c4.5-4.2 7-7.6 7-11a7 7 0 1 0-14 0c0 3.4 2.5 6.8 7 11Z"/><circle cx="12" cy="10" r="2.4"/></svg></div>
-  <div class="lock-logo" id="branding-lock-logo">Proximity <em>Care</em></div>
-  <div class="lock-sub">PSW Portal</div>
+  <div class="lock-logo" id="branding-lock-logo">Proximity <em>PSW</em></div>
+  <div class="lock-sub">Personal Support Worker</div>
   <div class="lock-step active" id="lock-step-1">
     <div class="lock-label">Your name</div>
     <input class="lock-input" id="lock-name" placeholder="e.g. Maria Chen" autocomplete="name">
@@ -3813,16 +3811,16 @@ async function loadClients() {
       const todayShift = (scheduleData?.bookings||[]).find(b => b.scheduled_date === today && (b.client_name||'').toLowerCase().includes((c.first_name||name).toLowerCase()));
       return `<div class="card" onclick="openClientSheetByName('${safeName}')" style="cursor:pointer;">
         <div class="card-header">
-          <div style="display:flex;align-items:center;gap:10px;flex:1;">
-            <div style="width:36px;height:36px;border-radius:50%;background:var(--bg3);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:11px;color:var(--teal2);flex-shrink:0;">${ini}</div>
+          <div style="display:flex;align-items:center;gap:11px;flex:1;">
+            <div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(160deg,rgba(86,200,245,.16),rgba(86,200,245,.04));border:1px solid rgba(86,200,245,.28);display:flex;align-items:center;justify-content:center;font-family:var(--rb-mono);font-size:12px;color:var(--psw-light);flex-shrink:0;">${ini}</div>
             <div>
               <div class="card-name">${name}</div>
               <div class="card-sub">${todayShift ? 'Today ' + (todayShift.scheduled_time||'') : (c.status||'Active')}</div>
             </div>
           </div>
           <div class="card-right">
-            ${c.dnr ? '<span style="font-family:var(--mono);font-size:11px;color:var(--red);border:1px solid rgba(224,85,85,.3);border-radius:4px;padding:2px 6px;letter-spacing:1px;">DNR</span>' : '<span class="badge b-active">' + (c.status||'Active') + '</span>'}
-            <div style="font-size:12px;color:var(--teal2);">›</div>
+            ${c.dnr ? '<span style="font-family:var(--rb-mono);font-size:11px;color:var(--red);border:1px solid rgba(224,85,85,.3);border-radius:6px;padding:3px 8px;letter-spacing:1px;">DNR</span>' : '<span class="badge b-active">' + (c.status||'Active') + '</span>'}
+            <div style="font-size:14px;color:var(--rb-dim);">›</div>
           </div>
         </div>
       </div>`;
@@ -5994,9 +5992,9 @@ window._agencyPhone = '647-382-8047';
     // L647 — header subtitle (post-login)
     const headerSub = document.getElementById('branding-header-sub');
     if (headerSub) headerSub.textContent = `${window._agencyName} · PSW Portal`;
-    // L695 — lock screen logo
+    // L695 — lock screen logo (product-branded; agency name shows in-app header)
     const lockLogo = document.getElementById('branding-lock-logo');
-    if (lockLogo) lockLogo.textContent = window._agencyName;
+    if (lockLogo) lockLogo.innerHTML = 'Proximity <em>PSW</em>';
     // WA_RPNAME — WebAuthn relying party name
     if (typeof WA_RPNAME !== 'undefined') window.WA_RPNAME = window._agencyName + ' PSW';
   } catch {}
