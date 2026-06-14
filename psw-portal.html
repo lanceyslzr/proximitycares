@@ -159,6 +159,24 @@ a{color:inherit;text-decoration:none;}
 .feed-hrs{font-family:var(--rb-mono);font-size:12px;color:var(--psw);}
 .feed-time{font-family:var(--rb-mono);font-size:12px;color:var(--rb-dim);margin-top:1px;}
 
+/* feed icon tiles */
+.feed-tile{width:40px;height:40px;border-radius:12px;flex-shrink:0;display:flex;align-items:center;justify-content:center;border:1px solid var(--rb-line2);background:var(--rb-elev);color:var(--rb-dim);}
+.feed-tile svg{width:20px;height:20px;}
+.feed-tile.done{color:var(--green2);border-color:rgba(52,211,153,.3);background:linear-gradient(160deg,rgba(52,211,153,.16),rgba(52,211,153,.04));}
+.feed-tile.upcoming{color:var(--psw-light);border-color:rgba(86,200,245,.3);background:linear-gradient(160deg,rgba(86,200,245,.16),rgba(86,200,245,.04));}
+.feed-tile.active{color:var(--amber);border-color:rgba(255,179,64,.32);background:linear-gradient(160deg,rgba(255,179,64,.16),rgba(255,179,64,.04));}
+.feed-tile.alert{color:var(--psw-light);border-color:rgba(86,200,245,.3);background:linear-gradient(160deg,rgba(86,200,245,.16),rgba(86,200,245,.04));}
+.feed-see-more{display:flex;align-items:center;justify-content:center;gap:7px;padding:13px;margin:6px 0 2px;font-family:var(--rb-mono);font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--psw);background:rgba(86,200,245,.06);border:1px solid rgba(86,200,245,.2);border-radius:12px;cursor:pointer;touch-action:manipulation;transition:background .14s var(--e);}
+.feed-see-more:active{background:rgba(86,200,245,.14);}
+.feed-see-more svg{width:14px;height:14px;}
+
+/* route map minimize */
+.route-min-btn{width:30px;height:30px;border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0;border:1px solid var(--rb-line2);background:var(--rb-elev);color:var(--rb-dim);cursor:pointer;touch-action:manipulation;transition:all .14s var(--e);}
+.route-min-btn:active{background:var(--rb-base);}
+.route-min-btn svg{width:16px;height:16px;transition:transform .25s var(--e);}
+.route-card.min .route-map{display:none;}
+.route-card.min .route-min-btn svg{transform:rotate(180deg);}
+
 /* ACTIVE BANNER — glass */
 .active-banner{margin:12px;background:linear-gradient(165deg,rgba(255,179,64,.06),rgba(255,255,255,.012)),var(--rb-panel);border:1px solid rgba(255,179,64,.28);border-radius:16px;padding:16px;display:none;box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 14px 34px -20px rgba(0,0,0,.85);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);}
 .active-banner.show{display:block;}
@@ -556,7 +574,7 @@ a{color:inherit;text-decoration:none;}
 .bnav-lbl{font-size:10px;letter-spacing:.5px;}
 
 /* Feed cards */
-.feed-card{border-radius:0;border-left:none;border-right:none;margin:0 0 2px;}
+.feed-card{margin:0 12px 12px;}
 .feed-row{padding:11px 14px;}
 .feed-client{font-size:13px;}
 .feed-meta{font-size:11px;}
@@ -874,6 +892,7 @@ a{color:inherit;text-decoration:none;}
         <div class="route-hd-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 20l-5.5 2V6L9 4m0 16 6-2m-6 2V4m6 14 5.5 2V6L15 4m0 14V4m-6 0 6 2"/></svg></div>
         <div><div class="route-hd-t">Today's Route</div><div class="route-hd-s" id="route-hd-s">Your visits today</div></div>
       </div>
+      <button class="route-min-btn" onclick="toggleRouteMap()" aria-label="Minimize map"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 15l6-6 6 6"/></svg></button>
     </div>
     <div class="route-map" id="route-map">
       <div class="route-empty" id="route-empty">
@@ -2216,13 +2235,13 @@ function renderHomeFeed() {
   // ── Schedule change alerts ────────────────────────────────────
   if (window._unreadNotes && window._unreadNotes.length > 0) {
     window._unreadNotes.slice(0,3).forEach(n => {
-      rows.push(`<div class="feed-row" onclick="showSect('messages')" style="background:rgba(86,200,245,0.08);border:1px solid rgba(86,200,245,0.2);border-radius:8px;cursor:pointer;margin-bottom:2px;">
-        <div class="feed-dot" style="background:var(--teal2);box-shadow:0 0 6px rgba(86,200,245,0.6);"></div>
+      rows.push(`<div class="feed-row" onclick="showSect('messages')" style="background:rgba(86,200,245,0.08);border:1px solid rgba(86,200,245,0.2);border-radius:12px;cursor:pointer;margin-bottom:4px;">
+        <div class="feed-tile alert"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.5 21a2 2 0 0 1-3 0"/></svg></div>
         <div class="feed-body">
-          <div class="feed-client" style="color:var(--teal2);">Schedule Update</div>
+          <div class="feed-client" style="color:var(--psw);">Schedule Update</div>
           <div class="feed-meta" style="color:var(--rb-dim);">${n.message.slice(0,80)}${n.message.length>80?'…':''}</div>
         </div>
-        <div class="feed-right"><div class="feed-time" style="color:var(--teal2);font-size:11px;">Tap →</div></div>
+        <div class="feed-right"><div class="feed-time" style="color:var(--psw);font-size:11px;">Tap →</div></div>
       </div>`);
     });
   }
@@ -2231,17 +2250,16 @@ function renderHomeFeed() {
   if (activeVisit) {
     const tin = activeVisit.time_in || (activeVisit.checkin_time||'').slice(11,16) || '—';
     rows.push(`<div class="feed-row">
-      <div class="feed-dot active"></div>
+      <div class="feed-tile active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l2-6 4 12 2-6h6"/></svg></div>
       <div class="feed-body"><div class="feed-client">${activeVisit.client_name||'—'}</div><div class="feed-meta">In progress · Started ${tin}</div></div>
       <div class="feed-right">
         <div class="feed-hrs" id="feed-elapsed" style="color:var(--amber);">— elapsed</div>
-        <button onclick="openCheckout()" style="font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--amber);background:rgba(224,154,61,.1);border:1px solid rgba(224,154,61,.3);border-radius:4px;padding:4px 8px;cursor:pointer;margin-top:4px;touch-action:manipulation;">Check Out</button>
+        <button onclick="openCheckout()" style="font-family:var(--rb-mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--amber);background:rgba(255,179,64,.12);border:1px solid rgba(255,179,64,.3);border-radius:8px;padding:5px 9px;cursor:pointer;margin-top:4px;touch-action:manipulation;">Check Out</button>
       </div>
     </div>`);
   }
 
   // ── ALL upcoming bookings — group by day ──────────────────────
-  // Sort by date+time so today comes first, future days follow in order
   const upcomingBookings = bookings
     .filter(b => b.scheduled_date >= today && b.status !== 'cancelled' && !b.deleted_at)
     .sort((a,b) => {
@@ -2250,7 +2268,6 @@ function renderHomeFeed() {
       return da.localeCompare(db);
     });
 
-  // Group by date
   const byDate = {};
   upcomingBookings.forEach(b => {
     const d = b.scheduled_date || today;
@@ -2260,73 +2277,72 @@ function renderHomeFeed() {
 
   const dayNames = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
   const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const FEED_CAP = 5;
+  const _expanded = !!window._homeFeedExpanded;
+  let _shown = 0, _moreCount = 0;
 
   Object.keys(byDate).sort().forEach(dateStr => {
     const dayBookings = byDate[dateStr];
     const isToday = dateStr === today;
-
-    // Day header
     const dt = new Date(dateStr + 'T12:00:00');
     const dayLabel = isToday ? 'Today' : dayNames[dt.getDay()] + ' · ' + monthNames[dt.getMonth()] + ' ' + dt.getDate();
-    rows.push(`<div style="font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);padding:10px 0 4px;border-top:1px solid var(--border);margin-top:4px;">${dayLabel}</div>`);
 
-    // Sort day bookings by time so consumed-visit set is applied in chronological order
     const dayBookingsSorted = [...dayBookings].sort((a,z) => _timeToMins(a.scheduled_time) - _timeToMins(z.scheduled_time));
-    const _consumedVisitIds = new Set(); // each completed visit claimed by at most one booking
+    const _consumedVisitIds = new Set();
+    const dayRows = [];
 
     dayBookingsSorted.forEach(b => {
-      // Find matching completed visit using consumed-set (no double-claiming)
       const completedVisit = matchVisitToBooking(b, allVisits, _consumedVisitIds);
       const isActive = activeVisit && activeVisit.client_name === b.client_name && b.scheduled_date === today;
-
       if (isActive) return; // Already shown in active visit banner above
+
+      if (!_expanded && _shown >= FEED_CAP) { _moreCount++; return; }
 
       const _safeName = (b.client_name||'').replace(/'/g,'').replace(/"/g,'');
       const _safeId = b.id || '';
 
       if (completedVisit) {
         const hrs = parseFloat(completedVisit.hours_worked||0).toFixed(1);
-        rows.push(`<div class="feed-row" style="border-left:3px solid var(--green2);background:rgba(30,138,82,.06);border-radius:6px;padding-left:10px;">
-          <div class="feed-dot done"></div>
+        dayRows.push(`<div class="feed-row">
+          <div class="feed-tile done"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4 4 10-10.5"/></svg></div>
           <div class="feed-body">
-            <div class="feed-client" style="color:var(--green2);">✓ ${b.client_name||'—'}</div>
+            <div class="feed-client">${b.client_name||'—'}</div>
             <div class="feed-meta">${completedVisit.time_in||'—'} – ${completedVisit.time_out||'—'} · ${hrs}h · Completed</div>
           </div>
           <div class="feed-right"><div class="feed-hrs" style="color:var(--green2);">${hrs}h</div></div>
         </div>`);
+        _shown++;
         return;
       }
 
-      // Upcoming — show handoff from last visit with this client
       const lastVisit = allVisits.filter(v => v.client_name === b.client_name && v.visit_date < dateStr)
         .sort((a,z) => (z.visit_date||'').localeCompare(a.visit_date||''))[0];
       const handoff = lastVisit
-        ? `<div style="margin-top:6px;padding:6px 8px;background:var(--bg3);border:1px solid var(--border);border-radius:5px;font-size:11px;color:var(--muted2);line-height:1.5;">
-            <span style="color:var(--teal2);font-family:var(--mono);font-size:11px;">Last visit ${fmtd(lastVisit.visit_date)}</span>
+        ? `<div style="margin-top:6px;padding:6px 8px;background:var(--rb-elev);border:1px solid var(--rb-line);border-radius:8px;font-size:11px;color:var(--rb-dim);line-height:1.5;">
+            <span style="color:var(--psw);font-family:var(--rb-mono);font-size:11px;">Last visit ${fmtd(lastVisit.visit_date)}</span>
             ${lastVisit.client_mood ? ` · Mood: ${lastVisit.client_mood}` : ''}
             ${lastVisit.visit_summary ? `<br>${lastVisit.visit_summary.slice(0,80)}${lastVisit.visit_summary.length>80?'…':''}` : ''}
           </div>`
         : '';
 
       if (isToday && !activeVisit) {
-        // Today + no active visit → tappable sign-in
-        rows.push(`<div class="feed-row" onclick="doCheckInFromShift('${_safeName}')" style="cursor:pointer;">
-          <div class="feed-dot upcoming"></div>
+        dayRows.push(`<div class="feed-row" onclick="doCheckInFromShift('${_safeName}')" style="cursor:pointer;">
+          <div class="feed-tile upcoming"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1h-4"/><path d="M10 17l5-5-5-5"/><path d="M15 12H3"/></svg></div>
           <div class="feed-body"><div class="feed-client">${b.client_name||'—'}</div><div class="feed-meta">Upcoming · ${b.scheduled_time||'TBD'}${b.duration_minutes?' · '+(b.duration_minutes/60).toFixed(1)+'h':''}</div>${handoff}</div>
           <div class="feed-right">
-            <button onclick="event.stopPropagation();openNavigateSheet('${_safeName}','${_safeId}')" style="font-family:var(--mono);font-size:10px;color:var(--teal2);background:rgba(86,200,245,.08);border:1px solid rgba(86,200,245,.25);border-radius:4px;padding:3px 7px;cursor:pointer;margin-bottom:4px;display:block;touch-action:manipulation;">Map</button>
-            <div style="color:var(--teal2);font-weight:600;font-family:var(--mono);font-size:11px;">Sign In →</div>
+            <button onclick="event.stopPropagation();openNavigateSheet('${_safeName}','${_safeId}')" style="font-family:var(--rb-mono);font-size:10px;color:var(--psw);background:rgba(86,200,245,.08);border:1px solid rgba(86,200,245,.25);border-radius:8px;padding:4px 9px;cursor:pointer;margin-bottom:4px;display:block;touch-action:manipulation;">Map</button>
+            <div style="color:var(--psw);font-weight:600;font-family:var(--rb-mono);font-size:11px;">Sign In →</div>
           </div>
         </div>`);
+        _shown++;
       } else if (isToday && activeVisit) {
-        // Today but blocked by active visit
-        rows.push(`<div class="feed-row" style="opacity:0.6;">
-          <div class="feed-dot upcoming"></div>
+        dayRows.push(`<div class="feed-row" style="opacity:0.6;">
+          <div class="feed-tile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div>
           <div class="feed-body"><div class="feed-client">${b.client_name||'—'}</div><div class="feed-meta">Upcoming · ${b.scheduled_time||'TBD'} · Finish active visit first</div></div>
-          <div class="feed-right"><div class="feed-time" style="color:var(--rb-dim);font-size:11px;display:flex;align-items:center;gap:3px;justify-content:flex-end;"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Waiting</div></div>
+          <div class="feed-right"><div class="feed-time" style="color:var(--rb-dim);font-size:11px;">Waiting</div></div>
         </div>`);
+        _shown++;
       } else {
-        // Future day — show with address + care notes + map button — tappable for care plan popup
         const clientObj = (scheduleData?.clients || scheduleData?.assigned_clients || window._pswClients || []).find(c => {
           const full = ((c.first_name||'')+' '+(c.last_name||'')).trim();
           return full.toLowerCase() === (b.client_name||'').toLowerCase() ||
@@ -2334,37 +2350,49 @@ function renderHomeFeed() {
         });
         const addr = clientObj?.address || '';
         const notes = clientObj?.care_notes || '';
-        rows.push(`<div class="feed-row" onclick="openClientCarePopup('${_safeName}')" style="cursor:pointer;">
-          <div class="feed-dot" style="background:var(--border2);"></div>
+        dayRows.push(`<div class="feed-row" onclick="openClientCarePopup('${_safeName}')" style="cursor:pointer;">
+          <div class="feed-tile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="5" width="16" height="16" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/></svg></div>
           <div class="feed-body">
             <div class="feed-client">${b.client_name||'—'}</div>
             <div class="feed-meta">${b.scheduled_time||'TBD'}${b.duration_minutes?' · '+(b.duration_minutes/60).toFixed(1)+'h':''}</div>
-            ${addr ? `<div style="font-family:var(--mono);font-size:11px;color:var(--muted2);margin-top:3px;">${addr}</div>` : ''}
-            ${notes ? `<div style="font-size:11px;color:var(--muted2);margin-top:4px;line-height:1.5;">${notes.slice(0,100)}${notes.length>100?'…':''}</div>` : ''}
+            ${addr ? `<div style="font-family:var(--rb-mono);font-size:11px;color:var(--rb-dim);margin-top:3px;">${addr}</div>` : ''}
+            ${notes ? `<div style="font-size:11px;color:var(--rb-dim);margin-top:4px;line-height:1.5;">${notes.slice(0,100)}${notes.length>100?'…':''}</div>` : ''}
           </div>
           <div class="feed-right">
-            <button onclick="event.stopPropagation();openNavigateSheet('${_safeName}','${_safeId}')" style="font-family:var(--mono);font-size:10px;color:var(--muted2);background:var(--bg3);border:1px solid var(--border);border-radius:4px;padding:3px 7px;cursor:pointer;touch-action:manipulation;">Map</button>
-            <div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:4px;">Tap for care plan</div>
+            <button onclick="event.stopPropagation();openNavigateSheet('${_safeName}','${_safeId}')" style="font-family:var(--rb-mono);font-size:10px;color:var(--rb-dim);background:var(--rb-elev);border:1px solid var(--rb-line);border-radius:8px;padding:4px 9px;cursor:pointer;touch-action:manipulation;">Map</button>
+            <div style="font-family:var(--rb-mono);font-size:10px;color:var(--rb-dim);margin-top:4px;">Tap for care plan</div>
           </div>
         </div>`);
+        _shown++;
       }
     });
+
+    if (dayRows.length) {
+      rows.push(`<div style="font-family:var(--rb-mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--rb-dim);padding:11px 14px 5px;border-top:1px solid var(--rb-line);margin-top:2px;">${dayLabel}</div>`);
+      dayRows.forEach(r => rows.push(r));
+    }
   });
+
+  if (_moreCount > 0 && !_expanded) {
+    rows.push(`<div class="feed-see-more" onclick="toggleHomeFeedExpand()">See ${_moreCount} more<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></div>`);
+  } else if (_expanded && _shown > FEED_CAP) {
+    rows.push(`<div class="feed-see-more" onclick="toggleHomeFeedExpand()">Show less<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 15l-6-6-6 6"/></svg></div>`);
+  }
 
   // ── Recent past visits (last 4) ───────────────────────────────
   const pastVisits = allVisits.filter(v => v.visit_date < today)
     .sort((a,b) => (b.visit_date||'').localeCompare(a.visit_date||''))
     .slice(0, 4);
   if (pastVisits.length > 0) {
-    rows.push(`<div style="font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);padding:10px 0 4px;border-top:1px solid var(--border);margin-top:4px;">Recent</div>`);
+    rows.push(`<div style="font-family:var(--rb-mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--rb-dim);padding:11px 14px 5px;border-top:1px solid var(--rb-line);margin-top:2px;">Recent</div>`);
     pastVisits.forEach((v, vi) => {
       const hrs = parseFloat(v.hours_worked||0);
       const _vid = 'feedv' + vi;
       window['_feedVisit_'+_vid] = v;
       rows.push(`<div class="feed-row" onclick="openVisitDetail('${_vid}')" style="cursor:pointer;">
-        <div class="feed-dot past"></div>
+        <div class="feed-tile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div>
         <div class="feed-body"><div class="feed-client">${v.client_name||'—'}</div><div class="feed-meta">${fmtd(v.visit_date)} · ${v.time_in||'—'}${v.time_out?' – '+v.time_out:''}</div></div>
-        <div class="feed-right"><div class="feed-hrs" style="color:var(--muted2);">${hrs.toFixed(1)}h</div><div style="font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:2px;">Details ›</div></div>
+        <div class="feed-right"><div class="feed-hrs" style="color:var(--rb-dim);">${hrs.toFixed(1)}h</div><div style="font-family:var(--rb-mono);font-size:11px;color:var(--rb-dim);margin-top:2px;">Details ›</div></div>
       </div>`);
     });
   }
@@ -2385,6 +2413,14 @@ function renderHomeFeed() {
   }
 }
 // ── ALAYACARE-STYLE SCHEDULE STRIP ───────────────────────────────────────────
+function toggleHomeFeedExpand(){ window._homeFeedExpanded = !window._homeFeedExpanded; renderHomeFeed(); }
+function toggleRouteMap(){
+  const c = document.getElementById('route-card');
+  if (!c) return;
+  c.classList.toggle('min');
+  if (!c.classList.contains('min') && _homeMap) setTimeout(() => { try { _homeMap.invalidateSize(); } catch (e) {} }, 160);
+}
+
 let _selectedSchedDay = null; // YYYY-MM-DD
 
 function renderWeek() {
