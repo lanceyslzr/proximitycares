@@ -1101,6 +1101,56 @@ button:active{transform:scale(0.98);}
 
 /* ── FINAL CONSISTENCY: any stray flat surface picks up depth ── */
 .section-title{ color:var(--rb-faint)!important; }
+
+/* ╔═══════════════════════════════════════════════════════════════╗
+   ║  FAMILY PORTAL — DENSITY FIX (Pass A)                          ║
+   ║  Kills compounding dead space. Composed, full, not scattered. ║
+   ╚═══════════════════════════════════════════════════════════════╝ */
+.content{ padding:16px 16px!important; padding-bottom:calc(92px + env(safe-area-inset-bottom))!important; }
+.section{ margin-bottom:16px!important; }
+.section-title{ margin-bottom:9px!important; font-size:10px!important; letter-spacing:1.5px!important; }
+.card{ border-radius:14px!important; }
+.card-row{ padding:13px 16px!important; }
+.plan-text{ padding:16px!important; line-height:1.65!important; }
+.visit-row{ padding:13px 16px!important; }
+.visit-detail{ padding:14px 16px 16px!important; }
+.upcoming-row{ padding:13px 16px!important; }
+.inv-row{ padding:14px 16px!important; }
+.psw-card{ padding:16px!important; }
+/* status card — tighten a touch, it was very tall */
+.status-card{ padding:22px 20px!important; }
+/* section-title to first card — pull closer */
+.section-title + .card,.section-title + div > .card{ margin-top:0!important; }
+@media(max-width:380px){
+  .content{ padding:14px 13px!important; }
+  .section{ margin-bottom:14px!important; }
+}
+
+/* ╔═══ FAMILY PORTAL — PHOTOS (Pass B): grouped + lightbox ═══╗ */
+.photo-groups{ display:flex; flex-direction:column; gap:8px; }
+.photo-group{ background:linear-gradient(160deg,var(--rb-panel),var(--rb-base)); border:1px solid var(--rb-line);
+  border-radius:12px; overflow:hidden; }
+.photo-group-head{ width:100%; display:flex; align-items:center; gap:10px; padding:13px 16px;
+  background:none; border:none; cursor:pointer; text-align:left; touch-action:manipulation; min-height:48px; }
+.pg-date{ font-family:var(--rb-sans); font-size:13px; color:var(--rb-text); font-weight:500; flex:1; }
+.pg-count{ font-family:var(--rb-mono); font-size:10px; letter-spacing:.5px; text-transform:uppercase; color:var(--rb-primary); }
+.pg-chev{ font-size:9px; color:var(--rb-dim); width:14px; text-align:center; }
+.photo-group-body{ display:none; padding:0 12px 12px; }
+.photo-group-body.open{ display:block; }
+.photo-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:4px; }
+.photo-cell{ aspect-ratio:1; overflow:hidden; border-radius:8px; border:none; padding:0; cursor:pointer;
+  background:#06090e; touch-action:manipulation; }
+.photo-cell img{ width:100%; height:100%; object-fit:cover; display:block; transition:transform var(--t2) var(--e); }
+.photo-cell:hover img{ transform:scale(1.05); }
+/* lightbox */
+#fam-lightbox{ position:fixed; inset:0; z-index:2000; background:rgba(3,5,8,.95);
+  display:none; align-items:center; justify-content:center; padding:20px; backdrop-filter:blur(4px); }
+#fam-lightbox.open{ display:flex; }
+#fam-lightbox img{ max-width:100%; max-height:90vh; border-radius:12px;
+  box-shadow:0 30px 80px -20px rgba(0,0,0,.8); }
+.lb-close{ position:fixed; top:calc(16px + env(safe-area-inset-top)); right:18px; width:44px; height:44px;
+  border-radius:50%; background:rgba(255,255,255,.1); border:1px solid var(--rb-line2); color:#fff;
+  font-size:18px; cursor:pointer; touch-action:manipulation; display:flex; align-items:center; justify-content:center; }
 </style>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..600;1,9..144,300..500&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -1852,9 +1902,23 @@ function showTab(tab) {
       </div></div>`;
     })() : '';
 
-    // Photo gallery
-    const allPhotos = all.flatMap(v => Array.isArray(v.task_photos)?v.task_photos.map(url=>({url,date:v.visit_date})):[]);
-    const photoGallery = allPhotos.length ? `<div class="section"><div class="section-title">Visit Photos</div><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:3px;border-radius:12px;overflow:hidden;">${allPhotos.slice(0,9).map(p=>`<a href="${p.url}" target="_blank" style="display:block;aspect-ratio:1;overflow:hidden;"><img src="${p.url}" alt="Visit photo" style="width:100%;height:100%;object-fit:cover;" loading="lazy"></a>`).join('')}</div>${allPhotos.length>9?`<div style="text-align:center;padding:8px;font-size:12px;color:var(--muted);">${allPhotos.length-9} more photos</div>`:''}</div>` : '';
+    // Photo gallery — grouped by visit, collapsible, with lightbox
+    const photoVisits = all.filter(v => Array.isArray(v.task_photos) && v.task_photos.length);
+    const totalPhotos = photoVisits.reduce((n,v)=>n+v.task_photos.length,0);
+    const photoGallery = photoVisits.length ? `<div class="section"><div class="section-title">Visit Photos · ${totalPhotos}</div><div class="photo-groups">${photoVisits.map((v,gi)=>{
+      const d = fmtDate ? fmtDate(v.visit_date) : v.visit_date;
+      const n = v.task_photos.length;
+      return `<div class="photo-group">
+        <button class="photo-group-head" onclick="togglePhotoGroup(${gi})" aria-expanded="${gi===0?'true':'false'}">
+          <span class="pg-date">${d}</span>
+          <span class="pg-count">${n} photo${n>1?'s':''}</span>
+          <span class="pg-chev" id="pg-chev-${gi}">${gi===0?'&#9650;':'&#9660;'}</span>
+        </button>
+        <div class="photo-group-body${gi===0?' open':''}" id="pg-body-${gi}">
+          <div class="photo-grid">${v.task_photos.map(url=>`<button class="photo-cell" onclick="famLightbox('${url}')"><img src="${url}" alt="Visit photo from ${d}" loading="lazy"></button>`).join('')}</div>
+        </div>
+      </div>`;
+    }).join('')}</div></div>` : '';
 
     html = `<div class="section" style="padding-bottom:0;">
         <div style="display:flex;gap:6px;flex-wrap:wrap;padding:4px 0 12px;">${chips}</div>
@@ -1882,6 +1946,9 @@ function showTab(tab) {
                 'Try a different date range to see visit history.'
               )}
         </div>
+      </div>
+      <div class="section">
+        <button onclick="downloadVisitsReport()" style="width:100%;background:rgba(52,211,153,.08);color:var(--accent);border:1px solid rgba(52,211,153,.28);border-radius:12px;padding:13px 16px;font-size:13px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;touch-action:manipulation;min-height:48px;display:flex;align-items:center;justify-content:center;gap:8px;">📄 Download this month's visit report</button>
       </div>
       <div class="section">
         <div class="section-title">Leave Feedback on a Visit</div>
@@ -2026,6 +2093,8 @@ function showTab(tab) {
           <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;">
             <button onclick="sendCoordMessage()" style="flex:2;min-width:120px;background:var(--accent);color:#fff;border:none;border-radius:10px;padding:10px 16px;font-size:13px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;touch-action:manipulation;min-height:44px;">Send Message</button>
             <button onclick="requestPSWContact()" style="flex:1;min-width:100px;background:var(--surface);color:var(--accent);border:1px solid var(--border);border-radius:10px;padding:10px 12px;font-size:12px;cursor:pointer;font-family:'Inter',sans-serif;touch-action:manipulation;min-height:44px;">Request PSW Contact Info</button>
+          </div>
+          <button onclick="requestScheduleChange()" style="width:100%;margin-top:10px;background:rgba(52,211,153,.08);color:var(--accent);border:1px solid rgba(52,211,153,.28);border-radius:10px;padding:11px 16px;font-size:13px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;touch-action:manipulation;min-height:44px;">📅 Request a Schedule Change</button>
           </div>
           <div id="coord-msg-success" style="display:none;margin-top:10px;padding:10px 14px;background:rgba(58,170,138,0.1);border:1px solid rgba(58,170,138,0.25);border-radius:8px;font-size:13px;color:#3aaa8a;"></div>
         </div>
@@ -2206,6 +2275,38 @@ function visitRow(v) {
   </div>${detailHtml}`;
 }
 
+function requestScheduleChange(){
+  const input = document.getElementById('coord-msg-input');
+  if(!input) return;
+  input.value = "I'd like to request a schedule change.\n\nCurrent visit: \nPreferred day/time: \nReason (optional): ";
+  input.focus();
+  // place cursor after "Current visit: "
+  const pos = input.value.indexOf('Current visit: ') + 'Current visit: '.length;
+  try { input.setSelectionRange(pos, pos); } catch(e){}
+  input.scrollIntoView({behavior:'smooth', block:'center'});
+}
+function togglePhotoGroup(gi){
+  const body = document.getElementById('pg-body-'+gi);
+  const chev = document.getElementById('pg-chev-'+gi);
+  if(!body) return;
+  const open = body.classList.toggle('open');
+  if(chev) chev.innerHTML = open ? '&#9650;' : '&#9660;';
+}
+function famLightbox(url){
+  let lb = document.getElementById('fam-lightbox');
+  if(!lb){
+    lb = document.createElement('div');
+    lb.id = 'fam-lightbox';
+    lb.onclick = closeLightbox;
+    document.body.appendChild(lb);
+  }
+  lb.innerHTML = '<img src="'+url+'" alt="Visit photo"><button class="lb-close" aria-label="Close" onclick="closeLightbox()">&#10005;</button>';
+  lb.classList.add('open');
+}
+function closeLightbox(){
+  const lb = document.getElementById('fam-lightbox');
+  if(lb) lb.classList.remove('open');
+}
 function toggleVisitDetail(id, row) {
   const el = document.getElementById(id);
   if (!el) return;
@@ -2547,6 +2648,25 @@ async function downloadCarePlanPDF() {
     URL.revokeObjectURL(url);
   } catch(e) {
     showToast('PDF not available yet', 'err');
+  }
+}
+
+
+async function downloadVisitsReport() {
+  if (!clientSlug) return;
+  try {
+    showToast('Generating report...');
+    const res = await fetch(`${R}/family/visits-report/${clientSlug}`);
+    if (!res.ok) throw new Error('Could not generate report');
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `visits-${clientSlug}.html`;
+    a.click();
+    URL.revokeObjectURL(url);
+  } catch(e) {
+    showToast('Report not available yet', 'err');
   }
 }
 
