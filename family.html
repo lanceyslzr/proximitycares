@@ -1151,6 +1151,57 @@ button:active{transform:scale(0.98);}
 .lb-close{ position:fixed; top:calc(16px + env(safe-area-inset-top)); right:18px; width:44px; height:44px;
   border-radius:50%; background:rgba(255,255,255,.1); border:1px solid var(--rb-line2); color:#fff;
   font-size:18px; cursor:pointer; touch-action:manipulation; display:flex; align-items:center; justify-content:center; }
+
+/* ╔═══ FAMILY — SCHEDULE WORKFLOW (reschedule / pause / resume) ═══╗ */
+.visit-action-btn{ margin-top:8px; background:rgba(52,211,153,.08); color:var(--rb-primary);
+  border:1px solid rgba(52,211,153,.28); border-radius:8px; padding:7px 12px; font-size:11px;
+  font-family:var(--rb-mono); letter-spacing:.5px; text-transform:uppercase; cursor:pointer;
+  touch-action:manipulation; min-height:38px; transition:background var(--t2) var(--e); }
+.visit-action-btn:hover{ background:rgba(52,211,153,.14); }
+.care-pause-banner{ width:100%; display:flex; align-items:center; gap:14px; padding:15px 16px;
+  background:linear-gradient(160deg,var(--rb-panel),var(--rb-base)); border:1px solid var(--rb-line);
+  border-radius:14px; cursor:pointer; text-align:left; touch-action:manipulation; min-height:60px;
+  box-shadow:0 12px 30px -18px rgba(0,0,0,.5); transition:border-color var(--t2) var(--e); }
+.care-pause-banner:hover{ border-color:color-mix(in srgb,var(--rb-primary) 28%,transparent); }
+.cpb-icon{ font-size:22px; flex-shrink:0; }
+.cpb-text{ flex:1; min-width:0; display:flex; flex-direction:column; gap:2px; }
+.cpb-text strong{ font-family:var(--rb-sans); font-size:14px; color:var(--rb-text); font-weight:600; }
+.cpb-text span{ font-family:var(--rb-mono); font-size:10px; letter-spacing:.5px; color:var(--rb-dim); }
+.cpb-chev{ font-size:22px; color:var(--rb-dim); flex-shrink:0; }
+/* bottom sheet */
+#sched-sheet{ position:fixed; inset:0; z-index:2100; display:none; }
+#sched-sheet.open{ display:block; }
+.sched-backdrop{ position:absolute; inset:0; background:rgba(3,5,8,.7); backdrop-filter:blur(3px); }
+.sched-panel{ position:absolute; left:0; right:0; bottom:0; max-width:560px; margin:0 auto;
+  background:linear-gradient(180deg,var(--rb-panel),var(--rb-base)); border-top:1px solid var(--rb-line2);
+  border-radius:22px 22px 0 0; padding:24px 20px calc(28px + env(safe-area-inset-bottom));
+  box-shadow:0 -20px 60px -20px rgba(0,0,0,.7); animation:schedUp .28s var(--e); }
+@keyframes schedUp{ from{ transform:translateY(100%); } to{ transform:translateY(0); } }
+.sched-sheet-title{ font-family:var(--rb-serif); font-size:24px; font-weight:400; color:var(--rb-text); margin-bottom:4px; }
+.sched-sheet-sub{ font-family:var(--rb-mono); font-size:11px; letter-spacing:.5px; color:var(--rb-dim); margin-bottom:20px; }
+.sched-opt{ width:100%; display:flex; align-items:center; gap:14px; padding:16px; margin-bottom:10px;
+  background:#06090e; border:1px solid var(--rb-line); border-radius:14px; cursor:pointer; text-align:left;
+  touch-action:manipulation; min-height:64px; transition:border-color var(--t2) var(--e); }
+.sched-opt:hover{ border-color:color-mix(in srgb,var(--rb-primary) 30%,transparent); }
+.sched-opt > span{ font-size:22px; flex-shrink:0; }
+.sched-opt strong{ display:block; font-family:var(--rb-sans); font-size:15px; color:var(--rb-text); font-weight:600; margin-bottom:2px; }
+.sched-opt div span{ font-family:var(--rb-mono); font-size:10px; letter-spacing:.5px; color:var(--rb-dim); }
+.sched-label{ display:block; font-family:var(--rb-mono); font-size:10px; letter-spacing:1.5px; text-transform:uppercase;
+  color:var(--rb-faint); margin:14px 0 6px; }
+.sched-input{ width:100%; background:#06090e; border:1px solid var(--rb-line); border-radius:10px; padding:13px 14px;
+  font-family:var(--rb-sans); font-size:16px; color:var(--rb-text); box-sizing:border-box; outline:none;
+  transition:border-color var(--t2) var(--e); }
+.sched-input:focus{ border-color:color-mix(in srgb,var(--rb-primary) 35%,transparent); }
+.sched-submit{ width:100%; margin-top:20px; background:var(--rb-primary); color:#04181c; border:none; border-radius:12px;
+  padding:15px; font-family:var(--rb-sans); font-size:15px; font-weight:600; cursor:pointer; touch-action:manipulation; min-height:52px; }
+.sched-cancel{ width:100%; margin-top:10px; background:none; color:var(--rb-dim); border:none; padding:12px;
+  font-family:var(--rb-mono); font-size:11px; letter-spacing:1px; text-transform:uppercase; cursor:pointer; touch-action:manipulation; min-height:44px; }
+.sched-confirm{ text-align:center; padding:10px 0; }
+.sched-check{ width:60px; height:60px; margin:0 auto 16px; border-radius:50%;
+  background:color-mix(in srgb,var(--rb-primary) 14%,transparent); border:1px solid color-mix(in srgb,var(--rb-primary) 35%,transparent);
+  color:var(--rb-primary); font-size:30px; display:flex; align-items:center; justify-content:center;
+  box-shadow:0 0 30px -6px color-mix(in srgb,var(--rb-primary) 50%,transparent); }
+.sched-confirm .sched-sheet-title,.sched-confirm .sched-sheet-sub{ text-align:center; }
 </style>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..600;1,9..144,300..500&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -1274,6 +1325,14 @@ function getSupaClient() {
 };
 
 // ── XSS GUARD ──
+function starSVG(filled){
+  return filled
+    ? '<svg viewBox="0 0 24 24" class="star-svg" style="width:1em;height:1em;vertical-align:-0.12em;"><path fill="currentColor" d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01z"/></svg>'
+    : '<svg viewBox="0 0 24 24" class="star-svg" style="width:1em;height:1em;vertical-align:-0.12em;"><path fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01z"/></svg>';
+}
+function starsRow(rated){
+  var s=''; for(var i=1;i<=5;i++) s+=starSVG(i<=rated); return s;
+}
 function escHtml(str) {
   if (str == null) return '';
   return String(str)
@@ -1398,9 +1457,9 @@ function loadAlertBadges() {
   const client = portalData.client || {};
   const careText = ((client.care_notes||'') + ' ' + (client.care_directives||'')).toLowerCase();
   let badges = '';
-  if (/fall|falls|fall risk/.test(careText)) badges += '<span class="client-alert-chip fall">⚠ Fall Risk</span>';
-  if (/allerg|anaphyl/.test(careText)) badges += '<span class="client-alert-chip allergy">⚠ Allergy</span>';
-  if (/environment|latex|pet |smoke/.test(careText)) badges += '<span class="client-alert-chip env">⚠ Environment</span>';
+  if (/fall|falls|fall risk/.test(careText)) badges += '<span class="client-alert-chip fall"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;vertical-align:-0.12em;"><path d="M12 3 2 20h20L12 3zM12 9v5M12 17v.01"/></svg> Fall Risk</span>';
+  if (/allerg|anaphyl/.test(careText)) badges += '<span class="client-alert-chip allergy"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;vertical-align:-0.12em;"><path d="M12 3 2 20h20L12 3zM12 9v5M12 17v.01"/></svg> Allergy</span>';
+  if (/environment|latex|pet |smoke/.test(careText)) badges += '<span class="client-alert-chip env"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;vertical-align:-0.12em;"><path d="M12 3 2 20h20L12 3zM12 9v5M12 17v.01"/></svg> Environment</span>';
   if (badges) {
     bannerEl.innerHTML = '<div style="font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;">Safety Alerts on File · Your PSW is Aware</div>' + badges;
     bannerEl.style.display = 'block';
@@ -1453,7 +1512,7 @@ function formatVitalsCompact(v) {
   }
   if (!pills.length) return '';
   const allNormal = !v.flagged;
-  return pills.join('') + (allNormal ? '<div style="font-family:var(--mono);font-size:11px;color:var(--teal2);margin-top:4px;">✓ All readings within normal range</div>' : '<div style="font-family:var(--mono);font-size:11px;color:var(--amber);margin-top:4px;">⚠ Some readings flagged — coordinator notified</div>');
+  return pills.join('') + (allNormal ? '<div style="font-family:var(--mono);font-size:11px;color:var(--teal2);margin-top:4px;">✓ All readings within normal range</div>' : '<div style="font-family:var(--mono);font-size:11px;color:var(--amber);margin-top:4px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;vertical-align:-0.12em;"><path d="M12 3 2 20h20L12 3zM12 9v5M12 17v.01"/></svg> Some readings flagged — coordinator notified</div>');
 }
 
 // ── D1: Patient access log ──────────────────────────────────────────
@@ -1471,7 +1530,7 @@ async function loadAccessLog() {
       const dt = new Date(e.when);
       const dateStr = dt.toLocaleDateString('en-CA', { month: 'short', day: 'numeric', year: 'numeric' });
       const timeStr = dt.toLocaleTimeString('en-CA', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'America/Toronto' });
-      const iconMap = { 'Family member': '◉', 'Caregiver': '●', 'Coordinator': '✦', 'System': '⚙' };
+      const iconMap = { 'Family member': '<svg viewBox="0 0 16 16" style="width:.9em;height:.9em;vertical-align:-0.1em;"><circle cx="8" cy="8" r="5" fill="none" stroke="currentColor" stroke-width="2"/></svg>', 'Caregiver': '<svg viewBox="0 0 16 16" style="width:.9em;height:.9em;vertical-align:-0.1em;"><circle cx="8" cy="8" r="5" fill="currentColor"/></svg>', 'Coordinator': '<svg viewBox="0 0 16 16" style="width:.9em;height:.9em;vertical-align:-0.1em;"><path d="M8 2l6 6-6 6-6-6z" fill="currentColor"/></svg>', 'System': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:.9em;height:.9em;vertical-align:-0.1em;"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M22 12h-3M5 12H2"/></svg>' };
       return `<div style="display:flex;align-items:flex-start;gap:12px;padding:12px 0;border-bottom:1px solid var(--border);">
         <div style="width:32px;height:32px;border-radius:50%;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;">${iconMap[e.who] || '•'}</div>
         <div style="flex:1;min-width:0;">
@@ -1826,6 +1885,7 @@ function showTab(tab) {
               <span style="font-family:var(--mono);font-size:10px;letter-spacing:1px;padding:2px 7px;border-radius:100px;border:1px solid rgba(52,211,153,.3);color:var(--teal2);">SCHEDULED</span>
             </div>
             <div style="font-size:12px;color:var(--muted);">${b.time_in ? fmtTime(b.time_in) : 'Time TBD'}</div>
+            <button onclick="openVisitActions('${b.id||''}','${b.visit_date}','${encodeURIComponent(b.psw_name||'PSW')}','${b.time_in||''}')" class="visit-action-btn">Request a change</button>
           </div>
         </div>`;
       }).join('');
@@ -1930,6 +1990,13 @@ function showTab(tab) {
           ${resolved_incidents.map(inc => `<div style="padding:12px 0;border-bottom:1px solid var(--border);"><div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;"><span style="font-size:13px;font-weight:600;color:var(--text);">${fmtDate(inc.visit_date)}</span><span style="font-family:var(--mono);font-size:10px;padding:2px 7px;border-radius:100px;background:rgba(90,170,122,.1);border:1px solid rgba(90,170,122,.3);color:#5aaa7a;">RESOLVED</span></div><div style="font-size:12px;color:var(--muted);">PSW: ${escHtml(inc.psw_name||'')}</div>${inc.resolution_note ? `<div style="font-size:12px;color:var(--text);background:var(--bg2);border-radius:8px;padding:8px 10px;margin-top:6px;">${escHtml(inc.resolution_note)}</div>` : ''}${inc.report_url ? `<a href="${inc.report_url}" target="_blank" style="display:inline-flex;align-items:center;gap:4px;margin-top:8px;font-family:var(--mono);font-size:10px;color:var(--teal2);text-decoration:none;border:1px solid rgba(52,211,153,.3);border-radius:6px;padding:4px 10px;">&#8595; INCIDENT REPORT PDF</a>` : ''}</div>`).join('')}
         </div>` : ''}` + pswPanel + moodChart + photoGallery + `
       <div class="section">
+        <button onclick="openCarePause()" class="care-pause-banner">
+          <span class="cpb-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;vertical-align:-0.15em;"><path d="M3 21h18M5 21V7l8-4v18M19 21V11l-6-3M9 9v.01M9 12v.01M9 15v.01"/></svg></span>
+          <span class="cpb-text"><strong>Going to the hospital or away?</strong><span>Request a pause on upcoming visits</span></span>
+          <span class="cpb-chev">›</span>
+        </button>
+      </div>
+      <div class="section">
         <div class="section-title">Visits — ${range.label}</div>
         <div class="card">
           ${filtered.length > 0
@@ -1948,7 +2015,7 @@ function showTab(tab) {
         </div>
       </div>
       <div class="section">
-        <button onclick="downloadVisitsReport()" style="width:100%;background:rgba(52,211,153,.08);color:var(--accent);border:1px solid rgba(52,211,153,.28);border-radius:12px;padding:13px 16px;font-size:13px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;touch-action:manipulation;min-height:48px;display:flex;align-items:center;justify-content:center;gap:8px;">📄 Download this month's visit report</button>
+        <button onclick="downloadVisitsReport()" style="width:100%;background:rgba(52,211,153,.08);color:var(--accent);border:1px solid rgba(52,211,153,.28);border-radius:12px;padding:13px 16px;font-size:13px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;touch-action:manipulation;min-height:48px;display:flex;align-items:center;justify-content:center;gap:8px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;vertical-align:-0.15em;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M9 13h6M9 17h6"/></svg> Download this month's visit report</button>
       </div>
       <div class="section">
         <div class="section-title">Leave Feedback on a Visit</div>
@@ -1970,7 +2037,7 @@ function showTab(tab) {
           <div style="margin-bottom:12px;">
             <div style="font-size:10px;font-weight:600;color:var(--text-secondary);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.5px;">Performance Rating</div>
             <div style="display:flex;gap:8px;" id="perf-stars">
-              ${[1,2,3,4,5].map(n => `<button onclick="setPerfRating(${n})" data-rating="${n}" style="font-size:24px;background:none;border:none;cursor:pointer;padding:2px;touch-action:manipulation;line-height:1;">☆</button>`).join('')}
+              ${[1,2,3,4,5].map(n => `<button onclick="setPerfRating(${n})" data-rating="${n}" style="font-size:24px;background:none;border:none;cursor:pointer;padding:2px;touch-action:manipulation;line-height:1;color:var(--rb-faint);">${starSVG(false)}</button>`).join('')}
             </div>
           </div>
 
@@ -2094,7 +2161,7 @@ function showTab(tab) {
             <button onclick="sendCoordMessage()" style="flex:2;min-width:120px;background:var(--accent);color:#fff;border:none;border-radius:10px;padding:10px 16px;font-size:13px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;touch-action:manipulation;min-height:44px;">Send Message</button>
             <button onclick="requestPSWContact()" style="flex:1;min-width:100px;background:var(--surface);color:var(--accent);border:1px solid var(--border);border-radius:10px;padding:10px 12px;font-size:12px;cursor:pointer;font-family:'Inter',sans-serif;touch-action:manipulation;min-height:44px;">Request PSW Contact Info</button>
           </div>
-          <button onclick="requestScheduleChange()" style="width:100%;margin-top:10px;background:rgba(52,211,153,.08);color:var(--accent);border:1px solid rgba(52,211,153,.28);border-radius:10px;padding:11px 16px;font-size:13px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;touch-action:manipulation;min-height:44px;">📅 Request a Schedule Change</button>
+          <button onclick="requestScheduleChange()" style="width:100%;margin-top:10px;background:rgba(52,211,153,.08);color:var(--accent);border:1px solid rgba(52,211,153,.28);border-radius:10px;padding:11px 16px;font-size:13px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;touch-action:manipulation;min-height:44px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;vertical-align:-0.15em;"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 9h18M8 3v4M16 3v4"/></svg> Request a Schedule Change</button>
           </div>
           <div id="coord-msg-success" style="display:none;margin-top:10px;padding:10px 14px;background:rgba(58,170,138,0.1);border:1px solid rgba(58,170,138,0.25);border-radius:8px;font-size:13px;color:#3aaa8a;"></div>
         </div>
@@ -2241,9 +2308,9 @@ function visitRow(v) {
   const vid = 'vd_' + (v.id || Math.random().toString(36).slice(2));
 
   const starsHtml = rated
-    ? `<div class="visit-stars rated">${'★'.repeat(rated)}${'☆'.repeat(5 - rated)}<span class="stars-label">Rated ${rated}/5</span></div>`
+    ? `<div class="visit-stars rated">${starsRow(rated)}<span class="stars-label">Rated ${rated}/5</span></div>`
     : `<div class="visit-stars unrated">${[1,2,3,4,5].map(s =>
-        `<button class="star-btn" onclick="rateVisit('${v.id}','${(clientSlug||'')}',${s},this)" aria-label="${s} star">☆</button>`
+        `<button class="star-btn" onclick="rateVisit('${v.id}','${(clientSlug||'')}',${s},this)" aria-label="${s} star">${starSVG(false)}</button>`
       ).join('')}<span class="stars-label">Rate this visit</span></div>`;
 
   const hasDetail = summary || tasks || mood || v.notes;
@@ -2320,7 +2387,7 @@ async function rateVisit(visitId, slug, rating, btn) {
   const row = btn.closest('.visit-stars');
   if (!row) return;
   const btns = row.querySelectorAll('.star-btn');
-  btns.forEach((b, i) => { b.textContent = i < rating ? '★' : '☆'; b.disabled = true; });
+  btns.forEach((b, i) => { b.innerHTML = starSVG(i < rating); b.disabled = true; });
   try {
     const res = await fetch(`${R}/family/rate-visit`, {
       method: 'POST',
@@ -2329,10 +2396,10 @@ async function rateVisit(visitId, slug, rating, btn) {
     });
     const d = await res.json();
     if (!d.success) throw new Error(d.error || 'Rating failed');
-    row.innerHTML = `${'★'.repeat(rating)}${'☆'.repeat(5-rating)} <span class="stars-label">Rated ${rating}/5 — thank you</span>`;
+    row.innerHTML = `${starsRow(rating)} <span class="stars-label">Rated ${rating}/5 — thank you</span>`;
     row.classList.replace('unrated','rated');
   } catch(e) {
-    btns.forEach(b => { b.textContent = '☆'; b.disabled = false; });
+    btns.forEach(b => { b.innerHTML = starSVG(false); b.disabled = false; });
     alert('Could not save rating. Please try again.');
   }
 }
@@ -2497,7 +2564,7 @@ function showLiveToast(msg, type) {
     box-shadow:0 4px 20px rgba(0,0,0,.35);
     animation:fadeInDown .3s ease;
   `;
-  el.textContent = type === 'arrival' ? '● ' + msg : '✓ ' + msg;
+  el.innerHTML = (type === 'arrival' ? '<span style="color:var(--rb-primary)">\u25CF</span> ' : '<span style="color:var(--rb-primary)">\u2713</span> ') + escHtml(msg);
   document.body.appendChild(el);
   setTimeout(() => { el.style.opacity = '0'; el.style.transition = 'opacity .4s'; setTimeout(() => el.remove(), 400); }, 4000);
 }
@@ -2616,7 +2683,7 @@ function showPSWProfile(name, initials) {
       <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);">
         <div style="font-size:13px;color:var(--text);">${fmtDate(v.visit_date)}</div>
         <div style="font-size:12px;color:var(--muted);">${parseFloat(v.hours_worked||0).toFixed(1)}h</div>
-        ${v.satisfaction_rating ? `<div style="color:var(--accent);">${'★'.repeat(v.satisfaction_rating)}${'☆'.repeat(5-v.satisfaction_rating)}</div>` : '<div style="font-size:12px;color:var(--muted);">Not rated</div>'}
+        ${v.satisfaction_rating ? `<div style="color:var(--accent);">${starsRow(v.satisfaction_rating)}</div>` : '<div style="font-size:12px;color:var(--muted);">Not rated</div>'}
       </div>`).join('')}
     ` : '<div style="color:var(--muted);font-size:13px;">No visit history yet.</div>'}
   `;
@@ -2671,6 +2738,124 @@ async function downloadVisitsReport() {
 }
 
 
+// ── FAMILY SCHEDULE WORKFLOW (request-based: family asks, HQ confirms) ──
+async function sendScheduleRequest(label, body, btnEl){
+  try{
+    if(btnEl){ btnEl.disabled = true; btnEl.textContent = 'Sending...'; }
+    const message = '[' + label + ']\n' + body;
+    const res = await fetch(`${R}/family/message`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ slug: clientSlug || slug, pin: pinVal, message })
+    });
+    const d = await res.json();
+    if(!d.success && !res.ok) throw new Error(d.error||'Failed');
+    return true;
+  }catch(e){
+    showToast('Could not send request. Try again.', 'err');
+    if(btnEl){ btnEl.disabled = false; }
+    return false;
+  }
+}
+
+function openVisitActions(id, date, pswEnc, timeIn){
+  const psw = decodeURIComponent(pswEnc||'');
+  const dLabel = date ? new Date(date+'T12:00:00').toLocaleDateString('en-CA',{weekday:'long',month:'long',day:'numeric'}) : 'this visit';
+  const pe = encodeURIComponent(psw);
+  showScheduleSheet(
+    '<div class="sched-sheet-title">'+dLabel+'</div>'+
+    '<div class="sched-sheet-sub">'+(psw||'PSW')+(timeIn?' · '+fmtTime(timeIn):'')+'</div>'+
+    '<button class="sched-opt" onclick="promptReschedule(\''+date+'\',\''+pe+'\')">'+
+      '<span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;vertical-align:-0.15em;"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span><div><strong>Reschedule this visit</strong><span>Request a different day or time</span></div></button>'+
+    '<button class="sched-opt" onclick="closeScheduleSheet();openCarePause();">'+
+      '<span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="width:1.4em;height:1.4em;"><path d="M3 21h18M5 21V7l8-4v18M19 21V11l-6-3M9 9v.01M9 12v.01M9 15v.01"/></svg></span><div><strong>Pause my care</strong><span>Hospital, vacation, or away</span></div></button>'+
+    '<button class="sched-cancel" onclick="closeScheduleSheet()">Cancel</button>'
+  );
+}
+
+function promptReschedule(date, pswEnc){
+  const psw = decodeURIComponent(pswEnc||'');
+  const pe = encodeURIComponent(psw);
+  const dLabel = date ? new Date(date+'T12:00:00').toLocaleDateString('en-CA',{weekday:'long',month:'long',day:'numeric'}) : 'the visit';
+  showScheduleSheet(
+    '<div class="sched-sheet-title">Reschedule</div>'+
+    '<div class="sched-sheet-sub">'+dLabel+(psw?' · '+psw:'')+'</div>'+
+    '<label class="sched-label">Preferred day / time</label>'+
+    '<input id="resched-pref" class="sched-input" placeholder="e.g. Thursday afternoon, or any morning">'+
+    '<label class="sched-label">Reason (optional)</label>'+
+    '<input id="resched-reason" class="sched-input" placeholder="e.g. appointment that day">'+
+    '<button class="sched-submit" onclick="submitReschedule(\''+date+'\',\''+pe+'\', this)">Send request</button>'+
+    '<button class="sched-cancel" onclick="closeScheduleSheet()">Cancel</button>'
+  );
+}
+async function submitReschedule(date, pswEnc, btn){
+  const psw = decodeURIComponent(pswEnc||'');
+  const pref = (document.getElementById('resched-pref')||{}).value || '';
+  const reason = (document.getElementById('resched-reason')||{}).value || '';
+  if(!pref.trim()){ showToast('Please enter a preferred time'); return; }
+  const body = `Visit: ${date}${psw?' with '+psw:''}\nPreferred: ${pref}\nReason: ${reason||'(none given)'}`;
+  const ok = await sendScheduleRequest('SCHEDULE CHANGE', body, btn);
+  if(ok){ closeScheduleSheet(); showScheduleConfirm('Reschedule requested', 'Your coordinator will confirm the new time soon.'); }
+}
+
+function openCarePause(){
+  showScheduleSheet(`
+    <div class="sched-sheet-title">Pause care</div>
+    <div class="sched-sheet-sub">Request a hold on visits while you're away</div>
+    <label class="sched-label">Pause from</label>
+    <input id="pause-from" class="sched-input" type="date">
+    <label class="sched-label">Until (leave blank if unsure)</label>
+    <input id="pause-to" class="sched-input" type="date">
+    <label class="sched-label">Reason</label>
+    <input id="pause-reason" class="sched-input" placeholder="e.g. in hospital, or on vacation">
+    <button class="sched-submit" onclick="submitCarePause(this)">Request pause</button>
+    <button class="sched-cancel" onclick="closeScheduleSheet()">Cancel</button>
+  `);
+}
+async function submitCarePause(btn){
+  const from = (document.getElementById('pause-from')||{}).value || '';
+  const to = (document.getElementById('pause-to')||{}).value || '';
+  const reason = (document.getElementById('pause-reason')||{}).value || '';
+  if(!from){ showToast('Please choose a start date'); return; }
+  const body = `Pause from: ${from}\nUntil: ${to||'unsure / will advise'}\nReason: ${reason||'(none given)'}`;
+  const ok = await sendScheduleRequest('CARE PAUSE', body, btn);
+  if(ok){ closeScheduleSheet(); showScheduleConfirm('Pause requested', 'Your coordinator will hold visits for this period and confirm.'); }
+}
+
+function openCareResume(){
+  showScheduleSheet(`
+    <div class="sched-sheet-title">Resume care</div>
+    <div class="sched-sheet-sub">Let us know you're ready to restart visits</div>
+    <label class="sched-label">Resume from</label>
+    <input id="resume-from" class="sched-input" type="date">
+    <label class="sched-label">Notes (optional)</label>
+    <input id="resume-note" class="sched-input" placeholder="e.g. back home, same schedule please">
+    <button class="sched-submit" onclick="submitCareResume(this)">Request resume</button>
+    <button class="sched-cancel" onclick="closeScheduleSheet()">Cancel</button>
+  `);
+}
+async function submitCareResume(btn){
+  const from = (document.getElementById('resume-from')||{}).value || '';
+  const note = (document.getElementById('resume-note')||{}).value || '';
+  if(!from){ showToast('Please choose a resume date'); return; }
+  const body = `Resume from: ${from}\nNotes: ${note||'(none given)'}`;
+  const ok = await sendScheduleRequest('RESUME CARE', body, btn);
+  if(ok){ closeScheduleSheet(); showScheduleConfirm('Resume requested', 'Your coordinator will restart visits and confirm.'); }
+}
+
+function showScheduleSheet(inner){
+  let sh = document.getElementById('sched-sheet');
+  if(!sh){
+    sh = document.createElement('div'); sh.id='sched-sheet';
+    document.body.appendChild(sh);
+  }
+  sh.innerHTML = '<div class="sched-backdrop" onclick="closeScheduleSheet()"></div><div class="sched-panel">'+inner+'</div>';
+  sh.classList.add('open');
+}
+function closeScheduleSheet(){ const sh=document.getElementById('sched-sheet'); if(sh) sh.classList.remove('open'); }
+function showScheduleConfirm(title, sub){
+  showScheduleSheet(`<div class="sched-confirm"><div class="sched-check">✓</div><div class="sched-sheet-title">${title}</div><div class="sched-sheet-sub">${sub}</div><button class="sched-submit" onclick="closeScheduleSheet()">Done</button></div>`);
+}
+
 // ── PRIVATE NOTE ──
 function updateNoteCount(el) {
   const count = el.value.length;
@@ -2683,7 +2868,7 @@ let _perfRating = 0;
 function setPerfRating(n) {
   _perfRating = n;
   const stars = document.querySelectorAll('#perf-stars button');
-  stars.forEach((btn, i) => { btn.textContent = i < n ? '★' : '☆'; });
+  stars.forEach((btn, i) => { btn.innerHTML = starSVG(i < n); });
 }
 
 async function submitPrivateNote(visitDate, pswName) {
@@ -2710,7 +2895,7 @@ async function submitPrivateNote(visitDate, pswName) {
     input.value = '';
     if (pswSelect) pswSelect.value = '';
     _perfRating = 0;
-    document.querySelectorAll('#perf-stars button').forEach(b => b.textContent = '☆');
+    document.querySelectorAll('#perf-stars button').forEach(b => b.innerHTML = starSVG(false));
     const countEl = document.getElementById('note-char-count');
     if (countEl) countEl.textContent = '0 / 600';
     if (successEl) { successEl.style.display = 'block'; setTimeout(() => { if(successEl) successEl.style.display = 'none'; }, 5000); }
