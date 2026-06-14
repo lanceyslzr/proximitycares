@@ -325,26 +325,26 @@ a{color:inherit;text-decoration:none;}
 
 /* MESSAGES */
 .msg-thread{padding:12px 14px 16px;display:flex;flex-direction:column;gap:10px;flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;}
-.msg-bubble{padding:10px 13px;border-radius:10px;max-width:84%;}
-.msg-lance{background:var(--teal);color:#fff;margin-left:auto;border-radius:10px 10px 3px 10px;}
-.msg-psw{background:var(--bg3);color:var(--text);border:1px solid var(--border);border-radius:10px 10px 10px 3px;}
+.msg-bubble{padding:10px 13px;border-radius:12px;max-width:84%;}
+.msg-lance{background:linear-gradient(135deg,var(--psw),var(--psw-deep));color:var(--psw-ink);margin-left:auto;border-radius:12px 12px 4px 12px;}
+.msg-psw{background:var(--rb-elev);color:var(--rb-text);border:1px solid var(--rb-line);border-radius:12px 12px 12px 4px;}
 .msg-text{font-size:13px;line-height:1.5;}
-.msg-time{font-family:var(--mono);font-size:11px;opacity:.55;margin-top:3px;}
-.msg-input-wrap{flex-shrink:0;position:relative;background:var(--bg2);border-top:1px solid var(--border);padding:10px 12px calc(10px + env(safe-area-inset-bottom));display:flex;gap:8px;align-items:flex-end;}
-.msg-input{flex:1;background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:10px 13px;border-radius:16px;font-size:16px;resize:none;max-height:100px;}
-.msg-input:focus{outline:none;border-color:var(--teal2);}
-.msg-send{width:42px;height:42px;border-radius:50%;background:var(--teal);color:#fff;font-size:16px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;border:none;touch-action:manipulation;}
-.msg-send:active{background:var(--teal2);}
+.msg-time{font-family:var(--rb-mono);font-size:11px;opacity:.55;margin-top:3px;}
+.msg-input-wrap{flex-shrink:0;position:relative;background:var(--rb-base);border-top:1px solid var(--rb-line);padding:10px 12px calc(10px + env(safe-area-inset-bottom));display:flex;gap:8px;align-items:flex-end;}
+.msg-input{flex:1;background:var(--rb-panel);border:1px solid var(--rb-line2);color:var(--rb-text);padding:10px 13px;border-radius:16px;font-size:16px;resize:none;max-height:100px;}
+.msg-input:focus{outline:none;border-color:var(--psw);}
+.msg-send{width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,var(--psw),var(--psw-deep));color:var(--psw-ink);font-size:16px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;border:none;touch-action:manipulation;}
+.msg-send:active{background:var(--psw-deep);}
 
 /* DOCUMENTS */
-.doc-row{display:flex;align-items:center;gap:12px;padding:12px 14px;border-bottom:1px solid var(--border);}
+.doc-row{display:flex;align-items:center;gap:12px;padding:12px 14px;border-bottom:1px solid var(--rb-line);}
 .doc-row:last-child{border-bottom:none;}
-.doc-icon{width:32px;height:32px;border-radius:6px;background:var(--bg3);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:11px;color:var(--teal2);flex-shrink:0;letter-spacing:1px;text-transform:uppercase;}
+.doc-icon{width:32px;height:32px;border-radius:8px;background:var(--rb-elev);border:1px solid var(--rb-line);display:flex;align-items:center;justify-content:center;font-family:var(--rb-mono);font-size:11px;color:var(--psw);flex-shrink:0;letter-spacing:1px;text-transform:uppercase;}
 .doc-info{flex:1;min-width:0;}
-.doc-name{font-size:13px;color:var(--text);}
-.doc-meta{font-family:var(--mono);font-size:12px;color:var(--muted);margin-top:2px;}
-.doc-status{font-family:var(--mono);font-size:11px;padding:2px 7px;border-radius:100px;border:1px solid;flex-shrink:0;}
-.doc-status.valid{color:var(--green2);border-color:rgba(106,201,138,.25);}
+.doc-name{font-size:13px;color:var(--rb-text);}
+.doc-meta{font-family:var(--rb-mono);font-size:12px;color:var(--rb-dim);margin-top:2px;}
+.doc-status{font-family:var(--rb-mono);font-size:11px;padding:2px 7px;border-radius:100px;border:1px solid;flex-shrink:0;}
+.doc-status.valid{color:var(--green2);border-color:rgba(94,234,181,.25);}
 .doc-status.missing{color:var(--red);border-color:rgba(224,85,85,.3);}
 .doc-status.expiring{color:var(--amber);border-color:rgba(224,154,61,.3);}
 
@@ -1139,15 +1139,15 @@ a{color:inherit;text-decoration:none;}
 <div class="section" id="sect-messages">
   <div class="section-header" style="flex-shrink:0;padding:12px 14px;">
     <span class="section-title">Message HQ</span>
-    <span style="font-family:var(--mono);font-size:10px;color:var(--teal2);letter-spacing:.5px;">Lance notified instantly</span>
+    <span style="font-family:var(--rb-mono);font-size:10px;color:var(--psw);letter-spacing:.5px;">Lance notified instantly</span>
   </div>
   <!-- Incident history — read-only, only shows if PSW has incident records -->
-  <div id="psw-incident-history" style="display:none;flex-shrink:0;margin:0 12px 8px;background:var(--bg2);border:1px solid var(--border);border-radius:12px;overflow:hidden;">
-    <div onclick="toggleIncidentHistory()" style="padding:12px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;cursor:pointer;touch-action:manipulation;">
-      <span style="font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);">Incident Records</span>
+  <div id="psw-incident-history" style="display:none;flex-shrink:0;margin:0 12px 8px;background:var(--rb-panel);border:1px solid var(--rb-line);border-radius:12px;overflow:hidden;">
+    <div onclick="toggleIncidentHistory()" style="padding:12px 14px;border-bottom:1px solid var(--rb-line);display:flex;align-items:center;justify-content:space-between;cursor:pointer;touch-action:manipulation;">
+      <span style="font-family:var(--rb-mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--rb-dim);">Incident Records</span>
       <div style="display:flex;align-items:center;gap:8px;">
-        <span id="psw-incident-count" style="font-family:var(--mono);font-size:11px;color:var(--muted);"></span>
-        <span id="psw-incident-toggle" style="font-family:var(--mono);font-size:14px;color:var(--muted);">▲</span>
+        <span id="psw-incident-count" style="font-family:var(--rb-mono);font-size:11px;color:var(--rb-dim);"></span>
+        <span id="psw-incident-toggle" style="font-family:var(--rb-mono);font-size:14px;color:var(--rb-dim);">▲</span>
       </div>
     </div>
     <div id="psw-incident-list" style="padding:0 14px;"></div>
@@ -1167,99 +1167,99 @@ a{color:inherit;text-decoration:none;}
 <div class="section" id="sect-documents">
   <div class="section-header"><span class="section-title">My Documents</span></div>
   <div style="padding:0 12px 6px;">
-    <div style="font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:10px;">Certifications</div>
+    <div style="font-family:var(--rb-mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--rb-dim);margin-bottom:10px;">Certifications</div>
     <div class="card" style="padding:0;overflow:hidden;">
       <div id="docs-list"><div class="empty-state" style="padding:20px;">Loading...</div></div>
     </div>
   </div>
   <div style="padding:10px 12px 6px;">
-    <div style="font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:10px;">Recent Visit Notes</div>
+    <div style="font-family:var(--rb-mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--rb-dim);margin-bottom:10px;">Recent Visit Notes</div>
     <div id="docs-visit-list"><div class="empty-state" style="padding:20px;">Loading...</div></div>
   </div>
-  <div style="margin:4px 12px 16px;padding:10px 14px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:1px;">
+  <div style="margin:4px 12px 16px;padding:10px 14px;background:var(--rb-panel);border:1px solid var(--rb-line);border-radius:8px;font-family:var(--rb-mono);font-size:11px;color:var(--rb-dim);letter-spacing:1px;">
     Certifications are managed by your coordinator. Contact Lance to update your files.
   </div>
 
   <!-- ONTARIO FORMS SECTION -->
   <div style="padding:6px 12px 16px;">
-    <div style="font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:10px;">Ontario Forms</div>
+    <div style="font-family:var(--rb-mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--rb-dim);margin-bottom:10px;">Ontario Forms</div>
     <div style="display:flex;flex-direction:column;gap:8px;">
 
       <!-- Incident Report -->
-      <div onclick="openFormSheet('incident')" style="background:var(--bg2);border:1px solid rgba(224,85,85,.3);border-left:3px solid var(--red);border-radius:10px;padding:14px;cursor:pointer;touch-action:manipulation;display:flex;align-items:center;gap:12px;min-height:60px;">
+      <div onclick="openFormSheet('incident')" style="background:var(--rb-panel);border:1px solid rgba(224,85,85,.3);border-left:3px solid var(--red);border-radius:12px;padding:14px;cursor:pointer;touch-action:manipulation;display:flex;align-items:center;gap:12px;min-height:60px;">
         <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="var(--red)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="M10 3L2 17h16L10 3z"/><line x1="10" y1="9" x2="10" y2="12"/><circle cx="10" cy="14.5" r=".5" fill="var(--red)"/></svg>
-        <div style="flex:1;min-width:0;"><div style="font-size:14px;font-weight:600;color:var(--red);margin-bottom:3px;">Incident Report</div><div style="font-family:var(--mono);font-size:11px;color:var(--muted2);">Falls, injuries, unsafe conditions</div></div>
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="var(--muted)" stroke-width="1.5" stroke-linecap="round"><path d="M6 4l4 4-4 4"/></svg>
+        <div style="flex:1;min-width:0;"><div style="font-size:14px;font-weight:600;color:var(--red);margin-bottom:3px;">Incident Report</div><div style="font-family:var(--rb-mono);font-size:11px;color:var(--rb-dim);">Falls, injuries, unsafe conditions</div></div>
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="var(--rb-dim)" stroke-width="1.5" stroke-linecap="round"><path d="M6 4l4 4-4 4"/></svg>
       </div>
 
       <!-- Critical Incident -->
-      <div onclick="openFormSheet('critical_incident')" style="background:var(--bg2);border:1px solid rgba(224,85,85,.5);border-left:3px solid var(--red);border-radius:10px;padding:14px;cursor:pointer;touch-action:manipulation;display:flex;align-items:center;gap:12px;min-height:60px;">
+      <div onclick="openFormSheet('critical_incident')" style="background:var(--rb-panel);border:1px solid rgba(224,85,85,.5);border-left:3px solid var(--red);border-radius:12px;padding:14px;cursor:pointer;touch-action:manipulation;display:flex;align-items:center;gap:12px;min-height:60px;">
         <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="var(--red)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><circle cx="10" cy="10" r="8"/><line x1="10" y1="6" x2="10" y2="10"/><circle cx="10" cy="13.5" r=".6" fill="var(--red)"/></svg>
-        <div style="flex:1;min-width:0;"><div style="font-size:14px;font-weight:600;color:var(--red);margin-bottom:3px;">Critical Incident</div><div style="font-family:var(--mono);font-size:11px;color:var(--muted2);">Hospitalization, unresponsive client, death, abuse</div></div>
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="var(--muted)" stroke-width="1.5" stroke-linecap="round"><path d="M6 4l4 4-4 4"/></svg>
+        <div style="flex:1;min-width:0;"><div style="font-size:14px;font-weight:600;color:var(--red);margin-bottom:3px;">Critical Incident</div><div style="font-family:var(--rb-mono);font-size:11px;color:var(--rb-dim);">Hospitalization, unresponsive client, death, abuse</div></div>
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="var(--rb-dim)" stroke-width="1.5" stroke-linecap="round"><path d="M6 4l4 4-4 4"/></svg>
       </div>
 
       <!-- Medication Discrepancy -->
-      <div onclick="openFormSheet('medication_discrepancy')" style="background:var(--bg2);border:1px solid rgba(224,85,85,.3);border-left:3px solid var(--red);border-radius:10px;padding:14px;cursor:pointer;touch-action:manipulation;display:flex;align-items:center;gap:12px;min-height:60px;">
+      <div onclick="openFormSheet('medication_discrepancy')" style="background:var(--rb-panel);border:1px solid rgba(224,85,85,.3);border-left:3px solid var(--red);border-radius:12px;padding:14px;cursor:pointer;touch-action:manipulation;display:flex;align-items:center;gap:12px;min-height:60px;">
         <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="var(--red)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><rect x="5" y="3" width="10" height="14" rx="2"/><line x1="8" y1="7" x2="12" y2="7"/><line x1="8" y1="10" x2="12" y2="10"/><line x1="8" y1="13" x2="10" y2="13"/></svg>
-        <div style="flex:1;min-width:0;"><div style="font-size:14px;font-weight:600;color:var(--red);margin-bottom:3px;">Medication Discrepancy</div><div style="font-family:var(--mono);font-size:11px;color:var(--muted2);">Missed dose, wrong medication, administration error</div></div>
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="var(--muted)" stroke-width="1.5" stroke-linecap="round"><path d="M6 4l4 4-4 4"/></svg>
+        <div style="flex:1;min-width:0;"><div style="font-size:14px;font-weight:600;color:var(--red);margin-bottom:3px;">Medication Discrepancy</div><div style="font-family:var(--rb-mono);font-size:11px;color:var(--rb-dim);">Missed dose, wrong medication, administration error</div></div>
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="var(--rb-dim)" stroke-width="1.5" stroke-linecap="round"><path d="M6 4l4 4-4 4"/></svg>
       </div>
 
       <!-- Refusal of Care -->
-      <div onclick="openFormSheet('refusal_of_care')" style="background:var(--bg2);border:1px solid rgba(224,154,61,.3);border-left:3px solid var(--amber);border-radius:10px;padding:14px;cursor:pointer;touch-action:manipulation;display:flex;align-items:center;gap:12px;min-height:60px;">
+      <div onclick="openFormSheet('refusal_of_care')" style="background:var(--rb-panel);border:1px solid rgba(224,154,61,.3);border-left:3px solid var(--amber);border-radius:12px;padding:14px;cursor:pointer;touch-action:manipulation;display:flex;align-items:center;gap:12px;min-height:60px;">
         <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="var(--amber)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><circle cx="10" cy="10" r="8"/><line x1="6" y1="10" x2="14" y2="10"/></svg>
-        <div style="flex:1;min-width:0;"><div style="font-size:14px;font-weight:600;color:var(--amber);margin-bottom:3px;">Refusal of Care</div><div style="font-family:var(--mono);font-size:11px;color:var(--muted2);">Client declined a scheduled task or service</div></div>
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="var(--muted)" stroke-width="1.5" stroke-linecap="round"><path d="M6 4l4 4-4 4"/></svg>
+        <div style="flex:1;min-width:0;"><div style="font-size:14px;font-weight:600;color:var(--amber);margin-bottom:3px;">Refusal of Care</div><div style="font-family:var(--rb-mono);font-size:11px;color:var(--rb-dim);">Client declined a scheduled task or service</div></div>
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="var(--rb-dim)" stroke-width="1.5" stroke-linecap="round"><path d="M6 4l4 4-4 4"/></svg>
       </div>
 
       <!-- Workplace Injury -->
-      <div onclick="openFormSheet('workplace_injury')" style="background:var(--bg2);border:1px solid rgba(200,169,110,.3);border-left:3px solid var(--gold);border-radius:10px;padding:14px;cursor:pointer;touch-action:manipulation;display:flex;align-items:center;gap:12px;min-height:60px;">
+      <div onclick="openFormSheet('workplace_injury')" style="background:var(--rb-panel);border:1px solid rgba(240,181,73,.3);border-left:3px solid var(--gold);border-radius:12px;padding:14px;cursor:pointer;touch-action:manipulation;display:flex;align-items:center;gap:12px;min-height:60px;">
         <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="var(--gold)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="M10 2v6M10 2l-3 3M10 2l3 3"/><path d="M4 10h12M4 10v7a1 1 0 001 1h10a1 1 0 001-1v-7"/></svg>
-        <div style="flex:1;min-width:0;"><div style="font-size:14px;font-weight:600;color:var(--gold);margin-bottom:3px;">Workplace Injury / Near Miss</div><div style="font-family:var(--mono);font-size:11px;color:var(--muted2);">WSIB-reportable injury or near miss at a client home</div></div>
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="var(--muted)" stroke-width="1.5" stroke-linecap="round"><path d="M6 4l4 4-4 4"/></svg>
+        <div style="flex:1;min-width:0;"><div style="font-size:14px;font-weight:600;color:var(--gold);margin-bottom:3px;">Workplace Injury / Near Miss</div><div style="font-family:var(--rb-mono);font-size:11px;color:var(--rb-dim);">WSIB-reportable injury or near miss at a client home</div></div>
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="var(--rb-dim)" stroke-width="1.5" stroke-linecap="round"><path d="M6 4l4 4-4 4"/></svg>
       </div>
 
       <!-- Client Concern -->
-      <div onclick="openFormSheet('concern')" style="background:var(--bg2);border:1px solid rgba(160,96,224,.3);border-left:3px solid var(--purple2);border-radius:10px;padding:14px;cursor:pointer;touch-action:manipulation;display:flex;align-items:center;gap:12px;min-height:60px;">
+      <div onclick="openFormSheet('concern')" style="background:var(--rb-panel);border:1px solid rgba(160,96,224,.3);border-left:3px solid var(--purple2);border-radius:12px;padding:14px;cursor:pointer;touch-action:manipulation;display:flex;align-items:center;gap:12px;min-height:60px;">
         <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="var(--purple2)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="M17 12a2 2 0 01-2 2H6l-3 3V5a2 2 0 012-2h10a2 2 0 012 2v7z"/></svg>
-        <div style="flex:1;min-width:0;"><div style="font-size:14px;font-weight:600;color:var(--purple2);margin-bottom:3px;">Client Concern</div><div style="font-family:var(--mono);font-size:11px;color:var(--muted2);">Health, safety, behaviour or environment concern</div></div>
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="var(--muted)" stroke-width="1.5" stroke-linecap="round"><path d="M6 4l4 4-4 4"/></svg>
+        <div style="flex:1;min-width:0;"><div style="font-size:14px;font-weight:600;color:var(--purple2);margin-bottom:3px;">Client Concern</div><div style="font-family:var(--rb-mono);font-size:11px;color:var(--rb-dim);">Health, safety, behaviour or environment concern</div></div>
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="var(--rb-dim)" stroke-width="1.5" stroke-linecap="round"><path d="M6 4l4 4-4 4"/></svg>
       </div>
 
       <!-- Care Plan Update -->
-      <div onclick="openFormSheet('careplan')" style="background:var(--bg2);border:1px solid rgba(86,200,245,.3);border-left:3px solid var(--teal2);border-radius:10px;padding:14px;cursor:pointer;touch-action:manipulation;display:flex;align-items:center;gap:12px;min-height:60px;">
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="var(--teal2)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><rect x="4" y="3" width="12" height="14" rx="1.5"/><line x1="7" y1="7" x2="13" y2="7"/><line x1="7" y1="10" x2="13" y2="10"/><line x1="7" y1="13" x2="10" y2="13"/></svg>
-        <div style="flex:1;min-width:0;"><div style="font-size:14px;font-weight:600;color:var(--teal2);margin-bottom:3px;">Care Plan Update</div><div style="font-family:var(--mono);font-size:11px;color:var(--muted2);">Request changes to client tasks or care routine</div></div>
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="var(--muted)" stroke-width="1.5" stroke-linecap="round"><path d="M6 4l4 4-4 4"/></svg>
+      <div onclick="openFormSheet('careplan')" style="background:var(--rb-panel);border:1px solid rgba(86,200,245,.3);border-left:3px solid var(--psw);border-radius:12px;padding:14px;cursor:pointer;touch-action:manipulation;display:flex;align-items:center;gap:12px;min-height:60px;">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="var(--psw)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><rect x="4" y="3" width="12" height="14" rx="1.5"/><line x1="7" y1="7" x2="13" y2="7"/><line x1="7" y1="10" x2="13" y2="10"/><line x1="7" y1="13" x2="10" y2="13"/></svg>
+        <div style="flex:1;min-width:0;"><div style="font-size:14px;font-weight:600;color:var(--psw);margin-bottom:3px;">Care Plan Update</div><div style="font-family:var(--rb-mono);font-size:11px;color:var(--rb-dim);">Request changes to client tasks or care routine</div></div>
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="var(--rb-dim)" stroke-width="1.5" stroke-linecap="round"><path d="M6 4l4 4-4 4"/></svg>
       </div>
 
       <!-- Late Arrival -->
-      <div onclick="openFormSheet('latearrival')" style="background:var(--bg2);border:1px solid rgba(224,154,61,.3);border-left:3px solid var(--amber);border-radius:10px;padding:14px;cursor:pointer;touch-action:manipulation;display:flex;align-items:center;gap:12px;min-height:60px;">
+      <div onclick="openFormSheet('latearrival')" style="background:var(--rb-panel);border:1px solid rgba(224,154,61,.3);border-left:3px solid var(--amber);border-radius:12px;padding:14px;cursor:pointer;touch-action:manipulation;display:flex;align-items:center;gap:12px;min-height:60px;">
         <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="var(--amber)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><circle cx="10" cy="10" r="8"/><polyline points="10 6 10 10 13 12"/></svg>
-        <div style="flex:1;min-width:0;"><div style="font-size:14px;font-weight:600;color:var(--amber);margin-bottom:3px;">Late Arrival / Early Departure</div><div style="font-family:var(--mono);font-size:11px;color:var(--muted2);">Notify HQ and family of visit timing change</div></div>
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="var(--muted)" stroke-width="1.5" stroke-linecap="round"><path d="M6 4l4 4-4 4"/></svg>
+        <div style="flex:1;min-width:0;"><div style="font-size:14px;font-weight:600;color:var(--amber);margin-bottom:3px;">Late Arrival / Early Departure</div><div style="font-family:var(--rb-mono);font-size:11px;color:var(--rb-dim);">Notify HQ and family of visit timing change</div></div>
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="var(--rb-dim)" stroke-width="1.5" stroke-linecap="round"><path d="M6 4l4 4-4 4"/></svg>
       </div>
 
       <!-- Time Off -->
-      <div onclick="openFormSheet('timeoff')" style="background:var(--bg2);border:1px solid rgba(200,169,110,.3);border-left:3px solid var(--gold);border-radius:10px;padding:14px;cursor:pointer;touch-action:manipulation;display:flex;align-items:center;gap:12px;min-height:60px;">
+      <div onclick="openFormSheet('timeoff')" style="background:var(--rb-panel);border:1px solid rgba(240,181,73,.3);border-left:3px solid var(--gold);border-radius:12px;padding:14px;cursor:pointer;touch-action:manipulation;display:flex;align-items:center;gap:12px;min-height:60px;">
         <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="var(--gold)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><rect x="3" y="4" width="14" height="13" rx="1.5"/><line x1="3" y1="8" x2="17" y2="8"/><line x1="7" y1="2" x2="7" y2="5"/><line x1="13" y1="2" x2="13" y2="5"/></svg>
-        <div style="flex:1;min-width:0;"><div style="font-size:14px;font-weight:600;color:var(--gold);margin-bottom:3px;">Time Off / Book-Off</div><div style="font-family:var(--mono);font-size:11px;color:var(--muted2);">Sick day, personal day, medical appointment</div></div>
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="var(--muted)" stroke-width="1.5" stroke-linecap="round"><path d="M6 4l4 4-4 4"/></svg>
+        <div style="flex:1;min-width:0;"><div style="font-size:14px;font-weight:600;color:var(--gold);margin-bottom:3px;">Time Off / Book-Off</div><div style="font-family:var(--rb-mono);font-size:11px;color:var(--rb-dim);">Sick day, personal day, medical appointment</div></div>
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="var(--rb-dim)" stroke-width="1.5" stroke-linecap="round"><path d="M6 4l4 4-4 4"/></svg>
       </div>
 
       <!-- Vacation -->
-      <div onclick="openFormSheet('vacation')" style="background:var(--bg2);border:1px solid rgba(200,169,110,.3);border-left:3px solid var(--gold);border-radius:10px;padding:14px;cursor:pointer;touch-action:manipulation;display:flex;align-items:center;gap:12px;min-height:60px;">
+      <div onclick="openFormSheet('vacation')" style="background:var(--rb-panel);border:1px solid rgba(240,181,73,.3);border-left:3px solid var(--gold);border-radius:12px;padding:14px;cursor:pointer;touch-action:manipulation;display:flex;align-items:center;gap:12px;min-height:60px;">
         <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="var(--gold)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="M3 17c2-4 4-6 7-6s5 2 7 6"/><path d="M10 11V5"/><path d="M7 8l3-3 3 3"/></svg>
-        <div style="flex:1;min-width:0;"><div style="font-size:14px;font-weight:600;color:var(--gold);margin-bottom:3px;">Vacation Request</div><div style="font-family:var(--mono);font-size:11px;color:var(--muted2);">ESA-tracked — 2 weeks/year Ontario</div></div>
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="var(--muted)" stroke-width="1.5" stroke-linecap="round"><path d="M6 4l4 4-4 4"/></svg>
+        <div style="flex:1;min-width:0;"><div style="font-size:14px;font-weight:600;color:var(--gold);margin-bottom:3px;">Vacation Request</div><div style="font-family:var(--rb-mono);font-size:11px;color:var(--rb-dim);">ESA-tracked · 2 weeks/year Ontario</div></div>
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="var(--rb-dim)" stroke-width="1.5" stroke-linecap="round"><path d="M6 4l4 4-4 4"/></svg>
       </div>
 
       <!-- Equipment -->
-      <div onclick="openFormSheet('equipment')" style="background:var(--bg2);border:1px solid rgba(168,191,196,.2);border-left:3px solid var(--muted);border-radius:10px;padding:14px;cursor:pointer;touch-action:manipulation;display:flex;align-items:center;gap:12px;min-height:60px;">
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="var(--muted2)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><circle cx="10" cy="10" r="3"/><path d="M10 2v2M10 16v2M2 10h2M16 10h2M4.22 4.22l1.42 1.42M14.36 14.36l1.42 1.42M4.22 15.78l1.42-1.42M14.36 5.64l1.42-1.42"/></svg>
-        <div style="flex:1;min-width:0;"><div style="font-size:14px;font-weight:600;color:var(--muted2);margin-bottom:3px;">Equipment / Supply Issue</div><div style="font-family:var(--mono);font-size:11px;color:var(--muted2);">Missing, broken, or needed supplies at client home</div></div>
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="var(--muted)" stroke-width="1.5" stroke-linecap="round"><path d="M6 4l4 4-4 4"/></svg>
+      <div onclick="openFormSheet('equipment')" style="background:var(--rb-panel);border:1px solid rgba(168,191,196,.2);border-left:3px solid var(--rb-dim);border-radius:12px;padding:14px;cursor:pointer;touch-action:manipulation;display:flex;align-items:center;gap:12px;min-height:60px;">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="var(--rb-dim)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><circle cx="10" cy="10" r="3"/><path d="M10 2v2M10 16v2M2 10h2M16 10h2M4.22 4.22l1.42 1.42M14.36 14.36l1.42 1.42M4.22 15.78l1.42-1.42M14.36 5.64l1.42-1.42"/></svg>
+        <div style="flex:1;min-width:0;"><div style="font-size:14px;font-weight:600;color:var(--rb-dim);margin-bottom:3px;">Equipment / Supply Issue</div><div style="font-family:var(--rb-mono);font-size:11px;color:var(--rb-dim);">Missing, broken, or needed supplies at client home</div></div>
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="var(--rb-dim)" stroke-width="1.5" stroke-linecap="round"><path d="M6 4l4 4-4 4"/></svg>
       </div>
 
     </div>
@@ -3882,13 +3882,13 @@ async function loadMessages(scroll=true) {
       incContainer.style.display = 'block';
       if (incCount) incCount.textContent = incidents.length + ' record' + (incidents.length !== 1 ? 's' : '');
       incList.innerHTML = incidents.map(inc => `
-        <div style="padding:12px 0;border-bottom:1px solid var(--border);">
+        <div style="padding:12px 0;border-bottom:1px solid var(--rb-line);">
           <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
-            <span style="font-size:13px;font-weight:600;color:var(--text);">${inc.visit_date || '—'}</span>
-            <span style="font-family:var(--mono);font-size:10px;padding:2px 7px;border-radius:100px;border:1px solid ${inc.resolved ? 'rgba(90,170,122,.3)' : 'rgba(224,154,61,.3)'};color:${inc.resolved ? '#5aaa7a' : '#e09a3d'};">${inc.resolved ? 'RESOLVED' : 'OPEN'}</span>
+            <span style="font-size:13px;font-weight:600;color:var(--rb-text);">${inc.visit_date || '—'}</span>
+            <span style="font-family:var(--rb-mono);font-size:10px;padding:2px 7px;border-radius:100px;border:1px solid ${inc.resolved ? 'rgba(94,234,181,.3)' : 'rgba(255,179,64,.3)'};color:${inc.resolved ? 'var(--green2)' : 'var(--amber)'};">${inc.resolved ? 'RESOLVED' : 'OPEN'}</span>
           </div>
-          <div style="font-size:12px;color:var(--muted);margin-bottom:2px;">Client: ${inc.client_name || '—'}</div>
-          ${inc.resolved && inc.resolution_note ? `<div style="font-size:12px;color:var(--text);background:var(--bg3);border-radius:6px;padding:6px 8px;margin-top:6px;">Resolution: ${inc.resolution_note}</div>` : ''}
+          <div style="font-size:12px;color:var(--rb-dim);margin-bottom:2px;">Client: ${inc.client_name || '—'}</div>
+          ${inc.resolved && inc.resolution_note ? `<div style="font-size:12px;color:var(--rb-text);background:var(--rb-elev);border-radius:8px;padding:6px 8px;margin-top:6px;">Resolution: ${inc.resolution_note}</div>` : ''}
         </div>`).join('');
     }
     const unreadNotes = notes.filter(n => n.sender === 'lance' && !n.read_at);
@@ -3966,7 +3966,7 @@ async function loadDocuments() {
           <svg viewBox="0 0 24 24" fill="none" stroke="${urgent?'var(--red)':'var(--amber)'}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18" style="flex-shrink:0;margin-top:1px;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
           <div>
             <div style="font-size:12px;font-weight:600;color:${urgent?'var(--red)':'var(--amber)'};">${expiring[0].name} expires in ${daysLeft} day${daysLeft!==1?'s':''}</div>
-            <div style="font-size:11px;color:var(--muted2);margin-top:2px;">Contact Lance to renew — expired certs prevent new client assignments.</div>
+            <div style="font-size:11px;color:var(--rb-dim);margin-top:2px;">Contact Lance to renew · expired certs prevent new client assignments.</div>
           </div>
         </div>`;
       } else {
@@ -3993,15 +3993,15 @@ async function loadDocuments() {
       } else {
         vl.innerHTML = visits.map(v => {
           const hasNote = !!(v.visit_notes && v.visit_notes.trim());
-          return `<div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:8px;">
+          return `<div style="background:var(--rb-panel);border:1px solid var(--rb-line);border-radius:12px;padding:12px 14px;margin-bottom:8px;">
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:${hasNote?'8':'0'}px;">
               <div>
-                <div style="font-size:13px;color:var(--text);font-weight:500;">${v.client_name}</div>
-                <div style="font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:2px;">${fmtd(v.visit_date)} · ${v.time_in||'—'} – ${v.time_out||'—'}</div>
+                <div style="font-size:13px;color:var(--rb-text);font-weight:500;">${v.client_name}</div>
+                <div style="font-family:var(--rb-mono);font-size:11px;color:var(--rb-dim);margin-top:2px;">${fmtd(v.visit_date)} · ${v.time_in||'—'} – ${v.time_out||'—'}</div>
               </div>
-              <div style="font-family:var(--mono);font-size:11px;padding:2px 8px;border-radius:100px;border:1px solid;${hasNote?'color:var(--green2);border-color:rgba(106,201,138,.25);':'color:var(--muted);border-color:var(--border);'}">${hasNote?'note saved':'no note'}</div>
+              <div style="font-family:var(--rb-mono);font-size:11px;padding:2px 8px;border-radius:100px;border:1px solid;${hasNote?'color:var(--green2);border-color:rgba(94,234,181,.25);':'color:var(--rb-dim);border-color:var(--rb-line);'}">${hasNote?'note saved':'no note'}</div>
             </div>
-            ${hasNote?`<div style="font-size:12px;color:var(--muted2);line-height:1.6;border-top:1px solid var(--border);padding-top:8px;">${v.visit_notes}</div>`:''}
+            ${hasNote?`<div style="font-size:12px;color:var(--rb-dim);line-height:1.6;border-top:1px solid var(--rb-line);padding-top:8px;">${v.visit_notes}</div>`:''}
           </div>`;
         }).join('');
       }
@@ -4591,25 +4591,25 @@ function openVisitDetail(vid) {
   document.getElementById('vd-date').textContent = fmtd(v.visit_date) + (v.time_in ? ' · ' + fmtTime(v.time_in) + (v.time_out ? ' – ' + fmtTime(v.time_out) : '') : '');
   const rawHrs = v.manual_hours_override != null ? parseFloat(v.manual_hours_override) : parseFloat(v.hours_worked||0);
   const hrs = rawHrs.toFixed(1);
-  const hrsLabel = v.manual_hours_override != null ? hrs + 'h <span style="font-size:10px;font-family:var(--mono);color:var(--gold);letter-spacing:1px;">HQ ADJUSTED</span>' : hrs + 'h';
+  const hrsLabel = v.manual_hours_override != null ? hrs + 'h <span style="font-size:10px;font-family:var(--rb-mono);color:var(--gold);letter-spacing:1px;">HQ ADJUSTED</span>' : hrs + 'h';
   const tasks = Array.isArray(v.tasks_completed) ? v.tasks_completed.join(', ') : (v.tasks_completed||'');
   const meds = Array.isArray(v.meds_given) ? v.meds_given.join(', ') : (v.meds_given||'');
   let body = `<div class="cs-section">
     <div class="cs-section-lbl">Visit Summary</div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">
-      <div style="background:var(--bg3);border-radius:8px;padding:10px 12px;text-align:center;">
-        <div style="font-family:var(--mono);font-size:18px;color:var(--teal2);">${hrsLabel}</div>
-        <div style="font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-top:2px;">Hours</div>
+      <div style="background:var(--rb-elev);border-radius:8px;padding:10px 12px;text-align:center;">
+        <div style="font-family:var(--rb-mono);font-size:18px;color:var(--psw);">${hrsLabel}</div>
+        <div style="font-family:var(--rb-mono);font-size:11px;color:var(--rb-dim);letter-spacing:1px;text-transform:uppercase;margin-top:2px;">Hours</div>
       </div>
-      <div style="background:var(--bg3);border-radius:8px;padding:10px 12px;text-align:center;">
+      <div style="background:var(--rb-elev);border-radius:8px;padding:10px 12px;text-align:center;">
         <div style="font-size:18px;">${v.client_mood ? {'Great':'●','Good':'●','Neutral':'●','Low':'●','Agitated':'●'}[v.client_mood]||v.client_mood : '—'}</div>
-        <div style="font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-top:2px;">Mood</div>
+        <div style="font-family:var(--rb-mono);font-size:11px;color:var(--rb-dim);letter-spacing:1px;text-transform:uppercase;margin-top:2px;">Mood</div>
       </div>
     </div>
-    ${tasks ? `<div style="font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;">Tasks Completed</div><div style="font-size:13px;color:var(--muted2);line-height:1.7;margin-bottom:10px;">${tasks}</div>` : ''}
-    ${meds ? `<div style="font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;">Medications Given</div><div style="font-size:13px;color:var(--text);margin-bottom:10px;">${meds}</div>` : ''}
-    ${v.visit_summary ? `<div style="font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;">AI Care Summary</div><div style="font-size:13px;color:var(--muted2);line-height:1.8;background:var(--bg3);border-radius:8px;padding:10px 12px;">${v.visit_summary}</div>` : ''}
-    ${v.observations ? `<div style="font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-top:10px;margin-bottom:6px;">Observations</div><div style="font-size:13px;color:var(--muted2);line-height:1.8;">${v.observations}</div>` : ''}
+    ${tasks ? `<div style="font-family:var(--rb-mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--rb-dim);margin-bottom:6px;">Tasks Completed</div><div style="font-size:13px;color:var(--rb-dim);line-height:1.7;margin-bottom:10px;">${tasks}</div>` : ''}
+    ${meds ? `<div style="font-family:var(--rb-mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--rb-dim);margin-bottom:6px;">Medications Given</div><div style="font-size:13px;color:var(--rb-text);margin-bottom:10px;">${meds}</div>` : ''}
+    ${v.visit_summary ? `<div style="font-family:var(--rb-mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--rb-dim);margin-bottom:6px;">AI Care Summary</div><div style="font-size:13px;color:var(--rb-dim);line-height:1.8;background:var(--rb-elev);border-radius:8px;padding:10px 12px;">${v.visit_summary}</div>` : ''}
+    ${v.observations ? `<div style="font-family:var(--rb-mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--rb-dim);margin-top:10px;margin-bottom:6px;">Observations</div><div style="font-size:13px;color:var(--rb-dim);line-height:1.8;">${v.observations}</div>` : ''}
   </div>`;
   document.getElementById('vd-body').innerHTML = body;
   document.getElementById('visit-detail-overlay').classList.add('open');
