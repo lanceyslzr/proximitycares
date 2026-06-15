@@ -4,7 +4,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover"/>
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -116,7 +116,7 @@ a{color:inherit;text-decoration:none;}
 .section{display:none;padding-bottom:8px;}
 .section.active{display:block;}
 /* Messages section — flex column so thread fills space and input stays at bottom */
-#sect-messages.active{display:flex;flex-direction:column;height:calc(100dvh - 64px - env(safe-area-inset-bottom));padding:0;overflow:hidden;}
+#sect-messages.active{display:flex;flex-direction:column;height:calc(100dvh - 52px - 64px - env(safe-area-inset-bottom));padding:0;overflow:hidden;}
 .section-header{display:flex;align-items:center;justify-content:space-between;padding:12px 14px 8px;}
 .section-title{font-size:12px;letter-spacing:3px;text-transform:uppercase;color:var(--muted2);}
 
@@ -169,13 +169,6 @@ a{color:inherit;text-decoration:none;}
 .feed-see-more:active{background:rgba(86,200,245,.14);}
 .feed-see-more svg{width:14px;height:14px;}
 
-/* route map minimize */
-.route-min-btn{width:30px;height:30px;border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0;border:1px solid var(--rb-line2);background:var(--rb-elev);color:var(--rb-dim);cursor:pointer;touch-action:manipulation;transition:all .14s var(--e);}
-.route-min-btn:active{background:var(--rb-base);}
-.route-min-btn svg{width:16px;height:16px;transition:transform .25s var(--e);}
-.route-card.min .route-map{display:none;}
-.route-card.min .route-min-btn svg{transform:rotate(180deg);}
-
 /* ACTIVE BANNER — glass */
 .active-banner{margin:12px;background:linear-gradient(165deg,rgba(255,179,64,.06),rgba(255,255,255,.012)),var(--rb-panel);border:1px solid rgba(255,179,64,.28);border-radius:16px;padding:16px;display:none;box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 14px 34px -20px rgba(0,0,0,.85);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);}
 .active-banner.show{display:block;}
@@ -225,7 +218,10 @@ a{color:inherit;text-decoration:none;}
 /* today's route mini map */
 .route-card{margin:0 12px 12px;border-radius:20px;overflow:hidden;border:1px solid var(--rb-line2);
   background:var(--rb-panel);box-shadow:inset 0 1px 0 rgba(255,255,255,.04),0 20px 50px -30px rgba(0,0,0,.9);}
-.route-hd{display:flex;align-items:center;justify-content:space-between;padding:13px 16px;}
+.route-hd{display:flex;align-items:center;justify-content:space-between;padding:13px 16px;cursor:pointer;-webkit-tap-highlight-color:transparent;}
+.route-chev{display:flex;align-items:center;justify-content:center;color:var(--rb-dim);transition:transform .32s var(--e);}
+.route-chev svg{width:18px;height:18px;}
+.route-card:not(.collapsed) .route-chev{transform:rotate(180deg);}
 .route-hd-l{display:flex;align-items:center;gap:10px;}
 .route-hd-icon{width:30px;height:30px;border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0;
   background:linear-gradient(160deg,rgba(86,200,245,.16),rgba(86,200,245,.04));border:1px solid rgba(86,200,245,.28);color:var(--psw-light);}
@@ -233,6 +229,8 @@ a{color:inherit;text-decoration:none;}
 .route-hd-t{font-family:var(--rb-sans);font-size:14px;font-weight:600;color:var(--rb-text);letter-spacing:-.2px;}
 .route-hd-s{font-family:var(--rb-mono);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--rb-dim);margin-top:2px;}
 .route-map{width:100%;height:200px;background:var(--rb-base);position:relative;}
+.route-map-wrap{max-height:0;overflow:hidden;transition:max-height .34s var(--e);}
+.route-card:not(.collapsed) .route-map-wrap{max-height:220px;}
 .route-empty{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:20px;text-align:center;}
 .route-empty svg{width:26px;height:26px;color:var(--rb-dim);opacity:.7;}
 .route-empty div{font-family:var(--rb-mono);font-size:11px;color:var(--rb-dim);letter-spacing:.5px;line-height:1.6;max-width:240px;}
@@ -884,18 +882,20 @@ a{color:inherit;text-decoration:none;}
   </div>
 
   <!-- LIVING HOME: today's route map -->
-  <div class="route-card" id="route-card" style="display:none;">
-    <div class="route-hd">
+  <div class="route-card collapsed" id="route-card" style="display:none;">
+    <div class="route-hd" onclick="toggleRouteMap()">
       <div class="route-hd-l">
         <div class="route-hd-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 20l-5.5 2V6L9 4m0 16 6-2m-6 2V4m6 14 5.5 2V6L15 4m0 14V4m-6 0 6 2"/></svg></div>
         <div><div class="route-hd-t">Today's Route</div><div class="route-hd-s" id="route-hd-s">Your visits today</div></div>
       </div>
-      <button class="route-min-btn" onclick="toggleRouteMap()" aria-label="Minimize map"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 15l6-6 6 6"/></svg></button>
+      <div class="route-chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></div>
     </div>
-    <div class="route-map" id="route-map">
-      <div class="route-empty" id="route-empty">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21c4.5-4.2 7-7.6 7-11a7 7 0 1 0-14 0c0 3.4 2.5 6.8 7 11Z"/><circle cx="12" cy="10" r="2.4"/></svg>
-        <div>Route appears once your client addresses are on file</div>
+    <div class="route-map-wrap" id="route-map-wrap">
+      <div class="route-map" id="route-map">
+        <div class="route-empty" id="route-empty">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21c4.5-4.2 7-7.6 7-11a7 7 0 1 0-14 0c0 3.4 2.5 6.8 7 11Z"/><circle cx="12" cy="10" r="2.4"/></svg>
+          <div>Route appears once your client addresses are on file</div>
+        </div>
       </div>
     </div>
   </div>
@@ -958,7 +958,7 @@ a{color:inherit;text-decoration:none;}
 
   <div class="section-header" style="padding-bottom:4px;">
     <span class="section-title">Today &amp; Recent</span>
-    <span style="font-family:var(--mono);font-size:11px;color:var(--muted);" id="home-last-updated">—</span>
+    <span style="font-family:var(--rb-mono);font-size:11px;color:var(--rb-dim);" id="home-last-updated">—</span>
   </div>
   <div class="feed-card" id="home-feed">
     <div class="skeleton-row"></div><div class="skeleton-row"></div><div class="skeleton-row"></div><div class="skeleton-row"></div>
@@ -1002,7 +1002,7 @@ a{color:inherit;text-decoration:none;}
   <div id="avail-shifts-section" style="display:none;">
     <div class="section-header" style="padding-top:4px;">
       <span class="section-title">Available Shifts</span>
-      <span style="font-family:var(--mono);font-size:11px;color:var(--gold);">Tap to claim</span>
+      <span style="font-family:var(--rb-mono);font-size:11px;color:var(--gold);">Tap to claim</span>
     </div>
     <div id="avail-shifts-list"></div>
   </div>
@@ -1018,7 +1018,7 @@ a{color:inherit;text-decoration:none;}
 <div class="section" id="sect-checklist">
   <div class="section-header">
     <span class="section-title">Daily Checklist</span>
-    <div id="cl-visit-name" style="font-family:var(--mono);font-size:11px;color:var(--teal2);letter-spacing:1px;"></div>
+    <div id="cl-visit-name" style="font-family:var(--rb-mono);font-size:11px;color:var(--psw);letter-spacing:1px;"></div>
   </div>
 
   <!-- VISIT FORMS — loaded on checkin, submitted during visit -->
@@ -1085,7 +1085,7 @@ a{color:inherit;text-decoration:none;}
         <label class="form-label" style="font-size:11px;">Blood Pressure (Sys/Dia)</label>
         <div style="display:flex;gap:4px;align-items:center;">
           <input type="number" id="cl-bp-sys" class="sinput" placeholder="120" min="60" max="250" style="font-size:16px;padding:10px;text-align:center;" oninput="saveBPVitals()">
-          <span style="font-family:var(--mono);color:var(--muted);font-size:14px;">/</span>
+          <span style="font-family:var(--rb-mono);color:var(--rb-dim);font-size:14px;">/</span>
           <input type="number" id="cl-bp-dia" class="sinput" placeholder="80" min="40" max="150" style="font-size:16px;padding:10px;text-align:center;" oninput="saveBPVitals()">
         </div>
       </div>
@@ -1106,7 +1106,7 @@ a{color:inherit;text-decoration:none;}
       <label class="form-label" style="font-size:11px;">Blood Sugar (mmol/L), optional</label>
       <input type="number" id="cl-glucose" class="sinput" placeholder="5.5" step="0.1" min="1" max="30" style="font-size:16px;padding:10px;" oninput="saveBPVitals()">
     </div>
-    <div id="cl-bp-status" style="font-family:var(--mono);font-size:11px;color:var(--muted);margin-bottom:4px;min-height:18px;"></div>
+    <div id="cl-bp-status" style="font-family:var(--rb-mono);font-size:11px;color:var(--rb-dim);margin-bottom:4px;min-height:18px;"></div>
 
     <div class="cl-section-title">Observations &amp; Supplies</div>
     <div style="margin-bottom:10px;">
@@ -2047,6 +2047,8 @@ function unlockApp() {
   hydrateFromCache(); // Pass 1: paint last-known data INSTANTLY, before network returns
   fetchPSWEmail();
   loadAll();
+  // Route map fix: invalidate once home is visible and the map is built (prevents blank map after unlock)
+  (function fixHomeMap(n){ try { if (_homeMap) { _homeMap.invalidateSize(); return; } } catch(e){} if ((n||0) < 10) setTimeout(() => fixHomeMap((n||0)+1), 300); })(0);
   restoreChecklist(); // initial restore with global key (best-effort before visit loads)
   setTimeout(restoreChecklistState, 2000); // restore after loadSchedule brings back active visit
   // Deferred restore: once active visit is known, re-run with the correct visit-keyed localStorage
@@ -2413,13 +2415,6 @@ function renderHomeFeed() {
 }
 // ── ALAYACARE-STYLE SCHEDULE STRIP ───────────────────────────────────────────
 function toggleHomeFeedExpand(){ window._homeFeedExpanded = !window._homeFeedExpanded; renderHomeFeed(); }
-function toggleRouteMap(){
-  const c = document.getElementById('route-card');
-  if (!c) return;
-  c.classList.toggle('min');
-  if (!c.classList.contains('min') && _homeMap) setTimeout(() => { try { _homeMap.invalidateSize(); } catch (e) {} }, 160);
-}
-
 let _selectedSchedDay = null; // YYYY-MM-DD
 
 function renderWeek() {
@@ -4854,7 +4849,7 @@ function updateTodayProgress() {
   if (!scheduleData) return;
   const today = new Date().toLocaleDateString('en-CA',{timeZone:'America/Toronto'});
   const todayBookings = (scheduleData.bookings||[]).filter(b => b.scheduled_date === today);
-  const todayDone = (scheduleData.completed_visits||[]).filter(v => v.visit_date === today);
+  const todayDone = (scheduleData.completed_visits||[]).filter(v => v.visit_date === today && v.time_out);
   const total = todayBookings.length;
   const done = todayDone.length;
   window._homeDone = done; window._homeTotal = total;
@@ -4993,6 +4988,17 @@ function renderHomeLiving(){
   } catch (e) {}
 }
 
+function toggleRouteMap(){
+  const card = document.getElementById('route-card');
+  if (!card) return;
+  card.classList.toggle('collapsed');
+  if (card.classList.contains('collapsed')) return;
+  // expanding: the map is already built at a fixed 200px inside the clipping wrapper, just reveal it.
+  // build now if addresses arrived after load, then repaint once for first-reveal safety.
+  if (!_homeMap) { try { initRouteMap(); } catch (e) {} }
+  [60, 400].forEach(function(ms){ setTimeout(function(){ try { if (_homeMap) _homeMap.invalidateSize(); } catch (e) {} }, ms); });
+}
+
 function initRouteMap(){
   try {
     const card = document.getElementById('route-card');
@@ -5025,6 +5031,7 @@ function initRouteMap(){
     }
     if (empty) empty.style.display = 'none';
     if (sub) sub.textContent = stops.length + ' stop' + (stops.length !== 1 ? 's' : '') + ' today';
+    if (card.classList.contains('collapsed')) return;
     if (_routeMapInit && _homeMap) return;
 
     loadLeaflet(() => {
@@ -5328,7 +5335,7 @@ function openRouteMap() {
 // ── HEADING TO NEXT CLIENT ──
 function headingToNextClient() {
   const today = new Date().toLocaleDateString('en-CA',{timeZone:'America/Toronto'});
-  const done = (scheduleData?.completed_visits||[]).filter(v => v.visit_date === today);
+  const done = (scheduleData?.completed_visits||[]).filter(v => v.visit_date === today && v.time_out);
   const todayB = (scheduleData?.bookings||[]).filter(b => b.scheduled_date === today);
   const _navDoneSet = buildDoneSet(todayB, done);
   const upcoming = todayB

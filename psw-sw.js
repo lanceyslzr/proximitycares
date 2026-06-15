@@ -1,13 +1,13 @@
-// Proximity PSW Portal — Service Worker v8
-// Upgraded: offline queue sync + web push notifications + cache bust
-// v8: offline shell is /psw-portal.html (index.html is now the family marketing site)
-const CACHE = 'proximity-psw-v8';
+// Proximity PSW Portal — Service Worker v12
+// Bump: Session 5 cache bust (visit forms UI)
+const CACHE = 'proximity-psw-v14';
 const STATIC = [
-  '/psw-portal.html',
   '/psw-manifest.json',
   '/psw-icon-192.png',
   'https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&display=swap'
 ];
+// NOTE: index.html intentionally excluded from STATIC cache
+// It is always fetched fresh so PSW portal updates deploy immediately
 
 // ── INSTALL ──
 self.addEventListener('install', e => {
@@ -43,31 +43,40 @@ self.addEventListener('fetch', e => {
     return;
   }
 
-  // Network-first for HTML, cache-first for everything else
-  if (url.pathname.endsWith('.html') || url.pathname === '/') {
+  // index.html — ALWAYS network first, never serve stale
+  // This ensures PSW portal updates are instant on next load
+  if (url.pathname.endsWith('.html') || url.pathname === '/' || url.pathname === '/index.html') {
     e.respondWith(
-      fetch(e.request).then(res => {
-        if (res && res.status === 200 && e.request.url.startsWith('http')) {
-          const clone = res.clone();
-          caches.open(CACHE).then(cache => cache.put(e.request, clone));
-        }
-        return res;
-      }).catch(() => caches.match(e.request))
+      fetch(e.request, { cache: 'no-store' })
+        .then(res => {
+          // Do NOT cache index.html — return fresh every time
+          return res;
+        })
+        .catch(() => {
+          // Offline — serve cached version as fallback only
+          return caches.match('/index.html');
+        })
     );
     return;
   }
 
+  // Service worker JS files — never cache
+  if (url.pathname.endsWith('.js') && url.pathname.includes('sw')) {
+    e.respondWith(fetch(e.request, { cache: 'no-store' }));
+    return;
+  }
+
+  // Everything else — cache first, network fallback
   e.respondWith(
     caches.match(e.request).then(cached => {
       if (cached) return cached;
       return fetch(e.request).then(res => {
-        if (res && res.status === 200 && res.type !== 'opaque' &&
-            e.request.url.startsWith('http')) {
+        if (res && res.status === 200 && res.type !== 'opaque') {
           const clone = res.clone();
           caches.open(CACHE).then(cache => cache.put(e.request, clone));
         }
         return res;
-      }).catch(() => caches.match('/psw-portal.html'));
+      }).catch(() => caches.match('/index.html'));
     })
   );
 });
