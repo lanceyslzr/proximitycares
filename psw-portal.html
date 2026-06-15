@@ -2117,6 +2117,7 @@ async function loadSchedule() {
     updateShiftUI();
     renderWeek();
     renderAvailableShifts(); // Build 7
+    renderHomeFeed();        // redraw home feed + map when schedule data lands (covers load, 30s refresh, realtime). cascades: renderHomeFeed -> updateTodayProgress -> renderHomeLiving -> initRouteMap
     showUpdatingCue(false); // fresh data in — hide the updating cue
   } catch (e) { console.error('loadSchedule:', e); }
 }
