@@ -2107,7 +2107,7 @@ async function loadSchedule() {
     cachePSWData('sched', d); // Pass 1: cache for instant render next open
     // Pass 2: capture realtime config + connect (once)
     if (d.supabase && !_supaClient) {
-      SUPA_URL = d.supabase.url || ''; SUPA_ANON = d.supabase.anon_key || '';
+      SUPA_URL = (d.supabase.url || '').trim(); SUPA_ANON = (d.supabase.anon_key || '').trim();
       initPSWRealtime();
     }
     activeVisit = d.active_visit || null;

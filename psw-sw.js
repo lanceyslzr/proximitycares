@@ -32,6 +32,9 @@ self.addEventListener('activate', e => {
 self.addEventListener('fetch', e => {
   const url = new URL(e.request.url);
 
+  // Ignore non-http(s) schemes (chrome-extension:, data:, blob:) — Cache API can't store them
+  if (url.protocol !== 'http:' && url.protocol !== 'https:') return;
+
   // Always hit network for Railway API calls
   if (url.hostname === 'proximity-agent-production.up.railway.app') {
     e.respondWith(
