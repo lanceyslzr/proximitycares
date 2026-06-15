@@ -713,6 +713,8 @@ a{color:inherit;text-decoration:none;}
 
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<link rel="stylesheet" id="leaflet-css" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 </head>
 <body>
 
@@ -6178,7 +6180,7 @@ let _navClientMarker = null;
 let _navRouteLine = null;
 
 function loadLeaflet(cb) {
-  if (_navLeafletLoaded && window.L) { cb(); return; }
+  if (window.L) { _navLeafletLoaded = true; cb(); return; }
   // Load Leaflet CSS
   if (!document.getElementById('leaflet-css')) {
     const link = document.createElement('link');

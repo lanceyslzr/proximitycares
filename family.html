@@ -4,7 +4,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover"/>
 <meta name="mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
@@ -14,7 +14,7 @@
 <link rel="manifest" href="family-manifest.json"/>
 <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png"/>
 <link rel="apple-touch-icon" href="/icon-192.png"/>
-<title>Family Portal — Proximity Care</title>
+<title>Family Portal · Proximity Care</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet"/>
 <style>
 /* ── MOBILE RESET: Android overflow, box-sizing, safe-area ── */
@@ -227,7 +227,6 @@ textarea::placeholder,input::placeholder{color:rgba(184,207,212,.4);}
 
 button{transition:transform 50ms ease;touch-action:manipulation;-webkit-tap-highlight-color:transparent;}
 button:active{transform:scale(0.98);}
-.pin-btn:active{transform:scale(0.96);}
 
 /* ── FAMILY PORTAL DARK THEME NEW FEATURES ── */
 .fam-alert-banner{margin:16px 16px 0;padding:12px 14px;border-radius:10px;}
@@ -303,15 +302,15 @@ button:active{transform:scale(0.98);}
   --muted2:var(--rb-dim);
   --accent:var(--rb-primary);
   --teal:var(--rb-primary);
-  --teal2:#3d8a7a;
-  --teal3:#4d9a8a;
-  --gold:#c8a96e;
+  --teal2:var(--rb-primary);
+  --teal3:var(--rb-primary);
+  --gold:var(--rb-gold);
   --red:#e05555;
   --amber:#e09a3d;
   --green2:#4a9a6e;
   --mono:'DM Mono',monospace;
-  --sans:'DM Sans',sans-serif;
-  --serif:'Cormorant Garamond',serif;
+  --sans:var(--rb-sans);
+  --serif:var(--rb-serif);
   /* Legacy aliases */
   --success:#4a9a6e;
   --warning:#e09a3d;
@@ -329,22 +328,21 @@ button:active{transform:scale(0.98);}
 .gate-brand{font-family:'Inter',sans-serif;font-size:22px;font-weight:600;color:var(--text);text-align:center;margin-bottom:4px;}
 .gate-brand em{color:var(--green);font-style:normal;}
 .gate-sub{text-align:center;font-size:13px;color:var(--muted);margin-bottom:40px;}
-.gate-card{background:var(--bg2);border-radius:16px;padding:36px 28px;border:1px solid var(--border2);}
-.gate-icon{width:56px;height:56px;background:var(--green-l);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;color:var(--green);}
-.gate-icon svg{width:28px;height:28px;}
+.gate-card{background:var(--bg2);border-radius:22px;padding:34px 26px 26px;border:1px solid var(--border);}
+.gate-icon{width:58px;height:58px;background:rgba(52,211,153,.1);border:1px solid rgba(52,211,153,.22);box-shadow:0 0 32px rgba(52,211,153,.12);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;color:var(--green);}
+.gate-icon svg{width:27px;height:27px;}
 .gate-title{font-family:'Inter',sans-serif;font-size:20px;font-weight:600;text-align:center;margin-bottom:6px;color:var(--text);}
 .gate-hint{font-size:13px;color:var(--muted);text-align:center;margin-bottom:28px;line-height:1.6;}
-.pin-dots{display:flex;gap:14px;justify-content:center;margin-bottom:32px;}
-.pin-dot{width:14px;height:14px;border-radius:50%;border:2px solid var(--border2);transition:all 0.15s;}
-.pin-dot.filled{background:var(--green);border-color:var(--green);}
-.pin-pad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
-.pin-btn{background:var(--bg3);border:1px solid var(--border2);border-radius:14px;padding:16px;font-size:20px;font-weight:500;font-family:'Inter',sans-serif;color:var(--text);cursor:pointer;transition:background 0.15s,border-color 0.15s;text-align:center;min-height:56px;touch-action:manipulation;-webkit-tap-highlight-color:transparent;}
-.pin-btn:hover{background:var(--green-l);border-color:var(--accent);}
-.pin-btn:active{transform:scale(0.96);}
-.pin-btn.del{font-size:16px;color:var(--muted);}
-.pin-btn.del svg{width:20px;height:20px;display:block;margin:0 auto;}
-.pin-btn.empty{background:none;border:none;cursor:default;}
-.pin-error{text-align:center;font-size:13px;color:var(--error);margin-top:16px;opacity:0;transition:opacity 0.2s;min-height:44px;}
+.pin-dots{display:flex;gap:16px;justify-content:center;margin-bottom:30px;}
+.pin-dot{width:12px;height:12px;border-radius:50%;border:1.5px solid var(--border2);transition:all .18s;}
+.pin-dot.filled{background:var(--green);border-color:var(--green);box-shadow:0 0 10px rgba(52,211,153,.5);}
+.pin-pad{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;justify-items:center;}
+.pin-btn{width:72px;height:72px;margin:0 auto;padding:0;border-radius:50%;border:1px solid var(--border2);background:rgba(255,255,255,.025);font-size:24px;font-weight:400;font-family:'Inter',sans-serif;color:var(--text);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .12s,border-color .12s,transform .12s;touch-action:manipulation;-webkit-tap-highlight-color:transparent;user-select:none;}
+.pin-btn:active{background:rgba(255,255,255,.07);border-color:var(--accent);transform:scale(.94);}
+.pin-btn.del{color:var(--muted);}
+.pin-btn.del svg{width:22px;height:22px;display:block;margin:0 auto;}
+.pin-btn.empty{background:none;border:none;cursor:default;pointer-events:none;}
+.pin-error{text-align:center;font-size:13px;color:var(--error);margin-top:14px;opacity:0;transition:opacity 0.2s;min-height:20px;}
 .pin-error.show{opacity:1;}
 
 
@@ -504,7 +502,6 @@ button:active{transform:scale(0.98);}
 
 button{transition:transform 50ms ease;touch-action:manipulation;-webkit-tap-highlight-color:transparent;}
 button:active{transform:scale(0.98);}
-.pin-btn:active{transform:scale(0.96);}
 
 /* ── VISIT MAP ── */
 .map-btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:12px 16px;background:var(--bg2);border:1px solid var(--border2);border-radius:12px;color:var(--teal3);font-size:13px;font-weight:500;font-family:'Inter',sans-serif;cursor:pointer;margin-bottom:16px;transition:background .15s;touch-action:manipulation;-webkit-tap-highlight-color:transparent;}
@@ -762,7 +759,7 @@ button:active{transform:scale(0.98);}
 /* Topbar */
 @media(max-width:360px){
   .content{padding:16px 14px;}
-  .pin-btn{min-height:50px;font-size:18px;}
+  .pin-btn{width:62px;height:62px;font-size:21px;}
   .status-name{font-size:18px;}
   .nav-label{font-size:10px;}
 }
@@ -1056,6 +1053,7 @@ button:active{transform:scale(0.98);}
   color:var(--rb-text)!important; letter-spacing:0!important; margin-bottom:8px!important; }
 .gate-hint{ font-family:var(--rb-sans)!important; color:var(--rb-dim)!important; font-size:14px!important;
   line-height:1.6!important; margin-bottom:34px!important; }
+.gate-help{ text-align:center; font-family:var(--rb-mono); font-size:11px; letter-spacing:.5px; color:var(--rb-faint); margin-top:20px; line-height:1.5; }
 /* PIN dots — glow when filled */
 .pin-dots{ gap:16px!important; margin-bottom:38px!important; }
 .pin-dot{ width:13px!important; height:13px!important; border:1.5px solid var(--rb-line2)!important; }
@@ -1225,7 +1223,7 @@ button:active{transform:scale(0.98);}
     <div class="gate-card" id="gateCard">
       <div class="gate-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5L12 3l9 7.5"/><path d="M5 9.5V20a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V9.5"/><path d="M10 21v-6h4v6"/></svg></div>
       <div class="gate-title">Welcome back.</div>
-      <div class="gate-hint">Enter your 4-digit access code to view your care portal.<br><span style="font-size:13px;color:var(--muted);margin-top:6px;display:block;">Your code was included in the welcome email from Lance. Need help? Call 647-382-8047.</span></div>
+      <div class="gate-hint">Enter your 4-digit access code</div>
       <div class="pin-dots">
         <div class="pin-dot" id="d0"></div>
         <div class="pin-dot" id="d1"></div>
@@ -1248,6 +1246,7 @@ button:active{transform:scale(0.98);}
       </div>
       <div class="pin-error" id="pinError">Wrong code. Try again.</div>
     </div>
+    <div class="gate-help">Lost your code? Call 647-382-8047</div>
   </div>
 </div>
 
@@ -1518,7 +1517,7 @@ function formatVitalsCompact(v) {
   }
   if (!pills.length) return '';
   const allNormal = !v.flagged;
-  return pills.join('') + (allNormal ? '<div style="font-family:var(--mono);font-size:11px;color:var(--teal2);margin-top:4px;">✓ All readings within normal range</div>' : '<div style="font-family:var(--mono);font-size:11px;color:var(--amber);margin-top:4px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;vertical-align:-0.12em;"><path d="M12 3 2 20h20L12 3zM12 9v5M12 17v.01"/></svg> Some readings flagged — coordinator notified</div>');
+  return pills.join('') + (allNormal ? '<div style="font-family:var(--mono);font-size:11px;color:var(--teal2);margin-top:4px;">✓ All readings within normal range</div>' : '<div style="font-family:var(--mono);font-size:11px;color:var(--amber);margin-top:4px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;vertical-align:-0.12em;"><path d="M12 3 2 20h20L12 3zM12 9v5M12 17v.01"/></svg> Some readings flagged, coordinator notified</div>');
 }
 
 // ── D1: Patient access log ──────────────────────────────────────────
@@ -1732,7 +1731,7 @@ function showTab(tab) {
           <div style="flex-shrink:0;display:flex;color:var(--accent);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
           <div>
             <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:2px;">Some visits require two caregivers</div>
-            <div style="font-size:12px;color:var(--muted2);line-height:1.6;">${client.two_psw_reason ? client.two_psw_reason + ' — t' : 'T'}wo PSWs are needed to safely assist with certain care tasks. Both will be present together.</div>
+            <div style="font-size:12px;color:var(--muted2);line-height:1.6;">${client.two_psw_reason ? client.two_psw_reason + ', t' : 'T'}wo PSWs are needed to safely assist with certain care tasks. Both will be present together.</div>
           </div>
         </div>`
       : '';
@@ -1924,7 +1923,7 @@ function showTab(tab) {
     });
     const pswPanel = Object.keys(pswMap).length ? `
       <div class="section">
-        <div class="section-title">Care Team — ${range.label}</div>
+        <div class="section-title">Care Team · ${range.label}</div>
         <div class="card" style="overflow:hidden;">
           ${Object.entries(pswMap).map(([name, s]) => {
             const ini = name.split(' ').map(w=>w[0]||'').join('').toUpperCase().slice(0,2);
@@ -1958,7 +1957,7 @@ function showTab(tab) {
       const lastVal = vals[vals.length-1];
       const lastColor = lastVal>=4?'#3aaa8a':lastVal===3?'#c8a96e':'#e05555';
       const lastMood = moodData[moodData.length-1].client_mood;
-      return `<div class="section"><div class="section-title">Wellbeing Trend — Last ${moodData.length} Visits</div><div class="card" style="padding:16px;">
+      return `<div class="section"><div class="section-title">Wellbeing Trend · Last ${moodData.length} Visits</div><div class="card" style="padding:16px;">
         <div style="display:flex;justify-content:space-between;margin-bottom:8px;"><span style="font-size:12px;color:var(--muted);">${fmtDate(moodData[0].visit_date)}</span><span style="font-size:13px;font-weight:600;color:${lastColor};">Most recent: ${lastMood}</span></div>
         <svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;">
           <polyline points="${pts.join(' ')}" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
@@ -2003,7 +2002,7 @@ function showTab(tab) {
         </button>
       </div>
       <div class="section">
-        <div class="section-title">Visits — ${range.label}</div>
+        <div class="section-title">Visits · ${range.label}</div>
         <div class="card">
           ${filtered.length > 0
             ? scheduledUpcoming + shown.map(v => visitRow(v)).join('') +
@@ -2026,7 +2025,7 @@ function showTab(tab) {
       <div class="section">
         <div class="section-title">Leave Feedback on a Visit</div>
         <div class="card" style="padding:16px;">
-          <p style="font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:14px;">Share private feedback about any visit or caregiver. Only your coordinator sees this — it helps us maintain quality care.</p>
+          <p style="font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:14px;">Share private feedback about any visit or caregiver. Only your coordinator sees this, it helps us maintain quality care.</p>
 
           <div style="margin-bottom:12px;">
             <div style="font-size:11px;font-weight:600;color:var(--text-secondary);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px;font-size:10px;">Which caregiver?</div>
@@ -2115,7 +2114,7 @@ function showTab(tab) {
     const { documents, psw } = portalData;
     html = `
       <div class="section">
-        <div class="section-title">${psw.name} — Documents</div>
+        <div class="section-title">${psw.name} · Documents</div>
         <div class="card">
           ${documents && documents.length > 0
             ? documents.map(d => `
@@ -2402,7 +2401,7 @@ async function rateVisit(visitId, slug, rating, btn) {
     });
     const d = await res.json();
     if (!d.success) throw new Error(d.error || 'Rating failed');
-    row.innerHTML = `${starsRow(rating)} <span class="stars-label">Rated ${rating}/5 — thank you</span>`;
+    row.innerHTML = `${starsRow(rating)} <span class="stars-label">Rated ${rating}/5, thank you</span>`;
     row.classList.replace('unrated','rated');
   } catch(e) {
     btns.forEach(b => { b.innerHTML = starSVG(false); b.disabled = false; });
@@ -2967,7 +2966,7 @@ function scrollToNoteWithContext(visitDate, pswName) {
   if (!input) { showTab('visits'); setTimeout(() => scrollToNoteWithContext(visitDate, pswName), 200); return; }
   // Pre-fill with context
   if (visitDate || pswName) {
-    const ctx = pswName ? `Re: ${pswName}${visitDate ? ' on ' + visitDate : ''} — ` : '';
+    const ctx = pswName ? `Re: ${pswName}${visitDate ? ' on ' + visitDate : ''} · ` : '';
     if (!input.value) { input.value = ctx; input.selectionStart = input.selectionEnd = ctx.length; }
   }
   input.scrollIntoView({ behavior: 'smooth', block: 'center' });
