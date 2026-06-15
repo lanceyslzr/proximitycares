@@ -1,13 +1,14 @@
-// Proximity PSW Portal — Service Worker v12
-// Bump: Session 5 cache bust (visit forms UI)
-const CACHE = 'proximity-psw-v14';
+// Proximity PSW Portal — Service Worker (proximitycares repo / main domain)
+// This domain serves the portal as /psw-portal.html (and family marketing as /index.html).
+// v15: adopt no-store HTML design (matches proximitycares-psw v14) so portal deploys are instant.
+//      Cache bumped to flush the old HTML-precaching cache that was serving a stale psw-portal.html.
+const CACHE = 'proximity-psw-v15';
 const STATIC = [
   '/psw-manifest.json',
   '/psw-icon-192.png',
   'https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&display=swap'
 ];
-// NOTE: index.html intentionally excluded from STATIC cache
-// It is always fetched fresh so PSW portal updates deploy immediately
+// NOTE: no HTML in STATIC. psw-portal.html and index.html are always fetched fresh.
 
 // ── INSTALL ──
 self.addEventListener('install', e => {
@@ -43,19 +44,12 @@ self.addEventListener('fetch', e => {
     return;
   }
 
-  // index.html — ALWAYS network first, never serve stale
-  // This ensures PSW portal updates are instant on next load
-  if (url.pathname.endsWith('.html') || url.pathname === '/' || url.pathname === '/index.html') {
+  // HTML (psw-portal.html, index.html, /) — ALWAYS network first, never serve stale
+  if (url.pathname.endsWith('.html') || url.pathname === '/') {
     e.respondWith(
       fetch(e.request, { cache: 'no-store' })
-        .then(res => {
-          // Do NOT cache index.html — return fresh every time
-          return res;
-        })
-        .catch(() => {
-          // Offline — serve cached version as fallback only
-          return caches.match('/index.html');
-        })
+        .then(res => res)
+        .catch(() => caches.match(e.request))   // offline: serve the same page if we ever cached it
     );
     return;
   }
@@ -76,7 +70,7 @@ self.addEventListener('fetch', e => {
           caches.open(CACHE).then(cache => cache.put(e.request, clone));
         }
         return res;
-      }).catch(() => caches.match('/index.html'));
+      }).catch(() => caches.match(e.request));
     })
   );
 });
@@ -110,7 +104,6 @@ async function replayQueue() {
     }
   }
 
-  // Notify open clients sync is done
   const clients = await self.clients.matchAll({ type: 'window' });
   clients.forEach(c => c.postMessage({ type: 'QUEUE_REPLAYED' }));
 }
