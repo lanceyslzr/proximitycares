@@ -4998,10 +4998,23 @@ function toggleRouteMap(){
   if (!card) return;
   card.classList.toggle('collapsed');
   if (card.classList.contains('collapsed')) return;
-  // expanding: the map is already built at a fixed 200px inside the clipping wrapper, just reveal it.
-  // build now if addresses arrived after load, then repaint once for first-reveal safety.
-  if (!_homeMap) { try { initRouteMap(); } catch (e) {} }
-  [60, 400].forEach(function(ms){ setTimeout(function(){ try { if (_homeMap) _homeMap.invalidateSize(); } catch (e) {} }, ms); });
+  // EXPANDING. The wrap animates max-height 0 -> 220px over .34s. We must NOT build the map while the
+  // wrap is still 0-height: Leaflet would initialize into a zero-size container and never request tiles
+  // (blank map). The family portal's map works because its container is always 180px. So here we wait
+  // until the wrap actually has height (transitionend) before building, then double-rAF invalidateSize
+  // so the tiles paint at the final size.
+  var wrap = document.getElementById('route-map-wrap');
+  var built = false;
+  var build = function(){
+    if (built) return; built = true;
+    if (wrap) wrap.removeEventListener('transitionend', build);
+    if (!_homeMap) { try { initRouteMap(); } catch (e) {} }
+    requestAnimationFrame(function(){ requestAnimationFrame(function(){
+      try { if (_homeMap) _homeMap.invalidateSize(); } catch (e) {}
+    }); });
+  };
+  if (wrap) wrap.addEventListener('transitionend', build);
+  setTimeout(build, 400); // fallback in case transitionend does not fire
 }
 
 function initRouteMap(){
