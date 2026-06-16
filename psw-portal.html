@@ -4923,6 +4923,8 @@ let _homeCountdownTimer = null;
 let _routeMapInit = false;
 let _routeMapSig = '';
 let _homeMap = null;
+let _homeStopsLayer = null; // marker/polyline layer — cleared and refilled in place, never remove() the whole map
+let _homeMeMarker = null;   // PSW "you" dot, replaced on each geo fix
 let _heroRevealed = false;
 
 function animateCount(el, from, to, dur){
@@ -5049,12 +5051,7 @@ function initRouteMap(){
     if (empty) empty.style.display = 'none';
     if (card.classList.contains('collapsed')) return;
 
-    // Rebuild only when the set of stops changes (0 -> some, or different clients).
     const sig = stops.map(s => s.lat + ',' + s.lng).join('|');
-    if (_routeMapInit && _homeMap && _routeMapSig === sig) {
-      setTimeout(() => { try { _homeMap.invalidateSize(); } catch (e) {} }, 60);
-      return;
-    }
 
     // Fallback center when there are no mapped stops: a known local client, else Mississauga.
     const anyGeo = clients.find(c => (c.lat || c.latitude) && (c.lng || c.longitude));
@@ -5064,28 +5061,45 @@ function initRouteMap(){
 
     loadLeaflet(() => {
       try {
-        if (_homeMap) { _homeMap.remove(); _homeMap = null; }
-        _homeMap = L.map('route-map', { zoomControl: false, attributionControl: false, scrollWheelZoom: false });
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png', { maxZoom: 19, subdomains: 'abcd' }).addTo(_homeMap);
+        // BUILD ONCE. Never remove()+recreate the map on a data update — that tears the map down
+        // mid-interaction and is what caused "shows for a second then retracts, then the toggle is dead".
+        // Create the map only the first time, and only when the container actually has height (so Leaflet
+        // never inits at zero size). After that we mutate markers in place via the layer group below.
+        if (!_homeMap) {
+          const mapEl = document.getElementById('route-map');
+          if (!mapEl || mapEl.clientHeight < 20) return; // not open/sized yet — toggle's transitionend re-calls
+          _homeMap = L.map('route-map', { zoomControl: false, attributionControl: false, scrollWheelZoom: false });
+          L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png', { maxZoom: 19, subdomains: 'abcd' }).addTo(_homeMap);
+          _homeStopsLayer = L.layerGroup().addTo(_homeMap);
+        }
+
+        // Stop set unchanged and map already drawn — just repaint, don't re-plot.
+        if (_routeMapInit && _routeMapSig === sig) {
+          setTimeout(() => { try { _homeMap.invalidateSize(); } catch (e) {} }, 60);
+          return;
+        }
+
+        // UPDATE MARKERS IN PLACE — clear the layer group and refill it. Base map + tiles stay put.
+        _homeStopsLayer.clearLayers();
         const bounds = [];
         stops.forEach((s, i) => {
           const icon = L.divIcon({ className: '', html: '<div class="route-pin"><b>' + (i + 1) + '</b></div>', iconSize: [26, 26], iconAnchor: [13, 26] });
-          L.marker([s.lat, s.lng], { icon }).addTo(_homeMap).on('click', () => openNavigateSheet(s.name, ''));
+          L.marker([s.lat, s.lng], { icon }).addTo(_homeStopsLayer).on('click', () => openNavigateSheet(s.name, ''));
           bounds.push([s.lat, s.lng]);
         });
-        if (stops.length > 1) L.polyline(bounds, { color: '#56C8F5', weight: 2, opacity: .45, dashArray: '5,7' }).addTo(_homeMap);
+        if (stops.length > 1) L.polyline(bounds, { color: '#56C8F5', weight: 2, opacity: .45, dashArray: '5,7' }).addTo(_homeStopsLayer);
 
-        // Always set an initial view so tiles paint immediately, even with zero stops.
         if (bounds.length > 1) _homeMap.fitBounds(bounds, { padding: [30, 30], maxZoom: 14 });
         else if (bounds.length === 1) _homeMap.setView(bounds[0], 14);
         else _homeMap.setView(fallbackCenter, 11);
 
-        // PSW location: drop a "you" dot, and recenter on it when there are no stops to anchor.
+        // PSW location: drop/replace a SINGLE "you" dot (no accumulation), recenter only when no stops.
         if (navigator.geolocation) {
           navigator.geolocation.getCurrentPosition(pos => {
             try {
+              if (_homeMeMarker) { try { _homeMap.removeLayer(_homeMeMarker); } catch (e) {} }
               const me = L.divIcon({ className: '', html: '<div class="route-me"></div>', iconSize: [16, 16], iconAnchor: [8, 8] });
-              L.marker([pos.coords.latitude, pos.coords.longitude], { icon: me }).addTo(_homeMap);
+              _homeMeMarker = L.marker([pos.coords.latitude, pos.coords.longitude], { icon: me }).addTo(_homeMap);
               if (!bounds.length) _homeMap.setView([pos.coords.latitude, pos.coords.longitude], 12);
             } catch (e) {}
           }, () => {}, { timeout: 6000, maximumAge: 60000 });
@@ -5094,7 +5108,12 @@ function initRouteMap(){
         setTimeout(() => { try { _homeMap.invalidateSize(); } catch (e) {} }, 200);
         _routeMapInit = true;
         _routeMapSig = sig;
-      } catch (e) { if (empty) empty.style.display = 'flex'; }
+      } catch (e) {
+        // Reset cleanly so the next open rebuilds from scratch instead of staying dead.
+        try { if (_homeMap) _homeMap.remove(); } catch (_) {}
+        _homeMap = null; _homeStopsLayer = null; _homeMeMarker = null; _routeMapInit = false; _routeMapSig = '';
+        if (empty) empty.style.display = 'flex';
+      }
     });
   } catch (e) {}
 }
