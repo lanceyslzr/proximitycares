@@ -215,31 +215,44 @@ a{color:inherit;text-decoration:none;}
 .day-ring-c b{font-family:var(--rb-mono);font-size:21px;font-weight:500;color:var(--rb-text);line-height:1;}
 .day-ring-c span{font-family:var(--rb-mono);font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--rb-dim);margin-top:3px;}
 
-/* today's route mini map */
-.route-card{margin:0 12px 12px;border-radius:20px;overflow:hidden;border:1px solid var(--rb-line2);
+/* today's route */
+.route-card{margin:0 12px 14px;border-radius:20px;overflow:hidden;border:1px solid var(--rb-line2);
   background:var(--rb-panel);box-shadow:inset 0 1px 0 rgba(255,255,255,.04),0 20px 50px -30px rgba(0,0,0,.9);}
 .route-hd{display:flex;align-items:center;justify-content:space-between;padding:13px 16px;cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation;}
-.route-chev{display:flex;align-items:center;justify-content:center;color:var(--rb-dim);transition:transform .32s var(--e);}
-.route-chev svg{width:18px;height:18px;}
-.route-card:not(.collapsed) .route-chev{transform:rotate(180deg);}
-.route-hd-l{display:flex;align-items:center;gap:10px;}
+.route-hd-l{display:flex;align-items:center;gap:10px;min-width:0;}
 .route-hd-icon{width:30px;height:30px;border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0;
   background:linear-gradient(160deg,rgba(86,200,245,.16),rgba(86,200,245,.04));border:1px solid rgba(86,200,245,.28);color:var(--psw-light);}
 .route-hd-icon svg{width:16px;height:16px;}
 .route-hd-t{font-family:var(--rb-sans);font-size:14px;font-weight:600;color:var(--rb-text);letter-spacing:-.2px;}
 .route-hd-s{font-family:var(--rb-mono);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--rb-dim);margin-top:2px;}
-.route-map{width:100%;height:200px;background:var(--rb-base);position:relative;}
-.route-map-wrap{max-height:0;overflow:hidden;transition:max-height .34s var(--e);}
-.route-card:not(.collapsed) .route-map-wrap{max-height:220px;}
-.route-empty{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:20px;text-align:center;}
+.route-chev{display:flex;align-items:center;justify-content:center;color:var(--rb-dim);transition:transform .3s var(--e);flex-shrink:0;}
+.route-chev svg{width:18px;height:18px;}
+.route-card:not(.min) .route-chev{transform:rotate(180deg);}
+.route-card.min .route-body{display:none;}
+.route-map{width:100%;height:190px;background:var(--rb-base);position:relative;border-top:1px solid var(--rb-line);}
+.route-map .leaflet-container{background:var(--rb-base);}
+.route-empty{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:20px;text-align:center;z-index:400;background:var(--rb-base);}
 .route-empty svg{width:26px;height:26px;color:var(--rb-dim);opacity:.7;}
 .route-empty div{font-family:var(--rb-mono);font-size:11px;color:var(--rb-dim);letter-spacing:.5px;line-height:1.6;max-width:240px;}
-.route-map .leaflet-container{background:var(--rb-base);}
 .route-pin{display:flex !important;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50% 50% 50% 0;
   background:linear-gradient(160deg,var(--psw),var(--psw-deep));transform:rotate(-45deg);box-shadow:0 4px 12px -2px var(--psw-glow),0 0 0 2px rgba(6,8,12,.7);}
 .route-pin b{transform:rotate(45deg);font-family:var(--rb-mono);font-size:12px;font-weight:600;color:var(--psw-ink);}
 .route-me{width:16px;height:16px;border-radius:50%;background:var(--psw);box-shadow:0 0 0 4px rgba(86,200,245,.28);animation:mePulse 2s ease-in-out infinite;}
 @keyframes mePulse{0%,100%{box-shadow:0 0 0 4px rgba(86,200,245,.28);}50%{box-shadow:0 0 0 9px rgba(86,200,245,.04);}}
+/* stop list */
+.route-stops{padding:6px 8px 9px;display:flex;flex-direction:column;gap:1px;}
+.route-stop{display:flex;align-items:center;gap:12px;padding:10px;border-radius:12px;cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation;transition:background .15s;}
+.route-stop:active{background:rgba(255,255,255,.05);}
+.route-stop-n{width:24px;height:24px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;
+  font-family:var(--rb-mono);font-size:11px;font-weight:600;color:var(--psw-ink);background:linear-gradient(160deg,var(--psw),var(--psw-deep));}
+.route-stop.nomap .route-stop-n{background:rgba(255,255,255,.05);color:var(--rb-dim);border:1px solid var(--rb-line2);}
+.route-stop-main{flex:1;min-width:0;}
+.route-stop-name{font-family:var(--rb-sans);font-size:13.5px;font-weight:600;color:var(--rb-text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.route-stop-meta{font-family:var(--rb-mono);font-size:10px;letter-spacing:.5px;color:var(--rb-dim);margin-top:2px;text-transform:uppercase;}
+.route-stop-go{width:30px;height:30px;border-radius:9px;flex-shrink:0;display:flex;align-items:center;justify-content:center;
+  color:var(--psw-light);background:rgba(86,200,245,.1);border:1px solid rgba(86,200,245,.22);}
+.route-stop-go svg{width:15px;height:15px;}
+.route-stops-empty{padding:18px;text-align:center;font-family:var(--rb-mono);font-size:11px;color:var(--rb-dim);letter-spacing:.5px;}
 
 /* living next-visit countdown pill */
 .tnc-countdown{display:inline-flex;align-items:center;gap:7px;font-family:var(--rb-mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--psw);background:rgba(86,200,245,.1);border:1px solid rgba(86,200,245,.28);border-radius:100px;padding:5px 12px;margin-bottom:9px;}
@@ -884,7 +897,7 @@ a{color:inherit;text-decoration:none;}
     </div>
   </div>
 
-  <!-- LIVING HOME: today's route map -->
+  <!-- LIVING HOME: today's route -->
   <div class="route-card" id="route-card" style="display:none;">
     <div class="route-hd" onclick="toggleRouteCard()">
       <div class="route-hd-l">
@@ -893,13 +906,14 @@ a{color:inherit;text-decoration:none;}
       </div>
       <div class="route-chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></div>
     </div>
-    <div class="route-map-wrap" id="route-map-wrap">
+    <div class="route-body" id="route-body">
       <div class="route-map" id="route-map">
         <div class="route-empty" id="route-empty">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21c4.5-4.2 7-7.6 7-11a7 7 0 1 0-14 0c0 3.4 2.5 6.8 7 11Z"/><circle cx="12" cy="10" r="2.4"/></svg>
-          <div>Map couldn't load. Check your connection and reopen.</div>
+          <div>Loading your route</div>
         </div>
       </div>
+      <div class="route-stops" id="route-stops"></div>
     </div>
   </div>
 
@@ -4941,11 +4955,14 @@ function updateTodayProgress() {
 
 // ── LIVING HOME ──
 let _homeCountdownTimer = null;
-let _routeMap = null;        // single Leaflet instance, built exactly once
-let _routeStops = null;      // layer group for stop markers + route line (mutated in place)
-let _routeMe = null;         // single "you" dot, replaced on each geo fix
-let _routeSig = '';          // signature of plotted stops, so unchanged data is a cheap repaint
-let _routeToggleAt = 0;      // debounce stamp for the minimize/expand tap
+let _routeMap = null;          // single Leaflet instance, built once into an always-sized container
+let _routeStopsLayer = null;   // pin + route-line layer, mutated in place
+let _routeMe = null;           // single "you" dot, replaced on each geo fix
+let _routeSig = '';            // signature of plotted pins, so unchanged data is a cheap repaint
+let _routeData = { mapStops: [], clients: [] }; // latest data for the build-retry loop
+let _routeBuildTimer = null;   // retry handle so timers never stack
+let _routeStopsBound = false;  // one-time delegated click binding on the stop list
+let _routeToggleAt = 0;        // debounce stamp for minimize/expand
 let _heroRevealed = false;
 
 function animateCount(el, from, to, dur){
@@ -5016,71 +5033,104 @@ function renderHomeLiving(){
   } catch (e) {}
 }
 
-// ── TODAY'S ROUTE MAP (rebuilt clean, decoupled from the collapse) ─────────────
-// The map is built ONCE into the always-sized #route-map when data first arrives, then markers are
-// mutated in place on every refresh. Minimize/expand is a pure show/hide over the already-built map
-// and never rebuilds it. The render chain only updates markers; only the user's tap touches the
-// collapsed class. That separation is what makes this immune to the old blank/retract behaviour.
+// ── TODAY'S ROUTE (rebuilt: always-sized map + stop list, fully decoupled from minimize) ──────────
+// The map container always has its real height (never max-height-clipped), so Leaflet initialises
+// reliably, the same pattern the family portal map uses. It builds ONCE via a retry loop so it can
+// never silently no-op, then pins are mutated in place. Minimize/expand is a plain display swap plus
+// invalidateSize. The render chain only refreshes pins + the stop list; only the user's tap toggles
+// the `min` class. Nothing in the data path can collapse or rebuild the map.
 
-// Today's mapped stops: each non-cancelled booking matched to a geocoded client.
+// Compute today's route: every non-cancelled booking for the list, the geocoded subset for map pins.
 function computeRouteStops(){
   const today = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Toronto' });
-  const bookings = (scheduleData && scheduleData.bookings || []).filter(b => b.scheduled_date === today && b.status !== 'cancelled');
+  const bookings = (scheduleData && scheduleData.bookings || [])
+    .filter(b => b.scheduled_date === today && b.status !== 'cancelled')
+    .sort((a, b) => (a.scheduled_time || '').localeCompare(b.scheduled_time || ''));
   const clients = (scheduleData && scheduleData.clients) || [];
-  const stops = [], seen = new Set();
-  bookings.sort((a, b) => (a.scheduled_time || '').localeCompare(b.scheduled_time || '')).forEach(b => {
+  const listStops = [], mapStops = [];
+  let totalHours = 0;
+  bookings.forEach(b => {
     const c = clients.find(cl => {
       const full = ((cl.first_name || '') + ' ' + (cl.last_name || '')).trim().toLowerCase();
       const fn = (b.client_name || '').split(' ')[0].toLowerCase();
       return full === (b.client_name || '').toLowerCase() || (fn && full.startsWith(fn));
     });
     const lat = c && (c.lat || c.latitude), lng = c && (c.lng || c.longitude);
-    if (lat && lng) {
-      const key = lat + ',' + lng;
-      if (!seen.has(key)) { seen.add(key); stops.push({ name: b.client_name, lat: parseFloat(lat), lng: parseFloat(lng) }); }
-    }
+    const mapped = !!(lat && lng);
+    totalHours += (b.duration_minutes || 0) / 60;
+    const stop = { name: b.client_name || 'Client', time: b.scheduled_time || '', bookingId: b.id || '',
+      mapped, lat: mapped ? parseFloat(lat) : null, lng: mapped ? parseFloat(lng) : null };
+    listStops.push(stop);
+    if (mapped) mapStops.push(stop);
   });
-  return { stops, bookingsToday: bookings.length, clients };
+  return { listStops, mapStops, clients, totalHours, count: bookings.length };
 }
 
-// Build the Leaflet map exactly once, into the always-200px #route-map. No-op (returns false) until
-// the container is actually laid out and Leaflet is present; the next render retries. Never rebuilds.
+// "09:00" -> "9:00 AM"
+function fmtRouteTime(t){
+  if (!t) return '';
+  const m = String(t).match(/^(\d{1,2}):(\d{2})/);
+  if (!m) return t;
+  let h = parseInt(m[1], 10); const mm = m[2];
+  const ap = h >= 12 ? 'PM' : 'AM'; h = h % 12; if (h === 0) h = 12;
+  return h + ':' + mm + ' ' + ap;
+}
+
+// Render the tappable stop list (data attributes + one delegated handler, no inline onclick).
+function renderRouteStops(listStops){
+  const el = document.getElementById('route-stops');
+  if (!el) return;
+  if (!listStops.length) { el.innerHTML = '<div class="route-stops-empty">No visits scheduled today</div>'; return; }
+  let n = 0;
+  el.innerHTML = listStops.map(s => {
+    const badge = s.mapped ? (++n) : '\u00b7';
+    const meta = [fmtRouteTime(s.time), s.mapped ? '' : 'Address not set'].filter(Boolean).join('  \u00b7  ') || 'Scheduled';
+    const safe = (s.name || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;');
+    return '<div class="route-stop' + (s.mapped ? '' : ' nomap') + '" data-name="' + safe + '" data-bid="' + (s.bookingId || '') + '">'
+      + '<div class="route-stop-n">' + badge + '</div>'
+      + '<div class="route-stop-main"><div class="route-stop-name">' + safe + '</div><div class="route-stop-meta">' + meta + '</div></div>'
+      + '<div class="route-stop-go"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg></div>'
+      + '</div>';
+  }).join('');
+}
+
+// Build the Leaflet map exactly once into the always-sized #route-map. Returns true once built.
 function buildRouteMap(){
   if (_routeMap) return true;
   const mapEl = document.getElementById('route-map');
-  if (!mapEl || mapEl.clientHeight < 20) return false;
-  if (typeof L === 'undefined' || !window.L) return false;
+  if (!mapEl || mapEl.clientHeight < 20) return false;       // not laid out yet
+  if (typeof L === 'undefined' || !window.L) return false;   // Leaflet not ready yet
+  if (mapEl._leaflet_id) return false;                       // never double-init a container
   try {
     _routeMap = L.map(mapEl, { zoomControl: false, attributionControl: false, scrollWheelZoom: false });
     L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png', { maxZoom: 19, subdomains: 'abcd' }).addTo(_routeMap);
-    _routeStops = L.layerGroup().addTo(_routeMap);
+    _routeStopsLayer = L.layerGroup().addTo(_routeMap);
     return true;
-  } catch (e) { _routeMap = null; _routeStops = null; return false; }
+  } catch (e) { _routeMap = null; _routeStopsLayer = null; return false; }
 }
 
-// Plot/refresh markers IN PLACE — clear the stop layer and refill it; base map + tiles stay put.
-function updateRouteMarkers(stops, clients){
-  if (!_routeMap || !_routeStops) return;
+// Plot/refresh pins IN PLACE from _routeData. Base map + tiles stay put.
+function updateRouteMap(){
+  if (!_routeMap || !_routeStopsLayer) return;
+  const stops = _routeData.mapStops || [];
+  const clients = _routeData.clients || [];
   const sig = stops.map(s => s.lat + ',' + s.lng).join('|');
   if (sig === _routeSig) { try { _routeMap.invalidateSize(); } catch (e) {} return; }
   _routeSig = sig;
-  _routeStops.clearLayers();
+  _routeStopsLayer.clearLayers();
   const bounds = [];
   stops.forEach((s, i) => {
     const icon = L.divIcon({ className: '', html: '<div class="route-pin"><b>' + (i + 1) + '</b></div>', iconSize: [26, 26], iconAnchor: [13, 26] });
-    L.marker([s.lat, s.lng], { icon }).addTo(_routeStops).on('click', () => openNavigateSheet(s.name, ''));
+    L.marker([s.lat, s.lng], { icon }).addTo(_routeStopsLayer).on('click', () => openNavigateSheet(s.name, s.bookingId || ''));
     bounds.push([s.lat, s.lng]);
   });
-  if (stops.length > 1) L.polyline(bounds, { color: '#56C8F5', weight: 2, opacity: .45, dashArray: '5,7' }).addTo(_routeStops);
-
-  if (bounds.length > 1) _routeMap.fitBounds(bounds, { padding: [30, 30], maxZoom: 14 });
+  if (stops.length > 1) L.polyline(bounds, { color: '#56C8F5', weight: 2, opacity: .45, dashArray: '5,7' }).addTo(_routeStopsLayer);
+  if (bounds.length > 1) _routeMap.fitBounds(bounds, { padding: [34, 34], maxZoom: 14 });
   else if (bounds.length === 1) _routeMap.setView(bounds[0], 14);
   else {
-    const anyGeo = (clients || []).find(c => (c.lat || c.latitude) && (c.lng || c.longitude));
+    const anyGeo = clients.find(c => (c.lat || c.latitude) && (c.lng || c.longitude));
     _routeMap.setView(anyGeo ? [parseFloat(anyGeo.lat || anyGeo.latitude), parseFloat(anyGeo.lng || anyGeo.longitude)] : [43.589, -79.644], anyGeo ? 12 : 11);
   }
-
-  // Single "you" dot, replaced each fix; recenter on it only when there are no stops to anchor.
   if (navigator.geolocation) {
     navigator.geolocation.getCurrentPosition(pos => {
       try {
@@ -5095,45 +5145,63 @@ function updateRouteMarkers(stops, clients){
   setTimeout(() => { try { _routeMap.invalidateSize(); } catch (e) {} }, 60);
 }
 
-// Entry point from the home render chain (load, 30s refresh, realtime). Reveals the card, updates the
-// subtitle, ensures the map is built, and refreshes markers. NEVER touches the collapsed class.
+// Build-with-retry: keep trying (Leaflet load / layout) until the map exists, then plot. Cannot no-op.
+function ensureRouteMap(attempt){
+  attempt = attempt || 0;
+  if (attempt === 0) { clearTimeout(_routeBuildTimer); _routeBuildTimer = null; }
+  if (_routeMap) { updateRouteMap(); return; }
+  loadLeaflet(() => {
+    if (_routeMap) { updateRouteMap(); return; }
+    if (buildRouteMap()) {
+      const empty = document.getElementById('route-empty');
+      if (empty) empty.style.display = 'none';
+      updateRouteMap();
+    } else if (attempt < 24) {
+      _routeBuildTimer = setTimeout(() => ensureRouteMap(attempt + 1), 250); // retry up to ~6s
+    }
+  });
+}
+
+// Entry point from the home render chain. Reveals the card, updates header + stop list + pins.
+// NEVER touches the `min` class, minimize/expand belongs to the user only.
 function renderRouteCard(){
   try {
     const card = document.getElementById('route-card');
-    const empty = document.getElementById('route-empty');
     const sub = document.getElementById('route-hd-s');
     if (!card) return;
-
-    const { stops, bookingsToday, clients } = computeRouteStops();
-
+    const { listStops, mapStops, clients, totalHours, count } = computeRouteStops();
     card.style.display = 'block';
-    if (sub) sub.textContent = stops.length
-      ? (stops.length + ' stop' + (stops.length !== 1 ? 's' : '') + ' today')
-      : (bookingsToday ? 'Stops not mapped yet' : 'No visits today');
-
-    // Ensure Leaflet, then build-once + plot. loadLeaflet fires the cb synchronously if L is present.
-    loadLeaflet(() => {
-      if (!buildRouteMap()) return; // container not laid out / L not ready — next render retries
-      if (empty) empty.style.display = 'none';
-      updateRouteMarkers(stops, clients);
-    });
+    if (sub) sub.textContent = count
+      ? (count + ' stop' + (count !== 1 ? 's' : '') + (totalHours > 0 ? '  \u00b7  ' + totalHours.toFixed(1) + 'h' : ''))
+      : 'No visits today';
+    renderRouteStops(listStops);
+    if (!_routeStopsBound) {
+      const se = document.getElementById('route-stops');
+      if (se) {
+        se.addEventListener('click', function(e){
+          const row = e.target.closest('.route-stop'); if (!row) return;
+          openNavigateSheet(row.getAttribute('data-name') || '', row.getAttribute('data-bid') || '');
+        });
+        _routeStopsBound = true;
+      }
+    }
+    _routeData = { mapStops, clients };
+    ensureRouteMap(0);
   } catch (e) {}
 }
 
-// Minimize / expand. Debounced + deterministic. Pure show/hide — never builds or rebuilds the map.
+// Minimize / expand. Debounced + deterministic. Plain show/hide (display) — never builds or rebuilds.
 function toggleRouteCard(){
   const card = document.getElementById('route-card');
   if (!card) return;
   const now = Date.now();
-  if (now - _routeToggleAt < 450) return; // ignore a single tap firing twice (touch + ghost click)
+  if (now - _routeToggleAt < 400) return; // ignore a single tap firing twice
   _routeToggleAt = now;
-  const willOpen = card.classList.contains('collapsed');
-  card.classList.toggle('collapsed', !willOpen);
-  if (!willOpen) return; // just minimized — nothing else to do
-  // Expanding: the map already exists; repaint it once the wrap has finished revealing.
-  const repaint = function(){ try { if (_routeMap) _routeMap.invalidateSize(); } catch (e) {} };
-  requestAnimationFrame(function(){ requestAnimationFrame(repaint); });
-  setTimeout(repaint, 380); // after the .34s wrap reveal transition
+  const min = card.classList.toggle('min'); // true => now minimized
+  if (!min) {
+    requestAnimationFrame(function(){ requestAnimationFrame(function(){ try { if (_routeMap) _routeMap.invalidateSize(); } catch (e) {} }); });
+    setTimeout(function(){ try { if (_routeMap) _routeMap.invalidateSize(); } catch (e) {} }, 120);
+  }
 }
 
 function openTodayNextMap() {
