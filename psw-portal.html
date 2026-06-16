@@ -218,7 +218,7 @@ a{color:inherit;text-decoration:none;}
 /* today's route mini map */
 .route-card{margin:0 12px 12px;border-radius:20px;overflow:hidden;border:1px solid var(--rb-line2);
   background:var(--rb-panel);box-shadow:inset 0 1px 0 rgba(255,255,255,.04),0 20px 50px -30px rgba(0,0,0,.9);}
-.route-hd{display:flex;align-items:center;justify-content:space-between;padding:13px 16px;cursor:pointer;-webkit-tap-highlight-color:transparent;}
+.route-hd{display:flex;align-items:center;justify-content:space-between;padding:13px 16px;cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation;}
 .route-chev{display:flex;align-items:center;justify-content:center;color:var(--rb-dim);transition:transform .32s var(--e);}
 .route-chev svg{width:18px;height:18px;}
 .route-card:not(.collapsed) .route-chev{transform:rotate(180deg);}
@@ -1660,6 +1660,26 @@ a{color:inherit;text-decoration:none;}
 <script>
 const API = 'https://proximity-agent-production.up.railway.app';
 
+// 429 BACK-OFF. If the server ever rate-limits us, stop the 30s auto-refresh from hammering it —
+// otherwise every retry is another failed request that re-fills the server's failure window and the
+// lockout never clears. Transparent wrapper: it only observes the status and passes the response
+// through unchanged, scoped to our own /psw API so it can't affect Supabase/Leaflet/etc.
+window._backoffUntil = 0;
+(function(){
+  if (window.__fetchWrapped) return; window.__fetchWrapped = true;
+  const _f = window.fetch.bind(window);
+  window.fetch = function(url){
+    return _f.apply(this, arguments).then(function(res){
+      try {
+        if (res && res.status === 429 && String(url).indexOf('/psw/') >= 0) {
+          window._backoffUntil = Date.now() + 60000; // pause polling for 60s
+        }
+      } catch (e) {}
+      return res;
+    });
+  };
+})();
+
 // ── REALTIME (Pass 2: instant push when HQ changes a shift/visit) ──
 // Config arrives from /psw/schedule-upcoming. Polling stays as fallback.
 let SUPA_URL = '', SUPA_ANON = '', _supaClient = null, _pswRealtimeCh = null;
@@ -2072,6 +2092,7 @@ function unlockApp() {
   if (!window._autoRefreshInterval) {
     window._autoRefreshInterval = setInterval(() => {
       if (!navigator.onLine || !appUnlocked) return;
+      if (Date.now() < (window._backoffUntil || 0)) return; // backing off after a 429 — let the window clear
       loadSchedule();
       loadMessages(false);
       loadHomeData();
@@ -4995,22 +5016,31 @@ function renderHomeLiving(){
   } catch (e) {}
 }
 
+let _routeToggleAt = 0;
 function toggleRouteMap(){
   const card = document.getElementById('route-card');
   if (!card) return;
-  card.classList.toggle('collapsed');
-  if (card.classList.contains('collapsed')) return;
-  // EXPANDING. The wrap animates max-height 0 -> 220px over .34s. We must NOT build the map while the
-  // wrap is still 0-height: Leaflet would initialize into a zero-size container and never request tiles
-  // (blank map). The family portal's map works because its container is always 180px. So here we wait
-  // until the wrap actually has height (transitionend) before building, then double-rAF invalidateSize
-  // so the tiles paint at the final size.
-  var wrap = document.getElementById('route-map-wrap');
-  var built = false;
-  var build = function(){
+  // A single tap can fire twice on mobile (touchend + a synthesized ghost click). Two toggles in a row
+  // open then immediately re-close the card — the "pops up then retracts" bug. Ignore a second call
+  // inside the open animation window so one tap = one state change.
+  const now = Date.now();
+  if (now - _routeToggleAt < 450) return;
+  _routeToggleAt = now;
+
+  // Deterministic open/close (force the class instead of a blind toggle, so state can never desync).
+  const willOpen = card.classList.contains('collapsed');
+  card.classList.toggle('collapsed', !willOpen);
+  if (!willOpen) return; // we just closed it
+
+  // OPENING. The wrap animates max-height 0 -> 220px over .34s. Build the map only after the wrap actually
+  // has height (transitionend, 400ms fallback) so Leaflet never inits at zero size. initRouteMap builds
+  // once and updates markers in place, so calling it again here is safe (it just refreshes + repaints).
+  const wrap = document.getElementById('route-map-wrap');
+  let built = false;
+  const build = function(){
     if (built) return; built = true;
     if (wrap) wrap.removeEventListener('transitionend', build);
-    if (!_homeMap) { try { initRouteMap(); } catch (e) {} }
+    try { initRouteMap(); } catch (e) {}
     requestAnimationFrame(function(){ requestAnimationFrame(function(){
       try { if (_homeMap) _homeMap.invalidateSize(); } catch (e) {}
     }); });
