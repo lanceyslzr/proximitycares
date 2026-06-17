@@ -277,6 +277,12 @@ button:active{transform:scale(0.98);}
 .crm-card-btn.call{color:var(--teal3);border-color:rgba(90,173,160,.3);}
 .crm-card-btn.demo{color:var(--blue2);border-color:rgba(106,172,240,.3);}
 .crm-empty{padding:16px 10px;font-size:12px;color:var(--muted);text-align:center;font-family:var(--mono);}
+.crm-chips{display:none;gap:6px;padding:8px;overflow-x:auto;-webkit-overflow-scrolling:touch;background:var(--bg2);border-bottom:1px solid var(--border);scrollbar-width:none;}
+.crm-chips::-webkit-scrollbar{display:none;}
+.crm-chip{flex:0 0 auto;display:inline-flex;align-items:center;gap:6px;padding:8px 12px;border:1px solid var(--border);background:var(--bg3);border-radius:100px;font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--muted2);cursor:pointer;min-height:40px;touch-action:manipulation;white-space:nowrap;}
+.crm-chip.active{border-color:var(--teal2);color:var(--teal2);background:rgba(61,138,122,.08);}
+.crm-chip-count{font-size:10px;color:var(--muted);background:var(--bg2);border:1px solid var(--border);border-radius:100px;padding:1px 6px;}
+.crm-chip.active .crm-chip-count{color:var(--teal2);border-color:rgba(61,138,122,.3);}
 
 
 /* CREATE OPERATOR */
@@ -1244,6 +1250,15 @@ body.sidebar-rail .sidebar{width:64px;overflow:visible;}
   .crm-col{min-height:auto;}
   .crm-col-head{position:static;}
   .notif-panel{width:100%;}
+}
+/* CRM mobile: chip-switcher — one stage column at a time (valid 768px query; the min(,100%) block above is invalid and ignored by browsers) */
+@media(max-width:768px){
+  .crm-chips{display:flex;}
+  .crm-board{grid-template-columns:1fr;}
+  .crm-col{display:none;min-height:auto;}
+  .crm-col.crm-col-active{display:flex;}
+  .crm-col-head{position:static;}
+  .crm-card-acts{gap:6px;}
 }
 @media(max-width:600px){.op-form-grid{grid-template-columns:1fr;}}
 
@@ -2620,12 +2635,19 @@ body.sidebar-rail .sidebar{width:64px;overflow:visible;}
       <div class="sect-action" onclick="renderCRM()">↻ Refresh</div>
     </div>
   </div>
+  <div class="crm-chips" id="crm-chips">
+    <button class="crm-chip active" data-stage="cold" onclick="crmMobileStage('cold')"><span class="crm-chip-name">Inquiry</span><span class="crm-chip-count" id="crm-chip-count-cold">0</span></button>
+    <button class="crm-chip" data-stage="contacted" onclick="crmMobileStage('contacted')"><span class="crm-chip-name">Contacted</span><span class="crm-chip-count" id="crm-chip-count-contacted">0</span></button>
+    <button class="crm-chip" data-stage="demo" onclick="crmMobileStage('demo')"><span class="crm-chip-name">Assessment</span><span class="crm-chip-count" id="crm-chip-count-demo">0</span></button>
+    <button class="crm-chip" data-stage="call" onclick="crmMobileStage('call')"><span class="crm-chip-name">Signed</span><span class="crm-chip-count" id="crm-chip-count-call">0</span></button>
+    <button class="crm-chip" data-stage="closed" onclick="crmMobileStage('closed')"><span class="crm-chip-name">Active</span><span class="crm-chip-count" id="crm-chip-count-closed">0</span></button>
+  </div>
   <div class="crm-board" id="crm-board">
-    <div class="crm-col"><div class="crm-col-head"><span class="crm-col-name">Inquiry</span><span class="crm-col-count" id="crm-count-cold">0</span></div><div class="crm-col-body" id="crm-cold" ondragover="crmDragOver(event)" ondrop="crmDrop(event,'cold')" ondragleave="crmDragLeave(event)"></div></div>
-    <div class="crm-col"><div class="crm-col-head"><span class="crm-col-name">Contacted</span><span class="crm-col-count" id="crm-count-contacted">0</span></div><div class="crm-col-body" id="crm-contacted" ondragover="crmDragOver(event)" ondrop="crmDrop(event,'contacted')" ondragleave="crmDragLeave(event)"></div></div>
-    <div class="crm-col"><div class="crm-col-head"><span class="crm-col-name">Assessment</span><span class="crm-col-count" id="crm-count-demo">0</span></div><div class="crm-col-body" id="crm-demo" ondragover="crmDragOver(event)" ondrop="crmDrop(event,'demo')" ondragleave="crmDragLeave(event)"></div></div>
-    <div class="crm-col"><div class="crm-col-head"><span class="crm-col-name">Signed</span><span class="crm-col-count" id="crm-count-call">0</span></div><div class="crm-col-body" id="crm-call" ondragover="crmDragOver(event)" ondrop="crmDrop(event,'call')" ondragleave="crmDragLeave(event)"></div></div>
-    <div class="crm-col"><div class="crm-col-head"><span class="crm-col-name">Active</span><span class="crm-col-count" id="crm-count-closed">0</span></div><div class="crm-col-body" id="crm-closed" ondragover="crmDragOver(event)" ondrop="crmDrop(event,'closed')" ondragleave="crmDragLeave(event)"></div></div>
+    <div class="crm-col crm-col-active" data-stage="cold"><div class="crm-col-head"><span class="crm-col-name">Inquiry</span><span class="crm-col-count" id="crm-count-cold">0</span></div><div class="crm-col-body" id="crm-cold" ondragover="crmDragOver(event)" ondrop="crmDrop(event,'cold')" ondragleave="crmDragLeave(event)"></div></div>
+    <div class="crm-col" data-stage="contacted"><div class="crm-col-head"><span class="crm-col-name">Contacted</span><span class="crm-col-count" id="crm-count-contacted">0</span></div><div class="crm-col-body" id="crm-contacted" ondragover="crmDragOver(event)" ondrop="crmDrop(event,'contacted')" ondragleave="crmDragLeave(event)"></div></div>
+    <div class="crm-col" data-stage="demo"><div class="crm-col-head"><span class="crm-col-name">Assessment</span><span class="crm-col-count" id="crm-count-demo">0</span></div><div class="crm-col-body" id="crm-demo" ondragover="crmDragOver(event)" ondrop="crmDrop(event,'demo')" ondragleave="crmDragLeave(event)"></div></div>
+    <div class="crm-col" data-stage="call"><div class="crm-col-head"><span class="crm-col-name">Signed</span><span class="crm-col-count" id="crm-count-call">0</span></div><div class="crm-col-body" id="crm-call" ondragover="crmDragOver(event)" ondrop="crmDrop(event,'call')" ondragleave="crmDragLeave(event)"></div></div>
+    <div class="crm-col" data-stage="closed"><div class="crm-col-head"><span class="crm-col-name">Active</span><span class="crm-col-count" id="crm-count-closed">0</span></div><div class="crm-col-body" id="crm-closed" ondragover="crmDragOver(event)" ondrop="crmDrop(event,'closed')" ondragleave="crmDragLeave(event)"></div></div>
   </div>
 </div>
 
@@ -6799,6 +6821,34 @@ function renderCRM() {
     }).join('');
     } catch(_mapErr) { console.error('[HQ] renderCRM render error:', _mapErr); el.innerHTML = '<div class=\"empty-state\" style=\"padding:20px;font-size:13px;color:var(--muted)\">Error loading data — please refresh</div>'; }
   });
+  syncCrmChips();
+}
+
+// CRM mobile chip-switcher: show one stage column at a time on phones
+function crmMobileStage(stage) {
+  document.querySelectorAll('#crm-board .crm-col').forEach(col => {
+    col.classList.toggle('crm-col-active', col.getAttribute('data-stage') === stage);
+  });
+  document.querySelectorAll('#crm-chips .crm-chip').forEach(chip => {
+    chip.classList.toggle('active', chip.getAttribute('data-stage') === stage);
+  });
+}
+
+// Sync chip counts from the live column counts; default to first non-empty stage once
+function syncCrmChips() {
+  CRM_STAGES.forEach(st => {
+    const c = document.getElementById('crm-count-' + st);
+    const chipC = document.getElementById('crm-chip-count-' + st);
+    if (c && chipC) chipC.textContent = c.textContent;
+  });
+  if (!window._crmDidMobileDefault) {
+    window._crmDidMobileDefault = true;
+    const firstNonEmpty = CRM_STAGES.find(st => {
+      const c = document.getElementById('crm-count-' + st);
+      return c && parseInt(c.textContent || '0', 10) > 0;
+    });
+    if (firstNonEmpty) crmMobileStage(firstNonEmpty);
+  }
 }
 
 async function crmDelete(id, type, name, e) {
