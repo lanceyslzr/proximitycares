@@ -4626,8 +4626,8 @@ function renderClients() {
         </div>
         <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">${onShiftChip||(()=>{
           const _st=c.status||'active';
-          const _stColors={active:'b-active',on_hold:'b-warn',away:'b-info',vacation:'b-booked',hospital:'b-dead',inactive:'b-dead'};
-          const _stLabels={active:'Active',on_hold:'On Hold',away:'Away',vacation:'Vacation',hospital:'Hospital',inactive:'Inactive'};
+          const _stColors={active:'b-active',on_hold:'b-warn',away:'b-info',vacation:'b-booked',hospital:'b-dead',inactive:'b-dead',discharged:'b-dead',deceased:'b-dead'};
+          const _stLabels={active:'Active',on_hold:'On Hold',away:'Away',vacation:'Vacation',hospital:'Hospital',inactive:'Inactive',discharged:'Discharged',deceased:'Deceased'};
           return '<span class="badge '+(_stColors[_st]||'b-active')+'">'+(_stLabels[_st]||_st)+'</span>';
         })()}${sentBadge}${overdueBadge}${consentBadge}${twoPswBadge}</div>
       </div>
@@ -7357,7 +7357,7 @@ function renderPSWGrid() {
   (D.bookings || []).forEach(b => { if (b.id) window._bookingMap[b.id] = b; });
 
   const allPSWs    = (D.psws || []).filter(p => p.status === 'active' || !p.status);
-  const allClients = (D.clients || []).filter(c => c.status !== 'inactive');
+  const allClients = (D.clients || []).filter(c => !['inactive','discharged','deceased'].includes(c.status));
   const bookings   = D.bookings || [];
   const visits     = D.visits || [];
 
@@ -7632,7 +7632,7 @@ function _renderCustomCal() {
   const bookings = D.bookings || [];
   const visits   = D.visits   || [];
   const psws     = (D.psws    || []).filter(p => p.status === 'active' || !p.status);
-  const clients  = (D.clients || []).filter(c => c.status !== 'inactive');
+  const clients  = (D.clients || []).filter(c => !['inactive','discharged','deceased'].includes(c.status));
   const todayStr = new Date().toLocaleDateString('en-CA',{timeZone:'America/Toronto'});
   const liveSet  = new Set(visits.filter(v=>v.status==='in_progress').map(v=>v.client_name));
 
@@ -10634,6 +10634,53 @@ async function saveClientAvailability(clientId, clientName) {
 }
 // ── END CLIENT AVAILABILITY ───────────────────────────────────────────────────
 
+// ── CLIENT LIFECYCLE (discharge / deceased / reactivate) — wired to PATCH /hq/client/:slug/status ──
+// Separate from availability above: these are permanent states. Discharge/Deceased cancel upcoming
+// visits + notify the PSW server-side. Reactivate sets status back to active.
+let _pendingLifecycle = ''; // module-level — immune to DOM re-renders
+function setClientLifecycle(status, btn) {
+  _pendingLifecycle = status;
+  const container = btn?.closest('[id^="cpt-lifecycle-btns"]') || btn?.parentElement;
+  if (container) {
+    container.querySelectorAll('button').forEach(b => {
+      b.style.borderColor = 'var(--border)'; b.style.background = 'var(--bg3)'; b.style.color = 'var(--muted)';
+      b.textContent = b.textContent.replace(' ✓','');
+    });
+  }
+  if (btn) {
+    btn.style.borderColor = 'rgba(224,85,85,.4)'; btn.style.background = 'rgba(224,85,85,.08)'; btn.style.color = 'var(--red)';
+    btn.textContent = btn.textContent.trim() + ' ✓';
+  }
+}
+
+async function saveClientLifecycle(clientId, slug, clientName, forceStatus) {
+  const status = forceStatus || _pendingLifecycle;
+  if (!status) { showToast('Choose Discharge or Deceased first','err'); return; }
+  if (!slug) { showToast('Client has no portal slug','err'); return; }
+  const reason = forceStatus ? '' : (document.getElementById('cl-lifecycle-reason')?.value || '').trim();
+  if (!forceStatus && !reason) { showToast('A reason is required','err'); return; }
+  const verb = status === 'deceased' ? 'mark deceased' : status === 'discharged' ? 'discharge (offboard)' : 'reactivate';
+  const warn = status === 'active' ? '' : ' This cancels all upcoming visits and notifies the assigned PSW.';
+  if (!confirm(`Confirm: ${verb} ${clientName}?${warn}`)) return;
+  try {
+    const r = await hqFetch(`${API}/hq/client/${encodeURIComponent(slug)}/status`, {
+      method:'PATCH', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ operator_id: currentOp, status, status_reason: reason, changed_by: 'lance' })
+    });
+    const d = await r.json();
+    if (!r.ok || !d.success) throw new Error(d.error || 'Failed');
+    if (D.clients) {
+      const entry = D.clients.find(c => String(c.id) === String(clientId) || (`${c.first_name||''} ${c.last_name||''}`.trim()) === clientName);
+      if (entry) entry.status = status;
+    }
+    _pendingLifecycle = '';
+    renderClients();
+    showToast(status === 'active' ? `${clientName} reactivated ✓` : `${clientName} ${status} ✓`, 'ok');
+    loadAll(false);
+    closeSheet('client-sheet');
+  } catch(e) { showToast(e.message || 'Lifecycle change failed','err'); }
+}
+
 // ── CLIENT SEND PAYMENT SHEET ─────────────────────────────────────────────────
 let _cspClientName = '', _cspEmail = '', _cspRate = 22, _cspPayType = 'full', _cspInvoiceTotal = 0;
 
@@ -11338,6 +11385,19 @@ function openClientDetail(id) {
       </div>
       <input type="text" id="cl-avail-note" class="sinput" placeholder="e.g. hospital stay, out of town" style="font-size:13px;padding:10px;margin-bottom:12px;">
       <button onclick="saveClientAvailability('${id}','${name}')" style="width:100%;padding:13px;background:rgba(61,138,122,.1);border:1px solid rgba(61,138,122,.3);border-radius:8px;font-family:var(--mono);font-size:12px;letter-spacing:1px;text-transform:uppercase;color:var(--teal2);cursor:pointer;min-height:44px;touch-action:manipulation;">Save Status</button>
+
+      <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border);">
+        <div style="font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--red);margin-bottom:4px;">Lifecycle</div>
+        <div style="font-size:11px;color:var(--muted);line-height:1.6;margin-bottom:6px;">Permanent status. Discharge or Deceased cancels all upcoming visits and notifies the assigned PSW.</div>
+        <div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-bottom:12px;">Current: <span style="color:var(--text);">${(c.status||'active').replace(/_/g,' ')}</span></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;" id="cpt-lifecycle-btns-${id}">
+          <button onclick="setClientLifecycle('discharged',this)" style="padding:12px;border-radius:8px;border:1px solid var(--border);background:var(--bg3);font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);cursor:pointer;min-height:48px;touch-action:manipulation;">Discharge</button>
+          <button onclick="setClientLifecycle('deceased',this)" style="padding:12px;border-radius:8px;border:1px solid var(--border);background:var(--bg3);font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);cursor:pointer;min-height:48px;touch-action:manipulation;">Deceased</button>
+        </div>
+        <input type="text" id="cl-lifecycle-reason" class="sinput" placeholder="Reason (required)" style="font-size:13px;padding:10px;margin-bottom:12px;">
+        <button onclick="saveClientLifecycle('${id}','${slug}','${name}')" style="width:100%;padding:13px;background:rgba(224,85,85,.1);border:1px solid rgba(224,85,85,.3);border-radius:8px;font-family:var(--mono);font-size:12px;letter-spacing:1px;text-transform:uppercase;color:var(--red);cursor:pointer;min-height:44px;touch-action:manipulation;">Apply Lifecycle Change</button>
+        <button onclick="saveClientLifecycle('${id}','${slug}','${name}','active')" style="width:100%;padding:11px;margin-top:8px;background:rgba(109,185,116,.06);border:1px solid rgba(109,185,116,.25);border-radius:8px;font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--green2);cursor:pointer;min-height:42px;touch-action:manipulation;">Reactivate</button>
+      </div>
     </div>
 
     <!-- ── CLIENT FILE NOTES TAB ── -->
