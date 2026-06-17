@@ -1941,6 +1941,23 @@ body.sidebar-rail .sidebar{width:64px;overflow:visible;}
     <div class="empty-state">Loading GPS data...</div>
   </div>
 
+  <!-- ── AUDIT REPORT EXPORT ── -->
+  <div style="margin:0 0 2px;background:var(--bg2);border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:14px 16px;">
+    <div style="margin-bottom:8px;"><span class="section-title">Audit Report</span></div>
+    <div style="font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:12px;">One CSV row per visit: GPS check-in, signed form on file, client consent, and care plan status.</div>
+    <div style="display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap;">
+      <div style="flex:1;min-width:110px;">
+        <label style="font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--muted2);display:block;margin-bottom:4px;">From</label>
+        <input type="date" id="audit-from" class="sinput" style="font-size:13px;padding:9px;width:100%;">
+      </div>
+      <div style="flex:1;min-width:110px;">
+        <label style="font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--muted2);display:block;margin-bottom:4px;">To</label>
+        <input type="date" id="audit-to" class="sinput" style="font-size:13px;padding:9px;width:100%;">
+      </div>
+      <button onclick="downloadAuditReport()" style="padding:11px 16px;background:rgba(61,138,122,.12);border:1px solid rgba(61,138,122,.35);border-radius:8px;font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--teal2);cursor:pointer;min-height:42px;white-space:nowrap;">Export CSV</button>
+    </div>
+  </div>
+
   <!-- ── TODAY'S SHIFTS ── -->
   <div class="section-header" style="padding-bottom:6px;padding-top:14px;">
     <span class="section-title">Today's Shifts</span>
@@ -2579,6 +2596,18 @@ body.sidebar-rail .sidebar{width:64px;overflow:visible;}
       <div style="padding:6px 10px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;font-family:var(--mono);font-size:10px;color:var(--muted2);">Audit log → never deleted</div>
     </div>
     <div id="retention-result" style="display:none;margin-top:10px;padding:10px 12px;background:rgba(61,138,122,.06);border:1px solid rgba(61,138,122,.2);border-radius:6px;font-family:var(--mono);font-size:11px;color:var(--teal2);line-height:1.6;"></div>
+  </div>
+
+  <!-- Recycle Bin Panel -->
+  <div style="margin:14px 14px 0;padding:14px 16px;background:var(--bg2);border:1px solid var(--border);border-radius:10px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+      <div>
+        <div style="font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted2);">Recycle Bin</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:3px;">Clients and bookings deleted in the last 30 days. Restore returns them to active.</div>
+      </div>
+      <button onclick="loadRecycleBin()" style="padding:7px 14px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;font-family:var(--mono);font-size:11px;letter-spacing:1px;color:var(--muted2);cursor:pointer;min-height:36px;touch-action:manipulation;white-space:nowrap;flex-shrink:0;margin-left:12px;">Refresh</button>
+    </div>
+    <div id="recycle-list" style="margin-top:10px;"><div class="empty-state" style="padding:12px;">Loading...</div></div>
   </div>
 </div>
 
@@ -5057,6 +5086,66 @@ async function runDataRetention() {
     if (btn) { btn.textContent = 'Run Now'; btn.disabled = false; }
   }
 }
+// ── RECYCLE BIN — restore soft-deleted clients/bookings (last 30 days) ──
+async function loadRecycleBin() {
+  const el = document.getElementById('recycle-list');
+  if (!el) return;
+  try {
+    const r = await fetch(`${API}/hq/recycle-bin?operator_id=${currentOp}`, {
+      headers: { 'x-hq-token': window._hqToken || sessionStorage.getItem('hq_token') || '' }
+    });
+    const d = await r.json();
+    if (!d.success) { el.innerHTML = '<div class="empty-state" style="padding:12px;">Could not load recycle bin</div>'; return; }
+    const clients = d.clients || [];
+    const bookings = d.bookings || [];
+    if (!clients.length && !bookings.length) {
+      el.innerHTML = '<div class="empty-state" style="padding:12px;color:var(--teal2);">Nothing deleted in the last 30 days</div>';
+      return;
+    }
+    let html = '';
+    if (clients.length) {
+      html += '<div style="font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--muted2);margin:4px 0 6px;">Clients</div>';
+      html += clients.map(c => _rbRow({ id: c.id, label: escHtml(((c.first_name||'')+' '+(c.last_name||'')).trim()||'Client'), deleted_at: c.deleted_at }, 'clients')).join('');
+    }
+    if (bookings.length) {
+      html += '<div style="font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--muted2);margin:12px 0 6px;">Bookings</div>';
+      html += bookings.map(b => _rbRow({ id: b.id, label: (escHtml(b.client_name||'Booking') + ' \u00b7 ' + (b.scheduled_date||'') + ' ' + (b.scheduled_time||'')).trim(), deleted_at: b.deleted_at }, 'bookings')).join('');
+    }
+    el.innerHTML = html;
+  } catch (e) {
+    el.innerHTML = '<div class="empty-state" style="padding:12px;">Could not load recycle bin</div>';
+  }
+}
+
+function _rbRow(item, table) {
+  const when = item.deleted_at ? new Date(item.deleted_at).toLocaleDateString() : '';
+  return `<div id="rb-${table}-${item.id}" style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 10px;border-radius:8px;border:1px solid var(--border);background:var(--bg3);margin-bottom:6px;">
+    <div style="min-width:0;">
+      <div style="font-size:13px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${item.label}</div>
+      <div style="font-family:var(--mono);font-size:10px;color:var(--muted2);margin-top:2px;">Deleted ${when}</div>
+    </div>
+    <button onclick="restoreItem('${table}','${item.id}')" style="padding:7px 14px;background:rgba(61,138,122,.1);border:1px solid rgba(61,138,122,.3);border-radius:6px;font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--teal2);cursor:pointer;min-height:36px;white-space:nowrap;flex-shrink:0;">Restore</button>
+  </div>`;
+}
+
+async function restoreItem(table, id) {
+  try {
+    const r = await fetch(`${API}/hq/restore/${table}/${id}`, {
+      method: 'POST', headers: {'Content-Type':'application/json', 'x-hq-token': window._hqToken || sessionStorage.getItem('hq_token') || ''},
+      body: JSON.stringify({ operator_id: currentOp })
+    });
+    const d = await r.json();
+    if (!r.ok || !d.success) throw new Error(d.error || 'Failed');
+    document.getElementById(`rb-${table}-${id}`)?.remove();
+    showToast('Restored', 'ok');
+    const el = document.getElementById('recycle-list');
+    if (el && !el.querySelector('[id^="rb-"]')) el.innerHTML = '<div class="empty-state" style="padding:12px;color:var(--teal2);">Nothing deleted in the last 30 days</div>';
+    loadAll(false);
+  } catch (e) {
+    showToast(e.message || 'Could not restore', 'err');
+  }
+}
+
 async function issueWarningNotice(pswName, pswId) {
   const notice_type     = document.getElementById(`hr-notice-type-${pswId}`)?.value;
   const infraction_date = document.getElementById(`hr-infraction-date-${pswId}`)?.value;
@@ -6545,7 +6634,7 @@ function showSect(name) {
       }
     }, 30000);
   }
-  if(name==='activity') { window._dirtyActivity=false; renderActivity(); }
+  if(name==='activity') { window._dirtyActivity=false; renderActivity(); loadRecycleBin(); }
   if(name==='revenue') { window._dirtyRevenue=false; renderRevenue().catch(e=>showToast('Revenue load failed','err')); }
   if(name==='crm') { window._dirtyCRM=false; renderCRM(); }
   if(name==='overview') { window._dirtyOverview=false; renderOverview(); loadFlaggedVitals(); }
@@ -9859,6 +9948,39 @@ function downloadPayrollCSV() {
   .catch(() => showToast('Could not generate CSV', 'err'));
 }
 
+// EXPORT AUDIT REPORT — compliance CSV (GPS + signed forms + consents + care plans), mirrors downloadPayrollCSV
+function downloadAuditReport() {
+  const from = document.getElementById('audit-from')?.value;
+  const to   = document.getElementById('audit-to')?.value;
+  if (!from || !to) { showToast('Select a date range first', 'err'); return; }
+  const token = window._hqToken || sessionStorage.getItem('hq_token') || '';
+  const params = new URLSearchParams({ operator_id: currentOp, from_date: from, to_date: to });
+  showToast('Generating audit report…', 'ok');
+  fetch(`${API}/hq/audit-export?${params.toString()}`, { headers: { 'x-hq-token': token } })
+  .then(async r => {
+    if (!r.ok) { const d = await r.json().catch(()=>({})); showToast(d.error || 'No visits found for this period', 'err'); return; }
+    const blob = await r.blob();
+    const filename = `audit-report_${currentOp}_${from}_to_${to}.csv`;
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = filename;
+    document.body.appendChild(a); a.click();
+    setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 1000);
+    showToast('Audit report downloaded ✓', 'ok');
+  })
+  .catch(() => showToast('Could not generate report', 'err'));
+}
+
+// Default the audit date range to the last 90 days (only if empty)
+function setAuditDateDefaults() {
+  const f = document.getElementById('audit-from');
+  const t = document.getElementById('audit-to');
+  if (!f || !t) return;
+  if (!t.value) t.value = new Date().toISOString().slice(0,10);
+  if (!f.value) { const d = new Date(); d.setDate(d.getDate() - 90); f.value = d.toISOString().slice(0,10); }
+}
+
+
 // ── IMPORT TEMPLATE DOWNLOADS ──
 function downloadPSWTemplate() {
   const csv = ['first_name,last_name,email,phone,psw_rate,city,languages','Carolina,Hermida,carolina@email.com,647-555-0101,22.00,Mississauga,English'].join('\n');
@@ -11947,6 +12069,7 @@ async function renderSystemHealth() {
 }
 
 async function renderGPSExceptions() {
+  setAuditDateDefaults();
   const el = document.getElementById('ov-gps-exceptions');
   if (!el) return;
   try {
