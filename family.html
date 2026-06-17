@@ -2821,7 +2821,26 @@ async function submitCarePause(btn){
   const to = (document.getElementById('pause-to')||{}).value || '';
   const reason = (document.getElementById('pause-reason')||{}).value || '';
   if(!from){ showToast('Please choose a start date'); return; }
-  const body = `Pause from: ${from}\nUntil: ${to||'unsure / will advise'}\nReason: ${reason||'(none given)'}`;
+  // Bounded range → structured time-off request (lands in HQ inbox, auto-pauses visits on approve)
+  if(to){
+    try{
+      if(btn){ btn.disabled = true; btn.textContent = 'Sending...'; }
+      const res = await fetch(`${R}/family/time-off`, {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ slug: clientSlug || slug, from_date: from, until_date: to, reason })
+      });
+      const d = await res.json();
+      if(!res.ok || !d.success) throw new Error(d.error||'Failed');
+      closeScheduleSheet();
+      showScheduleConfirm('Pause requested', 'Your coordinator will confirm and hold visits for these dates.');
+    }catch(e){
+      showToast('Could not send request. Try again.', 'err');
+      if(btn){ btn.disabled = false; btn.textContent = 'Request pause'; }
+    }
+    return;
+  }
+  // Open-ended (no end date) → freeform message fallback, coordinator handles manually
+  const body = `Pause from: ${from}\nUntil: unsure / will advise\nReason: ${reason||'(none given)'}`;
   const ok = await sendScheduleRequest('CARE PAUSE', body, btn);
   if(ok){ closeScheduleSheet(); showScheduleConfirm('Pause requested', 'Your coordinator will hold visits for this period and confirm.'); }
 }
