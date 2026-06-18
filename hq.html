@@ -7287,7 +7287,7 @@ async function bulkImportPSWs() {
   fd.append('file', fileInput.files[0]);
   fd.append('operator_id', currentOp);
   try {
-    const res = await fetch(`${API}/operator/import-psws`, { method: 'POST', body: fd });
+    const res = await fetch(`${API}/operator/import-psws`, { method: 'POST', headers: { 'x-hq-token': window._hqToken || sessionStorage.getItem('hq_token') || '' }, body: fd });
     const data = await res.json();
     if (!res.ok || !data.success) throw new Error(data.error || 'Failed');
     result.innerHTML = `✓ ${data.activated.length} PSWs activated · ${data.failed.length} failed · ${data.skipped.length} skipped`;
@@ -7306,7 +7306,7 @@ async function bulkImportClients() {
   fd.append('file', fileInput.files[0]);
   fd.append('operator_id', currentOp);
   try {
-    const res = await fetch(`${API}/operator/import-clients`, { method: 'POST', body: fd });
+    const res = await fetch(`${API}/operator/import-clients`, { method: 'POST', headers: { 'x-hq-token': window._hqToken || sessionStorage.getItem('hq_token') || '' }, body: fd });
     const data = await res.json();
     if (!res.ok || !data.success) throw new Error(data.error || 'Failed');
     result.innerHTML = `✓ ${data.onboarded.length} clients onboarded · ${data.failed.length} failed · ${data.skipped.length} skipped`;
@@ -7326,7 +7326,7 @@ async function importPSWs() {
   fd.append('file', fileInput.files[0]);
   fd.append('operator_id', currentOp);
   try {
-    const res = await fetch(`${API}/operator/import-psws`, { method:'POST', body: fd });
+    const res = await fetch(`${API}/operator/import-psws`, { method:'POST', headers: { 'x-hq-token': window._hqToken || sessionStorage.getItem('hq_token') || '' }, body: fd });
     const data = await res.json();
     if(!res.ok || !data.success) throw new Error(data.error||'Failed');
     result.innerHTML = `✓ ${data.activated.length} PSWs activated · ${data.failed.length} failed · ${data.skipped.length} skipped`;
@@ -7346,7 +7346,7 @@ async function importClients() {
   fd.append('file', fileInput.files[0]);
   fd.append('operator_id', currentOp);
   try {
-    const res = await fetch(`${API}/operator/import-clients`, { method:'POST', body: fd });
+    const res = await fetch(`${API}/operator/import-clients`, { method:'POST', headers: { 'x-hq-token': window._hqToken || sessionStorage.getItem('hq_token') || '' }, body: fd });
     const data = await res.json();
     if(!res.ok || !data.success) throw new Error(data.error||'Failed');
     result.innerHTML = `✓ ${data.onboarded.length} clients onboarded · ${data.failed.length} failed · ${data.skipped.length} skipped`;
@@ -7366,7 +7366,7 @@ async function firePostClose() {
   result.textContent = 'Firing...';
   try {
     const res = await fetch(`${API}/operator/post-close`, {
-      method:'POST', headers:{'Content-Type':'application/json'},
+      method:'POST', headers:{'Content-Type':'application/json', 'x-hq-token': window._hqToken || sessionStorage.getItem('hq_token') || ''},
       body: JSON.stringify({ operator_id: currentOp, agency_name: agency, owner_name: owner, owner_email: email })
     });
     const data = await res.json();
@@ -10779,7 +10779,6 @@ async function submitCloseDeal() {
     const r = await hqFetch(`${API}/operator/manual-close`, {
       method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({
-        secret:'proximity-admin-2026',
         agency_name:agency, owner_name:name, owner_email:email,
         owner_phone:phone||null, province, plan,
         invoice_rate:invoiceR, psw_rate:pswR, notes:notes||null
