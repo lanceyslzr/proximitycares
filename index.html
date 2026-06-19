@@ -2387,13 +2387,21 @@ CRITICAL FAILURE MODES TO AVOID:
 - Do NOT split the booking trigger across two messages
 - The booking block must appear in your reply that comes RIGHT AFTER the 3rd user message
 
-If the user explicitly asks to book or skip ahead at any point, output the booking block immediately using whatever information you already have (use "not yet specified" for missing fields).`;
+If the user explicitly asks to book or skip ahead at any point, output the booking block immediately using whatever information you already have (use "not yet specified" for missing fields).
+
+QUICK REPLY BUTTONS, REQUIRED ON EVERY REPLY EXCEPT THE BOOKING TRIGGER:
+At the very end of every reply, append exactly one hidden HTML comment that tells the interface which quick reply buttons to show. Use one of these four and nothing else:
+<!--CHIPS:relationship--> when you are asking who the care is for or their relationship to the user
+<!--CHIPS:care_type--> when you are asking what kind of care or support is needed
+<!--CHIPS:urgency--> when you are asking how soon they want to start
+<!--CHIPS:none--> when you are asking anything open ended such as a name, an age, or a specific detail where buttons would not fit
+The user sees the buttons you choose, so always pick the set that matches the question you just asked, never a different one. Do not show buttons that contradict your question. Do not mention the comment or the buttons in your visible text. Do not append this comment to the booking trigger reply.`;
 
 var chatHistory = [{role:'assistant', content:"Hi there. I'm here to help you find the right care. Who are you looking for care for?"}];
 var chatProcessing = false;
 var intakeData = {};
 var chatConfig = { system: null }; // use object so reassignment works inside closures
-var bookingComplete = false; // set true after submitBooking so inferChips returns post_book
+var bookingComplete = false; // set true after submitBooking so pickChips returns post_book
 
 var CHIP_SETS = {
   initial:   ['A parent','My spouse','Myself','Someone else'],
@@ -2407,43 +2415,23 @@ function countUserTurns() {
   return chatHistory.filter(function(m){ return m.role === 'user'; }).length;
 }
 
-function inferChips(botText) {
+function pickChips(botText) {
   if (bookingComplete) return CHIP_SETS.post_book;
-  var b = (botText || '').toLowerCase();
   var userTurns = countUserTurns();
-
-  // After 3 user turns, AI should have triggered booking via READY_FOR_BOOKING
-  // If we somehow get here, hide chips so user types freely
   if (userTurns >= 3) return null;
-
-  // Turn 0 to 1, initial chips for "who is the care for"
-  if (userTurns === 0 || (userTurns === 1 && b.includes('looking') === false && b.includes('who') === true)) {
-    return CHIP_SETS.initial;
+  // 1. Authoritative: the AI tags its own question so buttons always match what it asked.
+  var mk = (botText || '').match(/<!--\s*CHIPS:\s*([a-z_]+)\s*-->/i);
+  if (mk) {
+    var key = mk[1].toLowerCase();
+    if (key === 'relationship') return CHIP_SETS.initial;
+    if (key === 'care_type') return CHIP_SETS.care_type;
+    if (key === 'urgency') return CHIP_SETS.urgency;
+    return null; // none or any open question: hide buttons, let them type
   }
-
-  // URGENCY keywords FIRST, these are highly specific phrases the AI only uses when asking about timing
-  // (Check before care_type because care_type keywords like "hoping" can appear in urgency questions)
-  if (b.includes('how soon') || b.includes('how urgent') || b.includes('timeline') ||
-      b.includes('get started') || b.includes('looking to start') || b.includes('when would') ||
-      b.includes('when do you') || b.includes('when are you') || b.includes('right away') ||
-      b.includes('this week') || b.includes('time frame') || b.includes('how quickly') ||
-      b.includes('soon are you') || b.includes('start care')) {
-    return CHIP_SETS.urgency;
-  }
-
-  // CARE TYPE keywords second, phrases that specifically ask about type of care/support
-  // "hoping" removed because it's too generic (appears in urgency questions too)
-  if (b.includes('kind of care') || b.includes('kind of support') || b.includes('kind of help') ||
-      b.includes('type of care') || b.includes('type of support') || b.includes('what help') ||
-      b.includes('what care') || b.includes('what support') || b.includes('looking for') ||
-      b.includes('what services') || b.includes('what do they need') ||
-      b.includes('challenges') || b.includes('needs help with') || b.includes('needs assistance') ||
-      b.includes('day-to-day')) {
-    return CHIP_SETS.care_type;
-  }
-
-  // First turn fallback
-  if (userTurns <= 1) return CHIP_SETS.initial;
+  // 2. Fallback follows the scripted flow (relationship is shown at the greeting):
+  //    after answer 1 we ask care type, after answer 2 we ask urgency.
+  if (userTurns === 1) return CHIP_SETS.care_type;
+  if (userTurns === 2) return CHIP_SETS.urgency;
   return null;
 }
 
@@ -2644,7 +2632,7 @@ async function submitBooking(selectedDate, selectedTime) {
 
   // Re-enable input so they can keep asking questions
   chatProcessing = false; // make sure not stuck
-  bookingComplete = true; // switch inferChips to always return post_book chips
+  bookingComplete = true; // switch pickChips to always return post_book chips
   var inp = document.getElementById('cinp');
   if(inp) {
     inp.disabled = false;
@@ -2779,8 +2767,9 @@ async function sendChat(text) {
     }
 
     setTimeout(function(){
-      addCMsg('b', raw);
-      chatHistory.push({role:'assistant', content:raw.replace(/<!--READY_FOR_BOOKING:[\s\S]*?-->/g,'').trim()});
+      var display = raw.replace(/<!--[\s\S]*?-->/g,'').replace(/\s*[\u2014\u2013]\s*/g,', ').trim();
+      addCMsg('b', display);
+      chatHistory.push({role:'assistant', content:display});
 
       if(bookingMatch && !bookingComplete) {
         // Show booking form after short delay
@@ -2807,7 +2796,7 @@ async function sendChat(text) {
           chatProcessing = false;
         }, 600);
       } else if (!bookingComplete) {
-        var chips = inferChips(raw);
+        var chips = pickChips(raw);
         // Always include "Book directly with Lance" chip from turn 2 onward
         // so users can skip ahead if they want
         if (chips && countUserTurns() >= 1) {
