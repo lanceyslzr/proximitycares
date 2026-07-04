@@ -165,6 +165,8 @@ a{color:inherit;text-decoration:none;}
 .feed-tile.upcoming{color:var(--psw-light);border-color:rgba(86,200,245,.3);background:linear-gradient(160deg,rgba(86,200,245,.16),rgba(86,200,245,.04));}
 .feed-tile.active{color:var(--amber);border-color:rgba(255,179,64,.32);background:linear-gradient(160deg,rgba(255,179,64,.16),rgba(255,179,64,.04));}
 .feed-tile.alert{color:var(--psw-light);border-color:rgba(86,200,245,.3);background:linear-gradient(160deg,rgba(86,200,245,.16),rgba(86,200,245,.04));}
+.feed-tile.onhold{color:#b0b0b0;border-color:rgba(130,130,130,.35);background:linear-gradient(160deg,rgba(130,130,130,.14),rgba(130,130,130,.03));}
+.feed-tile.cancelled{color:#e08585;border-color:rgba(224,85,85,.32);background:linear-gradient(160deg,rgba(224,85,85,.14),rgba(224,85,85,.03));}
 .feed-see-more{display:flex;align-items:center;justify-content:center;gap:7px;padding:13px;margin:6px 0 2px;font-family:var(--rb-mono);font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--psw);background:rgba(86,200,245,.06);border:1px solid rgba(86,200,245,.2);border-radius:12px;cursor:pointer;touch-action:manipulation;transition:background .14s var(--e);}
 .feed-see-more:active{background:rgba(86,200,245,.14);}
 .feed-see-more svg{width:14px;height:14px;}
@@ -484,6 +486,8 @@ a{color:inherit;text-decoration:none;}
 .shift-chip.active{color:var(--amber);border-color:rgba(224,154,61,.3);background:rgba(224,154,61,.06);}
 .shift-chip.upcoming{color:var(--gold);border-color:rgba(200,169,110,.3);background:rgba(200,169,110,.06);}
 .shift-chip.scheduled{color:var(--muted2);border-color:var(--border);}
+.shift-chip.onhold{color:#b0b0b0;border-color:rgba(130,130,130,.4);background:rgba(130,130,130,.08);}
+.shift-chip.cancelled{color:#e08585;border-color:rgba(224,85,85,.35);background:rgba(224,85,85,.08);}
 /* Compact shift rows */
 /* Time remaining */
 .time-remaining{font-family:var(--mono);font-size:11px;color:var(--teal2);margin-top:2px;}
@@ -559,6 +563,8 @@ a{color:inherit;text-decoration:none;}
 .cal-popup-status.done{color:var(--teal2);border-color:rgba(86,200,245,.3);background:rgba(86,200,245,.06);}
 .cal-popup-status.active{color:var(--amber);border-color:rgba(224,154,61,.3);background:rgba(224,154,61,.06);}
 .cal-popup-status.upcoming{color:var(--gold);border-color:rgba(200,169,110,.3);background:rgba(200,169,110,.06);}
+.cal-popup-status.onhold{color:#b0b0b0;border-color:rgba(130,130,130,.4);background:rgba(130,130,130,.08);}
+.cal-popup-status.cancelled{color:#e08585;border-color:rgba(224,85,85,.35);background:rgba(224,85,85,.08);}
 .cal-popup-empty{padding:20px 16px;text-align:center;font-family:var(--mono);font-size:12px;color:var(--muted);letter-spacing:1px;}
 .cal-popup-go-btn{width:calc(100% - 32px);margin:12px 16px;padding:12px;background:rgba(86,200,245,.1);border:1px solid rgba(86,200,245,.3);border-radius:8px;color:var(--teal2);font-family:var(--mono);font-size:12px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;min-height:44px;touch-action:manipulation;}
 
@@ -2301,7 +2307,7 @@ function renderHomeFeed() {
 
   // ── ALL upcoming bookings — group by day ──────────────────────
   const upcomingBookings = bookings
-    .filter(b => b.scheduled_date >= today && b.status !== 'cancelled' && !b.deleted_at)
+    .filter(b => b.scheduled_date >= today && !b.deleted_at)
     .sort((a,b) => {
       const da = (a.scheduled_date||'') + (a.scheduled_time||'00:00');
       const db = (b.scheduled_date||'') + (b.scheduled_time||'00:00');
@@ -2340,6 +2346,22 @@ function renderHomeFeed() {
 
       const _safeName = (b.client_name||'').replace(/'/g,'').replace(/"/g,'');
       const _safeId = b.id || '';
+
+      if (b.status === 'on_hold' || b.status === 'cancelled') {
+        const _cx = b.status === 'cancelled';
+        const _stLbl = _cx ? 'Cancelled' : 'On hold';
+        const _stRsn = b.status_reason ? ' · ' + escHtml(b.status_reason) : '';
+        const _stIcon = _cx
+          ? '<path d="M18 6 6 18M6 6l12 12"/>'
+          : '<rect x="6" y="5" width="3.5" height="14" rx="1"/><rect x="14.5" y="5" width="3.5" height="14" rx="1"/>';
+        dayRows.push(`<div class="feed-row" style="opacity:.72;">
+          <div class="feed-tile ${_cx ? 'cancelled' : 'onhold'}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${_stIcon}</svg></div>
+          <div class="feed-body"><div class="feed-client">${b.client_name||'Client'}</div><div class="feed-meta">${_stLbl} · ${b.scheduled_time||'TBD'}${_stRsn}</div></div>
+          <div class="feed-right"><span class="shift-chip ${_cx ? 'cancelled' : 'onhold'}">${_stLbl}</span></div>
+        </div>`);
+        _shown++;
+        return;
+      }
 
       if (completedVisit) {
         const hrs = parseFloat(completedVisit.hours_worked||0).toFixed(1);
@@ -2546,7 +2568,7 @@ function renderSchedDayCards(ds, days, bookings, visits, clients, today) {
   const dayBookings = bookings.filter(b => b.scheduled_date === ds).sort((a,b) => (a.scheduled_time||'').localeCompare(b.scheduled_time||''));
   const dayVisits   = visits.filter(v => v.visit_date === ds);
 
-  const totalH = dayBookings.reduce((s,b) => s + (b.duration_minutes||0)/60, 0);
+  const totalH = dayBookings.filter(b => b.status !== 'cancelled').reduce((s,b) => s + (b.duration_minutes||0)/60, 0);
   if (tot) tot.textContent = totalH > 0 ? totalH.toFixed(1)+'h scheduled' : '';
 
   if (!dayBookings.length && !dayVisits.length) {
@@ -2568,6 +2590,9 @@ function renderSchedDayCards(ds, days, bookings, visits, clients, today) {
     const careNotes = client?.care_notes || '';
     const done = _dayDoneSet.has(b.id); // position-based: only true for the Nth booking if N visits done
     const isActive = activeVisit && activeVisit.client_name === b.client_name && isToday;
+    const _held = b.status === 'on_hold';
+    const _cancelled = b.status === 'cancelled';
+    const _stReason = b.status_reason || '';
     const durH = b.duration_minutes ? (b.duration_minutes/60).toFixed(1) : null;
     const endTime = (b.scheduled_time && b.duration_minutes) ? (() => {
       const [hh,mm] = b.scheduled_time.split(':').map(Number);
@@ -2576,25 +2601,25 @@ function renderSchedDayCards(ds, days, bookings, visits, clients, today) {
     })() : null;
     const timeStr = b.scheduled_time ? (endTime ? b.scheduled_time+' - '+endTime : b.scheduled_time) : 'TBD';
     const _safe = (b.client_name||'').replace(/'/g,'').replace(/"/g,'');
-    const _cardBg   = done ? 'rgba(30,138,82,.07)' : isActive ? 'rgba(224,154,61,.06)' : 'var(--rb-panel)';
-    const _cardBdr  = done ? 'rgba(30,138,82,.45)' : isActive ? 'rgba(224,154,61,.4)' : 'var(--rb-line)';
-    const _cardLeft = done ? 'border-left:3px solid var(--green2);' : isActive ? 'border-left:3px solid var(--amber);' : '';
+    const _cardBg   = _cancelled ? 'rgba(224,85,85,.05)' : _held ? 'rgba(130,130,130,.05)' : done ? 'rgba(30,138,82,.07)' : isActive ? 'rgba(224,154,61,.06)' : 'var(--rb-panel)';
+    const _cardBdr  = _cancelled ? 'rgba(224,85,85,.35)' : _held ? 'rgba(130,130,130,.35)' : done ? 'rgba(30,138,82,.45)' : isActive ? 'rgba(224,154,61,.4)' : 'var(--rb-line)';
+    const _cardLeft = _cancelled ? 'border-left:3px solid #e05555;' : _held ? 'border-left:3px solid #8a8a8a;' : done ? 'border-left:3px solid var(--green2);' : isActive ? 'border-left:3px solid var(--amber);' : '';
     const visitPay = durH ? Math.round(parseFloat(durH) * rate) : null;
-    const tileCls = done ? 'done' : isActive ? 'active' : 'upcoming';
-    const tileIcon = done ? '<path d="M5 12.5l4 4 10-10.5"/>' : isActive ? '<path d="M3 12h4l2-6 4 12 2-6h6"/>' : '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>';
+    const tileCls = _cancelled ? 'cancelled' : _held ? 'onhold' : done ? 'done' : isActive ? 'active' : 'upcoming';
+    const tileIcon = _cancelled ? '<path d="M18 6 6 18M6 6l12 12"/>' : _held ? '<rect x="6" y="5" width="3.5" height="14" rx="1"/><rect x="14.5" y="5" width="3.5" height="14" rx="1"/>' : done ? '<path d="M5 12.5l4 4 10-10.5"/>' : isActive ? '<path d="M3 12h4l2-6 4 12 2-6h6"/>' : '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>';
     return '<div style="background:' + _cardBg + ';border:1px solid ' + _cardBdr + ';' + _cardLeft + 'border-radius:16px;padding:14px;margin-bottom:8px;box-shadow:inset 0 1px 0 rgba(255,255,255,.04);">' +
       '<div style="display:flex;align-items:flex-start;gap:11px;margin-bottom:8px;">' +
         '<div class="feed-tile ' + tileCls + '" style="margin-top:1px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="' + (done?'2.4':'1.8') + '" stroke-linecap="round" stroke-linejoin="round">' + tileIcon + '</svg></div>' +
         '<div style="flex:1;min-width:0;">' +
           '<div style="font-family:var(--rb-sans);font-size:15px;font-weight:600;color:var(--rb-text);margin-bottom:2px;cursor:pointer;" onclick="openClientSheetByName(\'' + _safe + '\')">' + (b.client_name||'—') + ' <span style="font-family:var(--rb-mono);font-size:11px;color:var(--psw);">Info ›</span></div>' +
-          '<div style="font-family:var(--rb-mono);font-size:12px;color:' + (isActive ? 'var(--amber)' : done ? 'var(--green2)' : 'var(--psw)') + ';"><span>' +
-            (isActive ? 'In progress' : done ? 'Done' : timeStr) + (durH && !done && !isActive ? ' · '+durH+'h' : '') +
+          '<div style="font-family:var(--rb-mono);font-size:12px;color:' + (_cancelled ? '#e08585' : _held ? '#b0b0b0' : isActive ? 'var(--amber)' : done ? 'var(--green2)' : 'var(--psw)') + ';"><span>' +
+            (_cancelled ? 'Cancelled' : _held ? 'On hold' : isActive ? 'In progress' : done ? 'Done' : timeStr) + ((_cancelled || _held) ? (_stReason ? ' · '+escHtml(_stReason) : '') : (durH && !done && !isActive ? ' · '+durH+'h' : '')) +
           '</span></div></div>' +
         '<div style="font-family:var(--rb-mono);font-size:11px;font-weight:500;letter-spacing:.3px;color:var(--gold);margin-left:4px;padding:4px 9px;border:1px solid rgba(240,181,73,.25);border-radius:9px;background:rgba(240,181,73,.07);white-space:nowrap;">' + (visitPay ? '$'+visitPay : '$') + '</div>' +
       '</div>' +
       (address ? '<div style="display:flex;align-items:center;gap:5px;margin-bottom:6px;font-family:var(--rb-mono);font-size:11px;color:var(--rb-dim);"> ' + address + '</div>' : '') +
       (careNotes ? '<div style="font-size:11px;color:var(--rb-dim);line-height:1.55;margin-bottom:8px;padding:8px;background:var(--rb-elev);border-radius:8px;border:1px solid var(--rb-line);">' + careNotes.slice(0,160) + (careNotes.length>160 ? '...' : '') + '</div>' : '') +
-      (!done && !isActive && isToday ?
+      (!done && !isActive && isToday && !_cancelled && !_held ?
         '<div style="display:flex;gap:8px;margin-top:4px;">' +
           '<button onclick="doCheckInFromShift(\''+_safe+'\')" style="flex:1;padding:11px;background:linear-gradient(135deg,var(--psw),var(--psw-deep));border:none;border-radius:10px;font-family:var(--rb-mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--psw-ink);cursor:pointer;min-height:44px;touch-action:manipulation;">Sign In</button>' +
           '<button onclick="openNavigateSheet(\''+_safe+'\',\'' + (b.id||'') + '\')" style="padding:11px 14px;background:var(--rb-elev);border:1px solid var(--rb-line);border-radius:10px;font-family:var(--rb-mono);font-size:11px;color:var(--rb-dim);cursor:pointer;min-height:44px;touch-action:manipulation;">Map</button>' +
@@ -5303,12 +5328,19 @@ function openCalPopup(dateStr) {
       const isDone = _calDoneSet.has(b.id);
       const isActive = activeVisit && activeVisit.client_name === b.client_name && dateStr === today;
       if (!isDone && !isActive) {
+        const _st = b.status === 'cancelled' ? 'cancelled' : b.status === 'on_hold' ? 'onhold' : 'upcoming';
+        const _stLbl = b.status === 'cancelled' ? 'Cancelled' : b.status === 'on_hold' ? 'On hold' : 'Upcoming';
+        let _durTxt = b.duration_minutes ? (b.duration_minutes/60).toFixed(1) + 'h scheduled' : '';
+        if (_st !== 'upcoming') {
+          const _h = b.duration_minutes ? (b.duration_minutes/60).toFixed(1) + 'h' : '';
+          _durTxt = [_h, b.status_reason ? escHtml(b.status_reason) : ''].filter(Boolean).join(' · ');
+        }
         rows.push({
           time: b.scheduled_time ? b.scheduled_time.slice(0,5) : 'TBD',
-          client: b.client_name || '—',
-          dur: b.duration_minutes ? (b.duration_minutes/60).toFixed(1) + 'h scheduled' : '',
-          status: 'upcoming',
-          statusLabel: 'Upcoming',
+          client: b.client_name || 'Client',
+          dur: _durTxt,
+          status: _st,
+          statusLabel: _stLbl,
           bookingId: b.id
         });
       }
