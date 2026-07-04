@@ -981,7 +981,26 @@ body.sidebar-hidden #sidebar-reopen-tab{ display:flex; }
 .gc-live{background:var(--green-dim);border-color:var(--green-border);animation:livepulse 2s infinite;}
 .gc-done{background:var(--bg3);border-color:var(--border);opacity:.6;}
 .gc-open{background:var(--amber-dim);border-color:var(--amber-border);}
-.gc-cancelled{background:var(--bg3);border-color:transparent;opacity:.35;text-decoration:line-through;}
+.gc-cancelled{background:rgba(224,85,85,.10);border-color:rgba(224,85,85,.3);opacity:.6;text-decoration:line-through;}
+.gc-onhold{background:var(--bg3);border-color:#7a7a7a;opacity:.62;}
+/* Shift status control (green/grey/red + reason) */
+.sd-status-ctrl{margin:2px 0 12px;padding:10px 12px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;}
+.sd-sc-label{font-family:var(--mono);font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:7px;}
+.sd-sc-row{display:flex;gap:6px;}
+.sd-st-btn{flex:1;padding:7px 4px;border-radius:6px;font-family:var(--mono);font-size:10px;letter-spacing:.5px;text-transform:uppercase;cursor:pointer;min-height:40px;border:1px solid var(--border);background:var(--bg3);color:var(--muted2);touch-action:manipulation;transition:all .12s;}
+.sd-st-btn.on-sched.active{background:rgba(61,138,122,.15);border-color:var(--teal2);color:var(--teal2);}
+.sd-st-btn.on-hold.active{background:rgba(130,130,130,.18);border-color:#9a9a9a;color:#c8c8c8;}
+.sd-st-btn.on-cancel.active{background:rgba(224,85,85,.14);border-color:#e05555;color:#e08585;}
+.sd-reason-wrap{margin-top:9px;display:none;}
+.sd-reason-wrap.show{display:block;}
+.sd-reason-chips{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:7px;}
+.sd-reason-chip{padding:5px 10px;border-radius:100px;font-family:var(--mono);font-size:10px;letter-spacing:.5px;cursor:pointer;border:1px solid var(--border);background:var(--bg3);color:var(--muted2);touch-action:manipulation;}
+.sd-reason-chip.active{background:rgba(200,169,110,.14);border-color:var(--gold);color:var(--gold);}
+.sd-reason-note{width:100%;box-sizing:border-box;padding:7px 9px;border-radius:6px;border:1px solid var(--border);background:var(--bg3);color:var(--text);font-family:var(--mono);font-size:11px;margin-bottom:7px;}
+.sd-sc-save{width:100%;padding:9px;border-radius:6px;font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;min-height:42px;border:1px solid var(--teal2);background:rgba(61,138,122,.12);color:var(--teal2);touch-action:manipulation;}
+.sd-sc-save:disabled{opacity:.4;cursor:not-allowed;}
+.sd-current-status{font-family:var(--mono);font-size:11px;margin-bottom:8px;display:flex;align-items:center;gap:6px;}
+.sd-cs-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
 .grid-empty{height:34px;}
 
 /* ── SCHEDULE SECTION — fixed-height panel so grid scrolls independently ── */
@@ -3659,6 +3678,27 @@ body.sidebar-rail .sidebar{width:64px;overflow:visible;}
     </div>
     <div class="sd-row" id="sd-date"></div>
     <div class="sd-status" id="sd-status"></div>
+    <div class="sd-status-ctrl" id="sd-status-ctrl">
+      <div class="sd-current-status" id="sd-current-status"></div>
+      <div class="sd-sc-label">Change status</div>
+      <div class="sd-sc-row">
+        <button type="button" class="sd-st-btn on-sched" id="sd-st-sched" data-st="scheduled">Scheduled</button>
+        <button type="button" class="sd-st-btn on-hold" id="sd-st-hold" data-st="on_hold">On hold</button>
+        <button type="button" class="sd-st-btn on-cancel" id="sd-st-cancel" data-st="cancelled">Cancelled</button>
+      </div>
+      <div class="sd-reason-wrap" id="sd-reason-wrap">
+        <div class="sd-sc-label" style="margin-top:10px;">Reason</div>
+        <div class="sd-reason-chips" id="sd-reason-chips">
+          <span class="sd-reason-chip" data-reason="Sick">Sick</span>
+          <span class="sd-reason-chip" data-reason="Away">Away</span>
+          <span class="sd-reason-chip" data-reason="Vacation">Vacation</span>
+          <span class="sd-reason-chip" data-reason="Client request">Client request</span>
+          <span class="sd-reason-chip" data-reason="Other">Other</span>
+        </div>
+        <input type="text" class="sd-reason-note" id="sd-reason-note" placeholder="Optional note" maxlength="120">
+      </div>
+      <button type="button" class="sd-sc-save" id="sd-sc-save" disabled>Save status</button>
+    </div>
     <div class="sd-conflict-row" id="sd-conflict-row" style="display:none;">
       <div id="sd-conflict-msg"></div>
     </div>
@@ -7593,7 +7633,7 @@ function renderPSWGrid() {
       const rowBookings = bookings.filter(b =>
         (b.assigned_to||'').trim() === name.trim() &&
         b.scheduled_date >= weekStart && b.scheduled_date <= weekEnd &&
-        b.status !== 'cancelled' && shiftMatchesFilter(b)
+        !b.deleted_at && shiftMatchesFilter(b)
       );
       return { id: psw.id || name, label: name, initials: name.split(' ').map(n=>n[0]||'').join('').toUpperCase().slice(0,2), rowBookings };
     }).filter(r => {
@@ -7608,7 +7648,7 @@ function renderPSWGrid() {
       const rowBookings = bookings.filter(b =>
         (b.client_name||'').trim() === name.trim() &&
         b.scheduled_date >= weekStart && b.scheduled_date <= weekEnd &&
-        b.status !== 'cancelled' && shiftMatchesFilter(b)
+        !b.deleted_at && shiftMatchesFilter(b)
       );
       return { id: client.id || name, label: name, initials: name.split(' ').map(n=>n[0]||'').join('').toUpperCase().slice(0,2), rowBookings };
     }).filter(r => {
@@ -7675,7 +7715,7 @@ function renderPSWGrid() {
             : (b.assigned_to||'Unassigned').split(' ')[0];
           const isLive = liveVisits.has(b.client_name);
           const isUnassigned = !b.assigned_to || b.assigned_to.trim() === '';
-          const chipCls = isUnassigned ? 'gc-open' : isLive ? 'gc-live' : b.status === 'completed' ? 'gc-done' : 'gc-scheduled';
+          const chipCls = b.status === 'cancelled' ? 'gc-cancelled' : b.status === 'on_hold' ? 'gc-onhold' : isUnassigned ? 'gc-open' : isLive ? 'gc-live' : b.status === 'completed' ? 'gc-done' : 'gc-scheduled';
           const timeStr = b.scheduled_time ? b.scheduled_time.slice(0,5) : '';
           html += `<div class="grid-chip ${chipCls}" onclick="_showShiftDetail(window._bookingMap['${b.id}'],{})">
             <div class="gc-client">${escHtml(chipLabel)}</div>
@@ -7802,7 +7842,8 @@ function _calBlockStyle(startMins, durationMins, totalH) {
 }
 
 function _calChipColor(b, liveSet) {
-  if (b.status === 'cancelled') return {bg:'rgba(60,60,60,.5)',border:'#555',text:'#888'};
+  if (b.status === 'cancelled') return {bg:'rgba(224,85,85,.12)',border:'rgba(224,85,85,.45)',text:'#e08585'};
+  if (b.status === 'on_hold') return {bg:'rgba(130,130,130,.16)',border:'#7a7a7a',text:'#b0b0b0'};
   if (b.status === 'completed') return {bg:'rgba(30,58,78,.8)',border:'#3d6a8a',text:'#8ab4cc'};
   if (liveSet && liveSet.has(b.client_name)) return {bg:'rgba(26,107,58,.9)',border:'#4a9a6e',text:'#a0e0b0'};
   if (!b.assigned_to) return {bg:'rgba(80,50,10,.8)',border:'#c9a96e',text:'#e8c88a'};
@@ -7839,7 +7880,7 @@ function _renderCustomCal() {
 
   // Bookings index by date
   const byDate = {};
-  bookings.filter(b => b.status !== 'cancelled').forEach(b => {
+  bookings.filter(b => !b.deleted_at).forEach(b => {
     if (!byDate[b.scheduled_date]) byDate[b.scheduled_date] = [];
     byDate[b.scheduled_date].push(b);
   });
@@ -7941,7 +7982,7 @@ function _renderCustomCal() {
   days.forEach((day, di) => {
     const ds = dayStrs[di];
     const isToday = ds === todayStr;
-    const dayBookings = (byDate[ds]||[]).filter(b => b.status !== 'cancelled');
+    const dayBookings = (byDate[ds]||[]).filter(b => !b.deleted_at);
 
     h += `<div class="xcal-day-col">
       <div class="xcal-day-head ${isToday?'is-today':''}">${fmtShort(day)}</div>`;
@@ -8236,6 +8277,47 @@ function _renderHoursPanel() {
     <div style="flex:1;overflow-y:auto;">${rows}</div>
   `;
 }
+function _sdInitStatusControl(b) {
+  const wrap = document.getElementById('sd-status-ctrl');
+  if (!wrap) return;
+  const cur = b.status || 'scheduled';
+  const curReason = b.status_reason || b.cancellation_reason || '';
+  const known = ['Sick','Away','Vacation','Client request','Other'];
+  const matched = known.find(r => curReason === r || curReason.indexOf(r + ':') === 0);
+  window._sdSelStatus = cur;
+  window._sdSelReason = matched || (curReason ? 'Other' : '');
+  const dotColor = cur === 'cancelled' ? '#e05555' : cur === 'on_hold' ? '#9a9a9a' : '#3d8a7a';
+  const curLabel = cur === 'cancelled' ? 'Cancelled' : cur === 'on_hold' ? 'On hold' : 'Scheduled';
+  const csEl = document.getElementById('sd-current-status');
+  if (csEl) csEl.innerHTML = '<span class="sd-cs-dot" style="background:' + dotColor + '"></span>' + escHtml(curLabel) + (curReason ? ' &middot; ' + escHtml(curReason) : '');
+  const btns = { scheduled: document.getElementById('sd-st-sched'), on_hold: document.getElementById('sd-st-hold'), cancelled: document.getElementById('sd-st-cancel') };
+  const reasonWrap = document.getElementById('sd-reason-wrap');
+  const saveBtn = document.getElementById('sd-sc-save');
+  const noteEl = document.getElementById('sd-reason-note');
+  const chips = Array.from(document.querySelectorAll('#sd-reason-chips .sd-reason-chip'));
+  function refresh() {
+    Object.keys(btns).forEach(k => { if (btns[k]) btns[k].classList.toggle('active', window._sdSelStatus === k); });
+    const needsReason = window._sdSelStatus !== 'scheduled';
+    if (reasonWrap) reasonWrap.classList.toggle('show', needsReason);
+    chips.forEach(c => c.classList.toggle('active', needsReason && c.dataset.reason === window._sdSelReason));
+    const reasonOk = !needsReason || !!window._sdSelReason;
+    const changed = window._sdSelStatus !== cur || (needsReason && (window._sdSelReason !== (matched || '') || (noteEl && noteEl.value.trim())));
+    if (saveBtn) saveBtn.disabled = !(reasonOk && changed);
+  }
+  Object.keys(btns).forEach(k => { if (btns[k]) btns[k].onclick = () => { window._sdSelStatus = k; if (k === 'scheduled') window._sdSelReason = ''; refresh(); }; });
+  chips.forEach(c => { c.onclick = () => { window._sdSelReason = c.dataset.reason; refresh(); }; });
+  if (noteEl) { noteEl.value = ''; noteEl.oninput = refresh; }
+  if (saveBtn) saveBtn.onclick = () => {
+    const noteVal = ((noteEl && noteEl.value) || '').trim();
+    let finalReason = window._sdSelReason || '';
+    if (noteVal) finalReason = finalReason ? finalReason + ': ' + noteVal : noteVal;
+    const m = document.getElementById('shift-detail-modal');
+    if (m) m.style.display = 'none';
+    toggleShiftStatus(window._sdBookingId, window._sdSelStatus, window._sdSelStatus === 'scheduled' ? null : finalReason);
+  };
+  refresh();
+}
+
 function _showShiftDetail(b, props) {
   closeAllSheets(); // ensure sheet-overlay (z-1045) is closed before modal (z-1058) opens
   const m = document.getElementById('shift-detail-modal');
@@ -8269,13 +8351,14 @@ function _showShiftDetail(b, props) {
   const _sdEndM = _sdEndMins%60;
   const _sdEndFmt = ((_sdEndH%12)||12)+':'+String(_sdEndM).padStart(2,'0')+(_sdEndH>=12?' p.m.':' a.m.');
   if (_elDate)   _elDate.textContent   = b.scheduled_date+' · '+fmtTime(b.scheduled_time||'09:00')+' → '+_sdEndFmt+' ('+dur+'h)';
-  if (_elStatus) _elStatus.textContent = isLive ? '● Live now' : isConflict ? '⚠ Conflict' : b.status||'scheduled';
+  if (_elStatus) _elStatus.textContent = isLive ? '● Live now' : isConflict ? '⚠ Conflict' : '';
   if (_elConflictRow) _elConflictRow.style.display = isConflict ? 'block' : 'none';
   if (isConflict && _elConflictMsg) {
     const conflict = _detectDropConflict(b.id, b.assigned_to, b.scheduled_date, b.scheduled_time, b.duration_minutes||480);
     _elConflictMsg.textContent = conflict?.reason || 'Schedule conflict detected';
   }
   window._sdBookingId = b.id;
+  _sdInitStatusControl(b);
   const broadcastRow = document.getElementById('sd-broadcast-row');
   if (broadcastRow) broadcastRow.style.display = (!b.assigned_to||b.assigned_to==='') ? 'block' : 'none';
   const seriesRow = document.getElementById('sd-series-row');
@@ -8434,24 +8517,26 @@ function toMins(t) {
 }
 
 // ── STATUS TOGGLE ──
-async function toggleShiftStatus(id, newStatus) {
+async function toggleShiftStatus(id, newStatus, reason) {
   // Optimistic UI — update D immediately, revert on error
   const _origBooking = (D.bookings||[]).find(b=>b.id===id);
-  if (_origBooking) { _origBooking.status = newStatus; _refreshSched(); }
+  const _prevStatus = _origBooking ? _origBooking.status : null;
+  const _prevReason = _origBooking ? _origBooking.status_reason : null;
+  if (_origBooking) { _origBooking.status = newStatus; _origBooking.status_reason = (newStatus === 'scheduled' ? null : reason); _refreshSched(); }
   try {
-    const res = await fetch(`${API}/hq/booking/${id}`, {
+    const res = await fetch(`${API}/hq/booking/${id}/status`, {
       method: 'PATCH',
       headers: {'Content-Type': 'application/json', 'x-hq-token': window._hqToken || sessionStorage.getItem('hq_token') || ''},
-      body: JSON.stringify({ operator_id: currentOp, status: newStatus })
+      body: JSON.stringify({ operator_id: currentOp, status: newStatus, reason: (newStatus === 'scheduled' ? null : reason), changed_by: 'hq' })
     });
     const d = await res.json();
     if(!d.success) throw new Error(d.error);
-    showToast(newStatus==='cancelled'?'Shift marked off':'Shift back on','ok');
-    // Targeted refresh — just update calendar and vacant list
+    showToast(newStatus==='cancelled'?'Shift cancelled':newStatus==='on_hold'?'Shift put on hold':'Shift reactivated','ok');
+    // Full refresh — calendar, vacant list, stats
     const freshRes = await fetch(`${API}/hq/overview?operator_id=${currentOp}`, { headers: { 'x-hq-token': window._hqToken || sessionStorage.getItem('hq_token') || '' } });
     const freshD = await freshRes.json();
     if (freshD.success) { D = freshD; _mergedPSWCache = null; _refreshSched(); renderVacantVisits(); renderStats(); }
-  } catch(e) { if(_origBooking && _origBooking._prevStatus){_origBooking.status=_origBooking._prevStatus; _refreshSched();} showToast(e.message||'Update failed','err'); }
+  } catch(e) { if(_origBooking){_origBooking.status=_prevStatus; _origBooking.status_reason=_prevReason; _refreshSched();} showToast(e.message||'Update failed','err'); }
 }
 
 // ── DRAG AND DROP ──
@@ -14537,7 +14622,7 @@ function renderResourceView() {
 
   const psws     = (D.psws || []).filter(p => (p.status||'active') === 'active');
   const bookings = (D.bookings || []).filter(b =>
-    b.scheduled_date === _rvDate && b.status !== 'cancelled'
+    b.scheduled_date === _rvDate && !b.deleted_at
   );
   const visits   = (D.visits || []).filter(v => v.visit_date === _rvDate);
   const liveSet  = new Set(visits.filter(v => v.status === 'in_progress').map(v => v.psw_name));

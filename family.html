@@ -702,6 +702,9 @@ button:active{transform:scale(0.98);}
 
 /* Spinner */
 .spinner{width:24px;height:24px;}
+.upcoming-badge.onhold{ background:rgba(130,130,130,.15)!important; border-color:rgba(130,130,130,.35)!important; color:#9a9a9a!important; }
+.upcoming-badge.cancelled{ background:rgba(224,85,85,.12)!important; border-color:rgba(224,85,85,.35)!important; color:#e07777!important; }
+.upcoming-row.upcoming-onhold, .upcoming-row.upcoming-cancelled{ opacity:.72; }
 
 
 @media(max-width:768px){
@@ -1353,7 +1356,7 @@ let famCustomFrom = '';
 let famCustomTo = '';
 
 const params = new URLSearchParams(window.location.search);
-slug = params.get('c') || ''; clientSlug = slug;
+slug = params.get('c') || params.get('slug') || ''; clientSlug = slug;
 
 // ── PIN LOGIC ──
 function pinPress(d) {
@@ -1879,7 +1882,11 @@ function showTab(tab) {
         const bDate = new Date(b.visit_date + 'T12:00:00');
         const bDay = bDate.toLocaleDateString('en-CA', {weekday:'short'});
         const bNum = bDate.getDate();
-        return `<div style="display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--border);align-items:flex-start;">
+        const _vst = b.status === 'cancelled' ? 'cancelled' : b.status === 'on_hold' ? 'onhold' : 'scheduled';
+        const _vstLbl = b.status === 'cancelled' ? 'CANCELLED' : b.status === 'on_hold' ? 'ON HOLD' : 'SCHEDULED';
+        const _vstStyle = _vst === 'cancelled' ? 'border:1px solid rgba(224,85,85,.35);color:#e07777;' : _vst === 'onhold' ? 'border:1px solid rgba(130,130,130,.4);color:#9a9a9a;' : 'border:1px solid rgba(52,211,153,.3);color:var(--teal2);';
+        const _vRsn = (_vst !== 'scheduled' && b.status_reason) ? escHtml(b.status_reason) : '';
+        return `<div style="display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--border);align-items:flex-start;${_vst!=='scheduled'?'opacity:.72;':''}">
           <div style="text-align:center;min-width:36px;flex-shrink:0;">
             <div style="font-size:10px;color:var(--muted);font-family:var(--mono);text-transform:uppercase;">${bDay}</div>
             <div style="font-size:22px;font-weight:700;color:var(--teal2);line-height:1;">${bNum}</div>
@@ -1887,10 +1894,10 @@ function showTab(tab) {
           <div style="flex:1;min-width:0;">
             <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;flex-wrap:wrap;">
               <span style="font-size:13px;font-weight:600;color:var(--text);">${b.psw_name || 'PSW Assigned'}</span>
-              <span style="font-family:var(--mono);font-size:10px;letter-spacing:1px;padding:2px 7px;border-radius:100px;border:1px solid rgba(52,211,153,.3);color:var(--teal2);">SCHEDULED</span>
+              <span style="font-family:var(--mono);font-size:10px;letter-spacing:1px;padding:2px 7px;border-radius:100px;${_vstStyle}">${_vstLbl}</span>
             </div>
-            <div style="font-size:12px;color:var(--muted);">${b.time_in ? fmtTime(b.time_in) : 'Time TBD'}</div>
-            <button onclick="openVisitActions('${b.id||''}','${b.visit_date}','${encodeURIComponent(b.psw_name||'PSW')}','${b.time_in||''}')" class="visit-action-btn">Request a change</button>
+            <div style="font-size:12px;color:var(--muted);">${b.time_in ? fmtTime(b.time_in) : 'Time TBD'}${_vRsn?' · '+_vRsn:''}</div>
+            ${_vst==='scheduled' ? `<button onclick="openVisitActions('${b.id||''}','${b.visit_date}','${encodeURIComponent(b.psw_name||'PSW')}','${b.time_in||''}')" class="visit-action-btn">Request a change</button>` : ''}
           </div>
         </div>`;
       }).join('');
@@ -2089,13 +2096,16 @@ function showTab(tab) {
               const mon = bd.toLocaleDateString('en-CA',{month:'short'});
               const time = b.scheduled_time ? b.scheduled_time.slice(0,5) : '';
               const dur = b.duration_minutes ? (b.duration_minutes/60)+'h' : '';
-              return `<div class="upcoming-row">
+              const _fst = b.status === 'cancelled' ? 'cancelled' : b.status === 'on_hold' ? 'onhold' : 'scheduled';
+              const _fstLbl = b.status === 'cancelled' ? 'Cancelled' : b.status === 'on_hold' ? 'On hold' : 'Scheduled';
+              const _fRsn = (_fst !== 'scheduled' && b.status_reason) ? escHtml(b.status_reason) : '';
+              return `<div class="upcoming-row${_fst!=='scheduled'?' upcoming-'+_fst:''}">
                 <div class="upcoming-date"><div class="upcoming-date-dow">${dow}</div><div class="upcoming-date-num">${num}</div></div>
                 <div class="upcoming-info">
                   <div class="upcoming-psw">${b.assigned_to || psw.name}</div>
-                  <div class="upcoming-time">${mon} ${num}${time?' · '+time:''}${dur?' · '+dur:''}</div>
+                  <div class="upcoming-time">${mon} ${num}${time?' · '+time:''}${dur?' · '+dur:''}${_fRsn?' · '+_fRsn:''}</div>
                 </div>
-                <div class="upcoming-badge">Scheduled</div>
+                <div class="upcoming-badge ${_fst}">${_fstLbl}</div>
               </div>`;
             }).join('');
           })()}
