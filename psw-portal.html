@@ -2984,6 +2984,19 @@ async function confirmCheckin() {
 // ── CHECK IN FROM SHIFT CARD ──
 // Called directly from schedule shift cards — no dropdown needed
 async function doCheckInFromShift(clientName) {
+  // Guard: never sign into a shift that was cancelled or put on hold (defense in depth)
+  if (clientName) {
+    const _guardToday = new Date().toLocaleDateString('en-CA',{timeZone:'America/Toronto'});
+    const _guardBk = (scheduleData?.bookings || []).find(b =>
+      b.scheduled_date === _guardToday &&
+      (b.client_name||'').toLowerCase() === clientName.toLowerCase() &&
+      (b.status === 'cancelled' || b.status === 'on_hold'));
+    if (_guardBk) {
+      const _guardWhy = _guardBk.status_reason ? ': ' + _guardBk.status_reason : '';
+      showToast((_guardBk.status === 'cancelled' ? 'This shift was cancelled' : 'This shift is on hold') + _guardWhy, 'err');
+      return;
+    }
+  }
   // Care plan acknowledgement — required before first visit each 30-day period
   if (clientName && !checkCarePlanAck(clientName)) {
     const clients = scheduleData?.clients || window._pswClients || [];
@@ -4937,6 +4950,7 @@ function updateTodayProgress() {
     const isDone = _homeDoneSet.has(b.id);
     const isActive = activeVisit && activeVisit.client_name === b.client_name;
     if (isDone || isActive) return false;
+    if (b.status === 'cancelled' || b.status === 'on_hold') return false;
     if (b.scheduled_time) {
       const [h,m] = b.scheduled_time.split(':');
       const shiftTime = new Date(); shiftTime.setHours(parseInt(h),parseInt(m),0,0);
