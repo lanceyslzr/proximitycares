@@ -16,6 +16,7 @@
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script>
 async function resendOnboardLink(applicantId, firstName, btn) {
   if (!applicantId) return;
@@ -3818,6 +3819,36 @@ let currentOp = window._hqOperatorId || sessionStorage.getItem('hq_operator_id')
     .catch(() => {}); // Non-fatal — fallback to default Proximity branding
 })();
 let currentOpName = window._hqOperatorName || sessionStorage.getItem('hq_operator_name') || 'My Agency';
+
+/* HQ REALTIME (mirrors the PSW portal; additive, 30s polling stays as the fallback) */
+let _hqSupaClient = null, _hqRealtimeCh = null, _hqRtDebounce = {};
+function _hqRtHit(key, fn){
+  if (_hqRtDebounce[key]) clearTimeout(_hqRtDebounce[key]);
+  _hqRtDebounce[key] = setTimeout(() => { try { fn(); } catch(e){} }, 800);
+}
+async function initHQRealtime(){
+  try {
+    if (_hqSupaClient || !window.supabase) return;
+    const token = window._hqToken || sessionStorage.getItem('hq_token') || '';
+    if (!token) return;
+    const r = await fetch(`${API}/hq/realtime-config`, { headers: { 'x-hq-token': token } });
+    const d = await r.json();
+    const url = ((d.supabase && d.supabase.url) || '').trim();
+    const anon = ((d.supabase && d.supabase.anon_key) || '').trim();
+    if (!url || !anon) return;
+    _hqSupaClient = window.supabase.createClient(url, anon, { realtime: { params: { eventsPerSecond: 2 } } });
+    const op = currentOp;
+    _hqRealtimeCh = _hqSupaClient
+      .channel('hq_' + String(op).replace(/[^a-z0-9]/gi,'_').toLowerCase())
+      .on('postgres_changes', { event:'*', schema:'public', table:'client_time_off', filter:'operator_id=eq.'+op }, () => _hqRtHit('cto', loadClientTimeOff))
+      .on('postgres_changes', { event:'*', schema:'public', table:'cancellation_requests', filter:'operator_id=eq.'+op }, () => _hqRtHit('canc', loadCancellationRequests))
+      .on('postgres_changes', { event:'*', schema:'public', table:'shift_offers', filter:'operator_id=eq.'+op }, () => _hqRtHit('offers', loadShiftOffersHQ))
+      .subscribe((status) => {
+        if (status === 'SUBSCRIBED') console.log('[HQ Realtime] connected');
+        else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') console.warn('[HQ Realtime] error, polling fallback active');
+      });
+  } catch(e){ console.warn('[HQ Realtime] init failed, polling fallback active'); }
+}
 let D = {};
 let activeLead = null;
 let activePSW = null;
@@ -3841,6 +3872,7 @@ function lk(k) {
           sessionStorage.setItem('hq_auth', '1');
           sessionStorage.setItem('hq_token', d.token);
           sessionStorage.setItem('hq_op', currentOp);
+          initHQRealtime();
           if (d.agency_name) {
             currentOpName = d.agency_name;
             sessionStorage.setItem('hq_operator_name', d.agency_name);
