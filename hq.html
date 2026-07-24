@@ -984,6 +984,12 @@ body.sidebar-hidden #sidebar-reopen-tab{ display:flex; }
 .gc-open{background:var(--amber-dim);border-color:var(--amber-border);}
 .gc-cancelled{background:rgba(224,85,85,.10);border-color:rgba(224,85,85,.3);opacity:.6;text-decoration:line-through;}
 .gc-onhold{background:var(--bg3);border-color:#7a7a7a;opacity:.62;}
+.grid-chip.gc-sel{outline:2px solid var(--gold);outline-offset:-2px;box-shadow:0 0 0 3px rgba(201,169,110,.18);}
+.bulkbar{position:fixed;left:50%;transform:translateX(-50%);bottom:18px;z-index:2200;display:none;align-items:center;gap:10px;padding:10px 14px;border-radius:12px;background:var(--bg2);border:1px solid var(--gold);box-shadow:0 10px 34px rgba(0,0,0,.45);max-width:calc(100vw - 24px);overflow-x:auto;}
+.bulkbar.on{display:flex;}
+.bulkbar-count{font-family:var(--mono);font-size:12px;letter-spacing:1px;color:var(--gold);white-space:nowrap;}
+.bulkbar-btn{font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;padding:8px 10px;border-radius:6px;border:1px solid var(--border2);background:var(--bg3);color:var(--text);cursor:pointer;min-height:38px;white-space:nowrap;touch-action:manipulation;}
+.bulkbar-btn.danger{border-color:rgba(224,85,85,.4);color:var(--red);}
 /* Shift status control (green/grey/red + reason) */
 .sd-status-ctrl{margin:2px 0 12px;padding:10px 12px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;}
 .sd-sc-label{font-family:var(--mono);font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:7px;}
@@ -2447,6 +2453,56 @@ body.sidebar-rail .sidebar{width:64px;overflow:visible;}
 </div>
 
 <!-- ACTIVITY -->
+<!-- SETTINGS SECTION -->
+<div class="section" id="sect-settings">
+  <div class="section-header">
+    <span class="section-title">Settings</span>
+    <div class="sect-action" onclick="loadSettings()">↻ Reload</div>
+  </div>
+
+  <div style="margin:0 12px 12px;padding:16px;background:var(--bg2);border:1px solid var(--border);border-radius:10px;">
+    <div style="font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:12px;">Agency</div>
+    <label class="slabel">Agency Name</label>
+    <input id="set-agency-name" class="sinput" style="margin-bottom:10px;">
+    <label class="slabel">Owner Name</label>
+    <input id="set-owner-name" class="sinput" style="margin-bottom:10px;">
+    <label class="slabel">Owner Email</label>
+    <input id="set-owner-email" type="email" class="sinput" style="margin-bottom:10px;">
+    <label class="slabel">Owner Phone</label>
+    <input id="set-owner-phone" type="tel" class="sinput" style="margin-bottom:10px;">
+    <label class="slabel">Province</label>
+    <input id="set-province" class="sinput" style="margin-bottom:10px;">
+    <label class="slabel">Notification Email</label>
+    <input id="set-notification-email" type="email" class="sinput" style="margin-bottom:4px;">
+    <div style="font-family:var(--mono);font-size:9px;color:var(--muted2);margin-bottom:12px;">Where daily digests and alerts are sent.</div>
+    <button class="btn-primary" onclick="saveSettings()" style="width:100%;">Save Agency Settings</button>
+  </div>
+
+  <div style="margin:0 12px 12px;padding:16px;background:var(--bg2);border:1px solid var(--border);border-radius:10px;">
+    <div style="font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:12px;">Payroll</div>
+    <label class="slabel">Pay Schedule</label>
+    <select id="set-pay-schedule" class="sinput" style="margin-bottom:10px;">
+      <option value="last_friday">Last Friday of the month</option>
+      <option value="bi_weekly">Every two weeks</option>
+      <option value="fifteenth">1st to 15th, 16th to end</option>
+      <option value="monthly">Full calendar month</option>
+    </select>
+    <label class="slabel">Pay Timezone</label>
+    <input id="set-pay-timezone" class="sinput" placeholder="America/Toronto" style="margin-bottom:4px;">
+    <div style="font-family:var(--mono);font-size:9px;color:var(--muted2);margin-bottom:12px;">Controls when pay periods close. Use a zone like America/Toronto.</div>
+    <button class="btn-primary" onclick="savePaySettings()" style="width:100%;">Save Payroll Settings</button>
+  </div>
+
+  <div style="margin:0 12px 20px;padding:16px;background:var(--bg2);border:1px solid var(--border);border-radius:10px;">
+    <div style="font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:12px;">Security</div>
+    <label class="slabel">Current PIN</label>
+    <input id="set-pin-current" type="password" inputmode="numeric" class="sinput" style="margin-bottom:10px;">
+    <label class="slabel">New PIN</label>
+    <input id="set-pin-new" type="password" inputmode="numeric" class="sinput" placeholder="4 to 8 digits" style="margin-bottom:12px;">
+    <button class="btn-primary" onclick="saveHQPin()" style="width:100%;">Change PIN</button>
+  </div>
+</div>
+
 <!-- HELP + SOPs SECTION -->
 <div class="section" id="sect-help">
   <div class="section-header" style="padding-bottom:4px;">
@@ -2764,6 +2820,7 @@ body.sidebar-rail .sidebar{width:64px;overflow:visible;}
       <div class="sect-action" onclick="openSwapSheet()" style="color:var(--purple2);border-color:rgba(160,96,224,.3);">⇄ Swap</div>
       <div class="sect-action" id="map-toggle-btn" onclick="toggleLiveMap()" style="color:var(--teal2);border-color:rgba(61,138,122,.3);">⬤ Live Map</div>
       <div class="sect-action" id="resource-toggle-btn" onclick="toggleResourceView()" style="color:var(--gold);border-color:rgba(201,169,110,.3);">⊞ Resource</div>
+      <div class="sect-action" id="bulk-select-btn" onclick="toggleBulkSelect()" style="color:var(--gold);border-color:rgba(201,169,110,.3);">☑ Select</div>
       <div class="sect-action" onclick="schedHQView==='grid'?refreshGrid():renderSchedule()">↻</div>
     </div>
     <div class="sched-toolbar-fade"><span>›</span></div>
@@ -3253,6 +3310,16 @@ body.sidebar-rail .sidebar{width:64px;overflow:visible;}
   </div>
 </div>
 
+<div class="bulkbar" id="bulkbar">
+  <span class="bulkbar-count" id="bulkbar-count">0 selected</span>
+  <button class="bulkbar-btn" onclick="_bulkAction('reassign')">Reassign</button>
+  <button class="bulkbar-btn" onclick="_bulkAction('change_time')">Change Time</button>
+  <button class="bulkbar-btn" onclick="_bulkAction('hold')">Hold</button>
+  <button class="bulkbar-btn danger" onclick="_bulkAction('cancel')">Cancel</button>
+  <button class="bulkbar-btn danger" onclick="_bulkAction('delete')">Delete</button>
+  <button class="bulkbar-btn" onclick="toggleBulkSelect()">Done</button>
+</div>
+
 <!-- SWAP PSW SHEET -->
 <div class="sheet" id="swap-sheet">
   <div class="sheet-header">
@@ -3363,6 +3430,10 @@ body.sidebar-rail .sidebar{width:64px;overflow:visible;}
       <span class="sn-label">Activity Log</span>
     </div>
   </div>
+<div class="sn-item" id="sn-settings" onclick="showSect('settings');closeSidebar()">
+      <div class="sn-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></div>
+      <span class="sn-label">Settings</span>
+    </div>
 <div class="sn-item" id="sn-help" onclick="showSect('help');closeSidebar()">
       <div class="sn-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
       <span class="sn-label">Help + SOPs</span>
@@ -3850,6 +3921,8 @@ async function initHQRealtime(){
   } catch(e){ console.warn('[HQ Realtime] init failed, polling fallback active'); }
 }
 let D = {};
+let _bulkMode = false;
+const _bulkSel = new Set(); // B4: declared early so the grid render can read it safely
 let activeLead = null;
 let activePSW = null;
 
@@ -6233,7 +6306,14 @@ async function renderVisits() {
       const vid = 'v'+i;
       const sub8Badge = v.sub_8_min ? `<span style="font-family:var(--mono);font-size:11px;letter-spacing:1px;padding:2px 6px;border-radius:100px;border:1px solid rgba(224,85,85,.4);color:var(--red);margin-left:6px;">⚠ SUB-8-MIN</span>` : '';
       const entryBadge = v.entry_type === 'manual' ? `<span style="font-family:var(--mono);font-size:11px;letter-spacing:1px;padding:2px 6px;border-radius:100px;border:1px solid rgba(224,154,61,.4);color:var(--amber);margin-left:6px;">MANUAL</span>` : '';
-      const gpsBadge = v.checkin_distance_m != null ? `<span style="font-family:var(--mono);font-size:11px;letter-spacing:1px;padding:2px 6px;border-radius:100px;border:1px solid rgba(61,138,122,.3);color:var(--teal2);margin-left:6px;"><svg width="11" height="11" viewBox="0 0 12 12" fill="none" style="display:inline;vertical-align:middle;margin-right:2px"><path d="M6 1a3.5 3.5 0 0 0-3.5 3.5C2.5 7.5 6 11 6 11s3.5-3.5 3.5-6.5A3.5 3.5 0 0 0 6 1z" stroke="#6dbdd4" stroke-width="1.2"/><circle cx="6" cy="4.5" r="1.2" fill="#6dbdd4"/></svg> ${v.checkin_distance_m}m</span>` : '';
+      const notHomeBadge = v.visit_stage === 'not_home' ? `<span style="font-family:var(--mono);font-size:11px;letter-spacing:1px;padding:2px 6px;border-radius:100px;border:1px solid rgba(224,154,61,.5);color:var(--amber);margin-left:6px;">NOT HOME</span>` : '';
+      const _gfOver = v.geofence_status === 'override' || v.geofence_status === 'fail';
+      const _gfCol = _gfOver ? 'rgba(224,154,61,.5)' : 'rgba(61,138,122,.3)';
+      const _gfTxt = _gfOver ? 'var(--amber)' : 'var(--teal2)';
+      const _gfPin = _gfOver ? '#e09a3d' : '#6dbdd4';
+      const gpsBadge = v.checkin_distance_m != null ? `<span style="font-family:var(--mono);font-size:11px;letter-spacing:1px;padding:2px 6px;border-radius:100px;border:1px solid ${_gfCol};color:${_gfTxt};margin-left:6px;"><svg width="11" height="11" viewBox="0 0 12 12" fill="none" style="display:inline;vertical-align:middle;margin-right:2px"><path d="M6 1a3.5 3.5 0 0 0-3.5 3.5C2.5 7.5 6 11 6 11s3.5-3.5 3.5-6.5A3.5 3.5 0 0 0 6 1z" stroke="${_gfPin}" stroke-width="1.2"/><circle cx="6" cy="4.5" r="1.2" fill="${_gfPin}"/></svg> in ${v.checkin_distance_m}m${_gfOver ? ' OUT OF RANGE' : ''}</span>` : '';
+      const _coOver = v.checkout_geofence_status === 'override' || v.checkout_geofence_status === 'fail';
+      const gpsOutBadge = v.checkout_distance_m != null ? `<span style="font-family:var(--mono);font-size:11px;letter-spacing:1px;padding:2px 6px;border-radius:100px;border:1px solid ${_coOver ? 'rgba(224,154,61,.5)' : 'rgba(61,138,122,.3)'};color:${_coOver ? 'var(--amber)' : 'var(--teal2)'};margin-left:6px;">out ${v.checkout_distance_m}m${_coOver ? ' OUT OF RANGE' : ''}</span>` : '';
       // Photos
       const photos = Array.isArray(v.task_photos) ? v.task_photos : (v.task_photos ? [v.task_photos] : []);
       const photosHtml = photos.length ? `<div style="margin-bottom:10px;"><div style="font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;">Photos (${photos.length})</div><div style="display:flex;gap:6px;flex-wrap:wrap;">${photos.map(p => `<a href="${p.url||p}" target="_blank"><img src="${p.url||p}" style="width:64px;height:64px;object-fit:cover;border-radius:6px;border:1px solid var(--border);" loading="lazy"></a>`).join('')}</div></div>` : '';
@@ -6245,10 +6325,11 @@ async function renderVisits() {
       <div class="card" style="${v.sub_8_min?'border-color:rgba(224,85,85,.25);':''}">
         <div class="card-header" onclick="toggleVisit('${vid}')" style="cursor:pointer;">
           <div style="flex:1;min-width:0;">
-            <div class="card-name">${v.psw_name||'—'}${sub8Badge}${entryBadge}</div>
+            <div class="card-name">${v.psw_name||'—'}${sub8Badge}${entryBadge}${notHomeBadge}</div>
             <div class="card-sub">${v.client_name||'—'} · ${fmtTime(v.time_in)} ${v.time_out?'to '+fmtTime(v.time_out):''}</div>
             <div class="card-meta">${tasks ? tasks.slice(0,60)+(tasks.length>60?'...':'') : 'No tasks logged'}</div>
             ${gpsBadge}
+            ${gpsOutBadge}
             ${v.incident_reported ? buildIncidentBadge(v) : ''}
           </div>
           <div class="card-right">
@@ -6263,6 +6344,8 @@ async function renderVisits() {
         <div id="${vid}" style="display:none;padding:14px 16px;border-top:1px solid var(--border);font-size:12px;line-height:1.8;">
           ${v.sub_8_min?`<div style="margin-bottom:10px;padding:8px 12px;background:rgba(224,85,85,.06);border:1px solid rgba(224,85,85,.2);border-radius:6px;font-family:var(--mono);font-size:12px;color:var(--red);">⚠ Sub-8-minute visit — flagged for review. Invoice blocked until cleared.</div>`:''}
           ${v.entry_type==='manual'?`<div style="margin-bottom:10px;padding:8px 12px;background:rgba(224,154,61,.04);border:1px solid rgba(224,154,61,.2);border-radius:6px;font-family:var(--mono);font-size:12px;color:var(--amber);">✎ Manual entry — ${v.manual_entry_reason||'no reason provided'}</div>`:''}
+          ${v.visit_stage === 'not_home' ? `<div style="margin-bottom:10px;padding:8px 12px;background:rgba(224,154,61,.06);border:1px solid rgba(224,154,61,.25);border-radius:6px;font-family:var(--mono);font-size:12px;color:var(--amber);line-height:1.7;">Client not home${v.not_home_at ? ` at ${fmtTime(new Date(v.not_home_at).toTimeString().slice(0,5))}` : ''}${v.checkin_distance_m != null ? `, ${v.checkin_distance_m}m from the address` : ''}<div>${v.not_home_note ? 'Note: ' + v.not_home_note : 'No note given.'}</div></div>` : ''}
+          ${(_gfOver || _coOver) ? `<div style="margin-bottom:10px;padding:8px 12px;background:rgba(224,154,61,.06);border:1px solid rgba(224,154,61,.25);border-radius:6px;font-family:var(--mono);font-size:12px;color:var(--amber);line-height:1.7;">Location variance${_gfOver ? `<div>Sign in ${v.checkin_distance_m}m away. ${v.geofence_override_reason ? 'Reason: ' + v.geofence_override_reason : 'Acknowledged, no reason given.'}</div>` : ''}${_coOver ? `<div>Sign out ${v.checkout_distance_m}m away. ${v.checkout_override_reason ? 'Reason: ' + v.checkout_override_reason : 'Acknowledged, no reason given.'}</div>` : ''}${v.geofence_override_by ? `<div style="color:var(--muted2);">Recorded for ${v.geofence_override_by}</div>` : ''}</div>` : ''}
           ${tasks?`<div style="margin-bottom:10px;"><div style="font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:4px;">Tasks Completed</div><div style="color:var(--muted2);">${tasks}</div></div>`:''}
           ${mood?`<div style="margin-bottom:10px;"><div style="font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:4px;">Client Mood</div><div style="color:var(--text);">${mood}</div></div>`:''}
           ${v.visit_summary?`<div style="margin-bottom:10px;"><div style="font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:4px;">Care Summary</div><div style="color:var(--muted2);">${v.visit_summary}</div></div>`:''}
@@ -6689,6 +6772,7 @@ function showSect(name) {
   }
   // Load recurring templates when schedule section opens
   if (name === 'schedule') { try { loadTemplates(); } catch(e) {} }
+  if (name === 'settings') { try { loadSettings(); } catch(e) {} }
   // Highlight relevant stat card for active section
   const _statMap = { leads:'s-leads', clients:'s-clients', visits:'s-visits', schedule:'s-upcoming' };
   document.querySelectorAll('.stat-card').forEach(c => c.classList.remove('hi'));
@@ -7749,7 +7833,7 @@ function renderPSWGrid() {
           const isUnassigned = !b.assigned_to || b.assigned_to.trim() === '';
           const chipCls = b.status === 'cancelled' ? 'gc-cancelled' : b.status === 'on_hold' ? 'gc-onhold' : isUnassigned ? 'gc-open' : isLive ? 'gc-live' : b.status === 'completed' ? 'gc-done' : 'gc-scheduled';
           const timeStr = b.scheduled_time ? b.scheduled_time.slice(0,5) : '';
-          html += `<div class="grid-chip ${chipCls}" onclick="_showShiftDetail(window._bookingMap['${b.id}'],{})">
+          html += `<div class="grid-chip ${chipCls}${_bulkSel.has(b.id)?' gc-sel':''}" data-bid="${b.id}" onclick="_chipClick('${b.id}')">
             <div class="gc-client">${escHtml(chipLabel)}</div>
             <div class="gc-time">${timeStr}</div>
           </div>`;
@@ -8350,6 +8434,132 @@ function _sdInitStatusControl(b) {
   refresh();
 }
 
+/* B4: bulk schedule selection. Tap chips to select, then act on all at once. */
+function toggleBulkSelect(){
+  _bulkMode = !_bulkMode;
+  if (!_bulkMode) _bulkSel.clear();
+  const btn = document.getElementById('bulk-select-btn');
+  if (btn) { btn.style.background = _bulkMode ? 'rgba(201,169,110,.18)' : ''; btn.textContent = _bulkMode ? '☑ Selecting' : '☑ Select'; }
+  _bulkBarSync();
+  if (typeof refreshGrid === 'function' && schedHQView === 'grid') refreshGrid(); else renderSchedule();
+}
+function _chipClick(id){
+  if (!_bulkMode) { _showShiftDetail(window._bookingMap[id], {}); return; }
+  if (_bulkSel.has(id)) _bulkSel.delete(id); else _bulkSel.add(id);
+  const el = document.querySelector(`.grid-chip[data-bid="${id}"]`);
+  if (el) el.classList.toggle('gc-sel', _bulkSel.has(id));
+  _bulkBarSync();
+}
+function _bulkBarSync(){
+  const bar = document.getElementById('bulkbar');
+  const cnt = document.getElementById('bulkbar-count');
+  if (cnt) cnt.textContent = _bulkSel.size + (_bulkSel.size === 1 ? ' selected' : ' selected');
+  if (bar) bar.classList.toggle('on', _bulkMode);
+}
+async function _bulkAction(action){
+  const ids = [..._bulkSel];
+  if (!ids.length) { showToast('Select some shifts first', 'warn'); return; }
+  const n = ids.length;
+  const body = { operator_id: currentOp, booking_ids: ids, action };
+
+  if (action === 'reassign') {
+    const to = prompt('Reassign ' + n + (n === 1 ? ' shift' : ' shifts') + ' to which PSW? Type the full name.');
+    if (!to || !to.trim()) return;
+    body.assigned_to = to.trim();
+  } else if (action === 'change_time') {
+    const t = prompt('New start time for ' + n + (n === 1 ? ' shift' : ' shifts') + ' (HH:MM, 24 hour)');
+    if (!t || !/^\d{1,2}:\d{2}$/.test(t.trim())) { if (t !== null) showToast('Use HH:MM format', 'warn'); return; }
+    body.scheduled_time = t.trim();
+  } else if (action === 'cancel' || action === 'hold') {
+    const r = prompt((action === 'cancel' ? 'Cancel ' : 'Hold ') + n + (n === 1 ? ' shift' : ' shifts') + '. Reason?');
+    if (r === null) return;
+    body.reason = r.trim();
+  } else if (action === 'delete') {
+    if (!confirm('Remove ' + n + (n === 1 ? ' shift' : ' shifts') + '? They go to the Recycle Bin and can be restored.')) return;
+  }
+
+  if (action !== 'delete' && !confirm(action.replace('_', ' ') + ' ' + n + (n === 1 ? ' shift' : ' shifts') + '?')) return;
+
+  try {
+    const r = await fetch(`${API}/hq/bookings/bulk-action`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-hq-token': window._hqToken || sessionStorage.getItem('hq_token') || '' },
+      body: JSON.stringify(body)
+    });
+    const d = await r.json().catch(() => ({}));
+    if (!r.ok || !d.success) { showToast(d.error || 'Bulk action failed', 'err'); return; }
+    let msg = d.updated + (d.updated === 1 ? ' shift updated' : ' shifts updated');
+    if (d.failed) msg += ', ' + d.failed + ' failed';
+    showToast(msg, 'ok');
+    if (d.from_template) {
+      setTimeout(() => showToast('Some of these come from a recurring template. Pause the template or they will regenerate.', 'warn'), 1200);
+    }
+    _bulkSel.clear();
+    _bulkBarSync();
+    await loadAll();
+  } catch (e) { showToast('Bulk action failed', 'err'); }
+}
+/* B9: operator settings. Agency and owner live on operator_config, pay fields on operators. */
+function _setHdrs(){ return { 'Content-Type': 'application/json', 'x-hq-token': window._hqToken || sessionStorage.getItem('hq_token') || '' }; }
+async function loadSettings(){
+  try {
+    const r = await fetch(`${API}/hq/settings?operator_id=${encodeURIComponent(currentOp)}`, { headers: _setHdrs() });
+    const d = await r.json().catch(() => ({}));
+    if (!r.ok || !d.success) { showToast(d.error || 'Could not load settings', 'err'); return; }
+    const s = d.settings || {};
+    const put = (id, v) => { const el = document.getElementById(id); if (el) el.value = v || ''; };
+    put('set-agency-name', s.agency_name);
+    put('set-owner-name', s.owner_name);
+    put('set-owner-email', s.owner_email);
+    put('set-owner-phone', s.owner_phone);
+    put('set-province', s.province);
+    put('set-notification-email', s.notification_email);
+    put('set-pay-timezone', s.pay_timezone);
+    const sel = document.getElementById('set-pay-schedule');
+    if (sel) sel.value = s.pay_schedule || 'last_friday';
+  } catch (e) { showToast('Could not load settings', 'err'); }
+}
+async function _patchSettings(body, okMsg){
+  try {
+    const r = await fetch(`${API}/hq/settings`, { method: 'PATCH', headers: _setHdrs(), body: JSON.stringify({ operator_id: currentOp, ...body }) });
+    const d = await r.json().catch(() => ({}));
+    if (!r.ok || !d.success) { showToast(d.error || 'Could not save', 'err'); return false; }
+    showToast(okMsg, 'ok');
+    return true;
+  } catch (e) { showToast('Could not save', 'err'); return false; }
+}
+async function saveSettings(){
+  const val = id => (document.getElementById(id)?.value || '').trim();
+  if (!val('set-agency-name')) { showToast('Agency name is required', 'err'); return; }
+  await _patchSettings({
+    agency_name: val('set-agency-name'),
+    owner_name: val('set-owner-name'),
+    owner_email: val('set-owner-email'),
+    owner_phone: val('set-owner-phone'),
+    province: val('set-province'),
+    notification_email: val('set-notification-email')
+  }, 'Agency settings saved');
+}
+async function savePaySettings(){
+  const sched = document.getElementById('set-pay-schedule')?.value || 'last_friday';
+  const tz = (document.getElementById('set-pay-timezone')?.value || '').trim() || 'America/Toronto';
+  if (!confirm('Change the pay schedule? This affects when pay periods close and when paystubs are generated.')) return;
+  await _patchSettings({ pay_schedule: sched, pay_timezone: tz }, 'Payroll settings saved');
+}
+async function saveHQPin(){
+  const cur = (document.getElementById('set-pin-current')?.value || '').trim();
+  const nw  = (document.getElementById('set-pin-new')?.value || '').trim();
+  if (!cur || !nw) { showToast('Enter your current and new PIN', 'err'); return; }
+  if (!/^\d{4,8}$/.test(nw)) { showToast('New PIN must be 4 to 8 digits', 'err'); return; }
+  try {
+    const r = await fetch(`${API}/hq/settings/pin`, { method: 'POST', headers: _setHdrs(), body: JSON.stringify({ operator_id: currentOp, current_pin: cur, new_pin: nw }) });
+    const d = await r.json().catch(() => ({}));
+    if (!r.ok || !d.success) { showToast(d.error || 'Could not change PIN', 'err'); return; }
+    document.getElementById('set-pin-current').value = '';
+    document.getElementById('set-pin-new').value = '';
+    showToast('PIN changed. Use it next time you sign in.', 'ok');
+  } catch (e) { showToast('Could not change PIN', 'err'); }
+}
 function _showShiftDetail(b, props) {
   closeAllSheets(); // ensure sheet-overlay (z-1045) is closed before modal (z-1058) opens
   const m = document.getElementById('shift-detail-modal');
@@ -15904,6 +16114,24 @@ function _applyActiveSectionFlex() {
           <div style="font-family:var(--mono);font-size:8px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;">Total</div>
         </div>
       </div>
+      <!-- B7: adjust before sending -->
+      <div style="border-top:1px solid var(--border);padding-top:12px;margin-bottom:10px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+          <div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);">Adjust before sending</div>
+          <button onclick="resetInvAdjust()" style="font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;padding:4px 8px;border-radius:4px;border:1px solid var(--border2);background:none;color:var(--muted2);cursor:pointer;min-height:30px;touch-action:manipulation;">Reset</button>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+          <div>
+            <label style="display:block;font-family:var(--mono);font-size:8px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:4px;">Billable Hours</label>
+            <input id="inv-adj-hours" type="number" step="0.25" min="0" inputmode="decimal" oninput="recalcInvTotal()" class="sinput" style="font-size:16px;font-family:var(--mono);">
+          </div>
+          <div>
+            <label style="display:block;font-family:var(--mono);font-size:8px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:4px;">Rate / Hour</label>
+            <input id="inv-adj-rate" type="number" step="0.5" min="0" inputmode="decimal" oninput="recalcInvTotal()" class="sinput" style="font-size:16px;font-family:var(--mono);">
+          </div>
+        </div>
+        <div id="inv-adj-note" style="display:none;font-family:var(--mono);font-size:9px;color:var(--gold);letter-spacing:.5px;margin-top:8px;line-height:1.6;"></div>
+      </div>
       <!-- Visit date list -->
       <div id="inv-prev-dates" style="font-family:var(--mono);font-size:9px;color:var(--muted2);line-height:1.8;border-top:1px solid var(--border);padding-top:10px;word-break:break-word;"></div>
     </div>
@@ -15919,6 +16147,8 @@ function _applyActiveSectionFlex() {
 // ── INVOICE PICKER ───────────────────────────────────────────────────────────
 var _invPickClient = null; // { name, email, pswName, pswEmail, clientRate, pswRate }
 
+// B7: editable invoice preview. Adjust hours and rate, total updates live, PSW pay is unaffected.
+let _invComputed = { hours: 0, rate: 22 };
 function openInvoicePicker(name, email, pswName, clientRate, pswRate) {
   // Look up PSW email from loaded data for pay stub delivery
   var pswEmail = '';
@@ -16025,6 +16255,12 @@ async function previewInvoicePick() {
     document.getElementById('inv-prev-total').textContent  = '$' + d.client_total.toFixed(2);
     document.getElementById('inv-preview-badge').textContent = d.visits_count + ' visit' + (d.visits_count === 1 ? '' : 's');
 
+    // B7: seed the editable fields with the computed values
+    _invComputed = { hours: d.total_hours, rate: parseFloat(_invPickClient.clientRate) || 22 };
+    document.getElementById('inv-adj-hours').value = _invComputed.hours;
+    document.getElementById('inv-adj-rate').value  = _invComputed.rate;
+    recalcInvTotal();
+
     // Visit dates list
     if (d.visit_dates && d.visit_dates.length) {
       var fmt = function(ds) {
@@ -16050,6 +16286,34 @@ async function previewInvoicePick() {
   }
 }
 
+function recalcInvTotal() {
+  var hEl = document.getElementById('inv-adj-hours');
+  var rEl = document.getElementById('inv-adj-rate');
+  var noteEl = document.getElementById('inv-adj-note');
+  var totEl = document.getElementById('inv-prev-total');
+  if (!hEl || !rEl || !totEl) return;
+  var h = parseFloat(hEl.value);
+  var r = parseFloat(rEl.value);
+  if (isNaN(h) || h < 0) h = _invComputed.hours;
+  if (isNaN(r) || r < 0) r = _invComputed.rate;
+  totEl.textContent = '$' + (Math.round(h * r * 100) / 100).toFixed(2);
+  var changed = [];
+  if (Math.abs(h - _invComputed.hours) > 0.001) changed.push('hours ' + _invComputed.hours + ' to ' + h);
+  if (Math.abs(r - _invComputed.rate) > 0.001) changed.push('rate $' + _invComputed.rate + ' to $' + r);
+  if (noteEl) {
+    if (changed.length) {
+      noteEl.textContent = 'Adjusted: ' + changed.join(', ') + '. The PSW is still paid on ' + _invComputed.hours + ' logged hours.';
+      noteEl.style.display = 'block';
+    } else { noteEl.style.display = 'none'; noteEl.textContent = ''; }
+  }
+}
+function resetInvAdjust() {
+  var hEl = document.getElementById('inv-adj-hours');
+  var rEl = document.getElementById('inv-adj-rate');
+  if (hEl) hEl.value = _invComputed.hours;
+  if (rEl) rEl.value = _invComputed.rate;
+  recalcInvTotal();
+}
 async function sendPickedInvoice() {
   var start = document.getElementById('inv-start').value;
   var end   = document.getElementById('inv-end').value;
@@ -16065,6 +16329,10 @@ async function sendPickedInvoice() {
   var year   = endDt.getFullYear();
 
   try {
+    var _adjH = parseFloat((document.getElementById('inv-adj-hours') || {}).value);
+    var _adjR = parseFloat((document.getElementById('inv-adj-rate') || {}).value);
+    var _sendRate  = (!isNaN(_adjR) && _adjR >= 0) ? _adjR : _invPickClient.clientRate;
+    var _sendHours = (!isNaN(_adjH) && _adjH >= 0) ? _adjH : null;
     var r = await fetch(API + '/invoice/generate', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'x-hq-token': (window._hqToken || sessionStorage.getItem('hq_token') || '') },
@@ -16077,8 +16345,9 @@ async function sendPickedInvoice() {
         year:         year,
         start_date:   start,   // ← explicit: never defaults to 1st of month again
         end_date:     end,
-        client_rate:  _invPickClient.clientRate,
+        client_rate:  _sendRate,
         psw_rate:     _invPickClient.pswRate,
+        hours_override: _sendHours,
         operator_id:  currentOp
       })
     });
