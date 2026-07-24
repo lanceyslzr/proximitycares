@@ -439,6 +439,13 @@ button:active{transform:scale(0.98);}
 .sheet-title{font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted2);padding:14px 18px 12px;border-bottom:1px solid var(--border);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .sheet-body{padding:16px 18px;}
 .sheet-header{display:flex;align-items:center;justify-content:space-between;padding:14px 18px 12px;border-bottom:1px solid var(--border);}
+.menu-list{padding:6px 0 10px;}
+.menu-item{padding:14px 18px;border-bottom:1px solid var(--border);cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;transition:background .15s;}
+.menu-item:last-child{border-bottom:none;}
+.menu-item:active{background:rgba(61,138,122,.07);}
+.menu-item-main{display:flex;align-items:center;gap:11px;font-family:var(--mono);font-size:13px;letter-spacing:1px;text-transform:uppercase;color:var(--text);}
+.menu-item-icon{width:20px;text-align:center;font-size:14px;flex:none;}
+.menu-item-sub{font-size:12px;color:var(--muted2);line-height:1.55;margin-top:5px;padding-left:31px;}
 .sheet-close{font-size:18px;color:var(--muted2);background:none;border:none;cursor:pointer;padding:4px 8px;min-height:44px;touch-action:manipulation;line-height:1;}
 .sheet-row{margin-bottom:13px;}
 .slbl{font-family:var(--mono);font-size:12px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;}
@@ -2812,15 +2819,11 @@ body.sidebar-rail .sidebar{width:64px;overflow:visible;}
       <button id="sched-view-cal" onclick="setSchedHQView('cal')" style="font-family:var(--mono);font-size:11px;letter-spacing:1px;padding:6px 10px;background:none;border:1px solid var(--border);border-radius:var(--r6);color:var(--muted2);cursor:pointer;min-height:36px;touch-action:manipulation;">▦ Cal</button>
     </div>
     <div class="sched-toolbar-row" style="display:flex;gap:5px;overflow-x:auto;overflow-y:hidden;flex-wrap:nowrap;scrollbar-width:none;-ms-overflow-style:none;-webkit-overflow-scrolling:touch;flex:1;min-width:0;padding-bottom:2px;">
-      <div class="sect-action" onclick="openAddShift('','')">+ Shift</div>
-      <div class="sect-action" onclick="openBulkSchedule()" style="color:var(--gold);border-color:rgba(200,169,110,.3);">+ Bulk Week</div>
-      <div class="sect-action" onclick="openCopyWeeksSheet()" style="color:var(--teal3);border-color:rgba(125,202,189,.3);">⧉ Copy Weeks</div>
-      <div class="sect-action" onclick="openTemplateSheet()" style="color:var(--purple2);border-color:rgba(160,96,224,.3);">↻ Templates</div>
-      <div class="sect-action" onclick="openImportBookings()" style="color:var(--teal3);border-color:rgba(125,202,189,.3);">↑ Import CSV</div>
-      <div class="sect-action" onclick="openSwapSheet()" style="color:var(--purple2);border-color:rgba(160,96,224,.3);">⇄ Swap</div>
+      <div class="sect-action" onclick="openSheet('add-menu-sheet')" style="color:var(--teal2);border-color:rgba(61,138,122,.3);">+ Add</div>
+      <div class="sect-action" onclick="openSheet('edit-menu-sheet')" style="color:var(--gold);border-color:rgba(201,169,110,.3);">✎ Edit</div>
       <div class="sect-action" id="map-toggle-btn" onclick="toggleLiveMap()" style="color:var(--teal2);border-color:rgba(61,138,122,.3);">⬤ Live Map</div>
       <div class="sect-action" id="resource-toggle-btn" onclick="toggleResourceView()" style="color:var(--gold);border-color:rgba(201,169,110,.3);">⊞ Resource</div>
-      <div class="sect-action" id="bulk-select-btn" onclick="toggleBulkSelect()" style="color:var(--gold);border-color:rgba(201,169,110,.3);">☑ Select</div>
+      <div class="sect-action" id="bulk-select-btn" onclick="toggleBulkSelect()" style="display:none;color:var(--gold);border-color:rgba(201,169,110,.3);">☑ Select</div>
       <div class="sect-action" onclick="schedHQView==='grid'?refreshGrid():renderSchedule()">↻</div>
     </div>
     <div class="sched-toolbar-fade"><span>›</span></div>
@@ -3312,6 +3315,9 @@ body.sidebar-rail .sidebar{width:64px;overflow:visible;}
 
 <div class="bulkbar" id="bulkbar">
   <span class="bulkbar-count" id="bulkbar-count">0 selected</span>
+  <button class="bulkbar-btn" onclick="_selectAllVisible()">All in View</button>
+  <button class="bulkbar-btn" onclick="openRangeSelect()">Range</button>
+  <button class="bulkbar-btn" onclick="_bulkClear()">Clear</button>
   <button class="bulkbar-btn" onclick="_bulkAction('reassign')">Reassign</button>
   <button class="bulkbar-btn" onclick="_bulkAction('change_time')">Change Time</button>
   <button class="bulkbar-btn" onclick="_bulkAction('hold')">Hold</button>
@@ -3321,6 +3327,74 @@ body.sidebar-rail .sidebar{width:64px;overflow:visible;}
 </div>
 
 <!-- SWAP PSW SHEET -->
+<div class="sheet" id="add-menu-sheet">
+  <div class="sheet-header">
+    <div class="sheet-title">Add to Schedule</div>
+    <div class="sheet-close" onclick="closeSheet('add-menu-sheet')">✕</div>
+  </div>
+  <div class="menu-list">
+    <div class="menu-item" onclick="_menuGo('add-menu-sheet', () => openAddShift('',''))">
+      <div class="menu-item-main"><span class="menu-item-icon" style="color:var(--teal2);">+</span><span>Single Shift</span></div>
+      <div class="menu-item-sub">Add one shift for a client and PSW</div>
+    </div>
+    <div class="menu-item" onclick="_menuGo('add-menu-sheet', openBulkSchedule)">
+      <div class="menu-item-main"><span class="menu-item-icon" style="color:var(--gold);">≡</span><span>Bulk Week</span></div>
+      <div class="menu-item-sub">Build a full week of shifts at once</div>
+    </div>
+    <div class="menu-item" onclick="_menuGo('add-menu-sheet', openCopyWeeksSheet)">
+      <div class="menu-item-main"><span class="menu-item-icon" style="color:var(--teal3);">⧉</span><span>Copy Weeks</span></div>
+      <div class="menu-item-sub">Duplicate an existing week forward</div>
+    </div>
+    <div class="menu-item" onclick="_menuGo('add-menu-sheet', openTemplateSheet)">
+      <div class="menu-item-main"><span class="menu-item-icon" style="color:var(--purple2);">↻</span><span>Templates</span></div>
+      <div class="menu-item-sub">Recurring shifts that generate automatically. Pause here to stop them.</div>
+    </div>
+    <div class="menu-item" onclick="_menuGo('add-menu-sheet', openImportBookings)">
+      <div class="menu-item-main"><span class="menu-item-icon" style="color:var(--teal3);">↑</span><span>Import CSV</span></div>
+      <div class="menu-item-sub">Upload a schedule from a spreadsheet</div>
+    </div>
+  </div>
+</div>
+
+<div class="sheet" id="edit-menu-sheet">
+  <div class="sheet-header">
+    <div class="sheet-title">Edit Schedule</div>
+    <div class="sheet-close" onclick="closeSheet('edit-menu-sheet')">✕</div>
+  </div>
+  <div class="menu-list">
+    <div class="menu-item" onclick="_menuGo('edit-menu-sheet', toggleBulkSelect)">
+      <div class="menu-item-main"><span class="menu-item-icon" style="color:var(--gold);">☑</span><span>Select Shifts</span></div>
+      <div class="menu-item-sub">Tap shifts, a PSW name, or a day to select. Then reassign, move, hold, cancel or delete together.</div>
+    </div>
+    <div class="menu-item" onclick="_menuGo('edit-menu-sheet', openRangeSelect)">
+      <div class="menu-item-main"><span class="menu-item-icon" style="color:var(--gold);">⇥</span><span>Select by Range</span></div>
+      <div class="menu-item-sub">Pick a PSW and a date range to select weeks or months at once</div>
+    </div>
+    <div class="menu-item" onclick="_menuGo('edit-menu-sheet', openSwapSheet)">
+      <div class="menu-item-main"><span class="menu-item-icon" style="color:var(--purple2);">⇄</span><span>Swap PSW</span></div>
+      <div class="menu-item-sub">Move every future shift from one PSW to another</div>
+    </div>
+  </div>
+</div>
+
+<div class="sheet" id="range-select-sheet">
+  <div class="sheet-header">
+    <div class="sheet-title">Select by Range</div>
+    <div class="sheet-close" onclick="closeSheet('range-select-sheet')">✕</div>
+  </div>
+  <div style="padding:0 14px 8px;font-family:var(--mono);font-size:12px;color:var(--muted2);line-height:1.7;">Finds every shift in the range so you can act on weeks or months at once. Nothing is selected until you confirm.</div>
+  <div class="sheet-row"><div class="slbl">PSW</div>
+    <select class="sselect" id="rng-psw"><option value="">All PSWs</option></select>
+  </div>
+  <div class="sheet-row"><div class="slbl">From</div><input type="date" class="sinput" id="rng-from"></div>
+  <div class="sheet-row"><div class="slbl">To</div><input type="date" class="sinput" id="rng-to"></div>
+  <div class="sheet-row"><div id="rng-result" style="font-family:var(--mono);font-size:12px;color:var(--gold);line-height:1.7;min-height:20px;"></div></div>
+  <div class="sheet-row" style="display:flex;gap:8px;">
+    <button class="btn-primary" id="rng-find-btn" onclick="findRangeShifts()" style="flex:1;">Find Shifts</button>
+    <button class="btn-primary" id="rng-add-btn" onclick="addRangeToSelection()" style="flex:1;display:none;">Add to Selection</button>
+  </div>
+</div>
+
 <div class="sheet" id="swap-sheet">
   <div class="sheet-header">
     <div class="sheet-title">Swap PSW</div>
@@ -7794,9 +7868,10 @@ function renderPSWGrid() {
   // ── TABLE — renders directly into schedule-board, no wrapper div ──
   let html = `<div class="psw-grid-wrap"><table class="psw-grid"><thead><tr>`;
   html += `<th class="col-name">${_schedAxis === 'psw' ? 'PSW' : 'Client'}</th>`;
+  window._rowIndex = {}; window._dayIndex = {};
   days.forEach((ds, i) => {
     const isToday = ds === todayStr;
-    html += `<th id="${isToday ? 'grid-today-col' : ''}" class="${isToday ? 'col-today' : ''}">${dayNames[i]}<br><span style="font-size:9px;opacity:.7;">${fmtDay(ds)}</span></th>`;
+    html += `<th id="${isToday ? 'grid-today-col' : ''}" class="${isToday ? 'col-today' : ''}"${_bulkMode ? ` onclick="_dayClick('${ds}')" style="cursor:pointer;"` : ''}>${dayNames[i]}<br><span style="font-size:9px;opacity:.7;">${fmtDay(ds)}</span></th>`;
   });
   html += `</tr></thead><tbody>`;
 
@@ -7806,7 +7881,7 @@ function renderPSWGrid() {
     const wkHrs = row.rowBookings.reduce((s,b) => s + (b.duration_minutes||60)/60, 0);
 
     html += `<tr data-row="${safeKey}">`;
-    html += `<td class="col-name" onclick="openHoursPanel('${_schedAxis}','${escHtml(row.label)}')" style="cursor:pointer;" title="View ${escHtml(row.label)} hours">
+    html += `<td class="col-name" onclick="_rowClick('${safeKey}','${escHtml(row.label)}')" style="cursor:pointer;" title="${_bulkMode ? 'Select all shifts in this row' : 'View ' + escHtml(row.label) + ' hours'}">
       <div class="psw-name-cell">
         <div class="psw-name-av">${escHtml(row.initials)}</div>
         <div>
@@ -7824,6 +7899,8 @@ function renderPSWGrid() {
       html += `<td data-key="${cellKey}"><div class="grid-cell">`;
       if (dayBookings.length) {
         dayBookings.forEach(b => {
+          (window._rowIndex[safeKey] = window._rowIndex[safeKey] || []).push(b.id);
+          (window._dayIndex[ds] = window._dayIndex[ds] || []).push(b.id);
           // PSW axis: chip shows client name
           // Client axis: chip shows PSW name
           const chipLabel = _schedAxis === 'psw'
@@ -8434,12 +8511,118 @@ function _sdInitStatusControl(b) {
   refresh();
 }
 
+/* B10: menu navigation. Close the menu sheet, then run the action. */
+function _menuGo(sheetId, fn){
+  closeSheet(sheetId);
+  setTimeout(() => { try { fn(); } catch(e) { console.warn('[menu]', e); } }, 180);
+}
+
+/* B10: range selection. Fetches the exact range from the server, never the cache. */
+let _rngFound = [];
+function openRangeSelect(){
+  const sel = document.getElementById('rng-psw');
+  if (sel) {
+    const psws = (typeof getMergedPSWList === 'function') ? getMergedPSWList() : (D.psws || []).map(p => ({ name: p.full_name || p.name }));
+    sel.innerHTML = '<option value="">All PSWs</option>' + psws.map(p => `<option value="${escHtml(p.name)}">${escHtml(p.name)}</option>`).join('');
+  }
+  const today = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Toronto' });
+  const plus30 = new Date(Date.now() + 30 * 86400000).toLocaleDateString('en-CA', { timeZone: 'America/Toronto' });
+  const f = document.getElementById('rng-from'); if (f && !f.value) f.value = today;
+  const t = document.getElementById('rng-to');   if (t && !t.value) t.value = plus30;
+  _rngFound = [];
+  const res = document.getElementById('rng-result'); if (res) res.textContent = '';
+  const add = document.getElementById('rng-add-btn'); if (add) add.style.display = 'none';
+  openSheet('range-select-sheet');
+}
+async function findRangeShifts(){
+  const psw  = document.getElementById('rng-psw')?.value || '';
+  const from = document.getElementById('rng-from')?.value || '';
+  const to   = document.getElementById('rng-to')?.value || '';
+  const res  = document.getElementById('rng-result');
+  const addBtn = document.getElementById('rng-add-btn');
+  if (!from || !to) { if (res) res.textContent = 'Pick a from and to date.'; return; }
+  if (from > to) { if (res) res.textContent = 'The from date must come before the to date.'; return; }
+  const btn = document.getElementById('rng-find-btn');
+  if (btn) { btn.textContent = 'Searching'; btn.disabled = true; }
+  try {
+    const r = await fetch(`${API}/hq/bookings?operator_id=${encodeURIComponent(currentOp)}&from_date=${from}&to_date=${to}`, {
+      headers: { 'x-hq-token': window._hqToken || sessionStorage.getItem('hq_token') || '' }
+    });
+    const d = await r.json().catch(() => ({}));
+    let list = (d && d.bookings) || [];
+    list = list.filter(b => b.status !== 'cancelled' && !b.deleted_at);
+    if (psw) list = list.filter(b => (b.assigned_to || '') === psw);
+    _rngFound = list;
+    if (!list.length) {
+      if (res) res.textContent = 'No shifts found in that range.';
+      if (addBtn) addBtn.style.display = 'none';
+    } else {
+      const pswCount = new Set(list.map(b => b.assigned_to || 'Unassigned')).size;
+      const cliCount = new Set(list.map(b => b.client_name).filter(Boolean)).size;
+      if (res) res.textContent = list.length + (list.length === 1 ? ' shift' : ' shifts') + ' across ' + pswCount + (pswCount === 1 ? ' PSW' : ' PSWs') + ' and ' + cliCount + (cliCount === 1 ? ' client' : ' clients') + '.'
+        + (list.length > 500 ? ' Over the 500 limit for one action, narrow the range.' : '');
+      if (addBtn) addBtn.style.display = list.length > 500 ? 'none' : 'block';
+    }
+  } catch (e) {
+    if (res) res.textContent = 'Could not search that range. Try again.';
+  }
+  if (btn) { btn.textContent = 'Find Shifts'; btn.disabled = false; }
+}
+function addRangeToSelection(){
+  if (!_rngFound.length) return;
+  if (!_bulkMode) toggleBulkSelect();
+  _rngFound.forEach(b => { if (b.id) _bulkSel.add(b.id); });
+  const n = _rngFound.length;
+  closeSheet('range-select-sheet');
+  _bulkBarSync();
+  if (typeof refreshGrid === 'function' && schedHQView === 'grid') refreshGrid(); else renderSchedule();
+  showToast(n + (n === 1 ? ' shift added to selection' : ' shifts added to selection'), 'ok');
+}
+
+/* B10: quick select. Tap a PSW row or a day column to take everything in it. */
+function _rowClick(safeKey, label){
+  if (!_bulkMode) { openHoursPanel(_schedAxis, label); return; }
+  const ids = (window._rowIndex && window._rowIndex[safeKey]) || [];
+  if (!ids.length) return;
+  const allOn = ids.every(id => _bulkSel.has(id));
+  ids.forEach(id => allOn ? _bulkSel.delete(id) : _bulkSel.add(id));
+  _bulkBarSync();
+  if (typeof refreshGrid === 'function' && schedHQView === 'grid') refreshGrid(); else renderSchedule();
+}
+function _dayClick(dateStr){
+  if (!_bulkMode) return;
+  const ids = (window._dayIndex && window._dayIndex[dateStr]) || [];
+  if (!ids.length) return;
+  const allOn = ids.every(id => _bulkSel.has(id));
+  ids.forEach(id => allOn ? _bulkSel.delete(id) : _bulkSel.add(id));
+  _bulkBarSync();
+  if (typeof refreshGrid === 'function' && schedHQView === 'grid') refreshGrid(); else renderSchedule();
+}
+function _selectAllVisible(){
+  const all = [];
+  Object.values(window._rowIndex || {}).forEach(ids => ids.forEach(id => all.push(id)));
+  if (!all.length) { showToast('Nothing on screen to select', 'warn'); return; }
+  const allOn = all.every(id => _bulkSel.has(id));
+  all.forEach(id => allOn ? _bulkSel.delete(id) : _bulkSel.add(id));
+  _bulkBarSync();
+  if (typeof refreshGrid === 'function' && schedHQView === 'grid') refreshGrid(); else renderSchedule();
+}
+function _bulkClear(){
+  _bulkSel.clear();
+  _bulkBarSync();
+  if (typeof refreshGrid === 'function' && schedHQView === 'grid') refreshGrid(); else renderSchedule();
+}
+function _menuGoPlaceholder(){}
 /* B4: bulk schedule selection. Tap chips to select, then act on all at once. */
 function toggleBulkSelect(){
   _bulkMode = !_bulkMode;
   if (!_bulkMode) _bulkSel.clear();
   const btn = document.getElementById('bulk-select-btn');
-  if (btn) { btn.style.background = _bulkMode ? 'rgba(201,169,110,.18)' : ''; btn.textContent = _bulkMode ? '☑ Selecting' : '☑ Select'; }
+  if (btn) {
+    btn.style.display = _bulkMode ? 'flex' : 'none';
+    btn.style.background = _bulkMode ? 'rgba(201,169,110,.18)' : '';
+    btn.textContent = _bulkMode ? '☑ Selecting' : '☑ Select';
+  }
   _bulkBarSync();
   if (typeof refreshGrid === 'function' && schedHQView === 'grid') refreshGrid(); else renderSchedule();
 }
@@ -8453,7 +8636,20 @@ function _chipClick(id){
 function _bulkBarSync(){
   const bar = document.getElementById('bulkbar');
   const cnt = document.getElementById('bulkbar-count');
-  if (cnt) cnt.textContent = _bulkSel.size + (_bulkSel.size === 1 ? ' selected' : ' selected');
+  if (cnt) {
+    const n = _bulkSel.size;
+    if (!n) { cnt.textContent = '0 selected'; }
+    else {
+      const picked = [..._bulkSel].map(id => (window._bookingMap || {})[id]).filter(Boolean);
+      const psws = new Set(picked.map(b => b.assigned_to || 'Unassigned')).size;
+      const clis = new Set(picked.map(b => b.client_name).filter(Boolean)).size;
+      let txt = n + (n === 1 ? ' shift' : ' shifts');
+      if (picked.length) txt += ' · ' + psws + (psws === 1 ? ' PSW' : ' PSWs') + ' · ' + clis + (clis === 1 ? ' client' : ' clients');
+      if (n > 500) txt += ' · over the 500 limit';
+      cnt.textContent = txt;
+      cnt.style.color = n > 500 ? 'var(--red)' : 'var(--gold)';
+    }
+  }
   if (bar) bar.classList.toggle('on', _bulkMode);
 }
 async function _bulkAction(action){
