@@ -2819,8 +2819,8 @@ body.sidebar-rail .sidebar{width:64px;overflow:visible;}
       <button id="sched-view-cal" onclick="setSchedHQView('cal')" style="font-family:var(--mono);font-size:11px;letter-spacing:1px;padding:6px 10px;background:none;border:1px solid var(--border);border-radius:var(--r6);color:var(--muted2);cursor:pointer;min-height:36px;touch-action:manipulation;">▦ Cal</button>
     </div>
     <div class="sched-toolbar-row" style="display:flex;gap:5px;overflow-x:auto;overflow-y:hidden;flex-wrap:nowrap;scrollbar-width:none;-ms-overflow-style:none;-webkit-overflow-scrolling:touch;flex:1;min-width:0;padding-bottom:2px;">
-      <div class="sect-action" onclick="openSheet('add-menu-sheet')" style="color:var(--teal2);border-color:rgba(61,138,122,.3);">+ Add</div>
-      <div class="sect-action" onclick="openSheet('edit-menu-sheet')" style="color:var(--gold);border-color:rgba(201,169,110,.3);">✎ Edit</div>
+      <div class="sect-action" id="sched-add-btn" onclick="openSheet('add-menu-sheet')" style="color:var(--teal2);border-color:rgba(61,138,122,.3);">+ Add</div>
+      <div class="sect-action" id="sched-edit-btn" onclick="openSheet('edit-menu-sheet')" style="color:var(--gold);border-color:rgba(201,169,110,.3);">✎ Edit</div>
       <div class="sect-action" id="map-toggle-btn" onclick="toggleLiveMap()" style="color:var(--teal2);border-color:rgba(61,138,122,.3);">⬤ Live Map</div>
       <div class="sect-action" id="resource-toggle-btn" onclick="toggleResourceView()" style="color:var(--gold);border-color:rgba(201,169,110,.3);">⊞ Resource</div>
       <div class="sect-action" id="bulk-select-btn" onclick="toggleBulkSelect()" style="display:none;color:var(--gold);border-color:rgba(201,169,110,.3);">☑ Select</div>
@@ -3333,23 +3333,23 @@ body.sidebar-rail .sidebar{width:64px;overflow:visible;}
     <div class="sheet-close" onclick="closeSheet('add-menu-sheet')">✕</div>
   </div>
   <div class="menu-list">
-    <div class="menu-item" onclick="_menuGo('add-menu-sheet', () => openAddShift('',''))">
+    <div class="menu-item" id="mi-single-shift" onclick="_menuGo('add-menu-sheet', () => openAddShift('',''))">
       <div class="menu-item-main"><span class="menu-item-icon" style="color:var(--teal2);">+</span><span>Single Shift</span></div>
       <div class="menu-item-sub">Add one shift for a client and PSW</div>
     </div>
-    <div class="menu-item" onclick="_menuGo('add-menu-sheet', openBulkSchedule)">
+    <div class="menu-item" id="mi-bulk-week" onclick="_menuGo('add-menu-sheet', openBulkSchedule)">
       <div class="menu-item-main"><span class="menu-item-icon" style="color:var(--gold);">≡</span><span>Bulk Week</span></div>
       <div class="menu-item-sub">Build a full week of shifts at once</div>
     </div>
-    <div class="menu-item" onclick="_menuGo('add-menu-sheet', openCopyWeeksSheet)">
+    <div class="menu-item" id="mi-copy-weeks" onclick="_menuGo('add-menu-sheet', openCopyWeeksSheet)">
       <div class="menu-item-main"><span class="menu-item-icon" style="color:var(--teal3);">⧉</span><span>Copy Weeks</span></div>
       <div class="menu-item-sub">Duplicate an existing week forward</div>
     </div>
-    <div class="menu-item" onclick="_menuGo('add-menu-sheet', openTemplateSheet)">
+    <div class="menu-item" id="mi-templates" onclick="_menuGo('add-menu-sheet', openTemplateSheet)">
       <div class="menu-item-main"><span class="menu-item-icon" style="color:var(--purple2);">↻</span><span>Templates</span></div>
       <div class="menu-item-sub">Recurring shifts that generate automatically. Pause here to stop them.</div>
     </div>
-    <div class="menu-item" onclick="_menuGo('add-menu-sheet', openImportBookings)">
+    <div class="menu-item" id="mi-import-csv" onclick="_menuGo('add-menu-sheet', openImportBookings)">
       <div class="menu-item-main"><span class="menu-item-icon" style="color:var(--teal3);">↑</span><span>Import CSV</span></div>
       <div class="menu-item-sub">Upload a schedule from a spreadsheet</div>
     </div>
@@ -3362,15 +3362,15 @@ body.sidebar-rail .sidebar{width:64px;overflow:visible;}
     <div class="sheet-close" onclick="closeSheet('edit-menu-sheet')">✕</div>
   </div>
   <div class="menu-list">
-    <div class="menu-item" onclick="_menuGo('edit-menu-sheet', toggleBulkSelect)">
+    <div class="menu-item" id="mi-select-shifts" onclick="_menuGo('edit-menu-sheet', toggleBulkSelect)">
       <div class="menu-item-main"><span class="menu-item-icon" style="color:var(--gold);">☑</span><span>Select Shifts</span></div>
       <div class="menu-item-sub">Tap shifts, a PSW name, or a day to select. Then reassign, move, hold, cancel or delete together.</div>
     </div>
-    <div class="menu-item" onclick="_menuGo('edit-menu-sheet', openRangeSelect)">
+    <div class="menu-item" id="mi-select-range" onclick="_menuGo('edit-menu-sheet', openRangeSelect)">
       <div class="menu-item-main"><span class="menu-item-icon" style="color:var(--gold);">⇥</span><span>Select by Range</span></div>
       <div class="menu-item-sub">Pick a PSW and a date range to select weeks or months at once</div>
     </div>
-    <div class="menu-item" onclick="_menuGo('edit-menu-sheet', openSwapSheet)">
+    <div class="menu-item" id="mi-swap-psw" onclick="_menuGo('edit-menu-sheet', openSwapSheet)">
       <div class="menu-item-main"><span class="menu-item-icon" style="color:var(--purple2);">⇄</span><span>Swap PSW</span></div>
       <div class="menu-item-sub">Move every future shift from one PSW to another</div>
     </div>
