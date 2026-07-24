@@ -475,6 +475,9 @@ a{color:inherit;text-decoration:none;}
 .today-next-btn:active{transform:scale(.98);}
 .today-next-btn.nav{background:var(--rb-elev);border:1px solid var(--rb-line2);color:var(--rb-dim);}
 .today-next-btn.signin{background:linear-gradient(135deg,var(--psw),var(--psw-deep));color:var(--psw-ink);font-weight:500;}
+.tnc-late-picker{display:flex;gap:6px;margin-top:8px;}
+.tnc-late-chip{flex:1;padding:9px;border-radius:10px;border:1px solid var(--rb-line2);background:var(--rb-elev);color:var(--rb-dim);font-family:var(--rb-mono);font-size:10px;letter-spacing:.5px;cursor:pointer;min-height:40px;touch-action:manipulation;transition:transform .12s var(--e);}
+.tnc-late-chip:active{transform:scale(.98);}
 /* Progress bar */
 .today-progress{margin:0 12px 10px;background:var(--rb-panel);border:1px solid var(--rb-line);border-radius:12px;padding:11px 14px;}
 .today-progress-label{font-family:var(--rb-mono);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--rb-dim);margin-bottom:7px;display:flex;justify-content:space-between;}
@@ -953,6 +956,19 @@ a{color:inherit;text-decoration:none;}
       <button class="today-next-btn nav" id="tnc-nav-btn" onclick="openTodayNextMap()"><svg width="13" height="13" viewBox="0 0 13 13" fill="none" style="display:inline;vertical-align:middle;margin-right:5px"><path d="M1 2l4 1.5L8 2l4 1.5v8L8 10l-3 1.5L1 10V2z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg>Navigate</button>
       <button class="today-next-btn signin" id="tnc-signin-btn" onclick="doCheckInFromShift(window._nextVisitClientName||'')">Sign In →</button>
     </div>
+    <div class="today-next-actions">
+      <button class="today-next-btn nav" id="tnc-omw-btn" onclick="doOnMyWay()">On My Way</button>
+      <button class="today-next-btn nav" id="tnc-late-btn" onclick="toggleLatePicker()">Running Late</button>
+    </div>
+    <div class="tnc-late-picker" id="tnc-late-picker" style="display:none;">
+      <button class="tnc-late-chip" onclick="doRunningLate(10)">10 min</button>
+      <button class="tnc-late-chip" onclick="doRunningLate(15)">15 min</button>
+      <button class="tnc-late-chip" onclick="doRunningLate(20)">20 min</button>
+      <button class="tnc-late-chip" onclick="doRunningLate(30)">30 min</button>
+    </div>
+    <div class="today-next-actions">
+      <button class="today-next-btn nav" id="tnc-nothome-btn" onclick="openNotHome()">Client Not Home</button>
+    </div>
   </div>
 
   <div class="active-banner" id="home-active-banner" style="display:none;">
@@ -1193,6 +1209,12 @@ a{color:inherit;text-decoration:none;}
     <div style="font-family:var(--rb-mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--rb-dim);margin-bottom:10px;">Certifications</div>
     <div class="card" style="padding:0;overflow:hidden;">
       <div id="docs-list"><div class="empty-state" style="padding:20px;">Loading...</div></div>
+    </div>
+  </div>
+  <div style="padding:10px 12px 6px;">
+    <div style="font-family:var(--rb-mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--rb-dim);margin-bottom:10px;">Pay Statements</div>
+    <div class="card" style="padding:0;overflow:hidden;">
+      <div id="paystubs-list"><div class="empty-state" style="padding:20px;">Loading...</div></div>
     </div>
   </div>
   <div style="padding:10px 12px 6px;">
@@ -1592,6 +1614,29 @@ a{color:inherit;text-decoration:none;}
 
 <!-- SUCCESS OVERLAY -->
 <!-- EC-3 — CHECKIN CONFIRMATION OVERLAY -->
+<div class="success-overlay" id="not-home-overlay" style="display:none;">
+  <div style="background:var(--bg2);border:1px solid var(--border2);border-radius:16px;padding:28px 24px;max-width:340px;width:100%;text-align:center;max-height:90vh;overflow-y:auto;">
+    <div style="font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--amber);margin-bottom:12px;">Client Not Home</div>
+    <div style="font-size:15px;color:var(--text);line-height:1.6;margin-bottom:6px;" id="nh-client-name">Client</div>
+    <div style="font-size:13px;color:var(--muted2);line-height:1.6;margin-bottom:16px;">This records that you arrived and could not get in. The office and the family are notified right away.</div>
+    <div style="font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--muted2);margin-bottom:6px;text-align:left;">Note (optional)</div>
+    <textarea id="nh-note" placeholder="Knocked and called, no answer" style="width:100%;min-height:80px;background:var(--bg);border:1px solid var(--border2);border-radius:10px;padding:12px;font-family:inherit;font-size:14px;color:var(--text);outline:none;resize:vertical;margin-bottom:16px;"></textarea>
+    <button class="btn-primary" id="nh-submit" onclick="submitNotHome()" style="width:100%;margin-bottom:8px;">Report Not Home</button>
+    <button onclick="closeNotHome()" style="width:100%;background:none;border:none;color:var(--muted2);font-family:inherit;font-size:13px;padding:10px;cursor:pointer;">Cancel</button>
+  </div>
+</div>
+
+<div class="success-overlay" id="geofence-warn-overlay" style="display:none;">
+  <div style="background:var(--bg2);border:1px solid var(--border2);border-radius:16px;padding:28px 24px;max-width:340px;width:100%;text-align:center;max-height:90vh;overflow-y:auto;">
+    <div style="font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--amber);margin-bottom:12px;">Visit Warning</div>
+    <div style="margin:0 0 14px;padding:12px 14px;background:rgba(224,154,61,.08);border:1px solid rgba(224,154,61,.3);border-radius:10px;font-family:var(--mono);font-size:12px;color:var(--amber);line-height:1.6;text-align:left;" id="gfw-distance">Distance from visit location: —</div>
+    <div style="font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--muted2);margin-bottom:6px;text-align:left;">Visit Note (optional)</div>
+    <textarea id="gfw-reason" placeholder="Explain" style="width:100%;min-height:80px;background:var(--bg);border:1px solid var(--border2);border-radius:10px;padding:12px;font-family:inherit;font-size:14px;color:var(--text);outline:none;resize:vertical;margin-bottom:16px;"></textarea>
+    <button class="btn-primary" id="gfw-submit" onclick="submitGeofenceOverride()" style="width:100%;margin-bottom:8px;">Submit</button>
+    <button onclick="closeGeofenceWarn()" style="width:100%;background:none;border:none;color:var(--muted2);font-family:inherit;font-size:13px;padding:10px;cursor:pointer;">Cancel</button>
+  </div>
+</div>
+
 <div class="success-overlay" id="checkin-confirm-overlay" style="display:none;">
   <div style="background:var(--bg2);border:1px solid var(--border2);border-radius:16px;padding:28px 24px;max-width:340px;width:100%;text-align:center;max-height:90vh;overflow-y:auto;">
     <div style="font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted2);margin-bottom:12px;">Confirm Sign In</div>
@@ -2937,6 +2982,66 @@ function cancelCheckinConfirm() {
   _pendingCheckin = null;
 }
 
+/* B3: Client not home. Records the attempt with GPS, notifies office and family. */
+function openNotHome(){
+  const clientName = window._nextVisitClientName || '';
+  if (!clientName) { showToast('No upcoming visit', 'warn'); return; }
+  const nm = document.getElementById('nh-client-name'); if (nm) nm.textContent = clientName;
+  const ta = document.getElementById('nh-note'); if (ta) ta.value = '';
+  const ov = document.getElementById('not-home-overlay'); if (ov) ov.style.display = 'flex';
+}
+function closeNotHome(){
+  const ov = document.getElementById('not-home-overlay'); if (ov) ov.style.display = 'none';
+}
+async function submitNotHome(){
+  const clientName = window._nextVisitClientName || '';
+  if (!clientName) { closeNotHome(); return; }
+  const note = (document.getElementById('nh-note')?.value || '').trim();
+  const btn = document.getElementById('nh-submit');
+  if (btn) { btn.textContent = 'Sending'; btn.disabled = true; }
+  let latitude = null, longitude = null;
+  try {
+    const pos = await new Promise((res, rej) => navigator.geolocation.getCurrentPosition(res, rej, { timeout: 8000, maximumAge: 0 }));
+    latitude = pos.coords.latitude; longitude = pos.coords.longitude;
+  } catch(_) {}
+  try {
+    const r = await fetch(`${API}/visit/not-home`, {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ psw_name: pswName, pin: pswPin, operator_id: pswOperatorId, client_name: clientName, note, latitude, longitude })
+    });
+    const d = await r.json().catch(() => ({}));
+    if (r.ok && d.success) {
+      closeNotHome();
+      haptic(200);
+      showToast('Reported. The office and family were notified', 'ok');
+      loadHomeData(); loadSchedule().catch(() => {});
+    } else { showToast('Could not send. Try again', 'warn'); }
+  } catch(_) { showToast('Could not send. Try again', 'warn'); }
+  if (btn) { btn.textContent = 'Report Not Home'; btn.disabled = false; }
+}
+/* B2: Geofence variance. Soft warn with distance, optional reason, acknowledge to proceed. */
+let _gfPending = null;
+function showGeofenceWarn(kind, distanceM, retryFn){
+  _gfPending = { kind, retryFn };
+  const km = (Number(distanceM) / 1000).toFixed(2);
+  const el = document.getElementById('gfw-distance');
+  if (el) el.textContent = 'Distance from visit location: ' + km + ' km';
+  const ta = document.getElementById('gfw-reason'); if (ta) ta.value = '';
+  const btn = document.getElementById('gfw-submit');
+  if (btn) btn.textContent = kind === 'checkout' ? 'Submit and Sign Out' : 'Submit and Sign In';
+  const ov = document.getElementById('geofence-warn-overlay'); if (ov) ov.style.display = 'flex';
+}
+function closeGeofenceWarn(){
+  _gfPending = null;
+  const ov = document.getElementById('geofence-warn-overlay'); if (ov) ov.style.display = 'none';
+}
+async function submitGeofenceOverride(){
+  if (!_gfPending) return;
+  const reason = (document.getElementById('gfw-reason')?.value || '').trim();
+  const fn = _gfPending.retryFn;
+  closeGeofenceWarn();
+  if (typeof fn === 'function') await fn(reason);
+}
 async function confirmCheckin() {
   if (!_pendingCheckin) return;
   const { clientName, latitude, longitude, within_range, btn } = _pendingCheckin;
@@ -2962,22 +3067,32 @@ async function confirmCheckin() {
   }
 
   // Online path
-  try {
-    const res = await fetch(`${API}/visit/checkin`, {
-      method: 'POST', headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({ psw_name: pswName, pin: pswPin, operator_id: pswOperatorId, client_name: clientName, latitude, longitude, within_range, directives_acknowledged: directivesAcknowledged })
-    });
-    const d = await res.json();
-    if (!res.ok) throw new Error(d.error || 'Check-in failed');
-    activeVisit = { id: d.visit_id, client_name: clientName, time_in: d.time_in, checkin_time: d.checkin_time || new Date().toISOString() };
-    updateShiftUI(); renderWeek(); loadHomeData();
-    haptic(200);
-    showToast(d.resumed ? 'Resuming visit — ' + clientName : 'Signed in — ' + clientName, 'ok');
-    injectClientChecklistTasks(clientName);
-    showSect('checklist');
-    loadVisitForms().catch(() => {});
-  } catch (e) { showToast(e.message, 'err'); }
-  if (btn) { btn.textContent = 'Sign In Now'; btn.disabled = false; }
+  const _doCheckin = async (overrideReason) => {
+    const body = { psw_name: pswName, pin: pswPin, operator_id: pswOperatorId, client_name: clientName, latitude, longitude, within_range, directives_acknowledged: directivesAcknowledged };
+    if (overrideReason !== undefined) { body.geofence_override_ack = true; if (overrideReason) body.geofence_override_reason = overrideReason; }
+    try {
+      const res = await fetch(`${API}/visit/checkin`, {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify(body)
+      });
+      const d = await res.json();
+      if (res.status === 409 && d.requires_override) {
+        showGeofenceWarn('checkin', d.distance_m, _doCheckin);
+        if (btn) { btn.textContent = 'Sign In Now'; btn.disabled = false; }
+        return;
+      }
+      if (!res.ok) throw new Error(d.error || 'Check-in failed');
+      activeVisit = { id: d.visit_id, client_name: clientName, time_in: d.time_in, checkin_time: d.checkin_time || new Date().toISOString() };
+      updateShiftUI(); renderWeek(); loadHomeData();
+      haptic(200);
+      showToast(d.resumed ? 'Resuming visit: ' + clientName : 'Signed in: ' + clientName, 'ok');
+      injectClientChecklistTasks(clientName);
+      showSect('checklist');
+      loadVisitForms().catch(() => {});
+    } catch (e) { showToast(e.message, 'err'); }
+    if (btn) { btn.textContent = 'Sign In Now'; btn.disabled = false; }
+  };
+  await _doCheckin();
 }
 
 
@@ -3181,6 +3296,14 @@ async function doCheckOut() {
     voice_note_url: voiceNoteUrl || undefined
   };
 
+  // B2: attach location for the checkout geofence check (best effort, never blocks checkout)
+  try {
+    const _coPos = await new Promise((res, rej) => navigator.geolocation.getCurrentPosition(res, rej, { timeout: 8000, maximumAge: 0 }));
+    payload.latitude = _coPos.coords.latitude;
+    payload.longitude = _coPos.coords.longitude;
+    if (_coPos.coords.accuracy) payload.accuracy = _coPos.coords.accuracy;
+  } catch(_) {}
+
   // Offline path — Build 1
   if (!navigator.onLine) {
     await queueAction('checkout', `${API}/visit/checkout`, payload);
@@ -3202,6 +3325,35 @@ async function doCheckOut() {
       body: JSON.stringify(payload)
     });
     const d = await res.json();
+
+    // B2: out of range on sign out. Warn, capture optional reason, then proceed.
+    if (res.status === 409 && d.requires_override) {
+      btn.textContent = 'Check Out + Submit Visit'; btn.disabled = false;
+      window._gfCheckoutPayload = payload;
+      showGeofenceWarn('checkout', d.distance_m, async (reason) => {
+        const p = { ...window._gfCheckoutPayload, geofence_override_ack: true };
+        if (reason) p.geofence_override_reason = reason;
+        try {
+          const r2 = await fetch(`${API}/visit/checkout`, {
+            method: 'POST', headers: {'Content-Type':'application/json'},
+            body: JSON.stringify(p)
+          });
+          const d2 = await r2.json();
+          if (!r2.ok) throw new Error(d2.error || 'Checkout failed');
+          closeCheckout();
+          window._lastVisitId = activeVisit?.id || p.visit_id || null;
+          window._lastVisitMeta = activeVisit ? `${activeVisit.client_name} · ${activeVisit.time_in || 'n/a'}` : '';
+          activeVisit = null;
+          stopElapsed(); resetChecklist(); updateShiftUI();
+          haptic([100, 50, 100]);
+          document.getElementById('success-title').textContent = 'Visit Complete';
+          document.getElementById('success-msg').textContent = `${d2.hours_worked}h logged. Family notified with care summary.`;
+          document.getElementById('success-overlay').classList.add('show');
+          await loadSchedule(); loadHomeData();
+        } catch (e) { showToast(e.message, 'err'); }
+      });
+      return;
+    }
 
     // EC-1 — sub-8-min warning
     if (d.sub_8_min) {
@@ -4005,6 +4157,48 @@ async function sendMsg() {
 }
 
 // ── DOCUMENTS ──
+/* B6: PSW pay statements. Lists their own paystubs and opens a signed URL to download. */
+async function loadPaystubs() {
+  const el = document.getElementById('paystubs-list');
+  if (!el) return;
+  try {
+    const r = await fetch(`${API}/psw/paystubs`, {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ psw_name: pswName, pin: pswPin, operator_id: pswOperatorId })
+    });
+    const d = await r.json().catch(() => ({}));
+    const list = (d && d.paystubs) || [];
+    if (!list.length) { el.innerHTML = '<div class="empty-state" style="padding:20px;">No pay statements yet</div>'; return; }
+    el.innerHTML = list.map(p => {
+      const hrs = p.total_hours != null ? Number(p.total_hours).toFixed(1) + 'h' : '';
+      const amt = p.psw_total != null ? '$' + Number(p.psw_total).toFixed(2) : '';
+      const label = p.period_label || ((p.start_date || '') + ' to ' + (p.end_date || ''));
+      return '<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 16px;border-bottom:1px solid var(--rb-line);">'
+        + '<div style="min-width:0;">'
+        + '<div style="font-size:13px;color:var(--rb-text);">' + label + '</div>'
+        + '<div style="font-family:var(--rb-mono);font-size:11px;color:var(--rb-dim);margin-top:2px;">' + hrs + (hrs && amt ? ' · ' : '') + amt + '</div>'
+        + '</div>'
+        + '<button onclick="downloadPaystub(\'' + p.id + '\', this)" style="flex:none;font-family:var(--rb-mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;padding:8px 12px;border-radius:8px;border:1px solid var(--rb-line2);background:var(--rb-elev);color:var(--psw);cursor:pointer;min-height:38px;touch-action:manipulation;">Download</button>'
+        + '</div>';
+    }).join('');
+  } catch (_) {
+    el.innerHTML = '<div class="empty-state" style="padding:20px;">Could not load pay statements</div>';
+  }
+}
+async function downloadPaystub(paystubId, btn) {
+  const original = btn ? btn.textContent : 'Download';
+  if (btn) { btn.textContent = 'Opening'; btn.disabled = true; }
+  try {
+    const r = await fetch(`${API}/psw/paystub/download`, {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ psw_name: pswName, pin: pswPin, operator_id: pswOperatorId, paystub_id: paystubId })
+    });
+    const d = await r.json().catch(() => ({}));
+    if (r.ok && d.success && d.url) window.open(d.url, '_blank');
+    else showToast(d.error || 'Pay statement is not available right now', 'warn');
+  } catch (_) { showToast('Could not open the pay statement', 'warn'); }
+  if (btn) { btn.textContent = original; btn.disabled = false; }
+}
 async function loadDocuments() {
   const el = document.getElementById('docs-list');
   const vl = document.getElementById('docs-visit-list');
@@ -4425,7 +4619,7 @@ function showSect(name) {
     loadSchedule(); // refresh in background — calls renderWeek() on completion
   }
   if (name === 'pay') loadPaySummary();
-  if (name === 'documents') loadDocuments();
+  if (name === 'documents') { loadDocuments(); loadPaystubs(); }
   if (name === 'home') { loadHomeData(); if (_routeMap) setTimeout(() => { try { _routeMap.invalidateSize(); } catch (e) {} }, 150); }
   if (name === 'live') renderLiveOps();
   if (name === 'checklist') loadVisitForms();
@@ -6361,6 +6555,61 @@ function loadLeaflet(cb) {
   document.head.appendChild(s);
 }
 
+/* Live Visit: On my way + Running late (Build 1 S5). Reuses GPS + OSRM patterns, all best effort. */
+function _tncResolveClientCoords(clientName){
+  const clients = scheduleData?.clients || [];
+  const clientObj = clients.find(c => {
+    const full = ((c.first_name||'')+' '+(c.last_name||'')).trim();
+    return full.toLowerCase() === (clientName||'').toLowerCase() ||
+           full.toLowerCase().startsWith((clientName||'').split(' ')[0].toLowerCase());
+  });
+  return { lat: clientObj?.lat ? parseFloat(clientObj.lat) : null, lng: clientObj?.lng ? parseFloat(clientObj.lng) : null };
+}
+async function doOnMyWay(){
+  const clientName = window._nextVisitClientName || '';
+  if (!clientName) { showToast('No upcoming visit', 'warn'); return; }
+  showToast('Notifying family', 'ok');
+  let latitude = null, longitude = null, eta_minutes = null;
+  try {
+    const pos = await new Promise((res, rej) => navigator.geolocation.getCurrentPosition(res, rej, {timeout:8000,maximumAge:0}));
+    latitude = pos.coords.latitude; longitude = pos.coords.longitude;
+  } catch(_) {}
+  try {
+    const cc = _tncResolveClientCoords(clientName);
+    if (latitude != null && longitude != null && cc.lat != null && cc.lng != null) {
+      const rd = await fetch(`https://router.project-osrm.org/route/v1/driving/${longitude},${latitude};${cc.lng},${cc.lat}?overview=false`).then(r => r.json());
+      if (rd.routes && rd.routes[0]) eta_minutes = Math.max(1, Math.round(rd.routes[0].duration / 60));
+    }
+  } catch(_) {}
+  try {
+    const r = await fetch(`${API}/visit/en-route`, {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ psw_name: pswName, pin: pswPin, operator_id: pswOperatorId, client_name: clientName, latitude, longitude, eta_minutes })
+    });
+    const d = await r.json().catch(() => ({}));
+    if (r.ok && d.success) showToast(d.eta ? ('Family notified. ETA ' + d.eta) : 'Family notified you are on the way', 'ok');
+    else showToast('Could not notify. Try again', 'warn');
+  } catch(_) { showToast('Could not notify. Try again', 'warn'); }
+}
+function toggleLatePicker(){
+  const p = document.getElementById('tnc-late-picker');
+  if (p) p.style.display = (p.style.display === 'none' || !p.style.display) ? 'flex' : 'none';
+}
+async function doRunningLate(minutes){
+  const clientName = window._nextVisitClientName || '';
+  if (!clientName) { showToast('No upcoming visit', 'warn'); return; }
+  const p = document.getElementById('tnc-late-picker'); if (p) p.style.display = 'none';
+  showToast('Updating family', 'ok');
+  try {
+    const r = await fetch(`${API}/visit/running-late`, {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ psw_name: pswName, pin: pswPin, operator_id: pswOperatorId, client_name: clientName, minutes })
+    });
+    const d = await r.json().catch(() => ({}));
+    if (r.ok && d.success) showToast(d.eta ? ('Family updated. New ETA ' + d.eta) : 'Family updated', 'ok');
+    else showToast('Could not update. Try again', 'warn');
+  } catch(_) { showToast('Could not update. Try again', 'warn'); }
+}
 function openNavigateSheet(clientName, bookingId) {
   _navClientName = clientName;
   _navGMapsUrl = null;
