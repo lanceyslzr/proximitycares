@@ -676,6 +676,17 @@ a{color:inherit;text-decoration:none;}
   transition:opacity .25s ease, transform .25s ease; pointer-events:none; backdrop-filter:blur(6px); }
 #psw-updating-cue.show{ opacity:1; transform:translateX(-50%) translateY(0); }
 
+/* ── SECTION C: visit gate and time agreement ─────────────────── */
+.vg-sec{margin:0 0 14px;padding:12px 14px;border-radius:10px;font-family:var(--mono);font-size:12px;line-height:1.6;text-align:left;background:rgba(255,179,64,.08);border:1px solid rgba(255,179,64,.3);color:var(--amber);}
+.vg-lbl{font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--muted2);margin:0 0 6px;text-align:left;}
+.vg-chips{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 14px;}
+.vg-chip{flex:1 1 44%;padding:11px 8px;border-radius:10px;border:1px solid var(--rb-line2);background:var(--rb-elev);color:var(--rb-dim);font-family:var(--mono);font-size:11px;letter-spacing:.4px;cursor:pointer;min-height:44px;touch-action:manipulation;transition:transform .12s ease;}
+.vg-chip:active{transform:scale(.98);}
+.vg-chip.on{border-color:var(--accent);color:var(--text);background:rgba(86,200,245,.14);}
+.vg-input{width:100%;background:var(--bg);border:1px solid var(--border2);border-radius:10px;padding:12px;font-family:inherit;font-size:16px;color:var(--text);outline:none;margin:0 0 14px;min-height:44px;}
+.vg-note{width:100%;min-height:70px;background:var(--bg);border:1px solid var(--border2);border-radius:10px;padding:12px;font-family:inherit;font-size:16px;color:var(--text);outline:none;resize:vertical;margin:0 0 16px;}
+.vg-cancel{width:100%;background:none;border:none;color:var(--muted2);font-family:inherit;font-size:13px;padding:10px;cursor:pointer;min-height:44px;}
+
 @media(max-width:768px){
   .week-nav{padding:8px 12px 10px;}
     .sched-day{margin:0 8px 6px;}
@@ -967,6 +978,7 @@ a{color:inherit;text-decoration:none;}
       <button class="tnc-late-chip" onclick="doRunningLate(30)">30 min</button>
     </div>
     <div class="today-next-actions">
+      <button class="today-next-btn nav" id="tnc-agreetime-btn" onclick="openAgreeTime()">Agree Arrival Time</button>
       <button class="today-next-btn nav" id="tnc-nothome-btn" onclick="openNotHome()">Client Not Home</button>
     </div>
   </div>
@@ -1634,6 +1646,40 @@ a{color:inherit;text-decoration:none;}
     <textarea id="gfw-reason" placeholder="Explain" style="width:100%;min-height:80px;background:var(--bg);border:1px solid var(--border2);border-radius:10px;padding:12px;font-family:inherit;font-size:16px;color:var(--text);outline:none;resize:vertical;margin-bottom:16px;"></textarea>
     <button class="btn-primary" id="gfw-submit" onclick="submitGeofenceOverride()" style="width:100%;margin-bottom:8px;">Submit</button>
     <button onclick="closeGeofenceWarn()" style="width:100%;background:none;border:none;color:var(--muted2);font-family:inherit;font-size:13px;padding:10px;cursor:pointer;">Cancel</button>
+  </div>
+</div>
+
+<div class="success-overlay" id="visit-gate-overlay" style="display:none;">
+  <div style="background:var(--bg2);border:1px solid var(--border2);border-radius:16px;padding:28px 24px;max-width:340px;width:100%;text-align:center;max-height:90vh;overflow-y:auto;">
+    <div style="font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--amber);margin-bottom:12px;" id="vg-title">Before You Sign In</div>
+    <div class="vg-sec" id="vg-distance" style="display:none;">Distance from visit location: </div>
+    <div class="vg-sec" id="vg-variance" style="display:none;">Arrival time</div>
+    <div id="vg-reason-wrap" style="display:none;">
+      <div class="vg-lbl">Why</div>
+      <div class="vg-chips" id="vg-chips"></div>
+    </div>
+    <div class="vg-lbl" id="vg-note-lbl">Visit note (optional)</div>
+    <textarea id="vg-note" class="vg-note" placeholder="Anything the office should know"></textarea>
+    <button class="btn-primary" id="vg-submit" onclick="submitVisitGate()" style="width:100%;margin-bottom:8px;">Submit and Sign In</button>
+    <button onclick="closeVisitGate()" class="vg-cancel">Cancel</button>
+  </div>
+</div>
+
+<div class="success-overlay" id="agree-time-overlay" style="display:none;">
+  <div style="background:var(--bg2);border:1px solid var(--border2);border-radius:16px;padding:28px 24px;max-width:340px;width:100%;text-align:center;max-height:90vh;overflow-y:auto;">
+    <div style="font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--amber);margin-bottom:12px;">Agreed Arrival Time</div>
+    <div style="font-size:15px;color:var(--text);line-height:1.6;margin-bottom:6px;" id="at-client-name">Client</div>
+    <div style="font-size:13px;color:var(--muted2);line-height:1.6;margin-bottom:16px;">This records the time you actually agreed on. The schedule does not change. You sign in at the real time and it will not be flagged.</div>
+    <div class="vg-lbl">Agreed time</div>
+    <input type="time" id="at-time" class="vg-input">
+    <div class="vg-lbl">Agreed with</div>
+    <div class="vg-chips" id="at-who"></div>
+    <div class="vg-lbl">How</div>
+    <div class="vg-chips" id="at-method"></div>
+    <div class="vg-lbl">Note (optional)</div>
+    <textarea id="at-note" class="vg-note" placeholder="Daughter asked for earlier"></textarea>
+    <button class="btn-primary" id="at-submit" onclick="submitAgreeTime()" style="width:100%;margin-bottom:8px;">Save Agreed Time</button>
+    <button onclick="closeAgreeTime()" class="vg-cancel">Cancel</button>
   </div>
 </div>
 
@@ -3042,6 +3088,172 @@ async function submitGeofenceOverride(){
   closeGeofenceWarn();
   if (typeof fn === 'function') await fn(reason);
 }
+/* ── SECTION C: combined visit gate and agreed arrival time ───────
+   One overlay answers both the location check and the arrival time check,
+   so a PSW who is out of range and off schedule sees a single screen
+   instead of two stacked on top of each other. */
+const VG_REASON_LABELS = {
+  client_agreed: 'Client agreed',
+  family_agreed: 'Family agreed',
+  no_answer:     'No answer',
+  back_to_back:  'Back to back',
+  traffic:       'Traffic',
+  other:         'Other'
+};
+const AT_WHO_LABELS    = { client: 'Client', family: 'Family' };
+const AT_METHOD_LABELS = { phone: 'Phone call', in_person: 'In person', other: 'Other' };
+
+function vgChips(hostId, labels, allowed){
+  const host = document.getElementById(hostId);
+  if (!host) return;
+  host.innerHTML = '';
+  host.dataset.val = '';
+  (allowed || Object.keys(labels)).forEach(function(key){
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'vg-chip';
+    b.textContent = labels[key] || key;
+    b.dataset.val = key;
+    b.onclick = function(){
+      Array.prototype.forEach.call(host.children, function(c){ c.classList.remove('on'); });
+      b.classList.add('on');
+      host.dataset.val = key;
+    };
+    host.appendChild(b);
+  });
+}
+function vgChipValue(hostId){
+  const host = document.getElementById(hostId);
+  return host ? (host.dataset.val || '') : '';
+}
+
+/* Resolve today's booking for this client. Only sent when exactly one active
+   booking matches. If it is ambiguous the server picks the nearest itself,
+   which is the safer resolver because it can see the real arrival time. */
+function resolveBookingId(clientName){
+  try {
+    const d = new Date();
+    const ymd = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+    const rows = (scheduleData && scheduleData.bookings) ? scheduleData.bookings : [];
+    const match = rows.filter(function(b){
+      return b.scheduled_date === ymd
+        && String(b.client_name || '').toLowerCase() === String(clientName || '').toLowerCase()
+        && b.status !== 'cancelled';
+    });
+    return match.length === 1 ? (match[0].id || null) : null;
+  } catch(_) { return null; }
+}
+
+let _vgPending = null;
+function showVisitGate(d, retryFn){
+  _vgPending = { d: d, retryFn: retryFn };
+  const geo = !!d.requires_override;
+  const tim = !!d.requires_time_reason;
+
+  const dist = document.getElementById('vg-distance');
+  if (dist) {
+    dist.style.display = geo ? 'block' : 'none';
+    if (geo) dist.textContent = 'You are ' + Math.round(Number(d.distance_m)) + ' m from the visit location. Expected within ' + Number(d.radius_m) + ' m.';
+  }
+  const varEl = document.getElementById('vg-variance');
+  if (varEl) {
+    varEl.style.display = tim ? 'block' : 'none';
+    if (tim) {
+      const mins = Math.abs(Number(d.variance_min));
+      const word = Number(d.variance_min) < 0 ? 'early' : 'late';
+      const src  = d.reference_source === 'agreed' ? 'agreed time' : 'scheduled time';
+      varEl.textContent = 'You are signing in ' + mins + ' minutes ' + word + '. The ' + src + ' is ' + (d.reference_time || '') + '. Sign in at the time you actually arrived.';
+    }
+  }
+  const wrap = document.getElementById('vg-reason-wrap');
+  if (wrap) wrap.style.display = tim ? 'block' : 'none';
+  if (tim) {
+    let allowed = Array.isArray(d.allowed_reasons) ? d.allowed_reasons.slice() : Object.keys(VG_REASON_LABELS);
+    if (d.time_negotiable === false) allowed = allowed.filter(function(k){ return k !== 'client_agreed'; });
+    vgChips('vg-chips', VG_REASON_LABELS, allowed);
+  }
+  /* The note maps to the location override reason. There is no free text
+     column on the arrival variance, so it is hidden when only time is flagged
+     rather than collected and dropped. */
+  const noteLbl = document.getElementById('vg-note-lbl');
+  const note = document.getElementById('vg-note');
+  if (noteLbl) noteLbl.style.display = geo ? 'block' : 'none';
+  if (note) { note.style.display = geo ? 'block' : 'none'; note.value = ''; }
+
+  const title = document.getElementById('vg-title');
+  if (title) title.textContent = (geo && tim) ? 'Two Things To Confirm' : (geo ? 'Location Check' : 'Arrival Time Check');
+  const ov = document.getElementById('visit-gate-overlay');
+  if (ov) ov.style.display = 'flex';
+}
+function closeVisitGate(){
+  _vgPending = null;
+  const ov = document.getElementById('visit-gate-overlay');
+  if (ov) ov.style.display = 'none';
+}
+async function submitVisitGate(){
+  if (!_vgPending) return;
+  const d = _vgPending.d, fn = _vgPending.retryFn;
+  const reason = vgChipValue('vg-chips');
+  if (d.requires_time_reason && !reason) { showToast('Pick a reason', 'warn'); return; }
+  const note = (document.getElementById('vg-note')?.value || '').trim();
+  closeVisitGate();
+  if (typeof fn === 'function') {
+    await fn({
+      geofenceAck: !!d.requires_override,
+      geofenceReason: d.requires_override ? note : '',
+      varianceReason: reason
+    });
+  }
+}
+
+function openAgreeTime(){
+  const clientName = window._nextVisitClientName || '';
+  if (!clientName) { showToast('No upcoming visit', 'warn'); return; }
+  const nm = document.getElementById('at-client-name'); if (nm) nm.textContent = clientName;
+  const t  = document.getElementById('at-time'); if (t) t.value = '';
+  const n  = document.getElementById('at-note'); if (n) n.value = '';
+  vgChips('at-who', AT_WHO_LABELS, ['client', 'family']);
+  vgChips('at-method', AT_METHOD_LABELS, ['phone', 'in_person', 'other']);
+  const ov = document.getElementById('agree-time-overlay'); if (ov) ov.style.display = 'flex';
+}
+function closeAgreeTime(){
+  const ov = document.getElementById('agree-time-overlay'); if (ov) ov.style.display = 'none';
+}
+async function submitAgreeTime(){
+  const clientName = window._nextVisitClientName || '';
+  if (!clientName) { closeAgreeTime(); return; }
+  const agreed = (document.getElementById('at-time')?.value || '').trim();
+  const who    = vgChipValue('at-who');
+  const method = vgChipValue('at-method');
+  const note   = (document.getElementById('at-note')?.value || '').trim();
+  if (!agreed) { showToast('Pick the agreed time', 'warn'); return; }
+  if (!who)    { showToast('Who agreed to it', 'warn'); return; }
+  const btn = document.getElementById('at-submit');
+  if (btn) { btn.textContent = 'Saving'; btn.disabled = true; }
+  try {
+    const r = await fetch(`${API}/visit/agree-time`, {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({
+        psw_name: pswName, pin: pswPin, operator_id: pswOperatorId,
+        client_name: clientName, agreed_time: agreed,
+        agreed_with: who, agreed_method: method || 'phone', agreed_note: note
+      })
+    });
+    const d = await r.json().catch(() => ({}));
+    if (r.ok && d.success) {
+      closeAgreeTime();
+      haptic(200);
+      showToast('Agreed time saved: ' + agreed, 'ok');
+      loadHomeData(); loadSchedule().catch(() => {});
+    } else if (r.status === 403 && d.code === 'TIME_NOT_NEGOTIABLE') {
+      showToast('This time must be confirmed with the family, not the client', 'warn');
+    } else {
+      showToast(d.error || 'Could not save. Try again', 'warn');
+    }
+  } catch(_) { showToast('Could not save. Try again', 'warn'); }
+  if (btn) { btn.textContent = 'Save Agreed Time'; btn.disabled = false; }
+}
+
 async function confirmCheckin() {
   if (!_pendingCheckin) return;
   const { clientName, latitude, longitude, within_range, btn } = _pendingCheckin;
@@ -3067,17 +3279,20 @@ async function confirmCheckin() {
   }
 
   // Online path
-  const _doCheckin = async (overrideReason) => {
-    const body = { psw_name: pswName, pin: pswPin, operator_id: pswOperatorId, client_name: clientName, latitude, longitude, within_range, directives_acknowledged: directivesAcknowledged };
-    if (overrideReason !== undefined) { body.geofence_override_ack = true; if (overrideReason) body.geofence_override_reason = overrideReason; }
+  const _doCheckin = async (gate) => {
+    const body = { psw_name: pswName, pin: pswPin, operator_id: pswOperatorId, client_name: clientName, latitude, longitude, within_range, directives_acknowledged: directivesAcknowledged, time_gate_supported: true };
+    const _bid = resolveBookingId(clientName);
+    if (_bid) body.booking_id = _bid;
+    if (gate && gate.geofenceAck) { body.geofence_override_ack = true; if (gate.geofenceReason) body.geofence_override_reason = gate.geofenceReason; }
+    if (gate && gate.varianceReason) { body.time_variance_ack = true; body.variance_reason = gate.varianceReason; }
     try {
       const res = await fetch(`${API}/visit/checkin`, {
         method: 'POST', headers: {'Content-Type':'application/json'},
         body: JSON.stringify(body)
       });
       const d = await res.json();
-      if (res.status === 409 && d.requires_override) {
-        showGeofenceWarn('checkin', d.distance_m, _doCheckin);
+      if (res.status === 409 && (d.requires_override || d.requires_time_reason)) {
+        showVisitGate(d, _doCheckin);
         if (btn) { btn.textContent = 'Sign In Now'; btn.disabled = false; }
         return;
       }

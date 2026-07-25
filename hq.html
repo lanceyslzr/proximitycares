@@ -6303,6 +6303,21 @@ async function loadVisitForms(visitId, clientName, container) {
   } catch {}
 }
 
+// Section D: arrival variance labels. Declared above renderVisits, never below it.
+const HQ_VARIANCE_LABELS = {
+  client_agreed: 'Client agreed',
+  family_agreed: 'Family agreed',
+  no_answer:     'No answer',
+  back_to_back:  'Back to back visits',
+  traffic:       'Traffic',
+  other:         'Other'
+};
+const HQ_AGREED_WITH_LABELS  = { client: 'the client', family: 'the family' };
+const HQ_AGREED_METHOD_LABELS = { phone: 'by phone', in_person: 'in person', other: '' };
+// Must match ARRIVAL_TOLERANCE_MIN in server.js. Changing one without the other
+// makes HQ disagree with the gate the PSW actually saw.
+const HQ_ARRIVAL_TOLERANCE_MIN = 30;
+
 async function renderVisits() {
   const el = document.getElementById('visits-list');
   el.innerHTML = '<div class="empty-state">Loading visits...</div>';
@@ -6390,6 +6405,12 @@ async function renderVisits() {
       const gpsBadge = v.checkin_distance_m != null ? `<span style="font-family:var(--mono);font-size:11px;letter-spacing:1px;padding:2px 6px;border-radius:100px;border:1px solid ${_gfCol};color:${_gfTxt};margin-left:6px;"><svg width="11" height="11" viewBox="0 0 12 12" fill="none" style="display:inline;vertical-align:middle;margin-right:2px"><path d="M6 1a3.5 3.5 0 0 0-3.5 3.5C2.5 7.5 6 11 6 11s3.5-3.5 3.5-6.5A3.5 3.5 0 0 0 6 1z" stroke="${_gfPin}" stroke-width="1.2"/><circle cx="6" cy="4.5" r="1.2" fill="${_gfPin}"/></svg> in ${v.checkin_distance_m}m${_gfOver ? ' OUT OF RANGE' : ''}</span>` : '';
       const _coOver = v.checkout_geofence_status === 'override' || v.checkout_geofence_status === 'fail';
       const gpsOutBadge = v.checkout_distance_m != null ? `<span style="font-family:var(--mono);font-size:11px;letter-spacing:1px;padding:2px 6px;border-radius:100px;border:1px solid ${_coOver ? 'rgba(224,154,61,.5)' : 'rgba(61,138,122,.3)'};color:${_coOver ? 'var(--amber)' : 'var(--teal2)'};margin-left:6px;">out ${v.checkout_distance_m}m${_coOver ? ' OUT OF RANGE' : ''}</span>` : '';
+      // Section D: arrival variance against the agreed time, or the scheduled time when none was agreed
+      const _arrVar = v.arrival_variance_min != null ? Number(v.arrival_variance_min) : null;
+      const _arrOut = _arrVar != null && Math.abs(_arrVar) > HQ_ARRIVAL_TOLERANCE_MIN;
+      const _arrWord = _arrVar == null ? '' : (_arrVar === 0 ? 'on time' : Math.abs(_arrVar) + 'm ' + (_arrVar < 0 ? 'early' : 'late'));
+      const arrBadge = _arrVar == null ? '' : `<span style="font-family:var(--mono);font-size:11px;letter-spacing:1px;padding:2px 6px;border-radius:100px;border:1px solid ${_arrOut ? 'rgba(224,154,61,.5)' : 'rgba(61,138,122,.3)'};color:${_arrOut ? 'var(--amber)' : 'var(--teal2)'};margin-left:6px;">${_arrWord}</span>`;
+      const agreedBadge = v.agreed_time ? `<span style="font-family:var(--mono);font-size:11px;letter-spacing:1px;padding:2px 6px;border-radius:100px;border:1px solid rgba(61,138,122,.4);color:var(--teal2);margin-left:6px;">AGREED ${String(v.agreed_time).slice(0,5)}</span>` : '';
       // Photos
       const photos = Array.isArray(v.task_photos) ? v.task_photos : (v.task_photos ? [v.task_photos] : []);
       const photosHtml = photos.length ? `<div style="margin-bottom:10px;"><div style="font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;">Photos (${photos.length})</div><div style="display:flex;gap:6px;flex-wrap:wrap;">${photos.map(p => `<a href="${p.url||p}" target="_blank"><img src="${p.url||p}" style="width:64px;height:64px;object-fit:cover;border-radius:6px;border:1px solid var(--border);" loading="lazy"></a>`).join('')}</div></div>` : '';
@@ -6406,6 +6427,8 @@ async function renderVisits() {
             <div class="card-meta">${tasks ? tasks.slice(0,60)+(tasks.length>60?'...':'') : 'No tasks logged'}</div>
             ${gpsBadge}
             ${gpsOutBadge}
+            ${arrBadge}
+            ${agreedBadge}
             ${v.incident_reported ? buildIncidentBadge(v) : ''}
           </div>
           <div class="card-right">
@@ -6422,6 +6445,7 @@ async function renderVisits() {
           ${v.entry_type==='manual'?`<div style="margin-bottom:10px;padding:8px 12px;background:rgba(224,154,61,.04);border:1px solid rgba(224,154,61,.2);border-radius:6px;font-family:var(--mono);font-size:12px;color:var(--amber);">✎ Manual entry, ${v.manual_entry_reason||'no reason provided'}</div>`:''}
           ${v.visit_stage === 'not_home' ? `<div style="margin-bottom:10px;padding:8px 12px;background:rgba(224,154,61,.06);border:1px solid rgba(224,154,61,.25);border-radius:6px;font-family:var(--mono);font-size:12px;color:var(--amber);line-height:1.7;">Client not home${v.not_home_at ? ` at ${fmtTime(new Date(v.not_home_at).toTimeString().slice(0,5))}` : ''}${v.checkin_distance_m != null ? `, ${v.checkin_distance_m}m from the address` : ''}<div>${v.not_home_note ? 'Note: ' + v.not_home_note : 'No note given.'}</div></div>` : ''}
           ${(_gfOver || _coOver) ? `<div style="margin-bottom:10px;padding:8px 12px;background:rgba(224,154,61,.06);border:1px solid rgba(224,154,61,.25);border-radius:6px;font-family:var(--mono);font-size:12px;color:var(--amber);line-height:1.7;">Location variance${_gfOver ? `<div>Sign in ${v.checkin_distance_m}m away. ${v.geofence_override_reason ? 'Reason: ' + v.geofence_override_reason : 'Acknowledged, no reason given.'}</div>` : ''}${_coOver ? `<div>Sign out ${v.checkout_distance_m}m away. ${v.checkout_override_reason ? 'Reason: ' + v.checkout_override_reason : 'Acknowledged, no reason given.'}</div>` : ''}${v.geofence_override_by ? `<div style="color:var(--muted2);">Recorded for ${v.geofence_override_by}</div>` : ''}</div>` : ''}
+          ${(_arrVar != null || v.agreed_time) ? `<div style="margin-bottom:10px;padding:8px 12px;background:${_arrOut ? 'rgba(224,154,61,.06)' : 'rgba(61,138,122,.05)'};border:1px solid ${_arrOut ? 'rgba(224,154,61,.25)' : 'rgba(61,138,122,.2)'};border-radius:6px;font-family:var(--mono);font-size:12px;color:${_arrOut ? 'var(--amber)' : 'var(--teal2)'};line-height:1.7;">Arrival time${_arrVar != null ? `<div>Signed in ${_arrWord} against the ${v.agreed_time ? 'agreed' : 'scheduled'} time.${_arrOut ? '' : ' Within tolerance.'}</div>` : ''}${v.variance_reason ? `<div>Reason: ${HQ_VARIANCE_LABELS[v.variance_reason] || v.variance_reason}</div>` : (_arrOut ? `<div>No reason recorded.</div>` : '')}${v.agreed_time ? `<div style="color:var(--muted2);">Agreed ${String(v.agreed_time).slice(0,5)} with ${HQ_AGREED_WITH_LABELS[v.agreed_with] || v.agreed_with || 'unknown'}${HQ_AGREED_METHOD_LABELS[v.agreed_method] ? ' ' + HQ_AGREED_METHOD_LABELS[v.agreed_method] : ''}${v.agreed_by ? ', logged by ' + v.agreed_by : ''}.</div>` : ''}${v.agreed_note ? `<div style="color:var(--muted2);">Note: ${v.agreed_note}</div>` : ''}</div>` : ''}
           ${tasks?`<div style="margin-bottom:10px;"><div style="font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:4px;">Tasks Completed</div><div style="color:var(--muted2);">${tasks}</div></div>`:''}
           ${mood?`<div style="margin-bottom:10px;"><div style="font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:4px;">Client Mood</div><div style="color:var(--text);">${mood}</div></div>`:''}
           ${v.visit_summary?`<div style="margin-bottom:10px;"><div style="font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:4px;">Care Summary</div><div style="color:var(--muted2);">${v.visit_summary}</div></div>`:''}
