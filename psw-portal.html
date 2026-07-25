@@ -1669,6 +1669,8 @@ a{color:inherit;text-decoration:none;}
   <div style="background:var(--bg2);border:1px solid var(--border2);border-radius:16px;padding:28px 24px;max-width:340px;width:100%;text-align:center;max-height:90vh;overflow-y:auto;">
     <div style="font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--amber);margin-bottom:12px;">Agreed Arrival Time</div>
     <div style="font-size:15px;color:var(--text);line-height:1.6;margin-bottom:6px;" id="at-client-name">Client</div>
+    <div class="vg-lbl" id="at-client-lbl" style="display:none;">Which visit</div>
+    <div class="vg-chips" id="at-client" style="display:none;"></div>
     <div style="font-size:13px;color:var(--muted2);line-height:1.6;margin-bottom:16px;">This records the time you actually agreed on. The schedule does not change. You sign in at the real time and it will not be flagged.</div>
     <div class="vg-lbl">Agreed time</div>
     <input type="time" id="at-time" class="vg-input">
@@ -3206,10 +3208,52 @@ async function submitVisitGate(){
   }
 }
 
+/* Today's remaining visits for this PSW. An evening stack means calling three
+   clients before starting any of them, so the sheet has to offer all of them,
+   not just the next one. Cancelled bookings excluded. */
+function todaysRemainingClients(){
+  try {
+    const d = new Date();
+    const ymd = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+    const rows = (scheduleData && scheduleData.bookings) ? scheduleData.bookings : [];
+    const seen = {};
+    const out = [];
+    rows.filter(function(b){
+      return b.scheduled_date === ymd && b.status !== 'cancelled' && b.client_name;
+    }).sort(function(a,b){
+      return String(a.scheduled_time||'').localeCompare(String(b.scheduled_time||''));
+    }).forEach(function(b){
+      if (seen[b.client_name]) return;
+      seen[b.client_name] = true;
+      out.push({ name: b.client_name, time: String(b.scheduled_time||'').slice(0,5) });
+    });
+    return out;
+  } catch(_) { return []; }
+}
 function openAgreeTime(){
-  const clientName = window._nextVisitClientName || '';
-  if (!clientName) { showToast('No upcoming visit', 'warn'); return; }
-  const nm = document.getElementById('at-client-name'); if (nm) nm.textContent = clientName;
+  const list = todaysRemainingClients();
+  const fallback = window._nextVisitClientName || '';
+  if (!list.length && !fallback) { showToast('No visits scheduled today', 'warn'); return; }
+
+  const nameEl = document.getElementById('at-client-name');
+  const lblEl  = document.getElementById('at-client-lbl');
+  const hostEl = document.getElementById('at-client');
+
+  if (list.length > 1) {
+    if (nameEl) nameEl.textContent = 'You have ' + list.length + ' visits today';
+    if (lblEl) lblEl.style.display = 'block';
+    if (hostEl) hostEl.style.display = 'flex';
+    const labels = {};
+    const keys = [];
+    list.forEach(function(c){ labels[c.name] = c.time ? c.name + ' ' + c.time : c.name; keys.push(c.name); });
+    vgChips('at-client', labels, keys);
+  } else {
+    const only = list.length ? list[0].name : fallback;
+    if (nameEl) nameEl.textContent = only;
+    if (lblEl) lblEl.style.display = 'none';
+    if (hostEl) { hostEl.style.display = 'none'; hostEl.innerHTML = ''; hostEl.dataset.val = only; }
+  }
+
   const t  = document.getElementById('at-time'); if (t) t.value = '';
   const n  = document.getElementById('at-note'); if (n) n.value = '';
   vgChips('at-who', AT_WHO_LABELS, ['client', 'family']);
@@ -3220,8 +3264,8 @@ function closeAgreeTime(){
   const ov = document.getElementById('agree-time-overlay'); if (ov) ov.style.display = 'none';
 }
 async function submitAgreeTime(){
-  const clientName = window._nextVisitClientName || '';
-  if (!clientName) { closeAgreeTime(); return; }
+  const clientName = vgChipValue('at-client') || window._nextVisitClientName || '';
+  if (!clientName) { showToast('Pick which visit', 'warn'); return; }
   const agreed = (document.getElementById('at-time')?.value || '').trim();
   const who    = vgChipValue('at-who');
   const method = vgChipValue('at-method');

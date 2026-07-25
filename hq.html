@@ -544,6 +544,12 @@ button:active{transform:scale(0.98);}
 .att-badge.late{color:var(--amber);border-color:rgba(224,154,61,.3);}
 .att-badge.missed{color:var(--red);border-color:rgba(224,85,85,.3);}
 .att-badge.off{color:var(--muted);border-color:var(--border);}
+.att-dot.enroute{background:#56C8F5;}
+.att-dot.runninglate{background:#e09a3d;}
+.att-dot.nothome{background:#e05555;}
+.att-badge.enroute{color:#56C8F5;border-color:rgba(86,200,245,.3);}
+.att-badge.runninglate{color:var(--amber);border-color:rgba(224,154,61,.3);}
+.att-badge.nothome{color:var(--red);border-color:rgba(224,85,85,.3);}
 /* ── VACANT SHIFTS ── */
 .vacant-card{display:flex;align-items:center;gap:10px;padding:10px 12px;background:rgba(224,154,61,.04);border:1px solid rgba(224,154,61,.2);border-radius:8px;margin-bottom:6px;}
 .vacant-info{flex:1;min-width:0;}
@@ -1788,6 +1794,11 @@ body.sidebar-rail .sidebar{width:64px;overflow:visible;}
     <div style="font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--amber);display:flex;align-items:center;gap:6px;"><span class="dot dot-amber dot-pulse"></span>Open Shifts</div>
     <div style="font-size:12px;color:var(--muted2);margin-top:3px;" id="today-vacant-msg">, </div>
   </div>
+  <div id="today-nothome-alert" style="display:none;margin:0 12px 8px;padding:10px 14px;background:var(--red-dim);border:1px solid var(--red-border);border-radius:var(--r8);cursor:pointer;" onclick="showSect('visits')">
+    <div style="font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--red);display:flex;align-items:center;gap:6px;"><span class="dot dot-red dot-pulse"></span>Client Not Home</div>
+    <div style="font-size:12px;color:var(--muted2);margin-top:3px;" id="today-nothome-msg"></div>
+  </div>
+
   <div id="today-incident-alert" style="display:none;margin:0 12px 8px;padding:10px 14px;background:var(--red-dim);border:1px solid var(--red-border);border-radius:var(--r8);cursor:pointer;" onclick="showSect('visits')">
     <div style="font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--red);display:flex;align-items:center;gap:6px;"><span class="dot dot-red dot-pulse"></span>Open Incidents</div>
     <div style="font-size:12px;color:var(--muted2);margin-top:3px;" id="today-incident-msg">, </div>
@@ -3973,6 +3984,27 @@ function _hqRtHit(key, fn){
   if (_hqRtDebounce[key]) clearTimeout(_hqRtDebounce[key]);
   _hqRtDebounce[key] = setTimeout(() => { try { fn(); } catch(e){} }, 800);
 }
+/* Section E: realtime handler for visit and booking changes. Refetches the
+   visits payload, then repaints only the section the operator is actually
+   looking at, so a busy evening does not redraw the whole app on every check in.
+   Any failure falls through silently and the existing 30s poll still covers it. */
+async function _hqRefreshLive(){
+  try {
+    const _h = { 'x-hq-token': window._hqToken || sessionStorage.getItem('hq_token') || '' };
+    const _from = new Date(Date.now() - 90*86400000).toLocaleDateString('en-CA',{timeZone:'America/Toronto'});
+    const _r = await fetch(`${API}/hq/visits?operator_id=${currentOp}&limit=500&from_date=${_from}`, { headers: _h });
+    const _d = await _r.json();
+    if (_d && _d.visits) D.visits = _d.visits;
+  } catch(e) { return; }
+  try {
+    const _active = document.querySelector('.section.active');
+    const _id = _active ? _active.id : '';
+    if (_id === 'sect-today') renderToday();
+    else if (_id === 'sect-overview') { renderOverview(); renderSystemHealth(); }
+    else if (_id === 'sect-visits') renderVisits();
+    if (typeof attendanceVisible !== 'undefined' && attendanceVisible) renderAttendance();
+  } catch(e) {}
+}
 async function initHQRealtime(){
   try {
     if (_hqSupaClient || !window.supabase) return;
@@ -3990,6 +4022,8 @@ async function initHQRealtime(){
       .on('postgres_changes', { event:'*', schema:'public', table:'client_time_off', filter:'operator_id=eq.'+op }, () => _hqRtHit('cto', loadClientTimeOff))
       .on('postgres_changes', { event:'*', schema:'public', table:'cancellation_requests', filter:'operator_id=eq.'+op }, () => _hqRtHit('canc', loadCancellationRequests))
       .on('postgres_changes', { event:'*', schema:'public', table:'shift_offers', filter:'operator_id=eq.'+op }, () => _hqRtHit('offers', loadShiftOffersHQ))
+      .on('postgres_changes', { event:'*', schema:'public', table:'visits', filter:'operator_id=eq.'+op }, () => _hqRtHit('visits', _hqRefreshLive))
+      .on('postgres_changes', { event:'*', schema:'public', table:'bookings', filter:'operator_id=eq.'+op }, () => _hqRtHit('bkgs', _hqRefreshLive))
       .subscribe((status) => {
         if (status === 'SUBSCRIBED') console.log('[HQ Realtime] connected');
         else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') console.warn('[HQ Realtime] error, polling fallback active');
@@ -4937,8 +4971,20 @@ function renderClients() {
     const pswChip = c.assigned_psw
       ? `<span class="card-info-chip">PSW: ${(c.assigned_psw||'').split(' ')[0]}</span>`
       : `<span class="card-info-chip warn">⚑ Unassigned</span>`;
-    const onShiftNow = (D.visits||[]).some(v => v.client_name===name && v.visit_date===new Date().toLocaleDateString('en-CA',{timeZone:'America/Toronto'}) && v.time_in && !v.time_out);
-    const onShiftChip = onShiftNow ? `<span class="card-info-chip active" style="color:var(--green2);border-color:rgba(74,154,110,.3);">⬤ On Shift</span>` : '';
+    const _todayStr = new Date().toLocaleDateString('en-CA',{timeZone:'America/Toronto'});
+    let _cv = null;
+    const _cRank = {checkedin:0, nothome:1, runninglate:2, enroute:3, off:4};
+    (D.visits||[]).forEach(v => {
+      if (v.client_name !== name || v.visit_date !== _todayStr) return;
+      if (!_cv || _cRank[visitLiveState(v)] < _cRank[visitLiveState(_cv)]) _cv = v;
+    });
+    const _cs = visitLiveState(_cv);
+    const onShiftNow = _cs === 'checkedin';
+    const _cLive = (_cs === 'nothome' || _cs === 'runninglate' || _cs === 'enroute');
+    const _cCol = _cs === 'nothome' ? 'var(--red)' : _cs === 'runninglate' ? 'var(--amber)' : '#56C8F5';
+    const onShiftChip = onShiftNow
+      ? `<span class="card-info-chip active" style="color:var(--green2);border-color:rgba(74,154,110,.3);">⬤ On Shift</span>`
+      : (_cLive ? `<span class="card-info-chip active" style="color:${_cCol};border-color:rgba(255,255,255,.18);">⬤ ${liveStateLabel(_cs, _cv)}</span>` : '');
     return `
     <div class="card">
       <div class="card-header" onclick="openClientDetail('${c.id}')">
@@ -5857,7 +5903,16 @@ function renderPSWs() {
       : '';
     // On-shift status
     const todayStr2 = new Date().toLocaleDateString('en-CA',{timeZone:'America/Toronto'});
-    const activeShift = (D.visits||[]).find(v => (v.psw_name||'').trim()===p.name.trim() && v.visit_date===todayStr2 && v.time_in && !v.time_out);
+    const _pRank = {checkedin:0, nothome:1, runninglate:2, enroute:3, off:4};
+    let _pv = null;
+    (D.visits||[]).forEach(v => {
+      if ((v.psw_name||'').trim() !== p.name.trim() || v.visit_date !== todayStr2) return;
+      if (!_pv || _pRank[visitLiveState(v)] < _pRank[visitLiveState(_pv)]) _pv = v;
+    });
+    const _ps = visitLiveState(_pv);
+    const activeShift = _ps === 'checkedin' ? _pv : null;
+    const _pLive = (_ps === 'nothome' || _ps === 'runninglate' || _ps === 'enroute') ? _pv : null;
+    const _pCol = _ps === 'nothome' ? 'var(--red)' : _ps === 'runninglate' ? 'var(--amber)' : '#56C8F5';
     const doneToday = (D.visits||[]).find(v => (v.psw_name||'').trim()===p.name.trim() && v.visit_date===todayStr2 && v.time_out);
     const pswVisits = (D.visits||[]).filter(v => (v.psw_name||'').trim()===p.name.trim()).sort((a,b) => (b.visit_date||'').localeCompare(a.visit_date||''));
     const lastPswV = pswVisits[0];
@@ -5871,6 +5926,8 @@ function renderPSWs() {
         pswElapsed = mins >= 60 ? `${Math.floor(mins/60)}h ${mins%60}m` : `${mins}m`;
       } catch {}
       shiftBar = `<div class="psw-on-shift-bar"><div class="psw-shift-dot"></div><div style="flex:1;font-family:var(--mono);font-size:12px;color:var(--green2);">On Shift, ${activeShift.client_name||'—'}</div>${pswElapsed?`<div style="font-family:var(--mono);font-size:12px;color:var(--amber);">${pswElapsed}</div>`:''}</div>`;
+    } else if (_pLive) {
+      shiftBar = `<div class="psw-on-shift-bar" style="background:rgba(255,255,255,.03);"><div style="width:7px;height:7px;border-radius:50%;background:${_pCol};flex-shrink:0;"></div><div style="flex:1;font-family:var(--mono);font-size:12px;color:${_pCol};">${liveStateLabel(_ps, _pLive)}, ${_pLive.client_name||'—'}</div></div>`;
     } else if (doneToday) {
       shiftBar = `<div class="psw-on-shift-bar" style="background:rgba(61,138,122,.04);"><div style="width:7px;height:7px;border-radius:50%;background:var(--teal2);flex-shrink:0;"></div><div style="flex:1;font-family:var(--mono);font-size:12px;color:var(--teal2);">Done today, ${doneToday.client_name||'—'}</div></div>`;
     }
@@ -5884,7 +5941,7 @@ function renderPSWs() {
           <div class="avatar">${ini}</div>
           <div><div class="card-name">${p.name}${probationBadge}${otBadge}</div><div class="card-sub">${p.psw_code||p.id?'<span style="font-family:var(--mono);font-size:12px;color:var(--teal3);">'+(p.psw_code||'')+'</span> · ':''} ${email||'No email on file'}</div></div>
         </div>
-        ${activeShift ? '<span class="badge" style="background:rgba(74,154,110,.15);color:var(--green2);border:1px solid rgba(74,154,110,.3);">On Shift</span>' : statusBadge}
+        ${activeShift ? '<span class="badge" style="background:rgba(74,154,110,.15);color:var(--green2);border:1px solid rgba(74,154,110,.3);">On Shift</span>' : _pLive ? `<span class="badge" style="background:rgba(255,255,255,.05);color:${_pCol};border:1px solid rgba(255,255,255,.18);">${liveStateLabel(_ps, _pLive)}</span>` : statusBadge}
       </div>
       ${shiftBar}
       ${lastVisitInfo}
@@ -6457,6 +6514,9 @@ async function renderVisits() {
           <div id="vforms-${vid}" data-visit-id="${v.id||''}" data-client="${v.client_name||''}" style="padding-bottom:4px;"></div>
         </div>
         <div style="display:flex;gap:8px;padding:8px 14px;border-top:1px solid var(--border);background:var(--bg2);">
+          ${(!v.time_in && (v.visit_stage === 'en_route' || v.visit_stage === 'running_late')) ? `<button onclick="event.stopPropagation();openStageClear('${v.id}','${(v.client_name||'').replace(/'/g,'')}','${(v.psw_name||'').replace(/'/g,'')}','${v.visit_stage}')" style="padding:6px 14px;background:rgba(86,200,245,.08);border:1px solid rgba(86,200,245,.25);border-radius:5px;font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--teal2);cursor:pointer;min-height:44px;">Clear Stage</button>` : ''}
+          ${(v.visit_stage === 'not_home' && !v.not_home_resolved) ? `<button onclick="event.stopPropagation();openNotHomeResolve('${v.id}','${(v.client_name||'').replace(/'/g,'')}','${(v.psw_name||'').replace(/'/g,'')}','${v.not_home_at ? fmtTime(new Date(v.not_home_at).toTimeString().slice(0,5)) : ''}')" style="padding:6px 14px;background:rgba(224,85,85,.08);border:1px solid rgba(224,85,85,.25);border-radius:5px;font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--red);cursor:pointer;min-height:44px;">Resolve</button>` : ''}
+          ${(v.visit_stage === 'not_home' && v.not_home_resolved) ? `<span style="font-family:var(--mono);font-size:10px;color:var(--green2);letter-spacing:1px;padding:6px 8px;">RESOLVED</span>` : ''}
           <button onclick="event.stopPropagation();openVisitEditById('${v.id}')" style="padding:6px 14px;background:rgba(201,169,110,.1);border:1px solid rgba(201,169,110,.25);border-radius:5px;font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--gold);cursor:pointer;min-height:44px;">Edit Times</button>
           ${v.verified ? '<span style="font-family:var(--mono);font-size:10px;color:var(--green2);letter-spacing:1px;padding:6px 8px;">VERIFIED</span>' : `<button onclick="verifyVisit('${v.id}')" style="padding:6px 14px;background:rgba(109,185,116,.08);border:1px solid rgba(109,185,116,.2);border-radius:5px;font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--green2);cursor:pointer;min-height:44px;">Verify</button>`}
         </div>
@@ -12518,6 +12578,129 @@ function crmDrop(e, toStage) {
 
 
 
+/* LIVE VISIT STATE. Single source of truth for what a PSW is doing right now.
+   Superset by design: when visit_stage is absent the return value is identical
+   to the old time_in and time_out expression, so every historical row and any
+   unmigrated data behaves exactly as it did before. That is what makes this
+   safe to drop into six render paths at once.
+   Precedence, highest first. An open visit always wins: a PSW standing in a
+   house is in that house, whatever a stale stub says. */
+function visitLiveState(v) {
+  if (!v) return 'off';
+  if (v.time_in && !v.time_out) return 'checkedin';
+  if (v.time_out) return 'off';
+  var stage = v.visit_stage || '';
+  if (stage === 'not_home') return 'nothome';
+  if (stage === 'running_late') return 'runninglate';
+  if (stage === 'en_route') return 'enroute';
+  return 'off';
+}
+/* ETA as Toronto local HH:MM. Empty string on missing or unparseable input,
+   never the word Invalid Date on an operator's screen. */
+function liveStateEta(v) {
+  if (!v || !v.eta) return '';
+  var d = new Date(v.eta);
+  if (isNaN(d.getTime())) return '';
+  return d.toLocaleTimeString('en-CA', { hour:'2-digit', minute:'2-digit', hour12:false, timeZone:'America/Toronto' });
+}
+/* Badge text. Booking derived late and missed are passed through untouched. */
+function liveStateLabel(state, v) {
+  var eta = liveStateEta(v);
+  if (state === 'checkedin')   return 'On Shift';
+  if (state === 'nothome')     return 'Not Home';
+  if (state === 'runninglate') return eta ? 'Late, ETA ' + eta : 'Running Late';
+  if (state === 'enroute')     return eta ? 'On Way, ETA ' + eta : 'On The Way';
+  if (state === 'late')        return 'Late';
+  if (state === 'missed')      return 'Missed';
+  return 'Off';
+}
+/* Today's live row for one PSW, highest precedence state wins. */
+function pswLiveVisit(visits, pswName, today) {
+  var best = null, rank = { checkedin:0, nothome:1, runninglate:2, enroute:3, off:4 };
+  (visits || []).forEach(function(v){
+    if (v.psw_name !== pswName) return;
+    if (String(v.visit_date || '') !== today) return;
+    var s = visitLiveState(v);
+    if (!best || rank[s] < rank[visitLiveState(best)]) best = v;
+  });
+  return best;
+}
+
+/* Section F: HQ control of live visit state.
+   Clear and annotate only. Nothing here can create a check in, the server
+   refuses those fields outright, and that refusal is the point. */
+let _stageTarget = null;
+function openStageClear(id, client, psw, stage){
+  _stageTarget = id;
+  const m = document.getElementById('scm-meta');
+  if (m) m.textContent = (psw||'PSW') + ' for ' + (client||'client') + ', marked ' + (stage === 'running_late' ? 'Running Late' : 'On My Way');
+  const r = document.getElementById('scm-reason'); if (r) r.value = '';
+  const ov = document.getElementById('stage-clear-modal'); if (ov) ov.style.display = 'flex';
+}
+function closeStageClear(){
+  _stageTarget = null;
+  const ov = document.getElementById('stage-clear-modal'); if (ov) ov.style.display = 'none';
+}
+async function submitStageClear(){
+  if (!_stageTarget) return;
+  const reason = (document.getElementById('scm-reason')?.value || '').trim();
+  if (!reason) { showToast('A reason is required', 'warn'); return; }
+  const btn = document.getElementById('scm-submit');
+  if (btn) { btn.textContent = 'Clearing'; btn.disabled = true; }
+  try {
+    const r = await hqFetch(`${API}/hq/visit/${_stageTarget}/stage`, {
+      method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ operator_id: currentOp, action: 'clear_stage', changed_by: 'lance', reason })
+    });
+    const d = await r.json().catch(() => ({}));
+    if (r.ok && d.success) {
+      closeStageClear();
+      showToast('Stage cleared', 'ok');
+      _hqRefreshLive();
+    } else {
+      showToast(d.error || 'Could not clear', 'err');
+    }
+  } catch(e) { showToast('Could not clear', 'err'); }
+  if (btn) { btn.textContent = 'Clear Stage'; btn.disabled = false; }
+}
+
+let _nhTarget = null;
+function openNotHomeResolve(id, client, psw, when){
+  _nhTarget = id;
+  const m = document.getElementById('nhr-meta');
+  if (m) m.textContent = (client||'Client') + ' was not home' + (when ? ', reported ' + when : '') + '. Attended by ' + (psw||'PSW') + '.';
+  const s = document.getElementById('nhr-resolution'); if (s) s.value = '';
+  const n = document.getElementById('nhr-note'); if (n) n.value = '';
+  const ov = document.getElementById('not-home-resolve-modal'); if (ov) ov.style.display = 'flex';
+}
+function closeNotHomeResolve(){
+  _nhTarget = null;
+  const ov = document.getElementById('not-home-resolve-modal'); if (ov) ov.style.display = 'none';
+}
+async function submitNotHomeResolve(){
+  if (!_nhTarget) return;
+  const resolution = document.getElementById('nhr-resolution')?.value || '';
+  if (!resolution) { showToast('Select what was done', 'warn'); return; }
+  const note = (document.getElementById('nhr-note')?.value || '').trim();
+  const btn = document.getElementById('nhr-submit');
+  if (btn) { btn.textContent = 'Saving'; btn.disabled = true; }
+  try {
+    const r = await hqFetch(`${API}/hq/visit/${_nhTarget}/stage`, {
+      method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ operator_id: currentOp, action: 'resolve_not_home', changed_by: 'lance', resolution, resolution_note: note })
+    });
+    const d = await r.json().catch(() => ({}));
+    if (r.ok && d.success) {
+      closeNotHomeResolve();
+      showToast('Marked resolved', 'ok');
+      _hqRefreshLive();
+    } else {
+      showToast(d.error || 'Could not save', 'err');
+    }
+  } catch(e) { showToast('Could not save', 'err'); }
+  if (btn) { btn.textContent = 'Mark Resolved'; btn.disabled = false; }
+}
+
 // ── LIVE ATTENDANCE ──
 let attendanceVisible = false;
 let attendanceTimer = null;
@@ -12546,11 +12729,18 @@ async function renderAttendance() {
     const now = new Date();
     const pswStatus = {};
     psws.forEach(p => { pswStatus[p.full_name] = { name: p.full_name, status: 'off', client: '—' }; });
+    const _liveRank = { checkedin:0, nothome:1, runninglate:2, enroute:3, off:4 };
     visits.filter(v => (v.visit_date||'').startsWith(today)).forEach(v => {
       const n = v.psw_name;
-      if (!pswStatus[n]) pswStatus[n] = { name: n, status: 'off', client: '—' };
-      if (!v.time_out && v.time_in) { pswStatus[n].status = 'checkedin'; pswStatus[n].client = v.client_name || '—'; }
-      else if (v.time_out && pswStatus[n].status !== 'checkedin') { pswStatus[n].status = 'off'; pswStatus[n].client = 'Done · ' + (v.client_name||'—'); }
+      if (!pswStatus[n]) pswStatus[n] = { name: n, status: 'off', client: '—', v: null };
+      const _s = visitLiveState(v);
+      if (_liveRank[_s] < _liveRank[pswStatus[n].status]) {
+        pswStatus[n].status = _s;
+        pswStatus[n].client = v.client_name || '—';
+        pswStatus[n].v = v;
+      } else if (_s === 'off' && v.time_out && pswStatus[n].status === 'off') {
+        pswStatus[n].client = 'Done · ' + (v.client_name||'—');
+      }
     });
     (D?.bookings||[]).filter(b => b.scheduled_date === today && b.assigned_to).forEach(b => {
       const n = b.assigned_to;
@@ -12563,11 +12753,11 @@ async function renderAttendance() {
         else if (diff > 0) { pswStatus[n].status = 'late'; pswStatus[n].client = b.client_name||'—'; }
       }
     });
-    const order = { checkedin:0, late:1, missed:2, off:3 };
-    const rows = Object.values(pswStatus).sort((a,b) => order[a.status]-order[b.status]);
+    const order = { checkedin:0, nothome:1, runninglate:2, enroute:3, late:4, missed:5, off:6 };
+    const rows = Object.values(pswStatus).sort((a,b) => (order[a.status]??9)-(order[b.status]??9));
     if (!rows.length) { el.innerHTML = '<div class="empty-state" style="padding:14px;">No PSW data</div>'; return; }
     try {
-      el.innerHTML = rows.map(r => `<div class="att-row"><div class="att-dot ${r.status}"></div><div class="att-name">${r.name}</div><div class="att-client">${r.client}</div><div class="att-badge ${r.status}">${r.status === 'checkedin' ? 'On Shift' : r.status === 'late' ? 'Late' : r.status === 'missed' ? 'Missed' : 'Off'}</div></div>`).join('');
+      el.innerHTML = rows.map(r => `<div class="att-row"><div class="att-dot ${r.status}"></div><div class="att-name">${r.name}</div><div class="att-client">${r.client}</div><div class="att-badge ${r.status}">${liveStateLabel(r.status, r.v)}</div></div>`).join('');
     } catch(_mapErr) { console.error('[HQ] renderAttendance render error:', _mapErr); el.innerHTML = '<div class=\"empty-state\" style=\"padding:20px;font-size:13px;color:var(--muted)\">Error loading data, please refresh</div>'; }
     if (updEl) updEl.textContent = 'Updated ' + new Date().toLocaleTimeString('en-CA',{hour:'2-digit',minute:'2-digit'});
   } catch { el.innerHTML = '<div class="empty-state" style="padding:14px;">Could not load</div>'; }
@@ -12777,14 +12967,21 @@ function renderOverview() {
   if (attEl) {
     const pswStatuses = {};
     psws.forEach(p => { pswStatuses[p.full_name||p.name] = {name:p.full_name||p.name, status:'off', client:'—'}; });
+    const _oRank = {active:0, nothome:1, runninglate:2, enroute:3, done:4, off:5};
     visits.filter(v => v.visit_date===today).forEach(v => {
       const n = v.psw_name;
-      if (!pswStatuses[n]) pswStatuses[n] = {name:n, status:'off', client:'—', time_in:null};
-      if (v.time_in && !v.time_out) { pswStatuses[n].status='active'; pswStatuses[n].client=v.client_name||'—'; pswStatuses[n].time_in=v.time_in; }
-      else if (v.time_out) { pswStatuses[n].status='done'; pswStatuses[n].client=v.client_name||'—'; }
+      if (!pswStatuses[n]) pswStatuses[n] = {name:n, status:'off', client:'—', time_in:null, v:null};
+      const _ls = visitLiveState(v);
+      const _st = _ls === 'checkedin' ? 'active' : (_ls === 'off' && v.time_out ? 'done' : _ls);
+      if ((_oRank[_st] ?? 9) < (_oRank[pswStatuses[n].status] ?? 9)) {
+        pswStatuses[n].status = _st;
+        pswStatuses[n].client = v.client_name||'—';
+        pswStatuses[n].time_in = v.time_in || null;
+        pswStatuses[n].v = v;
+      }
     });
     const rows = Object.values(pswStatuses).filter(r => r.status!=='off').slice(0,8);
-    const dotColor = {active:'var(--green2)',done:'var(--teal2)',off:'rgba(232,228,220,.15)'};
+    const dotColor = {active:'var(--green2)',done:'var(--teal2)',off:'rgba(232,228,220,.15)',enroute:'#56C8F5',runninglate:'var(--amber)',nothome:'var(--red)'};
     if (!rows.length) {
       attEl.innerHTML = '<div class="empty-state" style="padding:14px;">No PSWs on shift today</div>';
     } else {
@@ -12805,7 +13002,7 @@ function renderOverview() {
             <div style="font-family:var(--mono);font-size:12px;color:var(--muted2);">${r.client}</div>
           </div>
           ${elapsedStr ? `<div class="att-elapsed">${elapsedStr}</div>` : ''}
-          <div style="font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:${r.status==='active'?'var(--green2)':'var(--teal2)'};">${r.status==='active'?'On Shift':'Done'}</div>
+          <div style="font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:${dotColor[r.status]||'var(--teal2)'};">${r.status==='active'?'On Shift':r.status==='done'?'Done':liveStateLabel(r.status, r.v)}</div>
         </div>`;
       }).join('');
     }
@@ -12845,9 +13042,17 @@ function renderOverview() {
     } else {
       shiftEl.innerHTML = todayShifts.slice(0,6).map(b => {
         const hasVisit = visits.some(v => v.client_name===b.client_name && v.visit_date===today);
-        const isActive = visits.some(v => v.client_name===b.client_name && v.visit_date===today && v.time_in && !v.time_out);
-        const status = isActive ? 'On Shift' : hasVisit ? 'Done' : !b.assigned_to ? 'Unassigned' : 'Scheduled';
-        const col = isActive?'var(--green2)':hasVisit?'var(--teal2)':!b.assigned_to?'var(--amber)':'var(--muted2)';
+        const _oRank2 = {checkedin:0, nothome:1, runninglate:2, enroute:3, off:4};
+        let _ov = null;
+        visits.forEach(v => {
+          if (v.client_name!==b.client_name || v.visit_date!==today) return;
+          if (!_ov || _oRank2[visitLiveState(v)] < _oRank2[visitLiveState(_ov)]) _ov = v;
+        });
+        const _os = visitLiveState(_ov);
+        const isActive = _os === 'checkedin';
+        const _oLive = (_os === 'nothome' || _os === 'runninglate' || _os === 'enroute');
+        const status = isActive ? 'On Shift' : _oLive ? liveStateLabel(_os, _ov) : hasVisit ? 'Done' : !b.assigned_to ? 'Unassigned' : 'Scheduled';
+        const col = isActive?'var(--green2)':_os==='nothome'?'var(--red)':_os==='runninglate'?'var(--amber)':_os==='enroute'?'#56C8F5':hasVisit?'var(--teal2)':!b.assigned_to?'var(--amber)':'var(--muted2)';
         return `<div style="display:flex;align-items:center;gap:10px;padding:9px 14px;border-bottom:1px solid var(--border);cursor:pointer;" onclick="showSect('schedule');setTimeout(()=>{ _calDate=new Date('${b.scheduled_date}T12:00:00'); if(schedHQView==='cal') _renderCustomCal(); },200);">
           <div style="font-family:var(--mono);font-size:11px;color:var(--teal2);min-width:40px;">${b.scheduled_time||'—'}</div>
           <div style="flex:1;">
@@ -13963,6 +14168,23 @@ function renderToday() {
     if (vacant.length) vacMsgEl.textContent = `${vacant.length} shift${vacant.length!==1?'s':''} unassigned today`;
   }
   const incidents = visits.filter(v => v.incident_reported && !v.incident_resolved);
+  // Section G: open Client Not Home. A client did not answer their door and
+  // nobody has closed it out. Surfaced here because scrolling the visit log to
+  // find one is not a workflow.
+  const nhAlertEl = document.getElementById('today-nothome-alert');
+  const nhMsgEl   = document.getElementById('today-nothome-msg');
+  if (nhAlertEl && nhMsgEl) {
+    const openNh = (visits||[]).filter(v => v.visit_stage === 'not_home' && !v.not_home_resolved);
+    nhAlertEl.style.display = openNh.length ? 'block' : 'none';
+    if (openNh.length) {
+      const _newest = openNh.slice().sort((a,b) => String(b.visit_date||'').localeCompare(String(a.visit_date||'')))[0];
+      const _who = _newest?.client_name || 'A client';
+      nhMsgEl.textContent = openNh.length === 1
+        ? `${_who} was not home. Not yet resolved.`
+        : `${openNh.length} unresolved, most recent ${_who}`;
+    }
+  }
+
   const incAlertEl = document.getElementById('today-incident-alert');
   const incMsgEl = document.getElementById('today-incident-msg');
   if (incAlertEl && incMsgEl) {
@@ -13999,9 +14221,17 @@ function renderToday() {
     } else {
       shiftEl.innerHTML = todayShifts.sort((a,b)=>(a.scheduled_time||'').localeCompare(b.scheduled_time||'')).slice(0,8).map(b => {
         const hasVisit = visits.some(v => v.client_name===b.client_name && v.visit_date===today);
-        const isActive = visits.some(v => v.client_name===b.client_name && v.visit_date===today && v.time_in && !v.time_out);
-        const status = isActive ? 'On Shift' : hasVisit ? 'Done' : !b.assigned_to ? 'Unassigned' : 'Scheduled';
-        const col = isActive?'var(--green2)':hasVisit?'var(--teal2)':!b.assigned_to?'var(--amber)':'var(--muted2)';
+        const _bRank = {checkedin:0, nothome:1, runninglate:2, enroute:3, off:4};
+        let _bv = null;
+        visits.forEach(v => {
+          if (v.client_name!==b.client_name || v.visit_date!==today) return;
+          if (!_bv || _bRank[visitLiveState(v)] < _bRank[visitLiveState(_bv)]) _bv = v;
+        });
+        const _bs = visitLiveState(_bv);
+        const isActive = _bs === 'checkedin';
+        const _bLive = (_bs === 'nothome' || _bs === 'runninglate' || _bs === 'enroute');
+        const status = isActive ? 'On Shift' : _bLive ? liveStateLabel(_bs, _bv) : hasVisit ? 'Done' : !b.assigned_to ? 'Unassigned' : 'Scheduled';
+        const col = isActive?'var(--green2)':_bs==='nothome'?'var(--red)':_bs==='runninglate'?'var(--amber)':_bs==='enroute'?'#56C8F5':hasVisit?'var(--teal2)':!b.assigned_to?'var(--amber)':'var(--muted2)';
         const _tsrId = 'tsr_' + b.id;
         const _safePSW = (b.assigned_to||'').replace(/'/g,'').replace(/"/g,'');
         const _safeClient = (b.client_name||'').replace(/'/g,'').replace(/"/g,'');
@@ -14051,14 +14281,21 @@ function renderToday() {
   if (attEl) {
     const pswStatuses = {};
     psws.forEach(p => { pswStatuses[p.full_name||p.name] = {name:p.full_name||p.name, status:'off', client:'—'}; });
+    const _tRank = {active:0, nothome:1, runninglate:2, enroute:3, done:4, off:5};
     visits.filter(v => v.visit_date===today).forEach(v => {
       const n = v.psw_name;
-      if (!pswStatuses[n]) pswStatuses[n] = {name:n, status:'off', client:'—'};
-      if (v.time_in && !v.time_out) { pswStatuses[n].status='active'; pswStatuses[n].client=v.client_name||'—'; }
-      else if (v.time_out) { pswStatuses[n].status='done'; pswStatuses[n].client=v.client_name||'—'; }
+      if (!pswStatuses[n]) pswStatuses[n] = {name:n, status:'off', client:'—', v:null, time_in:null};
+      const _ls = visitLiveState(v);
+      const _st = _ls === 'checkedin' ? 'active' : (_ls === 'off' && v.time_out ? 'done' : _ls);
+      if ((_tRank[_st] ?? 9) < (_tRank[pswStatuses[n].status] ?? 9)) {
+        pswStatuses[n].status = _st;
+        pswStatuses[n].client = v.client_name||'—';
+        pswStatuses[n].v = v;
+        pswStatuses[n].time_in = v.time_in || null;
+      }
     });
     const rows = Object.values(pswStatuses).filter(r => r.status!=='off').slice(0,8);
-    const dotColor = {active:'var(--green2)',done:'var(--teal2)'};
+    const dotColor = {active:'var(--green2)',done:'var(--teal2)',enroute:'#56C8F5',runninglate:'var(--amber)',nothome:'var(--red)'};
     if (!rows.length) {
       attEl.innerHTML = '<div class="empty-state" style="padding:14px;">No PSWs on shift yet today</div>';
     } else {
@@ -14097,7 +14334,7 @@ function renderToday() {
               <div style="font-family:var(--mono);font-size:12px;color:var(--muted2);">${r.client}</div>
             </div>
             ${elapsedStr ? `<div style="font-family:var(--mono);font-size:12px;color:var(--amber);">${elapsedStr}</div>` : ''}
-            <div style="font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:${r.status==='active'?'var(--green2)':'var(--teal2)'};">${r.status==='active'?'On Shift':'Done'}</div>
+            <div style="font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:${dotColor[r.status]||'var(--teal2)'};">${r.status==='active'?'On Shift':r.status==='done'?'Done':liveStateLabel(r.status, r.v)}</div>
           </div>
           ${total > 0 ? `<div style="margin-top:6px;padding-left:18px;">
             <div style="display:flex;justify-content:space-between;margin-bottom:3px;">
@@ -15704,6 +15941,49 @@ function _applyActiveSectionFlex() {
 <div class="demo-tip" id="demo-tip"></div>
 
 <!-- VISIT EDIT MODAL -->
+<div id="stage-clear-modal" style="display:none;position:fixed;inset:0;z-index:1052;background:rgba(0,0,0,.75);align-items:center;justify-content:center;padding:20px;">
+  <div style="background:var(--bg2);border:1px solid var(--border2);border-radius:10px;padding:28px;width:100%;max-width:400px;position:relative;">
+    <div style="font-family:var(--mono);font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--gold);margin-bottom:4px;">Clear Live Stage</div>
+    <div id="scm-meta" style="font-size:14px;color:var(--text);margin-bottom:16px;"></div>
+    <div style="font-size:12px;color:var(--muted);line-height:1.5;margin-bottom:16px;">This clears an On My Way or Running Late marker that was never followed by a sign in. It does not create or change any visit time. If the PSW actually attended, use Edit Times instead.</div>
+    <div style="margin-bottom:16px;">
+      <div style="font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:8px;">Reason (required)</div>
+      <input id="scm-reason" type="text" placeholder="Tapped by mistake, shift reassigned, PSW called off" style="width:100%;padding:11px 13px;background:var(--bg4);border:1px solid var(--border);border-radius:6px;font-family:var(--mono);font-size:13px;color:var(--text);outline:none;">
+    </div>
+    <div style="display:flex;gap:10px;">
+      <button onclick="closeStageClear()" style="flex:1;padding:12px;background:none;border:1px solid var(--border);border-radius:6px;font-family:var(--mono);font-size:11px;color:var(--muted);cursor:pointer;letter-spacing:1px;">Cancel</button>
+      <button id="scm-submit" onclick="submitStageClear()" class="sbtn" style="flex:1;">Clear Stage</button>
+    </div>
+  </div>
+</div>
+
+<div id="not-home-resolve-modal" style="display:none;position:fixed;inset:0;z-index:1052;background:rgba(0,0,0,.75);align-items:center;justify-content:center;padding:20px;">
+  <div style="background:var(--bg2);border:1px solid var(--border2);border-radius:10px;padding:28px;width:100%;max-width:400px;position:relative;">
+    <div style="font-family:var(--mono);font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--red);margin-bottom:4px;">Resolve Client Not Home</div>
+    <div id="nhr-meta" style="font-size:14px;color:var(--text);margin-bottom:16px;"></div>
+    <div style="margin-bottom:16px;">
+      <div style="font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:8px;">What was done (required)</div>
+      <select id="nhr-resolution" style="width:100%;padding:11px 13px;background:var(--bg4);border:1px solid var(--border);border-radius:6px;font-family:var(--mono);font-size:13px;color:var(--text);outline:none;">
+        <option value="">Select</option>
+        <option value="reached_client">Reached the client</option>
+        <option value="rescheduled">Visit rescheduled</option>
+        <option value="family_notified">Family notified</option>
+        <option value="welfare_check">Welfare check requested</option>
+        <option value="no_action_needed">No action needed</option>
+        <option value="other">Other</option>
+      </select>
+    </div>
+    <div style="margin-bottom:16px;">
+      <div style="font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:8px;">Note (optional)</div>
+      <input id="nhr-note" type="text" placeholder="Daughter confirmed he was at a medical appointment" style="width:100%;padding:11px 13px;background:var(--bg4);border:1px solid var(--border);border-radius:6px;font-family:var(--mono);font-size:13px;color:var(--text);outline:none;">
+    </div>
+    <div style="display:flex;gap:10px;">
+      <button onclick="closeNotHomeResolve()" style="flex:1;padding:12px;background:none;border:1px solid var(--border);border-radius:6px;font-family:var(--mono);font-size:11px;color:var(--muted);cursor:pointer;letter-spacing:1px;">Cancel</button>
+      <button id="nhr-submit" onclick="submitNotHomeResolve()" class="sbtn" style="flex:1;">Mark Resolved</button>
+    </div>
+  </div>
+</div>
+
 <div id="visit-edit-modal" style="display:none;position:fixed;inset:0;z-index:1052;background:rgba(0,0,0,.75);align-items:center;justify-content:center;padding:20px;">
   <div style="background:var(--bg2);border:1px solid var(--border2);border-radius:10px;padding:28px;width:100%;max-width:400px;position:relative;">
     <div style="font-family:var(--mono);font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--gold);margin-bottom:4px;">Edit Visit Times</div>
