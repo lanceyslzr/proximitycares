@@ -4336,7 +4336,13 @@ async function loadShiftOffersHQ() {
     const section = document.getElementById('shift-offers-hq-section');
     const list = document.getElementById('shift-offers-hq-list');
     if (!section || !list) return;
-    const filtered = offers.filter(o => o.client_name !== 'Test' && o.client_name !== 'test' && (o.scheduled_date||'') < '2090-01-01').slice(0,10);
+    // An offer is done when it is filled AND linked to a booking. Those drop out
+    // of the queue. Filled offers with no booking stay visible, because those are
+    // the ones that still need you. Previously this read o.booking_created, a
+    // column that has never existed, so nothing ever left the list.
+    const filtered = offers.filter(o => o.client_name !== 'Test' && o.client_name !== 'test' && (o.scheduled_date||'') < '2090-01-01')
+      .filter(o => !(o.status === 'filled' && o.booking_id))
+      .slice(0,10);
     if (!filtered.length) { section.style.display = 'none'; return; }
     section.style.display = 'block';
     // Update count badge
@@ -4354,9 +4360,9 @@ async function loadShiftOffersHQ() {
           ${o.status==='open'
             ? `<span style="font-family:var(--mono);font-size:11px;color:var(--muted);">${(o.broadcast_to||[]).length} notified</span>
                <button onclick="cancelShiftOffer('${o.id}')" style="font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;padding:3px 8px;border-radius:4px;border:1px solid rgba(224,85,85,.3);color:var(--red);background:rgba(224,85,85,.06);cursor:pointer;min-height:44px;touch-action:manipulation;">✕ Cancel</button>`
-            : o.status==='filled'&&o.accepted_by&&!o.booking_created
-              ? `<button onclick="assignOfferToSchedule('${o.id}','${escHtml(o.client_name||'')}','${escHtml(o.accepted_by||'')}','${o.scheduled_date||''}','${o.scheduled_time||''}',${o.duration_minutes||480})" style="font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;padding:5px 10px;border-radius:4px;border:1px solid rgba(61,138,122,.35);color:var(--teal2);background:rgba(61,138,122,.08);cursor:pointer;min-height:44px;touch-action:manipulation;">+ Assign</button>`
-              : o.status==='filled'&&o.booking_created
+            : o.status==='filled'&&o.accepted_by&&!o.booking_id
+              ? `<button onclick="assignOfferToSchedule('${o.id}','${escHtml(o.client_name||'')}','${escHtml(o.accepted_by||'')}','${o.scheduled_date||''}','${o.scheduled_time||''}',${o.duration_minutes||480},${o.booking_id ? `'${o.booking_id}'` : 'null'})" style="font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;padding:5px 10px;border-radius:4px;border:1px solid rgba(61,138,122,.35);color:var(--teal2);background:rgba(61,138,122,.08);cursor:pointer;min-height:44px;touch-action:manipulation;">+ Assign</button>`
+              : o.status==='filled'&&o.booking_id
               ? `<span style="font-family:var(--mono);font-size:11px;color:var(--muted);">Scheduled</span>`
               : ''}
         </div>
@@ -4366,7 +4372,10 @@ async function loadShiftOffersHQ() {
 
 // ── S38 ASSIGN OFFER TO SCHEDULE ──
 // Called from HQ shift offers list when a PSW has accepted, creates the booking
-async function assignOfferToSchedule(offerId, clientName, pswName, date, time, durationMins) {
+async function assignOfferToSchedule(offerId, clientName, pswName, date, time, durationMins, existingBookingId) {
+  // Auto assign already creates the booking when a PSW accepts. If this offer is
+  // already linked to one, assigning again would produce a duplicate shift.
+  if (existingBookingId) { showToast('Already scheduled', 'warn'); loadShiftOffersHQ(); return; }
   if (!confirm(`Assign ${pswName} to ${clientName} on ${date}${time ? ' at ' + time : ''}?`)) return;
   try {
     // Create the booking
@@ -4382,13 +4391,17 @@ async function assignOfferToSchedule(offerId, clientName, pswName, date, time, d
     });
     const d = await r.json();
     if (!d.success) throw new Error(d.error || 'Booking failed');
+    const newBookingId = d.booking?.id || null;
 
-    // Mark offer as booking_created so button disappears
-    await fetch(`${API}/hq/shift-offer/${offerId}/cancel`, {
+    // Link the booking onto the offer so it leaves the queue. This used to be
+    // sent without a booking id and was rejected as a cancellation, silently.
+    const mr = await fetch(`${API}/hq/shift-offer/${offerId}/cancel`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'x-hq-token': window._hqToken || sessionStorage.getItem('hq_token') || '' },
-      body: JSON.stringify({ operator_id: currentOp, mark_scheduled: true })
-    }).catch(() => {});
+      body: JSON.stringify({ operator_id: currentOp, mark_scheduled: true, booking_id: newBookingId })
+    });
+    const md = await mr.json().catch(() => ({}));
+    if (!mr.ok || !md.success) showToast('Booking created but the offer did not clear. Refresh to check.', 'warn');
 
     // Notify PSW
     fetch(`${API}/psw/note`, {
