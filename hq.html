@@ -3885,6 +3885,35 @@ body.sidebar-rail .sidebar{width:64px;overflow:visible;}
 <script>
 const API = 'https://proximity-agent-production.up.railway.app';
 
+// ── SIDE EFFECT NOTIFICATION ──
+// For calls that fire AFTER a primary action already succeeded, such as telling
+// a PSW their schedule changed. These used to be .catch(() => {}), so a failed
+// notification was invisible: HQ showed a checkmark and the PSW was never told.
+//
+// Deliberately does not throw. The shift really was created, and failing the
+// whole operation because a notification bounced would be worse than today.
+// It reports the truth instead: the primary toast still fires, and a separate
+// warning appears only if the notification actually failed.
+async function notifySide(url, body, label) {
+  try {
+    const r = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-hq-token': window._hqToken || sessionStorage.getItem('hq_token') || '' },
+      body: JSON.stringify(body)
+    });
+    let d = {};
+    try { d = await r.json(); } catch (_) { d = {}; }
+    if (r.ok && d.success !== false) return true;
+    showToast((label || 'Notification') + ' not delivered. ' + (d.error || 'Try messaging them directly.'), 'warn');
+    console.warn('notifySide failed', { url, status: r.status, error: d.error });
+    return false;
+  } catch (e) {
+    showToast((label || 'Notification') + ' not delivered. Check your connection.', 'warn');
+    console.warn('notifySide threw', { url, error: e?.message });
+    return false;
+  }
+}
+
 // ── XSS GUARD ──
 // Use escHtml() for any user-supplied string rendered via innerHTML
 function escHtml(str) {
@@ -4404,10 +4433,7 @@ async function assignOfferToSchedule(offerId, clientName, pswName, date, time, d
     if (!mr.ok || !md.success) showToast('Booking created but the offer did not clear. Refresh to check.', 'warn');
 
     // Notify PSW
-    fetch(`${API}/psw/note`, {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ psw_name: pswName, sender: 'lance', message: `Your accepted shift for ${clientName} on ${date}${time ? ' at ' + time : ''} has been confirmed and added to your schedule.`, operator_id: currentOp })
-    }).catch(() => {});
+    notifySide(`${API}/psw/note`, { psw_name: pswName, sender: 'lance', message: `Your accepted shift for ${clientName} on ${date}${time ? ' at ' + time : ''} has been confirmed and added to your schedule.`, operator_id: currentOp }, `Message to ${pswName}`);
 
     showToast(`${pswName} assigned to ${clientName} ✓`, 'ok');
 
@@ -4906,7 +4932,19 @@ async function convertLead(id, email) {
   try {
     activeLead = id;
     await setStatus('converted');
-    if(email) await fetch(`${API}/onboarding/convert`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({operator_id:currentOp,contact_email:email})}).catch(()=>{});
+    // The lead is now marked converted. If the onboarding sequence does not
+    // fire, that lead sits in the CRM as converted having received nothing,
+    // which used to happen silently. Say so, do not undo the conversion.
+    if (email) {
+      const r = await fetch(`${API}/onboarding/convert`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-hq-token': window._hqToken || sessionStorage.getItem('hq_token') || '' },
+        body: JSON.stringify({ operator_id: currentOp, contact_email: email })
+      }).catch(() => null);
+      if (!r || !r.ok) {
+        showToast('Marked converted, but the onboarding sequence did not start. Send the welcome email manually.', 'warn');
+      }
+    }
   } catch(e) { showToast(e.message||'Convert failed','err'); }
 }
 
@@ -6070,8 +6108,21 @@ async function submitBooking() {
   try {
     const dur=document.getElementById('bf-duration')?parseInt(document.getElementById('bf-duration').value)||60:60;
     const notesVal=document.getElementById('bf-notes')?document.getElementById('bf-notes').value.trim():'';
-    const r=await hqFetch(`${API}/hq/booking`,{method:'POST',headers:{'Content-Type':'application/json','x-hq-token':window._hqToken||sessionStorage.getItem('hq_token')||''},body:JSON.stringify({operator_id:currentOp,client_name:name,client_email:document.getElementById('bf-email').value.trim(),client_phone:document.getElementById('bf-phone').value.trim(),booking_type:type,scheduled_date:date,scheduled_time:time,duration_minutes:dur,assigned_to:document.getElementById('bf-assigned').value.trim(),location:document.getElementById('bf-location').value.trim(),notes:notesVal})});
-    const d=await r.json();
+    const _bookBody = {operator_id:currentOp,client_name:name,client_email:document.getElementById('bf-email').value.trim(),client_phone:document.getElementById('bf-phone').value.trim(),booking_type:type,scheduled_date:date,scheduled_time:time,duration_minutes:dur,assigned_to:document.getElementById('bf-assigned').value.trim(),location:document.getElementById('bf-location').value.trim(),notes:notesVal};
+    let r=await hqFetch(`${API}/hq/booking`,{method:'POST',headers:{'Content-Type':'application/json','x-hq-token':window._hqToken||sessionStorage.getItem('hq_token')||''},body:JSON.stringify(_bookBody)});
+    let d=await r.json();
+    // U1: approved time off is a warning, not a wall. Booking someone on leave
+    // is sometimes the right call, but it must be a decision, not an accident.
+    if (r.status === 409 && d.code === 'PSW_ON_TIME_OFF') {
+      if (!confirm(d.message + '.\n\nBook them anyway?')) {
+        showToast('Booking cancelled', 'warn');
+        if(btn){btn.disabled=false;btn.textContent='Book Shift';}
+        return;
+      }
+      _bookBody.override_time_off = true;
+      r=await hqFetch(`${API}/hq/booking`,{method:'POST',headers:{'Content-Type':'application/json','x-hq-token':window._hqToken||sessionStorage.getItem('hq_token')||''},body:JSON.stringify(_bookBody)});
+      d=await r.json();
+    }
     if(!r.ok||!d.success) {
       // Show specific conflict message if available
       const errMsg=d.message||d.error||'Booking failed';
@@ -6269,15 +6320,21 @@ async function sendBroadcast() {
   if (!msg) { showToast('Enter a message first','err'); return; }
   const psws = getMergedPSWList().filter(p => p.source === 'live');
   if (!psws.length) { showToast('No active PSWs found','err'); return; }
-  let sent = 0;
+  let sent = 0, failed = 0;
   for (const p of psws) {
     try {
-      await fetch(`${API}/psw/note`, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({psw_name:p.name,sender:'lance',message:msg,operator_id:currentOp})});
-      sent++;
-    } catch {}
+      const _r = await fetch(`${API}/psw/note`, {method:'POST',headers:{'Content-Type':'application/json','x-hq-token': window._hqToken || sessionStorage.getItem('hq_token') || ''},body:JSON.stringify({psw_name:p.name,sender:'lance',message:msg,operator_id:currentOp})});
+      if (_r.ok) sent++; else { failed++; console.warn('broadcast failed for', p.name, _r.status); }
+    } catch (_) { failed++; console.warn('broadcast threw for', p.name); }
   }
-  document.getElementById('broadcast-input').value = '';
-  showToast(`Broadcast sent to ${sent} PSW${sent!==1?'s':''}`, 'ok');
+  if (sent > 0) document.getElementById('broadcast-input').value = '';
+  if (failed === 0) {
+    showToast(`Broadcast sent to ${sent} PSW${sent!==1?'s':''}`, 'ok');
+  } else if (sent === 0) {
+    showToast(`Broadcast failed. Nobody was messaged.`, 'err');
+  } else {
+    showToast(`Sent to ${sent}, failed for ${failed}. Message the rest directly.`, 'warn');
+  }
 }
 
 // ── VISITS ──
@@ -6481,6 +6538,8 @@ async function renderVisits() {
       const _arrWord = _arrVar == null ? '' : (_arrVar === 0 ? 'on time' : Math.abs(_arrVar) + 'm ' + (_arrVar < 0 ? 'early' : 'late'));
       const arrBadge = _arrVar == null ? '' : `<span style="font-family:var(--mono);font-size:11px;letter-spacing:1px;padding:2px 6px;border-radius:100px;border:1px solid ${_arrOut ? 'rgba(224,154,61,.5)' : 'rgba(61,138,122,.3)'};color:${_arrOut ? 'var(--amber)' : 'var(--teal2)'};margin-left:6px;">${_arrWord}</span>`;
       const agreedBadge = v.agreed_time ? `<span style="font-family:var(--mono);font-size:11px;letter-spacing:1px;padding:2px 6px;border-radius:100px;border:1px solid rgba(61,138,122,.4);color:var(--teal2);margin-left:6px;">AGREED ${String(v.agreed_time).slice(0,5)}</span>` : '';
+      // T3: an edited record is a changed record. Visible without expanding.
+      const editedBadge = v.hq_edited ? `<span style="font-family:var(--mono);font-size:11px;letter-spacing:1px;padding:2px 6px;border-radius:100px;border:1px solid rgba(201,169,110,.45);color:var(--gold);margin-left:6px;">EDITED</span>` : '';
       // Photos
       const photos = Array.isArray(v.task_photos) ? v.task_photos : (v.task_photos ? [v.task_photos] : []);
       const photosHtml = photos.length ? `<div style="margin-bottom:10px;"><div style="font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;">Photos (${photos.length})</div><div style="display:flex;gap:6px;flex-wrap:wrap;">${photos.map(p => `<a href="${p.url||p}" target="_blank"><img src="${p.url||p}" style="width:64px;height:64px;object-fit:cover;border-radius:6px;border:1px solid var(--border);" loading="lazy"></a>`).join('')}</div></div>` : '';
@@ -6499,6 +6558,7 @@ async function renderVisits() {
             ${gpsOutBadge}
             ${arrBadge}
             ${agreedBadge}
+            ${editedBadge}
             ${v.incident_reported ? buildIncidentBadge(v) : ''}
           </div>
           <div class="card-right">
@@ -6516,6 +6576,7 @@ async function renderVisits() {
           ${v.visit_stage === 'not_home' ? `<div style="margin-bottom:10px;padding:8px 12px;background:rgba(224,154,61,.06);border:1px solid rgba(224,154,61,.25);border-radius:6px;font-family:var(--mono);font-size:12px;color:var(--amber);line-height:1.7;">Client not home${v.not_home_at ? ` at ${fmtTime(new Date(v.not_home_at).toTimeString().slice(0,5))}` : ''}${v.checkin_distance_m != null ? `, ${v.checkin_distance_m}m from the address` : ''}<div>${v.not_home_note ? 'Note: ' + v.not_home_note : 'No note given.'}</div></div>` : ''}
           ${(_gfOver || _coOver) ? `<div style="margin-bottom:10px;padding:8px 12px;background:rgba(224,154,61,.06);border:1px solid rgba(224,154,61,.25);border-radius:6px;font-family:var(--mono);font-size:12px;color:var(--amber);line-height:1.7;">Location variance${_gfOver ? `<div>Sign in ${v.checkin_distance_m}m away. ${v.geofence_override_reason ? 'Reason: ' + v.geofence_override_reason : 'Acknowledged, no reason given.'}</div>` : ''}${_coOver ? `<div>Sign out ${v.checkout_distance_m}m away. ${v.checkout_override_reason ? 'Reason: ' + v.checkout_override_reason : 'Acknowledged, no reason given.'}</div>` : ''}${v.geofence_override_by ? `<div style="color:var(--muted2);">Recorded for ${v.geofence_override_by}</div>` : ''}</div>` : ''}
           ${(_arrVar != null || v.agreed_time) ? `<div style="margin-bottom:10px;padding:8px 12px;background:${_arrOut ? 'rgba(224,154,61,.06)' : 'rgba(61,138,122,.05)'};border:1px solid ${_arrOut ? 'rgba(224,154,61,.25)' : 'rgba(61,138,122,.2)'};border-radius:6px;font-family:var(--mono);font-size:12px;color:${_arrOut ? 'var(--amber)' : 'var(--teal2)'};line-height:1.7;">Arrival time${_arrVar != null ? `<div>Signed in ${_arrWord} against the ${v.agreed_time ? 'agreed' : 'scheduled'} time.${_arrOut ? '' : ' Within tolerance.'}</div>` : ''}${v.variance_reason ? `<div>Reason: ${HQ_VARIANCE_LABELS[v.variance_reason] || v.variance_reason}</div>` : (_arrOut ? `<div>No reason recorded.</div>` : '')}${v.agreed_time ? `<div style="color:var(--muted2);">Agreed ${String(v.agreed_time).slice(0,5)} with ${HQ_AGREED_WITH_LABELS[v.agreed_with] || v.agreed_with || 'unknown'}${HQ_AGREED_METHOD_LABELS[v.agreed_method] ? ' ' + HQ_AGREED_METHOD_LABELS[v.agreed_method] : ''}${v.agreed_by ? ', logged by ' + v.agreed_by : ''}.</div>` : ''}${v.agreed_note ? `<div style="color:var(--muted2);">Note: ${v.agreed_note}</div>` : ''}</div>` : ''}
+          ${(v.hq_edited || v.verified) ? `<div style="margin-bottom:10px;padding:8px 12px;background:rgba(201,169,110,.06);border:1px solid rgba(201,169,110,.25);border-radius:6px;font-family:var(--mono);font-size:12px;color:var(--gold);line-height:1.7;">Record history${v.hq_edited ? `<div>Times edited${v.hq_edited_by ? ' by ' + escHtml(v.hq_edited_by) : ''}${v.hq_edited_at ? ' on ' + new Date(v.hq_edited_at).toLocaleString('en-CA', { timeZone:'America/Toronto', year:'numeric', month:'short', day:'numeric', hour:'2-digit', minute:'2-digit', hour12:false }) : ''}.</div>` : ''}${(v.original_time_in || v.original_time_out) ? `<div style="color:var(--muted2);">Was ${v.original_time_in ? fmtTime(String(v.original_time_in).slice(0,5)) : (v.time_in ? fmtTime(String(v.time_in).slice(0,5)) : 'not set')} to ${v.original_time_out ? fmtTime(String(v.original_time_out).slice(0,5)) : (v.time_out ? fmtTime(String(v.time_out).slice(0,5)) : 'not set')}, now ${v.time_in ? fmtTime(String(v.time_in).slice(0,5)) : 'not set'} to ${v.time_out ? fmtTime(String(v.time_out).slice(0,5)) : 'not set'}.</div>` : ''}${v.manual_hours_override != null ? `<div style="color:var(--muted2);">Hours set manually to ${Number(v.manual_hours_override).toFixed(2)}.</div>` : ''}${v.hq_notes ? `<div style="color:var(--muted2);">Reason: ${escHtml(v.hq_notes)}</div>` : ''}${v.verified ? `<div style="color:var(--teal2);">Verified${v.verified_by ? ' by ' + escHtml(v.verified_by) : ''}${v.verified_at ? ' on ' + new Date(v.verified_at).toLocaleString('en-CA', { timeZone:'America/Toronto', year:'numeric', month:'short', day:'numeric', hour:'2-digit', minute:'2-digit', hour12:false }) : ''}.</div>` : ''}</div>` : ''}
           ${tasks?`<div style="margin-bottom:10px;"><div style="font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:4px;">Tasks Completed</div><div style="color:var(--muted2);">${tasks}</div></div>`:''}
           ${mood?`<div style="margin-bottom:10px;"><div style="font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:4px;">Client Mood</div><div style="color:var(--text);">${mood}</div></div>`:''}
           ${v.visit_summary?`<div style="margin-bottom:10px;"><div style="font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:4px;">Care Summary</div><div style="color:var(--muted2);">${v.visit_summary}</div></div>`:''}
@@ -7245,7 +7306,7 @@ async function createOperator() {
   try {
     const res = await fetch(`${API}/operator/create`, {
       method: 'POST',
-      headers: {'Content-Type':'application/json'},
+      headers: {'Content-Type':'application/json', 'x-hq-token': window._hqToken || sessionStorage.getItem('hq_token') || ''},
       body: JSON.stringify({
         operator_id: opId || agency.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,''),
         agency_name: agency,
@@ -9035,11 +9096,8 @@ async function _patchBooking(id, updates, fcInfo) {
       const _pmsg = updates.assigned_to
         ? `A shift has been reassigned to you${_newDate ? ' on ' + _newDate : ''}. Check your schedule.`
         : `Schedule change: your shift${_newDate ? ' on ' + _newDate : ''}${_newTime ? ' at ' + _newTime : ''} has been updated. Check your portal.`;
-      fetch(`${API}/psw/note`, {
-        method: 'POST', headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({ psw_name: pswToNotify, sender: 'lance', message: _pmsg, operator_id: currentOp })
-      }).catch(() => {});
-      setTimeout(() => showToast(`Notified ${pswToNotify.split(' ')[0]} ✓`, 'ok'), 400);
+      notifySide(`${API}/psw/note`, { psw_name: pswToNotify, sender: 'lance', message: _pmsg, operator_id: currentOp }, `Message to ${pswToNotify.split(' ')[0]}`)
+        .then(ok => { if (ok) setTimeout(() => showToast(`Notified ${pswToNotify.split(' ')[0]} ✓`, 'ok'), 400); });
     }
   } catch(e) {
     showToast(e.message, 'err');
@@ -9458,6 +9516,25 @@ async function saveShift(addAnother = false) {
         }
       }
       const uniqueDates=[...new Set(dates)].slice(0,60);
+      // U1: check every date against approved leave BEFORE firing. HQ already
+      // holds D.time_off, so this costs nothing and asks once instead of once
+      // per date. A recurring shift crossing a vacation would otherwise throw
+      // sixty separate confirms.
+      let _overrideLeave = false;
+      const _leaveHits = psw ? uniqueDates.filter(d =>
+        (D.time_off || []).some(t => t.psw_name === psw && d >= t.from_date && d <= t.to_date)
+      ) : [];
+      if (_leaveHits.length) {
+        const _first = (D.time_off || []).find(t => t.psw_name === psw && _leaveHits[0] >= t.from_date && _leaveHits[0] <= t.to_date);
+        const _lbl = { vacation: 'vacation', sick: 'sick leave', off: 'scheduled time off' }[_first?.type] || 'time off';
+        const _shown = _leaveHits.slice(0, 5).join(', ') + (_leaveHits.length > 5 ? ' and ' + (_leaveHits.length - 5) + ' more' : '');
+        if (!confirm(`${psw} has approved ${_lbl} covering ${_leaveHits.length} of these ${uniqueDates.length} dates.\n\n${_shown}\n\nCreate them anyway?`)) {
+          showToast('Shift creation cancelled', 'warn');
+          if (btn) { btn.disabled = false; btn.textContent = 'Save Shift'; }
+          return;
+        }
+        _overrideLeave = true;
+      }
       // Generate series_id for recurring shifts so they can be cancelled as a group
       const seriesId = recurring !== 'none' ? crypto.randomUUID() : null;
       // Check for second PSW (2-person visit)
@@ -9471,7 +9548,7 @@ async function saveShift(addAnother = false) {
         const b1 = fetch(`${API}/hq/booking`,{method:'POST',headers:{'Content-Type': 'application/json', 'x-hq-token': window._hqToken || sessionStorage.getItem('hq_token') || ''},
           body:JSON.stringify({operator_id:currentOp,client_name:client,booking_type:'visit',
             scheduled_date:d,scheduled_time:time,assigned_to:psw,duration_minutes:duration,
-            series_id:seriesId,joint_booking_id:jointBookingId})})
+            series_id:seriesId,joint_booking_id:jointBookingId,override_time_off:_overrideLeave})})
           .then(async r => {
             const body = await r.json().catch(()=>({}));
             if (r.status === 401) return {...body, success:false, _sessionExpired:true};
@@ -9491,7 +9568,7 @@ async function saveShift(addAnother = false) {
         const b2 = fetch(`${API}/hq/booking`,{method:'POST',headers:{'Content-Type': 'application/json', 'x-hq-token': window._hqToken || sessionStorage.getItem('hq_token') || ''},
           body:JSON.stringify({operator_id:currentOp,client_name:client,booking_type:'visit',
             scheduled_date:d,scheduled_time:time,assigned_to:psw2,duration_minutes:duration,
-            series_id:seriesId,joint_booking_id:jointBookingId})})
+            series_id:seriesId,joint_booking_id:jointBookingId,override_time_off:_overrideLeave})})
           .then(r=>r.json()).catch(()=>({success:false}));
         return Promise.all([b1, b2]).then(([r1]) => r1);
       }));
@@ -9521,11 +9598,8 @@ async function saveShift(addAnother = false) {
       }
       showToast(`${created} shift${created!==1?'s':''} created ✓${isTwoPsw?' (joint, 2 PSWs)':''}`, 'ok');
     if (psw && created > 0) {
-      fetch(`${API}/psw/note`, {
-        method: 'POST', headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({ psw_name: psw, sender: 'lance', operator_id: currentOp,
-          message: `${created} new shift${created!==1?'s have':' has'} been added to your schedule for ${client}. Check your portal.` })
-      }).catch(() => {});
+      notifySide(`${API}/psw/note`, { psw_name: psw, sender: 'lance', operator_id: currentOp,
+        message: `${created} new shift${created!==1?'s have':' has'} been added to your schedule for ${client}. Check your portal.` }, `Message to ${psw}`);
     }
     }
 
@@ -9564,10 +9638,7 @@ async function saveShift(addAnother = false) {
       const _msg = _isEdit
         ? `Your shift on ${date} at ${time} has been updated (${Math.round(duration/60)}h). Check your schedule.`
         : `New shift: ${client} on ${date} at ${time} (${Math.round(duration/60)}h). Check your portal.`;
-      fetch(`${API}/psw/note`, {
-        method: 'POST', headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({ psw_name: psw, sender: 'lance', message: _msg, operator_id: currentOp })
-      }).catch(() => {});
+      notifySide(`${API}/psw/note`, { psw_name: psw, sender: 'lance', message: _msg, operator_id: currentOp }, `Message to ${psw}`);
     }
 
     if(addAnother) {
@@ -9600,11 +9671,8 @@ async function deleteShift(id, skipConfirm) {
     // Notify PSW of cancellation
     const _delBook = (D.bookings||[]).find(b => b.id === id);
     if (_delBook?.assigned_to) {
-      fetch(`${API}/psw/note`, {
-        method: 'POST', headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({ psw_name: _delBook.assigned_to, sender: 'lance', operator_id: currentOp,
-          message: `A shift on ${_delBook.scheduled_date||'your schedule'} has been cancelled. Check your portal.` })
-      }).catch(() => {});
+      notifySide(`${API}/psw/note`, { psw_name: _delBook.assigned_to, sender: 'lance', operator_id: currentOp,
+        message: `A shift on ${_delBook.scheduled_date||'your schedule'} has been cancelled. Check your portal.` }, `Message to ${_delBook.assigned_to}`);
     }
     // Remove from local cache first (optimistic)
     D.bookings = (D.bookings||[]).filter(b => b.id !== id);
@@ -9673,8 +9741,8 @@ async function executeSwap() {
     // Notify both PSWs
     if (d.swapped > 0) {
       const _sDate = fromDate ? ' from ' + fromDate : '';
-      fetch(`${API}/psw/note`, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ psw_name: toPSW, sender: 'lance', message: `${d.swapped} shift${d.swapped!==1?'s have':' has'} been added to your schedule${_sDate}. Check your portal.`, operator_id: currentOp }) }).catch(()=>{});
-      fetch(`${API}/psw/note`, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ psw_name: fromPSW, sender: 'lance', message: `${d.swapped} shift${d.swapped!==1?'s have':' has'} been removed from your schedule${_sDate} and reassigned. Check your portal.`, operator_id: currentOp }) }).catch(()=>{});
+      notifySide(`${API}/psw/note`, { psw_name: toPSW, sender: 'lance', message: `${d.swapped} shift${d.swapped!==1?'s have':' has'} been added to your schedule${_sDate}. Check your portal.`, operator_id: currentOp }, `Message to ${toPSW}`);
+      notifySide(`${API}/psw/note`, { psw_name: fromPSW, sender: 'lance', message: `${d.swapped} shift${d.swapped!==1?'s have':' has'} been removed from your schedule${_sDate} and reassigned. Check your portal.`, operator_id: currentOp }, `Message to ${fromPSW}`);
     }
   } catch(e) { showToast(e.message || 'Swap failed', 'err'); }
   btn.disabled = false; btn.textContent = 'Execute Swap';
@@ -13597,14 +13665,18 @@ async function saveBulkSchedule() {
           operator_id: currentOp, client_name: client,
           booking_type: 'visit', scheduled_date: d,
           scheduled_time: time, assigned_to: psw,
-          duration_minutes: duration
+          duration_minutes: duration, bulk: true
         })
       }).then(r => r.json()).catch(() => ({success:false}))
     ));
     const created = results.filter(r => r.success).length;
     showToast(`${created} of ${dates.length} shifts created ✓`, 'ok');
+    // U1: bulk paths create the booking and report leave afterwards rather than
+    // failing silently mid run. Surface it so the operator can act.
+    const _leaveWarn = results.filter(r => r && r.time_off_warning).length;
+    if (_leaveWarn > 0) setTimeout(() => showToast(`${_leaveWarn} of these fall on approved time off for ${psw}`, 'warn'), 600);
     // Notify PSW
-    if (psw && created > 0) { fetch(`${API}/psw/note`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ psw_name: psw, sender: 'lance', message: created + ' shift' + (created!==1?'s have':' has') + ' been added to your schedule for ' + client + '. Check your portal.', operator_id: currentOp }) }).catch(()=>{}); }
+    if (psw && created > 0) { notifySide(`${API}/psw/note`, { psw_name: psw, sender: 'lance', message: created + ' shift' + (created!==1?'s have':' has') + ' been added to your schedule for ' + client + '. Check your portal.', operator_id: currentOp }, 'Message to ' + psw); }
     closeAllSheets();
     const res = await fetch(`${API}/hq/overview?operator_id=${currentOp}`, { headers: { 'x-hq-token': window._hqToken || sessionStorage.getItem('hq_token') || '' } });
     const freshD = await res.json();
@@ -13703,21 +13775,25 @@ async function copyWeeks(n) {
     // Batch in chunks of 20 to avoid overwhelming the API
     const CHUNK = 20;
     let created = 0;
+    let _leaveWarnTotal = 0;
     for (let i = 0; i < filtered.length; i += CHUNK) {
       const chunk = filtered.slice(i, i + CHUNK);
       const results = await Promise.all(chunk.map(b =>
         fetch(`${API}/hq/booking`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'x-hq-token': window._hqToken || sessionStorage.getItem('hq_token') || '' },
-          body: JSON.stringify({ operator_id: currentOp, ...b })
+          body: JSON.stringify({ operator_id: currentOp, ...b, bulk: true })
         }).then(r => r.json()).catch(() => ({ success: false }))
       ));
       created += results.filter(r => r.success).length;
+      _leaveWarnTotal += results.filter(r => r && r.time_off_warning).length;
       if (filtered.length > CHUNK) showToast(`Creating... ${created}/${filtered.length}`, 'ok');
     }
 
     const failed = filtered.length - created;
     showToast(`${created} shifts created${failed?' · '+failed+' failed':''}${dupes?' · '+dupes+' already existed':''}`, created > 0 ? 'ok' : 'err');
+    // U1: leave collisions do not block a copy, they are reported after.
+    if (_leaveWarnTotal > 0) setTimeout(() => showToast(`${_leaveWarnTotal} of these fall on approved time off`, 'warn'), 600);
 
     if (created > 0) {
       await _fetchGridBookings(true);

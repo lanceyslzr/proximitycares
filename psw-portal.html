@@ -3494,6 +3494,7 @@ async function doCheckOut() {
   const medsArr = Array.from(document.querySelectorAll('#co-mar-boxes input[type="checkbox"]:checked')).map(cb => cb.value).filter(Boolean);
   const voiceNoteUrl = window._voiceNoteUrl || null;
   let taskPhotoUrls = [];
+  let _photoFailed = 0;
   const photoFiles = document.getElementById('co-photos')?.files;
   if (photoFiles && photoFiles.length && navigator.onLine) {
     for (const file of Array.from(photoFiles).slice(0, 4)) {
@@ -3507,12 +3508,27 @@ async function doCheckOut() {
         if (uploadRes?.ok) {
           const ud = await uploadRes.json();
           if (ud.signed_url) {
-            await fetch(ud.signed_url, { method: 'PUT', body: file, headers: { 'Content-Type': file.type } }).catch(() => {});
-            if (ud.url) taskPhotoUrls.push(ud.url);
+            // A dropped photo is missing evidence of care delivered. It used to
+            // vanish with no indication, and the visit completed short.
+            const putRes = await fetch(ud.signed_url, { method: 'PUT', body: file, headers: { 'Content-Type': file.type } }).catch(() => null);
+            if (putRes?.ok) {
+              if (ud.url) taskPhotoUrls.push(ud.url);
+            } else {
+              _photoFailed++;
+            }
+          } else {
+            _photoFailed++;
           }
+        } else {
+          _photoFailed++;
         }
-      } catch {}
+      } catch { _photoFailed++; }
     }
+  }
+  // Checkout must never be blocked by a photo, a PSW cannot be trapped in a
+  // client's home by a bad connection. Warn once and let them re-add later.
+  if (_photoFailed > 0) {
+    showToast(_photoFailed + ' photo' + (_photoFailed !== 1 ? 's' : '') + ' did not upload. Visit will still submit', 'warn');
   }
   // Refusal of care data
   const refusalData = getRefusals();
@@ -5364,12 +5380,24 @@ function recordCarePlanAck(clientName) {
     const key = 'cp_ack_' + (pswName||'').replace(/\s+/g,'_') + '_' + (clientName||'').replace(/\s+/g,'_');
     localStorage.setItem(key, new Date().toISOString());
   } catch {}
-  // P3, Server-side permanent ack record (timestamps both PSWs for 2-person visits)
-  fetch(`${API}/psw/care-plan-ack`, {
+  // P3, Server side permanent ack record (timestamps both PSWs for 2 person visits).
+  // The local flag above already keeps the PSW moving, so a failure here must not
+  // block them. But it used to vanish entirely, leaving no record that the care
+  // plan was ever acknowledged. One retry covers a dropped connection in a
+  // basement, which is where most of these happen.
+  const _ackBody = { psw_name: pswName, pin: pswPin, operator_id: pswOperatorId, client_name: clientName };
+  const _postAck = () => fetch(`${API}/psw/care-plan-ack`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ psw_name: pswName, pin: pswPin, operator_id: pswOperatorId, client_name: clientName })
-  }).catch(() => {});
+    body: JSON.stringify(_ackBody)
+  });
+  _postAck()
+    .then(r => { if (!r.ok) throw new Error('ack rejected ' + r.status); })
+    .catch(() => {
+      setTimeout(() => {
+        _postAck().catch(() => console.warn('care plan ack not recorded for', clientName));
+      }, 5000);
+    });
 }
 
 
@@ -5983,12 +6011,17 @@ function headingToNextClient() {
     .sort((a,b) => (a.scheduled_time||'').localeCompare(b.scheduled_time||''));
   if (!upcoming.length) { showToast('No upcoming visits today', 'err'); closeDrawer(); return; }
   const next = upcoming[0];
+  // The toast used to claim the family was notified regardless of whether the
+  // call landed. Tell the truth instead: optimistic message first so the PSW is
+  // not held up, corrected only if the notification actually failed.
+  showToast('Heading to ' + (next.client_name||'next client'), 'ok');
+  haptic(50);
   fetch(`${API}/visit/en-route`, {
     method: 'POST', headers: {'Content-Type':'application/json'},
     body: JSON.stringify({ psw_name: pswName, pin: pswPin, operator_id: pswOperatorId, client_name: next.client_name })
-  }).catch(() => {});
-  showToast('Family notified, heading to ' + (next.client_name||'next client'), 'ok');
-  haptic(50);
+  })
+    .then(r => { if (!r.ok) throw new Error('en-route ' + r.status); })
+    .catch(() => showToast('Family was not notified. Call them if it matters', 'warn'));
   closeDrawer();
 }
 
@@ -6225,7 +6258,7 @@ async function submitForm(formIdx) {
 
   const submittedAt = new Date().toISOString();
   try {
-    await fetch(`${API}/visit/forms/submit`, {
+    const r = await fetch(`${API}/visit/forms/submit`, {
       method: 'POST', headers: {'Content-Type':'application/json'},
       body: JSON.stringify({
         psw_name: pswName, pin: pswPin,
@@ -6236,7 +6269,17 @@ async function submitForm(formIdx) {
         items
       })
     });
-  } catch {}
+    let d = {};
+    try { d = await r.json(); } catch (_) { d = {}; }
+    if (!r.ok || d.success === false) throw new Error(d.error || 'Not saved');
+  } catch (e) {
+    // These are Ontario compliance forms. Marking one submitted when the server
+    // never stored it puts a false record in front of the PSW and leaves a gap
+    // in the file. Fail loudly and let them retry instead.
+    if (btn) { btn.textContent = 'Submit'; btn.disabled = false; }
+    showToast(f.form_name + ' not saved. Check your connection and try again', 'err');
+    return;
+  }
 
   _formSubmitted[f.form_name] = submittedAt;
   haptic([50, 30, 50]);
