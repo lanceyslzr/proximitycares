@@ -1725,6 +1725,8 @@ a{color:inherit;text-decoration:none;}
   <div class="success-check">✓</div>
   <div class="success-title" id="success-title">Visit Complete</div>
   <div class="success-msg" id="success-msg">Visit logged. Family has been notified.</div>
+  <button class="success-btn" id="incident-refile-btn" onclick="refileIncident()" style="display:none;background:var(--amber);color:#0a0e14;border:none;border-radius:10px;padding:14px 28px;font-family:var(--mono);font-size:12px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;min-height:48px;touch-action:manipulation;width:100%;max-width:280px;">Re submit incident report</button>
+  <a id="incident-call-link" href="tel:6473828047" style="display:none;font-family:var(--mono);font-size:12px;color:var(--muted2);text-decoration:none;margin-bottom:4px;">or call the office, 647 382 8047</a>
   <button class="success-btn" id="success-note-btn" onclick="openNoteSheet()" style="background:var(--teal);color:#fff;border:none;border-radius:10px;padding:14px 28px;font-family:var(--mono);font-size:12px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;min-height:48px;touch-action:manipulation;width:100%;max-width:280px;">Write Visit Note →</button>
   <button class="success-btn" onclick="closeSuccess()" style="background:none;border:1px solid var(--border2);color:var(--muted2);">Done, Skip Note</button>
 </div>
@@ -3641,6 +3643,9 @@ async function doCheckOut() {
     haptic([100, 50, 100]); // Build 3
     document.getElementById('success-title').textContent = 'Visit Queued';
     document.getElementById('success-msg').textContent = 'No signal, visit will sync automatically when back online.';
+    // Part B: the overlay is shared, so clear any incident refile state from a
+    // previous failed checkout before showing a normal success.
+    resetIncidentRefileUI();
     document.getElementById('success-overlay').classList.add('show');
     btn.textContent = 'Check Out + Submit Visit'; btn.disabled = false;
     return;
@@ -3677,6 +3682,9 @@ async function doCheckOut() {
           haptic([100, 50, 100]);
           document.getElementById('success-title').textContent = 'Visit Complete';
           document.getElementById('success-msg').textContent = `${d2.hours_worked}h logged. Family notified with care summary.`;
+          // Part B: the overlay is shared, so clear any incident refile state from a
+          // previous failed checkout before showing a normal success.
+          resetIncidentRefileUI();
           document.getElementById('success-overlay').classList.add('show');
           await loadSchedule(); loadHomeData();
         } catch (e) { showToast(e.message, 'err'); }
@@ -3705,6 +3713,9 @@ async function doCheckOut() {
       activeVisit = null;
       document.getElementById('success-title').textContent = 'Visit Complete';
       document.getElementById('success-msg').textContent = `${d2.hours_worked}h logged. Flagged for coordinator review (under 8 min).`;
+      // Part B: the overlay is shared, so clear any incident refile state from a
+      // previous failed checkout before showing a normal success.
+      resetIncidentRefileUI();
       document.getElementById('success-overlay').classList.add('show');
       await loadSchedule(); loadHomeData();
       btn.textContent = 'Check Out + Submit Visit'; btn.disabled = false;
@@ -3721,6 +3732,9 @@ async function doCheckOut() {
     haptic([100, 50, 100]); // Build 3
     document.getElementById('success-title').textContent = 'Visit Complete';
     document.getElementById('success-msg').textContent = `${d.hours_worked}h logged. Family notified with care summary.`;
+    // Part B: the overlay is shared, so clear any incident refile state from a
+    // previous failed checkout before showing a normal success.
+    resetIncidentRefileUI();
     document.getElementById('success-overlay').classList.add('show');
     await loadSchedule();
     loadHomeData();
@@ -3737,8 +3751,26 @@ async function doCheckOut() {
 // Shared by all three checkout call sites (main, geofence override, sub-8) so the
 // override path cannot drift. Returns true when it handled the response; callers
 // must return early.
+/* Part B: the success overlay is shared between a normal checkout and the
+   incident failed path. Without this, a PSW who hit an incident failure once
+   would see the re submit button again on their next clean checkout. */
+function resetIncidentRefileUI() {
+  window._failedIncident = null;
+  const rb = document.getElementById('incident-refile-btn');
+  const cl = document.getElementById('incident-call-link');
+  if (rb) { rb.style.display = 'none'; rb.disabled = false; rb.textContent = 'Re submit incident report'; }
+  if (cl) cl.style.display = 'none';
+}
+
 function handleIncidentFailedCheckout(d, payload) {
   if (!d || !d.checkout_completed || !d.incident_failed) return false;
+  // Part B: stash the incident BEFORE closeCheckout(), which clears co-incident.
+  // Without this the notes are gone and the only recovery is a phone call.
+  window._failedIncident = {
+    visit_id: activeVisit?.id || payload.visit_id || null,
+    incident_notes: payload.incident_notes || '',
+    client_name: activeVisit?.client_name || ''
+  };
   closeCheckout();
   window._lastVisitId = activeVisit?.id || payload.visit_id || null;
   window._lastVisitMeta = activeVisit ? `${activeVisit.client_name} · ${activeVisit.time_in || '—'}` : '';
@@ -3746,11 +3778,63 @@ function handleIncidentFailedCheckout(d, payload) {
   stopElapsed(); resetChecklist(); updateShiftUI();
   haptic([100, 50, 100]);
   document.getElementById('success-title').textContent = 'Visit checked out';
-  document.getElementById('success-msg').textContent = 'The incident report did not save. Call the office to report it.';
+  const _canRefile = !!(window._failedIncident.visit_id && window._failedIncident.incident_notes);
+  document.getElementById('success-msg').textContent = _canRefile
+    ? 'The incident report did not save. Send it again below.'
+    : 'The incident report did not save. Call the office to report it.';
+  // The button only appears when there is something real to send. If the notes
+  // were lost the honest answer is still the phone number.
+  const _rb = document.getElementById('incident-refile-btn');
+  const _cl = document.getElementById('incident-call-link');
+  if (_rb) { _rb.style.display = _canRefile ? 'block' : 'none'; _rb.disabled = false; _rb.textContent = 'Re submit incident report'; }
+  if (_cl) _cl.style.display = 'block';
   document.getElementById('success-overlay').classList.add('show');
   loadSchedule(); loadHomeData();
   return true;
 }
+
+/* Part B: re files the lost incident through /visit/checkout with
+   incident_only, which writes the incident row and returns before every
+   checkout side effect. The visit already completed, so a full checkout would
+   re send the family email, re process hours, re run the MAR and re fire push.
+   The server is idempotent, so a double tap returns already_filed rather than
+   creating a second report. */
+async function refileIncident() {
+  const f = window._failedIncident;
+  const btn = document.getElementById('incident-refile-btn');
+  if (!f || !f.visit_id || !f.incident_notes) {
+    showToast('Nothing to send. Please call the office', 'warn');
+    return;
+  }
+  if (btn) { btn.disabled = true; btn.textContent = 'Sending'; }
+  try {
+    const r = await fetch(`${API}/visit/checkout`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        psw_name: pswName, pin: pswPin, operator_id: pswOperatorId,
+        visit_id: f.visit_id, incident_notes: f.incident_notes,
+        incident_only: true
+      })
+    });
+    const d = await r.json().catch(() => ({}));
+    if (r.ok && d.success) {
+      window._failedIncident = null;
+      if (btn) btn.style.display = 'none';
+      const _cl = document.getElementById('incident-call-link');
+      if (_cl) _cl.style.display = 'none';
+      document.getElementById('success-msg').textContent = d.already_filed
+        ? 'That incident was already on file. Nothing else to do.'
+        : 'Incident report sent. The office has it.';
+      haptic([100, 50, 100]);
+      return;
+    }
+    showToast(d.error || 'Still could not send. Please call the office', 'err');
+  } catch (e) {
+    showToast('Still could not send. Please call the office', 'err');
+  }
+  if (btn) { btn.disabled = false; btn.textContent = 'Re submit incident report'; }
+}
+
 function closeSuccess() {
   document.getElementById('success-overlay').classList.remove('show');
   showSect('home');
