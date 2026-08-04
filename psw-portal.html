@@ -3667,6 +3667,7 @@ async function doCheckOut() {
             body: JSON.stringify(p)
           });
           const d2 = await r2.json();
+          if (handleIncidentFailedCheckout(d2, p)) return;
           if (!r2.ok) throw new Error(d2.error || 'Checkout failed');
           closeCheckout();
           window._lastVisitId = activeVisit?.id || p.visit_id || null;
@@ -3693,6 +3694,7 @@ async function doCheckOut() {
         body: JSON.stringify({ ...payload, force_checkout: true })
       });
       const d2 = await res2.json();
+      if (handleIncidentFailedCheckout(d2, payload)) { btn.textContent = 'Check Out + Submit Visit'; btn.disabled = false; return; }
       if (!res2.ok) throw new Error(d2.error || 'Checkout failed');
       closeCheckout();
       activeVisit = null;
@@ -3709,6 +3711,7 @@ async function doCheckOut() {
       return;
     }
 
+    if (handleIncidentFailedCheckout(d, payload)) { btn.textContent = 'Check Out + Submit Visit'; btn.disabled = false; return; }
     if (!res.ok) throw new Error(d.error || 'Checkout failed');
     closeCheckout();
     window._lastVisitId = activeVisit?.id || payload.visit_id || null;
@@ -3723,6 +3726,30 @@ async function doCheckOut() {
     loadHomeData();
   } catch (e) { showToast(e.message, 'err'); }
   btn.textContent = 'Check Out + Submit Visit'; btn.disabled = false;
+}
+
+// #1: the visit checked out but the incident_reports write failed server side
+// (response carries checkout_completed + incident_failed). Treat checkout as DONE —
+// it persisted — but tell the truth about the incident. No re-submit affordance:
+// nothing behind it exists yet (incident_reports is only created inside
+// /visit/checkout; a safe re-file needs a server incident_only flag — open loop).
+// alertWriteFailure has already paged the office with the client + PSW named.
+// Shared by all three checkout call sites (main, geofence override, sub-8) so the
+// override path cannot drift. Returns true when it handled the response; callers
+// must return early.
+function handleIncidentFailedCheckout(d, payload) {
+  if (!d || !d.checkout_completed || !d.incident_failed) return false;
+  closeCheckout();
+  window._lastVisitId = activeVisit?.id || payload.visit_id || null;
+  window._lastVisitMeta = activeVisit ? `${activeVisit.client_name} · ${activeVisit.time_in || '—'}` : '';
+  activeVisit = null;
+  stopElapsed(); resetChecklist(); updateShiftUI();
+  haptic([100, 50, 100]);
+  document.getElementById('success-title').textContent = 'Visit checked out';
+  document.getElementById('success-msg').textContent = 'The incident report did not save. Call the office to report it.';
+  document.getElementById('success-overlay').classList.add('show');
+  loadSchedule(); loadHomeData();
+  return true;
 }
 function closeSuccess() {
   document.getElementById('success-overlay').classList.remove('show');
