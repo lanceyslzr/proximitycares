@@ -2075,6 +2075,56 @@ function goToPin() {
   document.getElementById('lock-step-1').classList.remove('active');
   document.getElementById('lock-step-2').classList.add('active');
 }
+/* W1: PSW push notifications. Until now a message from the office reached the
+   PSW by nothing at all, it was stored and only seen if they opened the portal.
+   psw-sw.js already has push and notificationclick handlers in both repos, so
+   this is only the subscription side. Same VAPID key and same decoder as the
+   family portal, which is the working reference implementation. */
+const PSW_VAPID_PUBLIC_KEY = 'BD9E2x87i80k-Yt8Ye09irrQQD3Xlf3EtCUIbbjwlwnYoPS6AHaX2_12rZ-7aKQs13WmXfKMx5A4aUuqr3M8wIk';
+
+function pswUrlBase64ToUint8Array(base64String) {
+  const padding = '='.repeat((4 - base64String.length % 4) % 4);
+  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+  const raw = atob(base64);
+  return new Uint8Array([...raw].map(c => c.charCodeAt(0)));
+}
+
+/* Called after a successful PIN unlock, so the server can verify before storing
+   a delivery channel. Silent by design: a PSW who declines notifications must
+   never be blocked or nagged, and every failure path is a no op. */
+async function pswSetupPush() {
+  try {
+    if (!('serviceWorker' in navigator) || !('PushManager' in window) || !('Notification' in window)) return;
+    if (Notification.permission === 'denied') return;
+    if (localStorage.getItem('psw_push_declined') === '1') return;
+
+    if (Notification.permission !== 'granted') {
+      const permission = await Notification.requestPermission();
+      if (permission !== 'granted') {
+        localStorage.setItem('psw_push_declined', '1');
+        return;
+      }
+    }
+
+    const reg = await navigator.serviceWorker.ready;
+    let sub = await reg.pushManager.getSubscription();
+    if (!sub) {
+      sub = await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: pswUrlBase64ToUint8Array(PSW_VAPID_PUBLIC_KEY)
+      });
+    }
+    await fetch(`${API}/psw/push-subscribe`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        psw_name: pswName, pin: pswPin, operator_id: pswOperatorId,
+        subscription: sub.toJSON()
+      })
+    });
+  } catch (e) { console.log('psw push setup skipped:', e?.message); }
+}
+
 function lk(k) {
   if (lockIn.length >= 4) return;
   lockIn += k; updateDots();
@@ -2171,6 +2221,9 @@ function unlockApp() {
   try { sessionStorage.setItem('psw_name', pswName); sessionStorage.setItem('psw_pin', pswPin); } catch {}
   // E1: Offer biometric registration if WebAuthn supported and not yet registered
   setTimeout(checkBiometricOffer, 1500);
+  // W1: ask for notification permission after the biometric prompt has settled,
+  // so a PSW is never shown two system dialogs at once on first unlock.
+  setTimeout(pswSetupPush, 6000);
   history.pushState(null, '', window.location.href);
   startPSWIdleTimer(); // PHIPA: 5-min lock, 60-min sign-out
   document.getElementById('lock').style.display = 'none';
@@ -6872,6 +6925,9 @@ async function doOnMyWay(){
   if (!clientName) { showToast('No upcoming visit', 'warn'); return; }
   showToast('Notifying family', 'ok');
   let latitude = null, longitude = null, eta_minutes = null;
+  // U3: OSRM returns duration AND distance on the same response. Only duration
+  // was being read, so the drive length was computed and thrown away.
+  let travel_distance_m = null, travel_duration_s = null;
   try {
     const pos = await new Promise((res, rej) => navigator.geolocation.getCurrentPosition(res, rej, {timeout:8000,maximumAge:0}));
     latitude = pos.coords.latitude; longitude = pos.coords.longitude;
@@ -6880,13 +6936,17 @@ async function doOnMyWay(){
     const cc = _tncResolveClientCoords(clientName);
     if (latitude != null && longitude != null && cc.lat != null && cc.lng != null) {
       const rd = await fetch(`https://router.project-osrm.org/route/v1/driving/${longitude},${latitude};${cc.lng},${cc.lat}?overview=false`).then(r => r.json());
-      if (rd.routes && rd.routes[0]) eta_minutes = Math.max(1, Math.round(rd.routes[0].duration / 60));
+      if (rd.routes && rd.routes[0]) {
+        eta_minutes = Math.max(1, Math.round(rd.routes[0].duration / 60));
+        if (Number.isFinite(rd.routes[0].distance)) travel_distance_m = Math.round(rd.routes[0].distance);
+        if (Number.isFinite(rd.routes[0].duration)) travel_duration_s = Math.round(rd.routes[0].duration);
+      }
     }
   } catch(_) {}
   try {
     const r = await fetch(`${API}/visit/en-route`, {
       method: 'POST', headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({ psw_name: pswName, pin: pswPin, operator_id: pswOperatorId, client_name: clientName, latitude, longitude, eta_minutes })
+      body: JSON.stringify({ psw_name: pswName, pin: pswPin, operator_id: pswOperatorId, client_name: clientName, latitude, longitude, eta_minutes, travel_distance_m, travel_duration_s })
     });
     const d = await r.json().catch(() => ({}));
     if (r.ok && d.success) showToast(d.eta ? ('Family notified. ETA ' + d.eta) : 'Family notified you are on the way', 'ok');

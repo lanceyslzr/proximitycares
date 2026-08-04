@@ -37,190 +37,67 @@ input,select,textarea,button{font:inherit;font-size:max(16px,1em);max-width:100%
 html,body{min-height:100vh;font-family:var(--sans),sans-serif;background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased;}
 
 /* PIN GATE */
-.gate{position:fixed;inset:0;background:var(--surface);z-index:100;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;}
-.gate.hide{display:none;}
-.gate-inner{width:100%;max-width:min(380px,calc(100vw - 40px));margin:0 auto;}
 .gate-brand{font-family:'Inter',sans-serif;font-size:26px;font-weight:650;letter-spacing:-.3px;color:var(--text);text-align:center;margin-bottom:5px;}
-.gate-brand em{color:var(--green);font-style:normal;}
 .gate-sub{text-align:center;font-size:11px;letter-spacing:2.5px;text-transform:uppercase;color:var(--muted);margin-bottom:36px;}
-.gate-card{background:var(--bg2);border-radius:22px;padding:36px 28px 28px;border:1px solid var(--border);}
-.gate-hint{font-size:13px;color:var(--muted);text-align:center;margin-bottom:28px;line-height:1.6;}
-.pin-dots{display:flex;gap:14px;justify-content:center;margin-bottom:32px;}
-.pin-dot{width:13px;height:13px;border-radius:50%;border:1.5px solid var(--border2);transition:all .18s;}
-.pin-dot.filled{background:var(--accent);border-color:var(--accent);box-shadow:0 0 10px rgba(52,211,153,.45);}
-.pin-pad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
-.pin-btn{background:var(--bg3);border:1px solid var(--border);border-radius:50%;width:74px;height:74px;margin:0 auto;padding:0;font-size:24px;font-weight:400;font-family:'Inter',sans-serif;color:var(--text);cursor:pointer;transition:background .12s,transform .12s,border-color .12s;display:flex;align-items:center;justify-content:center;touch-action:manipulation;-webkit-tap-highlight-color:transparent;}
-.pin-btn:active{background:#1C222B;transform:scale(.92);border-color:var(--border2);}
 .pin-btn:hover{background:var(--green-l);border-color:var(--accent);}
-.pin-btn:active{transform:scale(0.96);}
 .pin-btn.del{font-size:16px;color:var(--muted);}
-.pin-btn.del svg{width:20px;height:20px;display:block;margin:0 auto;}
-.pin-btn.empty{background:none;border:none;cursor:default;}
-.pin-error{text-align:center;font-size:13px;color:var(--error);margin-top:16px;opacity:0;transition:opacity 0.2s;min-height:44px;}
-.pin-error.show{opacity:1;}
 @keyframes pin-shake{0%,100%{transform:translateX(0);}20%{transform:translateX(-6px);}40%{transform:translateX(6px);}60%{transform:translateX(-4px);}80%{transform:translateX(4px);}}
 .gate-card.shake{animation:pin-shake 0.35s ease;}
 
 /* APP */
-.app{display:none;flex-direction:column;min-height:100vh;}
-.app.show{display:flex;}
 
 /* TOPBAR */
-.topbar{background:rgba(7,9,12,.96);border-bottom:1px solid var(--border);padding:14px 16px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);}
 .tb-brand{font-family:var(--mono);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--teal2);flex:1;min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
-.tb-brand em{color:var(--green);font-style:normal;}
 .tb-right{display:flex;align-items:center;gap:8px;flex-shrink:0;}
 .tb-name{font-size:13px;color:var(--muted);font-weight:500;max-width:90px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;font-size:11px;}
-.tb-signout{background:none;border:none;font-size:12px;color:var(--muted);cursor:pointer;padding:6px 10px;border-radius:6px;font-family:'Inter',sans-serif;transition:color 0.15s;touch-action:manipulation;-webkit-tap-highlight-color:transparent;}
-.tb-signout:hover{color:var(--text);}
 
 /* CONTENT */
-.content{flex:1;padding:24px 20px;padding-bottom:calc(96px + env(safe-area-inset-bottom));max-width:min(560px,calc(100vw - 24px));max-width:calc(100vw - 24px);margin:0 auto;width:100%;transition:opacity 150ms ease;}
 
 /* STATUS CARD */
 .status-card{background:rgba(30,122,72,.18);border:1px solid rgba(46,125,91,.35);border-radius:20px;padding:24px;margin-bottom:20px;position:relative;overflow:hidden;}
 .status-card.status-active{background:rgba(30,122,72,.22);border-color:rgba(46,160,100,.4);}
 .status-card.status-complete{background:rgba(74,154,110,.06);border-color:rgba(74,154,110,.15);}
 .status-card.status-none{background:var(--bg2);border-color:var(--border);}
-.status-card::after{content:'';position:absolute;top:-30px;right:-30px;width:120px;height:120px;border-radius:50%;background:rgba(255,255,255,0.06);}
 .status-eyebrow{font-size:12px;letter-spacing:0.08em;text-transform:uppercase;opacity:1;margin-bottom:8px;font-weight:500;color:#7dffb3;}
 .status-name{font-family:'Inter',sans-serif;font-size:26px;font-weight:700;margin-bottom:4px;color:#ffffff;text-shadow:0 1px 3px rgba(0,0,0,.3);}
 .status-detail{font-size:13px;opacity:1;color:rgba(200,240,215,.9);line-height:1.5;}
-.status-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,0.15);border-radius:100px;padding:5px 12px;font-size:12px;margin-top:14px;font-weight:500;}
-.status-dot{width:6px;height:6px;border-radius:50%;background:#7dffb3;animation:pulse-dot 2s infinite;}
 @keyframes pulse-dot{0%,100%{opacity:1;}50%{opacity:0.4;}}
 
 /* SECTION */
-.section{margin-bottom:24px;}
-.section-title{font-size:12px;letter-spacing:0.06em;text-transform:uppercase;color:var(--muted);margin-bottom:12px;padding:0 2px;font-weight:600;}
 
 /* CARDS */
-.card{background:var(--bg2);border-radius:12px;overflow:hidden;border:1px solid var(--border);}
-.card-row{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--border);transition:background .12s;}
-.card-row:last-child{border:none;}
-.card-row:hover{background:var(--surface);}
-.card-row-label{font-size:14px;color:var(--muted);}
-.card-row-value{font-size:14px;font-weight:500;text-align:right;color:var(--text);}
-.card-row-value.green{color:var(--green);}
 
 /* PSW CARD */
-.psw-card{background:var(--bg2);border-radius:12px;padding:20px;border:1px solid var(--border);display:flex;align-items:center;gap:16px;margin-bottom:24px;transition:background 0.15s;}
-.psw-card:hover{background:var(--surface);}
-.psw-avatar{width:56px;height:56px;border-radius:50%;background:var(--green-l);border:2px solid var(--green-b);display:flex;align-items:center;justify-content:center;font-family:'Inter',sans-serif;font-size:20px;color:var(--green);font-weight:600;flex-shrink:0;}
-.psw-info{flex:1;}
-.psw-name{font-size:16px;font-weight:600;margin-bottom:2px;color:var(--text);}
-.psw-title{font-size:12px;color:var(--muted);}
-.psw-schedule{font-size:12px;color:var(--accent);margin-top:4px;font-weight:500;}
 
 /* VISIT ROWS */
-.visit-row{display:flex;align-items:center;padding:14px 16px;border-bottom:1px solid var(--border);gap:12px;transition:background .12s;cursor:pointer;}
-.visit-row:last-child{border:none;}
-.visit-row:hover{background:var(--surface);}
-.visit-date-box{width:44px;text-align:center;flex-shrink:0;}
-.visit-date-day{font-size:11px;text-transform:uppercase;letter-spacing:0.04em;color:var(--muted);font-weight:500;}
-.visit-date-num{font-family:'Inter',sans-serif;font-size:22px;color:var(--text);line-height:1;font-weight:600;}
-.visit-info{flex:1;}
-.visit-psw{font-size:14px;font-weight:500;color:var(--text);}
-.visit-time{font-size:12px;color:var(--muted);margin-top:2px;}
-.visit-hours{font-size:13px;font-weight:600;color:var(--accent);}
 
 /* DOCS */
-.doc-row{display:flex;align-items:center;padding:16px 20px;border-bottom:1px solid var(--border);gap:12px;text-decoration:none;color:inherit;transition:background 0.15s;}
-.doc-row:last-child{border:none;}
-.doc-row:hover{background:var(--surface);}
-.doc-icon{width:36px;height:36px;border-radius:10px;background:var(--green-l);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--green);}
-.doc-icon svg{width:18px;height:18px;}
-.doc-info{flex:1;}
-.doc-name{font-size:14px;font-weight:500;color:var(--text);}
-.doc-type{font-size:12px;color:var(--muted);margin-top:1px;}
-.doc-arrow{color:var(--muted);}
-.doc-arrow svg{width:16px;height:16px;display:block;}
 
 /* INVOICE ROWS */
-.inv-row{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--border);transition:background 0.15s;}
-.inv-row:last-child{border:none;}
-.inv-row:hover{background:var(--surface);}
-.inv-month{font-size:14px;font-weight:500;color:var(--text);}
-.inv-right{text-align:right;}
-.inv-amount{font-size:14px;font-weight:600;color:var(--accent);}
-.inv-status{font-size:11px;color:var(--muted);margin-top:2px;}
 
 /* MESSAGE THREAD */
-.msg-thread-wrap{background:var(--bg);border-radius:16px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,0.06);border:1px solid var(--border);margin-bottom:24px;}
-.msg-thread-body{padding:16px 20px;display:flex;flex-direction:column;gap:10px;max-height:320px;overflow-y:auto;}
-.msg-bubble-out{background:var(--green);color:#fff;padding:10px 14px;border-radius:14px 14px 3px 14px;max-width:85%;margin-left:auto;font-size:13px;line-height:1.5;}
-.msg-bubble-in{background:var(--surface);color:var(--text);padding:10px 14px;border-radius:14px 14px 14px 3px;max-width:85%;border:1px solid var(--border);font-size:13px;line-height:1.5;}
-.msg-bubble-time{font-size:11px;opacity:.6;margin-top:3px;}
-.msg-input-row{display:flex;gap:8px;padding:14px 20px;border-top:1px solid var(--border);align-items:flex-end;}
-.msg-input-field{flex:1;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:10px 13px;font-size:16px;font-family:'Inter',sans-serif;color:var(--text);outline:none;resize:none;transition:border-color 0.15s;}
 .msg-input-field::placeholder{color:rgba(184,207,212,.4);}
 textarea::placeholder,input::placeholder{color:rgba(184,207,212,.4);}
-.msg-input-field:focus{border-color:var(--accent);}
-.msg-send-btn{width:44px;height:44px;border-radius:50%;background:var(--green);color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;border:none;flex-shrink:0;touch-action:manipulation;-webkit-tap-highlight-color:transparent;transition:background 0.15s;}
-.msg-send-btn:hover{background:var(--green-d);}
-.msg-send-btn svg{width:18px;height:18px;}
-.msg-char-count{font-size:11px;color:var(--muted);text-align:right;padding:0 20px 8px;font-family:'Inter',sans-serif;}
-.msg-char-count.near{color:var(--warning);}
-.msg-char-count.over{color:var(--error);}
 
 /* VISIT DETAIL */
-.visit-detail{padding:12px 20px 16px;border-top:1px solid var(--border);background:var(--surface);}
-.visit-detail-lbl{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:4px;margin-top:10px;font-weight:600;}
-.visit-detail-val{font-size:13px;color:var(--text);line-height:1.6;}
-.visit-expand-btn{font-size:12px;color:var(--teal3);cursor:pointer;text-decoration:underline;margin-top:4px;display:inline-block;font-weight:500;}
 
 /* UPCOMING */
-.upcoming-row{display:flex;align-items:center;padding:14px 20px;border-bottom:1px solid var(--border);gap:12px;transition:background 0.15s;}
-.upcoming-row:last-child{border:none;}
-.upcoming-row:hover{background:var(--surface);}
-.upcoming-date{width:40px;text-align:center;flex-shrink:0;}
-.upcoming-date-dow{font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);font-weight:500;}
-.upcoming-date-num{font-family:'Inter',sans-serif;font-size:20px;color:var(--text);line-height:1;font-weight:600;}
-.upcoming-info{flex:1;}
-.upcoming-psw{font-size:13px;font-weight:500;color:var(--text);}
-.upcoming-time{font-size:12px;color:var(--muted);margin-top:2px;}
-.upcoming-badge{font-size:11px;padding:3px 10px;border-radius:100px;background:var(--green-l);color:var(--green);font-weight:600;flex-shrink:0;}
 
 /* CARE PLAN */
-.plan-text{padding:20px;font-size:14px;color:var(--text);line-height:1.8;}
 
 /* EMPTY STATES */
-.empty-state{padding:40px 24px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:10px;}
-.empty-state-icon{color:var(--muted);opacity:0.45;}
-.empty-state-icon svg{width:48px;height:48px;}
-.empty-state-title{font-size:16px;font-weight:500;color:var(--text);}
-.empty-state-sub{font-size:14px;color:var(--muted);line-height:1.5;max-width:240px;}
 
 /* LOADING */
-.spinner{width:28px;height:28px;border:2.5px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto;}
 @keyframes spin{to{transform:rotate(360deg);}}
 @keyframes map-pulse{0%,100%{box-shadow:0 0 0 3px rgba(74,154,110,.4),0 0 12px rgba(74,154,110,.6);}50%{box-shadow:0 0 0 6px rgba(74,154,110,.15),0 0 16px rgba(74,154,110,.4);}}
 
 /* NAV */
-.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:var(--bg);border-top:1px solid var(--border);display:flex;z-index:320;padding-bottom:env(safe-area-inset-bottom);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);}
-.nav-btn{flex:1;padding:12px 4px 14px;background:none;border:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;font-family:'Inter',sans-serif;transition:color 0.15s;color:var(--muted);touch-action:manipulation;-webkit-tap-highlight-color:transparent;}
-.nav-icon{display:flex;align-items:center;justify-content:center;color:var(--muted);transition:color 0.15s;}
-.nav-icon svg{width:22px;height:22px;}
-.nav-label{font-size:11px;letter-spacing:0.02em;color:var(--muted);transition:color 0.15s;font-weight:500;}
-.nav-btn.on .nav-label{color:var(--green);}
-.nav-btn.on .nav-icon{color:var(--green);}
 
 /* SATISFACTION STARS */
-.visit-stars{display:flex;align-items:center;gap:4px;margin-top:6px;flex-wrap:wrap;}
-.visit-stars.rated{font-size:14px;color:#c8a040;letter-spacing:1px;}
-.visit-stars.unrated .star-btn{background:none;border:none;font-size:18px;color:#c8d0c8;cursor:pointer;padding:0 1px;min-height:44px;min-width:28px;line-height:1;transition:color .15s;}
-.visit-stars.unrated .star-btn:hover,.visit-stars.unrated .star-btn:focus{color:#c8a040;}
-.stars-label{font-size:12px;color:var(--muted);letter-spacing:0.3px;margin-left:4px;}
 
 /* SKELETON */
-.skeleton-wrap{padding:24px 20px;}
-.skeleton-block{border-radius:14px;background:linear-gradient(90deg,#0d1117 25%,#161c24 50%,#0d1117 75%);background-size:200% 100%;animation:fam-shimmer 1.4s infinite;margin-bottom:14px;}
 @keyframes fadeInDown{from{opacity:0;transform:translateX(-50%) translateY(-12px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
 @keyframes fam-shimmer{0%{background-position:200% 0;}100%{background-position:-200% 0;}}
-.skeleton-status{height:120px;border-radius:20px;margin-bottom:24px;}
-.skeleton-card-sm{height:80px;}
-.skeleton-card-md{height:120px;}
-.skeleton-card-lg{height:200px;}
 
 button{transition:transform 50ms ease;touch-action:manipulation;-webkit-tap-highlight-color:transparent;}
 button:active{transform:scale(0.98);}
@@ -234,17 +111,17 @@ button:active{transform:scale(0.98);}
 .fam-alert-lbl.info{color:var(--teal2);}
 .fam-alert-lbl.warn{color:var(--amber);}
 .fam-alert-lbl.crit{color:var(--red);}
-.fam-alert-msg{font-size:13px;color:var(--muted2);line-height:1.6;}
+.fam-alert-msg{font-size:15px;color:var(--muted2);line-height:1.6;}
 /* Vitals row in visit detail */
 .vitals-compact{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;}
-.vitals-pill{font-family:var(--mono);font-size:11px;padding:4px 10px;border-radius:100px;background:var(--bg3);border:1px solid var(--border2);color:var(--muted2);}
+.vitals-pill{font-family:var(--mono);font-size:14px;padding:4px 10px;border-radius:100px;background:var(--bg3);border:1px solid var(--border2);color:var(--muted2);}
 .vitals-pill.ok{color:var(--teal2);border-color:rgba(52,211,153,.3);}
 .vitals-pill.flag{color:var(--amber);border-color:rgba(224,154,61,.3);}
 /* ETA banner */
 .eta-banner{margin:12px 16px 0;padding:12px 14px;background:rgba(52,211,153,.06);border:1px solid rgba(52,211,153,.2);border-radius:10px;display:flex;align-items:center;gap:10px;}
 .eta-dot{width:8px;height:8px;border-radius:50%;background:var(--teal2);animation:livepulse 1.5s infinite;flex-shrink:0;}
 @keyframes livepulse{0%,100%{opacity:1;}50%{opacity:.3;}}
-.eta-text{font-size:13px;color:var(--text);}
+.eta-text{font-size:15px;color:var(--text);}
 .eta-time{font-family:var(--mono);font-size:11px;color:var(--teal2);margin-top:2px;}
 /* Care plan ack */
 .care-ack-chip{display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;padding:4px 10px;border-radius:100px;background:rgba(52,211,153,.06);border:1px solid rgba(52,211,153,.2);color:var(--teal2);margin-top:6px;}
@@ -324,9 +201,9 @@ button:active{transform:scale(0.98);}
 .gate-inner{width:100%;max-width:min(380px,calc(100vw - 40px));margin:0 auto;}
 .gate-brand{font-family:'Inter',sans-serif;font-size:22px;font-weight:600;color:var(--text);text-align:center;margin-bottom:4px;}
 .gate-brand em{color:var(--green);font-style:normal;}
-.gate-sub{text-align:center;font-size:13px;color:var(--muted);margin-bottom:40px;}
+.gate-sub{text-align:center;font-size:14px;color:var(--muted);margin-bottom:40px;}
 .gate-card{background:var(--bg2);border-radius:22px;padding:34px 26px 26px;border:1px solid var(--border);}
-.gate-hint{font-size:13px;color:var(--muted);text-align:center;margin-bottom:28px;line-height:1.6;}
+.gate-hint{font-size:14px;color:var(--muted);text-align:center;margin-bottom:28px;line-height:1.6;}
 .pin-dots{display:flex;gap:16px;justify-content:center;margin-bottom:30px;}
 .pin-dot{width:12px;height:12px;border-radius:50%;border:1.5px solid var(--border2);transition:all .18s;}
 .pin-dot.filled{background:var(--green);border-color:var(--green);box-shadow:0 0 10px rgba(52,211,153,.5);}
@@ -361,7 +238,7 @@ button:active{transform:scale(0.98);}
 .status-card::after{content:'';position:absolute;top:-30px;right:-30px;width:120px;height:120px;border-radius:50%;background:rgba(255,255,255,0.06);}
 .status-eyebrow{font-size:11px;letter-spacing:0.1em;text-transform:uppercase;opacity:0.65;margin-bottom:8px;font-weight:500;}
 .status-name{font-family:'Inter',sans-serif;font-size:26px;font-weight:600;margin-bottom:4px;}
-.status-detail{font-size:13px;opacity:0.8;line-height:1.5;}
+.status-detail{font-size:15px;opacity:0.8;line-height:1.5;}
 .status-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,0.15);border-radius:100px;padding:5px 12px;font-size:12px;margin-top:14px;font-weight:500;}
 .status-dot{width:6px;height:6px;border-radius:50%;background:#7dffb3;animation:pulse-dot 2s infinite;}
 @keyframes pulse-dot{0%,100%{opacity:1;}50%{opacity:0.4;}}
@@ -398,7 +275,7 @@ button:active{transform:scale(0.98);}
 .visit-info{flex:1;}
 .visit-psw{font-size:14px;font-weight:500;color:var(--text);}
 .visit-time{font-size:12px;color:var(--muted);margin-top:2px;}
-.visit-hours{font-size:13px;font-weight:600;color:var(--accent);}
+.visit-hours{font-size:15px;font-weight:600;color:var(--accent);}
 
 /* DOCS */
 .doc-row{display:flex;align-items:center;padding:16px 20px;border-bottom:1px solid var(--border);gap:12px;text-decoration:none;color:inherit;transition:background 0.15s;}
@@ -439,8 +316,8 @@ button:active{transform:scale(0.98);}
 
 /* VISIT DETAIL */
 .visit-detail{padding:12px 20px 16px;border-top:1px solid var(--border);background:var(--surface);}
-.visit-detail-lbl{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:4px;margin-top:10px;font-weight:600;}
-.visit-detail-val{font-size:13px;color:var(--text);line-height:1.6;}
+.visit-detail-lbl{font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:4px;margin-top:10px;font-weight:600;}
+.visit-detail-val{font-size:15px;color:var(--text);line-height:1.6;}
 .visit-expand-btn{font-size:11px;color:var(--accent);cursor:pointer;text-decoration:underline;margin-top:4px;display:inline-block;font-weight:500;}
 
 /* UPCOMING */
@@ -452,7 +329,7 @@ button:active{transform:scale(0.98);}
 .upcoming-date-num{font-family:'Inter',sans-serif;font-size:20px;color:var(--text);line-height:1;font-weight:600;}
 .upcoming-info{flex:1;}
 .upcoming-psw{font-size:13px;font-weight:500;color:var(--text);}
-.upcoming-time{font-size:12px;color:var(--muted);margin-top:2px;}
+.upcoming-time{font-size:15px;color:var(--muted);margin-top:2px;}
 .upcoming-badge{font-size:11px;padding:3px 10px;border-radius:100px;background:var(--green-l);color:var(--green);font-weight:600;flex-shrink:0;}
 
 /* CARE PLAN */
@@ -473,7 +350,6 @@ button:active{transform:scale(0.98);}
 .bottom-nav{position:fixed;bottom:0;left:0;right:0;background:var(--bg);border-top:1px solid var(--border);display:flex;z-index:320;padding-bottom:env(safe-area-inset-bottom);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);}
 .nav-btn{flex:1;padding:12px 4px 14px;background:none;border:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;font-family:'Inter',sans-serif;transition:color 0.15s;color:var(--muted);touch-action:manipulation;-webkit-tap-highlight-color:transparent;}
 .nav-icon{display:flex;align-items:center;justify-content:center;color:var(--muted);transition:color 0.15s;}
-.nav-icon svg{width:22px;height:22px;}
 .nav-label{font-size:11px;letter-spacing:0.02em;color:var(--muted);transition:color 0.15s;font-weight:500;}
 .nav-btn.on .nav-label{color:var(--green);}
 .nav-btn.on .nav-icon{color:var(--green);}
@@ -658,7 +534,7 @@ button:active{transform:scale(0.98);}
 /* Cards */
 .card{border-radius:var(--r12);border-color:rgba(255,255,255,.08);}
 .card-row{padding:13px 16px;}
-.card-row-label{font-size:13px;}
+.card-row-label{font-size:15px;}
 .card-row-value{font-size:13px;}
 
 /* PSW card */
@@ -679,8 +555,8 @@ button:active{transform:scale(0.98);}
 
 /* Messages */
 .msg-thread-body{max-height:280px;}
-.msg-bubble-out{font-size:13px;}
-.msg-bubble-in{font-size:13px;}
+.msg-bubble-out{font-size:16px;}
+.msg-bubble-in{font-size:16px;}
 .msg-input-row{padding:12px 16px;}
 
 /* Section titles */
@@ -691,7 +567,7 @@ button:active{transform:scale(0.98);}
 
 /* Upcoming rows */
 .upcoming-row{padding:12px 16px;}
-.upcoming-psw{font-size:12px;}
+.upcoming-psw{font-size:15px;}
 .upcoming-date-num{font-size:18px;}
 
 /* Spinner */
@@ -701,6 +577,12 @@ button:active{transform:scale(0.98);}
 .upcoming-row.upcoming-onhold, .upcoming-row.upcoming-cancelled{ opacity:.72; }
 
 
+/* Section V, legibility. Larger reading text must wrap rather than push its row.
+   These rows are display:flex with no wrap, so without this a longer line at the
+   new size would overflow instead of breaking. */
+.upcoming-row,.card-row{flex-wrap:wrap;}
+.upcoming-row>*,.card-row>*{min-width:0;}
+.msg-bubble-in,.msg-bubble-out,.fam-alert-msg,.status-detail,.visit-detail-val{overflow-wrap:anywhere;}
 @media(max-width:768px){
   .card{width:100%;max-width:100%;margin-inline:0}
   .section{padding:0 12px 12px}
@@ -874,7 +756,7 @@ button:active{transform:scale(0.98);}
 }
 .visit-psw{ font-family:var(--rb-sans)!important; color:var(--rb-text)!important; font-weight:500!important; }
 .visit-time{ font-family:var(--rb-mono)!important; color:var(--rb-dim)!important; font-size:11px!important; }
-.visit-hours{ font-family:var(--rb-mono)!important; color:var(--rb-primary)!important; font-size:11px!important; font-weight:500!important; flex-shrink:0; }
+.visit-hours{ font-family:var(--rb-mono)!important; color:var(--rb-primary)!important; font-size:14px!important; font-weight:500!important; flex-shrink:0; }
 .visit-expand-btn{
   font-family:var(--rb-mono)!important; font-size:10px!important; letter-spacing:.5px!important;
   color:var(--rb-primary)!important; text-decoration:none!important; text-transform:uppercase;
@@ -892,7 +774,7 @@ button:active{transform:scale(0.98);}
   margin:14px 0 5px!important;
 }
 .visit-detail-lbl:first-child{ margin-top:0!important; }
-.visit-detail-val{ font-family:var(--rb-sans)!important; font-size:13px!important; color:var(--rb-text)!important; line-height:1.6!important; }
+.visit-detail-val{ font-family:var(--rb-sans)!important; font-size:14px!important; color:var(--rb-text)!important; line-height:1.6!important; }
 
 /* ── AI CARE SUMMARY = HERO MOMENT (first lbl+val in detail) ── */
 .visit-detail .visit-detail-lbl:first-child{
@@ -945,7 +827,7 @@ button:active{transform:scale(0.98);}
 /* ── CARD ROWS (contact, fallback schedule) ── */
 .card-row{ padding:14px 18px!important; border-bottom:1px solid var(--rb-line)!important; transition:background var(--t2) var(--e)!important; }
 .card-row:hover{ background:rgba(255,255,255,.02)!important; }
-.card-row-label{ font-family:var(--rb-mono)!important; font-size:11px!important; letter-spacing:.5px; color:var(--rb-dim)!important; }
+.card-row-label{ font-family:var(--rb-mono)!important; font-size:14px!important; letter-spacing:.5px; color:var(--rb-dim)!important; }
 .card-row-value{ font-family:var(--rb-sans)!important; font-size:14px!important; color:var(--rb-text)!important; font-weight:500!important; }
 .card-row-value.green{ color:var(--rb-primary)!important; }
 
@@ -968,7 +850,7 @@ button:active{transform:scale(0.98);}
 .upcoming-info{ flex:1!important; min-width:0!important; }
 .upcoming-psw{ font-family:var(--rb-sans)!important; font-size:14px!important; color:var(--rb-text)!important; font-weight:500!important;
   white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.upcoming-time{ font-family:var(--rb-mono)!important; font-size:11px!important; color:var(--rb-dim)!important; margin-top:2px!important; }
+.upcoming-time{ font-family:var(--rb-mono)!important; font-size:14px!important; color:var(--rb-dim)!important; margin-top:2px!important; }
 .upcoming-badge{
   font-family:var(--rb-mono)!important; font-size:10px!important; letter-spacing:1px!important; text-transform:uppercase!important;
   padding:4px 10px!important; border-radius:100px!important;
@@ -1037,7 +919,7 @@ button:active{transform:scale(0.98);}
 .gate-brand em{ color:var(--rb-primary)!important; font-style:normal!important; }
 .gate-sub{ font-family:var(--rb-mono)!important; color:var(--rb-faint)!important; letter-spacing:3px!important;
   font-size:11px!important; text-transform:uppercase!important; margin-bottom:26px!important; }
-.gate-hint{ font-family:var(--rb-sans)!important; color:var(--rb-dim)!important; font-size:13px!important;
+.gate-hint{ font-family:var(--rb-sans)!important; color:var(--rb-dim)!important; font-size:14px!important;
   line-height:1.6!important; text-align:center!important; margin-bottom:26px!important; }
 .gate-help{ text-align:center; font-family:var(--rb-mono); font-size:10px; letter-spacing:1px; color:var(--rb-faint); margin-top:18px; line-height:1.5; }
 .pin-error{ min-height:20px!important; margin-top:14px!important; font-size:12px!important; }
@@ -1194,7 +1076,7 @@ button:active{transform:scale(0.98);}
   box-shadow:0 0 30px -6px color-mix(in srgb,var(--rb-primary) 50%,transparent); }
 .sched-confirm .sched-sheet-title,.sched-confirm .sched-sheet-sub{ text-align:center; }
 </style>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..600;1,9..144,300..500&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
@@ -1253,6 +1135,9 @@ button:active{transform:scale(0.98);}
       <div class="eta-time" id="eta-time"></div>
     </div>
   </div>
+
+  <!-- Weekly care summary, what changed -->
+  <div id="care-week-card" style="display:none;padding:12px 16px 0;"></div>
 
   <!-- Client alert badges -->
   <div id="alert-badges-banner" style="display:none;padding:10px 16px 0;"></div>
@@ -1468,6 +1353,100 @@ async function loadETABanner() {
   } catch { }
 }
 
+/* ── WEEKLY CARE SUMMARY ──────────────────────────────────────────
+   The AI already writes care_signals on every visit as
+   { type, severity, detail }, and no portal has ever shown them.
+
+   This translates rather than exposes. The severity labels are written
+   for the office (HIGH means same day action), and a daughter reading
+   "fall_risk HIGH" at 11pm with no next step is worse off than before.
+   So: plain language, always paired with what the office is doing, and
+   a stable week leads with the fact that it is stable. For a family who
+   cannot see the small daily changes, "nothing needs your attention"
+   is the most useful sentence on the screen. */
+const CARE_SIGNAL_WORDS = {
+  fall_risk:         'steadiness on their feet',
+  pain:              'pain or discomfort',
+  confusion:         'memory or orientation',
+  medication_concern:'medications',
+  behavioral_change: 'mood and behaviour',
+  appetite_hydration:'appetite and drinking',
+  skin_integrity:    'skin condition',
+  mobility_decline:  'moving around'
+};
+
+function loadCareWeek() {
+  const el = document.getElementById('care-week-card');
+  if (!el || !portalData) return;
+  const visits = (portalData.visits || []).filter(v => v.time_in);
+  if (!visits.length) return;
+
+  const now = new Date();
+  const cutoff = new Date(now.getTime() - 7 * 86400000).toISOString().slice(0, 10);
+  const week = visits.filter(v => (v.visit_date || '') >= cutoff);
+  if (!week.length) return;
+
+  /* Group this week's signals by what they are about, keeping the highest
+     severity seen and the most recent plain English detail. */
+  const groups = {};
+  week.forEach(v => {
+    if (!Array.isArray(v.care_signals)) return;
+    v.care_signals.forEach(s => {
+      if (!s || !s.type) return;
+      const key = s.type;
+      const rank = { HIGH: 0, MED: 1, LOW: 2 }[s.severity] ?? 3;
+      if (!groups[key] || rank < groups[key].rank) {
+        groups[key] = { rank, severity: s.severity, detail: s.detail || '', date: v.visit_date };
+      }
+    });
+  });
+  const keys = Object.keys(groups);
+
+  const visitCount = week.length;
+  const psws = [...new Set(week.map(v => v.psw_name).filter(Boolean))];
+  const who = psws.length === 1 ? psws[0].split(' ')[0] : psws.length + ' caregivers';
+  const firstName = (portalData.client && portalData.client.first_name) || 'Your family member';
+
+  let body = '';
+  let tone = 'calm';
+
+  if (!keys.length) {
+    body = `<div style="font-size:15px;line-height:1.6;color:var(--rb-text);">`
+         + `${visitCount} visit${visitCount !== 1 ? 's' : ''} this week with ${escHtml(who)}. `
+         + `Nothing about ${escHtml(firstName)}'s care needs your attention right now.</div>`;
+  } else {
+    tone = keys.some(k => groups[k].severity === 'HIGH') ? 'attention' : 'watch';
+    const lines = keys
+      .sort((a, b) => groups[a].rank - groups[b].rank)
+      .slice(0, 3)
+      .map(k => {
+        const g = groups[k];
+        const what = CARE_SIGNAL_WORDS[k] || 'their care';
+        return `<div style="margin-top:8px;">`
+             + `<div style="font-size:15px;line-height:1.6;color:var(--rb-text);">Your care team noted something about ${escHtml(what)}.</div>`
+             + (g.detail ? `<div style="font-size:14px;line-height:1.6;color:var(--rb-dim);margin-top:2px;">${escHtml(g.detail)}</div>` : '')
+             + `</div>`;
+      }).join('');
+    const closing = tone === 'attention'
+      ? 'Your coordinator has been notified and is following up today.'
+      : 'Your coordinator is aware and is keeping an eye on it.';
+    body = `<div style="font-size:15px;line-height:1.6;color:var(--rb-text);">`
+         + `${visitCount} visit${visitCount !== 1 ? 's' : ''} this week with ${escHtml(who)}.</div>`
+         + lines
+         + `<div style="font-size:14px;line-height:1.6;color:var(--rb-dim);margin-top:10px;">${closing}</div>`;
+  }
+
+  const accent = tone === 'attention' ? 'var(--amber)' : tone === 'watch' ? 'var(--rb-gold)' : 'var(--rb-primary)';
+  const label  = tone === 'attention' ? 'This Week, Please Read' : 'This Week';
+
+  el.innerHTML =
+    `<div style="background:var(--rb-panel);border:1px solid var(--rb-line2);border-left:3px solid ${accent};border-radius:10px;padding:14px 16px;">`
+  + `<div style="font-family:var(--rb-mono);font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:${accent};margin-bottom:8px;">${label}</div>`
+  + body
+  + `</div>`;
+  el.style.display = 'block';
+}
+
 // ── ALERT BADGES, fall risk, allergy, environment from care notes ──
 function loadAlertBadges() {
   const bannerEl = document.getElementById('alert-badges-banner');
@@ -1530,7 +1509,7 @@ function formatVitalsCompact(v) {
   }
   if (!pills.length) return '';
   const allNormal = !v.flagged;
-  return pills.join('') + (allNormal ? '<div style="font-family:var(--mono);font-size:11px;color:var(--teal2);margin-top:4px;">✓ All readings within normal range</div>' : '<div style="font-family:var(--mono);font-size:11px;color:var(--amber);margin-top:4px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;vertical-align:-0.12em;"><path d="M12 3 2 20h20L12 3zM12 9v5M12 17v.01"/></svg> Some readings flagged, coordinator notified</div>');
+  return pills.join('') + (allNormal ? '<div style="font-family:var(--mono);font-size:14px;color:var(--teal2);margin-top:4px;">✓ All readings within normal range</div>' : '<div style="font-family:var(--mono);font-size:14px;color:var(--amber);margin-top:4px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;vertical-align:-0.12em;"><path d="M12 3 2 20h20L12 3zM12 9v5M12 17v.01"/></svg> Some readings flagged, coordinator notified</div>');
 }
 
 // ── D1: Patient access log ──────────────────────────────────────────
@@ -1594,6 +1573,7 @@ async function loadPortal() {
 
 function renderAll() {
   loadETABanner();
+  loadCareWeek();
   loadAlertBadges();
   loadCarePlanAck();
   try {
@@ -1677,10 +1657,34 @@ function showTab(tab) {
       ? `Last visit: ${fmtDate(lastVisit.visit_date)}`
       : 'No visits logged yet';
 
+    /* Y4: we started recording true arrival times, which means a family can
+       now see "Arrived 7:30" against an 8:00 visit with nothing to explain it.
+       The reason is already stored, it was simply never shown. */
+    const _arrWhy = (() => {
+      const v = today_visit;
+      if (!v) return '';
+      if (v.agreed_time) {
+        const who = v.agreed_with === 'family' ? 'with you' : 'with ' + ((client.first_name) || 'the client');
+        const how = v.agreed_method === 'in_person' ? 'in person' : 'by phone';
+        return ` · agreed ${who} ${how}`;
+      }
+      const m = v.arrival_variance_min;
+      if (m == null || Math.abs(Number(m)) <= 15) return '';
+      const words = {
+        client_agreed: 'agreed with the client',
+        family_agreed: 'agreed with you',
+        no_answer: 'we could not reach anyone first',
+        back_to_back: 'visits are back to back today',
+        traffic: 'traffic',
+        other: 'arranged with the office'
+      };
+      return words[v.variance_reason] ? ` · ${words[v.variance_reason]}` : '';
+    })();
+
     const line2 = isActive
-      ? `Arrived ${today_visit.time_in ? fmtTime(today_visit.time_in) : ''} · ending about ${today_visit.time_out ? fmtTime(today_visit.time_out) : 'later today'}`
+      ? `Arrived ${today_visit.time_in ? fmtTime(today_visit.time_in) : ''}${_arrWhy} · ending about ${today_visit.time_out ? fmtTime(today_visit.time_out) : 'later today'}`
       : isComplete
-      ? `${today_visit.psw_name||'Caregiver'} · ${fmtDate(today_visit.visit_date)}`
+      ? `${today_visit.psw_name||'Caregiver'} · ${fmtDate(today_visit.visit_date)}${_arrWhy}`
       : client.next_visit_date
       ? `Next visit ${fmtDate(client.next_visit_date)}`
       : client.schedule || 'No upcoming visits scheduled';
@@ -2080,7 +2084,29 @@ function showTab(tab) {
 
   else if (tab === 'care') {
     const { client, psw } = portalData;
+    /* Y6: physician, pharmacy and emergency contact are on the client record and
+       have never appeared in the family portal. Coordination questions are one of
+       the most common reasons a family calls the office. */
+    const _careTeam = (() => {
+      const rows = [];
+      const line = (label, name, phone) => {
+        if (!name && !phone) return;
+        rows.push(
+          `<div style="display:flex;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid var(--rb-line);">`
+        + `<div><div style="font-family:var(--rb-mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);">${label}</div>`
+        + `<div style="font-size:15px;color:var(--rb-text);margin-top:2px;">${escHtml(name || 'On file')}</div></div>`
+        + (phone ? `<a href="tel:${escHtml(String(phone).replace(/[^0-9+]/g,''))}" style="font-size:15px;color:var(--rb-primary);text-decoration:none;white-space:nowrap;align-self:center;">${escHtml(phone)}</a>` : '')
+        + `</div>`);
+      };
+      line('Caregiver', psw && psw.name, psw && psw.phone);
+      line('Doctor', client.physician_name, client.physician_phone);
+      line('Pharmacy', client.pharmacy, null);
+      line('Emergency contact', client.emergency_contact_name, client.emergency_contact_phone);
+      if (!rows.length) return '';
+      return `<div class="section"><div class="section-title">Who To Call</div><div class="card" style="padding:4px 16px;">${rows.join('')}</div></div>`;
+    })();
     html = `
+      ${_careTeam}
       <div class="section">
         <div class="section-title">Care Plan</div>
         <div class="card">
@@ -2340,7 +2366,7 @@ function visitRow(v) {
         `<button class="star-btn" onclick="rateVisit('${v.id}','${(clientSlug||'')}',${s},this)" aria-label="${s} star">${starSVG(false)}</button>`
       ).join('')}<span class="stars-label">Rate this visit</span></div>`;
 
-  const hasDetail = summary || tasks || mood || v.notes;
+  const hasDetail = summary || tasks || mood || v.notes || v.visit_stage === 'not_home' || v.incident_reported;
   const detailHtml = hasDetail ? `
     <div id="${vid}" style="display:none;">
       <div class="visit-detail">
@@ -2348,6 +2374,7 @@ function visitRow(v) {
         ${mood ? `<div class="visit-detail-lbl">Client Mood</div><div class="visit-detail-val">${mood}</div>` : ''}
         ${tasks ? `<div class="visit-detail-lbl">Tasks Completed</div><div class="visit-detail-val">${tasks}</div>` : ''}
         ${v.notes ? `<div class="visit-detail-lbl">Notes</div><div class="visit-detail-val">${v.notes}</div>` : ''}
+        ${v.visit_stage === 'not_home' ? `<div class="visit-detail-lbl" style="color:var(--amber);">Nobody Home</div><div class="visit-detail-val" style="color:var(--amber);">Your caregiver arrived${v.not_home_at ? ' at ' + fmtTime(new Date(v.not_home_at).toTimeString().slice(0,5)) : ''} and could not get an answer at the door.${v.not_home_note ? ' ' + escHtml(v.not_home_note) : ''}${v.not_home_resolved ? ' This has been followed up by the office.' : ' Your coordinator has been notified.'}</div>` : ''}
         ${v.incident_reported ? `<div class="visit-detail-lbl" style="color:var(--error);">Incident Reported</div><div class="visit-detail-val" style="color:var(--error);">An incident was reported during this visit. Your coordinator has been notified.</div>` : ''}
         ${v.meds_given && Array.isArray(v.meds_given) && v.meds_given.length ? `<div class="visit-detail-lbl">Medications Given</div><div class="visit-detail-val">${v.meds_given.join(', ')}</div>` : ''}
         ${(window._visitVitals && window._visitVitals[v.id]) ? `<div class="visit-detail-lbl">Health Readings</div><div class="vitals-compact">${formatVitalsCompact(window._visitVitals[v.id])}</div>` : ''}

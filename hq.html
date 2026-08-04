@@ -25,7 +25,7 @@ async function resendOnboardLink(applicantId, firstName, btn) {
   try {
     const res = await fetch(`${API}/psw/onboard/init`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'x-hq-token': window._hqToken || sessionStorage.getItem('hq_token') || '' },
       body: JSON.stringify({ applicant_id: applicantId, operator_id: currentOp })
     });
     const d = await res.json();
@@ -6202,7 +6202,7 @@ async function openFamilyThread(slug, name) {
     body.innerHTML = msgs.map(m => `
       <div class="msg-bubble ${m.sender==='hq'?'msg-lance':'msg-psw'}">
         <div style="font-size:13px;line-height:1.5;">${escHtml(m.message||'')}</div>
-        <div class="msg-time">${ago(m.created_at)}</div>
+        <div class="msg-time">${ago(m.created_at)}${m.sender!=='family' ? (m.read_at ? ' · Read ' + ago(m.read_at) : ' · Not read yet') : ''}</div>
       </div>`).join('');
     body.scrollTop = body.scrollHeight;
   } catch { body.innerHTML = '<div class="empty-state" style="padding:16px;">Could not load</div>'; }
@@ -6576,6 +6576,7 @@ async function renderVisits() {
           ${v.visit_stage === 'not_home' ? `<div style="margin-bottom:10px;padding:8px 12px;background:rgba(224,154,61,.06);border:1px solid rgba(224,154,61,.25);border-radius:6px;font-family:var(--mono);font-size:12px;color:var(--amber);line-height:1.7;">Client not home${v.not_home_at ? ` at ${fmtTime(new Date(v.not_home_at).toTimeString().slice(0,5))}` : ''}${v.checkin_distance_m != null ? `, ${v.checkin_distance_m}m from the address` : ''}<div>${v.not_home_note ? 'Note: ' + v.not_home_note : 'No note given.'}</div></div>` : ''}
           ${(_gfOver || _coOver) ? `<div style="margin-bottom:10px;padding:8px 12px;background:rgba(224,154,61,.06);border:1px solid rgba(224,154,61,.25);border-radius:6px;font-family:var(--mono);font-size:12px;color:var(--amber);line-height:1.7;">Location variance${_gfOver ? `<div>Sign in ${v.checkin_distance_m}m away. ${v.geofence_override_reason ? 'Reason: ' + v.geofence_override_reason : 'Acknowledged, no reason given.'}</div>` : ''}${_coOver ? `<div>Sign out ${v.checkout_distance_m}m away. ${v.checkout_override_reason ? 'Reason: ' + v.checkout_override_reason : 'Acknowledged, no reason given.'}</div>` : ''}${v.geofence_override_by ? `<div style="color:var(--muted2);">Recorded for ${v.geofence_override_by}</div>` : ''}</div>` : ''}
           ${(_arrVar != null || v.agreed_time) ? `<div style="margin-bottom:10px;padding:8px 12px;background:${_arrOut ? 'rgba(224,154,61,.06)' : 'rgba(61,138,122,.05)'};border:1px solid ${_arrOut ? 'rgba(224,154,61,.25)' : 'rgba(61,138,122,.2)'};border-radius:6px;font-family:var(--mono);font-size:12px;color:${_arrOut ? 'var(--amber)' : 'var(--teal2)'};line-height:1.7;">Arrival time${_arrVar != null ? `<div>Signed in ${_arrWord} against the ${v.agreed_time ? 'agreed' : 'scheduled'} time.${_arrOut ? '' : ' Within tolerance.'}</div>` : ''}${v.variance_reason ? `<div>Reason: ${HQ_VARIANCE_LABELS[v.variance_reason] || v.variance_reason}</div>` : (_arrOut ? `<div>No reason recorded.</div>` : '')}${v.agreed_time ? `<div style="color:var(--muted2);">Agreed ${String(v.agreed_time).slice(0,5)} with ${HQ_AGREED_WITH_LABELS[v.agreed_with] || v.agreed_with || 'unknown'}${HQ_AGREED_METHOD_LABELS[v.agreed_method] ? ' ' + HQ_AGREED_METHOD_LABELS[v.agreed_method] : ''}${v.agreed_by ? ', logged by ' + v.agreed_by : ''}.</div>` : ''}${v.agreed_note ? `<div style="color:var(--muted2);">Note: ${v.agreed_note}</div>` : ''}</div>` : ''}
+          ${v.travel_distance_m != null ? `<div style="margin-bottom:10px;padding:8px 12px;background:rgba(61,138,122,.05);border:1px solid rgba(61,138,122,.2);border-radius:6px;font-family:var(--mono);font-size:12px;color:var(--teal2);line-height:1.7;">Travel to this visit<div style="color:var(--muted2);">${(v.travel_distance_m/1000).toFixed(1)} km${v.travel_duration_s ? ", about " + Math.round(v.travel_duration_s/60) + " min drive" : ""}</div></div>` : ''}
           ${(v.hq_edited || v.verified) ? `<div style="margin-bottom:10px;padding:8px 12px;background:rgba(201,169,110,.06);border:1px solid rgba(201,169,110,.25);border-radius:6px;font-family:var(--mono);font-size:12px;color:var(--gold);line-height:1.7;">Record history${v.hq_edited ? `<div>Times edited${v.hq_edited_by ? ' by ' + escHtml(v.hq_edited_by) : ''}${v.hq_edited_at ? ' on ' + new Date(v.hq_edited_at).toLocaleString('en-CA', { timeZone:'America/Toronto', year:'numeric', month:'short', day:'numeric', hour:'2-digit', minute:'2-digit', hour12:false }) : ''}.</div>` : ''}${(v.original_time_in || v.original_time_out) ? `<div style="color:var(--muted2);">Was ${v.original_time_in ? fmtTime(String(v.original_time_in).slice(0,5)) : (v.time_in ? fmtTime(String(v.time_in).slice(0,5)) : 'not set')} to ${v.original_time_out ? fmtTime(String(v.original_time_out).slice(0,5)) : (v.time_out ? fmtTime(String(v.time_out).slice(0,5)) : 'not set')}, now ${v.time_in ? fmtTime(String(v.time_in).slice(0,5)) : 'not set'} to ${v.time_out ? fmtTime(String(v.time_out).slice(0,5)) : 'not set'}.</div>` : ''}${v.manual_hours_override != null ? `<div style="color:var(--muted2);">Hours set manually to ${Number(v.manual_hours_override).toFixed(2)}.</div>` : ''}${v.hq_notes ? `<div style="color:var(--muted2);">Reason: ${escHtml(v.hq_notes)}</div>` : ''}${v.verified ? `<div style="color:var(--teal2);">Verified${v.verified_by ? ' by ' + escHtml(v.verified_by) : ''}${v.verified_at ? ' on ' + new Date(v.verified_at).toLocaleString('en-CA', { timeZone:'America/Toronto', year:'numeric', month:'short', day:'numeric', hour:'2-digit', minute:'2-digit', hour12:false }) : ''}.</div>` : ''}</div>` : ''}
           ${tasks?`<div style="margin-bottom:10px;"><div style="font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:4px;">Tasks Completed</div><div style="color:var(--muted2);">${tasks}</div></div>`:''}
           ${mood?`<div style="margin-bottom:10px;"><div style="font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:4px;">Client Mood</div><div style="color:var(--text);">${mood}</div></div>`:''}
@@ -7502,7 +7503,7 @@ async function initiateOnboarding(applicantId, email) {
   if(!email) { showToast('No email on file for this applicant','err'); return; }
   try {
     const res = await fetch(`${API}/psw/onboard/init`, {
-      method:'POST', headers:{'Content-Type':'application/json'},
+      method:'POST', headers:{'Content-Type':'application/json', 'x-hq-token': window._hqToken || sessionStorage.getItem('hq_token') || ''},
       body: JSON.stringify({applicant_id: applicantId, operator_id: currentOp})
     });
     const data = await res.json();
@@ -7547,7 +7548,7 @@ async function saveAssessment(clientId, slug, triggerIntake) {
 async function approveDocsAndSendInterviewPicker(applicantId, name) {
   try {
     const res = await fetch(`${API}/psw/docs-approved`, {
-      method: 'POST', headers: {'Content-Type':'application/json'},
+      method: 'POST', headers: {'Content-Type':'application/json', 'x-hq-token': window._hqToken || sessionStorage.getItem('hq_token') || ''},
       body: JSON.stringify({ operator_id: currentOp, applicant_id: applicantId })
     });
     const d = await res.json();
@@ -7632,7 +7633,7 @@ async function qualifyApplicant(id) {
   try {
     const res = await fetch(`${API}/psw/qualify`, {
       method:'POST',
-      headers:{'Content-Type':'application/json'},
+      headers:{'Content-Type':'application/json', 'x-hq-token': window._hqToken || sessionStorage.getItem('hq_token') || ''},
       body: JSON.stringify({applicant_id: id, operator_id: currentOp})
     });
     if(!res.ok) throw new Error();
@@ -15003,6 +15004,28 @@ async function saveTimeOff() {
   const note     = document.getElementById('to-note').value.trim();
   if (!psw_name || !from_date || !to_date) { showToast('PSW and dates are required','err'); return; }
   if (from_date > to_date) { showToast('From date must be before To date','err'); return; }
+
+  /* U2: approving leave without seeing what it breaks is how a shift goes
+     uncovered. HQ already holds D.bookings, so this costs nothing. It reports,
+     it does not block, because leave is usually approved for a reason and the
+     coverage problem is yours to solve after. */
+  const _hit = (D.bookings || []).filter(b =>
+    b.assigned_to === psw_name &&
+    b.status !== 'cancelled' &&
+    (b.scheduled_date || '') >= from_date &&
+    (b.scheduled_date || '') <= to_date
+  ).sort((a, b) => String(a.scheduled_date).localeCompare(String(b.scheduled_date)));
+
+  if (_hit.length) {
+    const _who = _hit[0].client_name || 'a client';
+    const _shown = _hit.slice(0, 5)
+      .map(b => `${b.scheduled_date}${b.scheduled_time ? ' ' + b.scheduled_time : ''} ${b.client_name || ''}`.trim())
+      .join('\n');
+    const _more = _hit.length > 5 ? `\nand ${_hit.length - 5} more` : '';
+    if (!confirm(
+      `${psw_name.split(' ')[0]} has ${_hit.length} shift${_hit.length !== 1 ? 's' : ''} booked in that period, starting with ${_who}.\n\n${_shown}${_more}\n\nThese stay assigned and will need cover. Save the time off anyway?`
+    )) { showToast('Time off not saved', 'warn'); return; }
+  }
   try {
     const r = await fetch(`${API}/hq/psw-time-off`, {
       method: 'POST',
