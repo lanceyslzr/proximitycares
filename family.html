@@ -237,7 +237,7 @@ button:active{transform:scale(0.98);}
 .tb-signout:hover{color:var(--text);}
 
 /* CONTENT */
-.content{flex:1;padding:24px 20px;padding-bottom:calc(96px + env(safe-area-inset-bottom));max-width:min(560px,calc(100vw - 24px));max-width:calc(100vw - 24px);margin:0 auto;width:100%;transition:opacity 150ms ease;}
+.content{flex:1;padding:24px 20px;padding-bottom:calc(96px + env(safe-area-inset-bottom));max-width:min(560px,calc(100vw - 24px));margin:0 auto;width:100%;transition:opacity 150ms ease;}
 
 /* STATUS CARD */
 .status-card{background:var(--green);border-radius:20px;padding:28px 24px;margin-bottom:24px;color:#fff;position:relative;overflow:hidden;}
@@ -589,6 +589,26 @@ button:active{transform:scale(0.98);}
 .upcoming-row,.card-row{flex-wrap:wrap;}
 .upcoming-row>*,.card-row>*{min-width:0;}
 .msg-bubble-in,.msg-bubble-out,.fam-alert-msg,.status-detail,.visit-detail-val{overflow-wrap:anywhere;}
+/* ── AF: VISITS ROW COMPACTION ──────────────────────────────────────
+   .visit-action-btn was a full width block under every upcoming row:
+   margin-top 8px plus min-height 38px is 46px per row, and with seven
+   upcoming visits that is over 300px of button, about a third of a phone
+   screen. The row already had an empty right hand column, which the past
+   visit rows use for the hours figure, so the action moves there.
+
+   Touch target stays at 44px through padding, not through height, so the
+   row itself gets shorter while the tap area does not. */
+.visit-action-link{
+  flex-shrink:0; align-self:center;
+  display:inline-flex; align-items:center; gap:4px;
+  min-height:44px; padding:0 4px 0 10px;
+  background:none; border:none; cursor:pointer;
+  font-family:var(--rb-mono); font-size:10px; letter-spacing:.5px;
+  text-transform:uppercase; color:var(--rb-primary);
+  touch-action:manipulation; white-space:nowrap;
+}
+.visit-action-link:hover{ color:var(--rb-text); }
+.visit-action-link:active{ opacity:.6; }
 @media(max-width:768px){
   .card{width:100%;max-width:100%;margin-inline:0}
   .section{padding:0 12px 12px}
@@ -1032,11 +1052,6 @@ button:active{transform:scale(0.98);}
   font-size:18px; cursor:pointer; touch-action:manipulation; display:flex; align-items:center; justify-content:center; }
 
 /* ╔═══ FAMILY, SCHEDULE WORKFLOW (reschedule / pause / resume) ═══╗ */
-.visit-action-btn{ margin-top:8px; background:rgba(52,211,153,.08); color:var(--rb-primary);
-  border:1px solid rgba(52,211,153,.28); border-radius:8px; padding:7px 12px; font-size:11px;
-  font-family:var(--rb-mono); letter-spacing:.5px; text-transform:uppercase; cursor:pointer;
-  touch-action:manipulation; min-height:38px; transition:background var(--t2) var(--e); }
-.visit-action-btn:hover{ background:rgba(52,211,153,.14); }
 .care-pause-banner{ width:100%; display:flex; align-items:center; gap:14px; padding:15px 16px;
   background:linear-gradient(160deg,var(--rb-panel),var(--rb-base)); border:1px solid var(--rb-line);
   border-radius:14px; cursor:pointer; text-align:left; touch-action:manipulation; min-height:60px;
@@ -1081,6 +1096,37 @@ button:active{transform:scale(0.98);}
   color:var(--rb-primary); font-size:30px; display:flex; align-items:center; justify-content:center;
   box-shadow:0 0 30px -6px color-mix(in srgb,var(--rb-primary) 50%,transparent); }
 .sched-confirm .sched-sheet-title,.sched-confirm .sched-sheet-sub{ text-align:center; }
+/* ── AF3: DESKTOP ────────────────────────────────────────────────────
+   This portal had ZERO min-width rules, so it was a phone layout stretched
+   to whatever the monitor was. HQ has six min-width breakpoints and swaps
+   its bottom nav for a sidebar at 900px, which is right for ten sections
+   used daily, and heavier than a six tab portal a family opens for a
+   minute needs.
+
+   So the nav stays at the bottom and is constrained to the same reading
+   column as the content, which AF2 restored to 560px. On a phone nothing
+   changes, this block never applies below 900px. On a monitor the bar
+   stops spanning the full width and reads as part of the page.
+
+   Deliberately NOT moving the nav under the header: that needs
+   position:fixed with a top offset matched to the topbar height, and the
+   topbar height is set by its own padding rather than a fixed value. Two
+   coupled measurements that cannot be verified without rendering it. */
+@media(min-width:900px){
+  .bottom-nav{
+    left:50%; right:auto;
+    transform:translateX(-50%);
+    width:min(560px, calc(100vw - 24px));
+    border:1px solid var(--border);
+    border-bottom:none;
+    border-radius:16px 16px 0 0;
+    overflow:hidden;
+  }
+  /* The bar is 8px shorter without the safe area inset a phone needs, so
+     the content padding comes back by the same amount rather than being
+     guessed at. */
+  .content{ padding-bottom:88px; }
+}
 </style>
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..600;1,9..144,300..500&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -1244,6 +1290,30 @@ const MONTH_NAMES = ['January','February','March','April','May','June',
 function fmtMonth(m) {
   const i = Number(m);
   return (Number.isInteger(i) && i >= 1 && i <= 12) ? MONTH_NAMES[i - 1] : (m == null ? '' : String(m));
+}
+
+/* AE2: task_photos holds either a legacy full public URL, written before the
+   photo route existed, or a bare storage path, written after. Both resolve to
+   the same object, so strip everything up to the bucket marker and hand the
+   path to the signed photo route.
+
+   The bucket is private on purpose. These are photographs taken inside a
+   client's home, and a permanent public object URL would be readable by anyone
+   who ever saw the link. The route checks the PIN and confirms the photo
+   belongs to this client before signing it for 300 seconds. */
+function famPhotoPath(u) {
+  if (!u) return '';
+  const marker = '/visit-photos/';
+  const s = String(u);
+  const i = s.indexOf(marker);
+  return i >= 0 ? s.slice(i + marker.length) : s;
+}
+
+function famPhotoUrl(u) {
+  const p = famPhotoPath(u);
+  if (!p) return '';
+  const s = slug || clientSlug || '';
+  return `${R}/family/visit-photo/${encodeURIComponent(s)}?pin=${encodeURIComponent(famPin())}&path=${encodeURIComponent(p)}`;
 }
 
 function famPin() {
@@ -1966,7 +2036,7 @@ function showTab(tab) {
         const _vstLbl = b.status === 'cancelled' ? 'CANCELLED' : b.status === 'on_hold' ? 'ON HOLD' : 'SCHEDULED';
         const _vstStyle = _vst === 'cancelled' ? 'border:1px solid rgba(224,85,85,.35);color:#e07777;' : _vst === 'onhold' ? 'border:1px solid rgba(130,130,130,.4);color:#9a9a9a;' : 'border:1px solid rgba(52,211,153,.3);color:var(--teal2);';
         const _vRsn = (_vst !== 'scheduled' && b.status_reason) ? escHtml(b.status_reason) : '';
-        return `<div style="display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--border);align-items:flex-start;${_vst!=='scheduled'?'opacity:.72;':''}">
+        return `<div style="display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--border);align-items:center;${_vst!=='scheduled'?'opacity:.72;':''}">
           <div style="text-align:center;min-width:36px;flex-shrink:0;">
             <div style="font-size:10px;color:var(--muted);font-family:var(--mono);text-transform:uppercase;">${bDay}</div>
             <div style="font-size:22px;font-weight:700;color:var(--teal2);line-height:1;">${bNum}</div>
@@ -1977,8 +2047,8 @@ function showTab(tab) {
               <span style="font-family:var(--mono);font-size:10px;letter-spacing:1px;padding:2px 7px;border-radius:100px;${_vstStyle}">${_vstLbl}</span>
             </div>
             <div style="font-size:12px;color:var(--muted);">${b.scheduled_time ? fmtTime(b.scheduled_time) : 'Time TBD'}${_vRsn?' · '+_vRsn:''}</div>
-            ${_vst==='scheduled' ? `<button onclick="openVisitActions('${b.id||''}','${b.visit_date}','${encodeURIComponent(b.psw_name||'PSW')}','${b.scheduled_time||''}')" class="visit-action-btn">Request a change</button>` : ''}
           </div>
+          ${_vst==='scheduled' ? `<button onclick="openVisitActions('${b.id||''}','${b.visit_date}','${encodeURIComponent(b.psw_name||'PSW')}','${b.scheduled_time||''}')" class="visit-action-link" aria-label="Request a change to this visit">Change &rsaquo;</button>` : ''}
         </div>`;
       }).join('');
     // Group joint visits into single merged rows before rendering
@@ -2067,7 +2137,7 @@ function showTab(tab) {
           <span class="pg-chev" id="pg-chev-${gi}">${gi===0?'&#9650;':'&#9660;'}</span>
         </button>
         <div class="photo-group-body${gi===0?' open':''}" id="pg-body-${gi}">
-          <div class="photo-grid">${v.task_photos.map(url=>`<button class="photo-cell" onclick="famLightbox('${url}')"><img src="${url}" alt="Visit photo from ${d}" loading="lazy"></button>`).join('')}</div>
+          <div class="photo-grid">${v.task_photos.map(url=>`<button class="photo-cell" onclick="famLightbox('${famPhotoUrl(url)}')"><img src="${famPhotoUrl(url)}" alt="Visit photo from ${d}" loading="lazy"></button>`).join('')}</div>
         </div>
       </div>`;
     }).join('')}</div></div>` : '';
