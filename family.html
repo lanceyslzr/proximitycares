@@ -11,6 +11,12 @@
 <meta name="apple-mobile-web-app-title" content="Care Portal"/>
 <meta name="application-name" content="Care Portal"/>
 <meta name="theme-color" content="#0a0e14"/>
+<!-- AD5: without this, Chrome on Android treats the page as light mode content
+     and applies Auto Dark Theme, which hue shifts the palette. That is why the
+     green accent rendered blue on a real phone while the CSS was correct:
+     --accent resolves to var(--rb-primary) which is #34D399. Declaring the
+     scheme tells the browser the page is already dark and to leave it alone. -->
+<meta name="color-scheme" content="dark"/>
 <link rel="manifest" href="family-manifest.json"/>
 <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png"/>
 <link rel="apple-touch-icon" href="/icon-192.png"/>
@@ -1233,6 +1239,13 @@ let famCustomTo = '';
 
    Reads pinVal first, then sessionStorage, so a reload that restored the PIN
    into storage but not yet into the global still works. */
+const MONTH_NAMES = ['January','February','March','April','May','June',
+  'July','August','September','October','November','December'];
+function fmtMonth(m) {
+  const i = Number(m);
+  return (Number.isInteger(i) && i >= 1 && i <= 12) ? MONTH_NAMES[i - 1] : (m == null ? '' : String(m));
+}
+
 function famPin() {
   const s = slug || clientSlug || '';
   try { return pinVal || sessionStorage.getItem('family_pin_' + s) || ''; }
@@ -1431,7 +1444,7 @@ function loadCareWeek() {
       const key = s.type;
       const rank = { HIGH: 0, MED: 1, LOW: 2 }[s.severity] ?? 3;
       if (!groups[key] || rank < groups[key].rank) {
-        groups[key] = { rank, severity: s.severity, detail: s.detail || '', date: v.visit_date };
+        groups[key] = { rank, severity: s.severity, date: v.visit_date };
       }
     });
   });
@@ -1446,20 +1459,25 @@ function loadCareWeek() {
   let tone = 'calm';
 
   if (!keys.length) {
-    body = `<div style="font-size:15px;line-height:1.6;color:var(--rb-text);">`
-         + `${visitCount} visit${visitCount !== 1 ? 's' : ''} this week with ${escHtml(who)}. `
-         + `Nothing about ${escHtml(firstName)}'s care needs your attention right now.</div>`;
+    body = `${visitCount} visit${visitCount !== 1 ? 's' : ''} this week with ${escHtml(who)}. `
+         + `Nothing about ${escHtml(firstName)}'s care needs your attention right now.`;
   } else {
     tone = keys.some(k => groups[k].severity === 'HIGH') ? 'attention' : 'watch';
     const lines = keys
       .sort((a, b) => groups[a].rank - groups[b].rank)
       .slice(0, 3)
       .map(k => {
-        const g = groups[k];
         const what = CARE_SIGNAL_WORDS[k] || 'their care';
+        /* AD1: g.detail is NOT rendered, and must not be. The AI writes it from
+           PHIPA anonymised input, so it refers to the client as CLIENT-A rather
+           than by name, and it is written for the office: "documented per
+           Ontario standards, a pattern of refusal warrants monitoring". A
+           daughter should never read her mother called CLIENT-A, and that
+           sentence is a compliance note, not news about her mother.
+           The plain line above already says what changed, which was the entire
+           point of this card. */
         return `<div style="margin-top:8px;">`
              + `<div style="font-size:15px;line-height:1.6;color:var(--rb-text);">Your care team noted something about ${escHtml(what)}.</div>`
-             + (g.detail ? `<div style="font-size:14px;line-height:1.6;color:var(--rb-dim);margin-top:2px;">${escHtml(g.detail)}</div>` : '')
              + `</div>`;
       }).join('');
     const closing = tone === 'attention'
@@ -1473,6 +1491,17 @@ function loadCareWeek() {
 
   const accent = tone === 'attention' ? 'var(--amber)' : tone === 'watch' ? 'var(--rb-gold)' : 'var(--rb-primary)';
   const label  = tone === 'attention' ? 'This Week, Please Read' : 'This Week';
+
+  /* AD2: a quiet week is the common case, and it was rendering a bordered panel
+     with an uppercase eyebrow to say nothing is wrong. That is roughly half a
+     phone screen spent on the least information. One quiet line instead, and
+     the panel is kept for the weeks that have something to say. */
+  if (tone === 'calm') {
+    el.innerHTML =
+      `<div style="font-size:15px;line-height:1.6;color:var(--rb-dim);padding:2px;">${body}</div>`;
+    el.style.display = 'block';
+    return;
+  }
 
   el.innerHTML =
     `<div style="background:var(--rb-panel);border:1px solid var(--rb-line2);border-left:3px solid ${accent};border-radius:10px;padding:14px 16px;">`
@@ -1947,8 +1976,8 @@ function showTab(tab) {
               <span style="font-size:13px;font-weight:600;color:var(--text);">${b.psw_name || 'PSW Assigned'}</span>
               <span style="font-family:var(--mono);font-size:10px;letter-spacing:1px;padding:2px 7px;border-radius:100px;${_vstStyle}">${_vstLbl}</span>
             </div>
-            <div style="font-size:12px;color:var(--muted);">${b.time_in ? fmtTime(b.time_in) : 'Time TBD'}${_vRsn?' · '+_vRsn:''}</div>
-            ${_vst==='scheduled' ? `<button onclick="openVisitActions('${b.id||''}','${b.visit_date}','${encodeURIComponent(b.psw_name||'PSW')}','${b.time_in||''}')" class="visit-action-btn">Request a change</button>` : ''}
+            <div style="font-size:12px;color:var(--muted);">${b.scheduled_time ? fmtTime(b.scheduled_time) : 'Time TBD'}${_vRsn?' · '+_vRsn:''}</div>
+            ${_vst==='scheduled' ? `<button onclick="openVisitActions('${b.id||''}','${b.visit_date}','${encodeURIComponent(b.psw_name||'PSW')}','${b.scheduled_time||''}')" class="visit-action-btn">Request a change</button>` : ''}
           </div>
         </div>`;
       }).join('');
@@ -2266,7 +2295,7 @@ function showTab(tab) {
             ? invoices.map(inv => `
               <div class="inv-row">
                 <div>
-                  <div class="inv-month">${inv.month} ${inv.year}</div>
+                  <div class="inv-month">${fmtMonth(inv.month)} ${inv.year}</div>
                   <div style="font-size:12px;color:var(--muted);margin-top:2px;">${inv.total_hours} hours</div>
                 </div>
                 <div class="inv-right">
