@@ -1222,6 +1222,40 @@ let famVisitRange = 'month';
 let famCustomFrom = '';
 let famCustomTo = '';
 
+/* AB3: the family PIN is validated once at /family/verify-pin and then never
+   sent again, so every data route has been reachable by slug alone. The slug is
+   not a secret: the twelve clients imported in April have slugs of the form
+   first initial plus surname.
+
+   These helpers send the PIN the portal already holds. Declared here in the
+   globals rather than beside the first caller, because five functions above and
+   below use them and a const below its consumer is a temporal dead zone.
+
+   Reads pinVal first, then sessionStorage, so a reload that restored the PIN
+   into storage but not yet into the global still works. */
+function famPin() {
+  const s = slug || clientSlug || '';
+  try { return pinVal || sessionStorage.getItem('family_pin_' + s) || ''; }
+  catch (e) { return pinVal || ''; }
+}
+
+/* Appends the pin as a query param. GET routes cannot carry a body, and the SSE
+   call in this file already uses this exact shape, so this is consistent with
+   what the portal does today rather than a new convention. */
+function famUrl(path) {
+  return `${R}${path}${path.includes('?') ? '&' : '?'}pin=${encodeURIComponent(famPin())}`;
+}
+
+/* A 401 means the PIN is wrong or the session is stale. signOut() already
+   clears the stored PIN and returns to the lock screen using the class based
+   show and hide this file uses. My first version set inline display styles,
+   which would not have worked because the gate is toggled by class. */
+function famHandle401(res) {
+  if (!res || res.status !== 401) return false;
+  if (typeof signOut === 'function') signOut();
+  return true;
+}
+
 const params = new URLSearchParams(window.location.search);
 slug = params.get('c') || params.get('slug') || ''; clientSlug = slug;
 
@@ -1326,7 +1360,8 @@ async function loadETABanner() {
     const etaText = document.getElementById('eta-text');
     const etaTime = document.getElementById('eta-time');
     if (!banner) return;
-    const r = await fetch(`${R}/family/portal/${clientSlug}`);
+    const r = await fetch(famUrl(`/family/portal/${clientSlug}`));
+    if (famHandle401(r)) return;
     if (!r.ok) return;
     const d = await r.json();
     const tv = d.today_visit || (d.visits || []).find(v => v.visit_stage === 'en_route' || v.visit_stage === 'running_late');
@@ -1543,7 +1578,8 @@ async function loadAccessLog() {
 
 async function loadPortal() {
   try {
-    const r = await fetch(`${R}/family/portal/${slug}`);
+    const r = await fetch(famUrl(`/family/portal/${slug}`));
+    if (famHandle401(r)) return;
     portalData = await r.json();
     // WHITE LABEL, inject operator branding
     if (portalData.branding) {
@@ -2494,7 +2530,8 @@ function renderMsgThread(messages) {
 
 async function loadFamilyMessages() {
   try {
-    const res = await fetch(`${R}/family/portal/${slug}`);
+    const res = await fetch(famUrl(`/family/portal/${slug}`));
+    if (famHandle401(res)) return;
     const d = await res.json();
     if (d.messages) {
       const thread = document.getElementById('home-msg-thread');
@@ -2566,7 +2603,8 @@ function initRealtime() {
     }, async (payload) => {
       // C1: Visit changed, refresh portal data and show live toast
       try {
-        const res = await fetch(`${R}/family/portal/${slug}`);
+        const res = await fetch(famUrl(`/family/portal/${slug}`));
+        if (famHandle401(res)) return;
         const d   = await res.json();
         if (d.success) {
           const wasActive = portalData?.today_visit?.status === 'in_progress';
@@ -2615,7 +2653,8 @@ function startPollingFallback() {
   _pollTimer = setInterval(async () => {
     try {
       if (!slug || !portalData) return;
-      const res = await fetch(`${R}/family/portal/${slug}`);
+      const res = await fetch(famUrl(`/family/portal/${slug}`));
+      if (famHandle401(res)) return;
       const d   = await res.json();
       if (d.success) {
         portalData = d;
@@ -2779,7 +2818,8 @@ async function downloadCarePlanPDF() {
   if (!portalData || !clientSlug) return;
   try {
     showToast('Generating PDF...');
-    const res = await fetch(`${R}/family/care-plan-pdf/${clientSlug}`);
+    const res = await fetch(famUrl(`/family/care-plan-pdf/${clientSlug}`));
+    if (famHandle401(res)) return;
     if (!res.ok) throw new Error('Could not generate PDF');
     const blob = await res.blob();
     const url = URL.createObjectURL(blob);
@@ -2798,7 +2838,8 @@ async function downloadVisitsReport() {
   if (!clientSlug) return;
   try {
     showToast('Generating report...');
-    const res = await fetch(`${R}/family/visits-report/${clientSlug}`);
+    const res = await fetch(famUrl(`/family/visits-report/${clientSlug}`));
+    if (famHandle401(res)) return;
     if (!res.ok) throw new Error('Could not generate report');
     const blob = await res.blob();
     const url = URL.createObjectURL(blob);
@@ -2897,7 +2938,7 @@ async function submitCarePause(btn){
       if(btn){ btn.disabled = true; btn.textContent = 'Sending...'; }
       const res = await fetch(`${R}/family/time-off`, {
         method:'POST', headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({ slug: clientSlug || slug, from_date: from, until_date: to, reason })
+        body: JSON.stringify({ slug: clientSlug || slug, from_date: from, until_date: to, reason, pin: famPin() })
       });
       const d = await res.json();
       if(!res.ok || !d.success) throw new Error(d.error||'Failed');
