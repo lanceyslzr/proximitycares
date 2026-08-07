@@ -5082,7 +5082,7 @@ function renderClients() {
 async function loadCarePlan(slug) {
   if (!slug) return;
   try {
-    const res = await fetch(`${API}/family/portal/${slug}`);
+    const res = await hqFetch(`${API}/family/portal/${slug}`);
     const d = await res.json();
     if (d.care_plan) {
       const cp = d.care_plan;
@@ -6210,7 +6210,7 @@ async function openFamilyThread(slug, name) {
   nameEl.textContent = name;
   body.innerHTML = '<div class="empty-state" style="padding:16px;">Loading...</div>';
   try {
-    const r = await fetch(`${API}/family/portal/${slug}`);
+    const r = await hqFetch(`${API}/family/portal/${slug}`);
     const d = await r.json();
     const msgs = d.messages || [];
     if (!msgs.length) { body.innerHTML = '<div class="empty-state" style="padding:16px;">No messages yet</div>'; return; }

@@ -3550,9 +3550,21 @@ async function doCheckOut() {
   const voiceNoteUrl = window._voiceNoteUrl || null;
   let taskPhotoUrls = [];
   let _photoFailed = 0;
+  let _photoEmpty = 0;
   const photoFiles = document.getElementById('co-photos')?.files;
   if (photoFiles && photoFiles.length && navigator.onLine) {
     for (const file of Array.from(photoFiles).slice(0, 4)) {
+      // Defence in depth. previewPhotos already refuses a zero byte file at
+      // selection, but that only runs on the onchange handler, and the input can
+      // be populated without it. Never PUT a file with no bytes and never write
+      // its path: an empty object returns 200 with Content-Length 0, so the
+      // family portal renders a broken image icon for a photo that appears to
+      // have uploaded fine.
+      //
+      // Counted separately from _photoFailed on purpose. "did not upload" tells a
+      // PSW to check their signal, which is the wrong action here. An empty file
+      // needs retaking, not retrying.
+      if (!file.size) { _photoEmpty++; continue; }
       try {
         const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
         const path = `${(pswName||'psw').replace(/\s+/g,'_').toLowerCase()}/${activeVisit.id}_${Date.now()}.${ext}`;
@@ -3584,6 +3596,11 @@ async function doCheckOut() {
   // client's home by a bad connection. Warn once and let them re-add later.
   if (_photoFailed > 0) {
     showToast(_photoFailed + ' photo' + (_photoFailed !== 1 ? 's' : '') + ' did not upload. Visit will still submit', 'warn');
+  }
+  // Separate message from the one above. An empty capture is not a connection
+  // problem, so telling the PSW to retry would send them down the wrong path.
+  if (_photoEmpty > 0) {
+    showToast(_photoEmpty + ' photo' + (_photoEmpty !== 1 ? 's' : '') + ' captured empty and were not saved. Please retake them', 'warn');
   }
   // Refusal of care data
   const refusalData = getRefusals();
@@ -6545,6 +6562,25 @@ function previewPhotos(input) {
   const MAX_SIZE = 5 * 1024 * 1024; // 5MB
   const validFiles = [];
   Array.from(input.files).slice(0,4).forEach(file => {
+    // Visit photos have been writing ZERO BYTES since roughly July 9. Measured,
+    // not inferred: the June 2 object is a healthy 3,642,561 byte JPEG, and the
+    // July 9, July 14 and August 4 objects are all Content-Length 0 with the
+    // empty file ETag d41d8cd98f00b204e9800998ecf8427e. No photo upload code
+    // changed between May 19 and August 3, so no commit caused it.
+    //
+    // This guard does not fix the cause, which is still capture side, Supabase
+    // side, or server side. It converts a silent failure into one the caregiver
+    // can act on. Caught HERE rather than only at checkout on purpose: at
+    // selection the PSW is still in the home and can retake the photo. At
+    // checkout they have often already left.
+    //
+    // A zero byte file also PUTs successfully, so putRes.ok is true and the path
+    // gets written to visits.task_photos. Every existing guard checks whether the
+    // REQUEST failed, never whether the FILE had bytes.
+    if (!file.size) {
+      showToast('Photo did not capture. Please take it again', 'err');
+      return;
+    }
     if (file.size > MAX_SIZE) {
       showToast(file.name.slice(0,20) + ' too large (max 5MB)', 'err');
       return;

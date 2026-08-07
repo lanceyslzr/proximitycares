@@ -55,7 +55,7 @@ html,body{min-height:100vh;font-family:var(--sans),sans-serif;background:var(--b
 /* TOPBAR */
 .tb-brand{font-family:var(--mono);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--teal2);flex:1;min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
 .tb-right{display:flex;align-items:center;gap:8px;flex-shrink:0;}
-.tb-name{font-size:13px;color:var(--muted);font-weight:500;max-width:90px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;font-size:11px;}
+.tb-name{font-size:13px;color:var(--muted);font-weight:500;max-width:90px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
 
 /* CONTENT */
 
@@ -191,6 +191,11 @@ button:active{transform:scale(0.98);}
   --mono:'DM Mono',monospace;
   --sans:var(--rb-sans);
   --serif:var(--rb-serif);
+  /* --safe-bottom was USED at .nav-bar L641 and never defined. An undefined
+     var makes max(6px,var(--safe-bottom)) invalid, so the browser dropped the
+     WHOLE padding declaration and the bottom nav lost its safe area inset.
+     Defined here to match the eight existing env(safe-area-inset-bottom) uses. */
+  --safe-bottom:env(safe-area-inset-bottom);
   /* Legacy aliases */
   --success:#4a9a6e;
   --warning:#e09a3d;
@@ -1033,7 +1038,7 @@ button:active{transform:scale(0.98);}
   background:none; border:none; cursor:pointer; text-align:left; touch-action:manipulation; min-height:48px; }
 .pg-date{ font-family:var(--rb-sans); font-size:13px; color:var(--rb-text); font-weight:500; flex:1; }
 .pg-count{ font-family:var(--rb-mono); font-size:10px; letter-spacing:.5px; text-transform:uppercase; color:var(--rb-primary); }
-.pg-chev{ font-size:9px; color:var(--rb-dim); width:14px; text-align:center; }
+.pg-chev{ font-size:10px; color:var(--rb-dim); width:14px; text-align:center; }
 .photo-group-body{ display:none; padding:0 12px 12px; }
 .photo-group-body.open{ display:block; }
 .photo-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:4px; }
@@ -1415,7 +1420,7 @@ async function downloadInvoice(invoiceId, btn) {
   const original = btn ? btn.textContent : '';
   if (btn) { btn.textContent = 'Opening'; btn.disabled = true; }
   try {
-    const r = await fetch(`${R}/family/invoice/${clientSlug || slug}/${invoiceId}/download`);
+    const r = await fetch(famUrl(`/family/invoice/${clientSlug || slug}/${invoiceId}/download`));
     const d = await r.json().catch(() => ({}));
     if (r.ok && d.success && d.url) {
       window.open(d.url, '_blank');
@@ -1623,7 +1628,11 @@ function loadCarePlanAck() {
 }
 
 // ── VITALS FORMATTING ──
-window._visitVitals = {};
+// window._visitVitals was declared here and written NOWHERE, so the Health
+// Readings block below could never render. Removed rather than wired: the
+// server now sends visit_vitals on the portal payload, and reading straight
+// off portalData means there is no global to keep in sync with the three
+// places portalData is assigned.
 
 function formatVitalsCompact(v) {
   if (!v) return '';
@@ -2185,7 +2194,7 @@ function showTab(tab) {
           <p style="font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:14px;">Share private feedback about any visit or caregiver. Only your coordinator sees this, it helps us maintain quality care.</p>
 
           <div style="margin-bottom:12px;">
-            <div style="font-size:11px;font-weight:600;color:var(--text-secondary);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px;font-size:10px;">Which caregiver?</div>
+            <div style="font-size:11px;font-weight:600;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px;font-size:10px;">Which caregiver?</div>
             <select id="feedback-psw-select" style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 12px;font-size:14px;color:var(--text);font-family:'Inter',sans-serif;outline:none;-webkit-appearance:none;">
               <option value="">Select caregiver...</option>
               ${(() => {
@@ -2197,14 +2206,14 @@ function showTab(tab) {
           </div>
 
           <div style="margin-bottom:12px;">
-            <div style="font-size:10px;font-weight:600;color:var(--text-secondary);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.5px;">Performance Rating</div>
+            <div style="font-size:10px;font-weight:600;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.5px;">Performance Rating</div>
             <div style="display:flex;gap:8px;" id="perf-stars">
               ${[1,2,3,4,5].map(n => `<button onclick="setPerfRating(${n})" data-rating="${n}" style="font-size:24px;background:none;border:none;cursor:pointer;padding:2px;touch-action:manipulation;line-height:1;color:var(--rb-faint);">${starSVG(false)}</button>`).join('')}
             </div>
           </div>
 
           <div style="margin-bottom:12px;">
-            <div style="font-size:10px;font-weight:600;color:var(--text-secondary);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px;">Your Notes</div>
+            <div style="font-size:10px;font-weight:600;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px;">Your Notes</div>
             <textarea id="private-note-input" placeholder="e.g. Carolina was wonderful today, Mom seemed much happier. Or: the timing felt rushed..." rows="3" style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px;font-size:14px;color:var(--text);resize:none;font-family:'Inter',sans-serif;line-height:1.5;outline:none;box-sizing:border-box;" maxlength="600" oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,120)+'px';updateNoteCount(this)"></textarea>
           </div>
 
@@ -2371,7 +2380,7 @@ function showTab(tab) {
                 <div class="inv-right">
                   <div class="inv-amount">$${parseFloat(inv.client_total).toFixed(2)}</div>
                   <div class="inv-status">${inv.status === 'sent' ? 'Invoice sent' : inv.status}</div>
-                  <button onclick="downloadInvoice('${inv.id}', this)" style="margin-top:6px;font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;padding:6px 10px;border-radius:8px;border:1px solid var(--line2);background:transparent;color:var(--green);cursor:pointer;min-height:44px;touch-action:manipulation;">Download</button>
+                  <button onclick="downloadInvoice('${inv.id}', this)" style="margin-top:6px;font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;padding:6px 10px;border-radius:8px;border:1px solid var(--border2);background:transparent;color:var(--green);cursor:pointer;min-height:44px;touch-action:manipulation;">Download</button>
                 </div>
               </div>`).join('')
             : emptyState(
@@ -2501,18 +2510,22 @@ function visitRow(v) {
         `<button class="star-btn" onclick="rateVisit('${v.id}','${(clientSlug||'')}',${s},this)" aria-label="${s} star">${starSVG(false)}</button>`
       ).join('')}<span class="stars-label">Rate this visit</span></div>`;
 
-  const hasDetail = summary || tasks || mood || v.notes || v.visit_stage === 'not_home' || v.incident_reported;
+  // v.notes removed. There is no notes column on visits and no visit_notes in the
+  // 32 column family allowlist, so this term was permanently falsy and the Notes
+  // block below could never render. PSW free text does exist, on vitals.notes,
+  // but surfacing operator facing notes to families is a product decision and not
+  // this fix. visit_summary already renders above as Care Summary.
+  const hasDetail = summary || tasks || mood || v.visit_stage === 'not_home' || v.incident_reported;
   const detailHtml = hasDetail ? `
     <div id="${vid}" style="display:none;">
       <div class="visit-detail">
         ${summary ? `<div class="visit-detail-lbl">Care Summary</div><div class="visit-detail-val">${summary}</div>` : ''}
         ${mood ? `<div class="visit-detail-lbl">Client Mood</div><div class="visit-detail-val">${mood}</div>` : ''}
         ${tasks ? `<div class="visit-detail-lbl">Tasks Completed</div><div class="visit-detail-val">${tasks}</div>` : ''}
-        ${v.notes ? `<div class="visit-detail-lbl">Notes</div><div class="visit-detail-val">${v.notes}</div>` : ''}
         ${v.visit_stage === 'not_home' ? `<div class="visit-detail-lbl" style="color:var(--amber);">Nobody Home</div><div class="visit-detail-val" style="color:var(--amber);">Your caregiver arrived${v.not_home_at ? ' at ' + fmtTime(new Date(v.not_home_at).toTimeString().slice(0,5)) : ''} and could not get an answer at the door.${v.not_home_note ? ' ' + escHtml(v.not_home_note) : ''}${v.not_home_resolved ? ' This has been followed up by the office.' : ' Your coordinator has been notified.'}</div>` : ''}
         ${v.incident_reported ? `<div class="visit-detail-lbl" style="color:var(--error);">Incident Reported</div><div class="visit-detail-val" style="color:var(--error);">An incident was reported during this visit. Your coordinator has been notified.</div>` : ''}
         ${v.meds_given && Array.isArray(v.meds_given) && v.meds_given.length ? `<div class="visit-detail-lbl">Medications Given</div><div class="visit-detail-val">${v.meds_given.join(', ')}</div>` : ''}
-        ${(window._visitVitals && window._visitVitals[v.id]) ? `<div class="visit-detail-lbl">Health Readings</div><div class="vitals-compact">${formatVitalsCompact(window._visitVitals[v.id])}</div>` : ''}
+        ${(portalData && portalData.visit_vitals && portalData.visit_vitals[v.id]) ? `<div class="visit-detail-lbl">Health Readings</div><div class="vitals-compact">${formatVitalsCompact(portalData.visit_vitals[v.id])}</div>` : ''}
         ${starsHtml}
       </div>
     </div>` : '';
@@ -2523,7 +2536,7 @@ function visitRow(v) {
       <div class="visit-date-num">${num}</div>
     </div>
     <div class="visit-info" style="flex:1;min-width:0;">
-      <div class="visit-psw">${v.psw_name || fallbackPSW}${v.is_joint ? ' <span style=\"display:inline-flex;align-items:center;font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;padding:2px 6px;border-radius:100px;border:1px solid rgba(52,211,153,.3);color:var(--teal2);margin-left:6px;vertical-align:middle;\">joint</span>' : ''}</div>
+      <div class="visit-psw">${v.psw_name || fallbackPSW}${v.joint_visit_id ? ' <span style=\"display:inline-flex;align-items:center;font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;padding:2px 6px;border-radius:100px;border:1px solid rgba(52,211,153,.3);color:var(--teal2);margin-left:6px;vertical-align:middle;\">joint</span>' : ''}</div>
       <div class="visit-time">${tin}${tout ? ' \u2013 ' + tout : ''}</div>
       ${!hasDetail ? starsHtml : '<div class="visit-expand-btn">View details \u203a</div>'}
     </div>
@@ -2653,7 +2666,7 @@ async function sendMsg() {
     const r = await fetch(`${R}/family/message`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ slug, message: msg })
+      body: JSON.stringify({ slug, pin: famPin(), message: msg })
     });
     let d = {};
     try { d = await r.json(); } catch (_) { d = {}; }
@@ -2819,7 +2832,7 @@ async function sendSubscriptionToServer(subscription) {
     await fetch(`${R}/family/push-subscribe`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ slug, subscription: subscription.toJSON() })
+      body: JSON.stringify({ slug, pin: famPin(), subscription: subscription.toJSON() })
     });
   } catch (e) { console.log('Push server save error:', e); }
 }
