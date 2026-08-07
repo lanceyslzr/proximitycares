@@ -78,6 +78,11 @@ function initLiveMap() {
       maxZoom: 19
     }).addTo(_leafletMap);
   }
+  /* AG3: Leaflet computes tile layout from the container size at init. This was
+     never called anywhere, so any later size change left the tiles misplaced:
+     the sidebar rail toggle, a window resize, or the container gaining a
+     scrollbar from the AG1 cap. Cheap, and safe to call when nothing moved. */
+  _leafletMap.invalidateSize();
   refreshMapLocations();
 }
 
@@ -1407,6 +1412,16 @@ body.sidebar-rail .sidebar{width:64px;overflow:visible;}
 }
 @media(min-width:769px) {
   .kpi-grid { display:none; }
+  /* AG1: the live map panel lives inside .sched-fixed-top, which is
+     flex-shrink:0 inside #sect-schedule.active, a fixed height flex column with
+     overflow:hidden. Opening the map adds about 380px, the container refuses to
+     shrink, and the parent silently clips the excess. On mobile the 60vh cap at
+     max-width:768px activates the container's own overflow-y:auto so you can
+     scroll to the map. Above 768px NOTHING capped it, so the map opened and was
+     clipped out of view. Same value as mobile: when the map is closed the
+     content is around 200px and the cap never engages, so this only takes
+     effect in the case that was broken. */
+  #sect-schedule .sched-fixed-top{max-height:60vh;}
 }
 @media(max-width:768px){
   .sched-toolbar-row{margin-right:-12px;padding-right:12px;}
@@ -13995,6 +14010,10 @@ window.addEventListener('resize', () => {
     document.body.classList.remove('sidebar-rail');
     document.getElementById('sidebar').classList.remove('rail');
   }
+  /* AG3b: the sidebar toggling changes the section margin, so the map container
+     width changes underneath Leaflet. Extending the handler that already runs
+     rather than adding a second resize listener. */
+  if (_mapVisible && _leafletMap) setTimeout(() => _leafletMap.invalidateSize(), 120);
 });
 
 // ── BATCH 3, GLOBAL SEARCH ──
@@ -15398,6 +15417,12 @@ function toggleResourceView() {
   } else {
     rb.style.display  = 'none';
     sb.style.display  = 'block';
+    /* AG2: this branch never restored the map panel, so after using resource
+       view the map toggle needed TWO clicks: the first flipped _mapVisible to
+       false and set display none on something already hidden. Restore it to
+       whatever _mapVisible actually says, so the flag and the DOM agree. */
+    if (mp) mp.style.display = _mapVisible ? 'block' : 'none';
+    if (_mapVisible && _leafletMap) setTimeout(() => _leafletMap.invalidateSize(), 60);
     btn.style.background = '';
     btn.style.color  = 'var(--gold)';
     _refreshSched(); // route to grid or cal based on current view
