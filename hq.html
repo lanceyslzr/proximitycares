@@ -2468,6 +2468,11 @@ body.sidebar-rail .sidebar{width:64px;overflow:visible;}
       <input class="sinput" id="eng-second-pct" type="number" min="0" max="200" step="5" placeholder="50"></div>
     <div class="sheet-row"><div class="slbl">Second person client</div>
       <select class="sselect" id="eng-second-client"><option value="">None</option></select></div>
+    <div class="sheet-row"><div class="slbl">Charge the second person on</div>
+      <select class="sselect" id="eng-second-scope">
+        <option value="live_in">Live in shifts only</option>
+        <option value="all">Every shift in the period</option>
+      </select></div>
     <div class="sheet-row"><div class="slbl">Scope of service</div>
       <input class="sinput" id="eng-scope" type="text" placeholder="Live in personal support at the client residence"></div>
     <div class="sheet-row"><div class="slbl">What is included</div>
@@ -7261,6 +7266,11 @@ async function submitEngagement() {
     pay_overtime_multiplier: num('eng-pay-mult'),
     second_person_percent: secondPct === undefined ? undefined : secondPct / 100,
     second_person_client_slug: val('eng-second-client') || undefined,
+    // LI11. Live in only is the default. Charging a second person for hours
+    // when the family was home and that person was not in the caregiver's
+    // charge is the kind of line that unravels a client relationship.
+    second_person_shift_types: (val('eng-second-scope') === 'all')
+      ? undefined : [val('eng-shift-type') || 'live_in'],
     scope_of_service: txt('eng-scope'),
     inclusions: txt('eng-inclusions'),
     exclusions: txt('eng-exclusions'),
