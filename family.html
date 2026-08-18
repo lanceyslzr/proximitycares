@@ -1689,6 +1689,11 @@ async function loadPortal() {
     const r = await fetch(famUrl(`/family/portal/${slug}`));
     if (famHandle401(r)) return;
     portalData = await r.json();
+    // LI8b. Fired without await so a slow or failing document lookup can never
+    // delay the portal rendering. loadFamilyDocs swallows its own errors and
+    // leaves window._famDocs null, in which case the Agreements section is
+    // simply omitted.
+    loadFamilyDocs();
     // WHITE LABEL, inject operator branding
     if (portalData.branding) {
       const b = portalData.branding;
@@ -1771,6 +1776,63 @@ function applyFamCustomRange() {
   if (f > t) return;
   famCustomFrom = f; famCustomTo = t;
   showTab('visits');
+}
+
+// LI8b. Agreements the family needs to read and sign.
+//
+// Loaded separately from the portal payload on purpose. If this call fails
+// the portal must still render: a family checking whether someone came to
+// their mother today must not be blocked by a document fetch.
+window._famDocs = null;
+async function loadFamilyDocs() {
+  try {
+    const r = await fetch(famUrl(`/family/documents/${clientSlug || slug}`));
+    if (!r.ok) { window._famDocs = null; return; }
+    const d = await r.json();
+    window._famDocs = Array.isArray(d.documents) ? d.documents : null;
+  } catch (e) {
+    window._famDocs = null;
+  }
+}
+
+// Opens the PDF through a short lived signed URL. The server never returns a
+// public link for a document carrying a name, address and date of birth.
+async function openAgreementPdf(id) {
+  try {
+    const r = await fetch(famUrl(`/family/document-pdf/${clientSlug || slug}/${id}`));
+    const d = await r.json();
+    if (d && d.url) { window.open(d.url, '_blank'); return; }
+    alert(d && d.error ? d.error : 'The document is not available right now. Please call the office.');
+  } catch (e) {
+    alert('The document is not available right now. Please call the office.');
+  }
+}
+
+// Typed name plus an explicit confirmation. Both are required by the server
+// and neither is inferred, because a signature that was not deliberately
+// given is worse than no signature at all.
+async function signAgreement(id) {
+  const name = (prompt('Type your full name to sign this agreement') || '').trim();
+  if (!name) return;
+  if (name.length < 2) { alert('Please type your full name.'); return; }
+  if (!confirm('By signing you confirm you have read and agree to the terms of this agreement.')) return;
+  try {
+    const r = await fetch(famUrl('/family/sign-document'), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ slug, pin: famPin(), document_id: id, typed_name: name, agree: true })
+    });
+    const d = await r.json();
+    if (!r.ok || !d.success) {
+      alert(d && d.error ? d.error : 'Could not record your signature. Please try again.');
+      return;
+    }
+    alert(d.already_signed ? 'This agreement was already signed.' : 'Thank you. Your signature has been recorded.');
+    await loadFamilyDocs();
+    showTab('care');
+  } catch (e) {
+    alert('Could not record your signature. Please try again.');
+  }
 }
 
 function showTab(tab) {
@@ -2228,6 +2290,45 @@ function showTab(tab) {
 
   else if (tab === 'care') {
     const { client, psw } = portalData;
+    // LI8b. Agreements awaiting signature. Rendered from window._famDocs,
+    // which loadFamilyDocs fills. Null means the call has not returned or
+    // failed, and in both cases the section is simply omitted rather than
+    // showing an error to a family who cannot act on it.
+    const _docsHtml = (() => {
+      const docs = window._famDocs;
+      if (!Array.isArray(docs) || !docs.length) return '';
+      return `
+      <div class="section">
+        <div class="section-title">Agreements</div>
+        <div class="card">
+          ${docs.map(d => `
+            <div style="padding:14px 0;border-bottom:1px solid var(--border);">
+              <div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start;">
+                <div style="flex:1;min-width:0;">
+                  <div style="font-size:15px;color:var(--text);font-weight:600;">Service Agreement</div>
+                  <div style="font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-top:4px;">
+                    Version ${d.version} &middot; ${fmtDate(d.effective_from)} to ${fmtDate(d.effective_to)}
+                  </div>
+                </div>
+                <div style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;padding:4px 8px;border-radius:6px;white-space:nowrap;${d.signed ? 'color:var(--green);border:1px solid var(--green);' : 'color:var(--gold);border:1px solid var(--gold);'}">
+                  ${d.signed ? 'Signed' : 'Needs signature'}
+                </div>
+              </div>
+              ${d.hours_per_day ? `<div style="font-size:13px;color:var(--muted);line-height:1.7;margin-top:10px;">${d.hours_per_day} hours per day at $${d.hourly_rate} per hour.</div>` : ''}
+              ${d.overtime_note ? `<div style="font-size:13px;color:var(--muted);line-height:1.7;margin-top:4px;">${escHtml(d.overtime_note)}.</div>` : ''}
+              ${d.scope_of_service ? `<div style="font-size:13px;color:var(--text);line-height:1.7;margin-top:10px;">${escHtml(d.scope_of_service)}</div>` : ''}
+              ${d.inclusions ? `<div style="font-size:13px;color:var(--muted);line-height:1.7;margin-top:8px;"><strong style="color:var(--text);">Included:</strong> ${escHtml(d.inclusions)}</div>` : ''}
+              ${d.exclusions ? `<div style="font-size:13px;color:var(--muted);line-height:1.7;margin-top:8px;"><strong style="color:var(--text);">Not included:</strong> ${escHtml(d.exclusions)}</div>` : ''}
+              <div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap;">
+                <button onclick="openAgreementPdf('${d.id}')" style="min-height:44px;padding:0 16px;font-size:14px;border-radius:8px;background:transparent;border:1px solid var(--border2);color:var(--text);cursor:pointer;">Read the full document</button>
+                ${d.signed
+                  ? `<div style="min-height:44px;display:flex;align-items:center;font-size:13px;color:var(--muted);">Signed by ${escHtml((d.signatures[0]||{}).by || '')}</div>`
+                  : `<button onclick="signAgreement('${d.id}')" style="min-height:44px;padding:0 16px;font-size:14px;border-radius:8px;background:var(--green);border:none;color:#06110d;font-weight:600;cursor:pointer;">Review and sign</button>`}
+              </div>
+            </div>`).join('')}
+        </div>
+      </div>`;
+    })();
     /* Y6: physician, pharmacy and emergency contact are on the client record and
        have never appeared in the family portal. Coordination questions are one of
        the most common reasons a family calls the office. */
@@ -2292,6 +2393,8 @@ function showTab(tab) {
           })()}
         </div>
       </div>
+      ${_docsHtml}
+
       <div class="section">
         <div class="section-title">Contact</div>
         <div class="card">

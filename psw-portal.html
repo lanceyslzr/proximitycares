@@ -2747,7 +2747,30 @@ function renderSchedDayCards(ds, days, bookings, visits, clients, today) {
       const endMins = hh*60 + mm + b.duration_minutes;
       return String(Math.floor(endMins/60)%24).padStart(2,'0')+':'+String(endMins%60).padStart(2,'0');
     })() : null;
-    const timeStr = b.scheduled_time ? (endTime ? b.scheduled_time+' - '+endTime : b.scheduled_time) : 'TBD';
+    // LI8c. shift_type already arrives on the booking, /psw/schedule-upcoming
+    // selects '*' on bookings, but nothing in this portal has ever read it.
+    //
+    // A live in or overnight shift ends on the FOLLOWING day. The end time is
+    // already computed correctly, %24 wraps it, but "08:00 - 04:00" reads like
+    // a mistake to a caregiver unless the crossing is said out loud.
+    const _shiftType = b.shift_type || 'standard';
+    const _isLongShift = _shiftType === 'live_in' || _shiftType === 'waking_night'
+                      || _shiftType === 'sleeping_night' || _shiftType === 'overnight';
+    const _crossesMidnight = !!(b.scheduled_time && b.duration_minutes
+      && ((parseInt(b.scheduled_time.split(':')[0],10) * 60
+           + parseInt(b.scheduled_time.split(':')[1],10) + b.duration_minutes) >= 1440));
+    const timeStr = b.scheduled_time
+      ? (endTime ? b.scheduled_time + ' - ' + endTime + (_crossesMidnight ? ' next day' : '') : b.scheduled_time)
+      : 'TBD';
+    const _typeBadge = _isLongShift
+      ? '<span style="font-family:var(--rb-mono);font-size:9px;font-weight:600;letter-spacing:1px;'
+        + 'text-transform:uppercase;padding:3px 7px;border-radius:5px;margin-left:6px;white-space:nowrap;'
+        + 'color:var(--gold);border:1px solid var(--gold);">'
+        + (_shiftType === 'live_in' ? 'Live in'
+           : _shiftType === 'waking_night' ? 'Waking night'
+           : _shiftType === 'sleeping_night' ? 'Sleeping night' : 'Overnight')
+        + '</span>'
+      : '';
     const _safe = (b.client_name||'').replace(/'/g,'').replace(/"/g,'');
     const _cardBg   = _cancelled ? 'rgba(224,85,85,.05)' : _held ? 'rgba(130,130,130,.05)' : done ? 'rgba(30,138,82,.07)' : isActive ? 'rgba(224,154,61,.06)' : 'var(--rb-panel)';
     const _cardBdr  = _cancelled ? 'rgba(224,85,85,.35)' : _held ? 'rgba(130,130,130,.35)' : done ? 'rgba(30,138,82,.45)' : isActive ? 'rgba(224,154,61,.4)' : 'var(--rb-line)';
@@ -2761,7 +2784,7 @@ function renderSchedDayCards(ds, days, bookings, visits, clients, today) {
         '<div style="flex:1;min-width:0;">' +
           '<div style="font-family:var(--rb-sans);font-size:15px;font-weight:600;color:var(--rb-text);margin-bottom:2px;cursor:pointer;" onclick="openClientSheetByName(\'' + _safe + '\')">' + (b.client_name||'—') + ' <span style="font-family:var(--rb-mono);font-size:11px;color:var(--psw);">Info ›</span></div>' +
           '<div style="font-family:var(--rb-mono);font-size:12px;color:' + (_cancelled ? '#e08585' : _held ? '#b0b0b0' : isActive ? 'var(--amber)' : done ? 'var(--green2)' : 'var(--psw)') + ';"><span>' +
-            (_cancelled ? 'Cancelled' : _held ? 'On hold' : isActive ? 'In progress' : done ? 'Done' : timeStr) + ((_cancelled || _held) ? (_stReason ? ' · '+escHtml(_stReason) : '') : (durH && !done && !isActive ? ' · '+durH+'h' : '')) +
+            (_cancelled ? 'Cancelled' : _held ? 'On hold' : isActive ? 'In progress' : done ? 'Done' : timeStr) + _typeBadge + ((_cancelled || _held) ? (_stReason ? ' · '+escHtml(_stReason) : '') : (durH && !done && !isActive ? ' · '+durH+'h' : '')) +
           '</span></div></div>' +
         '<div style="font-family:var(--rb-mono);font-size:11px;font-weight:500;letter-spacing:.3px;color:var(--gold);margin-left:4px;padding:4px 9px;border:1px solid rgba(240,181,73,.25);border-radius:9px;background:rgba(240,181,73,.07);white-space:nowrap;">' + (visitPay ? '$'+visitPay : '$') + '</div>' +
       '</div>' +

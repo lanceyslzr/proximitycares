@@ -2279,7 +2279,7 @@ body.sidebar-rail .sidebar{width:64px;overflow:visible;}
         <input type="time" id="bs-time" style="width:100%;padding:10px;background:var(--bg3);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-size:13px;min-height:44px;"></div>
     </div>
     <div><label style="font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;display:block;margin-bottom:4px;">Duration (hours)</label>
-      <input type="number" id="bs-duration" min="1" max="12" step="0.5" value="4" style="width:100%;padding:10px;background:var(--bg3);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-size:13px;min-height:44px;"></div>
+      <input type="number" id="bs-duration" min="1" max="24" step="0.5" value="4" style="width:100%;padding:10px;background:var(--bg3);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-size:13px;min-height:44px;"></div>
   </div>
   <button onclick="submitBroadcast()" style="width:100%;padding:14px;background:var(--gold);color:#000;border:none;border-radius:8px;font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;cursor:pointer;min-height:48px;margin-bottom:8px;">Broadcast to All PSWs</button>
   <button onclick="closeBroadcastSheet()" style="width:100%;padding:12px;background:none;border:1px solid var(--border);border-radius:8px;color:var(--muted2);font-family:var(--mono);font-size:12px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;min-height:44px;">Cancel</button>
@@ -2412,6 +2412,73 @@ body.sidebar-rail .sidebar{width:64px;overflow:visible;}
 </div>
 
 <!-- TIMESHEET APPROVAL SHEET -->
+<!-- LI8d. Create a whole engagement, agreement plus every daily booking, in
+     one action. Posts to /hq/engagement which refuses rather than half
+     creating, and rolls the agreement back if the bookings fail. -->
+<div class="sheet" id="engagement-sheet" style="z-index:1052;">
+  <div class="sheet-header">
+    <div class="sheet-title">New Engagement</div>
+    <button class="sheet-close" onclick="closeSheet('engagement-sheet')">&#x2715;</button>
+  </div>
+  <div class="sheet-body">
+    <div class="sheet-row"><div class="slbl">Client</div>
+      <select class="sselect" id="eng-client"><option value="">Select client...</option></select></div>
+    <div class="sheet-row"><div class="slbl">Caregiver</div>
+      <select class="sselect" id="eng-psw"><option value="">Select PSW...</option></select></div>
+    <div class="sheet-row"><div class="slbl">Shift type</div>
+      <select class="sselect" id="eng-shift-type" onchange="engShiftTypeChanged()">
+        <option value="live_in">Live in</option>
+        <option value="waking_night">Waking night</option>
+        <option value="sleeping_night">Sleeping night</option>
+        <option value="standard">Standard daily</option>
+      </select></div>
+    <div class="sheet-row"><div class="slbl">First day</div>
+      <input class="sinput" id="eng-start" type="date" onchange="engPreview()"></div>
+    <div class="sheet-row"><div class="slbl">Last day</div>
+      <input class="sinput" id="eng-end" type="date" onchange="engPreview()"></div>
+    <div class="sheet-row"><div class="slbl">Days off, comma separated</div>
+      <input class="sinput" id="eng-days-off" type="text" placeholder="2026-08-20, 2026-08-22" oninput="engPreview()"></div>
+    <div class="sheet-row"><div class="slbl">Start time</div>
+      <input class="sinput" id="eng-start-time" type="time" value="08:00"></div>
+    <div class="sheet-row"><div class="slbl">Hours present per day</div>
+      <input class="sinput" id="eng-worked" type="number" min="0" max="24" step="0.5" value="24"></div>
+    <div class="sheet-row"><div class="slbl">Hours BILLED per day</div>
+      <input class="sinput" id="eng-billable" type="number" min="0.5" max="24" step="0.5" value="20"></div>
+    <div class="sheet-row"><div class="slbl">Hours PAID per day</div>
+      <input class="sinput" id="eng-payable" type="number" min="0.5" max="24" step="0.5" value="20"></div>
+    <div class="sheet-row"><div class="slbl">How the client is billed</div>
+      <select class="sselect" id="eng-billing-model" onchange="engBillingModelChanged()">
+        <option value="capped_hours">Per hour, capped at the billed hours</option>
+        <option value="day_rate">Flat rate per day</option>
+        <option value="hourly">Per hour, actual hours</option>
+      </select></div>
+    <div class="sheet-row" id="eng-day-rate-row" style="display:none;"><div class="slbl">Client DAY rate</div>
+      <input class="sinput" id="eng-day-rate" type="number" min="0" step="5" placeholder="850" oninput="engPreview()"></div>
+    <div class="sheet-row"><div class="slbl">Client rate per hour</div>
+      <input class="sinput" id="eng-bill-rate" type="number" min="0" step="0.25" placeholder="22" oninput="engPreview()"></div>
+    <div class="sheet-row"><div class="slbl">PSW rate per hour</div>
+      <input class="sinput" id="eng-pay-rate" type="number" min="0" step="0.25" placeholder="19"></div>
+    <div class="sheet-row"><div class="slbl">Overtime after, hours per week</div>
+      <input class="sinput" id="eng-ot-threshold" type="number" min="0" step="1" placeholder="44"></div>
+    <div class="sheet-row"><div class="slbl">Bill overtime multiplier, 1 for flat</div>
+      <input class="sinput" id="eng-bill-mult" type="number" min="1" step="0.05" placeholder="1"></div>
+    <div class="sheet-row"><div class="slbl">Pay overtime multiplier</div>
+      <input class="sinput" id="eng-pay-mult" type="number" min="1" step="0.05" placeholder="1.5"></div>
+    <div class="sheet-row"><div class="slbl">Second person in the home, percent</div>
+      <input class="sinput" id="eng-second-pct" type="number" min="0" max="200" step="5" placeholder="50"></div>
+    <div class="sheet-row"><div class="slbl">Second person client</div>
+      <select class="sselect" id="eng-second-client"><option value="">None</option></select></div>
+    <div class="sheet-row"><div class="slbl">Scope of service</div>
+      <input class="sinput" id="eng-scope" type="text" placeholder="Live in personal support at the client residence"></div>
+    <div class="sheet-row"><div class="slbl">What is included</div>
+      <input class="sinput" id="eng-inclusions" type="text" placeholder="Personal care, meals, medication reminders"></div>
+    <div class="sheet-row"><div class="slbl">What is NOT included</div>
+      <input class="sinput" id="eng-exclusions" type="text" placeholder="Days off are not staffed or billed"></div>
+    <div id="eng-preview" style="font-family:var(--mono);font-size:11px;color:var(--muted);padding:10px 0;line-height:1.9;"></div>
+    <button class="sbtn" style="width:100%;min-height:44px;" onclick="submitEngagement()">Create engagement</button>
+  </div>
+</div>
+
 <div class="sheet" id="timesheet-sheet" style="z-index:1052;">
   <div class="sheet-header">
     <div class="sheet-title">Timesheet Approval</div>
@@ -2832,6 +2899,7 @@ body.sidebar-rail .sidebar{width:64px;overflow:visible;}
     <div style="background:var(--bg2);border:1px solid var(--border);border-radius:8px;overflow:hidden;display:none;" id="sched-templates-list">
       <div id="templates-list-body"><div style="padding:12px 14px;font-family:var(--mono);font-size:12px;color:var(--muted);">Loading templates...</div></div>
       <div style="padding:8px 12px;border-top:1px solid var(--border);">
+        <button onclick="openEngagementSheet()" style="font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;padding:6px 12px;border-radius:6px;border:1px solid var(--gold);background:rgba(240,181,73,.08);color:var(--gold);cursor:pointer;">Engagement</button>
         <button onclick="openTemplateSheet()" style="font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;padding:6px 12px;border-radius:6px;border:1px solid rgba(160,96,224,.3);background:rgba(160,96,224,.08);color:var(--purple2);cursor:pointer;min-height:36px;touch-action:manipulation;">+ New Template</button>
       </div>
     </div>
@@ -3181,6 +3249,12 @@ body.sidebar-rail .sidebar{width:64px;overflow:visible;}
           <option value="540">9 hours</option>
           <option value="600">10 hours</option>
           <option value="720">12 hours</option>
+          <option value="840">14 hours</option>
+          <option value="960">16 hours</option>
+          <option value="1080">18 hours</option>
+          <option value="1200">20 hours, live in</option>
+          <option value="1320">22 hours</option>
+          <option value="1440">24 hours, live in</option>
         </select>
       </div>
     </div>
@@ -3733,6 +3807,12 @@ body.sidebar-rail .sidebar{width:64px;overflow:visible;}
       <option value="540">9 hours</option>
       <option value="600">10 hours</option>
       <option value="720">12 hours</option>
+      <option value="840">14 hours</option>
+      <option value="960">16 hours</option>
+      <option value="1080">18 hours</option>
+      <option value="1200">20 hours, live in</option>
+      <option value="1320">22 hours</option>
+      <option value="1440">24 hours, live in</option>
     </select>
   </div>
   <div class="sheet-row"><div class="slbl" style="color:var(--muted2);font-size:12px;">Hours</div>
@@ -7075,6 +7155,135 @@ function showSect(name) {
 }
 
 // ── SHEETS ──
+// LI8d. New engagement. Creates the agreement and every daily booking in one
+// call so a fortnight is not 11 hand entered bookings and 11 chances to
+// mistype a rate.
+function openEngagementSheet() {
+  const clients = (D.clients || []).filter(c => c.portal_slug);
+  const opts = clients.map(c => {
+    const n = ((c.first_name||'') + ' ' + (c.last_name||'')).trim();
+    return '<option value="' + c.portal_slug + '">' + n + '</option>';
+  }).join('');
+  const cs = document.getElementById('eng-client');
+  if (cs) cs.innerHTML = '<option value="">Select client...</option>' + opts;
+  const sc = document.getElementById('eng-second-client');
+  if (sc) sc.innerHTML = '<option value="">None</option>' + opts;
+  const ps = document.getElementById('eng-psw');
+  if (ps) {
+    const psws = (typeof getMergedPSWList === 'function' ? getMergedPSWList() : []) || [];
+    ps.innerHTML = '<option value="">Select PSW...</option>' +
+      psws.map(p => {
+        const n = p.full_name || p.name || '';
+        return n ? '<option value="' + n + '">' + n + '</option>' : '';
+      }).join('');
+  }
+  engShiftTypeChanged();
+  openSheet('engagement-sheet');
+}
+
+// Sensible starting numbers per shift type. Every one stays editable, these
+// are a starting point and not a rule.
+// LI10c. A flat day rate is the only structure that is safe whichever way the
+// live in pay rules are read, because the price does not move when the hours
+// move. Showing the day rate field only when it applies keeps the form honest.
+function engBillingModelChanged() {
+  const m = document.getElementById('eng-billing-model')?.value || 'capped_hours';
+  const row = document.getElementById('eng-day-rate-row');
+  if (row) row.style.display = m === 'day_rate' ? '' : 'none';
+  engPreview();
+}
+
+function engShiftTypeChanged() {
+  const t = document.getElementById('eng-shift-type')?.value || 'live_in';
+  const set = (id, v) => { const el = document.getElementById(id); if (el) el.value = v; };
+  if (t === 'live_in')            { set('eng-worked', 24); set('eng-billable', 20); set('eng-payable', 20); set('eng-start-time', '08:00'); }
+  else if (t === 'waking_night')  { set('eng-worked', 10); set('eng-billable', 10); set('eng-payable', 10); set('eng-start-time', '22:00'); }
+  else if (t === 'sleeping_night'){ set('eng-worked', 10); set('eng-billable', 10); set('eng-payable', 8);  set('eng-start-time', '22:00'); }
+  else                            { set('eng-worked', 8);  set('eng-billable', 8);  set('eng-payable', 8);  set('eng-start-time', '09:00'); }
+  engPreview();
+}
+
+// Counts the staffed days before anything is sent, so the operator sees
+// 11 and not 14 before they commit.
+function engPreview() {
+  const el = document.getElementById('eng-preview');
+  if (!el) return;
+  const start = document.getElementById('eng-start')?.value;
+  const end = document.getElementById('eng-end')?.value;
+  if (!start || !end || start > end) { el.textContent = ''; return; }
+  const off = (document.getElementById('eng-days-off')?.value || '')
+    .split(',').map(x => x.trim()).filter(Boolean);
+  let total = 0, staffed = 0;
+  for (let d = new Date(start + 'T12:00:00'); d.toISOString().slice(0,10) <= end; d.setDate(d.getDate()+1)) {
+    total++;
+    if (off.indexOf(d.toISOString().slice(0,10)) === -1) staffed++;
+  }
+  const bill = parseFloat(document.getElementById('eng-billable')?.value || 0) || 0;
+  const rate = parseFloat(document.getElementById('eng-bill-rate')?.value || 0) || 0;
+  const gross = staffed * bill * rate;
+  el.textContent = total + ' calendar days, ' + staffed + ' staffed, ' + (total - staffed) + ' off. '
+    + (staffed * bill) + ' billable hours'
+    + (rate ? '. About $' + gross.toFixed(2) + ' before any overtime or second person.' : '.');
+}
+
+async function submitEngagement() {
+  const val = (id) => document.getElementById(id)?.value;
+  const num = (id) => { const v = val(id); return v === '' || v === undefined || v === null ? undefined : parseFloat(v); };
+  const txt = (id) => { const v = (val(id) || '').trim(); return v || undefined; };
+
+  const client_slug = val('eng-client');
+  const psw_name = val('eng-psw');
+  const start_date = val('eng-start');
+  const end_date = val('eng-end');
+  if (!client_slug || !psw_name || !start_date || !end_date) {
+    showToast('Client, caregiver, first day and last day are all required', 'err'); return;
+  }
+  if (start_date > end_date) { showToast('The last day must be on or after the first day', 'err'); return; }
+
+  const days_off = (val('eng-days-off') || '').split(',').map(x => x.trim()).filter(Boolean);
+  // Percent is entered as 50, the server stores 0.5. Converted here so the
+  // operator never has to think in decimals.
+  const secondPct = num('eng-second-pct');
+
+  const body = {
+    operator_id: currentOp, client_slug, psw_name, start_date, end_date, days_off,
+    shift_type: val('eng-shift-type') || 'live_in',
+    start_time: val('eng-start-time') || '08:00',
+    worked_hours_per_day: num('eng-worked'),
+    billable_hours_per_day: num('eng-billable'),
+    payable_hours_per_day: num('eng-payable'),
+    billing_model: val('eng-billing-model') || 'capped_hours',
+    bill_rate: num('eng-bill-rate'),
+    day_rate: num('eng-day-rate'),
+    pay_rate: num('eng-pay-rate'),
+    overtime_threshold_hours: num('eng-ot-threshold'),
+    bill_overtime_multiplier: num('eng-bill-mult'),
+    pay_overtime_multiplier: num('eng-pay-mult'),
+    second_person_percent: secondPct === undefined ? undefined : secondPct / 100,
+    second_person_client_slug: val('eng-second-client') || undefined,
+    scope_of_service: txt('eng-scope'),
+    inclusions: txt('eng-inclusions'),
+    exclusions: txt('eng-exclusions'),
+    reason_for_change: 'Created from HQ'
+  };
+
+  try {
+    const r = await hqFetch(`${API}/hq/engagement`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json',
+                 'x-hq-token': window._hqToken || sessionStorage.getItem('hq_token') || '' },
+      body: JSON.stringify(body)
+    });
+    const d = await r.json();
+    if (!r.ok || !d.success) { showToast(d && d.error ? d.error : 'Could not create the engagement', 'err'); return; }
+    closeSheet('engagement-sheet');
+    showToast(d.bookings_created + ' days scheduled, ' + d.days_off_skipped + ' off. Agreement version ' + d.version + ' is a draft until the family signs.', 'ok');
+    if (typeof loadSchedule === 'function') loadSchedule();
+  } catch (e) {
+    showToast('Could not create the engagement', 'err');
+  }
+}
+
 function openSheet(id) {
   document.getElementById('sheet-overlay').classList.add('open');
   document.getElementById(id).classList.add('open');
