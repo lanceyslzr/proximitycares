@@ -1889,6 +1889,9 @@ body.sidebar-rail .sidebar{width:64px;overflow:visible;}
     <div class="empty-state">Loading...</div>
   </div>
 
+  <!-- RECONCILIATION, silent unless a check failed or could not run -->
+  <div id="recon-banner" style="display:none;"></div>
+
   <!-- ── RECENT ACTIVITY ── -->
   <div class="section-header" style="padding-bottom:6px;">
     <span class="section-title">Recent Activity</span>
@@ -4645,6 +4648,19 @@ async function loadAll(spin=false) {
     const _frWin = new Date(); _frWin.setDate(_frWin.getDate()-60);
 
     await Promise.allSettled([
+      // R1d. Reconciliation. In the NON CRITICAL batch on purpose: this is a
+      // health check, and a health check that can delay the dashboard is a
+      // liability rather than a safeguard. allSettled already isolates it.
+      hqFetch(`${API}/hq/reconcile`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json',
+                   'x-hq-token': window._hqToken || sessionStorage.getItem('hq_token') || '' },
+        body: JSON.stringify({ days: 90 })
+      })
+        .then(r => r.json())
+        .then(rc => { D.reconcile = rc; renderReconcileBanner(); })
+        .catch(() => {}),
+
       // Visits (90-day window)
       fetch(`${API}/hq/visits?operator_id=${currentOp}&limit=500&from_date=${new Date(Date.now()-90*86400000).toLocaleDateString('en-CA',{timeZone:'America/Toronto'})}`, { headers: _headers })
         .then(r => r.json())
@@ -7311,6 +7327,54 @@ function hqPhotoUrl(entry) {
   const path = i >= 0 ? String(raw).slice(i + marker.length) : String(raw);
   const tok = window._hqToken || sessionStorage.getItem('hq_token') || '';
   return `${API}/hq/visit-photo?path=${encodeURIComponent(path)}&_hqt=${encodeURIComponent(tok)}`;
+}
+
+// R1d. Reconciliation banner.
+//
+// SILENT WHEN HEALTHY. It renders nothing at all when every check passes. A
+// daily green report trains an operator to ignore the email, and the one that
+// matters then arrives looking like all the others.
+//
+// It reports two different states, because they mean different things:
+//   FAILED  a check ran and found a real mismatch
+//   SKIPPED a check could not load its data, so nothing was verified. That is
+//           NOT a pass, and reporting it as one would be the exact failure
+//           this whole feature exists to prevent.
+function renderReconcileBanner() {
+  const host = document.getElementById('recon-banner');
+  if (!host) return;
+  const rc = D.reconcile;
+  if (!rc || rc.ok === true) { host.innerHTML = ''; host.style.display = 'none'; return; }
+
+  const failed = (rc.checks || []).filter(c => !c.ok);
+  const skipped = rc.skipped || [];
+  const parts = [];
+  failed.forEach(c => parts.push(`${c.title}: ${c.failed} of ${c.checked}`));
+  skipped.forEach(sk => parts.push(`${sk.label} could not be checked`));
+
+  host.style.display = '';
+  host.innerHTML = `
+    <div style="border:1px solid var(--gold);background:rgba(240,181,73,.07);
+                border-radius:10px;padding:12px 14px;margin-bottom:14px;">
+      <div style="font-family:var(--mono);font-size:11px;letter-spacing:2px;
+                  text-transform:uppercase;color:var(--gold);margin-bottom:6px;">
+        Reconciliation found ${failed.length + skipped.length} item${(failed.length + skipped.length) === 1 ? '' : 's'}
+      </div>
+      <div style="font-size:13px;color:var(--muted);line-height:1.7;">
+        ${parts.map(x => escapeHqText(x)).join('<br>')}
+      </div>
+      <div style="font-family:var(--mono);font-size:10px;color:var(--muted2);margin-top:8px;">
+        Checked ${rc.counts ? rc.counts.visits : 0} visits over the last ${rc.window_days || 90} days
+      </div>
+    </div>`;
+}
+
+// Minimal escape. Check titles and table names are ours, not user input, but
+// a value that reaches innerHTML gets escaped regardless.
+function escapeHqText(x) {
+  return String(x == null ? '' : x)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 }
 
 function openSheet(id) {
