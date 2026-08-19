@@ -6642,7 +6642,7 @@ async function renderVisits() {
       const editedBadge = v.hq_edited ? `<span style="font-family:var(--mono);font-size:11px;letter-spacing:1px;padding:2px 6px;border-radius:100px;border:1px solid rgba(201,169,110,.45);color:var(--gold);margin-left:6px;">EDITED</span>` : '';
       // Photos
       const photos = Array.isArray(v.task_photos) ? v.task_photos : (v.task_photos ? [v.task_photos] : []);
-      const photosHtml = photos.length ? `<div style="margin-bottom:10px;"><div style="font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;">Photos (${photos.length})</div><div style="display:flex;gap:6px;flex-wrap:wrap;">${photos.map(p => `<a href="${p.url||p}" target="_blank"><img src="${p.url||p}" style="width:64px;height:64px;object-fit:cover;border-radius:6px;border:1px solid var(--border);" loading="lazy"></a>`).join('')}</div></div>` : '';
+      const photosHtml = photos.length ? `<div style="margin-bottom:10px;"><div style="font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;">Photos (${photos.length})</div><div style="display:flex;gap:6px;flex-wrap:wrap;">${photos.map(p => `<a href="${hqPhotoUrl(p)}" target="_blank"><img src="${hqPhotoUrl(p)}" style="width:64px;height:64px;object-fit:cover;border-radius:6px;border:1px solid var(--border);" loading="lazy"></a>`).join('')}</div></div>` : '';
       // Voice note
       const voiceHtml = v.voice_note_url ? `<div style="margin-bottom:10px;"><div style="font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;">Voice Note</div><audio controls src="${v.voice_note_url}" style="width:100%;height:36px;accent-color:var(--teal2);"></audio></div>` : '';
       // Satisfaction
@@ -6685,7 +6685,7 @@ async function renderVisits() {
           ${photosHtml}
           ${satHtml}
           ${v.incident_notes?`<div style="margin-bottom:10px;"><div style="font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--red);margin-bottom:4px;">Incident Notes</div><div style="color:var(--text);">${v.incident_notes}</div></div>`:''}
-          ${v.notes?`<div style="margin-bottom:10px;"><div style="font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:4px;">Notes</div><div style="color:var(--muted2);">${v.notes}</div></div>`:''}
+          ${''/* v.notes is NOT a column on visits, confirmed against information_schema. PSW free text lives on vitals.notes, which this view does not load, so this block could never render. Left disabled rather than pointed at a field that would show the wrong thing. */ && v.notes?`<div style="margin-bottom:10px;"><div style="font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:4px;">Notes</div><div style="color:var(--muted2);">${v.notes}</div></div>`:''}
           <div id="vforms-${vid}" data-visit-id="${v.id||''}" data-client="${v.client_name||''}" style="padding-bottom:4px;"></div>
         </div>
         <div style="display:flex;gap:8px;padding:8px 14px;border-top:1px solid var(--border);background:var(--bg2);">
@@ -7292,6 +7292,25 @@ async function submitEngagement() {
   } catch (e) {
     showToast('Could not create the engagement', 'err');
   }
+}
+
+// PH2. Build a photo URL that actually loads.
+//
+// task_photos holds a storage PATH since AE3, and held a full public URL
+// before that. Neither works as a bare img src: the path resolves against
+// proximitycares.ca and 404s, and the legacy public URL 403s because the
+// bucket is private. Both go through /hq/visit-photo, which proves the path
+// belongs to this operator and 302s to a 300 second signed URL.
+//
+// The token rides in the query string because an img src cannot send a header.
+function hqPhotoUrl(entry) {
+  const raw = (entry && (entry.url || entry.path)) || entry;
+  if (!raw) return '';
+  const marker = '/visit-photos/';
+  const i = String(raw).indexOf(marker);
+  const path = i >= 0 ? String(raw).slice(i + marker.length) : String(raw);
+  const tok = window._hqToken || sessionStorage.getItem('hq_token') || '';
+  return `${API}/hq/visit-photo?path=${encodeURIComponent(path)}&_hqt=${encodeURIComponent(tok)}`;
 }
 
 function openSheet(id) {
@@ -12251,7 +12270,10 @@ function openClientDetail(id) {
     ? clientVisits.map(v => {
         const hrs = parseFloat(v.hours_worked||0);
         const statusDot = v.status==='completed'?'var(--green2)':v.status==='in_progress'?'var(--teal2)':'var(--muted)';
-        const jointBadge = v.is_joint ? ' <span style="font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;padding:1px 5px;border-radius:100px;border:1px solid rgba(61,138,122,.3);color:var(--teal2);margin-left:4px;">joint</span>' : '';
+        // v.is_joint is NOT a column, confirmed against information_schema. The
+        // real column is joint_visit_id, so this badge has never rendered.
+        // Same defect already fixed in family.html.
+        const jointBadge = v.joint_visit_id ? ' <span style="font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;padding:1px 5px;border-radius:100px;border:1px solid rgba(61,138,122,.3);color:var(--teal2);margin-left:4px;">joint</span>' : '';
         return `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);">
           <div style="width:7px;height:7px;border-radius:50%;background:${statusDot};flex-shrink:0;"></div>
           <div style="flex:1;min-width:0;">

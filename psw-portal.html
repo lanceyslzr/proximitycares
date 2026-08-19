@@ -3593,7 +3593,7 @@ async function doCheckOut() {
         const path = `${(pswName||'psw').replace(/\s+/g,'_').toLowerCase()}/${activeVisit.id}_${Date.now()}.${ext}`;
         const uploadRes = await fetch(`${API}/psw/upload-photo`, {
           method: 'POST', headers: {'Content-Type':'application/json'},
-          body: JSON.stringify({ psw_name: pswName, pin: pswPin, operator_id: pswOperatorId, path, type: file.type })
+          body: JSON.stringify({ psw_name: pswName, pin: pswPin, operator_id: pswOperatorId, path, type: file.type, size: file.size })
         }).catch(() => null);
         if (uploadRes?.ok) {
           const ud = await uploadRes.json();
@@ -5075,6 +5075,44 @@ async function loadPaySummary() {
 }
 
 // ── NAV ──
+// PH3b. Build a photo URL the PSW portal can actually load.
+//
+// task_photos holds a storage PATH since AE3, and held a full public URL
+// before that. Neither works as a bare img src: the bucket is private, so a
+// path 404s and a legacy public URL 403s. Both go through /psw/visit-photo,
+// which proves the path belongs to a visit THIS caregiver worked, then 302s
+// to a 300 second signed url.
+//
+// Credentials ride in the query string because an img src cannot send a
+// header. Same reason HQ passes its token that way.
+function pswPhotoUrl(entry) {
+  const raw = (entry && (entry.url || entry.path)) || entry;
+  if (!raw) return '';
+  const marker = '/visit-photos/';
+  const i = String(raw).indexOf(marker);
+  const path = i >= 0 ? String(raw).slice(i + marker.length) : String(raw);
+  return `${API}/psw/visit-photo?psw_name=${encodeURIComponent(pswName)}`
+       + `&pin=${encodeURIComponent(pswPin)}`
+       + `&operator_id=${encodeURIComponent(pswOperatorId || 'proximity-care')}`
+       + `&path=${encodeURIComponent(path)}`;
+}
+
+// Thumbnail strip for a completed visit. Returns an empty string when there
+// are no photos, so it adds nothing to a visit that has none.
+function pswPhotoStrip(v) {
+  const photos = Array.isArray(v && v.task_photos) ? v.task_photos.filter(Boolean) : [];
+  if (!photos.length) return '';
+  return '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;">'
+    + photos.map(p => {
+        const u = pswPhotoUrl(p);
+        return '<a href="' + u + '" target="_blank" rel="noopener">'
+             + '<img src="' + u + '" loading="lazy" alt="Visit photo" '
+             + 'style="width:56px;height:56px;object-fit:cover;border-radius:8px;'
+             + 'border:1px solid var(--rb-line);background:var(--rb-panel);"></a>';
+      }).join('')
+    + '</div>';
+}
+
 function showSect(name) {
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
   document.querySelectorAll('.bnav-item').forEach(b => b.classList.remove('active'));
@@ -6018,7 +6056,10 @@ function openCalPopup(dateStr) {
         dur: v.hours_worked ? parseFloat(v.hours_worked).toFixed(1) + 'h worked' : '',
         status: v.time_out ? 'done' : 'active',
         statusLabel: v.time_out ? 'Done' : 'Active',
-        bookingId: null
+        bookingId: null,
+        // PH3b. The caregiver takes these photos and until now could never see
+        // them back, so there was no way to tell whether an upload had worked.
+        photos: pswPhotoStrip(v)
       });
     });
 
@@ -6055,7 +6096,8 @@ function openCalPopup(dateStr) {
           ${r.dur ? `<div class="cal-popup-dur">${r.dur}</div>` : ''}
         </div>
         <span class="cal-popup-status ${r.status}">${r.statusLabel}</span>
-      </div>`).join('');
+      </div>
+      ${r.photos || ''}`).join('');
   }
 
   // Add "View Schedule" button
