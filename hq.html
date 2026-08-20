@@ -7377,7 +7377,206 @@ function escapeHqText(x) {
     .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 }
 
+// =====================================================================
+// AG2. THE AGREEMENT PANEL.
+//
+// Everything needed to get an agreement signed, without opening Supabase.
+//
+// THE FIELD THAT MATTERS IS pdf_ready. An agreement with no pdf_path cannot
+// be read by the family: they tap Review, nothing opens, and they do not sign
+// a document they cannot see. Until now nothing anywhere said so, and the
+// only symptom was a family that went quiet.
+//
+// Loaded on demand rather than with the client list, because most clients
+// have no agreement and it would be a query per client for nothing.
+// =====================================================================
+
+async function loadAgreementPanel(slug, clientId) {
+  const body = document.getElementById('ag-body-' + clientId);
+  if (!body) return;
+  try {
+    const res = await hqFetch(`${API}/hq/agreements/${encodeURIComponent(slug)}?operator_id=${currentOp}`);
+    const d = await res.json();
+    if (!d.success) throw new Error(d.error || 'Could not load agreements');
+    renderAgreementPanel(d.agreements || [], slug, clientId);
+  } catch (e) {
+    body.innerHTML = `<div style="color:var(--muted);">Could not load agreements. ${escapeHqText(e.message || '')}</div>`;
+  }
+}
+
+function renderAgreementPanel(list, slug, clientId) {
+  const body = document.getElementById('ag-body-' + clientId);
+  if (!body) return;
+
+  if (!list.length) {
+    body.innerHTML = `<div style="color:var(--muted);line-height:1.7;">
+      No agreement yet. Use <b>Engagement</b> on the Schedule tab to create one,
+      then generate the PDF above.</div>`;
+    return;
+  }
+
+  body.innerHTML = list.map(a => {
+    const sig = (a.signatures || [])[0];
+    // Three states, and each needs a different next action. Showing them the
+    // same way is how a step gets skipped.
+    const statusColor = a.signed ? 'var(--green2)'
+                      : a.status === 'sent' ? 'var(--gold)'
+                      : 'var(--muted)';
+    const days = Array.isArray(a.days_off) ? a.days_off.length : 0;
+
+    // A missing PDF is the single most likely reason a family never signs,
+    // so it is stated in words rather than implied by an absent button.
+    const pdfLine = a.pdf_ready
+      ? `<span style="color:var(--green2);">PDF ready</span>`
+      : `<span style="color:var(--gold);">No PDF yet. Generate it above or the family will open nothing.</span>`;
+
+    const signedBlock = sig
+      ? `<div style="margin-top:10px;padding:10px;border-radius:8px;background:rgba(61,138,122,.08);border:1px solid rgba(61,138,122,.25);">
+           <div style="font-family:var(--mono);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--green2);margin-bottom:4px;">Signed</div>
+           <div style="font-size:13px;color:var(--text);">${escapeHqText(sig.signer_name || sig.typed_name || 'Family')}</div>
+           <div style="font-size:11.5px;color:var(--muted);margin-top:2px;">${escapeHqText(_agWhen(sig.signed_at))}</div>
+         </div>`
+      : '';
+
+    // No action buttons on a signed agreement. The signature is immutable and
+    // the buttons must not suggest otherwise.
+    // A View button whenever the PDF exists, INCLUDING on a signed agreement.
+    // The signed one is precisely the document an operator needs to reread
+    // when a family asks what they agreed to.
+    const viewBtn = a.pdf_ready
+      ? `<button onclick="agOpenPdf('${a.id}')"
+           style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;padding:7px 11px;border-radius:6px;border:1px solid var(--border);background:var(--bg3);color:var(--text);min-height:36px;">
+           View PDF
+         </button>`
+      : '';
+
+    const actions = a.signed
+      ? (viewBtn ? `<div style="margin-top:10px;">${viewBtn}</div>` : '')
+      : `
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;">
+        <button onclick="agNotify('${a.id}','${slug}','${clientId}')" ${a.pdf_ready ? '' : 'disabled'}
+          style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;padding:7px 11px;border-radius:6px;border:1px solid var(--border);background:${a.pdf_ready ? 'var(--teal)' : 'var(--bg3)'};color:${a.pdf_ready ? '#fff' : 'var(--muted)'};min-height:36px;">
+          Email the family
+        </button>
+        ${viewBtn}
+        <button onclick="agSetStatus('${a.id}','sent','${slug}','${clientId}')"
+          style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;padding:7px 11px;border-radius:6px;border:1px solid var(--border);background:var(--bg3);color:var(--text);min-height:36px;">
+          Mark sent
+        </button>
+      </div>`;
+
+    return `<div style="padding:10px 0;border-top:1px solid var(--border);">
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+        <span style="font-weight:600;color:var(--text);">Version ${escapeHqText(String(a.version_number))}</span>
+        <span style="font-family:var(--mono);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:${statusColor};">${escapeHqText(a.signed ? 'signed' : a.status)}</span>
+      </div>
+      <div style="font-size:12.5px;color:var(--muted);line-height:1.7;margin-top:5px;">
+        ${escapeHqText(String(a.effective_from || ''))} to ${escapeHqText(String(a.effective_to || 'ongoing'))}
+        &nbsp;&bull;&nbsp; $${escapeHqText(String(a.hourly_rate || ''))} per hour
+        ${days ? `&nbsp;&bull;&nbsp; ${days} day${days === 1 ? '' : 's'} off` : ''}
+        ${a.second_person_note ? `<br>${escapeHqText(a.second_person_note)}` : ''}
+        <br>${pdfLine}
+      </div>
+      ${signedBlock}
+      ${actions}
+    </div>`;
+  }).join('');
+}
+
+// Dates from the API are ISO. Show them the way a person reads them.
+function _agWhen(iso) {
+  if (!iso) return '';
+  try {
+    const d = new Date(iso);
+    if (isNaN(d.getTime())) return String(iso);
+    return d.toLocaleString('en-CA', { dateStyle: 'medium', timeStyle: 'short',
+                                       timeZone: 'America/Toronto' });
+  } catch (e) { return String(iso); }
+}
+
+// AG3. Open the agreement PDF from HQ.
+//
+// Fetched on CLICK, never embedded in the markup. The signed url lasts 300
+// seconds, so a link rendered when the sheet opened would be dead by the time
+// an operator got round to reading it.
+async function agOpenPdf(id) {
+  try {
+    const res = await hqFetch(`${API}/hq/agreement/${encodeURIComponent(id)}/pdf?operator_id=${currentOp}`);
+    const d = await res.json();
+    if (!res.ok || !d.url) throw new Error(d.error || 'Could not open the PDF');
+    window.open(d.url, '_blank', 'noopener');
+  } catch (e) {
+    alert(e.message || 'Could not open the PDF');
+  }
+}
+
+async function agSetStatus(id, status, slug, clientId) {
+  try {
+    const res = await hqFetch(`${API}/hq/agreement/${encodeURIComponent(id)}/status`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ operator_id: currentOp, status })
+    });
+    const d = await res.json();
+    if (!res.ok) throw new Error(d.error || 'Could not change status');
+    showToast(`Marked ${status}`);
+    loadAgreementPanel(slug, clientId);
+  } catch (e) {
+    alert(e.message || 'Could not change status');
+  }
+}
+
+async function agNotify(id, slug, clientId) {
+  // Confirmed, because it sends a real email to a real family. A misfire is
+  // not recoverable and erodes the trust the message depends on.
+  if (!confirm('Email the family that their agreement is ready to review and sign?')) return;
+  try {
+    const res = await hqFetch(`${API}/hq/agreement/${encodeURIComponent(id)}/notify`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ operator_id: currentOp })
+    });
+    const d = await res.json();
+    if (!res.ok) throw new Error(d.error || 'Could not send');
+    showToast(`Sent to ${d.sent_to}`);
+    loadAgreementPanel(slug, clientId);
+  } catch (e) {
+    alert(e.message || 'Could not send');
+  }
+}
+
+// AG2. Date of birth and consent, inline. These are a LEGAL RECORD, so the
+// server validates them: a real date, not in the future, under 120 years.
+// The portal is not the place to be lenient about that.
+async function agSaveConsent(slug, clientId) {
+  const dobEl = document.getElementById('ag-dob-' + clientId);
+  const conEl = document.getElementById('ag-consent-' + clientId);
+  const payload = { operator_id: currentOp };
+  if (dobEl) payload.date_of_birth = dobEl.value || null;
+  if (conEl) payload.consent_given = !!conEl.checked;
+  try {
+    const res = await hqFetch(`${API}/hq/client/${encodeURIComponent(slug)}/consent`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    const d = await res.json();
+    if (!res.ok) throw new Error(d.error || 'Could not save');
+    showToast('Saved');
+    // Keep the in memory client in step, so reopening the sheet does not
+    // show the old value and invite a second save.
+    const c = (D.clients || []).find(x => x.portal_slug === slug);
+    if (c && d.client) {
+      c.date_of_birth = d.client.date_of_birth;
+      c.consent_given = d.client.consent_given;
+    }
+  } catch (e) {
+    alert(e.message || 'Could not save');
+  }
+}
+
 function openSheet(id) {
+
   document.getElementById('sheet-overlay').classList.add('open');
   document.getElementById(id).classList.add('open');
   if (id === 'batch-invoice-sheet') setBatchPeriod('thismonth');
@@ -12535,6 +12734,37 @@ function openClientDetail(id) {
           </div>
         `).join('')}
       </div>
+      <!-- AG2. DATE OF BIRTH AND CONSENT, inline.
+           Vitor received care from Aug 15 with neither on file, because the
+           only way to set them was Supabase. A step that needs a database
+           client is a step that gets skipped. -->
+      <div style="margin:16px 0 0;padding:14px;border:1px solid var(--border);border-radius:10px;background:var(--bg2);">
+        <div style="font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:10px;">On file</div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;">
+          <div style="flex:1;min-width:150px;">
+            <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">Date of birth</div>
+            <input type="date" id="ag-dob-${id}" value="${c.date_of_birth || ''}"
+              style="width:100%;min-height:40px;padding:8px 10px;border-radius:8px;border:1px solid var(--border);background:var(--bg3);color:var(--text);font-size:14px;">
+          </div>
+          <label style="display:flex;align-items:center;gap:7px;min-height:40px;font-size:13px;color:var(--text);cursor:pointer;">
+            <input type="checkbox" id="ag-consent-${id}" ${c.consent_given ? 'checked' : ''}
+              style="width:18px;height:18px;">
+            Consent on file
+          </label>
+          <button onclick="agSaveConsent('${slug}','${id}')"
+            style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;padding:9px 14px;border-radius:6px;border:1px solid var(--border);background:var(--teal);color:#fff;min-height:40px;">
+            Save
+          </button>
+        </div>
+        ${(!c.date_of_birth || !c.consent_given) ? `<div style="font-size:12px;color:var(--gold);line-height:1.6;margin-top:9px;">${!c.date_of_birth && !c.consent_given ? 'No date of birth and no consent on file.' : !c.date_of_birth ? 'No date of birth on file.' : 'No consent on file.'} Both belong on record before care is billed.</div>` : ''}
+      </div>
+
+      <!-- AG2. AGREEMENT PANEL. Everything the operator needs in one place. -->
+      <div id="ag-panel-${id}" style="margin:16px 0 14px;padding:14px;border:1px solid var(--border);border-radius:10px;background:var(--bg2);">
+        <div style="font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:10px;">Agreement</div>
+        <div id="ag-body-${id}" style="font-size:13px;color:var(--muted2);">Loading...</div>
+      </div>
+
       <div id="fc-list-${id}" style="margin-bottom:10px;"><div style="font-family:var(--mono);font-size:12px;color:var(--muted);">Loading contacts...</div></div>
       <div style="display:flex;flex-direction:column;gap:6px;padding:12px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;">
         <div style="font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:4px;">Add Family Contact</div>
@@ -12657,6 +12887,14 @@ function openClientDetail(id) {
   if (saveBtn) saveBtn.onclick = () => saveClientEdits(id);
   if (saveBar) saveBar.style.display = 'flex';
   openSheet('client-sheet');
+
+  // AG2. Load the agreement panel AFTER the sheet is open, not with the client
+  // list. Most clients have no agreement, so loading it eagerly would be a
+  // query per client for nothing.
+  //
+  // Fire and forget on purpose: an operator opening a client to check a phone
+  // number must never wait on an agreement lookup.
+  if (slug) loadAgreementPanel(slug, id);
 }
 
 async function loadFamilyContactsForClient(clientId, slug) {
