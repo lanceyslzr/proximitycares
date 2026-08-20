@@ -745,7 +745,7 @@ a{color:inherit;text-decoration:none;}
 }
 
 </style>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <link rel="stylesheet" id="leaflet-css" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 </head>
@@ -3590,25 +3590,49 @@ async function doCheckOut() {
       if (!file.size) { _photoEmpty++; continue; }
       try {
         const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
-        const path = `${(pswName||'psw').replace(/\s+/g,'_').toLowerCase()}/${activeVisit.id}_${Date.now()}.${ext}`;
-        const uploadRes = await fetch(`${API}/psw/upload-photo`, {
-          method: 'POST', headers: {'Content-Type':'application/json'},
-          body: JSON.stringify({ psw_name: pswName, pin: pswPin, operator_id: pswOperatorId, path, type: file.type, size: file.size })
+        const path = `${(pswName||'psw').replace(/\s+/g,'_').toLowerCase()}/${activeVisit.id}_${Date.now()}_${Math.random().toString(36).slice(2,7)}.${ext}`;
+
+        // PH6. Send the FILE to our server and let it write to storage.
+        //
+        // The old path asked the server for a Supabase signed upload URL and
+        // then PUT to it directly with a hand rolled request. That worked for
+        // 32 photos and then failed for 31 consecutively, with no code change
+        // between them. The PUT kept returning ok while storage wrote an
+        // object with no bytes, so every guard we had, all of which checked
+        // putRes.ok, saw success.
+        //
+        // multipart, not JSON: express.json is capped at 100kb and a 3.6MB
+        // photo is far past it. multer parses this before the body parser
+        // sees it, with its own 15MB cap.
+        //
+        // The server now verifies the STORED object is non zero before it
+        // answers, so a zero byte photo cannot be recorded at all.
+        const fd = new FormData();
+        fd.append('file', file, file.name || 'photo.jpg');
+        fd.append('psw_name', pswName);
+        fd.append('pin', pswPin);
+        fd.append('operator_id', pswOperatorId || 'proximity-care');
+        fd.append('path', path);
+
+        // No Content-Type header. The browser sets it with the multipart
+        // boundary, and setting it by hand omits the boundary and breaks
+        // parsing. Hand setting a content type is what broke the old path.
+        const upRes = await fetch(`${API}/psw/upload-photo-direct`, {
+          method: 'POST', body: fd
         }).catch(() => null);
-        if (uploadRes?.ok) {
-          const ud = await uploadRes.json();
-          if (ud.signed_url) {
-            // A dropped photo is missing evidence of care delivered. It used to
-            // vanish with no indication, and the visit completed short.
-            const putRes = await fetch(ud.signed_url, { method: 'PUT', body: file, headers: { 'Content-Type': file.type } }).catch(() => null);
-            if (putRes?.ok) {
-              if (ud.url) taskPhotoUrls.push(ud.url);
-            } else {
-              _photoFailed++;
-            }
-          } else {
-            _photoFailed++;
-          }
+
+        if (upRes?.ok) {
+          const ud = await upRes.json().catch(() => null);
+          // Only record the path when the server CONFIRMS bytes landed.
+          if (ud?.success && ud.url) taskPhotoUrls.push(ud.url);
+          else _photoFailed++;
+        } else if (upRes) {
+          // A 400 with code zero_bytes means the photo arrived empty, which
+          // needs retaking rather than retrying. Counted separately so the
+          // checkout summary tells the caregiver the right thing to do.
+          const err = await upRes.json().catch(() => null);
+          if (err?.code === 'zero_bytes' || err?.code === 'stored_empty') _photoEmpty++;
+          else _photoFailed++;
         } else {
           _photoFailed++;
         }
@@ -4722,7 +4746,9 @@ async function loadDocuments() {
     el.innerHTML = docs.map(doc => {
       const st = doc.status || (doc.url ? 'valid' : 'missing');
       const initials = doc.key.split('_').map(w=>w[0].toUpperCase()).join('');
-      const linkAttr = doc.url ? `onclick="window.open('${doc.url}','_blank')" style="cursor:pointer;"` : '';
+      // PSW3. Through the signed route, not a raw open. The bucket is private
+      // so the stored path is not a URL a browser can follow.
+      const linkAttr = doc.url ? `onclick="pswOpenDoc('${String(doc.url).replace(/'/g, "\\'")}')" style="cursor:pointer;"` : '';
       return `<div class="doc-row" ${linkAttr}>
         <div class="doc-icon">${initials}</div>
         <div class="doc-info"><div class="doc-name">${doc.name}</div><div class="doc-meta">${doc.url?(doc.expiry?'Expires '+fmtd(doc.expiry):'On file'):'Not uploaded'}</div></div>
@@ -5085,6 +5111,39 @@ async function loadPaySummary() {
 //
 // Credentials ride in the query string because an img src cannot send a
 // header. Same reason HQ passes its token that way.
+// PSW3. Open a certification or employment document.
+//
+// psw-documents went PRIVATE on 2026-08-20, so the stored value is a path and
+// a raw window.open on it fails. Certificates, police checks and CPR
+// documents were all opening to nothing.
+//
+// Fetched on CLICK, never rendered into the markup: the signed url lasts 300
+// seconds and a link built when the screen loaded would be dead before a
+// caregiver tapped it.
+function pswDocUrl(raw) {
+  if (!raw) return '';
+  const marker = '/psw-documents/';
+  const i = String(raw).indexOf(marker);
+  const path = i >= 0 ? String(raw).slice(i + marker.length) : String(raw);
+  return `${API}/psw/document?psw_name=${encodeURIComponent(pswName)}`
+       + `&pin=${encodeURIComponent(pswPin)}`
+       + `&operator_id=${encodeURIComponent(pswOperatorId || 'proximity-care')}`
+       + `&path=${encodeURIComponent(path)}`;
+}
+
+async function pswOpenDoc(raw) {
+  const u = pswDocUrl(raw);
+  if (!u) return;
+  try {
+    const res = await fetch(u);
+    const d = await res.json().catch(() => null);
+    if (!res.ok || !d?.url) throw new Error(d?.error || 'Could not open that document');
+    window.open(d.url, '_blank', 'noopener');
+  } catch (e) {
+    showToast(e.message || 'Could not open that document', 'err');
+  }
+}
+
 function pswPhotoUrl(entry) {
   const raw = (entry && (entry.url || entry.path)) || entry;
   if (!raw) return '';

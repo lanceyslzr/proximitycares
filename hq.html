@@ -16,7 +16,7 @@
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 async function resendOnboardLink(applicantId, firstName, btn) {
   if (!applicantId) return;
@@ -7319,6 +7319,22 @@ async function submitEngagement() {
 // belongs to this operator and 302s to a 300 second signed URL.
 //
 // The token rides in the query string because an img src cannot send a header.
+// PSW1 and CD1. Open a document from a PRIVATE bucket.
+//
+// psw-documents went private on 2026-08-20 and client-documents was created
+// private. The stored value is a PATH, so a raw href opens nothing. These
+// point at routes that verify ownership and 302 to a 300 second signed url,
+// which means an ordinary link still works.
+function hqDocUrl(raw, kind) {
+  if (!raw) return '';
+  const bucket = kind === 'client' ? '/client-documents/' : '/psw-documents/';
+  const i = String(raw).indexOf(bucket);
+  const path = i >= 0 ? String(raw).slice(i + bucket.length) : String(raw);
+  const tok = window._hqToken || sessionStorage.getItem('hq_token') || '';
+  const route = kind === 'client' ? 'client-document' : 'psw-document';
+  return `${API}/hq/${route}?path=${encodeURIComponent(path)}&_hqt=${encodeURIComponent(tok)}`;
+}
+
 function hqPhotoUrl(entry) {
   const raw = (entry && (entry.url || entry.path)) || entry;
   if (!raw) return '';
@@ -7956,7 +7972,7 @@ async function openApplicantSheet(id) {
     `<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);">
       <div style="font-size:13px;color:${d.url?'var(--text)':'var(--muted)'};">${d.label}</div>
       ${d.url
-        ? `<a href="${d.url}" target="_blank" style="font-family:var(--mono);font-size:11px;letter-spacing:1px;color:var(--teal2);border:1px solid rgba(90,173,160,.3);padding:4px 10px;border-radius:4px;">VIEW ↗</a>`
+        ? `<a href="${hqDocUrl(d.url,'psw')}" target="_blank" style="font-family:var(--mono);font-size:11px;letter-spacing:1px;color:var(--teal2);border:1px solid rgba(90,173,160,.3);padding:4px 10px;border-radius:4px;">VIEW ↗</a>`
         : `<span style="font-family:var(--mono);font-size:11px;color:var(--muted);">NOT UPLOADED</span>`}
     </div>`
   ).join('');
@@ -11677,7 +11693,7 @@ async function openPSWDetail(pswId) {
           {label:'CPR Certification',   field:'cpr_cert',     url:rec.cpr_cert_url,     expiry:rec.cpr_cert_expiry},
           {label:'First Aid',           field:'first_aid',    url:rec.first_aid_url,    expiry:rec.first_aid_expiry},
           {label:'Employment Agreement',field:'nacc_cert',    url:rec.employment_agreement_url||p.employment_agreement_url, expiry:null}
-        ].map(d => '<div class="doc-vault-row"><div class="doc-vault-name">'+d.label+'</div><div class="doc-vault-status">'+(d.url?'<a href="'+d.url+'" target="_blank">VIEW'+(d.expiry?' &#183; '+fmtd(d.expiry):'')+'</a>':'<span style="font-family:var(--mono);font-size:11px;color:var(--muted);">MISSING</span>')+(d.field==='nacc_cert'?'<button onclick="generateEmploymentAgreement(\''+name+'\')" style="padding:3px 8px;background:rgba(61,138,122,.1);border:1px solid rgba(61,138,122,.3);border-radius:4px;font-family:var(--mono);font-size:10px;color:var(--teal2);cursor:pointer;min-height:28px;touch-action:manipulation;">GENERATE</button>':'')+'<label class="doc-vault-upload">UPLOAD<input type="file" accept=".pdf,.jpg,.jpeg,.png" style="display:none;" onchange="uploadPSWDoc(event,\''+name+'\',\''+d.field+'\')"></label></div></div>').join('')}
+        ].map(d => '<div class="doc-vault-row"><div class="doc-vault-name">'+d.label+'</div><div class="doc-vault-status">'+(d.url?'<a href="'+hqDocUrl(d.url,'psw')+'" target="_blank">VIEW'+(d.expiry?' &#183; '+fmtd(d.expiry):'')+'</a>':'<span style="font-family:var(--mono);font-size:11px;color:var(--muted);">MISSING</span>')+(d.field==='nacc_cert'?'<button onclick="generateEmploymentAgreement(\''+name+'\')" style="padding:3px 8px;background:rgba(61,138,122,.1);border:1px solid rgba(61,138,122,.3);border-radius:4px;font-family:var(--mono);font-size:10px;color:var(--teal2);cursor:pointer;min-height:28px;touch-action:manipulation;">GENERATE</button>':'')+'<label class="doc-vault-upload">UPLOAD<input type="file" accept=".pdf,.jpg,.jpeg,.png" style="display:none;" onchange="uploadPSWDoc(event,\''+name+'\',\''+d.field+'\')"></label></div></div>').join('')}
       </div>
     </div>
 
@@ -12727,7 +12743,7 @@ function openClientDetail(id) {
           <div class="doc-vault-row">
             <div class="doc-vault-name">${d.label}</div>
             <div class="doc-vault-status">
-              ${d.url?`<a href="${d.url}" target="_blank">VIEW</a>`:`<span style="font-family:var(--mono);font-size:11px;color:var(--muted);">MISSING</span>`}
+              ${d.url?`<a href="${hqDocUrl(d.url,'client')}" target="_blank">VIEW</a>`:`<span style="font-family:var(--mono);font-size:11px;color:var(--muted);">MISSING</span>`}
               ${d.type==='service_agreement'?`<button onclick="generateServiceAgreement('${slug}')" style="padding:3px 8px;background:rgba(61,138,122,.1);border:1px solid rgba(61,138,122,.3);border-radius:4px;font-family:var(--mono);font-size:10px;color:var(--teal2);cursor:pointer;min-height:28px;touch-action:manipulation;">GENERATE</button>`:''}
               <label class="doc-vault-upload">UPLOAD<input type="file" accept=".pdf,.jpg,.jpeg,.png" style="display:none;" onchange="uploadClientDoc(event,'${slug}','${d.type}')"></label>
             </div>
