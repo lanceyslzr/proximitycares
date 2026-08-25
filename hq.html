@@ -7061,9 +7061,22 @@ function _openFormAttachment(formId, attachIndex) {
   const attach = attachList[attachIndex];
   if (!attach) { showToast('Attachment not found', 'err'); return; }
 
-  // New path: Supabase Storage URL (Block 6 migration)
+  // FA1. The stored value is a PATH now, not a url. The forms bucket is
+  // private, so window.open on it would 403.
+  //
+  // Fetched through hqDocUrl equivalent: /hq/form-attachment verifies the
+  // path belongs to this operator and 302s to a 300 second signed url, so an
+  // ordinary window.open still works.
+  //
+  // Legacy rows holding a full public url are reduced to a path by the same
+  // route, so nothing written before FA1b breaks.
   if (attach.url) {
-    window.open(attach.url, '_blank');
+    const marker = '/psw-forms-attachments/';
+    const i = String(attach.url).indexOf(marker);
+    const p = i >= 0 ? String(attach.url).slice(i + marker.length) : String(attach.url);
+    const tok = window._hqToken || sessionStorage.getItem('hq_token') || '';
+    window.open(`${API}/hq/form-attachment?path=${encodeURIComponent(p)}&_hqt=${encodeURIComponent(tok)}`,
+                '_blank', 'noopener');
     return;
   }
 
@@ -15812,6 +15825,66 @@ function openVisitEditById(visitId) {
   openVisitEdit(v);
 }
 
+// VE1. MIDNIGHT.
+//
+// The edit modal did naive minute subtraction in TWO places:
+//   calcHours       returned silently when time_out < time_in, so the hours
+//                   preview was DEAD on every overnight shift, which is the
+//                   one case where you most need it.
+//   saveVisitEdit   rejected outright with "Time out must be after time in",
+//                   so a live in visit could not be saved from HQ at all.
+//                   That is why Aug 24 had to be corrected in SQL.
+//
+// The SERVER and the DATABASE were always fine. hours_worked is a generated
+// column that wraps midnight, fixed in August after every overnight shift
+// since launch had been storing a NEGATIVE value. Only the browser disagreed.
+//
+// One helper now, used by both, matching the SQL wrap exactly:
+//   CASE WHEN time_out >= time_in THEN ... ELSE ... + interval '24 hours' END
+//
+// Returns null when either time is missing, so callers can tell "not entered"
+// apart from "zero", which the old code could not.
+// The per day cap from the agreement governing this visit, or null when the
+// visit is not linked. Returns null on anything unexpected rather than
+// guessing: a WRONG cap shown here would be worse than none.
+//
+// Option A set payable_hours_per_day and billable_hours_per_day to NULL on the
+// Ferrari agreement deliberately, so the clock governs. A null cap must mean
+// NO CAP, never zero.
+function _vemAgreementCap(visit) {
+  try {
+    if (!visit || !visit.agreement_id) return null;
+    const ag = (D.agreements || []).find(a => a.id === visit.agreement_id);
+    if (!ag) return null;
+    const cap = ag.payable_hours_per_day != null ? ag.payable_hours_per_day
+              : (ag.billable_hours_per_day != null ? ag.billable_hours_per_day : null);
+    if (cap === null || isNaN(parseFloat(cap))) return null;
+    return parseFloat(cap);
+  } catch (e) { return null; }
+}
+
+function vemMinutes(tin, tout) {
+  if (!tin || !tout) return null;
+  const [h1, m1] = String(tin).split(':').map(Number);
+  const [h2, m2] = String(tout).split(':').map(Number);
+  if ([h1, m1, h2, m2].some(n => isNaN(n))) return null;
+  let mins = (h2 * 60 + m2) - (h1 * 60 + m1);
+  // Equal times mean a full 24 hours, not zero. A caregiver who checks in at
+  // 08:00 and out at 08:00 the next day worked a day, and treating that as
+  // zero would pay her nothing for it.
+  if (mins <= 0) mins += 24 * 60;
+  return mins;
+}
+
+// True when the shift runs past midnight. Used to label the preview, so it is
+// obvious the system read 04:00 as NEXT DAY rather than as a mistake.
+function vemCrossesMidnight(tin, tout) {
+  if (!tin || !tout) return false;
+  const [h1, m1] = String(tin).split(':').map(Number);
+  const [h2, m2] = String(tout).split(':').map(Number);
+  return (h2 * 60 + m2) <= (h1 * 60 + m1);
+}
+
 function openVisitEdit(visitData) {
   if (typeof visitData === 'string') { try { visitData = JSON.parse(visitData); } catch(e) { return; } }
   _vemVisitId = visitData.id;
@@ -15830,18 +15903,50 @@ function openVisitEdit(visitData) {
   modal.style.display = 'flex';
 
   // Live hours preview
+  // VE1b. The preview. It must say something useful on an overnight shift
+  // rather than silently doing nothing, which is what it did before.
   const calcHours = () => {
     const tin  = document.getElementById('vem-time-in').value;
     const tout = document.getElementById('vem-time-out').value;
-    if (!tin || !tout) return;
-    const [h1,m1] = tin.split(':').map(Number);
-    const [h2,m2] = tout.split(':').map(Number);
-    const mins = (h2*60+m2) - (h1*60+m1);
-    if (mins <= 0) return;
-    const hrs = (mins/60).toFixed(2);
     const prev = document.getElementById('vem-hours-preview');
+    const mins = vemMinutes(tin, tout);
+    if (mins === null) { prev.style.display = 'none'; return; }
+
+    const hrs = mins / 60;
+    const overnight = vemCrossesMidnight(tin, tout);
     prev.style.display = 'block';
-    prev.textContent = `${tin} → ${tout} = ${hrs}h`;
+
+    // "next day" is the whole point. Without it there is no way to tell
+    // whether the system read 04:00 as tomorrow morning or as a mistake.
+    let html = '<div style="font-size:15px;color:var(--text);">'
+      + tin + ' to ' + tout
+      + (overnight ? ' <span style="color:var(--gold);">next day</span>' : '')
+      + ' = <b>' + hrs.toFixed(2) + 'h</b></div>';
+
+    // A shift over 24 hours is almost always a missed checkout. FLAG it, do
+    // not block it: a genuine long cover exists, and refusing to record one
+    // would push the operator back into SQL, which is the problem this modal
+    // has today.
+    if (hrs > 24) {
+      html += '<div style="font-size:12px;color:var(--gold);margin-top:6px;line-height:1.5;">'
+        + 'Over 24 hours. That is usually a missed checkout. Check the time before saving.</div>';
+    } else if (overnight) {
+      html += '<div style="font-size:12px;color:var(--muted);margin-top:6px;">'
+        + 'Crosses midnight, so check out is the following morning.</div>';
+    }
+
+    // What the AGREEMENT will actually bill. The clocked figure and the billed
+    // figure are different numbers on a live in, and seeing only one of them
+    // is how a 20 hour day gets recorded as 22.84.
+    const v = (D.visits || []).find(x => x.id === _vemVisitId);
+    const cap = _vemAgreementCap(v);
+    if (cap != null && Math.abs(cap - hrs) > 0.01) {
+      html += '<div style="font-size:12px;color:var(--muted);margin-top:6px;line-height:1.5;">'
+        + 'The agreement caps this at <b>' + cap.toFixed(2) + 'h</b>, so that is what will be '
+        + 'paid and billed unless you set a manual override.</div>';
+    }
+
+    prev.innerHTML = html;
   };
   document.getElementById('vem-time-in').oninput  = calcHours;
   document.getElementById('vem-time-out').oninput = calcHours;
@@ -15893,10 +15998,28 @@ async function saveVisitEdit() {
   if (!manualHours && (!timeIn || !timeOut)) {
     showToast('Enter time in/out OR manual hours', 'err'); return;
   }
+  // VE1c. THE LINE THAT BLOCKED EVERY LIVE IN.
+  //
+  // This used to reject any shift where time_out was earlier than time_in,
+  // which is EVERY overnight shift. A 07:47 to 04:00 live in could not be
+  // saved from HQ at all, which is why Aug 24 had to be corrected in SQL.
+  //
+  // The server and the database were always fine: hours_worked is a generated
+  // column that wraps midnight. Only the browser disagreed.
   if (timeIn && timeOut) {
-    const [h1,m1] = timeIn.split(':').map(Number);
-    const [h2,m2] = timeOut.split(':').map(Number);
-    if ((h2*60+m2) <= (h1*60+m1)) { showToast('Time out must be after time in', 'err'); return; }
+    const mins = vemMinutes(timeIn, timeOut);
+    if (mins === null) { showToast('Check the times', 'err'); return; }
+    const hrs = mins / 60;
+    // Over 24 hours is CONFIRMED, not blocked. A genuine long cover exists,
+    // and refusing it outright is what sends an operator back to SQL.
+    if (hrs > 24) {
+      const overnight = vemCrossesMidnight(timeIn, timeOut);
+      if (!confirm('That is ' + hrs.toFixed(2) + ' hours'
+          + (overnight ? ', crossing midnight' : '')
+          + '.\n\nThat is usually a missed checkout rather than real work. Save anyway?')) {
+        return;
+      }
+    }
   }
 
   const btn = document.getElementById('vem-save-btn');

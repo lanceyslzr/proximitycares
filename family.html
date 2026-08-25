@@ -1330,6 +1330,46 @@ function famPin() {
 /* Appends the pin as a query param. GET routes cannot carry a body, and the SSE
    call in this file already uses this exact shape, so this is consistent with
    what the portal does today rather than a new convention. */
+// VE2. showToast was CALLED NINE TIMES IN THIS FILE AND NEVER DEFINED.
+//
+// It is absent from the deployed version too, so this has been live for some
+// time. Every call threw a ReferenceError, and because each sits at the TOP of
+// a try block, the throw was swallowed by the catch.
+//
+// So a family tapping "Download care plan" got NOTHING. No PDF, no error, no
+// spinner. The same failure shape as the photos: something that looks like
+// nothing happening.
+//
+// Self contained on purpose. It creates its own element on first use, so it
+// cannot depend on markup that may not be present on every screen.
+function showToast(msg, kind) {
+  try {
+    let el = document.getElementById('fam-toast');
+    if (!el) {
+      el = document.createElement('div');
+      el.id = 'fam-toast';
+      el.style.cssText = 'position:fixed;left:50%;transform:translateX(-50%);'
+        + 'bottom:calc(84px + var(--safe-bottom,0px));z-index:9999;max-width:88%;'
+        + 'padding:12px 18px;border-radius:10px;font-size:14px;line-height:1.5;'
+        + 'text-align:center;box-shadow:0 6px 24px rgba(0,0,0,.18);'
+        + 'opacity:0;transition:opacity .18s ease;pointer-events:none;';
+      document.body.appendChild(el);
+    }
+    const err = kind === 'err';
+    el.style.background = err ? '#7a2718' : '#1e5c43';
+    el.style.color = '#fff';
+    el.textContent = String(msg == null ? '' : msg);
+    // Force a reflow so the transition runs when the same element is reused.
+    void el.offsetWidth;
+    el.style.opacity = '1';
+    clearTimeout(el._t);
+    // Errors linger, because a family needs time to read what went wrong.
+    el._t = setTimeout(() => { el.style.opacity = '0'; }, err ? 4200 : 2600);
+  } catch (e) {
+    // Never let a toast break the action it was reporting on.
+  }
+}
+
 function famUrl(path) {
   return `${R}${path}${path.includes('?') ? '&' : '?'}pin=${encodeURIComponent(famPin())}`;
 }
