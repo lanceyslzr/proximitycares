@@ -4772,7 +4772,25 @@ function renderAll() {
   // Incident badge
   const icEl = document.getElementById('incident-count');
   if (icEl) {
-    const openInc = (D.visits||[]).filter(v=>v.incident_reported&&!v.incident_resolved).length;
+    // B24. Prefer the server's exact count. This used to be measured off
+    // D.visits, which is fetched with limit=500 over 90 days. At one client
+    // that is months of history; at fifty clients it is about two weeks, so an
+    // incident open longer than that silently vanished from a SAFETY badge.
+    //
+    // Falls back to the old local filter when the count is unavailable, which
+    // is the same shape L4810 below already uses for c.visits_total. A stale
+    // number beats a confident zero.
+    // TDZ. This block runs BEFORE `const c = D.counts||{}` is declared further
+    // down in renderAll, so referencing c here throws
+    // "Cannot access 'c' before initialization" on every dashboard render.
+    // node --check passes on it, which is precisely Law 1: a parse gate proves
+    // syntax and only execution proves it works. Read D.counts directly; it is
+    // an object property, not a block scoped binding, so ordering is irrelevant.
+    const _icCounts = (typeof D !== 'undefined' && D.counts) ? D.counts : {};
+    const _icExact = (typeof _icCounts.open_incidents === 'number') ? _icCounts.open_incidents : null;
+    const openInc = _icExact !== null
+      ? _icExact
+      : (D.visits||[]).filter(v=>v.incident_reported&&!v.incident_resolved).length;
     icEl.textContent = openInc; icEl.style.display = openInc > 0 ? 'inline' : 'none';
   }
   // Sync sidebar badges

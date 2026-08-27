@@ -88,7 +88,7 @@ a{color:inherit;text-decoration:none;}
 
 /* TOPBAR */
 .topbar{position:sticky;top:0;z-index:100;height:54px;display:flex;align-items:center;justify-content:space-between;padding:0 14px;background:rgba(7,9,12,.96);border-bottom:1px solid var(--border);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);}
-.hamburger-btn{width:36px;height:36px;border-radius:8px;border:1px solid var(--border2);background:transparent;color:var(--muted2);display:flex;align-items:center;justify-content:center;cursor:pointer;touch-action:manipulation;flex-shrink:0;}
+.hamburger-btn{flex-shrink:0;width:36px;height:36px;border-radius:8px;border:1px solid var(--border2);background:transparent;color:var(--muted2);display:flex;align-items:center;justify-content:center;cursor:pointer;touch-action:manipulation;flex-shrink:0;}
 .hamburger-btn:active{background:var(--bg3);}
 .drawer-overlay{display:none;position:fixed;inset:0;z-index:400;background:rgba(0,0,0,.6);}
 .drawer-overlay.open{display:block;}
@@ -101,11 +101,37 @@ a{color:inherit;text-decoration:none;}
 .drawer-item svg{width:18px;height:18px;color:var(--teal2);}
 .drawer-lbl{flex:1;}
 .drawer-badge{font-family:var(--mono);font-size:12px;background:var(--teal2);color:#000;border-radius:100px;padding:2px 7px;}
-.psw-info{display:flex;align-items:center;gap:10px;}
-.psw-avatar{width:32px;height:32px;border-radius:50%;background:var(--bg3);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:11px;color:var(--teal2);font-weight:500;flex-shrink:0;}
-.psw-name-top{font-size:14px;font-weight:500;color:var(--text);}
-.psw-role{font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--teal2);margin-top:1px;}
-.shift-pill{font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;padding:5px 10px;border-radius:100px;background:rgba(224,154,61,.15);color:var(--amber);border:1px solid rgba(224,154,61,.3);}
+/* B0b. THE TOPBAR COLLISION.
+   Carolina reported on 2026-08-26 that the three lines at the right corner
+   would not respond. The screenshot showed her name overlapping the clock and
+   the unread badge sitting ON TOP of the hamburger, which is why it did not
+   take a tap.
+
+   THE DIAGNOSIS THAT LOOKED RIGHT AND WAS NOT. The obvious cause is a missing
+   min-width:0 on a flex child, but this file already sets it globally at L20
+   (*,*::before,*::after{box-sizing:border-box;min-width:0}). The boxes could
+   already shrink.
+
+   THE ACTUAL CAUSE is clipping, not sizing. .psw-info shrank as intended and
+   its TEXT kept painting at full width because nothing clipped it, so the
+   glyphs overflowed into the right hand group. Separately the right group had
+   no flex-shrink:0, so it shrank too and the two overlapped in the middle.
+
+   WHY THIS NEEDS NO BREAKPOINT. Clipping and flex-shrink:0 are correct at every
+   width, so this does not depend on knowing her screen size. That is also why
+   it generalises: the same shape (min-width:0 present, clipping absent) will
+   bite any text-in-a-flex-row as names get longer, which is what happens with
+   50 caregivers instead of one. */
+.psw-info{display:flex;align-items:center;gap:10px;min-width:0;overflow:hidden;}
+/* Utility. Any text that shares a flex row with something that must stay
+   visible. Used here; available for every row that grows with real data. */
+.tx-clip{min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
+/* Utility. Any control group that must never be squeezed by growing text. */
+.no-shrink{flex-shrink:0;}
+.psw-avatar{flex-shrink:0;width:32px;height:32px;border-radius:50%;background:var(--bg3);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:11px;color:var(--teal2);font-weight:500;flex-shrink:0;}
+.psw-name-top{font-size:14px;font-weight:500;color:var(--text);min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
+.psw-role{font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--teal2);margin-top:1px;min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
+.shift-pill{flex-shrink:0;font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;padding:5px 10px;border-radius:100px;background:rgba(224,154,61,.15);color:var(--amber);border:1px solid rgba(224,154,61,.3);}
 
 /* NAV TABS */
 /* nav-tabs removed, using bottom nav + hamburger drawer */
@@ -844,7 +870,7 @@ a{color:inherit;text-decoration:none;}
       <div class="psw-role">Personal Support Worker</div>
     </div>
   </div>
-  <div style="display:flex;align-items:center;gap:8px;">
+  <div class="no-shrink" style="display:flex;align-items:center;gap:8px;">
     <button id="lang-toggle-btn" onclick="toggleLang()" style="background:none;border:1px solid var(--border,rgba(255,255,255,.1));border-radius:8px;padding:4px 10px;font-family:var(--mono,monospace);font-size:11px;color:var(--muted);cursor:pointer;letter-spacing:.5px;touch-action:manipulation;">Français</button>
     <div id="shift-status-pill" style="display:none;" class="shift-pill">On Shift</div>
     <button class="hamburger-btn" onclick="openDrawer()" aria-label="Menu" style="position:relative;">
@@ -1125,7 +1151,7 @@ a{color:inherit;text-decoration:none;}
     <!-- Custom task entry -->
     <div style="margin:4px 0 16px;display:flex;gap:8px;align-items:center;">
       <input type="text" id="cl-custom-input" placeholder="Add other task completed..."
-        style="flex:1;padding:11px 13px;background:var(--rb-panel);border:1px solid var(--rb-line2);border-radius:10px;font-size:13px;font-family:var(--rb-mono);color:var(--rb-text);outline:none;min-height:44px;"
+        style="flex:1;padding:11px 13px;background:var(--rb-panel);border:1px solid var(--rb-line2);border-radius:10px;font-size:16px;font-family:var(--rb-mono);color:var(--rb-text);outline:none;min-height:44px;"
         onkeydown="if(event.key==='Enter'){event.preventDefault();addCustomTask();}"
       >
       <button onclick="addCustomTask()" style="padding:11px 16px;background:rgba(86,200,245,.1);border:1px solid rgba(86,200,245,.3);border-radius:10px;font-family:var(--rb-mono);font-size:11px;letter-spacing:1px;color:var(--psw);cursor:pointer;min-height:44px;touch-action:manipulation;white-space:nowrap;">+ Add</button>
@@ -1514,6 +1540,26 @@ a{color:inherit;text-decoration:none;}
 </div><!-- /app -->
 
 <!-- CHECKOUT SHEET -->
+<!-- B7b, SIGN EMPLOYMENT AGREEMENT SHEET
+     Typed name plus an explicit tick. Both are required and neither is
+     inferred, matching /psw/sign-document and /family/sign-document. The
+     server checks both again; these are for a fast message, not for trust. -->
+<div id="sign-sheet" style="display:none;position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.75);" onclick="if(event.target===this)closeSignSheet()">
+  <div style="position:absolute;bottom:0;left:0;right:0;background:var(--bg2);border-radius:18px 18px 0 0;padding:20px 20px 40px;max-height:80vh;overflow-y:auto;">
+    <div style="width:36px;height:4px;background:var(--border2);border-radius:2px;margin:0 auto 16px;"></div>
+    <div style="font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--teal2);margin-bottom:4px;">Sign Employment Agreement</div>
+    <div style="font-size:11px;color:var(--muted2);margin-bottom:16px;line-height:1.5;">Read the agreement first, then type your full name to sign. Your signature is recorded once and cannot be changed afterwards.</div>
+    <div style="font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:8px;">Your full name</div>
+    <input id="sign-name" type="text" autocomplete="name" placeholder="Type your full name" style="width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:12px 14px;border-radius:8px;font-size:16px;margin-bottom:14px;">
+    <label style="display:flex;align-items:flex-start;gap:10px;margin-bottom:18px;cursor:pointer;">
+      <input id="sign-agree" type="checkbox" style="margin-top:3px;width:18px;height:18px;flex-shrink:0;">
+      <span style="font-size:13px;color:var(--text);line-height:1.5;">I have read the employment agreement and I agree to its terms.</span>
+    </label>
+    <button id="sign-submit" onclick="submitSignature()" style="width:100%;background:var(--teal2);color:#000;border:none;padding:14px;border-radius:8px;font-size:15px;font-weight:600;margin-bottom:8px;">Sign</button>
+    <button onclick="closeSignSheet()" style="width:100%;background:none;border:1px solid var(--border);color:var(--muted2);padding:12px;border-radius:8px;font-size:14px;">Cancel</button>
+  </div>
+</div>
+
 <!-- EC-7, CANCEL SHIFT SHEET -->
 <div id="cancel-shift-sheet" style="display:none;position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.75);" onclick="if(event.target===this)closeCancelShift()">
   <div style="position:absolute;bottom:0;left:0;right:0;background:var(--bg2);border-radius:18px 18px 0 0;padding:20px 20px 40px;max-height:80vh;overflow-y:auto;">
@@ -1529,7 +1575,7 @@ a{color:inherit;text-decoration:none;}
       <button onclick="selectCancelReason(this,'Transportation issue')" style="text-align:left;padding:12px 14px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;cursor:pointer;touch-action:manipulation;">Transportation issue</button>
       <button onclick="selectCancelReason(this,'Scheduling conflict')" style="text-align:left;padding:12px 14px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;cursor:pointer;touch-action:manipulation;">Scheduling conflict</button>
     </div>
-    <textarea id="cs-custom-reason" placeholder="Add details (optional)..." style="width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:12px 14px;font-size:15px;border-radius:8px;resize:none;min-height:70px;font-family:var(--sans);box-sizing:border-box;margin-bottom:14px;outline:none;"></textarea>
+    <textarea id="cs-custom-reason" placeholder="Add details (optional)..." style="width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:12px 14px;font-size:16px;border-radius:8px;resize:none;min-height:70px;font-family:var(--sans);box-sizing:border-box;margin-bottom:14px;outline:none;"></textarea>
     <button id="cs-submit-btn" onclick="submitCancelShift()" style="width:100%;background:var(--amber);color:#000;border:none;padding:14px;border-radius:8px;font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;cursor:pointer;min-height:48px;opacity:.4;pointer-events:none;">Send Request to Coordinator</button>
     <button onclick="closeCancelShift()" style="width:100%;background:none;border:1px solid var(--border);color:var(--muted2);padding:12px;border-radius:8px;font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;min-height:44px;margin-top:8px;">Keep Shift</button>
   </div>
@@ -1743,12 +1789,12 @@ a{color:inherit;text-decoration:none;}
     </div>
     <div id="note-editor-wrap" style="display:none;">
       <label style="font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:8px;">Progress Note <span style="color:var(--teal2);">, Edit before submitting</span></label>
-      <textarea id="note-textarea" style="width:100%;min-height:160px;background:var(--bg3);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-size:14px;font-family:var(--sans);padding:12px 14px;resize:vertical;line-height:1.6;box-sizing:border-box;outline:none;" placeholder="Write your visit note here..."></textarea>
+      <textarea id="note-textarea" style="width:100%;min-height:160px;background:var(--bg3);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-size:16px;font-family:var(--sans);padding:12px 14px;resize:vertical;line-height:1.6;box-sizing:border-box;outline:none;" placeholder="Write your visit note here..."></textarea>
       <div style="font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:6px;line-height:1.5;">You can edit this note before submitting. Once saved it becomes part of the client's care record.</div>
     </div>
     <div id="note-manual-wrap" style="display:none;margin-top:4px;">
       <label style="font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:8px;">Progress Note <span style="color:var(--muted);">, Write manually</span></label>
-      <textarea id="note-textarea-manual" style="width:100%;min-height:160px;background:var(--bg3);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-size:14px;font-family:var(--sans);padding:12px 14px;resize:vertical;line-height:1.6;box-sizing:border-box;outline:none;" placeholder="Describe what happened during this visit..."></textarea>
+      <textarea id="note-textarea-manual" style="width:100%;min-height:160px;background:var(--bg3);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-size:16px;font-family:var(--sans);padding:12px 14px;resize:vertical;line-height:1.6;box-sizing:border-box;outline:none;" placeholder="Describe what happened during this visit..."></textarea>
     </div>
     <div id="note-generate-wrap" style="margin-bottom:14px;">
       <button onclick="generateNote()" id="note-gen-btn" style="width:100%;padding:13px;background:rgba(86,200,245,.12);border:1px solid rgba(86,200,245,.3);border-radius:8px;font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--teal2);cursor:pointer;min-height:44px;touch-action:manipulation;">✦ Generate with AI</button>
@@ -4618,7 +4664,9 @@ async function loadMessages(scroll=true) {
           ${inc.resolved && inc.resolution_note ? `<div style="font-size:12px;color:var(--rb-text);background:var(--rb-elev);border-radius:8px;padding:6px 8px;margin-top:6px;">Resolution: ${inc.resolution_note}</div>` : ''}
         </div>`).join('');
     }
-    const unreadNotes = notes.filter(n => n.sender === 'lance' && !n.read_at);
+    // B0. was !n.read_at. psw_notes has no read_at column, so this was always
+    // true and the badge counted every message ever sent, reaching 129.
+    const unreadNotes = notes.filter(n => n.sender === 'lance' && !n.read);
     window._unreadNotes = unreadNotes; // store for renderHomeFeed
     const unread = unreadNotes.length;
     const badge = document.getElementById('msg-badge');
@@ -4630,6 +4678,41 @@ async function loadMessages(scroll=true) {
     if (scroll) el.scrollTop = el.scrollHeight;
   } catch { el.innerHTML = '<div class="empty-state">Could not load messages</div>'; }
 }
+
+// B0. PATCH /psw/note/:id/read has existed since the messages feature shipped
+// and the portal has never called it, so read was never written and the badge
+// counted every message ever sent. Carolina reached 129.
+//
+// Deliberately NOT called from inside loadMessages: that runs in the background
+// on phone unlock (L1878), on the auto refresh interval (L2265) and on initial
+// load (L2285). Marking read there would clear the badge for messages she never
+// opened, which is worse than the bug. This is called from showSect only, where
+// the section is actually on screen.
+//
+// Concurrency capped at 6. A first run after this ships has 129 notes to clear,
+// and 129 simultaneous requests on a phone on LTE is a stall, not a fix.
+async function markNotesRead() {
+  const ids = (window._unreadNotes || []).map(n => n && n.id).filter(Boolean);
+  if (!ids.length) return;
+  for (let i = 0; i < ids.length; i += 6) {
+    await Promise.all(ids.slice(i, i + 6).map(id =>
+      fetch(`${API}/psw/note/${id}/read`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ psw_name: pswName })
+      }).catch(() => null)
+    ));
+  }
+  // Clear locally rather than re-fetching. A failed PATCH simply leaves the row
+  // unread and the badge returns on the next load, which is the safe direction.
+  window._unreadNotes = [];
+  const badge = document.getElementById('msg-badge');
+  const dot = document.getElementById('bnav-msg-dot');
+  if (badge) badge.style.display = 'none';
+  if (dot) dot.classList.remove('show');
+  if (typeof renderHomeFeed === 'function') renderHomeFeed();
+}
+
 async function sendMsg() {
   const msg = document.getElementById('msg-input').value.trim();
   if (!msg) return;
@@ -4754,7 +4837,7 @@ async function loadDocuments() {
         <div class="doc-info"><div class="doc-name">${doc.name}</div><div class="doc-meta">${doc.url?(doc.expiry?'Expires '+fmtd(doc.expiry):'On file'):'Not uploaded'}</div></div>
         <div class="doc-status ${st}">${st}</div>
       </div>`;
-    }).join('');
+    }).join('') + pswAgreementRow(rec);
 
     // Visit notes history
     const visits = d.recent_visits || [];
@@ -5120,6 +5203,98 @@ async function loadPaySummary() {
 // Fetched on CLICK, never rendered into the markup: the signed url lasts 300
 // seconds and a link built when the screen loaded would be dead before a
 // caregiver tapped it.
+// B7b. THE EMPLOYMENT AGREEMENT ROW.
+//
+// WHY. /psw/sign-document shipped with no way to reach it, because
+// /psw/profile never selected employment_agreement_url. document_signatures
+// had ZERO rows and Carolina worked roughly $6,420 of August against terms
+// nobody signed. The route existed; the button did not.
+//
+// THREE STATES, and each is a different thing to tell her:
+//   no agreement issued  -> nothing to sign, do not offer a button that the
+//                           server would refuse with 409 needs_generation
+//   issued, unsigned     -> View, and Sign
+//   signed               -> View only, with the date. document_signatures is
+//                           immutable, so there is nothing to re-sign
+//
+// Rendered as a .doc-row to match the four certificate rows above it rather
+// than inventing a second visual language in the same list.
+function pswAgreementRow(rec) {
+  if (!rec) return '';
+  const url = rec.employment_agreement_url;
+  const signedAt = rec.employment_agreement_signed_at;
+  if (!url) {
+    return `<div class="doc-row">
+      <div class="doc-icon">EA</div>
+      <div class="doc-info"><div class="doc-name">Employment Agreement</div><div class="doc-meta">Not issued yet</div></div>
+      <div class="doc-status missing">missing</div>
+    </div>`;
+  }
+  const safe = String(url).replace(/'/g, "\\'");
+  if (signedAt) {
+    return `<div class="doc-row" onclick="pswOpenDoc('${safe}')" style="cursor:pointer;">
+      <div class="doc-icon">EA</div>
+      <div class="doc-info"><div class="doc-name">Employment Agreement</div><div class="doc-meta">Signed ${fmtd(String(signedAt).slice(0,10))}</div></div>
+      <div class="doc-status valid">signed</div>
+    </div>`;
+  }
+  return `<div class="doc-row">
+    <div class="doc-icon">EA</div>
+    <div class="doc-info" onclick="pswOpenDoc('${safe}')" style="cursor:pointer;"><div class="doc-name">Employment Agreement</div><div class="doc-meta">Tap to read, then sign</div></div>
+    <div class="doc-status" style="cursor:pointer;background:rgba(61,138,122,.14);color:var(--teal2);border:1px solid rgba(61,138,122,.3);" onclick="openSignSheet()">SIGN</div>
+  </div>`;
+}
+
+// The sheet. Typed name plus an explicit tick, mirroring /family/sign-document,
+// because the server requires both and refuses to infer either. A signature
+// that was not deliberately given is worse than no signature at all.
+function openSignSheet() {
+  const host = document.getElementById('sign-sheet');
+  if (!host) return;
+  host.style.display = 'flex';
+  const nm = document.getElementById('sign-name');
+  if (nm) { nm.value = ''; nm.focus(); }
+  const ag = document.getElementById('sign-agree');
+  if (ag) ag.checked = false;
+}
+function closeSignSheet() {
+  const host = document.getElementById('sign-sheet');
+  if (host) host.style.display = 'none';
+}
+async function submitSignature() {
+  const btn = document.getElementById('sign-submit');
+  const nm = document.getElementById('sign-name');
+  const ag = document.getElementById('sign-agree');
+  const name = (nm && nm.value || '').trim();
+  // Checked client side for a fast message, and again on the server, which is
+  // the one that actually decides.
+  if (!ag || !ag.checked) { showToast('Please confirm you agree to the terms', 'warn'); return; }
+  if (name.length < 2) { showToast('Please type your full name to sign', 'warn'); return; }
+  const original = btn ? btn.textContent : '';
+  if (btn) { btn.disabled = true; btn.textContent = 'Signing...'; }
+  try {
+    const res = await fetch(`${API}/psw/sign-document`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        psw_name: pswName, pin: pswPin,
+        operator_id: pswOperatorId || 'proximity-care',
+        typed_name: name, agree: true
+      })
+    });
+    const d = await res.json().catch(() => ({}));
+    if (!res.ok || !d.success) throw new Error(d.error || 'Could not record your signature');
+    closeSignSheet();
+    // already_signed is a success, not an error. A double tap on a phone must
+    // read as done rather than as a failure.
+    showToast(d.already_signed ? 'Already signed' : 'Signed, thank you', 'ok');
+    await loadDocuments();
+  } catch (e) {
+    showToast(e.message || 'Could not record your signature', 'err');
+  }
+  if (btn) { btn.disabled = false; btn.textContent = original; }
+}
+
 function pswDocUrl(raw) {
   if (!raw) return '';
   const marker = '/psw-documents/';
@@ -5180,7 +5355,9 @@ function showSect(name) {
   const bi = bm.indexOf(name);
   const bnavs = document.querySelectorAll('.bnav-item');
   if (bi >= 0 && bnavs[bi]) bnavs[bi].classList.add('active');
-  if (name === 'messages') loadMessages();
+  // B0. mark read only when the section is actually opened, never on a
+  // background refresh. See markNotesRead.
+  if (name === 'messages') loadMessages().then(markNotesRead);
   if (name === 'checklist' && !activeVisit) { showToast('Sign in to a visit first', 'warn'); showSect('home'); return; }
   if (name === 'schedule') {
     // Render immediately with cached data, don't wait for fetch
@@ -6725,14 +6902,29 @@ function previewPhotos(input) {
 }
 
 if ('serviceWorker' in navigator) {
-  // Force cache refresh on SW update
   navigator.serviceWorker.register('psw-sw.js').then(reg => {
-    reg.update(); // Check for SW update on every load
+    reg.update(); // Check for a new worker on every load. Harmless, keep it.
   }).catch(()=>{});
-  // If a new SW is waiting, activate it immediately
-  navigator.serviceWorker.addEventListener('controllerchange', () => {
-    window.location.reload();
-  });
+
+  // B20. The controllerchange listener here used to call window.location.reload().
+  //
+  // psw-sw.js calls skipWaiting() on install and clients.claim() on activate, so
+  // a newly deployed worker takes control of ALREADY OPEN pages. controllerchange
+  // then fired and reloaded the page at whatever moment the PSW happened to be at.
+  // Mid checkout that kills the in flight photo uploads and drops her back to the
+  // lock screen, which is exactly what Carolina reported on 2026-08-26:
+  // "I submitted the photos as I always do, but didn't charge and as it's a step
+  //  when logging out, it just logged me out."
+  //
+  // It also fired on FIRST install: with no previous controller, clients.claim()
+  // triggers controllerchange immediately, so a fresh install reloaded itself.
+  //
+  // The reload bought nothing. psw-sw.js serves all HTML network first with
+  // cache: 'no-store' and precaches no HTML, so a new portal build is already
+  // live on the next natural navigation without any reload at all.
+  //
+  // Deliberately NOT replaced with an "update available" prompt. Nothing asked
+  // for one, and adding UI here would be building a feature to cover a defect.
 }
 
 // ╔══════════════════════════════════════════════════════════════════╗
