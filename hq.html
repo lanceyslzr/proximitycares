@@ -196,6 +196,20 @@ pre,code{max-width:100%;white-space:pre-wrap;word-break:break-word}
 input,select,textarea,button{font:inherit;font-size:max(16px,1em);max-width:100%}
 .map-wrapper{position:relative;width:100%;overflow:hidden}
 .leaflet-container{width:100%!important;height:100%!important;max-width:100%}
+/* B34. THE HQ LIVE MAP COLLAPSED ON DESKTOP.
+   Leaflet adds .leaflet-container at runtime, so the rule above beats the
+   element's inline height:320px with !important. height:100% against a parent
+   with no resolved height computes to zero, and the map painted into a box
+   about 1.33px tall: its own two borders and no content.
+   The only rule pinning a real pixel height was #leaflet-map{height:260px
+   !important} at L1461, which sits INSIDE @media(max-width:768px). So the map
+   worked on a phone and collapsed on every desktop, and the "no active PSWs
+   with GPS data" empty state masked it the one time it was checked before.
+   Predates V48: the markup is byte-identical to B31.
+   id specificity plus !important, OUTSIDE any media query, so it applies at
+   every width. The mobile rule below still wins there because it comes later
+   in the sheet at equal specificity. */
+#leaflet-map{height:320px !important;}
 /* ── END MOBILE RESET ── */
 
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
