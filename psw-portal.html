@@ -1075,6 +1075,15 @@ a{color:inherit;text-decoration:none;}
   </div>
   <div id="sched-day-cards" style="padding:0 12px 12px;"></div>
 
+  <!-- B27. ADD A SHIFT.
+       The route has existed since Section 21 with no way to reach it, which is
+       the same defect B7 had: built, tested, unreachable.
+       Sits below the day cards so it reads as "and one more thing" rather than
+       competing with the schedule she is actually there to look at. -->
+  <div style="padding:0 12px 14px;">
+    <button onclick="openAddShift()" style="width:100%;background:none;border:1px dashed var(--border2);color:var(--psw);padding:12px;border-radius:8px;font-family:var(--rb-mono);font-size:11px;letter-spacing:1.5px;text-transform:uppercase;min-height:44px;">+ Add a shift</button>
+  </div>
+
   <!-- Available shifts -->
   <div id="avail-shifts-section" style="display:none;">
     <div class="section-header" style="padding-top:4px;">
@@ -1540,6 +1549,48 @@ a{color:inherit;text-decoration:none;}
 </div><!-- /app -->
 
 <!-- CHECKOUT SHEET -->
+<!-- B27. ADD SHIFT SHEET
+     Mirrors the cancel-shift sheet markup rather than inventing a second
+     bottom-sheet language. Every input is 16px so iOS does not zoom on focus,
+     which is the B22 rule applied to new markup rather than discovered later.
+
+     The client list is HER assigned clients only. The server checks the same
+     thing independently, by requiring a prior visit with that client, so a
+     tampered request cannot invent one. This list is convenience, not the
+     boundary. -->
+<div id="addshift-sheet" style="display:none;position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.75);" onclick="if(event.target===this)closeAddShift()">
+  <div style="position:absolute;bottom:0;left:0;right:0;background:var(--bg2);border-radius:18px 18px 0 0;padding:20px 20px 40px;max-height:85vh;overflow-y:auto;">
+    <div style="width:36px;height:4px;background:var(--border2);border-radius:2px;margin:0 auto 16px;"></div>
+    <div style="font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--teal2);margin-bottom:4px;">Add a shift</div>
+    <div style="font-size:11px;color:var(--muted2);margin-bottom:16px;line-height:1.5;">For a client you already work with. The coordinator is notified and can change or remove it.</div>
+
+    <div style="font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;">Client</div>
+    <select id="as-client" style="width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:12px 14px;border-radius:8px;font-size:16px;margin-bottom:14px;min-height:44px;"></select>
+
+    <div style="display:flex;gap:10px;margin-bottom:14px;">
+      <div style="flex:1;min-width:0;">
+        <div style="font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;">Date</div>
+        <input type="date" id="as-date" style="width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:12px 14px;border-radius:8px;font-size:16px;min-height:44px;">
+      </div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;">Start</div>
+        <input type="time" id="as-time" value="08:00" style="width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:12px 14px;border-radius:8px;font-size:16px;min-height:44px;">
+      </div>
+    </div>
+
+    <div style="font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;">Hours</div>
+    <input type="number" id="as-hours" min="0.25" max="24" step="0.25" value="8" inputmode="decimal" style="width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:12px 14px;border-radius:8px;font-size:16px;margin-bottom:14px;min-height:44px;">
+
+    <label style="display:flex;align-items:center;gap:10px;margin-bottom:18px;cursor:pointer;">
+      <input id="as-livein" type="checkbox" style="width:18px;height:18px;flex-shrink:0;">
+      <span style="font-size:13px;color:var(--text);line-height:1.5;">This is a live-in shift</span>
+    </label>
+
+    <button id="as-submit" onclick="submitAddShift()" style="width:100%;background:var(--teal2);color:#000;border:none;padding:14px;border-radius:8px;font-size:15px;font-weight:600;margin-bottom:8px;min-height:44px;">Add shift</button>
+    <button onclick="closeAddShift()" style="width:100%;background:none;border:1px solid var(--border);color:var(--muted2);padding:12px;border-radius:8px;font-size:14px;min-height:44px;">Cancel</button>
+  </div>
+</div>
+
 <!-- B7b, SIGN EMPLOYMENT AGREEMENT SHEET
      Typed name plus an explicit tick. Both are required and neither is
      inferred, matching /psw/sign-document and /family/sign-document. The
@@ -1664,6 +1715,15 @@ a{color:inherit;text-decoration:none;}
         </div>
         <div style="font-family:var(--mono);font-size:11px;color:var(--amber);margin-top:8px;line-height:1.5;">⚑ Incidents are reported to the coordinator automatically on checkout.</div>
       </div>
+    </div>
+    <!-- B26. LEAVING AT A DIFFERENT TIME.
+         Blank by default, so a normal checkout is one tap exactly as before.
+         Only filled in when she is tapping later than she actually left, which
+         is the case that used to require emailing the coordinator. -->
+    <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border);">
+      <label for="co-time-out" style="display:block;font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;">Left at a different time?</label>
+      <input type="time" id="co-time-out" class="no-shrink" style="width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:12px 14px;border-radius:8px;font-size:16px;">
+      <div style="font-size:11px;color:var(--muted2);margin-top:6px;line-height:1.5;">Leave blank to use right now. Fill this in if you are checking out later than you actually left.</div>
     </div>
     <button class="sbtn danger" onclick="doCheckOut()" id="co-submit-btn">Check Out + Submit Visit</button>
     <button class="sbtn sec" onclick="closeCheckout()" style="margin-top:8px;">Cancel</button>
@@ -3553,6 +3613,11 @@ function openCheckout() {
     const h = Math.floor(mins/60), m = mins%60;
     document.getElementById('co-elapsed-sheet').textContent = h > 0 ? `${h}h ${m}m` : `${m}m`;
   }
+  // B26. Cleared on OPEN as well as on close. A time left over from the
+  // previous visit would silently mis-record the next one, and closeCheckout
+  // does not run if the sheet is dismissed some other way.
+  const _cto = document.getElementById('co-time-out');
+  if (_cto) _cto.value = '';
   buildMAR();
   document.getElementById('checkout-sheet').style.display = 'block';
   document.body.style.overflow = 'hidden';
@@ -3562,7 +3627,7 @@ function closeCheckout() {
   document.body.style.overflow = '';
   // Clear MAR checkboxes
   document.querySelectorAll('#co-mar-boxes input[type="checkbox"]').forEach(cb => cb.checked = false);
-  ['co-incident','co-obs','co-refusal-reason'].forEach(id => { const el = document.getElementById(id); if(el) el.value = ''; });
+  ['co-incident','co-obs','co-refusal-reason','co-time-out'].forEach(id => { const el = document.getElementById(id); if(el) el.value = ''; });
   document.querySelectorAll('#co-refusal-list .refusal-opt.sel').forEach(el => {
     el.classList.remove('sel'); const box = el.querySelector('.refusal-box'); if(box) box.textContent = '';
   });
@@ -3733,7 +3798,15 @@ async function doCheckOut() {
     meds_given: medsArr.length ? medsArr : undefined,
     task_photos: taskPhotoUrls.length ? taskPhotoUrls : undefined,
     vitals: vitals || undefined,
-    voice_note_url: voiceNoteUrl || undefined
+    voice_note_url: voiceNoteUrl || undefined,
+    // B26. Empty unless she typed a different time, and the server treats an
+    // empty string as no correction, so a normal checkout is unchanged.
+    //
+    // This also fixes the OFFLINE case. A queued checkout syncs later and the
+    // server stamps time_out from ITS clock at sync time, so leaving at 14:00
+    // with no signal and syncing at 20:00 records 12 hours instead of 6.
+    // Stating the time survives the queue.
+    stated_time_out: (document.getElementById('co-time-out') || {}).value || undefined
   };
 
   // B2: attach location for the checkout geofence check (best effort, never blocks checkout)
@@ -5219,6 +5292,90 @@ async function loadPaySummary() {
 //
 // Rendered as a .doc-row to match the four certificate rows above it rather
 // than inventing a second visual language in the same list.
+// B27. ADD A SHIFT.
+//
+// The route has existed since Section 21 and had zero callers, which is the
+// same defect B7 had: a working, tested endpoint nobody could reach.
+//
+// THE CLIENT LIST IS CONVENIENCE, NOT THE BOUNDARY. window._pswClients is
+// whatever the portal happens to have loaded. The server independently requires
+// a prior visit with that client before it will accept the booking, so a
+// tampered request cannot invent one. If this list is stale or empty she sees
+// fewer options; she never gains one.
+function openAddShift() {
+  const sel = document.getElementById('as-client');
+  const host = document.getElementById('addshift-sheet');
+  if (!sel || !host) return;
+  const clients = (window._pswClients || []);
+  if (!clients.length) {
+    showToast('No clients loaded yet. Open Schedule first.', 'warn');
+    return;
+  }
+  sel.innerHTML = clients.map(c => {
+    const name = ((c.first_name || '') + ' ' + (c.last_name || '')).trim()
+      || c.full_name || c.client_name || '';
+    return '<option value="' + name.replace(/"/g, '&quot;') + '">' + name + '</option>';
+  }).join('');
+  // Defaults that are almost always right: today, 08:00, 8 hours. Every other
+  // shift in this engagement starts at 08:00.
+  const d = document.getElementById('as-date');
+  if (d) d.value = new Date().toISOString().slice(0, 10);
+  const t = document.getElementById('as-time'); if (t) t.value = '08:00';
+  const h = document.getElementById('as-hours'); if (h) h.value = '8';
+  const li = document.getElementById('as-livein'); if (li) li.checked = false;
+  host.style.display = 'flex';
+}
+
+function closeAddShift() {
+  const host = document.getElementById('addshift-sheet');
+  if (host) host.style.display = 'none';
+}
+
+async function submitAddShift() {
+  const btn = document.getElementById('as-submit');
+  const client = (document.getElementById('as-client') || {}).value || '';
+  const date = (document.getElementById('as-date') || {}).value || '';
+  const time = (document.getElementById('as-time') || {}).value || '';
+  const hours = parseFloat((document.getElementById('as-hours') || {}).value);
+  const liveIn = !!(document.getElementById('as-livein') || {}).checked;
+
+  // Checked here for a fast message, and again on the server, which is the one
+  // that decides.
+  if (!client) { showToast('Pick a client', 'warn'); return; }
+  if (!date || !time) { showToast('Pick a date and a start time', 'warn'); return; }
+  if (!isFinite(hours) || hours < 0.25 || hours > 24) { showToast('Hours must be between 0.25 and 24', 'warn'); return; }
+
+  const original = btn ? btn.textContent : '';
+  if (btn) { btn.disabled = true; btn.textContent = 'Adding...'; }
+  try {
+    const res = await fetch(`${API}/psw/shift`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        psw_name: pswName, pin: pswPin,
+        operator_id: pswOperatorId || 'proximity-care',
+        client_name: client,
+        scheduled_date: date,
+        scheduled_time: time,
+        duration_minutes: Math.round(hours * 60),
+        shift_type: liveIn ? 'live_in' : null
+      })
+    });
+    const d = await res.json().catch(() => ({}));
+    if (!res.ok || !d.success) {
+      // A 409 is a real answer, not a failure: she is already booked then.
+      // Surfacing the conflict beats a generic error she cannot act on.
+      throw new Error(d.message || d.error || 'Could not add the shift');
+    }
+    closeAddShift();
+    showToast('Shift added', 'ok');
+    await loadSchedule();
+  } catch (e) {
+    showToast(e.message || 'Could not add the shift', 'err');
+  }
+  if (btn) { btn.disabled = false; btn.textContent = original; }
+}
+
 function pswAgreementRow(rec) {
   if (!rec) return '';
   const url = rec.employment_agreement_url;

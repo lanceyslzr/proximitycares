@@ -17485,6 +17485,12 @@ function _applyActiveSectionFlex() {
 <script>
 // ── INVOICE PICKER ───────────────────────────────────────────────────────────
 var _invPickClient = null; // { name, email, pswName, pswEmail, clientRate, pswRate }
+// B33. The visit ids the operator has unticked. Declared HERE, above its first
+// use at clearInvPreview, rather than beside invToggleVisit 170 lines below.
+// `var` hoists so the later declaration did not throw, but reading an
+// identifier above its declaration is the exact shape that took production
+// down on 2026-08-20, and a future edit changing var to let would make it real.
+var _invExcluded = [];
 
 // B7: editable invoice preview. Adjust hours and rate, total updates live, PSW pay is unaffected.
 let _invComputed = { hours: 0, rate: 22 };
@@ -17496,6 +17502,9 @@ function openInvoicePicker(name, email, pswName, clientRate, pswRate) {
     pswEmail = pswRec ? (pswRec.email||'') : '';
   } catch(e){}
 
+  // B33. Cleared on client change too. clearInvPreview covers the dates; this
+  // covers opening the picker for a different client entirely.
+  _invExcluded = [];
   _invPickClient = {
     name: name,
     email: email,
@@ -17548,6 +17557,10 @@ function setInvPeriod(preset) {
 }
 
 function clearInvPreview() {
+  // B33. Exclusions are scoped to ONE client and ONE date range. This fires on
+  // every change to either date input, so an id unticked in August can never
+  // ride along into September and silently drop a visit nobody looked at.
+  _invExcluded = [];
   var box = document.getElementById('inv-preview-box');
   if (box) box.style.display = 'none';
   var btn = document.getElementById('inv-send-btn');
@@ -17582,6 +17595,7 @@ async function previewInvoicePick() {
         end_date:     end,
         client_rate:  _invPickClient.clientRate,
         psw_rate:     _invPickClient.pswRate,
+        exclude_visit_ids: _invExcluded,
         operator_id:  currentOp
       })
     });
@@ -17595,19 +17609,56 @@ async function previewInvoicePick() {
     document.getElementById('inv-preview-badge').textContent = d.visits_count + ' visit' + (d.visits_count === 1 ? '' : 's');
 
     // B7: seed the editable fields with the computed values
-    _invComputed = { hours: d.total_hours, rate: parseFloat(_invPickClient.clientRate) || 22 };
+    // B33b. serverTotal is the ENGINE figure, second person and agreement caps
+    // included. Kept so recalcInvTotal can show it rather than a plain multiply.
+    _invComputed = { hours: d.total_hours, rate: parseFloat(_invPickClient.clientRate) || 22,
+                     serverTotal: d.client_total };
     document.getElementById('inv-adj-hours').value = _invComputed.hours;
     document.getElementById('inv-adj-rate').value  = _invComputed.rate;
     recalcInvTotal();
 
-    // Visit dates list
-    if (d.visit_dates && d.visit_dates.length) {
+    // B33. TICKABLE VISITS, replacing the flat date string.
+    //
+    // WHY. The old list was bare dates with no ids. Two visits on the same day
+    // were indistinguishable and there was nothing to send back, so an operator
+    // who wanted to bill a month except one day had two options and both were
+    // wrong: move the range, which drops other days too, or zero that visit's
+    // hours, which edits the CARE RECORD to solve a billing problem.
+    //
+    // Unticking re-runs the preview rather than subtracting locally. The money
+    // math is overtime, second person and agreement caps; a local copy would be
+    // a second implementation to keep in step. The server already has one.
+    var _dates = document.getElementById('inv-prev-dates');
+    if (d.visit_rows && d.visit_rows.length) {
       var fmt = function(ds) {
         return new Date(ds + 'T12:00:00').toLocaleDateString('en-CA', { weekday:'short', month:'short', day:'numeric' });
       };
-      document.getElementById('inv-prev-dates').textContent = d.visit_dates.map(fmt).join('  ·  ');
+      _dates.innerHTML = d.visit_rows.map(function(v) {
+        var flags = [];
+        // entry_type rides along from the server so a caregiver-created shift is
+        // visible AT THE MOMENT OF DECISION, not in a report afterwards.
+        if (v.entry_type === 'psw_self') flags.push('<span style="color:var(--gold);">added by PSW</span>');
+        if (v.entry_type === 'manual')   flags.push('<span style="color:var(--muted2);">manual entry</span>');
+        if (v.edited)                    flags.push('<span style="color:var(--gold);">hours edited</span>');
+        var vid = escapeHqText(String(v.id));
+        var on = _invExcluded.indexOf(String(v.id)) < 0;
+        return '<label style="display:flex;align-items:center;gap:8px;padding:4px 0;cursor:pointer;">'
+          + '<input type="checkbox"' + (on ? ' checked' : '') + ' data-vid="' + vid + '" onchange="invToggleVisit(this)" style="width:16px;height:16px;flex-shrink:0;">'
+          + '<span style="min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;'
+          + (on ? '' : 'opacity:.45;text-decoration:line-through;') + '">'
+          + escapeHqText(fmt(v.visit_date)) + '  ' + Number(v.hours).toFixed(2) + 'h'
+          + (flags.length ? '  ' + flags.join('  ') : '')
+          + '</span></label>';
+      }).join('');
+    } else if (d.visit_dates && d.visit_dates.length) {
+      // Fallback if the portal ever ships ahead of the server. Read only, but
+      // better than a blank panel.
+      var fmt2 = function(ds) {
+        return new Date(ds + 'T12:00:00').toLocaleDateString('en-CA', { weekday:'short', month:'short', day:'numeric' });
+      };
+      _dates.textContent = d.visit_dates.map(fmt2).join('  ' + '\u00b7' + '  ');
     } else {
-      document.getElementById('inv-prev-dates').textContent = 'No visits logged in this period.';
+      _dates.textContent = 'No visits logged in this period.';
     }
 
     document.getElementById('inv-preview-box').style.display = 'block';
@@ -17625,6 +17676,19 @@ async function previewInvoicePick() {
   }
 }
 
+function invToggleVisit(cb) {
+  var id = cb.getAttribute('data-vid');
+  if (!id) return;
+  var i = _invExcluded.indexOf(id);
+  if (cb.checked) { if (i >= 0) _invExcluded.splice(i, 1); }
+  else if (i < 0) { _invExcluded.push(id); }
+  // previewInvoicePick, NOT loadInvoicePreview. I wrote the latter from memory
+  // and it does not exist in this file: every tick would have thrown a
+  // ReferenceError, which no parse gate can see. Verified against the real
+  // declarations before use.
+  previewInvoicePick();
+}
+
 function recalcInvTotal() {
   var hEl = document.getElementById('inv-adj-hours');
   var rEl = document.getElementById('inv-adj-rate');
@@ -17635,13 +17699,37 @@ function recalcInvTotal() {
   var r = parseFloat(rEl.value);
   if (isNaN(h) || h < 0) h = _invComputed.hours;
   if (isNaN(r) || r < 0) r = _invComputed.rate;
-  totEl.textContent = '$' + (Math.round(h * r * 100) / 100).toFixed(2);
+
+  // B33b. h * r IS NOT WHAT THE INVOICE BILLS.
+  //
+  // The server total comes from liBillFromVisits, which adds the second person
+  // line, applies the agreement's billable_hours_per_day and honours day rate
+  // billing. h * r is a plain multiply and knows none of that.
+  //
+  // This function ran unconditionally right after the engine total was written,
+  // so the correct figure appeared for an instant and was then replaced. On the
+  // Ferrari engagement that is roughly $2,277 of Vitor's second person charge
+  // missing from the number the operator reads before sending. The invoice the
+  // family received was always right; the preview was not.
+  //
+  // So: when nothing has been adjusted, SHOW THE SERVER'S NUMBER. Only fall
+  // back to the local multiply once the operator has deliberately typed an
+  // override, where an approximation is unavoidable because the engine has not
+  // been asked to recompute. That case now says so in words rather than
+  // presenting a guess as a total.
+  var hChanged = Math.abs(h - _invComputed.hours) > 0.001;
+  var rChanged = Math.abs(r - _invComputed.rate) > 0.001;
+  if (!hChanged && !rChanged && typeof _invComputed.serverTotal === 'number') {
+    totEl.textContent = '$' + _invComputed.serverTotal.toFixed(2);
+  } else {
+    totEl.textContent = '$' + (Math.round(h * r * 100) / 100).toFixed(2);
+  }
   var changed = [];
   if (Math.abs(h - _invComputed.hours) > 0.001) changed.push('hours ' + _invComputed.hours + ' to ' + h);
   if (Math.abs(r - _invComputed.rate) > 0.001) changed.push('rate $' + _invComputed.rate + ' to $' + r);
   if (noteEl) {
     if (changed.length) {
-      noteEl.textContent = 'Adjusted: ' + changed.join(', ') + '. The PSW is still paid on ' + _invComputed.hours + ' logged hours.';
+      noteEl.textContent = 'Adjusted: ' + changed.join(', ') + '. This total is hours x rate and excludes any second person charge; the sent invoice is recalculated in full. The PSW is still paid on ' + _invComputed.hours + ' logged hours.';
       noteEl.style.display = 'block';
     } else { noteEl.style.display = 'none'; noteEl.textContent = ''; }
   }
@@ -17687,6 +17775,11 @@ async function sendPickedInvoice() {
         client_rate:  _sendRate,
         psw_rate:     _invPickClient.pswRate,
         hours_override: _sendHours,
+        // B33. The same ids the preview was computed with, so the invoice bills
+        // exactly the set the operator ticked. Sending nothing here while the
+        // preview excluded something is the preview-disagrees-with-generate
+        // defect B1 was.
+        exclude_visit_ids: _invExcluded,
         operator_id:  currentOp
       })
     });
