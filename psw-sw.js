@@ -1,7 +1,24 @@
-// Proximity PSW Portal — Service Worker (proximitycares repo / main domain)
-// This domain serves the portal as /psw-portal.html (and family marketing as /index.html).
-// v15: adopt no-store HTML design (matches proximitycares-psw v14) so portal deploys are instant.
-//      Cache bumped to flush the old HTML-precaching cache that was serving a stale psw-portal.html.
+// Proximity PSW Portal, Service Worker
+//
+// B21. THE TWO DOMAINS WERE OUT OF STEP.
+//
+// This file exists TWICE, once per repo, and the copies had drifted:
+//   the psw-domain header said "v12" while its CACHE was proximity-psw-v15
+//   the offline fallback read caches.match('/index.html') on one domain and
+//     caches.match(e.request) on the other
+// Neither copy precaches any HTML, so BOTH fallbacks were dead code and the
+// difference was latent rather than live. Fixed anyway, because a latent
+// difference between two copies of one file is how the next real one hides.
+//
+// THE VERSION COMMENT NOW MATCHES THE CACHE, and that is the point of it. A
+// header claiming v12 above a v15 cache is worse than no header: it is a
+// statement that is confidently wrong.
+//
+// This copy serves proximitycares, where the portal is /psw-portal.html
+// and the family marketing page is /index.html.
+//
+// HTML IS NEVER CACHED, deliberately. Portal deploys must be instant, and a
+// cached psw-portal.html is exactly what served a stale build to HQ.
 const CACHE = 'proximity-psw-v15';
 const STATIC = [
   '/psw-manifest.json',
@@ -52,7 +69,12 @@ self.addEventListener('fetch', e => {
     e.respondWith(
       fetch(e.request, { cache: 'no-store' })
         .then(res => res)
-        .catch(() => caches.match(e.request))   // offline: serve the same page if we ever cached it
+        // Offline. Nothing HTML is ever cached, so this finds nothing today and
+        // is here for the shape rather than the effect. e.request, not a
+        // hardcoded '/index.html': the portal is index.html on one domain and
+        // psw-portal.html on the other, and a fallback that returns the WRONG
+        // page offline is worse than one that returns none.
+        .catch(() => caches.match(e.request))
     );
     return;
   }
