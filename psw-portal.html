@@ -3728,6 +3728,14 @@ async function doCheckOut() {
       // needs retaking, not retrying.
       if (!file.size) { _photoEmpty++; continue; }
       try {
+        // B32. Downscale HERE, in the upload loop, not in previewPhotos. The
+        // comment above this loop records that the input can be populated
+        // without the onchange handler ever running, so selection time
+        // processing can be bypassed and this is the one chokepoint every
+        // photo passes through. On any failure the helper returns the original
+        // and the upload proceeds unchanged.
+        file = await downscaleImage(file);
+        if (!file.size) { _photoEmpty++; continue; }
         const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
         const path = `${(pswName||'psw').replace(/\s+/g,'_').toLowerCase()}/${activeVisit.id}_${Date.now()}_${Math.random().toString(36).slice(2,7)}.${ext}`;
 
@@ -4379,8 +4387,8 @@ function _removeAttachment(i) {
   _renderAttachChips();
 }
 
-function handleAttachment(input) {
-  const file = input.files[0];
+async function handleAttachment(input) {
+  let file = input.files[0];
   if (!file) return;
   input.value = '';
 
@@ -4392,6 +4400,19 @@ function handleAttachment(input) {
     showToast('File too large, max 5 MB per file', 'err');
     return;
   }
+
+  // B32. Attachments travel as base64 INSIDE JSON to /psw/form/submit, and
+  // base64 is 4/3 of the raw bytes. Until this drop the server's global JSON
+  // cap was 100kb, so any attachment over roughly 75KB rejected the WHOLE
+  // form with a 413, signature and fields included, while this handler
+  // accepted files up to 5MB. Photo attachments cannot have worked.
+  //
+  // The server cap is raised for that one route in this same drop; the
+  // downscale keeps a 3.5MB camera original from becoming a 4.7MB JSON body.
+  // Tighter than the visit photo settings because this payload is doubled by
+  // base64 and shares the body with everything else on the form.
+  // PDFs and documents pass through untouched, the helper only acts on images.
+  file = await downscaleImage(file, 1280, 0.78);
 
   const reader = new FileReader();
   reader.onload = e => {
@@ -7040,6 +7061,79 @@ async function toggleVoiceRecord() {
       }
     }, 1000);
   } catch(e) { showToast('Microphone access denied', 'err'); }
+}
+
+// =====================================================================
+// B32. DOWNSCALE BEFORE UPLOAD.
+//
+// WHY. The 32 healthy visit photos are 2.9 to 3.9MB camera originals, uploaded
+// over the caregiver's own mobile data from a client's home. A 3.5MB body on a
+// weak indoor signal is exactly the transfer most likely to die partway, and a
+// partial multipart body is one plausible parent of the zero byte epidemic.
+// A 1600px JPEG carries everything a visit photo is for at roughly a tenth of
+// the bytes.
+//
+// AND THE ATTACHMENT PATH IS OUTRIGHT BROKEN WITHOUT IT. Form attachments go
+// base64 inside JSON to /psw/form/submit, and express.json is capped at 100kb
+// globally (server L1723). Base64 is 4/3 of the raw size, so any attachment
+// over roughly 75KB has been 413ing the WHOLE form, signature included, while
+// the client accepts files up to 5MB. The server cap is raised for that one
+// route in the same drop; this keeps the payloads small enough to be sane.
+//
+// FAILURE MEANS THE ORIGINAL, NEVER NOTHING. A visit photo is evidence. If
+// decode fails (HEIC on a browser that cannot read it), if the canvas yields
+// an empty blob, if anything throws, the caller gets the ORIGINAL file and the
+// upload proceeds exactly as it does today. Every guard downstream counts
+// bytes, and this function can only ever hand back bytes it was given or a
+// smaller non zero replacement.
+//
+// ALREADY SMALL MEANS UNTOUCHED. Under 300KB there is nothing worth saving,
+// and re-encoding a JPEG that size only loses quality.
+// =====================================================================
+async function downscaleImage(file, maxDim, quality) {
+  maxDim = maxDim || 1600; quality = quality || 0.82;
+  try {
+    if (!file || !file.size) return file;
+    if (!/^image\//.test(file.type || '')) return file;
+    if (file.size < 300 * 1024) return file;
+
+    let bmp;
+    try { bmp = await createImageBitmap(file); }
+    catch (e) {
+      // Fallback decode path for browsers without createImageBitmap for this
+      // type. If this also fails, the catch below returns the original.
+      bmp = await new Promise((ok, bad) => {
+        const u = URL.createObjectURL(file);
+        const im = new Image();
+        im.onload = () => { URL.revokeObjectURL(u); ok(im); };
+        im.onerror = () => { URL.revokeObjectURL(u); bad(new Error('decode')); };
+        im.src = u;
+      });
+    }
+    const w = bmp.width, h = bmp.height;
+    if (!w || !h) return file;
+    const scale = Math.min(1, maxDim / Math.max(w, h));
+    // Already within bounds: a 1200x900 photo at 2MB still benefits from
+    // re-encoding at 0.82, so do not early-return on scale === 1.
+    const cw = Math.max(1, Math.round(w * scale));
+    const ch = Math.max(1, Math.round(h * scale));
+    const cv = document.createElement('canvas');
+    cv.width = cw; cv.height = ch;
+    cv.getContext('2d').drawImage(bmp, 0, 0, cw, ch);
+    if (bmp.close) try { bmp.close(); } catch (e) {}
+    const blob = await new Promise(ok => cv.toBlob(ok, 'image/jpeg', quality));
+
+    // The two conditions that make the downscale WORTH USING. An empty blob is
+    // the zero byte bug reintroduced by our own hand; a larger one means the
+    // source was already better compressed than we can manage.
+    if (!blob || !blob.size) return file;
+    if (blob.size >= file.size) return file;
+
+    const name = (file.name || 'photo').replace(/\.[a-z0-9]+$/i, '') + '.jpg';
+    return new File([blob], name, { type: 'image/jpeg' });
+  } catch (e) {
+    return file;
+  }
 }
 
 function previewPhotos(input) {

@@ -1163,6 +1163,30 @@ button:active{transform:scale(0.98);}
   /* The scheduling sheet is anchored to the viewport, not to the grid, so it
      keeps its own 560px reading width rather than stretching to 1200px. */
   .sched-panel{max-width:560px;}
+
+  /* B42. THE LOPSIDED LOWER HALF, measured after V49: RECENT VISITS 453px in
+     column 1 beside CARE TEAM 137px in column 2, leaving ~320px dead under the
+     team card, then the coordinator card started a lonely row on the LEFT with
+     the right side empty to the bottom.
+
+     grid-column:2 on the coordinator ALONE would only mirror the problem: it
+     lands in the next free row of column 2, and column 1 goes empty instead.
+     The pair below is what balances it. RECENT VISITS spans two rows, so the
+     row beside it splits: CARE TEAM in the first, the coordinator directly
+     under it in the second, and the tall card's height is absorbed across
+     both instead of padding one.
+
+     WHY grid-column:2 IS SAFE HERE, derived not hoped: two columns need
+     420*2+24 = 864px of content, content is min(1200px, 100vw-48px), and
+     inside this block 100vw is at least 912px, so content is at least 864px.
+     auto-fit therefore ALWAYS yields two columns everywhere this rule can
+     apply, and a phantom third column cannot exist.
+
+     MOBILE IS UNTOUCHED. Both rules live inside this media block, and the two
+     ids added to the template render inert below 912px. DOM order is
+     unchanged, which was B36's whole constraint. */
+  #recent-visits-section{grid-row:span 2;}
+  #coordinator-section{grid-column:2;}
 }
 @media(min-width:900px){
   .bottom-nav{
@@ -2097,7 +2121,7 @@ function showTab(tab) {
       </div>
 
       <!-- RECENT VISITS -->
-      <div class="section" style="margin-bottom:20px;">
+      <div class="section" id="recent-visits-section" style="margin-bottom:20px;">
         <div class="section-title">Recent Visits</div>
         <div class="card">${recentVisitsHtml}</div>
       </div>
@@ -2131,7 +2155,7 @@ function showTab(tab) {
       </div>
 
       <!-- MESSAGE THREAD -->
-      <div class="section">
+      <div class="section" id="coordinator-section">
         <div class="section-title">Message Your Coordinator</div>
         <div class="msg-thread-wrap">
           <div class="msg-thread-body" id="home-msg-thread"></div>
