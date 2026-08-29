@@ -1117,6 +1117,53 @@ button:active{transform:scale(0.98);}
    position:fixed with a top offset matched to the topbar height, and the
    topbar height is set by its own padding rather than a fixed value. Two
    coupled measurements that cannot be verified without rendering it. */
+/* B36. THE FAMILY PORTAL WASTED THE DESKTOP.
+   .content is capped at min(560px, 100vw - 24px) at EVERY width, so a 1440px
+   window showed a 560px column and 880px of empty margin. There was already a
+   @media(min-width:900px) block, but it only centred the bottom nav to match.
+
+   WHY THE PSW PORTAL DOES NOT DO THIS. It has no .content cap at all and uses
+   grid-template-columns in eight places, so it reflows into whatever space it
+   is given. Same principle as B35: a phone-shaped constraint applied at every
+   width is the bug, not the width itself.
+
+   HOW THIS ADAPTS WITHOUT A CHOSEN BREAKPOINT. repeat(auto-fit, minmax(...))
+   lets the BROWSER decide how many columns fit. min(100%, 420px) means a
+   column never demands more than the container has, so on a phone it stays
+   exactly one column and every existing mobile rule still applies untouched.
+   Two columns appear only when 840px of content plus the gap genuinely fit.
+
+     390px   1 column, identical to today
+     768px   1 column, untouched
+     911px   1 column, untouched
+     912px   2 columns of exactly 420px
+     1440px  2 columns inside a 1200px cap, margins are deliberate whitespace
+             rather than 880px of nothing
+
+   THE 912px IS DERIVED, NOT CHOSEN. Two 420px columns plus a 24px gap need an
+   864px container, and the container is 100vw minus 48px of padding, so two
+   columns first fit at exactly 912px. My first attempt used a round 900px and
+   produced ONE column 852px wide, which is worse reading than the 560px it
+   replaced. Modelling it caught that before it shipped.
+
+   align-items:start stops a short card stretching to match a tall neighbour,
+   which is what makes an auto-fit grid look broken when it is not.
+
+   NOT A REWRITE. showTab rewrites #contentArea as a flat run of .section
+   blocks, which is exactly what a grid reflows. .section is margin only and
+   .card is a plain box, so nothing positioned or floated is disturbed. */
+@media(min-width:912px){
+  .content{
+    max-width:min(1200px, calc(100vw - 48px));
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(min(100%, 420px), 1fr));
+    gap:0 24px;
+    align-items:start;
+  }
+  /* The scheduling sheet is anchored to the viewport, not to the grid, so it
+     keeps its own 560px reading width rather than stretching to 1200px. */
+  .sched-panel{max-width:560px;}
+}
 @media(min-width:900px){
   .bottom-nav{
     left:50%; right:auto;

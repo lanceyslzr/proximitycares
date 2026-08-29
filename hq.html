@@ -1049,9 +1049,29 @@ body.sidebar-hidden #sidebar-reopen-tab{ display:flex; }
 #sect-schedule.active{
   display:flex;
   flex-direction:column;
-  height:calc(100vh - 54px - 82px);
-  height:calc(100dvh - 54px - 82px);
-  overflow:hidden;
+  /* B35. min-height, NOT height, and the section scrolls instead of clipping.
+     THE PROBLEM. This was a FIXED height box with overflow:hidden, so
+     .sched-fixed-top (flex-shrink:0) and #schedule-board (flex:1) competed for
+     one fixed budget. Open the live map, fixed-top grows by 320px, and the
+     board loses exactly that. At a 900px window the board dropped to about
+     224px, roughly four rows. AG1's own comment records the other half of it:
+     "the parent silently clips the excess".
+     WHY THE PSW PORTAL NEVER HAS THIS. It uses body{min-height:100dvh} and
+     locks exactly ONE section, #sect-messages, where a chat composer must stay
+     pinned. Everything else grows and the page scrolls, so nothing is ever
+     squeezed at any size. That is the behaviour being adopted here.
+     WHAT CHANGES. min-height keeps the section filling the viewport when the
+     content is short, which is what made the grid feel anchored, and lets it
+     GROW when the content is tall instead of crushing the board. overflow-y
+     auto means the excess scrolls rather than being clipped.
+     WHY THIS NEEDS NO BREAKPOINT. It is not a vh number tuned for one window
+     size. Short window, tall content: the section scrolls. Tall window: it all
+     fits and the grid scrolls internally exactly as before. The same rule is
+     correct on a phone and on a 27 inch monitor. */
+  min-height:calc(100vh - 54px - 82px);
+  min-height:calc(100dvh - 54px - 82px);
+  overflow-y:auto;
+  overflow-x:hidden;
   padding-bottom:0;
 }
 #sect-schedule .sched-fixed-top{
@@ -2449,6 +2469,31 @@ body.sidebar-rail .sidebar{width:64px;overflow:visible;}
         <option value="sleeping_night">Sleeping night</option>
         <option value="standard">Standard daily</option>
       </select></div>
+    <!-- B40. PAYROLL BASIS.
+         pay_rule has existed on service_agreements since the table was made,
+         /hq/engagement has accepted it since it was written, and it appeared
+         ZERO times in this file. The column, the write path and the engine were
+         all there; there was no way to choose.
+
+         DEFAULT IS EMPTY, and that is the safety property. An absent pay_rule
+         reproduces exactly what the paystub does today: flat hourly, no
+         overtime, no vacation, no stat premium. Choosing a basis is what
+         changes anything, so an operator who ignores this field is unaffected.
+
+         Cash and e-transfer engagements want Flat hourly. Formal payroll wants
+         ESA standard. The two in between exist because both are real
+         arrangements, and without them an operator would misuse Flat hourly to
+         get one of them. -->
+    <div class="sheet-row"><div class="slbl">Payroll basis</div>
+      <select class="sselect" id="eng-pay-rule">
+        <option value="">Not set, flat hourly</option>
+        <option value="flat_hourly">Flat hourly</option>
+        <option value="flat_plus_vacation">Flat hourly + vacation pay</option>
+        <option value="esa_standard">ESA standard, overtime + vacation + stat</option>
+        <option value="esa_no_vacation">ESA overtime, vacation paid separately</option>
+      </select></div>
+    <div class="sheet-row"><div class="slbl">Basis note</div>
+      <input class="sinput" id="eng-pay-rule-note" type="text" placeholder="Optional, e.g. paid in cash weekly" style="font-size:16px;"></div>
     <div class="sheet-row"><div class="slbl">First day</div>
       <input class="sinput" id="eng-start" type="date" onchange="engPreview()"></div>
     <div class="sheet-row"><div class="slbl">Last day</div>
@@ -2982,8 +3027,14 @@ body.sidebar-rail .sidebar{width:64px;overflow:visible;}
   </div><!-- end .sched-fixed-top -->
 
   <!-- Grid/board fills remaining height and scrolls independently -->
-  <div id="schedule-board" style="flex:1;min-height:0;"></div>
-  <div id="resource-board" style="display:none;flex:1;min-height:0;overflow:auto;transform:translateZ(0);"></div>
+  <!-- B35. min-height:280px is a FLOOR, not a fixed height. flex:1 still lets
+       the board take all the spare room when there is any. .grid-cell is
+       min-height:36px, so 280px is a header plus about six caregiver rows: the
+       point below which the grid stops being readable and you may as well not
+       render it. When the floor and the fixed-top both cannot fit, the SECTION
+       scrolls, which is the whole point of the overflow-y:auto above. -->
+  <div id="schedule-board" style="flex:1;min-height:280px;"></div>
+  <div id="resource-board" style="display:none;flex:1;min-height:280px;overflow:auto;transform:translateZ(0);"></div>
 </div>
 
 <!-- ── HOURS PANEL, slide-up, triggered from any PSW/client name ── -->
@@ -7335,6 +7386,11 @@ async function submitEngagement() {
     scope_of_service: txt('eng-scope'),
     inclusions: txt('eng-inclusions'),
     exclusions: txt('eng-exclusions'),
+    // B40. Empty string means NOT SET, which the server treats as flat hourly.
+    // Sent as undefined rather than '' so /hq/engagement applies its own
+    // default rather than storing a blank that reads as a deliberate choice.
+    pay_rule: val('eng-pay-rule') || undefined,
+    pay_rule_note: txt('eng-pay-rule-note') || undefined,
     reason_for_change: 'Created from HQ'
   };
 
@@ -8360,27 +8416,29 @@ let dragData = null;
 async function _fetchGridBookings(forceRefresh) {
   // Unified window: covers both schedWeekOffset (grid) and _calDate (calendar)
   // Always fetch a wide enough window that both views are covered
-  const today = new Date();
+  // B29. Both anchors derived in Toronto calendar string space. This function
+  // decides which bookings are FETCHED, so a one day shift silently drops the
+  // edge of the window from the grid, which is harder to notice than a wrong
+  // column label.
+  const todayStr = tzTodayStr();
 
   // Grid anchor
-  const gridBase = new Date(today);
-  const gdow = (gridBase.getDay() + 6) % 7;
-  gridBase.setDate(gridBase.getDate() - gdow + (schedWeekOffset * 7));
+  const gridStartStr = tzAddDaysStr(tzWeekStartStr(todayStr, true), schedWeekOffset * 7);
 
-  // Cal anchor
-  const calBase = _calDate instanceof Date ? new Date(_calDate) : new Date(today);
-  const cdow = (calBase.getDay() + 6) % 7;
-  calBase.setDate(calBase.getDate() - cdow);
+  // Cal anchor. _calDate is a LOCAL Date when set, so it is converted to a
+  // Toronto date string first rather than being read with getDay().
+  const calSeedStr = _calDate instanceof Date
+    ? _calDate.toLocaleDateString('en-CA', { timeZone: 'America/Toronto' })
+    : todayStr;
+  const calStartStr = tzWeekStartStr(calSeedStr, true);
 
-  // Use whichever is earlier/later to cover both
-  const earliest = gridBase < calBase ? new Date(gridBase) : new Date(calBase);
-  const latest   = gridBase > calBase ? new Date(gridBase) : new Date(calBase);
+  // String comparison is correct for YYYY-MM-DD and needs no Date at all.
+  const earliestStr = gridStartStr < calStartStr ? gridStartStr : calStartStr;
+  const latestStr   = gridStartStr > calStartStr ? gridStartStr : calStartStr;
 
   // Expand ±21 days around each anchor
-  const fromD = new Date(earliest); fromD.setDate(fromD.getDate() - 21);
-  const toD   = new Date(latest);   toD.setDate(toD.getDate() + 21);
-  const from  = fromD.toLocaleDateString('en-CA', {timeZone:'America/Toronto'});
-  const to    = toD.toLocaleDateString('en-CA',   {timeZone:'America/Toronto'});
+  const from = tzAddDaysStr(earliestStr, -21);
+  const to   = tzAddDaysStr(latestStr,    21);
 
   // Skip if window already covered and not forcing
   if (!forceRefresh) {
@@ -8502,6 +8560,62 @@ function _patchGrid(el, newHTML) {
   }
 }
 
+// =====================================================================
+// B29. WEEKDAYS WERE COMPUTED IN THE BROWSER'S TIMEZONE AND PRINTED IN TORONTO.
+//
+// THE DEFECT. renderPSWGrid did this:
+//     const dow = (weekBase.getDay() + 6) % 7;                       LOCAL
+//     days.push(d.toLocaleDateString('en-CA',{timeZone:'America/Toronto'}));
+// getDay() answers in the BROWSER's zone. The date string is rendered in
+// Toronto. From Manila those are twelve hours apart, so the week is aligned to
+// a local Monday and then printed as the Toronto date, which is the day before.
+// The column labels are positional and assume days[0] is Monday, so every
+// column lands one day out.
+//
+// REPRODUCED, not reasoned. Same instant, four browser timezones:
+//     America/Toronto     col0 = 2026-08-24, labelled Mon, actually Mon   ok
+//     Asia/Manila         col0 = 2026-08-23, labelled Mon, actually Sun   WRONG
+//     Europe/London       col0 = 2026-08-23, labelled Mon, actually Sun   WRONG
+//     Australia/Sydney    col0 = 2026-08-23, labelled Mon, actually Sun   WRONG
+//
+// So this breaks for EVERY operator outside Eastern time, not just one. It is
+// also why the operator and the caregiver read different weekdays off the same
+// dates, and why she noticed a missing Saturday before the screen did.
+//
+// THE FIX. Do all week arithmetic in TORONTO CALENDAR STRING SPACE. Convert
+// the instant to a Toronto YYYY-MM-DD once, then anchor at NOON UTC. Noon is
+// the standard trick: a twelve hour shift in either direction can never cross
+// a day boundary, so getUTCDay and setUTCDate are exact regardless of where
+// the browser is. The output is a date string throughout, which is what every
+// consumer already compares against.
+//
+// DISPLAY ONLY. The stored dates were always right, liWeekKey buckets overtime
+// from the true Monday on the server, and no billing figure moves.
+// =====================================================================
+function tzTodayStr() {
+  return new Date().toLocaleDateString('en-CA', { timeZone: 'America/Toronto' });
+}
+function tzDateFromStr(ds) {
+  // Noon UTC anchor. Never mutate this with local setDate/getDay.
+  return new Date(ds + 'T12:00:00Z');
+}
+function tzStrFromDate(d) {
+  return d.toISOString().slice(0, 10);
+}
+function tzAddDaysStr(ds, n) {
+  const d = tzDateFromStr(ds);
+  d.setUTCDate(d.getUTCDate() + n);
+  return tzStrFromDate(d);
+}
+// mondayFirst true gives 0=Mon..6=Sun, false gives 0=Sun..6=Sat.
+function tzDowStr(ds, mondayFirst) {
+  const w = tzDateFromStr(ds).getUTCDay();
+  return mondayFirst ? (w + 6) % 7 : w;
+}
+function tzWeekStartStr(ds, mondayFirst) {
+  return tzAddDaysStr(ds, -tzDowStr(ds, mondayFirst));
+}
+
 function renderPSWGrid() {
   const el = document.getElementById('schedule-board');
   if (!el) return;
@@ -8518,19 +8632,13 @@ function renderPSWGrid() {
   const bookings   = D.bookings || [];
   const visits     = D.visits || [];
 
-  // Week window
-  const today = new Date();
-  const todayStr = today.toLocaleDateString('en-CA', {timeZone:'America/Toronto'});
-  const weekBase = new Date(today);
-  const dow = (weekBase.getDay() + 6) % 7;
-  weekBase.setDate(weekBase.getDate() - dow + (schedWeekOffset * 7));
+  // Week window. B29: derived entirely in Toronto calendar string space, so the
+  // browser's own timezone cannot shift the columns.
+  const todayStr = tzTodayStr();
+  const weekStartStr = tzAddDaysStr(tzWeekStartStr(todayStr, true), schedWeekOffset * 7);
 
   const days = [];
-  for (let i = 0; i < 7; i++) {
-    const d = new Date(weekBase);
-    d.setDate(d.getDate() + i);
-    days.push(d.toLocaleDateString('en-CA', {timeZone:'America/Toronto'}));
-  }
+  for (let i = 0; i < 7; i++) days.push(tzAddDaysStr(weekStartStr, i));
   const weekStart = days[0];
   const weekEnd   = days[6];
   const fmtDay = ds => { const [,m,d] = ds.split('-'); return `${parseInt(m)}/${parseInt(d)}`; };
@@ -8737,7 +8845,9 @@ function _refreshFC() { _renderCustomCal(); }
 
 let _calView    = 'week'; // 'day' | 'week'
 let _calAxis    = 'psw';  // 'psw' | 'client'
-let _calDate    = new Date(); // anchor date
+// B29. Seeded from the TORONTO date, not the browser's. A local `new Date()`
+// here is what made the calendar show one week while todayStr said another.
+let _calDate    = tzDateFromStr(tzTodayStr()); // anchor, noon UTC
 
 const CAL_START = 5;  // 5am
 const CAL_END   = 23; // 11pm
@@ -8747,16 +8857,17 @@ function _calDateStr(d) {
   return d.toLocaleDateString('en-CA', {timeZone:'America/Toronto'});
 }
 
+// B29. Toronto calendar space. anchor may be a local Date, so it is reduced to
+// a Toronto date string before any weekday is taken from it, and the returned
+// Dates are NOON UTC anchors. Read them with the UTC accessors, never getDay or
+// getDate: at +12 and beyond, noon UTC read locally is already the next day.
 function _calWeekDays(anchor) {
-  const d = new Date(anchor);
-  const dow = (d.getDay() + 6) % 7; // 0=Mon
-  d.setDate(d.getDate() - dow);
+  const seed = (anchor instanceof Date)
+    ? anchor.toLocaleDateString('en-CA', { timeZone: 'America/Toronto' })
+    : tzTodayStr();
+  const startStr = tzWeekStartStr(seed, true);
   const days = [];
-  for (let i = 0; i < 7; i++) {
-    const dd = new Date(d);
-    dd.setDate(d.getDate() + i);
-    days.push(dd);
-  }
+  for (let i = 0; i < 7; i++) days.push(tzDateFromStr(tzAddDaysStr(startStr, i)));
   return days;
 }
 
@@ -8801,7 +8912,12 @@ function _renderCustomCal() {
   const days = _calView === 'week' ? _calWeekDays(_calDate) : [new Date(_calDate)];
   const dayStrs = days.map(_calDateStr);
 
-  const fmtShort = d => `${['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][d.getDay()]} ${d.getMonth()+1}/${d.getDate()}`;
+  // B29. UTC accessors. _calWeekDays now returns noon UTC anchors, and reading
+  // those with getDay/getMonth/getDate is correct only up to about +11. From
+  // Auckland it would label the following day. Measured before the fix: this
+  // read "Fri 8/28" from Manila while the function's own todayStr was
+  // 2026-08-27, so the header disagreed with what it treated as today.
+  const fmtShort = d => `${['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][d.getUTCDay()]} ${d.getUTCMonth()+1}/${d.getUTCDate()}`;
   const fmtMo = d => d.toLocaleDateString('en-US',{month:'short',day:'numeric'});
 
   // Header range label
@@ -8982,7 +9098,7 @@ async function _calNav(dir) {
   _renderCustomCal();
 }
 
-function _calGoToday() { _calDate = new Date(); _fetchGridBookings(false).then(() => _renderCustomCal()); }
+function _calGoToday() { _calDate = tzDateFromStr(tzTodayStr()); _fetchGridBookings(false).then(() => _renderCustomCal()); }
 
 function _calSetView(v) { _calView = v; _renderCustomCal(); }
 
@@ -10350,9 +10466,9 @@ function getRevDateRange(period) {
     fromDate = toDate = todayStr;
     label = 'Today';
   } else if (period === 'week') {
-    const d = new Date(now);
-    const dow = d.getDay() === 0 ? 6 : d.getDay() - 1;
-    d.setDate(d.getDate() - dow);
+    // B29. Toronto calendar space. This drives the REVENUE date range, so a one
+    // day shift moves money between reporting weeks.
+    const d = tzDateFromStr(tzWeekStartStr(tzTodayStr(), true));
     fromDate = d.toLocaleDateString('en-CA', tz);
     const end = new Date(d); end.setDate(d.getDate() + 6);
     toDate = end.toLocaleDateString('en-CA', tz);
@@ -14310,16 +14426,20 @@ async function copyWeeks(n) {
   // Determine the source week from grid or FC
   let weekStart;
   if (schedHQView === 'grid') {
-    const today = new Date();
-    const dow = (today.getDay() + 6) % 7;
-    weekStart = new Date(today);
-    weekStart.setDate(today.getDate() - dow + (schedWeekOffset * 7));
+    // B29. Toronto calendar space. This function COPIES BOOKINGS, so a one day
+    // shift does not merely mislabel a column, it writes real rows onto the
+    // wrong days. Measured before the fix: Toronto 2026-08-24, Manila and
+    // Sydney 2026-08-23.
+    weekStart = tzDateFromStr(tzAddDaysStr(tzWeekStartStr(tzTodayStr(), true), schedWeekOffset * 7));
     weekStart.setHours(0,0,0,0);
   } else {
     // Cal view, use _calDate (replaces window._fc which is removed)
-    weekStart = new Date(_calDate instanceof Date ? _calDate : new Date());
-    const cdow = (weekStart.getDay() + 6) % 7;
-    weekStart.setDate(weekStart.getDate() - cdow);
+    // B29. _calDate is a LOCAL Date when set, so it is converted to a Toronto
+    // date string before any weekday is taken from it.
+    const _cwSeed = _calDate instanceof Date
+      ? _calDate.toLocaleDateString('en-CA', { timeZone: 'America/Toronto' })
+      : tzTodayStr();
+    weekStart = tzDateFromStr(tzWeekStartStr(_cwSeed, true));
     weekStart.setHours(0,0,0,0);
   }
 
@@ -18259,6 +18379,53 @@ async function submitAddVisit() {
     await renderVisits();
   } catch(e) { showToast(e.message, 'err'); }
   finally { if (btn) { btn.disabled = false; btn.textContent = 'Add Visit'; } }
+}
+
+// =====================================================================
+// B37. HQ WAS STUCK ON A STALE SERVICE WORKER, WITH NO WAY TO UPDATE.
+//
+// WHY. psw-portal.html calls register('psw-sw.js') from the site root, which
+// gives that worker ROOT SCOPE on proximitycares.ca. It therefore intercepts
+// every request on this origin, including hq.html, which registers nothing of
+// its own and has never contained a single line of service worker code.
+//
+// reg.update() exists, but it lives ONLY in psw-portal.html. An operator who
+// opens HQ and never opens the PSW portal never triggers an update check, so
+// whatever worker was installed the first time they visited keeps running
+// forever. An earlier version cached HTML under the name pcs-v2, and its own
+// v15 header says the cache was bumped to flush exactly that. The bump worked;
+// the new worker never installed, so it never ran.
+//
+// MEASURED, not inferred: on 2026-08-29 the first invoice preview after V48
+// returned $6,299.48 from a cached hq.html with zero occurrences of
+// serverTotal, while the server was serving the correct file. Unregistering
+// the worker fixed it, and it did not come back, which is itself the proof:
+// nothing on this page registers one.
+//
+// WHAT THIS DOES. Finds the existing registration and asks it to check for a
+// new worker, every time HQ loads. It does NOT register a worker, because HQ
+// should not have one: it is a desktop dashboard with no offline story.
+//
+// WHY NO RELOAD. B20 removed exactly that from the PSW portal because a
+// controllerchange reload was firing mid checkout and killing in flight photo
+// uploads. Repeating it here would be the same mistake in a place where an
+// operator may be halfway through an invoice. The update installs quietly and
+// takes effect on the next navigation, which is the correct trade for a page
+// nobody keeps open for days.
+//
+// FAILS SILENTLY AND ON PURPOSE. Every branch is guarded. A browser without
+// service worker support, a page served over http, a registration that does
+// not exist: all of them do nothing rather than throw into the console of a
+// dashboard the operator is trying to work in.
+// =====================================================================
+if ('serviceWorker' in navigator) {
+  try {
+    navigator.serviceWorker.getRegistrations().then(function (regs) {
+      (regs || []).forEach(function (reg) {
+        try { reg.update(); } catch (e) {}
+      });
+    }).catch(function () {});
+  } catch (e) {}
 }
 </script>
 </body>

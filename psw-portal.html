@@ -2732,22 +2732,50 @@ function renderHomeFeed() {
 function toggleHomeFeedExpand(){ window._homeFeedExpanded = !window._homeFeedExpanded; renderHomeFeed(); }
 let _selectedSchedDay = null; // YYYY-MM-DD
 
+// =====================================================================
+// B29. Toronto calendar helpers, identical to the set in hq.html.
+//
+// renderWeek derived the weekday from a LOCAL noon Date built out of a TORONTO
+// date string, then printed the result back in Toronto. Local noon happens to
+// land inside the Toronto day up to about +9, which is why this looked correct
+// from Manila and was already wrong from Sydney and Auckland. Measured, same
+// instant: Toronto 2026-08-24, Manila 2026-08-24, Sydney 2026-08-23.
+//
+// Anchoring at noon UTC and using the UTC accessors removes the dependency on
+// where the browser is, so the week is the same everywhere.
+// =====================================================================
+function tzTodayStr() {
+  return new Date().toLocaleDateString('en-CA', { timeZone: 'America/Toronto' });
+}
+function tzDateFromStr(ds) {
+  // Noon UTC anchor. Never mutate this with local setDate/getDay.
+  return new Date(ds + 'T12:00:00Z');
+}
+function tzStrFromDate(d) {
+  return d.toISOString().slice(0, 10);
+}
+function tzAddDaysStr(ds, n) {
+  const d = tzDateFromStr(ds);
+  d.setUTCDate(d.getUTCDate() + n);
+  return tzStrFromDate(d);
+}
+function tzDowStr(ds, mondayFirst) {
+  const w = tzDateFromStr(ds).getUTCDay();
+  return mondayFirst ? (w + 6) % 7 : w;
+}
+function tzWeekStartStr(ds, mondayFirst) {
+  return tzAddDaysStr(ds, -tzDowStr(ds, mondayFirst));
+}
+
 function renderWeek() {
   const bookings = scheduleData?.bookings || [];
   const visits   = scheduleData?.completed_visits || [];
   const clients  = scheduleData?.clients || scheduleData?.assigned_clients || window._pswClients || [];
   const today = new Date().toLocaleDateString('en-CA',{timeZone:'America/Toronto'});
 
-  const base = new Date(today + 'T12:00:00');
-  const dow  = base.getDay() === 0 ? 6 : base.getDay() - 1;
-  const startOfWeek = new Date(base);
-  startOfWeek.setDate(base.getDate() - dow + weekOffset * 7);
-
-  const days = Array.from({length:7}, (_,i) => {
-    const d = new Date(startOfWeek);
-    d.setDate(startOfWeek.getDate() + i);
-    return d.toLocaleDateString('en-CA',{timeZone:'America/Toronto'});
-  });
+  // B29. Derived entirely in Toronto calendar string space.
+  const startStr = tzAddDaysStr(tzWeekStartStr(today, true), weekOffset * 7);
+  const days = Array.from({length:7}, (_,i) => tzAddDaysStr(startStr, i));
 
   const wl = document.getElementById('sched-week-range');
   if (wl) {
