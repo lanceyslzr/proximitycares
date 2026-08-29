@@ -9277,7 +9277,12 @@ function _renderHoursPanel() {
         const counterpart = _hpType === 'psw' ? (b.client_name||'—') : (b.assigned_to||'Unassigned');
         const dur = b.duration_minutes || 60;
         const endMins = _toMinsFromMidnight(b.scheduled_time) + dur;
-        const endH = Math.floor(endMins/60);
+        // B30a. %24 was missing HERE alone: every other end-time computation
+        // in this file wraps (L9642, L10105, L10130), so a 20 hour live-in
+        // shift starting 08:00 read "08:00 - 28:00" in this one list. This is
+        // display only, but it is exactly the kind of reading that gets
+        // reported as "scheduling cannot go past 12 hours".
+        const endH = Math.floor(endMins/60) % 24;
         const endM = endMins%60;
         const endStr = `${String(endH).padStart(2,'0')}:${String(endM).padStart(2,'0')}`;
         rows += `<div onclick="_showShiftDetail(window._bookingMap&&window._bookingMap[b.id]?window._bookingMap[b.id]:b,{})"
