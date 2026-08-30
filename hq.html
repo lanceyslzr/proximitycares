@@ -15318,6 +15318,17 @@ Generate exactly 3 to 5 prioritized action items for the operator. Each item mus
   if (kpiOnShift) {
     kpiOnShift.textContent = onShift;
     kpiOnShift.style.color = onShift > 0 ? 'var(--teal2)' : 'var(--muted)';
+    // B47. This sub-label shipped EMPTY. Three of the four KPI tiles write
+    // their sub-line and this one never did, so the tile read as a bare number
+    // with a blank line under it. Found by the orphan suite, which looks for
+    // display elements no script ever writes. Same shape as the sibling tiles
+    // above: say what the number means, not just what it is.
+    const kpiOnShiftSub = document.getElementById('kpi-on-shift-sub');
+    if (kpiOnShiftSub) {
+      kpiOnShiftSub.textContent = onShift > 0
+        ? (onShift === 1 ? '1 caregiver working' : onShift + ' caregivers working')
+        : 'Nobody clocked in';
+    }
   }
   if (kpiShifts) {
     kpiShifts.textContent = todayShifts.length;
