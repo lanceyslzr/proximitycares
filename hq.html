@@ -2770,39 +2770,6 @@ body.sidebar-rail .sidebar{width:64px;overflow:visible;}
     </div>
   </div>
 
-// B43. ONE renderer for both pay periods on the profit tile. _hqPeriodView
-// survives re-renders within the session so a background refresh cannot snap
-// the operator back to the current period while they are reading the last one.
-let _hqPeriodView = 'current';
-
-function toggleHqPeriod() {
-  const c = window._hqCounts || {};
-  // Older server without prev_period: leave the view alone rather than
-  // switching to an empty tile.
-  if (!c.prev_period) return;
-  _hqPeriodView = _hqPeriodView === 'current' ? 'previous' : 'current';
-  renderHqMarginTile();
-}
-
-function renderHqMarginTile() {
-  const c = window._hqCounts || {};
-  const kpiRev = document.getElementById('kpi-rev');
-  const kpiRevSub = document.getElementById('kpi-rev-sub');
-  const wantPrev = _hqPeriodView === 'previous' && c.prev_period;
-
-  const margin = wantPrev
-    ? ((parseFloat(c.prev_period.client_total) || 0) - (parseFloat(c.prev_period.psw_total) || 0))
-    : (c.margin_period != null ? c.margin_period : null);
-
-  if (kpiRev) {
-    kpiRev.textContent = margin != null ? '$' + Math.round(margin).toLocaleString() : '';
-    kpiRev.style.color = margin > 0 ? 'var(--green2)' : margin < 0 ? 'var(--red)' : 'var(--muted)';
-  }
-  if (kpiRevSub) {
-    const label = wantPrev ? (c.prev_period.label || 'Last period') : (c.period_label || 'Pay period');
-    kpiRevSub.textContent = label + (c.prev_period ? (wantPrev ? ' \u00b7 last' : ' \u00b7 now') : '');
-  }
-}
 
   <!-- ── SUPPORT TICKETS (operator side) ─────────────────────────── -->
   <div style="margin-top:16px;">
@@ -15376,6 +15343,40 @@ Generate exactly 3 to 5 prioritized action items for the operator. Each item mus
   window._hqCounts = D.counts || {};
   renderHqMarginTile();
 
+}
+
+// B43. ONE renderer for both pay periods on the profit tile. _hqPeriodView
+// survives re-renders within the session so a background refresh cannot snap
+// the operator back to the current period while they are reading the last one.
+let _hqPeriodView = 'current';
+
+function toggleHqPeriod() {
+  const c = window._hqCounts || {};
+  // Older server without prev_period: leave the view alone rather than
+  // switching to an empty tile.
+  if (!c.prev_period) return;
+  _hqPeriodView = _hqPeriodView === 'current' ? 'previous' : 'current';
+  renderHqMarginTile();
+}
+
+function renderHqMarginTile() {
+  const c = window._hqCounts || {};
+  const kpiRev = document.getElementById('kpi-rev');
+  const kpiRevSub = document.getElementById('kpi-rev-sub');
+  const wantPrev = _hqPeriodView === 'previous' && c.prev_period;
+
+  const margin = wantPrev
+    ? ((parseFloat(c.prev_period.client_total) || 0) - (parseFloat(c.prev_period.psw_total) || 0))
+    : (c.margin_period != null ? c.margin_period : null);
+
+  if (kpiRev) {
+    kpiRev.textContent = margin != null ? '$' + Math.round(margin).toLocaleString() : '';
+    kpiRev.style.color = margin > 0 ? 'var(--green2)' : margin < 0 ? 'var(--red)' : 'var(--muted)';
+  }
+  if (kpiRevSub) {
+    const label = wantPrev ? (c.prev_period.label || 'Last period') : (c.period_label || 'Pay period');
+    kpiRevSub.textContent = label + (c.prev_period ? (wantPrev ? ' \u00b7 last' : ' \u00b7 now') : '');
+  }
 }
 
 // ── SUPPORT TICKETS, S74 ────────────────────────────────────────────────────
