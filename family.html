@@ -698,6 +698,13 @@ button:active{transform:scale(0.98);}
 .visit-row:active,
 .psw-card:active,
 .sched-opt:active,
+/* B71. A photo that exists but this browser cannot decode. Marked rather
+   than deleted: removing it would tell the family no photo was taken, which
+   is false. */
+.photo-cell-unviewable{display:flex;align-items:center;justify-content:center;
+  min-height:72px;font-family:var(--mono);font-size:10px;letter-spacing:.04em;
+  text-transform:uppercase;color:var(--muted);background:var(--bg3);}
+.photo-cell-unviewable::after{content:'Not viewable here';}
 .photo-cell:active,
 .photo-group-head:active,
 .care-pause-banner:active,
@@ -2746,7 +2753,7 @@ function showTab(tab) {
     // Photo gallery, grouped by visit, collapsible, with lightbox
     const photoVisits = all.filter(v => Array.isArray(v.task_photos) && v.task_photos.length);
     const totalPhotos = photoVisits.reduce((n,v)=>n+v.task_photos.length,0);
-    const photoGallery = photoVisits.length ? `<div class="section"><div class="section-title">Visit Photos · ${totalPhotos}</div><div class="photo-groups">${photoVisits.map((v,gi)=>{
+    const photoGallery = photoVisits.length ? `<div class="section" id="visit-photos-section"><div class="section-title" id="visit-photos-title">Visit Photos · ${totalPhotos}</div><div class="photo-groups">${photoVisits.map((v,gi)=>{
       const d = fmtDate ? fmtDate(v.visit_date) : v.visit_date;
       const n = v.task_photos.length;
       return `<div class="photo-group">
@@ -3278,6 +3285,30 @@ function requestScheduleChange(){
 function famDropPhoto(img) {
   const cell = img && img.closest ? img.closest('.photo-cell') : null;
   if (!cell) return;
+
+  // AN ERROR IS NOT PROOF THE PHOTO IS EMPTY.
+  //
+  // Found while auditing the rest of the upload chain. downscaleImage returns
+  // the ORIGINAL file when it cannot decode it, which is what happens to a
+  // HEIC on a browser without HEIC support, and the extension is read AFTER
+  // the downscale, so that photo reaches storage as .heic with REAL BYTES.
+  // Chrome then cannot render it and fires the same error a zero byte object
+  // fires. Deleting the card there would hide a photo of the client's care
+  // that genuinely exists, which is a worse failure than the blank frame this
+  // section set out to remove.
+  //
+  // So: only formats the browser is expected to render are treated as empty
+  // when they fail. A format it simply cannot display is marked, not removed,
+  // because the honest statement is "this exists and you cannot see it here",
+  // not silence.
+  const src = String((img && img.getAttribute && img.getAttribute('src')) || '');
+  if (/\.(heic|heif|tif|tiff)(\?|$)/i.test(src)) {
+    cell.classList.add('photo-cell-unviewable');
+    cell.setAttribute('title', 'This photo cannot be displayed in this browser');
+    if (img.style) img.style.display = 'none';
+    return;
+  }
+
   const grid = cell.parentElement;
   cell.remove();
   if (!grid) return;
@@ -3289,10 +3320,38 @@ function famDropPhoto(img) {
     // family photos were taken that day, which is the same wrong claim in a
     // smaller box.
     group.remove();
+    famRecountPhotoSection();
     return;
   }
   const count = group.querySelector('.pg-count');
   if (count) count.textContent = left + ' photo' + (left > 1 ? 's' : '');
+  famRecountPhotoSection();
+}
+
+// THE SECTION HEADER HAS TO FOLLOW TOO.
+//
+// Missed in the first cut of this section: famDropPhoto recounted the per
+// group label and removed empty groups, but the section title is rendered as
+// "Visit Photos · ${totalPhotos}" from the payload and never touched again.
+// For Rosetta that is 63, and every one of her 63 objects is zero length, so
+// the family was left looking at a heading claiming 63 photos above a section
+// with nothing in it. That is the same false claim this section exists to
+// remove, one level up.
+//
+// Recount from what is actually on screen rather than by decrementing: a
+// decrement drifts if any card is dropped twice, and the DOM is the truth.
+function famRecountPhotoSection() {
+  const sect = document.getElementById('visit-photos-section');
+  if (!sect) return;
+  const left = sect.querySelectorAll('.photo-cell').length;
+  if (left === 0) {
+    // Nothing survived anywhere. A heading with no photos under it tells the
+    // family photos exist. Remove the whole section instead.
+    sect.remove();
+    return;
+  }
+  const title = document.getElementById('visit-photos-title');
+  if (title) title.textContent = 'Visit Photos \u00b7 ' + left;
 }
 
 function togglePhotoGroup(gi){
