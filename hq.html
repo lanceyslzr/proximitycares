@@ -4738,7 +4738,17 @@ async function loadAll(spin=false) {
       // Visits (90-day window)
       fetch(`${API}/hq/visits?operator_id=${currentOp}&limit=500&from_date=${new Date(Date.now()-90*86400000).toLocaleDateString('en-CA',{timeZone:'America/Toronto'})}`, { headers: _headers })
         .then(r => r.json())
-        .then(vd => { if (vd.visits) D.visits = vd.visits; })
+        .then(vd => {
+          if (vd.visits) D.visits = vd.visits;
+          // B52. REMEMBER THAT THIS SET IS PARTIAL. Every list in HQ reads
+          // D.visits, and until now nothing recorded that it is a 90 day, 500
+          // row slice. A list that renders an empty state from a truncated set
+          // is stating something it cannot know, which is how eight unresolved
+          // incidents stayed invisible. Stored, not displayed: only the places
+          // that draw a CONCLUSION from emptiness need to consult it.
+          D.visitsTruncated = !!(vd.summary && vd.summary.truncated);
+          D.visitsWindowDays = 90;
+        })
         .catch(() => {}),
 
       // PSW time-off (±60/120 day window for schedule blocking)
@@ -13217,15 +13227,53 @@ function setVisitView(view) {
   }
 }
 
-function renderIncidents() {
-  const visits = D.visits || [];
+// B51. This list USED to read D.visits alone, which the dashboard fetches over
+// a 90 day window capped at 500 rows. Seven of eight unresolved incidents were
+// older than that, so this rendered its empty state and the product offered no
+// way to reach them at all, while the ALERTS tile counted them server side and
+// read 8. Now it asks the server for every unresolved incident regardless of
+// age, and falls back to the windowed scan if that call fails, so a server
+// without the route still shows what it can rather than nothing.
+async function loadOpenIncidents() {
+  try {
+    const r = await fetch(`${API}/hq/incidents-open?operator_id=${currentOp}`, { headers: hqHeaders() });
+    if (!r.ok) return null;
+    const j = await r.json();
+    return Array.isArray(j.incidents) ? j.incidents : null;
+  } catch (e) { return null; }
+}
+
+async function renderIncidents() {
+  const fetched = await loadOpenIncidents();
+  const visits = fetched || D.visits || [];
   // Populate lookup map so openIncidentResolveById can find visits by ID
   window._visitMap = window._visitMap || {};
+  // B51. These rows may have come from /hq/incidents-open, i.e. from OUTSIDE
+  // the 90 day D.visits window. openIncidentResolveById looks visits up in
+  // this map and falls back to scanning D.visits, which would MISS them and
+  // show "Visit data not found, please refresh" on a button that can never
+  // work. Registering the fetched rows here is what makes the seven old
+  // incidents actually resolvable rather than merely visible.
   visits.forEach(v => { window._visitMap[v.id] = v; });
-  const incidents = hqOpenIncidents(visits);
+  // When the server answered, the rows ARE the unresolved incidents already.
+  // Re-filtering would be harmless but would also quietly hide a server that
+  // returned the wrong shape. Filter only the windowed fallback.
+  const incidents = fetched ? visits : hqOpenIncidents(visits);
   const el = document.getElementById('incidents-list');
   if (!el) return;
   if (!incidents.length) {
+    // B52. An empty incident list is a SAFETY CLAIM: it tells the operator
+    // nothing needs attention. That claim is only true if we looked at
+    // everything. When the unbounded fetch succeeded we did, and the
+    // reassuring empty state is honest. When it failed and we fell back to the
+    // 90 day D.visits slice, we did NOT, and saying 'all clear' would repeat
+    // exactly the failure that hid eight incidents for four months.
+    if (!fetched) {
+      el.innerHTML = '<div class="empty-state"><div class="empty-state-icon" style="color:var(--muted);">!</div>'
+        + '<div>No incidents in the last 90 days.</div>'
+        + '<div style="font-size:12px;color:var(--muted2);margin-top:6px;">Older incidents could not be checked just now. Refresh to try again.</div></div>';
+      return;
+    }
     el.innerHTML = '<div class="empty-state"><div class="empty-state-icon" style="color:var(--green2);opacity:0.7;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div><div class="empty-state-title" style="color:var(--green2);">No open incidents</div><div class="empty-state-sub">All visits are clear.</div></div>';
     return;
   }
