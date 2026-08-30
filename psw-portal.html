@@ -3742,7 +3742,19 @@ async function doCheckOut() {
   let _photoEmpty = 0;
   const photoFiles = document.getElementById('co-photos')?.files;
   if (photoFiles && photoFiles.length && navigator.onLine) {
-    for (const file of Array.from(photoFiles).slice(0, 4)) {
+    // B71. `let`, not `const`. B32 added `file = await downscaleImage(file)`
+    // inside this loop while the binding was const, so EVERY iteration threw
+    // TypeError: Assignment to constant variable. The throw was caught by the
+    // `} catch { _photoFailed++; }` at the bottom of the loop, so the failure
+    // never surfaced as an error: the caregiver simply saw "N photos did not
+    // upload. Visit saved." on every single checkout, and no photo has
+    // uploaded since B32 shipped.
+    //
+    // My B32 gate did not catch it because it executed downscaleImage in
+    // isolation and only STRING MATCHED the wiring into this loop. A string
+    // match cannot see that the binding it assigns to is immutable. The gate
+    // for this section executes the loop shape itself.
+    for (let file of Array.from(photoFiles).slice(0, 4)) {
       // Defence in depth. previewPhotos already refuses a zero byte file at
       // selection, but that only runs on the onchange handler, and the input can
       // be populated without it. Never PUT a file with no bytes and never write

@@ -2756,7 +2756,7 @@ function showTab(tab) {
           <span class="pg-chev" id="pg-chev-${gi}">${gi===0?'&#9650;':'&#9660;'}</span>
         </button>
         <div class="photo-group-body${gi===0?' open':''}" id="pg-body-${gi}">
-          <div class="photo-grid">${v.task_photos.map(url=>`<button class="photo-cell" onclick="famLightbox('${famPhotoUrl(url)}')"><img src="${famPhotoUrl(url)}" alt="Visit photo from ${d}" loading="lazy"></button>`).join('')}</div>
+          <div class="photo-grid">${v.task_photos.map(url=>`<button class="photo-cell" onclick="famLightbox('${famPhotoUrl(url)}')"><img src="${famPhotoUrl(url)}" alt="Visit photo from ${d}" loading="lazy" onerror="famDropPhoto(this)" onload="if(!this.naturalWidth)famDropPhoto(this)"></button>`).join('')}</div>
         </div>
       </div>`;
     }).join('')}</div></div>` : '';
@@ -3248,6 +3248,53 @@ function requestScheduleChange(){
   try { input.setSelectionRange(pos, pos); } catch(e){}
   input.scrollIntoView({behavior:'smooth', block:'center'});
 }
+// =====================================================================
+// B71. DO NOT SHOW A FAMILY A PHOTO THAT HAS NO BYTES.
+//
+// WHY. 36 of 68 objects under carolina_hermida/ are zero length, from the
+// upload bug bisected to the Jul 1 boundary. The portal renders every URL the
+// server sends, so those draw as empty black frames. Seen live on 2026-08-31:
+// a group headed "63 photos" with a blank card in it.
+//
+// A blank frame is a worse answer than nothing. It tells the family a photo of
+// their mother's care exists and is broken, and invites them to ask why. The
+// truth is that no image was ever stored, and the honest rendering of no image
+// is no card.
+//
+// WHY CLIENT SIDE. The server sends task_photos as URLs and has no byte count
+// to filter on; adding one would mean a HEAD request per photo on the route
+// that already gates first paint. The browser already knows: a zero byte
+// object fires error, or loads with naturalWidth 0. Both are handled, because
+// which one fires depends on the content type the storage layer returns.
+//
+// THE COUNT MUST FOLLOW. Removing cells while the header still says "63
+// photos" is a different lie. The group header is recounted, and a group with
+// nothing left in it is removed entirely rather than left as an empty shell.
+//
+// THIS IS THE DISPLAY HALF ONLY. The bytes are still gone and still only on
+// Carolina's phone. Recovery is a separate decision, recorded in
+// OUTSTANDING.md; this section stops the family seeing the damage.
+// =====================================================================
+function famDropPhoto(img) {
+  const cell = img && img.closest ? img.closest('.photo-cell') : null;
+  if (!cell) return;
+  const grid = cell.parentElement;
+  cell.remove();
+  if (!grid) return;
+  const left = grid.querySelectorAll('.photo-cell').length;
+  const group = grid.closest ? grid.closest('.photo-group') : null;
+  if (!group) return;
+  if (left === 0) {
+    // Nothing survived. An empty group with a date header still tells the
+    // family photos were taken that day, which is the same wrong claim in a
+    // smaller box.
+    group.remove();
+    return;
+  }
+  const count = group.querySelector('.pg-count');
+  if (count) count.textContent = left + ' photo' + (left > 1 ? 's' : '');
+}
+
 function togglePhotoGroup(gi){
   const body = document.getElementById('pg-body-'+gi);
   const chev = document.getElementById('pg-chev-'+gi);
