@@ -4230,6 +4230,21 @@ async function initHQRealtime(){
       .on('postgres_changes', { event:'*', schema:'public', table:'shift_offers', filter:'operator_id=eq.'+op }, () => _hqRtHit('offers', loadShiftOffersHQ))
       .on('postgres_changes', { event:'*', schema:'public', table:'visits', filter:'operator_id=eq.'+op }, () => _hqRtHit('visits', _hqRefreshLive))
       .on('postgres_changes', { event:'*', schema:'public', table:'bookings', filter:'operator_id=eq.'+op }, () => _hqRtHit('bkgs', _hqRefreshLive))
+      // B69. THE TWO MESSAGE TABLES WERE THE ONLY ONES MISSING.
+      //
+      // HQ already subscribes to five tables in realtime, but neither
+      // psw_notes nor family_messages was among them. So an inbound message
+      // reached the office ONLY as an email to healthcareproximity@gmail.com,
+      // which is precisely the email this project is trying to remove.
+      //
+      // This is deliberately NOT a push notification. HQ has no service
+      // worker registration, no pushManager.subscribe and no
+      // /hq/push-subscribe route, so there is nothing subscribed to push to;
+      // building that stack is its own piece of work, recorded in
+      // OUTSTANDING.md. Realtime is the mechanism HQ ALREADY runs, and it
+      // covers the case that matters most: the office with the console open.
+      .on('postgres_changes', { event:'*', schema:'public', table:'psw_notes', filter:'operator_id=eq.'+op }, () => _hqRtHit('bkgs', _hqRefreshLive))
+      .on('postgres_changes', { event:'*', schema:'public', table:'family_messages', filter:'operator_id=eq.'+op }, () => _hqRtHit('bkgs', _hqRefreshLive))
       .subscribe((status) => {
         if (status === 'SUBSCRIBED') console.log('[HQ Realtime] connected');
         else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') console.warn('[HQ Realtime] error, polling fallback active');
@@ -6238,7 +6253,7 @@ async function openPSWMsg(name) {
     const notes = d.notes||[];
     if(!notes.length) { document.getElementById('psw-msg-body').innerHTML='<div class="empty-state" style="padding:16px;">No messages yet</div>'; return; }
     document.getElementById('psw-msg-body').innerHTML = notes.map(n=>`
-      <div class="msg-bubble ${n.sender==='lance'?'msg-lance':'msg-psw'}">
+      <div class="msg-bubble ${(n.sender_type ? (n.sender_type==='caregiver'?'msg-psw':'msg-lance') : (n.sender==='lance'?'msg-lance':'msg-psw'))}">
         <div style="font-size:13px;line-height:1.5;">${escHtml(n.message)}</div>
         <div class="msg-time">${ago(n.created_at)}</div>
       </div>`).join('');
@@ -6246,15 +6261,53 @@ async function openPSWMsg(name) {
   } catch { document.getElementById('psw-msg-body').innerHTML='<div class="empty-state">Could not load</div>'; }
 }
 
+// B68. HQ had the same gap as the other two portals: nothing rendered between
+// the click and openPSWMsg's re-fetch. It also had NO double submit guard at
+// all, so a double click sent the caregiver two identical messages. Both are
+// fixed together, because a pending bubble without a guard would simply show
+// two of them.
+const _hqMsgSending = new Set();
+function hqPendingBubble(text) {
+  const el = document.getElementById('psw-msg-body');
+  if (!el) return null;
+  const b = document.createElement('div');
+  b.className = 'msg-bubble msg-lance';
+  b.style.opacity = '.55';
+  b.dataset.pending = '1';
+  b.innerHTML = '<div style="font-size:13px;line-height:1.5;">' + escHtml(text) + '</div>'
+    + '<div class="msg-time">Sending...</div>';
+  el.appendChild(b);
+  el.scrollTop = el.scrollHeight;
+  return b;
+}
+function hqPendingFailed(b) {
+  if (!b) return;
+  b.style.opacity = '1';
+  const t = b.querySelector('.msg-time');
+  if (t) { t.textContent = 'Not sent'; t.style.color = 'var(--red)'; }
+}
+
 async function sendPSWMsg() {
-  const msg = document.getElementById('psw-msg-input').value.trim();
+  const input = document.getElementById('psw-msg-input');
+  const msg = input.value.trim();
   if(!msg||!activePSW) return;
+  // Keyed on the caregiver: two rapid clicks send one message, and messaging a
+  // different caregiver is never blocked by one already in flight.
+  if (_hqMsgSending.has(activePSW)) return;
+  _hqMsgSending.add(activePSW);
+  const _pending = hqPendingBubble(msg);
   try {
     const r = await fetch(`${API}/psw/note`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({psw_name:activePSW,sender:'lance',message:msg,operator_id:currentOp})});
     const d = await r.json(); if(!d.success) throw new Error();
-    document.getElementById('psw-msg-input').value='';
+    // Clear only on success: a failed send must not lose what was typed.
+    input.value='';
     showToast('Sent ✓','ok'); await openPSWMsg(activePSW);
-  } catch { showToast('Send failed','err'); }
+  } catch {
+    hqPendingFailed(_pending);
+    showToast('Send failed, your message is still here','err');
+  } finally {
+    _hqMsgSending.delete(activePSW);
+  }
 }
 
 // ── BOOKINGS ──
@@ -6507,7 +6560,7 @@ async function openThread(name) {
     const notes = d.notes||[];
     if (!notes.length) { body.innerHTML = '<div class="empty-state" style="padding:16px;">No messages yet</div>'; return; }
     body.innerHTML = notes.map(n => `
-      <div class="msg-bubble ${n.sender==='lance'?'msg-lance':'msg-psw'}">
+      <div class="msg-bubble ${(n.sender_type ? (n.sender_type==='caregiver'?'msg-psw':'msg-lance') : (n.sender==='lance'?'msg-lance':'msg-psw'))}">
         <div style="font-size:13px;line-height:1.5;">${escHtml(n.message)}</div>
         <div class="msg-time">${ago(n.created_at)}</div>
       </div>`).join('');

@@ -243,6 +243,12 @@ button:active{transform:scale(0.98);}
 
 /* CONTENT */
 .content{flex:1;padding:24px 20px;padding-bottom:calc(96px + env(safe-area-inset-bottom));max-width:min(560px,calc(100vw - 24px));margin:0 auto;width:100%;transition:opacity 150ms ease;}
+/* B54. Each tab is its own persistent container. Hidden with display:none
+   rather than removed, so its nodes, scroll position and focus survive.
+   The old model faded #contentArea out and rebuilt it; the fade is gone
+   because there is nothing to hide any more. */
+.ftab{display:none;}
+.ftab.on{display:block;}
 
 /* STATUS CARD */
 .status-card{background:var(--green);border-radius:20px;padding:28px 24px;margin-bottom:24px;color:#fff;position:relative;overflow:hidden;}
@@ -371,6 +377,44 @@ button:active{transform:scale(0.98);}
 .visit-stars.unrated .star-btn{background:none;border:none;font-size:18px;color:#c8d0c8;cursor:pointer;padding:0 1px;min-height:44px;min-width:28px;line-height:1;transition:color .15s;}
 .visit-stars.unrated .star-btn:hover,.visit-stars.unrated .star-btn:focus{color:#c8a040;}
 .stars-label{font-size:11px;color:var(--muted);letter-spacing:0.5px;margin-left:4px;}
+
+/* =====================================================================
+   B58. NUMERALS THAT DO NOT JITTER.
+
+   WHY. The psw portal reads as engineered largely because its figures sit in
+   tabular monospace: hours, money, dates and times all align, and a digit
+   changing does not shift the characters beside it. The family portal defines
+   the SAME --mono token and already uses it on thirteen classes, but none of
+   the classes that carry actual numbers. So Connie's hours, dates and message
+   times render in proportional type, where a 1 is narrower than an 8 and a
+   live-updating value visibly reflows.
+
+   WHAT IS TARGETED, enumerated from the markup rather than assumed. A first
+   pass guessed at hero-stat-value, stat-value and invoice-amount: none of
+   them exist in this file. The real numeric classes are the five below.
+   pg-count already had mono and is left alone. pg-date was in the first draft
+   and then REMOVED: its own rule sets --rb-sans and appears LATER in the
+   stylesheet, so this block loses the cascade to it. Reaching for !important
+   to win that fight would be the wrong trade for a photo group date label,
+   which is a heading rather than a figure that ticks.
+
+   WHAT IS DELIBERATELY NOT TARGETED. card, section-title, plan-text and the
+   hero status lines also contain numbers, but they are SENTENCES with a
+   number inside. Monospacing prose to fix a digit is the surface patching
+   this rebuild exists to avoid.
+
+   tabular-nums IS THE POINT. Monospace alone gives a different look;
+   font-variant-numeric:tabular-nums is what guarantees every digit occupies
+   the same advance width, so a value ticking from 9 to 10 does not push the
+   text after it. That is the property, the font is just how it is reached.
+   ===================================================================== */
+.card-row-value,
+.visit-detail-val,
+.visit-hours,
+.msg-bubble-time{
+  font-family:var(--mono);
+  font-variant-numeric:tabular-nums;
+}
 
 /* SKELETON */
 .skeleton-wrap{padding:24px 20px;}
@@ -614,6 +658,94 @@ button:active{transform:scale(0.98);}
 }
 .visit-action-link:hover{ color:var(--rb-text); }
 .visit-action-link:active{ opacity:.6; }
+
+/* =====================================================================
+   B57. PRESS FEEDBACK ON EVERY TAPPABLE SURFACE.
+
+   WHY. Measured: 20 tappable classes in this portal and exactly ONE of them
+   responded to a press. The PIN pad, the bottom nav, the send button, every
+   visit row and the care pause banner all did nothing when touched. On a
+   phone that is the difference between an app and a web page: a tap that
+   visibly lands feels instant even when the network is slow, and a tap that
+   does not feels broken even when the network is fast. This portal has 24
+   :hover rules, which do NOTHING on the touchscreen the family actually uses.
+
+   WHAT, taken from the psw portal rather than invented. Its pattern is
+   consistent: scale(.97) on buttons, a background lift on rows, .12s
+   transitions. Values below use THIS portal's own tokens, --e easing and
+   --bg3 surface, so the feedback matches the design system already here
+   instead of importing another one.
+
+   TWO SHAPES, chosen per element. Buttons and cards scale, because they read
+   as objects being pushed. Rows and list items lift their background, because
+   scaling a full width row looks like the layout is breaking. That is the
+   same split the psw portal makes.
+
+   REDUCED MOTION IS RESPECTED. This portal is the only one that already
+   honours prefers-reduced-motion, and the transform feedback is disabled
+   there in favour of the background change, so the press still registers
+   without movement.
+   ===================================================================== */
+.pin-btn:active,
+.msg-send-btn:active,
+.sched-submit:active,
+.sched-cancel:active,
+.star-btn:active,
+.lb-close:active,
+.map-sheet-close:active,
+.tb-signout:active{transform:scale(.97);}
+
+.visit-row:active,
+.psw-card:active,
+.sched-opt:active,
+.photo-cell:active,
+.photo-group-head:active,
+.care-pause-banner:active,
+.nav-btn:active{background:var(--bg3);}
+
+/* STICKY HOVER, and this is a defect rather than a preference.
+
+   This portal has 24 :hover rules and ZERO @media(hover:hover) guards, so
+   every one of them applies on a touchscreen too. On touch, :hover LATCHES
+   after a tap and stays until something else is tapped. Nine of the classes
+   getting press feedback above also have a hover rule, so without this the
+   sequence is: press (background lifts), release (background STAYS lifted,
+   because hover latched), and the family is left looking at a row that
+   appears permanently selected.
+
+   Scoping hover to devices that actually have a pointer fixes it without
+   deleting anything: on a desktop browser the hover states behave exactly as
+   before, and on the phone they simply never apply. Wrapping is safer than
+   removing, because these rules are the desktop experience.
+*/
+@media(hover:none){
+  .pin-btn:hover,.msg-send-btn:hover,.star-btn:hover,.tb-signout:hover,
+  .visit-row:hover,.psw-card:hover,.sched-opt:hover,.photo-cell:hover,
+  .care-pause-banner:hover,.card-row:hover,.doc-row:hover{
+    background:inherit;border-color:inherit;color:inherit;
+  }
+  /* Re-assert the press states AFTER the neutraliser above, or the reset
+     would win on specificity and the feedback would disappear on exactly the
+     devices it exists for. */
+  .visit-row:active,.psw-card:active,.sched-opt:active,.photo-cell:active,
+  .care-pause-banner:active,.nav-btn:active{background:var(--bg3);}
+}
+
+/* The transition has to exist for the release to feel like a release rather
+   than a snap back. Kept at the portal's own --t2 timing. */
+.pin-btn,.msg-send-btn,.sched-submit,.sched-cancel,.star-btn,.lb-close,
+.map-sheet-close,.tb-signout,.visit-row,.psw-card,.sched-opt,.photo-cell,
+.photo-group-head,.care-pause-banner,.nav-btn{
+  transition:transform .12s var(--e), background .12s var(--e);
+  -webkit-tap-highlight-color:transparent;
+}
+
+@media(prefers-reduced-motion:reduce){
+  .pin-btn:active,.msg-send-btn:active,.sched-submit:active,.sched-cancel:active,
+  .star-btn:active,.lb-close:active,.map-sheet-close:active,.tb-signout:active{
+    transform:none;background:var(--bg3);
+  }
+}
 @media(max-width:768px){
   .card{width:100%;max-width:100%;margin-inline:0}
   .section{padding:0 12px 12px}
@@ -1270,6 +1402,14 @@ button:active{transform:scale(0.98);}
   <!-- Client alert badges -->
   <div id="alert-badges-banner" style="display:none;padding:10px 16px 0;"></div>
 
+  <!-- B59. Offline banner. The psw portal has one; this portal had no offline
+       state at all, so a family on a dead connection saw a screen that looked
+       normal and simply never updated. Hidden by default and toggled by the
+       online/offline listeners. -->
+  <div id="family-offline-banner" style="display:none;padding:10px 16px;background:var(--bg3);border-bottom:1px solid var(--border);font-size:13px;color:var(--muted);text-align:center;">
+    You are offline. Showing the last information we loaded.
+  </div>
+
   <div class="content" id="contentArea">
     <div class="skeleton-wrap">
       <div class="skeleton-block skeleton-status"></div>
@@ -1517,6 +1657,15 @@ function showPinError() {
 
 function signOut() {
   try { sessionStorage.removeItem('family_pin_' + slug); } catch(e) {}
+  // B55. The cache holds care information: visits, vitals, incidents. Signing
+  // out must leave nothing behind for the next person to hold this phone, so
+  // it goes at the same moment the PIN does.
+  clearFamilyCache();
+  // And the built tabs must go with it. Section 54 keeps rendered DOM alive
+  // across switches, which would otherwise survive a sign out and be visible
+  // to whoever signs in next.
+  document.querySelectorAll('#contentArea > .ftab').forEach(e => e.remove());
+  _familyTabDirty = {};
   pinVal = '';
   updateDots();
   portalData = null;
@@ -1796,10 +1945,38 @@ async function loadAccessLog() {
 }
 
 async function loadPortal() {
+  // B55. PAINT FROM CACHE FIRST. The fetch below waits on ten serial database
+  // round trips server side; this puts real content on screen immediately if
+  // we have recent content, then the fetch replaces it in place. On a repeat
+  // open the family sees their care information rather than a skeleton.
+  //
+  // Nothing here SKIPS the fetch. The cached paint only decides what fills the
+  // wait, so a stale cache can shorten the blank period but can never become
+  // the final answer.
+  const _cached = readFamilyCache();
+  if (_cached && !portalData) {
+    portalData = _cached;
+    markFamilyTabDirty();
+    try {
+      const savedTab = localStorage.getItem('family_tab_'+slug);
+      showTab(_familyTabs.indexOf(savedTab) >= 0 ? savedTab : 'home');
+    } catch (e) { showTab('home'); }
+  }
   try {
-    const r = await fetch(famUrl(`/family/portal/${slug}`));
+    // B59. Retried on network failure and 5xx. This is the one request that
+    // gates everything the family can see, so a single dropped packet used to
+    // mean a dead end screen.
+    const r = await famFetchRetry(famUrl(`/family/portal/${slug}`));
     if (famHandle401(r)) return;
     portalData = await r.json();
+    // B55. Cache the live payload for the next open. Saved AFTER the response
+    // is parsed and only when it reports success, so a failed or partial
+    // response can never poison the cache.
+    saveFamilyCache(portalData);
+    // B54. New data means every built tab is showing stale content. Marking
+    // them dirty is what keeps persistence honest: a tab is only reused when
+    // nothing it depends on has changed.
+    markFamilyTabDirty();
     // LI8b. Fired without await so a slow or failing document lookup can never
     // delay the portal rendering. loadFamilyDocs swallows its own errors and
     // leaves window._famDocs null, in which case the Agreements section is
@@ -1823,11 +2000,23 @@ async function loadPortal() {
     renderAll();
     if (!window._sseConnected) { window._sseConnected = true; connectArrivalSSE(); }
   } catch (e) {
-    document.getElementById('contentArea').innerHTML = emptyState(
-      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>',
-      'Could not load portal',
-      'Please check your connection and try again.'
-    );
+    // B54. The error path still replaces the whole area on purpose: there is
+    // no portalData, so no tab can be built and there is nothing to preserve.
+        // B59. This used to be a dead end: "try again" with nothing to press, so
+    // the only way out was closing the app. Three attempts have already been
+    // made by famFetchRetry before we get here, and the message now names
+    // WHICH failure it is rather than blaming the connection either way.
+    famSetOffline(!navigator.onLine);
+    document.getElementById('contentArea').innerHTML =
+      '<div class="empty-state"><div class="empty-state-icon">'
+      + '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4"/><path d="M12 17h.01"/><circle cx="12" cy="12" r="9"/></svg>'
+      + '</div><div style="font-weight:600;margin-bottom:6px;">Could not load portal</div>'
+      + '<div style="font-size:13px;color:var(--muted);margin-bottom:16px;">'
+      + (navigator.onLine
+          ? 'We reached the network but could not get your information.'
+          : 'Your device is offline.')
+      + '</div>'
+      + '<button class="sched-submit" onclick="loadPortal()">Try again</button></div>';
   }
 }
 
@@ -1922,13 +2111,27 @@ async function openAgreementPdf(id) {
 // Typed name plus an explicit confirmation. Both are required by the server
 // and neither is inferred, because a signature that was not deliberately
 // given is worse than no signature at all.
-async function signAgreement(id) {
+// B60. The original body is renamed and the public name becomes a wrapper.
+// Wrapping in place would have meant opening a try INSIDE each function and
+// finding its matching close, which broke the file on the first attempt: four
+// unbalanced try blocks. This shape touches no line of the existing body.
+// Keyed per agreement id, so signing agreement A does not block agreement B
+// while a double tap on ONE agreement sends once.
+async function signAgreement(id) { return famOnce('sign:' + id, () => _signAgreementImpl(id)); }
+async function _signAgreementImpl(id) {
+  // B60. Keyed per agreement id: signing agreement A must not block agreement
+  // B, but tapping the SAME agreement twice must send once. A duplicate
+  // signature record is the worst duplicate this portal can produce.
   const name = (prompt('Type your full name to sign this agreement') || '').trim();
   if (!name) return;
   if (name.length < 2) { alert('Please type your full name.'); return; }
   if (!confirm('By signing you confirm you have read and agree to the terms of this agreement.')) return;
   try {
-    const r = await fetch(famUrl('/family/sign-document'), {
+    // B59. Retried: a signature is a legal record and losing one to a single
+    // dropped packet is the worst failure in this portal. The catch below
+    // states that three attempts were made, so this call has to actually make
+    // them or the message is a lie.
+    const r = await famFetchRetry(famUrl('/family/sign-document'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ slug, pin: famPin(), document_id: id, typed_name: name, agree: true })
@@ -1946,14 +2149,248 @@ async function signAgreement(id) {
   }
 }
 
+// =====================================================================
+// B54. PERSISTENT SECTIONS. The render model, not a coat of paint.
+//
+// WHAT IT USED TO DO. showTab built ONE 54,000 character string for whichever
+// tab was asked for, faded #contentArea to opacity 0, replaced its entire
+// innerHTML, and faded back in. Every switch destroyed and recreated the whole
+// view. Scroll position, focus, decoded images and any in-flight CSS
+// transition all died with the old nodes, and the fade existed to HIDE that
+// rather than to avoid it.
+//
+// WHY IT MATTERS MORE THAN IT LOOKS. Two call sites rebuild the view with NO
+// user action at all: the realtime subscription and the polling fallback both
+// call showTab(activeTab) whenever anything changes. So a message arriving
+// while the family is reading a visit note, or scrolling the care plan, throws
+// them back to the top of a freshly built DOM. That is not a cosmetic issue.
+//
+// THE MODEL, taken from the psw portal rather than invented. showSect() there
+// toggles a class on PERSISTENT nodes and re-renders only what changed, with
+// the rule written in its own comment: "Render immediately with cached data,
+// don't wait for fetch." That is what makes it feel instant.
+//
+// HOW THIS WORKS. Each tab gets its own container inside #contentArea, created
+// once and kept. Switching toggles a class. A tab's HTML is built the first
+// time it is opened and REUSED after that, unless something actually changed,
+// which _familyTabDirty records. The 671 lines of template building below are
+// UNCHANGED: they still produce the same html string. Only what happens to
+// that string changed, which keeps this section reviewable.
+// =====================================================================
+const _familyTabs = ['home','visits','care','ask','billing','access','docs'];
+let _familyTabDirty = {};
+
+// Mark a tab as needing a rebuild. Called when the DATA changed, never on a
+// plain tab switch. Without an argument every tab is marked, which is what a
+// fresh portalData means.
+function markFamilyTabDirty(tab) {
+  if (tab) _familyTabDirty[tab] = true;
+  else _familyTabs.forEach(t => { _familyTabDirty[t] = true; });
+}
+
+// =====================================================================
+// B55. RENDER FROM CACHE FIRST, THEN CATCH UP.
+//
+// WHY. Opening the portal today means: PIN, then ONE fetch to
+// /family/portal/:slug, which the server answers only after ten serial
+// database round trips. Until it returns the family sees a skeleton. Nothing
+// is cached, so that wait happens every single open, even when the content is
+// identical to what they saw a minute ago.
+//
+// The psw portal does not work this way. showSect() there carries the rule in
+// its own comment: "Render immediately with cached data, don't wait for
+// fetch." That is the difference between an app that feels instant and one
+// that feels like a web page.
+//
+// WHAT IS CACHED, and what deliberately is not. The response carries client,
+// psw, visits, vitals, incidents and bookings. It carries NO credentials:
+// checked, there is no pin, no token and no supabase key in it. It DOES carry
+// health information, so:
+//   - the cache is keyed per portal slug, never shared
+//   - it is cleared on sign out and whenever a PIN check fails
+//   - it carries a timestamp and is IGNORED once stale, so a stale view can
+//     never be mistaken for a live one
+//
+// STALENESS. Ten minutes. Long enough to make repeat opens instant, short
+// enough that nobody reads yesterday's visit as today's. A cached render is
+// always followed by a live fetch, so the window only decides how long the
+// FIRST paint may be old, never how long it stays old.
+// =====================================================================
+// =====================================================================
+// B59. RETRY, AND SAY WHEN YOU CANNOT.
+//
+// WHY. Measured before writing anything: this portal had ZERO retry logic and
+// ZERO offline handling. Every failure path either swallowed the error or told
+// the family to do the retrying themselves. loadPortal's catch renders "Please
+// check your connection and try again" with NO button and no automatic retry,
+// so the only way out is closing and reopening the app. signAgreement's catch
+// literally says "Please try again", which is the code asking the user to do
+// its job.
+//
+// This matters more here than in HQ. The family opens this in a hospital
+// corridor, a parking lot, a care home with one bar. The psw portal survives
+// that: online/offline listeners, a banner, and a queue. This portal did not.
+//
+// SCOPE, decided by reading rather than by symmetry. The psw portal's
+// IndexedDB queue exists because a caregiver WRITES offline: check-ins that
+// must not be lost. The family portal also writes, eleven call sites: chat,
+// messages, visit ratings, care pause requests and document signatures. But a
+// family message is composed in the moment and can be re-sent from a screen
+// they are still looking at, whereas a check-in happens once at a doorstep. So
+// this section adds RETRY and honest offline state, not a durable queue.
+// Building an IndexedDB queue for the family portal would be copying a
+// mechanism rather than solving the problem it was built for.
+//
+// TRANSIENT ONLY. A retry loop that repeats a 400 or a 404 is just a slower
+// failure, and repeating a 401 can lock an account. Only network errors and
+// 5xx are retried; anything the server answered deliberately is returned as
+// it is.
+// =====================================================================
+// =====================================================================
+// B60. ONE SUBMISSION PER TAP.
+//
+// WHY. Measured across the eleven write call sites in this portal: SEVEN have
+// no guard against being fired twice, including signAgreement, which records a
+// legal signature. A double tap on a slow connection sends the request twice
+// and the family gets two of whatever they asked for: two care pause requests,
+// two messages to the coordinator, two signature records against one
+// agreement.
+//
+// B59 MADE THIS SHARPER, which is why it belongs directly after it. A retried
+// request stays in flight for up to three attempts with backoff, so the window
+// in which a second tap lands is now measurably longer than it was.
+//
+// WHY A FLAG RATHER THAN DISABLING THE BUTTON. The house pattern in this file
+// is submitCarePause's: disable the button, change its label, restore in a
+// finally. That works when there IS one button. Four of these seven are
+// triggered from places with no single element to disable, and requestPSWContact
+// has no button at all. A module level in-flight set covers every shape,
+// including a second tap arriving from a different control that posts the same
+// thing.
+//
+// THE KEY IS THE ACTION, NOT THE ELEMENT. Two different buttons that both send
+// a coordinator message should block each other, because the duplicate the
+// family sees is a duplicate message, not a duplicate press.
+// =====================================================================
+const _famInFlight = new Set();
+
+async function famOnce(key, fn) {
+  if (_famInFlight.has(key)) return undefined;
+  _famInFlight.add(key);
+  try {
+    return await fn();
+  } finally {
+    // finally, not after the await: a throw must release the lock or the
+    // action is dead for the rest of the session and the family has no way
+    // to know why their button stopped working.
+    _famInFlight.delete(key);
+  }
+}
+
+async function famFetchRetry(url, opts, tries) {
+  tries = tries || 3;
+  let lastErr = null;
+  for (let i = 0; i < tries; i++) {
+    try {
+      const r = await fetch(url, opts);
+      // A server that answered is a server that decided. Only 5xx is worth
+      // asking again.
+      if (r.status < 500) return r;
+      lastErr = new Error('server ' + r.status);
+    } catch (e) {
+      lastErr = e;
+    }
+    if (i < tries - 1) {
+      // Back off so a struggling server is not hammered by every open portal
+      // at once: 400ms, then 800ms.
+      await new Promise(res => setTimeout(res, 400 * Math.pow(2, i)));
+    }
+  }
+  throw lastErr || new Error('request failed');
+}
+
+function famSetOffline(off) {
+  const b = document.getElementById('family-offline-banner');
+  if (b) b.style.display = off ? 'block' : 'none';
+}
+
+// Recovering the connection should recover the DATA, not just the banner.
+// Without this the family sits looking at a stale screen with no indication
+// that it is stale, which is the failure B52 exists to prevent elsewhere.
+window.addEventListener('online', () => {
+  famSetOffline(false);
+  if (typeof slug !== 'undefined' && slug && portalData) loadPortal();
+});
+window.addEventListener('offline', () => famSetOffline(true));
+
+const FAMILY_CACHE_MAX_AGE_MS = 10 * 60 * 1000;
+
+function _familyCacheKey() { return 'family_portal_cache_' + slug; }
+
+function saveFamilyCache(data) {
+  try {
+    if (!slug || !data || !data.success) return;
+    localStorage.setItem(_familyCacheKey(), JSON.stringify({ t: Date.now(), d: data }));
+  } catch (e) {
+    // Quota or private mode. Caching is an optimisation, never a requirement:
+    // failing to cache must not break the portal.
+  }
+}
+
+function readFamilyCache() {
+  try {
+    if (!slug) return null;
+    const raw = localStorage.getItem(_familyCacheKey());
+    if (!raw) return null;
+    const o = JSON.parse(raw);
+    if (!o || !o.d || typeof o.t !== 'number') return null;
+    if (Date.now() - o.t > FAMILY_CACHE_MAX_AGE_MS) return null;
+    return o.d;
+  } catch (e) { return null; }
+}
+
+function clearFamilyCache() {
+  try { localStorage.removeItem(_familyCacheKey()); } catch (e) {}
+}
+
+function _familyTabEl(tab) {
+  const c = document.getElementById('contentArea');
+  if (!c) return null;
+  // B55. REMOVE THE LOADING SKELETON ONCE REAL CONTENT EXISTS.
+  // The old model assigned c.innerHTML, which destroyed the skeleton as a side
+  // effect. Section 54 APPENDS tab containers instead, so the skeleton became
+  // a permanent sibling sitting above every tab. Nothing caught it, because no
+  // gate asserted the skeleton's fate: it was only ever removed by accident.
+  const sk = c.querySelector('.skeleton-wrap');
+  if (sk) sk.remove();
+  let el = document.getElementById('ftab-' + tab);
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'ftab-' + tab;
+    el.className = 'ftab';
+    c.appendChild(el);
+  }
+  return el;
+}
+
 function showTab(tab) {
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('on'));
-  document.getElementById('nav-' + tab).classList.add('on');
+  const nb = document.getElementById('nav-' + tab);
+  if (nb) nb.classList.add('on');
   try { localStorage.setItem('family_tab_'+slug, tab); } catch(e) {}
   if (!portalData) return;
 
-  const c = document.getElementById('contentArea');
-  c.style.opacity = '0';
+  const host = _familyTabEl(tab);
+  if (!host) return;
+
+  // ALREADY BUILT AND STILL CLEAN: just show it. This is the whole point.
+  // The nodes, their scroll position and their focus are exactly as the
+  // family left them.
+  if (host.dataset.built === '1' && !_familyTabDirty[tab]) {
+    document.querySelectorAll('#contentArea > .ftab').forEach(e => e.classList.remove('on'));
+    host.classList.add('on');
+    return;
+  }
 
   let html = '';
 
@@ -2543,9 +2980,43 @@ function showTab(tab) {
 
   else if (tab === 'ask') {
     const clientName = portalData.client?.first_name || 'your loved one';
-    const recentVisit = (portalData.visits||[])[0];
-    const visitCtx = recentVisit
-      ? `Last visit ${recentVisit.visit_date} with ${recentVisit.psw_name||'PSW'}. Mood: ${recentVisit.client_mood||'not recorded'}. Summary: ${(recentVisit.visit_summary||'').slice(0,200)}. Tasks: ${Array.isArray(recentVisit.tasks_completed)?recentVisit.tasks_completed.join(', '):'not listed'}.`
+    // =================================================================
+    // B70. THE ASSISTANT GETS HISTORY.
+    //
+    // WHY. This built its context from visits[0] alone: ONE visit, the most
+    // recent. The portal holds 60. So when the family asked what happened
+    // yesterday, yesterday was never in the context, and the system prompt
+    // correctly instructs the model to answer only from context and otherwise
+    // say it cannot. The model was behaving perfectly on a starvation diet.
+    //
+    // HOW MANY, measured rather than picked. A dated line built from the
+    // fields this portal already receives runs about 153 characters, so:
+    //     5 visits  ~765     10 visits ~1530
+    //    14 visits ~2142     20 visits ~3060
+    // 14 is the window: it spans a fortnight of a live-in engagement, answers
+    // "yesterday", "Tuesday" and "last week", and lands inside the 4000 cap
+    // the server now applies with room for a long summary or two.
+    //
+    // DATES ARE THE POINT. Without them the model has a pile of events and no
+    // way to resolve a relative question. Each line leads with the date.
+    // =================================================================
+    const _askVisits = (portalData.visits || []).slice(0, 14);
+    const _fmtAsk = v => {
+      const parts = [];
+      if (v.visit_date) parts.push(v.visit_date);
+      if (v.psw_name) parts.push('with ' + String(v.psw_name).split(' ')[0]);
+      const head = parts.join(' ');
+      const bits = [];
+      if (v.client_mood) bits.push('mood ' + v.client_mood);
+      if (v.visit_summary) bits.push(String(v.visit_summary).slice(0, 160));
+      if (Array.isArray(v.tasks_completed) && v.tasks_completed.length) {
+        bits.push('tasks: ' + v.tasks_completed.join(', '));
+      }
+      if (v.meds_given) bits.push('medications given');
+      return head + (bits.length ? '. ' + bits.join('. ') : '') + '.';
+    };
+    const visitCtx = _askVisits.length
+      ? 'Visits, newest first:\n' + _askVisits.map(_fmtAsk).join('\n')
       : 'No recent visits on file.';
     window._askCtx = { visitCtx, clientName, phone: portalData.branding?.owner_phone || '647-382-8047' };
     html = `
@@ -2615,13 +3086,21 @@ function showTab(tab) {
       </div>`;
   }
 
-  c.innerHTML = html;
-  requestAnimationFrame(() => { c.style.opacity = '1'; });
+  // Write into THIS tab's own container. Every other tab's DOM is untouched,
+  // so switching away and back is a class toggle rather than a rebuild.
+  host.innerHTML = html;
+  host.dataset.built = '1';
+  _familyTabDirty[tab] = false;
+  document.querySelectorAll('#contentArea > .ftab').forEach(e => e.classList.remove('on'));
+  host.classList.add('on');
 }
 
 // ── HELPERS ──
 // AI CHAT, Ask about visits
-async function sendAskMessage() {
+// B60. The AI chat: a second tap while the first answer is still generating
+// posted the question twice and rendered two answers.
+async function sendAskMessage() { return famOnce('ask', () => _sendAskMessageImpl()); }
+async function _sendAskMessageImpl() {
   const input = document.getElementById('ask-input');
   const msgs = document.getElementById('ask-msgs');
   if (!input || !msgs) return;
@@ -2841,18 +3320,104 @@ function fmtDate(d) {
 }
 
 // ── MESSAGING ──
+// =====================================================================
+// B68. THE MESSAGE APPEARS WHEN YOU SEND IT.
+//
+// WHY. Traced across all three portals: NONE of them render anything between
+// the click and the network answer. This portal is the worst of the three
+// because its refresh is loadFamilyMessages, which re-fetches the ENTIRE
+// portal payload, a route that makes ten database round trips. So the family
+// types, taps send, the box empties, and nothing appears until that whole
+// round trip finishes. It reads as if the message was lost.
+//
+// It also cleared the textarea BEFORE awaiting, so a failure emptied the box
+// and the text only came back because the catch put it there. Holding the
+// text until the send resolves removes that entire class of problem rather
+// than repairing it afterwards.
+//
+// WHAT PENDING MEANS HERE. The bubble is real markup in the real thread, at
+// the bottom, styled as the family's own outgoing message with reduced
+// opacity and a clock. It is NOT a spinner over the thread: the point is that
+// the family sees their words in the conversation immediately, which is what
+// every messaging app they already use does.
+//
+// RECONCILIATION. loadFamilyMessages replaces the thread wholesale from the
+// server, so the pending bubble disappears the moment the real row arrives.
+// Nothing has to match ids or de-duplicate. On failure the bubble is marked
+// rather than removed, so the family can see WHICH message did not go.
+// =====================================================================
+function famPendingBubble(text) {
+  const thread = document.getElementById('home-msg-thread');
+  if (!thread) return null;
+  const el = document.createElement('div');
+  el.className = 'msg-bubble-out';
+  el.style.opacity = '.55';
+  el.dataset.pending = '1';
+  el.innerHTML = '<div>' + escHtml(text) + '</div>'
+    + '<div class="msg-bubble-time">Sending...</div>';
+  thread.appendChild(el);
+  thread.scrollTop = thread.scrollHeight;
+  return el;
+}
+
+function famPendingFailed(el) {
+  if (!el) return;
+  el.style.opacity = '1';
+  const t = el.querySelector('.msg-bubble-time');
+  // Say it failed IN the thread. A toast disappears; the family needs to see
+  // which message did not send while they are looking at the conversation.
+  if (t) { t.textContent = 'Not sent'; t.style.color = 'var(--red)'; }
+}
+
 function renderMsgThread(messages) {
   if (!messages || !messages.length) {
     return '<div style="text-align:center;padding:24px 16px;font-size:13px;color:var(--muted);">No messages yet. Send us a note below.</div>';
   }
   return messages.map(m => {
-    const isOut = m.sender === 'family' || m.sender === 'client';
+    // B65. sender_type when the server provides it, with the legacy string
+    // test kept as a fallback so an undeployed server still renders. Note
+    // 'client' was a DEAD comparison: nothing has ever written that value.
+    const isOut = m.sender_type ? m.sender_type === 'family'
+                                : (m.sender === 'family' || m.sender === 'client');
     const time = m.created_at ? new Date(m.created_at).toLocaleDateString('en-CA',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit',timeZone:'America/Toronto'}) : '';
     return `<div class="${isOut ? 'msg-bubble-out' : 'msg-bubble-in'}">
       <div>${escHtml(m.message||m.body||'')}</div>
       <div class="msg-bubble-time">${time}</div>
     </div>`;
   }).join('');
+}
+
+// B69. REPORT READING WHEN THE THREAD IS ACTUALLY ON SCREEN.
+//
+// The server used to stamp every office message read the moment the portal
+// loaded. Measured: the thread sits 86% down the home tab, below Recent
+// Visits, Your Care Team and a heading, so a family opening the app to check
+// a visit time never saw those messages and HQ was told they had.
+//
+// IntersectionObserver is the honest signal: it fires when the element is
+// genuinely visible, not when the page happens to contain it. Fired once per
+// session, because a receipt is not more true for being sent twice, and
+// disconnected afterwards so scrolling past repeatedly costs nothing.
+let _famReadReported = false;
+function watchThreadForRead() {
+  if (_famReadReported) return;
+  const el = document.getElementById('home-msg-thread');
+  if (!el || typeof IntersectionObserver === 'undefined') return;
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(en => {
+      if (!en.isIntersecting || _famReadReported) return;
+      _famReadReported = true;
+      io.disconnect();
+      // Fire and forget. A failed receipt must never surface to the family:
+      // it changes nothing they can act on.
+      fetch(famUrl('/family/messages/read'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ slug, pin: famPin() })
+      }).catch(() => {});
+    });
+  }, { threshold: 0.4 });
+  io.observe(el);
 }
 
 async function loadFamilyMessages() {
@@ -2863,6 +3428,8 @@ async function loadFamilyMessages() {
     if (d.messages) {
       const thread = document.getElementById('home-msg-thread');
       if (thread) {
+        // Start watching once the thread has content to be read.
+        watchThreadForRead();
         thread.innerHTML = renderMsgThread(d.messages);
         thread.scrollTop = thread.scrollHeight;
       }
@@ -2874,9 +3441,10 @@ async function sendMsg() {
   const ta = document.getElementById('msgTa');
   const msg = ta?.value?.trim();
   if (!msg) return;
-  ta.value = ''; ta.style.height = 'auto';
+  // B68. The text stays in the box until the send resolves. Clearing first
+  // meant a failure emptied it and the catch had to put it back.
+  const _pending = famPendingBubble(msg);
   const cc = document.getElementById('msgCharCount');
-  if (cc) cc.style.display = 'none';
   try {
     const r = await fetch(`${R}/family/message`, {
       method: 'POST',
@@ -2886,12 +3454,33 @@ async function sendMsg() {
     let d = {};
     try { d = await r.json(); } catch (_) { d = {}; }
     if (!r.ok || d.success === false) throw new Error(d.error || 'Message not sent');
+    // B67. Say where it went. The caregiver copy is a SEPARATE insert that can
+    // fail without failing this request, by deliberate design: the message is
+    // stored and a human is alerted to relay it. Before this the family was
+    // told nothing either way, so a message that never reached the caregiver
+    // looked identical to one that did.
+    if (typeof d.delivered_to_caregiver !== 'undefined') {
+      const who = d.caregiver_name ? String(d.caregiver_name).split(' ')[0] : 'your caregiver';
+      showToast(d.delivered_to_caregiver
+        ? `Sent to the office and ${who}`
+        : 'Sent to the office. We will pass it to your caregiver.', 'ok');
+    }
+    // Sent. Clear the box now, not before, and let the refresh replace the
+    // pending bubble with the real row.
+    ta.value = ''; ta.style.height = 'auto';
+    if (cc) cc.style.display = 'none';
     await loadFamilyMessages();
   } catch (e) {
-    // The message never reached the office. Put the text back so it is not lost,
-    // and say so. Previously this cleared the box and swallowed the failure, so
-    // a family believed the office had been told when nobody had.
+    // B68. Mark the pending bubble rather than removing it: the family should
+    // see WHICH message did not send, in the thread, not just a toast that
+    // disappears. The text is still in the box because B68 never cleared it.
+    famPendingFailed(_pending);
+    // The message never reached the office. The text was never cleared, so
+    // there is nothing to restore; this now only re-focuses so the family can
+    // retry immediately.
     if (ta) {
+      // Kept deliberately: if any future path DOES clear early, this still
+      // recovers the text rather than silently losing it.
       ta.value = msg;
       ta.style.height = 'auto';
       ta.style.height = ta.scrollHeight + 'px';
@@ -2948,6 +3537,13 @@ function initRealtime() {
             showLiveToast('Visit completed', 'departure');
           }
 
+          // B54. A realtime event changed the underlying data, so the built
+          // tabs are stale and must be rebuilt. Before persistent sections
+          // this line destroyed the whole view on EVERY event, including
+          // while the family was mid scroll or mid message. Now only the tab
+          // they are actually looking at is rebuilt, and the rest are marked
+          // to rebuild lazily the next time they are opened.
+          markFamilyTabDirty();
           const activeTab = document.querySelector('.nav-btn.on')?.id?.replace('nav-','');
           if (activeTab) showTab(activeTab);
           loadETABanner();
@@ -2985,6 +3581,9 @@ function startPollingFallback() {
       const d   = await res.json();
       if (d.success) {
         portalData = d;
+        // B54. Same as the realtime path: the poll replaced portalData, so
+        // every built tab is stale.
+        markFamilyTabDirty();
         const activeTab = document.querySelector('.nav-btn.on')?.id?.replace('nav-','');
         if (activeTab) showTab(activeTab);
         loadFamilyMessages();
@@ -3333,7 +3932,11 @@ function setPerfRating(n) {
   stars.forEach((btn, i) => { btn.innerHTML = starSVG(i < n); });
 }
 
-async function submitPrivateNote(visitDate, pswName) {
+// B60. Keyed per visit: a note on one visit must not block a note on another.
+async function submitPrivateNote(visitDate, pswName) { return famOnce('note:' + visitDate, () => _submitPrivateNoteImpl(visitDate, pswName)); }
+async function _submitPrivateNoteImpl(visitDate, pswName) {
+  // B60. Keyed per visit: a note on one visit must not block a note on
+  // another, but double tapping one visit must send once.
   const input = document.getElementById('private-note-input');
   const successEl = document.getElementById('note-success');
   if (!input || !input.value.trim()) return;
@@ -3368,7 +3971,14 @@ async function submitPrivateNote(visitDate, pswName) {
 
 
 // ── S39 COORDINATOR MESSAGING GATE ──
-async function sendCoordMessage() {
+// B60. Shares the coord-message key with requestPSWContact: both POST to
+// /family/message, and the duplicate the family would see is one duplicate
+// message regardless of which control sent it.
+async function sendCoordMessage() { return famOnce('coord-message', () => _sendCoordMessageImpl()); }
+async function _sendCoordMessageImpl() {
+  // B60. Shares the 'coord-message' key with requestPSWContact: both post to
+  // /family/message, so the duplicate the family would see is one duplicate
+  // message regardless of which control sent it.
   const input = document.getElementById('coord-msg-input');
   const successEl = document.getElementById('coord-msg-success');
   if (!input || !input.value.trim()) return;
@@ -3392,7 +4002,12 @@ async function sendCoordMessage() {
   }
 }
 
-async function requestPSWContact() {
+// B60. This one has no button to disable at all, which is why the guard is a
+// flag rather than the house disable pattern.
+async function requestPSWContact() { return famOnce('coord-message', () => _requestPSWContactImpl()); }
+async function _requestPSWContactImpl() {
+  // B60. No button to disable here at all, which is why this uses the flag
+  // rather than the house disable pattern. Same key as sendCoordMessage.
   const successEl = document.getElementById('coord-msg-success');
   const clientName = portalData?.client?.first_name || 'my loved one';
   const pswName = portalData?.psw?.name || 'the PSW';

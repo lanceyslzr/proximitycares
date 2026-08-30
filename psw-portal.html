@@ -376,6 +376,15 @@ a{color:inherit;text-decoration:none;}
 .msg-lance{background:linear-gradient(135deg,var(--psw),var(--psw-deep));color:var(--psw-ink);margin-left:auto;border-radius:12px 12px 4px 12px;}
 .msg-psw{background:var(--rb-elev);color:var(--rb-text);border:1px solid var(--rb-line);border-radius:12px 12px 12px 4px;}
 .msg-text{font-size:13px;line-height:1.5;}
+/* B67. A family message needs a label because this bubble shows NO sender
+   name, only styling, and styling cannot distinguish the office from the
+   family: both resolve away from 'caregiver' and render identically. Before
+   this, the only attribution was a prefix baked into the message text
+   ("Message from the family of X: ..."), which existed solely because the
+   sender said 'lance'. The label has to land BEFORE that prefix is removed
+   or the caregiver loses the ability to tell who wrote to her. */
+.msg-from{font-family:var(--rb-mono);font-size:10px;letter-spacing:.06em;
+  text-transform:uppercase;color:var(--rb-dim);margin-bottom:4px;}
 .msg-time{font-family:var(--rb-mono);font-size:11px;opacity:.55;margin-top:3px;}
 .msg-input-wrap{flex-shrink:0;position:relative;background:var(--rb-base);border-top:1px solid var(--rb-line);padding:10px 12px calc(10px + env(safe-area-inset-bottom));display:flex;gap:8px;align-items:flex-end;}
 .msg-input{flex:1;background:var(--rb-panel);border:1px solid var(--rb-line2);color:var(--rb-text);padding:10px 13px;border-radius:16px;font-size:16px;resize:none;max-height:100px;}
@@ -4814,7 +4823,7 @@ async function loadMessages(scroll=true) {
     if (unread > 0) { badge.textContent = unread; badge.style.display = 'inline-flex'; dot.classList.add('show'); }
     else { badge.style.display = 'none'; dot.classList.remove('show'); } // re-render home feed to show/hide schedule alerts
     if (!notes.length) { el.innerHTML = '<div class="empty-state">No messages yet</div>'; return; }
-    el.innerHTML = notes.map(n => `<div class="msg-bubble ${n.sender==='lance'?'msg-lance':'msg-psw'}"><div class="msg-text">${escHtml(n.message)}</div><div class="msg-time">${ago(n.created_at)}</div></div>`).join('');
+    el.innerHTML = notes.map(n => `<div class="msg-bubble ${n.sender_type ? (n.sender_type==='caregiver'?'msg-psw':'msg-lance') : (n.sender==='lance'?'msg-lance':'msg-psw')}">${n.sender_type==='family'?'<div class="msg-from">From the family</div>':''}<div class="msg-text">${escHtml(n.message)}</div><div class="msg-time">${ago(n.created_at)}</div></div>`).join('');
     if (scroll) el.scrollTop = el.scrollHeight;
   } catch { el.innerHTML = '<div class="empty-state">Could not load messages</div>'; }
 }
@@ -4853,11 +4862,74 @@ async function markNotesRead() {
   if (typeof renderHomeFeed === 'function') renderHomeFeed();
 }
 
+// B66. Send to the family. Guarded per client slug so a double tap on a slow
+// connection sends one message rather than two, which is the B60 rule applied
+// to a new write the moment it is created rather than retrofitted later.
+const _famSending = new Set();
+async function sendFamilyMsg(slug) {
+  const ta = document.getElementById('cs-fam-msg');
+  const st = document.getElementById('cs-fam-status');
+  const msg = ta && ta.value.trim();
+  if (!msg) return;
+  if (_famSending.has(slug)) return;
+  _famSending.add(slug);
+  if (st) st.textContent = 'Sending...';
+  try {
+    const r = await fetch(`${API}/psw/message-family`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        psw_name: pswName, pin: pswPin, operator_id: pswOperatorId,
+        client_slug: slug, message: msg
+      })
+    });
+    const d = await r.json().catch(() => ({}));
+    if (!r.ok || !d.success) throw new Error(d.error || 'send failed');
+    // Clear ONLY on success. A failed send that empties the box loses what
+    // the caregiver wrote, which is the defect being fixed in section 68.
+    ta.value = '';
+    if (st) st.textContent = 'Sent to the family';
+    showToast('Sent to the family', 'ok');
+  } catch (e) {
+    if (st) st.textContent = e.message === 'You are not assigned to this client'
+      ? 'You are not assigned to this client'
+      : 'Could not send. Your message is still here, try again.';
+    showToast('Could not send', 'err');
+  } finally {
+    _famSending.delete(slug);
+  }
+}
+
+// B68. Same pending bubble as the family portal, same reason: nothing rendered
+// between the tap and the network answer, so a message on a weak signal looked
+// lost. This portal already disables its send button, so the double tap half
+// was covered; only the feedback was missing.
+function pswPendingBubble(text) {
+  const el = document.getElementById('msg-thread');
+  if (!el) return null;
+  const b = document.createElement('div');
+  b.className = 'msg-bubble msg-psw';
+  b.style.opacity = '.55';
+  b.dataset.pending = '1';
+  b.innerHTML = '<div class="msg-text">' + escHtml(text) + '</div>'
+    + '<div class="msg-time">Sending...</div>';
+  el.appendChild(b);
+  el.scrollTop = el.scrollHeight;
+  return b;
+}
+function pswPendingFailed(b) {
+  if (!b) return;
+  b.style.opacity = '1';
+  const t = b.querySelector('.msg-time');
+  if (t) { t.textContent = 'Not sent'; t.style.color = 'var(--rb-red, #ff6b6b)'; }
+}
+
 async function sendMsg() {
   const msg = document.getElementById('msg-input').value.trim();
   if (!msg) return;
   const btn = document.querySelector('.msg-send');
   if (btn) btn.disabled = true;
+  const _pending = pswPendingBubble(msg);
   try {
     // /psw/message-hq sets direction:'psw_to_hq', read:false, emails Lance immediately,
     // and stores in psw_notes so it appears in the HQ inbox panel.
@@ -4876,6 +4948,9 @@ async function sendMsg() {
     showToast('Sent, Lance has been notified', 'ok');
     await loadMessages();
   } catch(e) {
+    // B68. Mark the bubble in the thread, not only a toast: a toast is gone in
+    // three seconds and the caregiver needs to see which message failed.
+    pswPendingFailed(_pending);
     showToast(e.message || 'Send failed', 'err');
   } finally {
     if (btn) btn.disabled = false;
@@ -5863,7 +5938,27 @@ function openClientSheetByName(clientName) {
   }
   // ─────────────────────────────────────────────────────────────────────
 
-  document.getElementById('cs-body').innerHTML = body || '<div class="empty-state" style="padding:20px;">Care details will appear here once the care plan is set up in HQ.</div>';
+  // B66. The caregiver can now message this client's family directly. Before
+  // this, anything Carolina wanted the family to know went through a phone
+  // call to the office and back out again: there was NO route from a
+  // caregiver to a family at all.
+  //
+  // portal_slug is already in the payload from /psw/clients/:psw_name, it was
+  // simply never read by this portal. No new fetch is needed.
+  const _famBox = (c && c.portal_slug)
+    ? `<div class="card" style="margin-top:12px;">
+         <div class="card-title">Message the family</div>
+         <textarea id="cs-fam-msg" rows="2" placeholder="Send an update to the family"
+           style="width:100%;box-sizing:border-box;margin-top:8px;padding:10px;border-radius:8px;
+                  border:1px solid var(--rb-line);background:var(--bg2);color:var(--rb-text);
+                  font-family:var(--rb-sans);font-size:14px;"></textarea>
+         <button class="lock-btn" style="margin-top:8px;width:100%;"
+           onclick="sendFamilyMsg('${String(c.portal_slug).replace(/'/g, "\\'")}')">Send to family</button>
+         <div id="cs-fam-status" style="margin-top:6px;font-size:12px;color:var(--rb-dim);"></div>
+       </div>`
+    : '';
+
+  document.getElementById('cs-body').innerHTML = body || '<div class="empty-state" style="padding:20px;">Care details will appear here once the care plan is set up in HQ.</div>'; + _famBox
 
   // Open sheet
   document.getElementById('client-sheet-overlay').classList.add('open');
