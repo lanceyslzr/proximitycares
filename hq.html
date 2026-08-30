@@ -13222,7 +13222,7 @@ function renderIncidents() {
   // Populate lookup map so openIncidentResolveById can find visits by ID
   window._visitMap = window._visitMap || {};
   visits.forEach(v => { window._visitMap[v.id] = v; });
-  const incidents = visits.filter(v => v.incident_reported && !v.incident_resolved);
+  const incidents = hqOpenIncidents(visits);
   const el = document.getElementById('incidents-list');
   if (!el) return;
   if (!incidents.length) {
@@ -13649,7 +13649,7 @@ async function renderSystemHealth() {
   const psws = D.psws || [];
 
   // On shift now
-  const onShift = visits.filter(v => v.visit_date === today && v.time_in && !v.time_out).length;
+  const onShift = hqOnShiftCount(visits, today);
   const shEl = document.getElementById('sh-on-shift');
   if (shEl) shEl.textContent = onShift;
 
@@ -13752,7 +13752,7 @@ function renderOverview() {
   renderSystemHealth();
 
   // KPIs
-  const activePSWs = visits.filter(v => v.visit_date===today && v.time_in && !v.time_out).length;
+  const activePSWs = hqOnShiftCount(visits, today);
   const newLeads = leads.filter(l => (l.created_at||'').startsWith(today)).length;
   const monthVisits = visits.filter(v => (v.visit_date||'').startsWith(monthStr));
   const monthBilled = monthVisits.reduce((s,v) => {
@@ -13783,7 +13783,7 @@ function renderOverview() {
   }
 
   // Open incidents alert
-  const incidents = visits.filter(v => v.incident_reported && !v.incident_resolved);
+  const incidents = hqOpenIncidents(visits);
   const incEl = document.getElementById('ov-incident-alert');
   const incMsg = document.getElementById('ov-incident-msg');
   if (incEl && incMsg) {
@@ -13867,7 +13867,7 @@ function renderOverview() {
   // Today's shifts
   const shiftEl = document.getElementById('ov-today-shifts');
   if (shiftEl) {
-    const todayShifts = bookings.filter(b => b.scheduled_date===today && b.status!=='cancelled').sort((a,b)=>(a.scheduled_time||'').localeCompare(b.scheduled_time||''));
+    const todayShifts = hqTodayShifts(bookings, today).sort((a,b)=>(a.scheduled_time||'').localeCompare(b.scheduled_time||''));
     if (!todayShifts.length) {
       shiftEl.innerHTML = '<div class="empty-state" style="padding:14px;">No shifts scheduled today</div>';
     } else {
@@ -14861,7 +14861,7 @@ function updateNotifications() {
   const in30 = new Date(); in30.setDate(in30.getDate() + 30);
 
   // Open incidents
-  const incidents = (D.visits||[]).filter(v => v.incident_reported && !v.incident_resolved);
+  const incidents = hqOpenIncidents(D.visits);
   if (incidents.length) alerts.push({ dot:'nd-red', text:`${incidents.length} unresolved incident${incidents.length!==1?'s':''}`, sub:'Tap to resolve in Visits', action:()=>{ toggleNotifications(); showSect('visits'); } });
 
   // Vacant shifts in next 7 days
@@ -14937,7 +14937,7 @@ function switchTodayTab(tab) {
   }
   if (tab === 'alerts') {
     const today = new Date().toLocaleDateString('en-CA',{timeZone:'America/Toronto'});
-    const hasIncidents = (D.visits||[]).some(v => v.incident_reported && !v.incident_resolved);
+    const hasIncidents = hqOpenIncidents(D.visits).length > 0;
     const hasVacant = (D.bookings||[]).some(b =>
       b.scheduled_date === today && (!b.assigned_to||!b.assigned_to.trim()) && b.status !== 'cancelled' && !b.deleted_at
     );
@@ -14974,7 +14974,11 @@ function switchTodayTab(tab) {
     openBadge.style.display = vacant > 0 ? 'inline-block' : 'none';
   }
   // Update alerts badge
-  const alerts = (D.counts?.incidents || 0) + vacant;
+  // B50. This was a THIRD reader of the dead counts.incidents key, using
+  // optional chaining, so it survived the first pass of this fix and the
+  // gate's syntax-specific check missed it. The badge counted only unassigned
+  // shifts and never incidents. Now routed through the one shared reader.
+  const alerts = hqOpenIncidentCount() + vacant;
   const alertBadge = document.getElementById('tt-alerts-badge');
   if (alertBadge) {
     alertBadge.textContent = alerts;
@@ -14997,12 +15001,12 @@ function renderToday() {
   if (updEl) updEl.textContent = now.toLocaleTimeString('en-CA',{hour:'2-digit',minute:'2-digit',timeZone:'America/Toronto'});
 
   // On shift now
-  const onShift = visits.filter(v => v.visit_date===today && v.time_in && !v.time_out).length;
+  const onShift = hqOnShiftCount(visits, today);
   const osEl = document.getElementById('today-on-shift');
   if (osEl) osEl.textContent = onShift;
 
   // Today's shifts count
-  const todayShifts = bookings.filter(b => b.scheduled_date===today && b.status!=='cancelled');
+  const todayShifts = hqTodayShifts(bookings, today);
   const scEl = document.getElementById('today-shifts-count');
   if (scEl) scEl.textContent = todayShifts.length;
 
@@ -15014,7 +15018,7 @@ function renderToday() {
     vacAlertEl.style.display = vacant.length ? 'block' : 'none';
     if (vacant.length) vacMsgEl.textContent = `${vacant.length} shift${vacant.length!==1?'s':''} unassigned today`;
   }
-  const incidents = visits.filter(v => v.incident_reported && !v.incident_resolved);
+  const incidents = hqOpenIncidents(visits);
   // Section G: open Client Not Home. A client did not answer their door and
   // nobody has closed it out. Surfaced here because scrolling the visit log to
   // find one is not a workflow.
@@ -15236,15 +15240,15 @@ async function runChiefOfStaff() {
   const psws = D.psws||[];
   const leads = D.leads||[];
 
-  const onShift = visits.filter(v => v.visit_date===today && v.time_in && !v.time_out).length;
-  const openIncidents = visits.filter(v => v.incident_reported && !v.incident_resolved).length;
+  const onShift = hqOnShiftCount(visits, today);
+  const openIncidents = hqOpenIncidents(visits).length;
   const cutoff7 = new Date(); cutoff7.setDate(cutoff7.getDate()+7);
   const vacant = bookings.filter(b => (!b.assigned_to||!b.assigned_to.trim()) && b.scheduled_date >= today && b.scheduled_date <= cutoff7.toLocaleDateString('en-CA',{timeZone:'America/Toronto'}) && b.status!=='cancelled').length;
   const in30 = new Date(); in30.setDate(in30.getDate()+30);
   const expiringCerts = psws.filter(p => p.psw_cert_expiry && new Date(p.psw_cert_expiry) <= in30 && new Date(p.psw_cert_expiry) >= new Date()).length;
   const noConsent = clients.filter(c => !c.consent_given).length;
   const newLeads = leads.filter(l => ['new','contacted'].includes(l.status)).length;
-  const todayShifts = bookings.filter(b => b.scheduled_date===today && b.status!=='cancelled');
+  const todayShifts = hqTodayShifts(bookings, today);
 
   const snapshot = `You are the AI Chief of Staff for Proximity Care Services, a home care agency. Today is ${today}.
 
@@ -15338,7 +15342,22 @@ Generate exactly 3 to 5 prioritized action items for the operator. Each item mus
     if (kpiShiftsSub) kpiShiftsSub.textContent = unassigned > 0 ? `${unassigned} unassigned` : 'All covered';
   }
 
-  const totalAlerts = (vacant || 0) + ((D.counts&&D.counts.incidents)||0);
+  // B50. THIS READ THE WRONG KEY. The server sends counts.open_incidents
+  // (server.js, the dashboard counts block); this read counts.incidents, which
+  // has never existed, so `|| 0` swallowed it silently and the ALERTS tile
+  // counted ZERO incidents forever. Live proof: the tile rendered "All clear"
+  // directly above a red banner reading "1 unresolved incident".
+  //
+  // The banner computes its own count client-side from the same visits array
+  // the server counted, so the two agree once the right key is read. The
+  // A CORRECT implementation of this already existed ~10,000 lines away (the
+  // incident count badge reads open_incidents with a client-side fallback).
+  // This tile simply never used it. That is the cost of the duplication being
+  // fixed in this same section.
+  // fallback keeps the old key so a server that has not deployed yet still
+  // works, and the client-side scan is the last resort rather than a third
+  // source of truth.
+  const totalAlerts = (vacant || 0) + hqOpenIncidentCount();
   if (kpiAlerts) {
     kpiAlerts.textContent = totalAlerts;
     kpiAlerts.style.color = totalAlerts > 0 ? 'var(--red)' : 'var(--muted)';
@@ -15354,6 +15373,46 @@ Generate exactly 3 to 5 prioritized action items for the operator. Each item mus
   window._hqCounts = D.counts || {};
   renderHqMarginTile();
 
+}
+
+// B50. ONE definition of "who is clocked in" and "what runs today".
+//
+// These two rules were written out FOUR and THREE times respectively, in
+// separate functions that run at different moments against different reads of
+// the data. Character-identical today, which is precisely the danger: the day
+// someone refines what "clocked in" means, they will change one copy and the
+// KPI tile and the Today row will quietly disagree. That is the same shape as
+// B43, where two copies of the pay period rule drifted by two days and a
+// caregiver saw $0 against 111 completed visits.
+//
+// Kept as pure functions over the arrays already in scope, so no caller has to
+// change how it gets its data.
+function hqOnShiftCount(visits, today) {
+  return (visits || []).filter(v => v.visit_date === today && v.time_in && !v.time_out).length;
+}
+function hqTodayShifts(bookings, today) {
+  return (bookings || []).filter(b => b.scheduled_date === today && b.status !== 'cancelled');
+}
+// B50. ONE place that knows how the open-incident count arrives.
+//
+// Three readers existed and TWO of them read D.counts.incidents, a key the
+// server has never sent: it sends counts.open_incidents. `|| 0` swallowed the
+// undefined, so the ALERTS tile said "All clear" above a banner reporting an
+// unresolved incident, and the ALERTS tab badge stayed hidden. The third
+// reader, the incident badge, was correct all along. Two wrong, one right,
+// nobody noticed, because a missing key fails silently.
+//
+// Order: the server's real key, then the legacy key so a server that has not
+// deployed still works, then a client-side scan as last resort.
+function hqOpenIncidentCount() {
+  const c = (typeof D !== 'undefined' && D && D.counts) ? D.counts : null;
+  const n = c ? (c.open_incidents ?? c.incidents) : undefined;
+  if (typeof n === 'number') return n;
+  return hqOpenIncidents(typeof D !== 'undefined' && D ? D.visits : []).length;
+}
+
+function hqOpenIncidents(visits) {
+  return (visits || []).filter(v => v.incident_reported && !v.incident_resolved);
 }
 
 // B43. ONE renderer for both pay periods on the profit tile. _hqPeriodView
