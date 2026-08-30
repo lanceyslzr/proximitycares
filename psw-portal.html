@@ -157,6 +157,14 @@ a{color:inherit;text-decoration:none;}
 /* HOME PAY CARD, glass hero */
 .pay-hero{margin:12px;background:linear-gradient(165deg,rgba(86,200,245,.05),rgba(255,255,255,.012)),var(--rb-panel);border:1px solid var(--rb-line2);border-radius:16px;overflow:hidden;box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 14px 34px -20px rgba(0,0,0,.85);}
 .pay-hero-hdr{padding:13px 16px;border-bottom:1px solid var(--rb-line);display:flex;align-items:center;justify-content:space-between;}
+/* B43. Chips sit in the header where the static label was. Sized for a thumb
+   (min 44px tall target via padding) and legible on the dark card. */
+.pay-hero-toggle{display:inline-flex;gap:4px;background:rgba(255,255,255,.06);
+  padding:3px;border-radius:8px;}
+.pay-chip{font-family:var(--rb-mono);font-size:11px;letter-spacing:.04em;
+  text-transform:uppercase;color:var(--rb-dim);background:transparent;border:0;
+  padding:7px 10px;border-radius:6px;cursor:pointer;}
+.pay-chip.is-on{background:rgba(255,255,255,.12);color:var(--rb-text);}
 .pay-hero-label{font-family:var(--rb-mono);font-size:10px;letter-spacing:2.5px;text-transform:uppercase;color:var(--psw);}
 .pay-hero-period{font-family:var(--rb-mono);font-size:11px;color:var(--rb-dim);}
 .pay-hero-body{padding:16px;}
@@ -1022,7 +1030,17 @@ a{color:inherit;text-decoration:none;}
 
   <div class="pay-hero" id="home-pay-card" style="display:none;">
     <div class="pay-hero-hdr">
-      <span class="pay-hero-label">Current Period</span>
+      <!-- B43. Two chips replace the static label. A caregiver checking pay on
+           the Saturday after payday lands on a period that legitimately has
+           zero hours in it; without this they cannot see the period they were
+           actually just paid for. Both periods arrive in the SAME response,
+           so switching is instant and needs no network call. -->
+      <span class="pay-hero-toggle" id="home-pay-toggle">
+        <button type="button" class="pay-chip is-on" id="home-pay-chip-current"
+                onclick="setPayCardPeriod('current')">Current</button>
+        <button type="button" class="pay-chip" id="home-pay-chip-previous"
+                onclick="setPayCardPeriod('previous')">Last payday</button>
+      </span>
       <span class="pay-hero-period" id="home-pay-period">, </span>
     </div>
     <div class="pay-hero-body">
@@ -5045,6 +5063,78 @@ function getMonthlyTotals(d) {
   return Object.values(monthMap).sort((a, b) => b.month_key.localeCompare(a.month_key));
 }
 
+// =====================================================================
+// B43. THE PAY CARD, BOTH PERIODS, ONE RENDERER.
+//
+// WHY A TOGGLE AT ALL. Pay periods run payday+1 to the next payday. On the
+// Saturday and Sunday after a payday the CURRENT period is one or two days
+// old and legitimately shows $0. Before this, that was the only thing the
+// card could show, and it looked identical to data loss. The caregiver could
+// not see the period they had just been paid for.
+//
+// NO NETWORK CALL. /psw/pay-summary already returns current_period AND
+// previous_period in the same response, so switching is a pure re-render of
+// data already in hand. Works offline from the cached payload too.
+//
+// ONE RENDERER. Both views go through this function so they cannot drift into
+// formatting differently, which is the same class of bug that made the server
+// side of B43 necessary in the first place.
+// =====================================================================
+let _payCardView = 'current';
+
+function setPayCardPeriod(view) {
+  _payCardView = (view === 'previous') ? 'previous' : 'current';
+  renderPayCard();
+}
+
+function renderPayCard() {
+  const d = window._lastPayData;
+  const card = document.getElementById('home-pay-card');
+  if (!card || !d) return;
+
+  // Fall back to current if the server has not sent previous_period yet, so
+  // an older deployed server cannot leave the card blank.
+  const wantPrev = _payCardView === 'previous' && d.previous_period;
+  const p = (wantPrev ? d.previous_period : d.current_period) || {};
+
+  card.style.display = 'block';
+
+  const onCur = document.getElementById('home-pay-chip-current');
+  const onPrev = document.getElementById('home-pay-chip-previous');
+  if (onCur && onPrev) {
+    onCur.classList.toggle('is-on', !wantPrev);
+    onPrev.classList.toggle('is-on', wantPrev);
+  }
+
+  const fmt = dt => dt
+    ? new Date(dt + 'T12:00:00').toLocaleString('en-CA', { month: 'short', day: 'numeric' })
+    : '';
+  const payFmt = dt => dt
+    ? new Date(dt + 'T12:00:00').toLocaleString('en-CA', { month: 'short', day: 'numeric', year: 'numeric' })
+    : '';
+
+  const periodEl = document.getElementById('home-pay-period');
+  if (periodEl) {
+    const a = fmt(p.period_start), b = fmt(p.period_end), pd = payFmt(p.pay_date);
+    periodEl.textContent = (a && b)
+      ? a + ', ' + b + (pd ? (wantPrev ? ' \u00b7 Paid ' : ' \u00b7 Pays ') + pd : '')
+      : (p.label || 'Pay period');
+  }
+
+  const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+  set('home-pay-total', '$' + (p.total_pay || 0).toFixed(2));
+  set('home-pay-hours', (p.total_hours || 0).toFixed(1) + 'h');
+  set('home-pay-visits', (p.visit_count || 0) + ' visit' + ((p.visit_count || 0) === 1 ? '' : 's'));
+  set('home-pay-rate', '$' + (d.rate || 19) + '/hr');
+  window._payRate = d.rate || 19;
+
+  const subEl = document.getElementById('home-pay-period-range');
+  if (subEl && p.period_start && p.period_end) {
+    subEl.textContent = fmt(p.period_start) + ', ' + fmt(p.period_end);
+    subEl.style.display = 'block';
+  }
+}
+
 async function loadHomeData() {
   try {
     const res = await fetch(`${API}/psw/pay-summary?psw_name=${encodeURIComponent(pswName)}&pin=${pswPin}&operator_id=${pswOperatorId}`);
@@ -5065,33 +5155,10 @@ async function loadHomeData() {
     const monthEl = document.getElementById('s-month');
     if (monthEl) monthEl.textContent = cp.visit_count || 0;
 
-    // CURRENT PERIOD CARD
-    const card = document.getElementById('home-pay-card');
-    if (card) {
-      card.style.display = 'block';
-      const periodEl = document.getElementById('home-pay-period');
-      if (periodEl) {
-        // Show period date range, clear and unambiguous for PSW
-        const periodStart = cp.period_start ? new Date(cp.period_start + 'T12:00:00').toLocaleString('en-CA', {month:'short', day:'numeric'}) : '';
-        const periodEnd = cp.period_end ? new Date(cp.period_end + 'T12:00:00').toLocaleString('en-CA', {month:'short', day:'numeric'}) : '';
-        const payDate = cp.pay_date ? new Date(cp.pay_date + 'T12:00:00').toLocaleString('en-CA', {month:'short', day:'numeric', year:'numeric'}) : '';
-        periodEl.textContent = (periodStart && periodEnd) 
-          ? periodStart + ', ' + periodEnd + (payDate ? ' · Paid ' + payDate : '')
-          : (cp.label || 'Current Period');
-      }
-      document.getElementById('home-pay-total').textContent = '$' + (cp.total_pay || 0).toFixed(2);
-      document.getElementById('home-pay-hours').textContent = (cp.total_hours || 0).toFixed(1) + 'h';
-      document.getElementById('home-pay-visits').textContent = (cp.visit_count || 0) + ' visit' + ((cp.visit_count || 0) !== 1 ? 's' : '');
-      document.getElementById('home-pay-rate').textContent = '$' + (d.rate || 19) + '/hr';
-      window._payRate = d.rate || 19;
-      // Show period range in sub-label if available
-      const subEl = document.getElementById('home-pay-period-range');
-      if (subEl && cp.period_start && cp.period_end) {
-        const fmt = dt => new Date(dt + 'T12:00:00').toLocaleString('en-CA', {month:'short', day:'numeric'});
-        subEl.textContent = fmt(cp.period_start) + ', ' + fmt(cp.period_end);
-        subEl.style.display = 'block';
-      }
-    }
+    // B43. Both periods are now rendered by ONE function so the two views can
+    // never format differently. Default is 'current'; the chosen view survives
+    // a refresh within the session via _payCardView.
+    renderPayCard();
 
     // Mark stats as loaded, prevents renderHomeFeed fallback from overwriting correct values
     _homeDataReady = true;

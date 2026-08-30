@@ -826,6 +826,9 @@ button,.sbtn,.btn,.bnav-item,.nav-tab,.icon-btn{
 .kpi-val{font-family:var(--mono);font-size:26px;font-weight:600;font-variant-numeric:tabular-nums;line-height:1.1;}
 .kpi-lbl{font-family:var(--mono);font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-top:2px;}
 .kpi-sub{font-size:11px;color:var(--muted2);margin-top:1px;}
+/* B43. Signals the sub-label is interactive without changing the tile layout. */
+.kpi-sub-toggle{cursor:pointer;text-decoration:underline;text-decoration-style:dotted;
+  text-underline-offset:3px;}
 
 /* ── QUICK ACTIONS BAR, sticky above bottom nav ── */
 .quick-actions{position:sticky;bottom:calc(62px + env(safe-area-inset-bottom));z-index:50;display:flex;gap:8px;padding:8px 12px;background:linear-gradient(to top, var(--bg) 70%, transparent);pointer-events:none;}
@@ -1822,7 +1825,12 @@ body.sidebar-rail .sidebar{width:64px;overflow:visible;}
     <div class="kpi-tile" onclick="showSect('revenue')" style="cursor:pointer;">
       <div class="kpi-val" id="kpi-rev" style="color:var(--muted);">, </div>
       <div class="kpi-lbl">Profit</div>
-      <div class="kpi-sub" id="kpi-rev-sub">Pay period</div>
+      <!-- B43. The sub-label doubles as the period switch. The TILE navigates
+           to Revenue on click, so this stops propagation: tapping the dates
+           switches period, tapping anywhere else still opens the section. -->
+      <div class="kpi-sub kpi-sub-toggle" id="kpi-rev-sub"
+           onclick="event.stopPropagation(); toggleHqPeriod();"
+           title="Tap to switch between this pay period and the last one">Pay period</div>
     </div>
   </div>
 
@@ -2761,6 +2769,40 @@ body.sidebar-rail .sidebar{width:64px;overflow:visible;}
       <div id="watchdog-summary" style="display:none;margin-top:8px;padding:10px 12px;border-radius:8px;font-family:var(--mono);font-size:11px;"></div>
     </div>
   </div>
+
+// B43. ONE renderer for both pay periods on the profit tile. _hqPeriodView
+// survives re-renders within the session so a background refresh cannot snap
+// the operator back to the current period while they are reading the last one.
+let _hqPeriodView = 'current';
+
+function toggleHqPeriod() {
+  const c = window._hqCounts || {};
+  // Older server without prev_period: leave the view alone rather than
+  // switching to an empty tile.
+  if (!c.prev_period) return;
+  _hqPeriodView = _hqPeriodView === 'current' ? 'previous' : 'current';
+  renderHqMarginTile();
+}
+
+function renderHqMarginTile() {
+  const c = window._hqCounts || {};
+  const kpiRev = document.getElementById('kpi-rev');
+  const kpiRevSub = document.getElementById('kpi-rev-sub');
+  const wantPrev = _hqPeriodView === 'previous' && c.prev_period;
+
+  const margin = wantPrev
+    ? ((parseFloat(c.prev_period.client_total) || 0) - (parseFloat(c.prev_period.psw_total) || 0))
+    : (c.margin_period != null ? c.margin_period : null);
+
+  if (kpiRev) {
+    kpiRev.textContent = margin != null ? '$' + Math.round(margin).toLocaleString() : '';
+    kpiRev.style.color = margin > 0 ? 'var(--green2)' : margin < 0 ? 'var(--red)' : 'var(--muted)';
+  }
+  if (kpiRevSub) {
+    const label = wantPrev ? (c.prev_period.label || 'Last period') : (c.period_label || 'Pay period');
+    kpiRevSub.textContent = label + (c.prev_period ? (wantPrev ? ' \u00b7 last' : ' \u00b7 now') : '');
+  }
+}
 
   <!-- ── SUPPORT TICKETS (operator side) ─────────────────────────── -->
   <div style="margin-top:16px;">
@@ -15327,15 +15369,12 @@ Generate exactly 3 to 5 prioritized action items for the operator. Each item mus
     if (kpiAlertTile) kpiAlertTile.className = 'kpi-tile' + (totalAlerts > 0 ? ' kpi-alert' : '');
   }
 
-  const marginPeriod = (D.counts && D.counts.margin_period != null) ? D.counts.margin_period : null;
-  if (kpiRev) {
-    kpiRev.textContent = marginPeriod != null ? '$' + Math.round(marginPeriod).toLocaleString() : '—';
-    kpiRev.style.color = marginPeriod > 0 ? 'var(--green2)' : marginPeriod < 0 ? 'var(--red)' : 'var(--muted)';
-  }
-  const kpiRevSub = document.getElementById('kpi-rev-sub');
-  if (kpiRevSub && D.counts && D.counts.period_label) {
-    kpiRevSub.textContent = D.counts.period_label;
-  }
+  // B43. The profit tile can show EITHER pay period. In the days right after a
+  // payday the current period is nearly empty and reads a misleadingly low
+  // margin; the period that just closed is the number that reflects the month.
+  // Both arrive in the same payload, so switching costs no request.
+  window._hqCounts = D.counts || {};
+  renderHqMarginTile();
 
 }
 
