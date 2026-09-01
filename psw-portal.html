@@ -4951,6 +4951,10 @@ async function sendMsg() {
       body: JSON.stringify({
         operator_id: pswOperatorId,
         psw_name: pswName,
+        // B94a. The pin the other 44 authenticated routes already send.
+        // Harmless until B94b enforces it server side; enforcing before this
+        // ships would reject every message the portal sends.
+        pin: pswPin,
         message: msg
       })
     });
