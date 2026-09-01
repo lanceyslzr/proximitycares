@@ -6749,7 +6749,7 @@ async function renderVisits() {
       : rangeFiltered;
 
     // Range totals
-    const totalHours = visits.reduce((sum,v) => sum + parseFloat(v.hours_worked||0), 0);
+    const totalHours = visits.reduce((sum,v) => sum + parseFloat(v.manual_hours_override ?? v.hours_worked ?? 0), 0);
     const uniquePSWs = [...new Set(visits.map(v=>v.psw_name).filter(Boolean))].length;
     document.getElementById('vmt-count').textContent = visits.length;
     document.getElementById('vmt-hours').textContent = totalHours.toFixed(1)+'h';
@@ -6762,7 +6762,7 @@ async function renderVisits() {
       visits.forEach(v => {
         const n = v.psw_name || 'Unknown';
         if (!pswMap[n]) pswMap[n] = { hours: 0, visits: 0 };
-        pswMap[n].hours += parseFloat(v.hours_worked || 0);
+        pswMap[n].hours += parseFloat(v.manual_hours_override ?? v.hours_worked ?? 0);
         pswMap[n].visits++;
       });
       const pswRows = Object.entries(pswMap)
@@ -9209,7 +9209,16 @@ function _hqGroupJointVisits(visits) {
     const pswNames = [...new Set(group.map(v => v.psw_name).filter(Boolean))];
     merged.psw_name = pswNames.join(' + ');
     merged.is_joint = true;
-    merged.hours_worked = Math.max(...group.map(v => parseFloat(v.hours_worked || 0))).toFixed(2);
+    // B91. Match the server, which selects the ROW with the highest RESOLVED
+    // hours (server 4308-4312 and three more sites), not the highest clock
+    // hours. Object.assign copied manual_hours_override from group[0], which
+    // may not be the row the max came from, so the resolved value is written
+    // into hours_worked and the override nulled: already resolved.
+    const _best = group.reduce((b, v) =>
+      (parseFloat(v.manual_hours_override ?? v.hours_worked ?? 0)
+        > parseFloat(b.manual_hours_override ?? b.hours_worked ?? 0)) ? v : b, group[0]);
+    merged.hours_worked = parseFloat(_best.manual_hours_override ?? _best.hours_worked ?? 0).toFixed(2);
+    merged.manual_hours_override = null;
     return merged;
   });
 }
@@ -9292,7 +9301,7 @@ function _renderHoursPanel() {
   // Prevents double-counting when completed booking also has a visit row
   const scheduledH = relevant.filter(b => b.status !== 'completed')
     .reduce((s,b) => s+(b.duration_minutes||60)/60, 0);
-  const completedH = relevantVisits.reduce((s,v) => s+parseFloat(v.hours_worked||0), 0);
+  const completedH = relevantVisits.reduce((s,v) => s+parseFloat(v.manual_hours_override ?? v.hours_worked ?? 0), 0);
   const totalH = scheduledH + completedH;
 
   // Status icon
@@ -10736,7 +10745,7 @@ async function renderRevenue() {
   monthVisits.forEach(v => {
     const n = v.psw_name || 'Unknown';
     if (!pswHoursMap[n]) pswHoursMap[n] = { hours: 0, visits: 0, earnings: 0 };
-    const hrs = parseFloat(v.hours_worked || 0);
+    const hrs = parseFloat(v.manual_hours_override ?? v.hours_worked ?? 0);
     pswHoursMap[n].hours += hrs;
     pswHoursMap[n].visits++;
     // Find PSW rate from clients assigned to this PSW
@@ -11823,7 +11832,7 @@ async function openPSWDetail(pswId) {
       <button class="sbtn" onclick="openPSWMsg('${name}');closeSheet('psw-detail-sheet');">Message</button>
       <button class="sbtn" style="background:rgba(109,185,116,.1);color:var(--green2);border-color:rgba(109,185,116,.25);" onclick="openPSWPaystubPicker('${name}','${p.email||rec.email||''}',${p.psw_rate||rec.psw_rate||19})">Pay Stub</button>
       <button class="sbtn" onclick="openBulkVisitEdit('${name}');closeSheet('psw-detail-sheet');">Bulk Edit</button>
-      <button class="sbtn" style="background:rgba(109,185,116,.06);color:var(--green2);border-color:rgba(109,185,116,.2);" onclick="(() => { const _pr = (D.psws||[]).find(p => p.full_name==='${name}'); openSendPaySheet('${name}', _pr?.email||'', _pr?.psw_rate||19); })()">Send Pay</button>
+      <button class="sbtn" style="background:rgba(109,185,116,.06);color:var(--green2);border-color:rgba(109,185,116,.2);" onclick="(() => { const _pr = (D.psws||[]).find(p => p.full_name==='${name}'); openSendPaySheet('${name}', _pr?.email||'', _pr?.psw_rate || _pr?.hourly_rate || 19); })()">Send Pay</button>
     </div>
     <div class="prof-tabs">
       <div class="prof-tab active" onclick="_ppTab(this,'ppt-info')">Info</div>
@@ -12419,6 +12428,9 @@ function cspSetType(type) {
     pb.style.borderColor='rgba(200,169,110,.5)'; pb.style.background='rgba(200,169,110,.1)'; pb.style.color='var(--gold)';
     fb.style.borderColor='var(--border)'; fb.style.background='var(--bg3)'; fb.style.color='var(--muted)';
     if (nt) nt.style.display = 'block';
+    // B90. Only clear the UNTOUCHED autofill, never an amount already typed.
+    const _ca = document.getElementById('csp-amount');
+    if (_ca && _cspInvoiceTotal > 0 && parseFloat(_ca.value||'0') >= _cspInvoiceTotal - 0.005) _ca.value = '';
   } else {
     fb.style.borderColor='rgba(109,185,116,.4)'; fb.style.background='rgba(109,185,116,.08)'; fb.style.color='var(--green2)';
     pb.style.borderColor='var(--border)'; pb.style.background='var(--bg3)'; pb.style.color='var(--muted)';
@@ -12532,13 +12544,14 @@ async function submitClientPayment() {
 // ── END CLIENT SEND PAYMENT SHEET ────────────────────────────────────────────
 
 // ── SEND PAY SHEET ────────────────────────────────────────────────────────────
-let _sspPswName = '', _sspPswEmail = '', _sspPswRate = 19, _sspPayType = 'full';
+let _sspPswName = '', _sspPswEmail = '', _sspPswRate = 19, _sspPayType = 'full', _sspCalcTotal = 0;
 
 function openSendPaySheet(pswName, pswEmail, pswRate) {
   _sspPswName  = pswName || '';
   _sspPswEmail = pswEmail || '';
   _sspPswRate  = parseFloat(pswRate) || 19;
   _sspPayType  = 'full';
+  _sspCalcTotal = 0;
 
   // Reset form
   document.getElementById('ssp-meta').textContent = pswName + ' · $' + _sspPswRate + '/hr';
@@ -12546,6 +12559,7 @@ function openSendPaySheet(pswName, pswEmail, pswRate) {
   document.getElementById('ssp-notes').value = '';
   document.getElementById('ssp-email').value = pswEmail || '';
   document.getElementById('ssp-summary').style.display = 'none';
+  document.getElementById('ssp-owed-row').style.display = 'none';
   sspSetType('full');
   sspSetPreset('last'); // default to last month
   openSheet('psw-send-pay-sheet');
@@ -12602,6 +12616,9 @@ function sspSetType(type) {
     fullBtn.style.background     = 'var(--bg3)';
     fullBtn.style.color          = 'var(--muted)';
     if (note) { note.style.display = 'block'; }
+    // B90. Only clear the UNTOUCHED autofill, never an amount already typed.
+    const _sa = document.getElementById('ssp-amount');
+    if (_sa && _sspCalcTotal > 0 && parseFloat(_sa.value||'0') >= _sspCalcTotal - 0.005) _sa.value = '';
   } else {
     fullBtn.style.borderColor    = 'rgba(109,185,116,.4)';
     fullBtn.style.background     = 'rgba(109,185,116,.08)';
@@ -12610,6 +12627,23 @@ function sspSetType(type) {
     partialBtn.style.background  = 'var(--bg3)';
     partialBtn.style.color       = 'var(--muted)';
     if (note) { note.style.display = 'none'; }
+  }
+  sspUpdateOwed();
+}
+
+// B89. Mirrors cspUpdateOwed. _sspCalcTotal is the period total computed by
+// sspLoadVisits from the AUTHORITATIVE hours (B88), so the balance shown here
+// is the same number the server recomputes from hours_worked * psw_rate.
+function sspUpdateOwed() {
+  const amount  = parseFloat(document.getElementById('ssp-amount')?.value||0);
+  const owed    = _sspCalcTotal - amount;
+  const owedRow = document.getElementById('ssp-owed-row');
+  const owedAmt = document.getElementById('ssp-owed-amt');
+  if (_sspPayType === 'partial' && owed > 0.01 && amount > 0) {
+    if (owedRow) owedRow.style.display = 'block';
+    if (owedAmt) owedAmt.textContent = '$' + owed.toFixed(2) + ' remaining';
+  } else {
+    if (owedRow) owedRow.style.display = 'none';
   }
 }
 
@@ -12624,8 +12658,9 @@ function sspLoadVisits() {
     (v.psw_name||'').toLowerCase() === _sspPswName.toLowerCase() &&
     v.visit_date >= from && v.visit_date <= to
   );
-  const totalHrs  = pswVisits.reduce((s,v) => s + parseFloat(v.hours_worked||0), 0);
+  const totalHrs  = pswVisits.reduce((s,v) => s + parseFloat(v.manual_hours_override ?? v.hours_worked ?? 0), 0);
   const calcAmt   = totalHrs * _sspPswRate;
+  _sspCalcTotal   = calcAmt;
 
   document.getElementById('ssp-sum-visits').textContent = pswVisits.length + ' visit' + (pswVisits.length!==1?'s':'') + ' in period';
   document.getElementById('ssp-sum-hours').textContent  = totalHrs.toFixed(1) + 'h worked · $' + _sspPswRate + '/hr';
@@ -12660,7 +12695,7 @@ async function submitSendPay() {
     (v.psw_name||'').toLowerCase() === _sspPswName.toLowerCase() &&
     v.visit_date >= from && v.visit_date <= to
   );
-  const totalHrs = pswVisits.reduce((s,v) => s + parseFloat(v.hours_worked||0), 0);
+  const totalHrs = pswVisits.reduce((s,v) => s + parseFloat(v.manual_hours_override ?? v.hours_worked ?? 0), 0);
 
   if (btn) { btn.disabled = true; btn.textContent = 'Sending...'; }
   try {
@@ -12677,6 +12712,7 @@ async function submitSendPay() {
         payment_type: _sspPayType,
         visits_count: pswVisits.length,
         hours_worked: totalHrs.toFixed(1),
+        psw_rate:     _sspPswRate,
         email_override: email,
         notes: notes || undefined
       })
@@ -12781,11 +12817,11 @@ function openClientDetail(id) {
     .filter(v => (v.client_name||'').trim() === name.trim())
     .sort((a,b) => (b.visit_date||'').localeCompare(a.visit_date||''));
   const clientVisits = _hqGroupJointVisits(rawClientVisits).slice(0, 30);
-  const clientTotalHrs = clientVisits.reduce((s,v)=>s+parseFloat(v.hours_worked||0),0);
+  const clientTotalHrs = clientVisits.reduce((s,v)=>s+parseFloat(v.manual_hours_override ?? v.hours_worked ?? 0),0);
 
   const clientVisitRows = clientVisits.length
     ? clientVisits.map(v => {
-        const hrs = parseFloat(v.hours_worked||0);
+        const hrs = parseFloat(v.manual_hours_override ?? v.hours_worked ?? 0);
         const statusDot = v.status==='completed'?'var(--green2)':v.status==='in_progress'?'var(--teal2)':'var(--muted)';
         // v.is_joint is NOT a column, confirmed against information_schema. The
         // real column is joint_visit_id, so this badge has never rendered.
@@ -13858,7 +13894,7 @@ function renderOverview() {
   const monthVisits = visits.filter(v => (v.visit_date||'').startsWith(monthStr));
   const monthBilled = monthVisits.reduce((s,v) => {
     const c = clients.find(cl => `${cl.first_name||''} ${cl.last_name||''}`.trim() === v.client_name);
-    return s + parseFloat(v.hours_worked||0) * (c?.client_rate||22);
+    return s + parseFloat(v.manual_hours_override ?? v.hours_worked ?? 0) * (c?.client_rate||22);
   }, 0);
 
   const setEl = (id, val) => { const el=document.getElementById(id); if(el) el.textContent=val; };
@@ -14928,7 +14964,7 @@ function runGlobalSearch(q) {
     html += '<div class="search-result-group">Visits</div>';
     html += matchVisits.map(v => `<div class="search-result-item" onclick="toggleSearch();showSect('visits')">
       <div class="search-result-icon sri-visit">✓</div>
-      <div class="search-result-main"><div class="search-result-name">${v.psw_name||'—'} → ${v.client_name||'—'}</div><div class="search-result-sub">${fmtd(v.visit_date)} · ${parseFloat(v.hours_worked||0).toFixed(1)}h</div></div>
+      <div class="search-result-main"><div class="search-result-name">${v.psw_name||'—'} → ${v.client_name||'—'}</div><div class="search-result-sub">${fmtd(v.visit_date)} · ${parseFloat(v.manual_hours_override ?? v.hours_worked ?? 0).toFixed(1)}h</div></div>
     </div>`).join('');
   }
 
@@ -17498,7 +17534,12 @@ function _applyActiveSectionFlex() {
     <!-- Amount override -->
     <div style="margin-bottom:14px;">
       <div style="font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;">Amount Sending ($)</div>
-      <input type="number" id="ssp-amount" class="sinput" step="0.01" min="0" placeholder="Enter amount" style="font-size:20px;padding:12px;font-family:var(--mono);">
+      <input type="number" id="ssp-amount" class="sinput" step="0.01" min="0" placeholder="Enter amount" style="font-size:20px;padding:12px;font-family:var(--mono);" oninput="sspUpdateOwed()">
+    </div>
+    <!-- Amount owed display -->
+    <div id="ssp-owed-row" style="display:none;padding:10px 14px;background:rgba(224,154,61,.06);border:1px solid rgba(224,154,61,.2);border-radius:8px;margin-bottom:14px;">
+      <div style="font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--amber);margin-bottom:4px;">Balance Remaining</div>
+      <div id="ssp-owed-amt" style="font-family:var(--mono);font-size:18px;color:var(--amber);"></div>
     </div>
     <!-- Payment type -->
     <div style="margin-bottom:14px;">
