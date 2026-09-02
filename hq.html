@@ -6856,6 +6856,7 @@ async function renderVisits() {
           ${photosHtml}
           ${satHtml}
           ${v.incident_notes?`<div style="margin-bottom:10px;"><div style="font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--red);margin-bottom:4px;">Incident Notes</div><div style="color:var(--text);">${v.incident_notes}</div></div>`:''}
+          ${v.psw_observations?`<div style="margin-bottom:10px;"><div style="font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:4px;">PSW Observations</div><div style="color:var(--text);white-space:pre-wrap;">${escHtml(v.psw_observations)}</div></div>`:''}
           ${''/* v.notes is NOT a column on visits, confirmed against information_schema. PSW free text lives on vitals.notes, which this view does not load, so this block could never render. Left disabled rather than pointed at a field that would show the wrong thing. */ && v.notes?`<div style="margin-bottom:10px;"><div style="font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:4px;">Notes</div><div style="color:var(--muted2);">${v.notes}</div></div>`:''}
           <div id="vforms-${vid}" data-visit-id="${v.id||''}" data-client="${v.client_name||''}" style="padding-bottom:4px;"></div>
         </div>
