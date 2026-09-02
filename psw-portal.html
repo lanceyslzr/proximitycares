@@ -3719,6 +3719,11 @@ async function doCheckOut() {
     if (!confirmed) { showSect('checklist'); return; }
   }
   const obs = document.getElementById('cl-obs').value.trim();
+  // B87. co-obs renders in the CHECKOUT SHEET, is cleared by closeCheckout,
+  // and was read by nothing. She is asked for observations on the checklist
+  // screen and again on the checkout sheet, and only the first survived. The
+  // second is her LAST chance to add something before submitting.
+  const obs2 = (document.getElementById('co-obs')?.value || '').trim();
   const supplies = document.getElementById('cl-supplies').value.trim();
   const incident = document.getElementById('co-incident').value.trim();
   // Collect BP vitals
@@ -3844,7 +3849,7 @@ async function doCheckOut() {
   const hasIncident = !!incidentData;
 
   // Build combined observations string, include refusal if present
-  let obsNotes = [obs, supplies].filter(Boolean).join(' | ') || null;
+  let obsNotes = [obs, obs2, supplies].filter(Boolean).join(' | ') || null;
   if (hasRefusal) {
     const refusalStr = 'REFUSAL OF CARE: ' + refusalData.items.join(', ') + (refusalData.reason ? ', Reason: ' + refusalData.reason : '') + ' (Ontario Standard: documented, alternatives offered)';
     obsNotes = [obsNotes, refusalStr].filter(Boolean).join(' | ');
