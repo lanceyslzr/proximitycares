@@ -1960,6 +1960,37 @@ function initPSWRealtime(){
 }
 
 // ── XSS GUARD ──
+// B105c. ONE PLACE THAT ANSWERS "what state is this shift in, and why".
+//
+// WHY. Four screens read the same booking and disagreed: the calendar and the
+// day view badge Cancelled and On hold; the upcoming list and the today screen
+// have no status handling at all, so a cancelled shift looks live.
+//
+// AND THE TWO THAT BADGE IT READ THE WRONG COLUMN. NINE server paths write
+// cancellation_reason on a cancel; only the HOLD paths write status_reason.
+// Measured against real rows: Carolina's five cancelled September shifts carry
+// cancellation_reason with the full explanation and status_reason NULL, so the
+// calendar shows "Cancelled" and a blank reason.
+//
+// CANCELLED SHIFTS STAY VISIBLE. She may already be travelling. A shift that
+// silently vanishes leaves her at a door with no explanation.
+//
+// NOT COUNTED, NOT BILLED. The three totals, week summary, day total and route
+// hours, already exclude cancelled and are deliberately untouched.
+function pswShiftState(b) {
+  const st = b && b.status;
+  if (st === 'cancelled' || st === 'on_hold') {
+    return {
+      state:  st === 'cancelled' ? 'cancelled' : 'onhold',
+      label:  st === 'cancelled' ? 'Cancelled' : 'On hold',
+      // cancellation_reason FIRST: the cancel paths write it. status_reason
+      // second: the hold paths write that one. Neither alone is enough.
+      reason: (b.cancellation_reason || b.status_reason || '')
+    };
+  }
+  return { state: 'upcoming', label: 'Upcoming', reason: '' };
+}
+
 function escHtml(str) {
   if (str == null) return '';
   return String(str)
@@ -2631,7 +2662,7 @@ function renderHomeFeed() {
       if (b.status === 'on_hold' || b.status === 'cancelled') {
         const _cx = b.status === 'cancelled';
         const _stLbl = _cx ? 'Cancelled' : 'On hold';
-        const _stRsn = b.status_reason ? ' · ' + escHtml(b.status_reason) : '';
+        const _stRsn = pswShiftState(b).reason ? ' · ' + escHtml(pswShiftState(b).reason) : '';
         const _stIcon = _cx
           ? '<path d="M18 6 6 18M6 6l12 12"/>'
           : '<rect x="6" y="5" width="3.5" height="14" rx="1"/><rect x="14.5" y="5" width="3.5" height="14" rx="1"/>';
@@ -2901,7 +2932,7 @@ function renderSchedDayCards(ds, days, bookings, visits, clients, today) {
     const isActive = activeVisit && activeVisit.client_name === b.client_name && isToday;
     const _held = b.status === 'on_hold';
     const _cancelled = b.status === 'cancelled';
-    const _stReason = b.status_reason || '';
+    const _stReason = pswShiftState(b).reason;   // B105c. was status_reason only
     const durH = b.duration_minutes ? (b.duration_minutes/60).toFixed(1) : null;
     const endTime = (b.scheduled_time && b.duration_minutes) ? (() => {
       const [hh,mm] = b.scheduled_time.split(':').map(Number);
@@ -6089,7 +6120,11 @@ function renderLiveOps() {
       <div class="live-ini" style="background:rgba(200,169,110,.08);border-color:rgba(200,169,110,.2);color:var(--gold);">◷</div>
       <div class="live-info">
         <div class="live-name">${b.client_name||'—'}</div>
-        <div class="live-meta">Scheduled ${b.scheduled_time||'TBD'}</div>
+        <div class="live-meta">${(() => { const _s = pswShiftState(b); return _s.state === 'upcoming'
+          ? 'Scheduled ' + (b.scheduled_time||'TBD')
+          : '<span style="color:' + (_s.state === 'cancelled' ? '#e08585' : '#b0b0b0') + '">' + _s.label + '</span>'
+            + (b.scheduled_time ? ' · ' + b.scheduled_time : '')
+            + (_s.reason ? ' · ' + escHtml(_s.reason) : ''); })()}</div>
       </div>
     </div>`).join('');
   } else {
@@ -6698,7 +6733,8 @@ function openCalPopup(dateStr) {
         let _durTxt = b.duration_minutes ? (b.duration_minutes/60).toFixed(1) + 'h scheduled' : '';
         if (_st !== 'upcoming') {
           const _h = b.duration_minutes ? (b.duration_minutes/60).toFixed(1) + 'h' : '';
-          _durTxt = [_h, b.status_reason ? escHtml(b.status_reason) : ''].filter(Boolean).join(' · ');
+          const _r = pswShiftState(b).reason;   // B105c. was status_reason only
+          _durTxt = [_h, _r ? escHtml(_r) : ''].filter(Boolean).join(' · ');
         }
         rows.push({
           time: b.scheduled_time ? b.scheduled_time.slice(0,5) : 'TBD',
