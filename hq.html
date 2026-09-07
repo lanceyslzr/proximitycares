@@ -5297,23 +5297,75 @@ function renderClients() {
 
 
 
+// B107c. READ THE CARE PLAN FROM A ROUTE THAT RETURNS IT.
+//
+// _cpLoaded gates the SAVE. It is false until a load has demonstrably
+// succeeded, so a failed or never-run load cannot be followed by a write.
+let _cpLoaded = false;
+//
+// WHAT WAS WRONG. This fetched /family/portal/:slug and tested d.care_plan.
+// The server FLATTENS the plan for the family: it writes client.care_plan,
+// client.care_plan_goals, .care_plan_routine and .care_plan_preferences
+// (server.js 6339-6342). TWO errors stacked: the key sits one level deeper
+// than this looked, AND the sub-field names differ, so even a one-line key fix
+// would have left three of four boxes blank.
+//
+// The guard never fired. The catch comment "care plan may not exist yet"
+// swallowed it. All four boxes rendered EMPTY over a LIVE care plan, with Save
+// enabled. Measured: rferrari has a full production plan, four fields
+// populated, updated 2026-04-23, feeding the family portal right now, and in
+// HQ every box showed length 0. One click on Save wrote empty strings over it
+// and emailed the caregiver and the family to say it was updated.
+//
+// GET /hq/care-plan/:slug is new in B107b and returns the care_plans ROW, with
+// its real column names. It is read-only on purpose: PATCH /client/care-plan
+// returns the same shape but writes, snapshots a version and SENDS EMAIL, and
+// populating a form must never be able to send anything.
+//
+// THE FAILURE IS NOW LOUD. A silent catch is what hid this for months, so a
+// failed load disables Save rather than leaving it armed over a blank form.
 async function loadCarePlan(slug) {
   if (!slug) return;
+  const setSafe = (id, val) => { const el = document.getElementById(id); if (el) el.value = val || ''; };
   try {
-    const res = await hqFetch(`${API}/family/portal/${slug}`);
+    const res = await hqFetch(`${API}/hq/care-plan/${encodeURIComponent(slug)}`);
     const d = await res.json();
-    if (d.care_plan) {
-      const cp = d.care_plan;
-      const setSafe = (id, val) => { const el = document.getElementById(id); if(el) el.value = val||''; };
-      setSafe('cp-summary', cp.summary);
-      setSafe('cp-goals', cp.goals);
-      setSafe('cp-routine', cp.daily_routine);
-      setSafe('cp-prefs', cp.preferences);
-    }
-  } catch { /* care plan may not exist yet */ }
+    if (!d.success) throw new Error(d.error || 'care plan load failed');
+    const cp = d.care_plan;
+    // null is the NORMAL case for a client with no plan yet. The B107a upsert
+    // creates one on first save, so an empty form is correct here, not an error.
+    setSafe('cp-summary', cp && cp.summary);
+    setSafe('cp-goals',   cp && cp.goals);
+    setSafe('cp-routine', cp && cp.daily_routine);
+    setSafe('cp-prefs',   cp && cp.preferences);
+    _cpLoaded = true;
+  } catch (err) {
+    console.error('[HQ] care plan load failed:', err);
+    // BLOCK SAVE. If the plan could not be read, the boxes are blank for an
+    // UNKNOWN reason, and saving would write those blanks over whatever is
+    // stored. That is exactly the accident this section exists to prevent.
+    //
+    // A FLAG, NOT A DISABLED BUTTON. The save control at hq.html:13095 has no
+    // id, only an onclick, so there is nothing to disable without adding
+    // markup. Guarding the function itself is better anyway: it also covers
+    // any other caller, now or later.
+    _cpLoaded = false;
+    setSafe('cp-summary', ''); setSafe('cp-goals', '');
+    setSafe('cp-routine', ''); setSafe('cp-prefs', '');
+    showToast('Could not load the care plan. Saving is disabled until it loads.', 'err');
+  }
 }
 
 async function saveCarePlan(clientId, slug, clientName) {
+  // B107c. REFUSE IF THE PLAN WAS NEVER SUCCESSFULLY READ. Before this, the
+  // loader failed silently and left four EMPTY boxes over a live care plan
+  // with Save enabled. Measured on rferrari: a full production plan in the
+  // database, every box length 0 in HQ. One click wrote blanks over it and
+  // emailed the caregiver and the family.
+  if (!_cpLoaded) {
+    showToast('The care plan has not loaded. Reopen the tab before saving.', 'err');
+    return;
+  }
   const summary = (document.getElementById('cp-summary')||{}).value || '';
   const goals = (document.getElementById('cp-goals')||{}).value || '';
   const daily_routine = (document.getElementById('cp-routine')||{}).value || '';
