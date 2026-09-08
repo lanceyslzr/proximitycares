@@ -12658,11 +12658,23 @@ async function submitClientPayment() {
   const to     = (document.getElementById('csp-to')?.value||'').trim();
   const amount = parseFloat(document.getElementById('csp-amount')?.value||'0');
   const email  = (document.getElementById('csp-email')?.value||'').trim();
+  // B114a. READ notify HERE, not at the send, because the guard below
+  // depends on it. It was read ~25 lines lower while the guard above was
+  // UNCONDITIONAL, so HQ rejected the request before the server saw it.
+  // B110b made the SERVER notify-aware and left this in place.
+  const notify = (document.getElementById('csp-notify')||{}).checked !== false;
   const notes  = (document.getElementById('csp-notes')?.value||'').trim();
   const btn    = document.getElementById('csp-send-btn');
 
   if (!amount || amount <= 0) { showToast('Enter the amount received', 'err'); return; }
-  if (!email)                 { showToast('Family email required', 'err'); return; }
+  // B114a. ONLY WHEN NOTIFYING. Unticking the confirmation box produced an
+  // error and recorded NOTHING. The server already allows it:
+  // if (notify && !sendTo). MEASURED: only 1 of 12 caregivers has an email
+  // on file, and the unticked path exists precisely for back-entering a
+  // period a payroll provider already settled.
+  // email_override is still sent unconditionally; an empty string is falsy,
+  // so the server falls through to its own lookup and notifying is unaffected.
+  if (notify && !email)                 { showToast('Family email required to send a confirmation', 'err'); return; }
   if (!from || !to)           { showToast('Select a billing period', 'err'); return; }
 
   const fmtDate = s => new Date(s+'T12:00:00').toLocaleDateString('en-CA',{month:'short',day:'numeric',year:'numeric',timeZone:'America/Toronto'});
@@ -12686,7 +12698,7 @@ async function submitClientPayment() {
         email_override: email, notes: notes || undefined,
         // B110c. Same two fields as the caregiver sheet, same reasons.
         method: (document.getElementById('csp-method')||{}).value || undefined,
-        notify: (document.getElementById('csp-notify')||{}).checked !== false
+        notify
       })
     });
     const d = await r.json();
@@ -12837,11 +12849,23 @@ async function submitSendPay() {
   const to      = (document.getElementById('ssp-to')?.value||'').trim();
   const amount  = parseFloat(document.getElementById('ssp-amount')?.value||'0');
   const email   = (document.getElementById('ssp-email')?.value||'').trim();
+  // B114a. READ notify HERE, not at the send, because the guard below
+  // depends on it. It was read ~25 lines lower while the guard above was
+  // UNCONDITIONAL, so HQ rejected the request before the server saw it.
+  // B110b made the SERVER notify-aware and left this in place.
+  const notify = (document.getElementById('ssp-notify')||{}).checked !== false;
   const notes   = (document.getElementById('ssp-notes')?.value||'').trim();
   const btn     = document.getElementById('ssp-send-btn');
 
   if (!amount || amount <= 0) { showToast('Enter the amount to send', 'err'); return; }
-  if (!email)                 { showToast('PSW email required', 'err'); return; }
+  // B114a. ONLY WHEN NOTIFYING. Unticking the confirmation box produced an
+  // error and recorded NOTHING. The server already allows it:
+  // if (notify && !sendTo). MEASURED: only 1 of 12 caregivers has an email
+  // on file, and the unticked path exists precisely for back-entering a
+  // period a payroll provider already settled.
+  // email_override is still sent unconditionally; an empty string is falsy,
+  // so the server falls through to its own lookup and notifying is unaffected.
+  if (notify && !email)                 { showToast('PSW email required to send a confirmation', 'err'); return; }
   if (!from || !to)           { showToast('Select a pay period', 'err'); return; }
 
   // Build period label
@@ -12878,7 +12902,7 @@ async function submitSendPay() {
         method: (document.getElementById('ssp-method')||{}).value || undefined,
         // Unticking this records the payment WITHOUT emailing. The server
         // defaults notify to true, so omitting it keeps the old behaviour.
-        notify: (document.getElementById('ssp-notify')||{}).checked !== false
+        notify
       })
     });
     const d = await r.json();
