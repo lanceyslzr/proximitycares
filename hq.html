@@ -17760,8 +17760,15 @@ function _applyActiveSectionFlex() {
     <div style="margin-bottom:14px;">
       <div style="font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;">Payment method</div>
       <select id="ssp-method" class="sinput" style="font-size:13px;padding:10px;">
+        <!-- B115. These values must match BOTH the server's PAYMENT_METHODS
+             list AND the payments_method_check constraint. They are one
+             vocabulary in three places.
+             'etransfer' has NO HYPHEN: the constraint has refused the
+             hyphenated form since the table was created, so choosing
+             E-transfer returned a 500 until 2026-09-08.
+             'direct-deposit' requires migration-b115.sql to have run. -->
         <option value="">Not recorded</option>
-        <option value="e-transfer">E-transfer</option>
+        <option value="etransfer">E-transfer</option>
         <option value="cash">Cash</option>
         <option value="cheque">Cheque</option>
         <option value="direct-deposit">Direct deposit</option>
@@ -17976,8 +17983,15 @@ function _applyActiveSectionFlex() {
     <div style="margin-bottom:14px;">
       <div style="font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;">Payment method</div>
       <select id="csp-method" class="sinput" style="font-size:13px;padding:10px;">
+        <!-- B115. These values must match BOTH the server's PAYMENT_METHODS
+             list AND the payments_method_check constraint. They are one
+             vocabulary in three places.
+             'etransfer' has NO HYPHEN: the constraint has refused the
+             hyphenated form since the table was created, so choosing
+             E-transfer returned a 500 until 2026-09-08.
+             'direct-deposit' requires migration-b115.sql to have run. -->
         <option value="">Not recorded</option>
-        <option value="e-transfer">E-transfer</option>
+        <option value="etransfer">E-transfer</option>
         <option value="cash">Cash</option>
         <option value="cheque">Cheque</option>
         <option value="direct-deposit">Direct deposit</option>
