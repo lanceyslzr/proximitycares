@@ -5144,7 +5144,14 @@ async function loadDocuments() {
       const metaText =
         !doc.url                 ? 'Not uploaded' :
         st === 'unknown'         ? 'No expiry date on file' :
-        st === 'expired'         ? 'Expired ' + fmtd(doc.expiry) :
+        // B128. THE YEAR, on the two states where it carries urgency.
+        // fmtd renders 'Jan 1' for BOTH 2024 and 2026, so an expired row could
+        // not say how long ago. expiring gets it too, as a heads-up. `valid`
+        // deliberately keeps the short form: a clean row does not need 2027
+        // spelled out, and this line previously covered BOTH expiring and
+        // valid, so it had to be split.
+        st === 'expired'         ? 'Expired ' + fmtdy(doc.expiry) :
+        st === 'expiring'        ? 'Expires ' + fmtdy(doc.expiry) :
         doc.expiry               ? 'Expires ' + fmtd(doc.expiry) :
         'On file';
       const initials = doc.key.split('_').map(w=>w[0].toUpperCase()).join('');
@@ -5838,6 +5845,34 @@ function showSect(name) {
 }
 
 // ── HELPERS ──
+// B128. fmtd DROPS THE YEAR, and on a compliance row that is the load-bearing
+// part of the date. MEASURED on the shipped build:
+//     fmtd('2024-01-01') -> 'Jan 1'
+//     fmtd('2026-01-01') -> 'Jan 1'      identical output, two years apart
+// So Demo PSW's row read "Expired Jan 1", and a certificate that lapsed twenty
+// months ago was indistinguishable from one that lapsed nine months ago.
+//
+// B127 gave the badge severity. The sentence beside it is meant to say HOW
+// BAD, and it could not. Same defect as the rest of this run, one layer down:
+// the row's two signals disagreeing.
+//
+// fmtd IS NOT CHANGED. It has EIGHT callers and six of them are visit dates,
+// shift times and a signature date, where a short form is right and a year
+// would be noise. Only the certificate meta line needs the year.
+//
+// AND ONLY WHERE THE YEAR CARRIES URGENCY, which is Lance's call: expired and
+// expiring get the full date as a warning; valid stays short. A caregiver
+// scanning a clean row does not need 2027 spelled out.
+//
+// NOTE, recorded rather than fixed: neither fmtd nor fmtdy passes a timeZone,
+// unlike ~20 other toLocaleDateString calls in this file. With T12:00:00 the
+// day is stable to roughly UTC-12/+12, so it holds for Toronto. Do not "fix"
+// that here without checking all eight fmtd callers.
+function fmtdy(str) {
+  if (!str) return '\u2014';
+  const d = new Date(String(str).includes('T') ? str : str+'T12:00:00');
+  return d.toLocaleDateString('en-CA',{year:'numeric',month:'short',day:'numeric'});
+}
 function fmtd(str) {
   if (!str) return '—';
   const d = new Date(str.includes('T') ? str : str+'T12:00:00');
