@@ -12061,12 +12061,14 @@ async function openPSWDetail(pswId) {
       <div style="margin-bottom:12px;font-size:12px;color:var(--muted2);line-height:1.5;">Upload replaces the previous file. Stored in psw-documents.</div>
       <div style="display:flex;flex-direction:column;gap:5px;">
         ${[
-          {label:'PSW Certificate',     field:'psw_cert',     url:rec.psw_cert_url,     expiry:rec.psw_cert_expiry},
-          {label:'Police Check',        field:'police_check', url:rec.police_check_url, expiry:rec.police_check_expiry},
-          {label:'CPR Certification',   field:'cpr_cert',     url:rec.cpr_cert_url,     expiry:rec.cpr_cert_expiry},
-          {label:'First Aid',           field:'first_aid',    url:rec.first_aid_url,    expiry:rec.first_aid_expiry},
-          {label:'Employment Agreement',field:'nacc_cert',    url:rec.employment_agreement_url||p.employment_agreement_url, expiry:null}
-        ].map(d => '<div class="doc-vault-row"><div class="doc-vault-name">'+d.label+'</div><div class="doc-vault-status">'+(d.url?'<a href="'+hqDocUrl(d.url,'psw')+'" target="_blank">VIEW'+(d.expiry?' &#183; '+fmtd(d.expiry):'')+'</a>':'<span style="font-family:var(--mono);font-size:11px;color:var(--muted);">MISSING</span>')+(d.field==='nacc_cert'?'<button onclick="generateEmploymentAgreement(\''+name+'\')" style="padding:3px 8px;background:rgba(61,138,122,.1);border:1px solid rgba(61,138,122,.3);border-radius:4px;font-family:var(--mono);font-size:10px;color:var(--teal2);cursor:pointer;min-height:28px;touch-action:manipulation;">GENERATE</button>':'')+'<label class="doc-vault-upload">UPLOAD<input type="file" accept=".pdf,.jpg,.jpeg,.png" style="display:none;" onchange="uploadPSWDoc(event,\''+name+'\',\''+d.field+'\')"></label></div></div>').join('')}
+          {label:'PSW Certificate',     field:'psw_cert',     url:p.psw_cert_url,     expiry:p.psw_cert_expiry},
+          {label:'Police Check',        field:'police_check', url:p.police_check_url, expiry:p.police_check_expiry},
+          {label:'CPR Certification',   field:'cpr_cert',     url:p.cpr_cert_url,     expiry:p.cpr_cert_expiry},
+          {label:'First Aid',           field:'first_aid',    url:p.first_aid_url,    expiry:p.first_aid_expiry},
+          {label:'NACC Certificate',    field:'nacc_cert',    url:p.nacc_cert_url,    expiry:p.nacc_expiry},
+          {label:'Vulnerable Sector Check', field:'vsc',      url:p.vsc_url,          expiry:p.vsc_expiry},
+          {label:'Employment Agreement',field:'employment_agreement', url:p.employment_agreement_url, expiry:null}
+        ].map(d => '<div class="doc-vault-row"><div class="doc-vault-name">'+d.label+'</div><div class="doc-vault-status">'+(d.url?'<a href="'+hqDocUrl(d.url,'psw')+'" target="_blank">VIEW'+(d.expiry?' &#183; '+fmtd(d.expiry):'')+'</a>':'<span style="font-family:var(--mono);font-size:11px;color:var(--muted);">MISSING</span>')+(d.field==='employment_agreement'?'<button onclick="generateEmploymentAgreement(\''+name+'\')" style="padding:3px 8px;background:rgba(61,138,122,.1);border:1px solid rgba(61,138,122,.3);border-radius:4px;font-family:var(--mono);font-size:10px;color:var(--teal2);cursor:pointer;min-height:28px;touch-action:manipulation;">GENERATE</button>':'')+'<input type="date" id="dv-exp-'+d.field+'" value="'+(d.expiry?String(d.expiry).slice(0,10):'')+'" title="Expiry date. Sent with the upload." style="padding:2px 5px;background:var(--bg3);border:1px solid var(--border);border-radius:4px;font-family:var(--mono);font-size:10px;color:var(--text);margin-right:6px;min-height:28px;">'+'<label class="doc-vault-upload">UPLOAD<input type="file" accept=".pdf,.jpg,.jpeg,.png" style="display:none;" onchange="uploadPSWDoc(event,\''+name+'\',\''+d.field+'\')"></label></div></div>').join('')}
       </div>
     </div>
 
@@ -16434,7 +16436,7 @@ if (sessionStorage.getItem('hq_auth') === '1' && sessionStorage.getItem('hq_toke
 async function uploadPSWDoc(event, pswName, docType) {
   const file = event.target.files[0];
   if (!file) return;
-  const labels = {psw_cert:'PSW Certificate',police_check:'Police Check',cpr_cert:'CPR Certification',first_aid:'First Aid'};
+  const labels = {psw_cert:'PSW Certificate',police_check:'Police Check',cpr_cert:'CPR Certification',nacc_cert:'NACC Certificate',vsc:'Vulnerable Sector Check',employment_agreement:'Employment Agreement',first_aid:'First Aid'};
   const label = labels[docType] || docType;
   showToast('Uploading ' + label + '...', 'ok');
   try {
@@ -16442,11 +16444,31 @@ async function uploadPSWDoc(event, pswName, docType) {
     fd.append('file', file);
     fd.append('operator_id', currentOp);
     fd.append('doc_type', docType);
+    // B122. THE EXPIRY WAS NEVER SENT. The server has accepted `expiry` since
+    // before B121, and B121 maps it correctly for all six types, but this
+    // FormData carried only file, operator_id and doc_type. So EVERY
+    // certificate stored with a null expiry.
+    //
+    // AND A NULL EXPIRY READS AS VALID. docSt returns VALID when expiry is
+    // null, and so does the PSW portal. Carolina Hermida's police check is
+    // dated 2024-03-20 and her portal said "valid". Her First Aid certificate
+    // carries 2027-02-22 on its face and nothing captured it.
+    //
+    // SCOPED TO THIS FUNCTION ON PURPOSE: uploadClientDoc has the IDENTICAL
+    // line and is a different document set. A file-wide replace hits both.
+    const _expEl = document.getElementById('dv-exp-' + docType);
+    const _exp = _expEl && _expEl.value ? _expEl.value : '';
+    if (_exp) fd.append('expiry', _exp);
     const r = await hqFetch(`${API}/hq/psw/${encodeURIComponent(pswName)}/docs`, { method: 'POST', body: fd });
     const d = await r.json();
     if (!r.ok) throw new Error(d.error || 'Upload failed');
     showToast(label + ' uploaded. PSW notified.', 'ok');
-    const pswRec = (D.psws||[]).find(p => p.name === pswName);
+    // B122. `p.name` again. psws has NO name column: it has full_name,
+    // first_name and last_name. B121 fixed this on the server; the identical
+    // defect was here on the client, so pswRec was ALWAYS undefined,
+    // openPSWDetail never ran, and the sheet was never reopened. That is why
+    // the screen still read MISSING after a successful upload.
+    const pswRec = (D.psws||[]).find(p => p.full_name === pswName);
     if (pswRec) await openPSWDetail(pswRec.id || pswRec.name);
     await loadAll(false);
   } catch(e) {
