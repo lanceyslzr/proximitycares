@@ -6865,7 +6865,7 @@ async function renderVisits() {
       const editedBadge = v.hq_edited ? `<span style="font-family:var(--mono);font-size:11px;letter-spacing:1px;padding:2px 6px;border-radius:100px;border:1px solid rgba(201,169,110,.45);color:var(--gold);margin-left:6px;">EDITED</span>` : '';
       // Photos
       const photos = Array.isArray(v.task_photos) ? v.task_photos : (v.task_photos ? [v.task_photos] : []);
-      const photosHtml = photos.length ? `<div style="margin-bottom:10px;"><div style="font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;">Photos (${photos.length})</div><div style="display:flex;gap:6px;flex-wrap:wrap;">${photos.map(p => `<a href="${hqPhotoUrl(p)}" target="_blank"><img src="${hqPhotoUrl(p)}" style="width:64px;height:64px;object-fit:cover;border-radius:6px;border:1px solid var(--border);" loading="lazy"></a>`).join('')}</div></div>` : '';
+      const photosHtml = photos.length ? `<div style="margin-bottom:10px;"><div style="font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;">Photos (${photos.length})</div><div style="display:flex;gap:6px;flex-wrap:wrap;">${photos.map(p => `<a href="${hqPhotoUrl(p)}" target="_blank" class="hq-photo-cell"><img src="${hqPhotoUrl(p)}" style="width:64px;height:64px;object-fit:cover;border-radius:6px;border:1px solid var(--border);" loading="lazy" onerror="hqDropPhoto(this)" onload="if(!this.naturalWidth)hqDropPhoto(this)"></a>`).join('')}</div></div>` : '';
       // Voice note
       const voiceHtml = v.voice_note_url ? `<div style="margin-bottom:10px;"><div style="font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;">Voice Note</div><audio controls src="${v.voice_note_url}" style="width:100%;height:36px;accent-color:var(--teal2);"></audio></div>` : '';
       // Satisfaction
@@ -7559,6 +7559,53 @@ function hqDocUrl(raw, kind) {
   const tok = window._hqToken || sessionStorage.getItem('hq_token') || '';
   const route = kind === 'client' ? 'client-document' : 'psw-document';
   return `${API}/hq/${route}?path=${encodeURIComponent(path)}&_hqt=${encodeURIComponent(tok)}`;
+}
+
+// B118. PORTED FROM family.html:3285 famDropPhoto, CARVE-OUT AND ALL.
+//
+// HQ had ZERO onerror, ZERO naturalWidth handling and ZERO drop logic
+// (measured), so every failed photo left a permanently broken icon. The family
+// portal has removed them since AE2. That asymmetry is why Lance saw a broken
+// frame in HQ on a visit whose photo the family portal had silently dropped.
+//
+// AN ERROR IS NOT PROOF THE PHOTO IS EMPTY. This carve-out is the family
+// portal's and the reasoning is recorded there: downscaleImage returns the
+// ORIGINAL file when it cannot decode it, which is what happens to a HEIC on a
+// browser without HEIC support, and the extension is read AFTER the downscale,
+// so that photo reaches storage as .heic WITH REAL BYTES. Chrome cannot render
+// it and fires the same error a zero-byte object fires. Removing the cell
+// there would hide a photo of the client's care that genuinely exists.
+//
+// So an undisplayable FORMAT is marked, not removed. Anything else is removed.
+//
+// NOTE ON ORDER: this is independent of the CORP fix in the same drop. Once
+// CORP is set, the 36 zero-byte objects STILL fail, and without this HQ would
+// still show 36 broken icons where the family portal shows none.
+function hqDropPhoto(img) {
+  const cell = img && img.closest ? img.closest('.hq-photo-cell') : null;
+  if (!cell) return;
+  const src = String((img && img.getAttribute && img.getAttribute('src')) || '');
+  if (/\.(heic|heif|tif|tiff)(\?|$)/i.test(src)) {
+    cell.setAttribute('title', 'This photo cannot be displayed in this browser');
+    cell.style.opacity = '0.4';
+    if (img.style) img.style.display = 'none';
+    return;
+  }
+  const wrap = cell.parentElement;
+  cell.remove();
+  if (!wrap) return;
+  const left = wrap.querySelectorAll('.hq-photo-cell').length;
+  const label = wrap.previousElementSibling;
+  if (label && /^Photos \(/.test(label.textContent || '')) {
+    if (left === 0) {
+      // Nothing survived. A "Photos (1)" header over an empty row makes the
+      // same wrong claim in a smaller box.
+      const block = wrap.parentElement;
+      if (block) block.remove(); else { label.remove(); wrap.remove(); }
+      return;
+    }
+    label.textContent = 'Photos (' + left + ')';
+  }
 }
 
 function hqPhotoUrl(entry) {
