@@ -5094,7 +5094,18 @@ async function loadDocuments() {
     }
 
     el.innerHTML = docs.map(doc => {
-      const st = doc.status || (doc.url ? 'valid' : 'missing');
+      // B125. THE FALLBACK SAID "a file exists, therefore valid". The server
+      // now computes this properly via CERT_RULES, but if it ever sends no
+      // status this line silently restored the old behaviour, which is what
+      // told Carolina Hermida her police check from 2024-03-20 was valid.
+      //
+      // ONLY CPR AND FIRST AID EXPIRE on a hired caregiver, which is Lance's
+      // policy: PSW and NACC certificates do not expire, and a police check
+      // and VSC are checked once at APPLICATION and never again.
+      const _EXPIRING = ['cpr_cert', 'first_aid'];
+      const st = doc.status || (!doc.url ? 'missing'
+                 : (_EXPIRING.indexOf(doc.key) >= 0 && !doc.expiry) ? 'unknown'
+                 : 'valid');
       const initials = doc.key.split('_').map(w=>w[0].toUpperCase()).join('');
       // PSW3. Through the signed route, not a raw open. The bucket is private
       // so the stored path is not a URL a browser can follow.
