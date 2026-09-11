@@ -12502,9 +12502,16 @@ async function saveClientLifecycle(clientId, slug, clientName, forceStatus) {
 
 // ── CLIENT SEND PAYMENT SHEET ─────────────────────────────────────────────────
 let _cspClientName = '', _cspEmail = '', _cspRate = 22, _cspPayType = 'full', _cspInvoiceTotal = 0;
+// B131. The client's id, so /hq/client/confirm-payment can look up BY ID
+// rather than rebuilding "first last" and searching a page of rows in JS.
+// c.id was already in scope at the button and already used ten times in the
+// same client sheet; it was simply never passed. Empty when absent, and the
+// server falls back to the name path in that case.
+let _cspClientId = '';
 
-function openClientSendPayment(clientName, clientEmail, clientRate) {
+function openClientSendPayment(clientName, clientEmail, clientRate, clientId) {
   _cspClientName  = clientName || '';
+  _cspClientId    = clientId || '';
   _cspEmail       = clientEmail || '';
   _cspRate        = parseFloat(clientRate) || 22;
   _cspPayType     = 'full';
@@ -12738,7 +12745,7 @@ async function submitClientPayment() {
       method: 'POST',
       headers: {'Content-Type':'application/json'},
       body: JSON.stringify({
-        operator_id: currentOp, client_name: _cspClientName,
+        operator_id: currentOp, client_name: _cspClientName, client_id: _cspClientId || undefined,
         amount: amount.toFixed(2), period_label: periodLabel,
         from_date: from, to_date: to, payment_type: _cspPayType,
         visits_count: visits.length, hours_worked: totalHrs.toFixed(1),
@@ -13080,7 +13087,7 @@ function openClientDetail(id) {
       <button class="sbtn" onclick="closeSheet('client-sheet');openClientSchedule('${name}')">+ Shift</button>
       <button class="sbtn" style="background:rgba(200,169,110,.1);color:var(--gold);border-color:rgba(200,169,110,.3);" onclick="openInvoicePicker('${name}','${c.family_email||c.email||''}','${c.assigned_psw||''}',${c.client_rate||22},${c.psw_rate||19})">Invoice</button>
       <button class="sbtn" onclick="openHoursPanel('client','${name}')">⏱ Hours</button>
-      <button class="sbtn" data-csp-name="${name}" data-csp-email="${c.family_email||c.email||''}" data-csp-rate="${c.client_rate||22}" onclick="openClientSendPayment(this.dataset.cspName,this.dataset.cspEmail,parseFloat(this.dataset.cspRate))" style="background:rgba(109,185,116,.06);color:var(--green2);border-color:rgba(109,185,116,.2);">Send Payment</button>
+      <button class="sbtn" data-csp-id="${c.id||''}" data-csp-name="${name}" data-csp-email="${c.family_email||c.email||''}" data-csp-rate="${c.client_rate||22}" onclick="openClientSendPayment(this.dataset.cspName,this.dataset.cspEmail,parseFloat(this.dataset.cspRate),this.dataset.cspId)" style="background:rgba(109,185,116,.06);color:var(--green2);border-color:rgba(109,185,116,.2);">Send Payment</button>
       <button class="sbtn" data-cn="${name}" onclick="openClientStatement(this.dataset.cn)" style="background:rgba(200,169,110,.06);color:var(--gold);border-color:rgba(200,169,110,.25);">Statement</button>
     </div>
     <div class="prof-tabs">
