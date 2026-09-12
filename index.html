@@ -1327,7 +1327,8 @@ a:focus-visible,button:focus-visible,.btn:focus-visible,.btn-primary:focus-visib
 @media(max-width:480px){
   #flow-demo-wrap .lp-mob-active{width:180px!important;height:340px!important;}
   #flow-demo-wrap .lp-map-phone.lp-mob-active{width:180px!important;}
-  #flow-demo-wrap #main{height:370px!important;min-height:370px!important;}
+  /* 16px top offset + 380px phone + room. 370 clipped it by 26px. */
+  #flow-demo-wrap #main{height:412px!important;min-height:412px!important;}
 }
 
 /* ═══ ACCESSIBILITY: reduced motion (must stay last) ═══ */
@@ -1495,6 +1496,615 @@ a:focus-visible,button:focus-visible,.btn:focus-visible,.btn-primary:focus-visib
   .lp-whose.psw .lp-whose-who{color:#56C8F5;}
   .lp-whose.fam .lp-whose-who{color:#34D399;}
   .lp-whose.map .lp-whose-who{color:#38BDF8;}
+
+  /* CROSS-FADE, NOT DISPLAY-TOGGLE.
+     MEASURED IN A REAL BROWSER, not guessed:
+       between phases   50ms with all three display:none
+       top of each loop 1067ms with all three display:none
+       dropped frames   0 / 0, longest task 8ms
+     So the jank was never performance. It was a full second of EMPTY FRAME
+     at the top of every cycle, plus a 50ms void between phases. display
+     cannot be transitioned, so every switch was a hard cut into nothing.
+     I was about to build an IntersectionObserver to pause 36 animations for
+     a performance problem that does not exist. The measurement stopped it.
+
+     All three phones now STAY IN THE LAYOUT, stacked in one grid cell, and
+     opacity carries the change. Timing is the site's own: .3s ease is its
+     dominant transition, used 32 times, and translateY(8px) is exactly what
+     @keyframes lp-fade-up already does. Nothing invented. */
+  #flow-demo-wrap #main{
+    position:relative;
+    height:412px;min-height:412px;
+    /* 16px top offset + 380px phone + 16px breathing room.
+       The phones are position:absolute now, so they give this box NO
+       height. It previously got its height from them being in flow, and
+       only had an explicit one inside @media(max-width:700px), which is
+       why the container collapsed at desktop and clipped the phone. */
+  }
+  #flow-demo-wrap .lp-phone,
+  #flow-demo-wrap .lp-map-phone{
+    display:flex!important;
+    position:absolute;left:50%;top:16px;
+    transform:translateX(-50%) translateY(8px);
+    opacity:0;
+    pointer-events:none;
+    transition:opacity .3s ease, transform .3s ease;
+    width:210px!important;height:380px!important;
+    border-radius:14px!important;
+  }
+  #flow-demo-wrap .lp-mob-active{
+    opacity:1!important;
+    transform:translateX(-50%) translateY(0)!important;
+    pointer-events:auto;
+    z-index:2;
+  }
+  /* A phone fading OUT must not sit above the one fading in. */
+  #flow-demo-wrap .lp-phone:not(.lp-mob-active),
+  #flow-demo-wrap .lp-map-phone:not(.lp-mob-active){z-index:1;}
+  @media(prefers-reduced-motion:reduce){
+    #flow-demo-wrap .lp-phone,
+    #flow-demo-wrap .lp-map-phone{transition:none;transform:translateX(-50%);}
+    #flow-demo-wrap .lp-mob-active{transform:translateX(-50%)!important;}
+  }
+
+  /* THE 108px OVERFLOW. MEASURED, not guessed:
+       .lp-body  scrollHeight 488  clientHeight 380   108 over
+       .lp-psw-nav overlapped .lp-oss by 27.9px, worse at 390px
+     Cause: opacity:0 still OCCUPIES SPACE. The GPS block and the on-shift
+     block sat in the column from the first frame even though they do not
+     appear until later, so the column was always 488px tall.
+     Fix: each phase collapses as the story moves past it, which is also
+     what a real phone does. The notification is dismissed once the shift
+     starts; the GPS check disappears once it has passed. Height is animated
+     so nothing jumps, at the site's own .3s ease. */
+  .lp-psw .lp-notif-banner,
+  .lp-psw .lp-gps-status,
+  .lp-psw .lp-oss{
+    overflow:hidden;
+    transition:max-height .3s ease, opacity .3s ease,
+               margin .3s ease, padding .3s ease;
+  }
+  /* At rest the later phases take NO space. */
+  .lp-psw .lp-gps-status,
+  .lp-psw .lp-oss{max-height:0;margin-top:0;margin-bottom:0;padding-top:0;padding-bottom:0;}
+  .lp-psw .lp-gps-status.lp-open{max-height:60px;padding-top:5px;padding-bottom:5px;margin:4px 6px;}
+  .lp-psw .lp-oss.lp-open{max-height:120px;padding-top:5px;padding-bottom:5px;margin:4px 6px;}
+  /* And a finished phase gives its space back. */
+  .lp-psw .lp-notif-banner.lp-done,
+  .lp-psw .lp-gps-status.lp-done{
+    max-height:0!important;opacity:0!important;
+    margin-top:0!important;margin-bottom:0!important;
+    padding-top:0!important;padding-bottom:0!important;
+  }
+  @media(prefers-reduced-motion:reduce){
+    .lp-psw .lp-notif-banner,.lp-psw .lp-gps-status,.lp-psw .lp-oss{transition:none;}
+  }
+
+  /* THE WHOLE STAGE TAKES THE PORTAL'S COLOUR.
+     Two problems, one fix.
+     CONTRAST, measured by Chrome against section#powered rgb(250,248,244):
+       #56C8F5 on cream   1.80 : 1
+       #34D399 on cream   1.81 : 1
+       the sub-line       1.16 : 1, effectively invisible
+     WCAG AA wants 4.5:1. I was using dark-background accents on a light
+     background, which cannot work at any size.
+     DISTINGUISHABILITY: the two real portals share typefaces, radii and
+     ground, so an accent on a 210px mockup is too small a signal to notice.
+     The LinkedIn ads already solve both: each portal gets a FULL dark
+     environment tinted its own colour. The caregiver ad is blue throughout,
+     the family ad green throughout. Same thing here: the stage itself
+     changes colour with the story, so the shift is unmissable and every
+     accent lands on dark where it belongs. */
+  #flow-demo-wrap .lp-stage-tint{
+    background:#0a0d12;
+    border-radius:14px;
+    transition:background .6s ease, box-shadow .6s ease;
+  }
+  .lp-whose.psw ~ #main,
+  #flow-demo-wrap.tone-psw #main{
+    background:linear-gradient(180deg,#061119 0%,#050a0f 100%);
+    box-shadow:inset 0 0 90px rgba(86,200,245,.10);
+  }
+  #flow-demo-wrap.tone-fam #main{
+    background:linear-gradient(180deg,#04140f 0%,#050c0a 100%);
+    box-shadow:inset 0 0 90px rgba(52,211,153,.10);
+  }
+  #flow-demo-wrap.tone-map #main{
+    background:linear-gradient(180deg,#061019 0%,#050a10 100%);
+    box-shadow:inset 0 0 90px rgba(56,189,248,.10);
+  }
+  #flow-demo-wrap #main{
+    transition:background .6s ease, box-shadow .6s ease;
+    border-radius:0;
+  }
+  /* THE CAPTION MOVES ONTO THE DARK with the phone, so its accent finally
+     has the ground it was designed for. */
+  .lp-whose{
+    padding:14px 16px 12px;
+    border-radius:14px 14px 0 0;
+    transition:background .6s ease;
+    background:#0a0d12;
+  }
+  #flow-demo-wrap.tone-psw .lp-whose{background:linear-gradient(180deg,#07141d,#061119);}
+  #flow-demo-wrap.tone-fam .lp-whose{background:linear-gradient(180deg,#05180f,#04140f);}
+  #flow-demo-wrap.tone-map .lp-whose{background:linear-gradient(180deg,#06131f,#061019);}
+  /* On dark, these clear AA comfortably: #56C8F5 is 8.9:1 on #061119. */
+  .lp-whose-what{color:rgba(232,220,200,.78);}
+
+  /* SLOWER. .2s was too quick to read as a change of subject. The story
+     holds each phase for seconds, so the change between them can afford to
+     be seen. .6s matches the tint so the phone and the stage move together. */
+  #flow-demo-wrap .lp-phone,
+  #flow-demo-wrap .lp-map-phone{
+    transition:opacity .6s ease, transform .6s ease;
+  }
+  @media(prefers-reduced-motion:reduce){
+    #flow-demo-wrap .lp-stage-tint,
+    #flow-demo-wrap #main,
+    .lp-whose{transition:none;}
+  }
+
+  /* THE CHECKOUT SHEET. It slides up OVER the phone body, which is what the
+     real portal does: openCheckout shows a sheet, not a new screen.
+     Mockup scale throughout, 4 to 6.5px, same carve-out as everywhere else. */
+  .lp-cosheet{
+    position:absolute;left:0;right:0;bottom:0;z-index:8;
+    background:#080c11;
+    border-top:1px solid rgba(86,200,245,.28);
+    border-radius:10px 10px 0 0;
+    padding:6px 7px 8px;
+    transform:translateY(110%);
+    transition:transform .45s cubic-bezier(.4,0,.2,1);
+  }
+  .lp-cosheet.lp-up{transform:translateY(0);}
+  .lp-co-title{
+    font-family:'DM Mono',monospace;font-size:5.5px;letter-spacing:.12em;
+    text-transform:uppercase;color:#56C8F5;text-align:center;margin-bottom:4px;
+  }
+  .lp-co-lbl{
+    font-family:'DM Mono',monospace;font-size:4px;letter-spacing:.1em;
+    text-transform:uppercase;color:rgba(232,220,200,.35);margin:4px 0 2px;
+  }
+  .lp-co-task{
+    display:flex;align-items:center;gap:3px;
+    font-size:5px;color:rgba(232,220,200,.62);margin-bottom:2px;
+  }
+  .lp-co-box{
+    width:5px;height:5px;border-radius:1px;flex-shrink:0;
+    border:1px solid rgba(86,200,245,.4);
+    transition:background .3s ease, border-color .3s ease;
+  }
+  /* A ticked task turns the box solid and lifts the label, the same signal
+     a real checkbox gives. */
+  .lp-co-task.lp-tick .lp-co-box{background:#56C8F5;border-color:#56C8F5;}
+  .lp-co-task.lp-tick{color:#e8ddc8;}
+  .lp-co-moods{display:flex;gap:2px;margin-bottom:2px;}
+  .lp-co-mood{
+    flex:1;text-align:center;padding:2px 1px;border-radius:3px;
+    border:1px solid rgba(232,220,200,.12);
+    font-family:'DM Mono',monospace;font-size:4px;
+    color:rgba(232,220,200,.4);
+    display:flex;flex-direction:column;align-items:center;gap:1px;
+    transition:border-color .3s ease, background .3s ease, color .3s ease;
+  }
+  .lp-co-mood span{font-size:5px;line-height:1;}
+  .lp-co-mood.lp-pick{
+    border-color:#6db974;background:rgba(109,185,116,.12);color:#e8ddc8;
+  }
+  .lp-co-obs{
+    font-size:4.5px;color:rgba(232,220,200,.28);
+    border:1px solid rgba(232,220,200,.12);border-radius:3px;
+    padding:3px;margin-bottom:4px;min-height:12px;
+    transition:color .3s ease;
+  }
+  .lp-co-obs.lp-filled{color:rgba(232,220,200,.62);}
+  .lp-co-submit{
+    background:linear-gradient(135deg,#56C8F5,#3DAEE0);
+    color:#04141C;font-weight:600;
+    font-family:'DM Mono',monospace;font-size:5.5px;letter-spacing:.04em;
+    text-align:center;padding:4px;border-radius:4px;
+    transition:opacity .3s ease;
+  }
+  .lp-co-submit.lp-sent{opacity:.45;}
+  @media(prefers-reduced-motion:reduce){
+    .lp-cosheet{transition:none;}
+  }
+
+  /* THE CHECK-IN CONFIRM SHEET. Same overlay pattern as the checkout sheet,
+     because the real portal uses the same pattern for both. */
+  .lp-cisheet{
+    position:absolute;left:0;right:0;bottom:0;z-index:9;
+    background:#080c11;
+    border-top:1px solid rgba(86,200,245,.28);
+    border-radius:10px 10px 0 0;
+    padding:6px 7px 8px;
+    transform:translateY(110%);
+    transition:transform .45s cubic-bezier(.4,0,.2,1);
+  }
+  .lp-cisheet.lp-up{transform:translateY(0);}
+  .lp-ci-title{
+    font-family:'DM Mono',monospace;font-size:5.5px;letter-spacing:.12em;
+    text-transform:uppercase;color:#56C8F5;text-align:center;margin-bottom:3px;
+  }
+  .lp-ci-client{font-family:'Cormorant Garamond',serif;font-size:11px;color:#e8ddc8;text-align:center;line-height:1.1;}
+  .lp-ci-time{font-family:'DM Mono',monospace;font-size:4.5px;color:rgba(232,220,200,.4);text-align:center;margin-bottom:4px;}
+  .lp-ci-gps{
+    font-family:'DM Mono',monospace;font-size:4.5px;color:#3fb950;
+    text-align:center;margin-bottom:4px;
+  }
+  /* The real sheet swaps this for a warning past 500m. */
+  .lp-ci-gps.lp-far{color:#d4a04a;}
+  .lp-ci-panel{
+    border:1px solid rgba(86,200,245,.18);border-radius:4px;
+    padding:4px;margin-bottom:4px;background:rgba(86,200,245,.04);
+  }
+  .lp-ci-plbl{
+    font-family:'DM Mono',monospace;font-size:4px;letter-spacing:.1em;
+    text-transform:uppercase;color:#56C8F5;margin-bottom:2px;
+  }
+  .lp-ci-row{
+    display:flex;justify-content:space-between;gap:4px;
+    font-size:4.5px;color:rgba(232,220,200,.45);margin-top:2px;
+  }
+  .lp-ci-v{color:rgba(232,220,200,.78);text-align:right;}
+  .lp-ci-ack{
+    display:flex;gap:3px;align-items:flex-start;
+    font-size:4px;line-height:1.35;color:rgba(232,220,200,.45);margin-bottom:5px;
+  }
+  .lp-ci-box{
+    width:5px;height:5px;border-radius:1px;flex-shrink:0;margin-top:1px;
+    border:1px solid rgba(86,200,245,.4);
+    transition:background .3s ease, border-color .3s ease;
+  }
+  .lp-ci-ack.lp-tick .lp-ci-box{background:#56C8F5;border-color:#56C8F5;}
+  .lp-ci-ack.lp-tick{color:rgba(232,220,200,.72);}
+  .lp-ci-btns{display:grid;grid-template-columns:1fr 1.6fr;gap:3px;}
+  .lp-ci-cancel{
+    text-align:center;padding:4px;border-radius:4px;
+    border:1px solid rgba(166,179,191,.22);color:#a6b3bf;
+    font-family:'DM Mono',monospace;font-size:5px;
+  }
+  /* DISABLED UNTIL ACKNOWLEDGED. The real toggleCheckinConfirmBtn sets
+     opacity 0.4 and pointer-events none until the box is ticked. That gate
+     is the safety argument; without it this is just another button. */
+  .lp-ci-confirm{
+    text-align:center;padding:4px;border-radius:4px;
+    background:linear-gradient(135deg,#56C8F5,#3DAEE0);
+    color:#04141C;font-weight:600;
+    font-family:'DM Mono',monospace;font-size:5px;
+    opacity:.4;pointer-events:none;
+    transition:opacity .3s ease;
+  }
+  .lp-ci-confirm.lp-armed{opacity:1;pointer-events:auto;}
+  @media(prefers-reduced-motion:reduce){.lp-cisheet{transition:none;}}
+
+  /* THE CARE SUMMARY IS THE PAYOFF. IT WAS THE SMALLEST THING ON SCREEN.
+     Measured before this change: labels 4px, values 5px, both inheriting
+     centre alignment from an ancestor. Centre-aligned label/value pairs
+     cannot be scanned: the eye has no left edge to return to, so reading
+     six facts means six separate searches.
+     This is the screen the whole site promises. "you always know what they
+     did, and how your loved one is doing" points HERE.
+     Left aligned, larger, and the value now outweighs its label, because
+     the family is reading the answer, not the question. */
+  .lp-fam .lp-vd{
+    margin:5px 6px 0;padding-top:5px;
+    border-top:1px solid rgba(52,211,153,.18);
+    text-align:left;
+  }
+  .lp-fam .lp-vd-l{
+    font-family:'DM Mono',monospace;font-size:4.5px;letter-spacing:.12em;
+    text-transform:uppercase;color:rgba(52,211,153,.75);
+    margin-top:5px;text-align:left;
+  }
+  .lp-fam .lp-vd-v{
+    font-size:6.5px;line-height:1.45;color:#e8ddc8;
+    margin-top:1px;text-align:left;
+  }
+  /* WHO IS COMING NEXT. The real portal renders "Next visit {date}" from
+     client.next_visit_date, and falls back to "No upcoming visits
+     scheduled". A family checking the app is asking two questions: how did
+     today go, and who is coming next. The demo answered only the first. */
+  .lp-fam .lp-upnext{
+    opacity:0;transition:opacity .4s ease;
+    margin:6px 6px 0;padding:5px 6px;
+    border:1px solid rgba(52,211,153,.2);
+    border-radius:5px;
+    background:rgba(52,211,153,.05);
+    text-align:left;
+  }
+  .lp-upnext-l{
+    font-family:'DM Mono',monospace;font-size:4.5px;letter-spacing:.12em;
+    text-transform:uppercase;color:rgba(52,211,153,.75);
+  }
+  .lp-upnext-row{
+    display:flex;justify-content:space-between;align-items:baseline;
+    gap:4px;margin-top:2px;
+  }
+  .lp-upnext-who{font-size:7px;color:#e8ddc8;}
+  .lp-upnext-when{font-family:'DM Mono',monospace;font-size:5px;color:rgba(232,220,200,.55);white-space:nowrap;}
+
+  /* SCROLL JANK. THE CAUSE, MEASURED, NOT GUESSED.
+     Chrome reported 0 dropped frames and an 8ms longest task. That is not
+     wrong, it answers a different question: dropped frames say whether the
+     COMPOSITOR kept up on a static page. Scroll jank is the MAIN THREAD
+     blocked by paint. Felt while scrolling, measured while still.
+
+     Three keyframes animate properties that CANNOT be composited, across
+     eight elements:
+       @pulse2   box-shadow          .hero-location-dot, .live-feed-dot,
+                                     .chat-online-dot
+       @isoOn    fill                .iso-top-a, -b, -c and 3 .iso-top
+       @isoLink  stroke-dashoffset   .iso-link
+     box-shadow and fill force a repaint EVERY FRAME on every element using
+     them. The care plan builder feels smoother because it has none of this.
+
+     These rules replace the paint work with transform and opacity, which
+     the compositor handles without touching the main thread. THE LOOK DOES
+     NOT CHANGE. If it does, this fix has failed and should be reverted. */
+
+  /* The pulsing dots. A box-shadow ring growing 0 to 8px is exactly a
+     pseudo-element scaling 1 to 2.6 and fading out. Same ring, composited. */
+  .hero-location-dot,
+  .live-feed-dot,
+  .chat-online-dot{
+    animation:none!important;
+    position:relative;
+  }
+  .hero-location-dot::after,
+  .live-feed-dot::after,
+  .chat-online-dot::after{
+    content:'';position:absolute;inset:0;border-radius:50%;
+    background:rgba(143,184,195,.4);
+    animation:lp-ring 2s ease-out infinite;
+    will-change:transform,opacity;
+    pointer-events:none;
+  }
+  @keyframes lp-ring{
+    0%{transform:scale(1);opacity:.4;}
+    100%{transform:scale(2.6);opacity:0;}
+  }
+
+  /* The isometric tiles. @isoOn cycled FILL between two alphas of the same
+     colour, which is just opacity. Give the shape the lit colour once and
+     animate opacity instead. */
+  .iso-top-a,.iso-top-b,.iso-top-c{
+    fill:rgba(106,158,170,.5);
+    animation:lp-iso 6s ease-in-out infinite!important;
+    will-change:opacity;
+  }
+  @keyframes lp-iso{
+    0%,3%{opacity:.32;}
+    9%,18%{opacity:1;}
+    30%,100%{opacity:.32;}
+  }
+
+  /* SCROLL JANK, THE REST OF IT. Two blurs doing expensive work that is
+     almost entirely invisible.
+
+     1. nav.scrolled declared background:rgba(10,22,40,.96) AND
+        backdrop-filter:blur(20px). The panel is already 96% opaque, so the
+        blur behind it is doing a full re-blur of everything underneath on
+        every frame to show 4% of a blurred image. And this class is toggled
+        ON SCROLL past 60px, which is exactly when the jank appears.
+        A fixed element with backdrop-filter re-blurs the content beneath it
+        every frame the page moves. Removed; the ground goes fully opaque,
+        which is a 4% change nobody can see.
+
+     2. .hero-mesh-blob carried filter:blur(60px) on three divs sized 600,
+        500 and 350px, all animated forever. Their backgrounds are already
+        radial-gradient(..., transparent 70%), so they are soft before any
+        filter touches them. A blurred element being transform-animated has
+        to re-rasterise the blur each frame: transform alone is cheap, but
+        not with a filter on top. Removed, and the gradient stop is widened
+        to keep the same softness.
+
+     NEITHER CHANGES THE LOOK in any way a person can point at. If either
+     does, that is a failure of the fix, not an improvement. */
+  nav.scrolled{
+    background:rgb(10,22,40)!important;
+    backdrop-filter:none!important;
+    -webkit-backdrop-filter:none!important;
+  }
+  .hero-mesh-blob{
+    filter:none!important;
+    /* contain the paint so an animated blob cannot invalidate its
+       neighbours' layers */
+    contain:paint;
+  }
+  /* Widened stops replace the 60px blur. Same softness, no filter. */
+  .hm1{background:radial-gradient(circle,rgba(106,158,170,.16) 0%,rgba(106,158,170,.06) 45%,transparent 78%)!important;}
+  .hm2{background:radial-gradient(circle,rgba(106,158,170,.13) 0%,rgba(106,158,170,.05) 45%,transparent 78%)!important;}
+  .hm3{background:radial-gradient(circle,rgba(106,158,170,.11) 0%,rgba(106,158,170,.04) 45%,transparent 78%)!important;}
+
+  /* ======================================================================
+     THE CARE PLAN BUILDER, MADE WELCOMING.
+     WHY. Measured, not judged: the section ground is var(--navy) #13181c
+     and every surface inside it is white at 2 to 6 percent. A near-black
+     card on a near-black ground has no weight, so the form reads as
+     something to get through rather than something to fill in. This is the
+     page where a family actually converts.
+     And it is not only a feel problem. NINE of fifteen text colours FAIL
+     WCAG AA on that navy:
+       .plan-empty     1.88 : 1
+       .hours-markers  2.27 : 1
+       .pc-hrs         2.27 : 1
+       .pc-feat        2.27 : 1
+       .plan-free      2.70 : 1
+       .care-type-desc 3.23 : 1
+       .pc-label       3.23 : 1
+       .hours-unit     3.80 : 1
+       .care-tier-desc 3.80 : 1
+     AA wants 4.5. These are the smallest, most functional labels on the
+     page: hours, prices, what is included.
+     The tokens for the fix already exist and are already used elsewhere on
+     this site, so nothing is invented:
+       --cream  #faf8f4   --cream2 #f6f3ee   --white #ffffff
+       --text   #1e2420   14.90 : 1 on cream
+       --muted  #5e5e55    6.17 : 1 on cream
+       --border #e2ddd4
+       --blue   #3d7a8a    4.55 : 1 on cream, so it CAN carry text
+       --blue2  #6a9eaa    2.79 : 1, ACCENT ONLY, never body copy here
+     EVERYTHING IS SCOPED UNDER .builder-section so the dark sections above
+     and below are untouched.
+     NOT TOUCHED: the nine handlers, the step logic, the copy. Surface only.
+     ====================================================================== */
+  .builder-section{background:var(--cream)!important;}
+  /* A cream block between two dark blocks needs a deliberate edge or it
+     reads as a mistake rather than a choice. */
+  .builder-section::after{
+    content:'';position:absolute;top:0;left:0;right:0;height:1px;
+    background:linear-gradient(90deg,transparent,rgba(61,122,138,.35),transparent);
+    pointer-events:none;
+  }
+
+  /* Headings and intro */
+  .builder-section .builder-title{color:var(--text)!important;}
+  .builder-section .builder-sub{color:var(--muted)!important;}
+  .builder-section .ey-tag{color:var(--blue3)!important;}
+  .builder-section .ey-line{background:var(--blue)!important;}
+  .builder-section .builder-progress{background:rgba(30,36,32,.10)!important;}
+  .builder-section .builder-progress-fill{background:var(--blue)!important;}
+
+  /* A card should look like a card: white, a real border, a soft shadow. */
+  .builder-section .step,
+  .builder-section .pc-card,
+  .builder-section .plan-card{
+    background:var(--white)!important;
+    border:1px solid var(--border)!important;
+    box-shadow:0 1px 2px rgba(30,36,32,.04)!important;
+  }
+  .builder-section .step-num{color:var(--blue3)!important;}
+  .builder-section .step-title{color:var(--text)!important;}
+  .builder-section .step-check{color:var(--blue)!important;}
+
+  /* Choices */
+  .builder-section .care-type{
+    background:var(--white)!important;
+    border:1px solid var(--border)!important;
+  }
+  .builder-section .care-type-name{color:var(--text)!important;}
+  .builder-section .care-type-desc{color:var(--muted)!important;}
+  /* A chosen option should look CHOSEN. A 12% wash on cream is invisible,
+     so the selected state is a real fill. */
+  .builder-section .care-type.selected,
+  .builder-section .care-type.active{
+    background:rgba(61,122,138,.10)!important;
+    border-color:var(--blue)!important;
+  }
+  .builder-section .step-next{color:var(--blue3)!important;border-color:var(--blue)!important;}
+
+  /* Hours */
+  .builder-section .hours-val{color:var(--blue3)!important;}
+  .builder-section .hours-unit{color:var(--muted)!important;}
+  .builder-section .hours-markers{color:var(--muted)!important;}
+  .builder-section .care-tier-display{
+    background:rgba(61,122,138,.07)!important;
+    border:1px solid rgba(61,122,138,.18)!important;
+  }
+  .builder-section .care-tier-name{color:var(--text)!important;}
+  .builder-section .care-tier-desc{color:var(--muted)!important;}
+
+  /* Price cards, the ones that failed worst */
+  .builder-section .pc-label{color:var(--muted)!important;}
+  .builder-section .pc-hrs{color:var(--muted)!important;}
+  .builder-section .pc-price{color:var(--text)!important;}
+  .builder-section .pc-feat{color:var(--muted)!important;}
+
+  /* Services */
+  .builder-section .service-toggle{
+    background:var(--white)!important;
+    border:1px solid var(--border)!important;
+  }
+  .builder-section .service-name{color:var(--text)!important;}
+  .builder-section .toggle-switch{background:rgba(30,36,32,.14)!important;}
+  .builder-section .toggle-switch.on{background:var(--blue)!important;}
+  .builder-section .service-badge{
+    background:rgba(61,122,138,.12)!important;color:var(--blue3)!important;
+  }
+
+  /* The plan summary and its CTA */
+  .builder-section .plan-card-label{color:var(--blue3)!important;}
+  .builder-section .plan-empty{color:var(--muted)!important;}
+  .builder-section .plan-cta{background:var(--blue)!important;color:var(--white)!important;}
+  .builder-section .plan-call{color:var(--muted)!important;}
+  .builder-section .plan-email-btn{color:var(--blue3)!important;border-color:var(--blue)!important;}
+  .builder-section .plan-free{color:var(--muted)!important;}
+  .builder-section .plan-email-confirm{color:#15803d!important;}
+
+  /* The shimmer animated background-position, which is a PAINT property.
+     Same class of cost as the blurs removed from the hero. */
+  .builder-section .builder-progress,
+  .builder-section .builder-progress-fill{animation:none!important;}
+
+  /* ======================================================================
+     SEMANTICS. 19 clickable <div>s became real <button>s.
+     WHY. Measured: 19 divs with onclick, and ZERO tabindex, role or aria-
+     attributes in the whole builder. Not keyboard focusable, invisible to
+     screen readers. On a site read by adult children of seniors, many using
+     assistive tech or with limited dexterity, the care plan builder could
+     not be completed without a mouse. That is not a polish item.
+     A <button> gives focus, Enter and Space, and announcement for free.
+     None of the four handlers use closest() or parentNode, and all take
+     (el, value), so `this` behaves identically on a button.
+     WHAT THIS CSS IS FOR. A button carries browser defaults a div does not:
+     its own font, centred text, a border, and a background. Left alone
+     those would wreck the layout, so they are reset to what a div gives.
+     ====================================================================== */
+  .builder-section button.care-type,
+  .builder-section button.service-toggle,
+  .builder-section button.step-header{
+    font:inherit;color:inherit;
+    text-align:left;
+    width:100%;
+    margin:0;
+    cursor:pointer;
+    -webkit-appearance:none;appearance:none;
+  }
+  /* .step-header was a block div; a button is inline-block by default. */
+  .builder-section button.step-header{
+    display:flex;align-items:center;
+    background:transparent;border:none;
+  }
+  /* A FOCUS RING. The single most important part of this change: a keyboard
+     user has to be able to see where they are. Browser defaults get
+     suppressed by the resets above, so it is declared explicitly.
+     :focus-visible means mouse users never see it. */
+  .builder-section button:focus-visible{
+    outline:2px solid var(--blue);
+    outline-offset:2px;
+  }
+  /* A 44px minimum target. These are tapped by people with tremor. */
+  .builder-section button.care-type,
+  .builder-section button.service-toggle,
+  .builder-section button.step-header{min-height:44px;}
+
+  /* ======================================================================
+     THE SEAM. builder (cream) sits directly above how (white).
+     MEASURED: cream #faf8f4 vs white #ffffff is 1.061 : 1. cream2 is
+     1.107 : 1. NO light token on this site separates from white, so ground
+     colour alone CANNOT make these read as two sections. That is a real
+     limit, not a styling preference.
+     The site's own rhythm alternates light and dark for exactly this
+     reason: white, navy2, cream2, navy, cream. builder to how is the only
+     place two lights are adjacent.
+     Neither section can cheaply go dark: .how-section has 6 classes all
+     using dark text (--navy, #4a5568) and is built for a light ground.
+     So the seam is made STRUCTURAL instead of chromatic:
+       a border, which is the pattern .powered-section already uses
+       + the builder's own texture: white cards on cream, where
+         .how-section is flat white with no cards at all
+     ====================================================================== */
+  .builder-section{
+    border-bottom:1px solid var(--border)!important;
+  }
+  /* .how-section has no top border of its own, so the seam reads once,
+     not twice. */
+  .how-section{border-top:none!important;}
+  /* A deliberate shoulder on each side of the seam, so it reads as the end
+     of one block rather than a rule drawn through the middle of one. */
+  .builder-section{padding-bottom:clamp(56px,7vw,96px)!important;}
+  .how-section{padding-top:clamp(56px,7vw,96px)!important;}
 </style>
 <script src="https://unpkg.com/lenis@1.1.14/dist/lenis.min.js"></script>
   <meta property="og:title" content="Proximity Care Services: In Home Senior Care in Mississauga and Brampton">
@@ -1666,44 +2276,44 @@ a:focus-visible,button:focus-visible,.btn:focus-visible,.btn-primary:focus-visib
       <div class="builder-steps">
         <!-- STEP 1 -->
         <div class="step active" id="step1">
-          <div class="step-header" onclick="toggleStep(1)">
+          <button class="step-header" onclick="toggleStep(1)" type="button" aria-expanded="false">
             <div class="step-num">1</div>
             <span class="step-title">What kind of care does your loved one need?</span>
             <span class="step-check">✓</span>
-          </div>
+          </button>
           <div class="step-body">
             <div class="care-types">
-              <div class="care-type selected" onclick="selectCare(this,'Daily Living Support')">
+              <button class="care-type selected" onclick="selectCare(this,'Daily Living Support')" type="button" aria-pressed="true">
                 <div class="care-type-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--blue2)" stroke-width="1.5"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg></div>
                 <span class="care-type-name">Daily Living Support</span>
                 <span class="care-type-desc">Meals, hygiene, companionship, medication reminders</span>
-              </div>
-              <div class="care-type" onclick="selectCare(this,'Dementia & Memory Care')">
+              </button>
+              <button class="care-type" onclick="selectCare(this,'Dementia & Memory Care')" type="button" aria-pressed="false">
                 <div class="care-type-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--blue2)" stroke-width="1.5"><path d="M9.5 2a4.5 4.5 0 0 1 4.5 4.5v1a4.5 4.5 0 0 1-9 0v-1A4.5 4.5 0 0 1 9.5 2z"/><path d="M14 6.5a4 4 0 0 1 4 4v.5a4 4 0 0 1-4 4"/><path d="M5.5 14c-1.5.5-3 2-3 4v1h14v-1c0-2-1.5-3.5-3-4"/></svg></div>
                 <span class="care-type-name">Dementia &amp; Memory Care</span>
                 <span class="care-type-desc">Specialized routines for cognitive conditions</span>
-              </div>
-              <div class="care-type" onclick="selectCare(this,'Post-Hospital Recovery')">
+              </button>
+              <button class="care-type" onclick="selectCare(this,'Post-Hospital Recovery')" type="button" aria-pressed="false">
                 <div class="care-type-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--blue2)" stroke-width="1.5"><rect x="3" y="2" width="18" height="20" rx="2"/><path d="M12 6v4M10 8h4"/><path d="M7 14h10M7 18h6"/></svg></div>
                 <span class="care-type-name">Post-Hospital Recovery</span>
                 <span class="care-type-desc">Support after surgery or hospital discharge</span>
-              </div>
-              <div class="care-type" onclick="selectCare(this,'Overnight & Intensive Care')">
+              </button>
+              <button class="care-type" onclick="selectCare(this,'Overnight & Intensive Care')" type="button" aria-pressed="false">
                 <div class="care-type-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--blue2)" stroke-width="1.5"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></div>
                 <span class="care-type-name">Overnight &amp; Intensive</span>
                 <span class="care-type-desc">Round-the-clock support and monitoring</span>
-              </div>
+              </button>
             </div>
             <button class="step-next" onclick="nextStep(2)">Continue →</button>
           </div>
         </div>
         <!-- STEP 2 -->
         <div class="step" id="step2">
-          <div class="step-header" onclick="toggleStep(2)">
+          <button class="step-header" onclick="toggleStep(2)" type="button" aria-expanded="false">
             <div class="step-num">2</div>
             <span class="step-title">How many hours per week?</span>
             <span class="step-check">✓</span>
-          </div>
+          </button>
           <div class="step-body">
             <div class="hours-wrap">
               <div class="hours-display"><span class="hours-val" id="hours-display">20</span><span class="hours-unit">hrs / week</span></div>
@@ -1724,41 +2334,68 @@ a:focus-visible,button:focus-visible,.btn:focus-visible,.btn-primary:focus-visib
         </div>
         <!-- STEP 3 -->
         <div class="step" id="step3">
-          <div class="step-header" onclick="toggleStep(3)">
+          <button class="step-header" onclick="toggleStep(3)" type="button" aria-expanded="false">
             <div class="step-num">3</div>
             <span class="step-title">Which services do you want included?</span>
             <span class="step-check">✓</span>
-          </div>
+          </button>
           <div class="step-body">
             <div class="services-grid-build" id="services-list">
-              <div class="service-toggle active" onclick="toggleService(this,'Personal Hygiene & Grooming')"><div class="service-toggle-left"><span class="service-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 7H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/><path d="M12 11v2M8 11v2M16 11v2"/></svg></span><span class="service-name">Personal Hygiene &amp; Grooming</span></div><div class="toggle-switch"><div class="toggle-knob"></div></div></div>
-              <div class="service-toggle active" onclick="toggleService(this,'Meal Preparation')"><div class="service-toggle-left"><span class="service-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3zm0 0v7"/></svg></span><span class="service-name">Meal Preparation</span></div><div class="toggle-switch"><div class="toggle-knob"></div></div></div>
-              <div class="service-toggle active" onclick="toggleService(this,'Medication Reminders')"><div class="service-toggle-left"><span class="service-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg></span><span class="service-name">Medication Reminders</span></div><div class="toggle-switch"><div class="toggle-knob"></div></div></div>
-              <div class="service-toggle active" onclick="toggleService(this,'Companionship & Social Support')"><div class="service-toggle-left"><span class="service-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span><span class="service-name">Companionship &amp; Social Support</span></div><div class="toggle-switch"><div class="toggle-knob"></div></div></div>
-              <div class="service-toggle" onclick="toggleService(this,'Mobility Assistance')"><div class="service-toggle-left"><span class="service-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="4" r="2"/><path d="M19 13c0 4-3.13 7-7 7s-7-3-7-7c0-2.5 1.5-4.5 3-6l2-3h4l2 3c1.5 1.5 3 3.5 3 6z"/></svg></span><span class="service-name">Mobility Assistance</span></div><div class="toggle-switch"><div class="toggle-knob"></div></div></div>
-              <div class="service-toggle" onclick="toggleService(this,'Accompany to Appointments')"><div class="service-toggle-left"><span class="service-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="M16 8h4l3 3v5h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg></span><span class="service-name">Accompany to Appointments</span></div><div class="toggle-switch"><div class="toggle-knob"></div></div></div>
-              <div class="service-toggle" onclick="toggleService(this,'Light Housekeeping')"><div class="service-toggle-left"><span class="service-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></span><span class="service-name">Light Housekeeping</span></div><div class="toggle-switch"><div class="toggle-knob"></div></div></div>
-              <div class="service-toggle" onclick="toggleService(this,'Indoor Camera Setup')"><div class="service-toggle-left"><span class="service-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg></span><span class="service-name">Indoor Camera Setup</span><span class="service-badge">Standard+</span></div><div class="toggle-switch"><div class="toggle-knob"></div></div></div>
+              <button class="service-toggle active" onclick="toggleService(this,'Personal Hygiene & Grooming')" type="button" aria-pressed="true"><div class="service-toggle-left"><span class="service-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 7H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/><path d="M12 11v2M8 11v2M16 11v2"/></svg></span><span class="service-name">Personal Hygiene &amp; Grooming</span></div><div class="toggle-switch"><div class="toggle-knob"></div></div></button>
+              <button class="service-toggle active" onclick="toggleService(this,'Meal Preparation')" type="button" aria-pressed="true"><div class="service-toggle-left"><span class="service-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3zm0 0v7"/></svg></span><span class="service-name">Meal Preparation</span></div><div class="toggle-switch"><div class="toggle-knob"></div></div></button>
+              <button class="service-toggle active" onclick="toggleService(this,'Medication Reminders')" type="button" aria-pressed="true"><div class="service-toggle-left"><span class="service-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg></span><span class="service-name">Medication Reminders</span></div><div class="toggle-switch"><div class="toggle-knob"></div></div></button>
+              <button class="service-toggle active" onclick="toggleService(this,'Companionship & Social Support')" type="button" aria-pressed="true"><div class="service-toggle-left"><span class="service-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span><span class="service-name">Companionship &amp; Social Support</span></div><div class="toggle-switch"><div class="toggle-knob"></div></div></button>
+              <button class="service-toggle" onclick="toggleService(this,'Mobility Assistance')" type="button" aria-pressed="false"><div class="service-toggle-left"><span class="service-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="4" r="2"/><path d="M19 13c0 4-3.13 7-7 7s-7-3-7-7c0-2.5 1.5-4.5 3-6l2-3h4l2 3c1.5 1.5 3 3.5 3 6z"/></svg></span><span class="service-name">Mobility Assistance</span></div><div class="toggle-switch"><div class="toggle-knob"></div></div></button>
+              <button class="service-toggle" onclick="toggleService(this,'Accompany to Appointments')" type="button" aria-pressed="false"><div class="service-toggle-left"><span class="service-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="M16 8h4l3 3v5h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg></span><span class="service-name">Accompany to Appointments</span></div><div class="toggle-switch"><div class="toggle-knob"></div></div></button>
+              <button class="service-toggle" onclick="toggleService(this,'Light Housekeeping')" type="button" aria-pressed="false"><div class="service-toggle-left"><span class="service-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></span><span class="service-name">Light Housekeeping</span></div><div class="toggle-switch"><div class="toggle-knob"></div></div></button>
+              <button class="service-toggle" onclick="toggleService(this,'Indoor Camera Setup')" type="button" aria-pressed="false"><div class="service-toggle-left"><span class="service-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg></span><span class="service-name">Indoor Camera Setup</span><span class="service-badge">Standard+</span></div><div class="toggle-switch"><div class="toggle-knob"></div></div></button>
             </div>
             <button class="step-next" onclick="nextStep(4)">See My Plan →</button>
           </div>
         </div>
         <!-- STEP 4 -->
         <div class="step" id="step4">
-          <div class="step-header" onclick="toggleStep(4)">
+          <button class="step-header" onclick="toggleStep(4)" type="button" aria-expanded="false">
             <div class="step-num">4</div>
             <span class="step-title">Where is your loved one located?</span>
             <span class="step-check">✓</span>
-          </div>
+          </button>
           <div class="step-body">
             <div class="care-types care-types-city">
-              <div class="care-type" onclick="selectCity(this,'Mississauga')"><div class="care-type-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--blue2)" stroke-width="1.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></div><span class="care-type-name">Mississauga</span></div>
-              <div class="care-type" onclick="selectCity(this,'Brampton')"><div class="care-type-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--blue2)" stroke-width="1.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></div><span class="care-type-name">Brampton</span></div>
-              <div class="care-type" onclick="selectCity(this,'Caledon')"><div class="care-type-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--blue2)" stroke-width="1.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></div><span class="care-type-name">Caledon</span></div>
+              <button class="care-type" onclick="selectCity(this,'Mississauga')" type="button" aria-pressed="false"><div class="care-type-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--blue2)" stroke-width="1.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></div><span class="care-type-name">Mississauga</span></button>
+              <button class="care-type" onclick="selectCity(this,'Brampton')" type="button" aria-pressed="false"><div class="care-type-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--blue2)" stroke-width="1.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></div><span class="care-type-name">Brampton</span></button>
+              <button class="care-type" onclick="selectCity(this,'Caledon')" type="button" aria-pressed="false"><div class="care-type-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--blue2)" stroke-width="1.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></div><span class="care-type-name">Caledon</span></button>
             </div>
-            <button class="step-next" onclick="finalizePlan()">Book Free Assessment →</button>
+            <button class="step-next" onclick="nextStep(5)" type="button">Continue Free Assessment →</button>
           </div>
         </div>
+          <div class="step" id="step5">
+            <!-- WHEN CARE STARTS. The one question the builder never asked,
+                 and the most important one for triage.
+                 urgency was being DERIVED from the hours slider:
+                   plan.hours >= 40 ? 'hot' : plan.hours >= 20 ? 'warm' : 'cold'
+                 So a family planning 40h/week for next month arrived as
+                 "hot, respond within 1 hour", and a family needing 8h
+                 tomorrow arrived as "cold". The email said respond within
+                 an hour because someone dragged a slider.
+                 Plain words, not hot/warm/cold: traced server.js and NOTHING
+                 branches on urgency. It appears in the email subject and one
+                 table row, with zero comparisons against those keywords. So
+                 the field can finally say what the family actually said. -->
+            <button class="step-header" onclick="toggleStep(5)" type="button" aria-expanded="false">
+              <div class="step-num">5</div>
+              <span class="step-title">When does care need to start?</span>
+              <span class="step-check">✓</span>
+            </button>
+            <div class="step-body">
+              <div class="care-types care-types-city">
+                <button class="care-type" onclick="selectTiming(this,'Within a week')" type="button" aria-pressed="false"><div class="care-type-name">Within a week</div><div class="care-type-desc">We can usually start in 48 hours</div></button>
+                <button class="care-type" onclick="selectTiming(this,'Within a month')" type="button" aria-pressed="false"><div class="care-type-name">Within a month</div><div class="care-type-desc">Time to meet your PSW first</div></button>
+                <button class="care-type" onclick="selectTiming(this,'Just planning ahead')" type="button" aria-pressed="false"><div class="care-type-name">Just planning ahead</div><div class="care-type-desc">No rush, we will keep it on file</div></button>
+              </div>
+              <button class="step-next" onclick="finalizePlan()" type="button">Book My Free Assessment →</button>
+            </div>
+          </div>
       </div>
       <!-- PLAN CARD -->
       <div class="plan-card" id="planCard">
@@ -2093,6 +2730,66 @@ a:focus-visible,button:focus-visible,.btn:focus-visible,.btn-primary:focus-visib
               <div class="lp-oss-sub" id="ossSub">Checked in 08:02 · 12m from address</div>
               <div class="lp-nv-btn lp-nv-signout lp-nv-wide" id="signOutBtn">Sign Out →</div>
             </div>
+            <div class="lp-cisheet" id="ciSheet">
+              <!-- THE CHECK-IN CONFIRM SHEET. 1:1 with psw-portal.html.
+                   The real sign in is not one tap either: doCheckInFromShift
+                   opens showCheckinConfirm, which shows the client, the
+                   scheduled time, a GPS warning if more than 500m away, and
+                   a CARE DIRECTIVES panel with Medications and Care Notes.
+                   The Confirm button is DISABLED until the caregiver ticks
+                   the acknowledgement: toggleCheckinConfirmBtn sets
+                   opacity 0.4 and pointer-events none until then.
+                   That gate is the product's safety argument, and the demo
+                   was skipping it entirely.
+                   NOT INCLUDED: the real sheet also has #cc-dnr-banner
+                   reading "DNR, Do Not Resuscitate". It is real, but putting
+                   it on a marketing page a grieving family may read is
+                   Lance's call, not mine. Asked. -->
+              <div class="lp-ci-title">Confirm Sign In</div>
+              <div class="lp-ci-client">Eleanor Bishop</div>
+              <div class="lp-ci-time">Scheduled 08:00 · 8h</div>
+              <div class="lp-ci-gps" id="ciGps">✓ 12m from the address</div>
+              <div class="lp-ci-panel">
+                <div class="lp-ci-plbl">Care Directives</div>
+                <div class="lp-ci-row"><span>Medications</span><span class="lp-ci-v">Metformin, Ramipril</span></div>
+                <div class="lp-ci-row"><span>Care Notes</span><span class="lp-ci-v">Mobility support on stairs</span></div>
+              </div>
+              <div class="lp-ci-ack" id="ciAck">
+                <span class="lp-ci-box"></span>
+                <span>I have read and understood this client&#8217;s care directives and will follow them during this visit.</span>
+              </div>
+              <div class="lp-ci-btns">
+                <div class="lp-ci-cancel">Cancel</div>
+                <div class="lp-ci-confirm" id="ciConfirm">Confirm Sign In</div>
+              </div>
+            </div>
+            <div class="lp-cosheet" id="coSheet">
+              <!-- THE CHECKOUT SHEET. 1:1 with psw-portal.html.
+                   The real sign out is not one tap: openCheckout opens a
+                   sheet with a checklist, five mood chips and an
+                   observations field, and only then doCheckOut fires.
+                   This is the step that EARNS the family's care summary.
+                   Without it the family phone asserts a mood that the demo
+                   never showed anyone entering.
+                   Mood chips and their colours are verbatim, including
+                   "Low", which I would have missed by eye. -->
+              <div class="lp-co-title">Check Out</div>
+              <div class="lp-co-lbl">Checklist</div>
+              <div class="lp-co-task" id="coTask1"><span class="lp-co-box"></span>Bathing</div>
+              <div class="lp-co-task" id="coTask2"><span class="lp-co-box"></span>Breakfast</div>
+              <div class="lp-co-task" id="coTask3"><span class="lp-co-box"></span>Light housekeeping</div>
+              <div class="lp-co-lbl">Client Mood</div>
+              <div class="lp-co-moods">
+                <div class="lp-co-mood" data-m="Great"><span style="color:#6dbdd4">&#9679;</span>Great</div>
+                <div class="lp-co-mood" data-m="Good"><span style="color:#6db974">&#9679;</span>Good</div>
+                <div class="lp-co-mood" data-m="Neutral"><span style="color:#a8bfc4">&#9679;</span>Neutral</div>
+                <div class="lp-co-mood" data-m="Low"><span style="color:#d4a04a">&#9679;</span>Low</div>
+                <div class="lp-co-mood" data-m="Agitated"><span style="color:#e05555">&#9679;</span>Agit.</div>
+              </div>
+              <div class="lp-co-lbl">Observations or follow-up needed</div>
+              <div class="lp-co-obs" id="coObs">Anything to flag from today&#8217;s visit...</div>
+              <div class="lp-co-submit" id="coSubmit">Check Out + Submit Visit</div>
+            </div>
             <div class="lp-psw-nav">
               <span class="on">Home</span><span>Schedule</span><span>Documents</span><span>Messages</span><span>Clients</span>
             </div>
@@ -2123,11 +2820,17 @@ a:focus-visible,button:focus-visible,.btn:focus-visible,.btn-primary:focus-visib
               <div class="lp-fnc-time" id="fncTime">08:02 AM · automated notification</div>
             </div>
             <div class="lp-vd" id="famDetail">
-              <div class="lp-vd-l">Client Mood</div><div class="lp-vd-v">Bright, chatty all morning</div>
+              <div class="lp-vd-l">Client Mood</div><div class="lp-vd-v" id="famMood">Good · settled all morning</div>
+              <div class="lp-vd-l">Observations</div><div class="lp-vd-v" id="famObs">Ate a full breakfast. Chatty all morning.</div>
               <div class="lp-vd-l">Tasks Completed</div><div class="lp-vd-v">Bathing · Breakfast · Light housekeeping</div>
               <div class="lp-vd-l">Medications Given</div><div class="lp-vd-v">Metformin, Ramipril</div>
               <div class="lp-vd-l">Health Readings</div><div class="lp-vd-v">BP 128/76 · HR 72 · Temp 36.6</div>
               <div class="lp-vd-l">Signed Out</div><div class="lp-vd-v" id="famSignedOut">16:00 · 8h logged</div>
+            </div>
+            <div class="lp-upnext" id="famUpnext">
+              <div class="lp-upnext-l">Next Visit</div>
+              <div class="lp-upnext-row"><span class="lp-upnext-who">Maria Hermida</span><span class="lp-upnext-when">Tomorrow 08:00</span></div>
+              <div class="lp-upnext-row"><span class="lp-upnext-who">James Okafor</span><span class="lp-upnext-when">Thu 08:00</span></div>
             </div>
             <div class="lp-rate" id="famRate">
               <div class="lp-rate-l">How was this visit?</div>
@@ -2266,10 +2969,23 @@ a:focus-visible,button:focus-visible,.btn:focus-visible,.btn-primary:focus-visib
 <script>
 /* ── SCROLL PROGRESS + NAV ── */
 const prog=document.getElementById('prog');
+// SCROLL JANK, THE REAL CAUSE.
+// scrollHeight is a LAYOUT read. Inside a scroll handler it forces the
+// browser to recompute layout SYNCHRONOUSLY on every scroll event, before
+// it is allowed to scroll. With 28 .reveal elements and 6 observers on this
+// page that layout is not cheap.
+// It only changes when the document resizes, so it is cached here and
+// recomputed on resize instead of sixty times a second.
+// getElementById('nav') was also being called every event; hoisted too.
+var _docH=0, _navEl=null;
+function _measureDoc(){ _docH=document.documentElement.scrollHeight-window.innerHeight; }
+_measureDoc();
+window.addEventListener('resize',_measureDoc,{passive:true});
+window.addEventListener('load',_measureDoc);
 window.addEventListener('scroll',()=>{
-  const h=document.documentElement.scrollHeight-window.innerHeight;
-  if(prog&&h>0)prog.style.width=(window.scrollY/h*100)+'%';
-  document.getElementById('nav').classList.toggle('scrolled',window.scrollY>60);
+  if(prog&&_docH>0)prog.style.width=(window.scrollY/_docH*100)+'%';
+  if(!_navEl)_navEl=document.getElementById('nav');
+  if(_navEl)_navEl.classList.toggle('scrolled',window.scrollY>60);
 },{passive:true});
 
 /* ── HAMBURGER ── */
@@ -2395,11 +3111,20 @@ if(howSec)howObs.observe(howSec);
 })();
 
 /* ── CARE BUILDER ── */
-const plan={careType:'Daily Living Support',hours:20,services:['Personal Hygiene & Grooming','Meal Preparation','Medication Reminders','Companionship & Social Support'],city:''};
+const plan={careType:'Daily Living Support',hours:20,services:['Personal Hygiene & Grooming','Meal Preparation','Medication Reminders','Companionship & Social Support'],city:'',timing:''};
 
 function selectCare(el,type){
-  document.querySelectorAll('.care-type').forEach(c=>c.classList.remove('selected'));
-  el.classList.add('selected');plan.careType=type;updatePlanCard();
+  // SCOPED to step 1. This queried '.care-type' globally, but the CITY
+  // buttons in step 4 use the same class, so picking a care type cleared
+  // the city's selected state while plan.city kept its value: the summary
+  // showed a city that looked unselected.
+  document.querySelectorAll('#step1 .care-type').forEach(c=>{
+    c.classList.remove('selected');
+    c.setAttribute('aria-pressed','false');
+  });
+  el.classList.add('selected');
+  el.setAttribute('aria-pressed','true');
+  plan.careType=type;updatePlanCard();
 }
 function updateHours(val){
   plan.hours=parseInt(val);
@@ -2415,21 +3140,50 @@ function updateHours(val){
 }
 function toggleService(el,name){
   el.classList.toggle('active');
-  if(el.classList.contains('active')){if(!plan.services.includes(name))plan.services.push(name);}
+  var on=el.classList.contains('active');
+  // A screen reader cannot see a CSS class. aria-pressed is the only way
+  // the on/off state of these eight toggles gets announced at all.
+  el.setAttribute('aria-pressed',on?'true':'false');
+  if(on){if(!plan.services.includes(name))plan.services.push(name);}
   else{plan.services=plan.services.filter(s=>s!==name);}
   updatePlanCard();
 }
-function selectCity(el,city){
-  document.querySelectorAll('#step4 .care-type').forEach(c=>c.classList.remove('selected'));
-  el.classList.add('selected');plan.city=city;updatePlanCard();
+function selectTiming(el,when){
+  // Scoped to step 5, for the same reason selectCare had to be: a global
+  // '.care-type' query would also clear the care types and the cities.
+  document.querySelectorAll('#step5 .care-type').forEach(c=>{
+    c.classList.remove('selected');
+    c.setAttribute('aria-pressed','false');
+  });
+  el.classList.add('selected');
+  el.setAttribute('aria-pressed','true');
+  plan.timing=when;updatePlanCard();
 }
-function toggleStep(n){document.getElementById('step'+n).classList.toggle('active');}
+function selectCity(el,city){
+  document.querySelectorAll('#step4 .care-type').forEach(c=>{
+    c.classList.remove('selected');
+    c.setAttribute('aria-pressed','false');
+  });
+  el.classList.add('selected');
+  el.setAttribute('aria-pressed','true');
+  plan.city=city;updatePlanCard();
+}
+function toggleStep(n){
+  var st=document.getElementById('step'+n);
+  if(!st)return;
+  st.classList.toggle('active');
+  // The header is a real button now, so its expanded state must be
+  // announced or a keyboard user cannot tell whether the step is open.
+  var hdr=st.querySelector('.step-header');
+  if(hdr)hdr.setAttribute('aria-expanded',st.classList.contains('active')?'true':'false');
+}
 function nextStep(n){
   const prev=document.getElementById('step'+(n-1));
   if(prev){prev.classList.remove('active');prev.classList.add('done');}
   const next=document.getElementById('step'+n);
   if(next){next.classList.add('active');next.scrollIntoView({behavior:'smooth',block:'nearest'});}
-  document.getElementById('builder-progress-fill').style.width=((n-1)*25)+'%';
+  // 5 steps now, not 4. This was hardcoded (n-1)*25.
+  document.getElementById('builder-progress-fill').style.width=((n-1)*20)+'%';
   updatePlanCard();
 }
 function finalizePlan(){
@@ -2479,9 +3233,11 @@ function updatePlanCard(final=false){
   }
   const svcs=plan.services.map(s=>`<div class="plan-service-item">${s}</div>`).join('');
   const city=plan.city?` · ${plan.city}`:'';
+  // The family should see what they answered before they submit.
+  const timing=plan.timing?` · ${plan.timing}`:'';
   document.getElementById('plan-summary').innerHTML=`
     <div class="plan-care-type">${plan.careType}</div>
-    <div class="plan-hours">${plan.hours} hrs/week${city}</div>
+    <div class="plan-hours">${plan.hours} hrs/week${city}${timing}</div>
     ${plan.services.length?`<div class="plan-divider"></div><div class="plan-services-lbl">Services Included</div>${svcs}`:''}
     <div class="plan-price-wrap">
       <div class="plan-price-lbl">Estimated Monthly</div>
@@ -3162,8 +3918,12 @@ var pcBooked=false;
 
   // Scroll depth tracker
   var scrollDepth=0;
+  // Same layout read, same fix. This one feeds only an analytics number, so
+  // it was forcing a reflow per scroll event for a value nobody sees until
+  // the page unloads. Uses the cached height from the handler above.
   window.addEventListener('scroll',function(){
-    var d=Math.round((window.scrollY/Math.max(1,document.body.scrollHeight-window.innerHeight))*100);
+    if(typeof _docH!=='number'||_docH<=0)return;
+    var d=Math.round((window.scrollY/_docH)*100);
     if(d>scrollDepth) scrollDepth=d;
   },{passive:true});
 
@@ -3233,7 +3993,7 @@ async function submitPlanForm() {
         city: plan.city || '',
         care_type_interest: plan.careType || '',
         care_needed_for: plan.services && plan.services.length ? plan.services.join(', ') : '',
-        urgency: plan.hours >= 40 ? 'hot' : plan.hours >= 20 ? 'warm' : 'new',
+        urgency: plan.timing || 'not specified',
         source: 'care_builder_cta',
         notes: 'Built via care plan builder. Hours: ' + (plan.hours || 0) + '/wk. Est monthly: $' + monthly
       })
@@ -3425,8 +4185,18 @@ function showWhose(phoneId, who, what, tone){
     if(el)el.classList.remove('lp-mob-active');
   });
   var target=document.getElementById(phoneId);
-  // the small delay lets the reveal animation replay on every switch
-  if(target)setTimeout(function(){target.classList.add('lp-mob-active');},50);
+  // No setTimeout. It existed to let a display:none element replay its entry
+  // animation; with a cross-fade there is nothing to replay, and Chrome
+  // measured the delay as 50ms with ALL THREE phones invisible.
+  if(target)target.classList.add('lp-mob-active');
+  // The WHOLE STAGE takes the portal's colour, not just the phone. An accent
+  // on a 210px mockup was too small a signal to notice; a full environment
+  // change is not. This is what the LinkedIn ads already do.
+  var wrap=document.getElementById('flow-demo-wrap');
+  if(wrap){
+    wrap.classList.remove('tone-psw','tone-fam','tone-map');
+    wrap.classList.add('tone-'+tone);
+  }
   var cap=document.getElementById('lpWhose');
   var w=document.getElementById('lpWhoseWho');
   var t=document.getElementById('lpWhoseWhat');
@@ -3527,7 +4297,28 @@ function resetAll(){
   // RESET THE CHECK-OUT ARC. Without this the second loop starts with the
   // visit already finished: the summary shown, the stars lit, the progress
   // bar full. Eight elements, every one added in this rebuild.
-  var _reveal=['famDetail','famRate'];
+  // The phase-collapse classes must reset too, or cycle two opens with
+  // the notification already dismissed and the on-shift block already up.
+  // The checkout sheet resets too, or cycle two opens with the checklist
+  // already ticked, the mood already picked and the sheet already up.
+  // The confirm sheet resets too, or cycle two opens with the directives
+  // already acknowledged and Confirm already armed.
+  var _ci=document.getElementById('ciSheet'); if(_ci)_ci.classList.remove('lp-up');
+  var _ca=document.getElementById('ciAck'); if(_ca)_ca.classList.remove('lp-tick');
+  var _cb=document.getElementById('ciConfirm'); if(_cb)_cb.classList.remove('lp-armed');
+  var _sh=document.getElementById('coSheet'); if(_sh)_sh.classList.remove('lp-up');
+  ['coTask1','coTask2','coTask3'].forEach(function(id){
+    var el=document.getElementById(id); if(el)el.classList.remove('lp-tick');
+  });
+  var _ms=document.querySelectorAll('.lp-co-mood');
+  for(var _i=0;_i<_ms.length;_i++)_ms[_i].classList.remove('lp-pick');
+  var _ob=document.getElementById('coObs');
+  if(_ob){_ob.textContent='Anything to flag from today\u2019s visit...';_ob.classList.remove('lp-filled');}
+    ['pswNotif','gpsStatus','onShiftStatus'].forEach(function(id){
+    var el=document.getElementById(id);
+    if(el){el.classList.remove('lp-open');el.classList.remove('lp-done');}
+  });
+  var _reveal=['famDetail','famRate','famUpnext'];
   _reveal.forEach(function(id){var el=document.getElementById(id);if(el){el.style.animation='none';el.style.opacity='0';el.classList.remove('lit');}});
   var _so=document.getElementById('signOutBtn'); if(_so){_so.classList.remove('confirming');_so.textContent='Sign Out \u2192';}
   var _si=document.getElementById('signInBtn'); if(_si){_si.classList.remove('confirming');_si.textContent='Sign In \u2192';}
@@ -3541,15 +4332,20 @@ function resetAll(){
   // ONE PHONE AT A TIME NOW RUNS AT EVERY WIDTH, so this is no longer
   // gated on isMobile. Without resetting the caption the second loop opens
   // on "Emma, reading the summary" while showing Maria's phone.
-  var phones=['pswPhone','famPhone','mapPhone'];
-  phones.forEach(function(id){var el=document.getElementById(id);if(el)el.classList.remove('lp-mob-active');});
+  // DO NOT clear the active phone here. resetAll used to remove it from all
+  // three, and the first beat does not fire until +400ms, so Chrome measured
+  // 1067ms of empty frame at the top of every loop. The first beat sets the
+  // PSW phone anyway, so leaving it up means the loop restarts on a visible
+  // screen instead of a void.
   setMobDot(0);
   var _cw=document.getElementById('lpWhoseWho'); if(_cw)_cw.textContent='Maria, the caregiver';
   var _ct=document.getElementById('lpWhoseWhat'); if(_ct)_ct.textContent='Her phone, in your parent\u2019s hallway';
   var _cc=document.getElementById('lpWhose'); if(_cc)_cc.className='lp-whose psw';
+  var _cwrap=document.getElementById('flow-demo-wrap');
+  if(_cwrap){_cwrap.classList.remove('tone-fam','tone-map');_cwrap.classList.add('tone-psw');}
 }
 
-var TOTAL=22000;
+var TOTAL = 26000;
 var startTime=null;
 
 function buildTimeline(base){
@@ -3580,45 +4376,91 @@ function buildTimeline(base){
       setStage('Maria taps Sign In \u00b7 GPS verifying');
       setStep(2);
       var b=document.getElementById('signInBtn'); if(b)b.classList.add('confirming');
-      var g=document.getElementById('gpsStatus'); if(g){g.style.animation='lp-fade-up .4s ease forwards';g.style.opacity='1';}
+      var g=document.getElementById('gpsStatus'); if(g){g.classList.add('lp-open');g.style.opacity='1';}
     }],
     // 3. GPS confirms she is at the address.
+    // 2b. GPS passes, and the confirm sheet opens. Not signed in yet.
     [base+5200,function(){
+      setStage('GPS verified \u00b7 care directives to read first');
       var c=document.getElementById('gpsChecking'); if(c)c.style.display='none';
+      var v2=document.getElementById('gpsVerified'); if(v2)v2.style.display='block';
+      var sh=document.getElementById('ciSheet'); if(sh)sh.classList.add('lp-up');
+    }],
+    // 2c. She reads the directives and acknowledges them. Confirm is
+    //     DISABLED until she does: that gate is the safety argument.
+    [base+6800,function(){
+      setStage('Directives acknowledged \u00b7 now she can sign in');
+      var ack=document.getElementById('ciAck'); if(ack)ack.classList.add('lp-tick');
+      var btn=document.getElementById('ciConfirm'); if(btn)btn.classList.add('lp-armed');
+    }],
+    // 2d. Confirmed. The sheet closes and the shift starts.
+    [base+8200,function(){
+      var sh=document.getElementById('ciSheet'); if(sh)sh.classList.remove('lp-up');
       var v=document.getElementById('gpsVerified'); if(v)v.style.display='block';
       var b=document.getElementById('signInBtn'); if(b){b.classList.remove('confirming');b.textContent='Signed In \u2713';}
-      var o=document.getElementById('onShiftStatus'); if(o){o.style.animation='lp-slide-up .4s ease forwards';o.style.opacity='1';}
+      var o=document.getElementById('onShiftStatus'); if(o){o.classList.add('lp-open');o.style.opacity='1';}
+      var nb=document.getElementById('pswNotif'); if(nb)nb.classList.add('lp-done');
+      var gd=document.getElementById('gpsStatus'); if(gd)gd.classList.add('lp-done');
       var f=document.getElementById('tprogFill'); if(f)f.style.width='50%';
     }],
     // 4. The family is told, in the same breath.
-    [base+6400,function(){
+    [base+9400,function(){
       setStage('Family notified \u00b7 Emma sees the arrival');
       setStep(3);
       fireConnector(1);
       setMobDot(2);showWhose('famPhone','Emma, the daughter','Her phone, wherever she is','fam');
     }],
-    [base+7600,function(){
+    [base+10600,function(){
       var p=document.getElementById('pushNotif'); if(p)p.classList.add('show');
     }],
-    [base+8800,function(){
+    [base+11800,function(){
       var t=document.getElementById('famEtaTxt'); if(t)t.textContent='Maria is with Eleanor now';
       var f=document.getElementById('famNotifCard'); if(f){f.style.animation='lp-slide-down .4s ease forwards';f.style.opacity='1';}
     }],
     // 5. The map. The family can see where she is.
-    [base+10400,function(){
+    [base+13400,function(){
       setStage('Live GPS \u00b7 Emma can see she is on site');
       setStep(4);
       fireConnector(2);
       var m=document.getElementById('mapPhone'); if(m)m.classList.add('show');
       setMobDot(3);showWhose('mapPhone','Where Maria is','Emma can see it, live, from home','map');
     }],
-    [base+11600,function(){
+    [base+14600,function(){
       var cp=document.getElementById('clientPin'); if(cp)cp.classList.add('show');
       var pp=document.getElementById('pswPin'); if(pp)pp.classList.add('show');
       var gi=document.getElementById('gpsInfoStrip'); if(gi)gi.classList.add('show');
     }],
     // 6. THE SHIFT ENDS. This is the half the old arc never showed.
-    [base+13600,function(){
+    // 6a. She opens the checkout sheet. Not one tap: the real portal shows
+    //     a checklist, mood chips and an observations field first.
+    [base+16000,function(){
+      setStage('Maria opens the checkout sheet');
+      setMobDot(1);showWhose('pswPhone','Maria, finishing the visit','What she logs is what the family reads','psw');
+      var sh=document.getElementById('coSheet'); if(sh)sh.classList.add('lp-up');
+    }],
+    // 6b. The checklist, one task at a time, as she actually ticks them.
+    [base+17000,function(){
+      var t1=document.getElementById('coTask1'); if(t1)t1.classList.add('lp-tick');
+    }],
+    [base+17500,function(){
+      var t2=document.getElementById('coTask2'); if(t2)t2.classList.add('lp-tick');
+    }],
+    [base+18000,function(){
+      var t3=document.getElementById('coTask3'); if(t3)t3.classList.add('lp-tick');
+    }],
+    // 6c. Client Mood. The family phone later shows THIS answer, not a
+    //     different one, which is the whole point of showing this step.
+    [base+18600,function(){
+      setStage('Client mood, tasks, observations \u00b7 all logged');
+      var ms=document.querySelectorAll('.lp-co-mood');
+      for(var i=0;i<ms.length;i++){
+        if(ms[i].getAttribute('data-m')==='Good')ms[i].classList.add('lp-pick');
+      }
+      var ob=document.getElementById('coObs');
+      if(ob){ob.textContent='Ate a full breakfast. Chatty all morning.';ob.classList.add('lp-filled');}
+    }],
+    // 6d. And only now does she check out.
+    [base+19800,function(){
       setStage('Visit complete \u00b7 Maria signs out');
       setStep(5);
       setMobDot(1);showWhose('pswPhone','Maria, signing out','The visit is logged as she leaves','psw');
@@ -3628,20 +4470,31 @@ function buildTimeline(base){
       var c=document.getElementById('tprogCount'); if(c)c.textContent='1 / 1';
     }],
     // 7. The family gets the care summary, not just an alert.
-    [base+15600,function(){
+    [base+21200,function(){
       setStage('Care summary sent \u00b7 every task, every reading');
       setMobDot(2);showWhose('famPhone','Emma, reading the summary','Every task, every reading, every time','fam');
       var t=document.getElementById('fncTitle'); if(t)t.textContent='Visit complete';
       var b=document.getElementById('fncBody'); if(b)b.textContent='Maria signed out at 16:00. Full care summary below.';
       var m=document.getElementById('fncTime'); if(m)m.textContent='16:00 \u00b7 8h logged';
       var d=document.getElementById('famDetail'); if(d){d.style.animation='lp-fade-up .4s ease forwards';d.style.opacity='1';}
+      // Echo what Maria actually entered, read from the chip she picked and
+      // the observations she typed. Not a second, different answer.
+      var picked=document.querySelector('.lp-co-mood.lp-pick');
+      var fm=document.getElementById('famMood');
+      if(fm&&picked)fm.textContent=(picked.getAttribute('data-m')||'')+' \u00b7 settled all morning';
+      var src=document.getElementById('coObs');
+      var fo=document.getElementById('famObs');
+      if(fo&&src)fo.textContent=src.textContent;
+      // "Next visit" only becomes tomorrow once today's is complete, so it
+      // appears here rather than sitting on screen from the first frame.
+      var un=document.getElementById('famUpnext'); if(un)un.style.opacity='1';
     }],
     // 8. And they can say how it went.
-    [base+17800,function(){
+    [base+22600,function(){
       setStage('Emma rates the visit \u00b7 the loop closes');
       var r=document.getElementById('famRate'); if(r)r.classList.add('lit');
     }],
-    [base+19600,function(){
+    [base+23800,function(){
       setStage('Arrived, logged, summarised, rated \u00b7 nobody chased anyone');
     }],
     [base+TOTAL,function(){
