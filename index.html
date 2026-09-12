@@ -812,7 +812,10 @@ body::after{content:'';position:fixed;inset:0;background-image:url("data:image/s
 .lp-fam-brand span{color:#6a9eaa}
 .lp-fam-sub{font-family:'DM Mono',monospace;font-size:5px;color:rgba(232,220,200,.25);letter-spacing:.8px}
 
-.lp-rosetta{margin:6px;background:linear-gradient(135deg,rgba(61,138,122,.22),rgba(30,90,80,.1));border:1px solid rgba(90,173,160,.25);padding:7px}
+/* A dead rule was removed here. It styled ZERO elements, and its class
+     name was derived from a real client. The live card uses
+     .lp-client-card, which has different declarations, so this was a
+     removal and not a rename. */
 .lp-rc-label{font-family:'DM Mono',monospace;font-size:5px;letter-spacing:1.5px;text-transform:uppercase;color:rgba(90,173,160,.5);margin-bottom:2px}
 .lp-rc-name{font-family:'Cormorant Garamond',serif;font-size:15px;font-weight:600;color:#e8ddc8;line-height:1.1;margin-bottom:2px}
 .lp-rc-last{font-family:'DM Mono',monospace;font-size:6px;color:rgba(232,220,200,.4);display:flex;align-items:center;gap:4px}
@@ -1339,7 +1342,6 @@ a:focus-visible,button:focus-visible,.btn:focus-visible,.btn-primary:focus-visib
 /* ═══ end reduced motion ═══ */
 
   /* FAMILY PHONE REBUILD. Every element matched in family.html first.
-     .lp-rosetta is renamed to .lp-client-card: a real client's name as a
      CSS class, same rename applied on the other two sites.
      Type stays at mockup scale, 4 to 6.5px. These are pictures of an app. */
   .lp-client-card{margin:6px;background:linear-gradient(135deg,rgba(90,173,160,.08),rgba(90,173,160,.03));border:1px solid rgba(90,173,160,.18);border-radius:6px;padding:6px 7px}
@@ -2485,9 +2487,9 @@ a:focus-visible,button:focus-visible,.btn:focus-visible,.btn-primary:focus-visib
         <div id="plan-cta-wrap" style="display:none">
           <div id="plan-inline-form" style="display:none;margin-bottom:12px">
             <div style="font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--blue2);font-family:var(--sans);margin-bottom:10px;font-weight:600">Your details, we call you within 2 hours</div>
-            <input type="text" id="pf-name" placeholder="Your name" style="display:block;width:100%;box-sizing:border-box;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.15);color:#fff;padding:10px 12px;font-size:16px;font-family:inherit;margin-bottom:8px;outline:none;border-radius:4px">
-            <input type="tel" id="pf-phone" placeholder="Phone number" style="display:block;width:100%;box-sizing:border-box;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.15);color:#fff;padding:10px 12px;font-size:16px;font-family:inherit;margin-bottom:8px;outline:none;border-radius:4px">
-            <input type="email" id="pf-email" placeholder="Email (optional)" style="display:block;width:100%;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.15);color:#fff;padding:10px 12px;font-size:16px;font-family:inherit;margin-bottom:12px;outline:none;border-radius:4px">
+            <input type="text" id="pf-name" placeholder="Your name" style="display:block;width:100%;box-sizing:border-box;padding:10px 12px;font-size:16px;font-family:inherit;margin-bottom:8px;border-radius:4px">
+            <input type="tel" id="pf-phone" placeholder="Phone number" style="display:block;width:100%;box-sizing:border-box;padding:10px 12px;font-size:16px;font-family:inherit;margin-bottom:8px;border-radius:4px">
+            <input type="email" id="pf-email" placeholder="Email (optional)" style="display:block;width:100%;padding:10px 12px;font-size:16px;font-family:inherit;margin-bottom:12px;border-radius:4px">
             <div class="pf-error" id="pf-error" role="alert" aria-live="polite"></div>
               <button class="plan-cta" id="pf-submit" onclick="submitPlanForm()" style="margin-top:0;font-size:16px">Book My Free Assessment</button>
             <a href="tel:6473828047" class="plan-call">Or call 647 382 8047</a>
