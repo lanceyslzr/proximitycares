@@ -2105,6 +2105,87 @@ a:focus-visible,button:focus-visible,.btn:focus-visible,.btn-primary:focus-visib
      of one block rather than a rule drawn through the middle of one. */
   .builder-section{padding-bottom:clamp(56px,7vw,96px)!important;}
   .how-section{padding-top:clamp(56px,7vw,96px)!important;}
+
+  /* ======================================================================
+     SVG CONTRAST. CHROME CORRECTED MY NUMBERS AND IT WAS WORSE.
+     I computed var(--blue2) #6a9eaa at 2.79:1. That colour NEVER RENDERS:
+     a presentation attribute has the lowest precedence in the cascade, and
+     THREE pre-existing rules beat it. All three were written for the DARK
+     builder. I turned the builder light and never reversed them.
+     MEASURED IN THE BROWSER, pixel-confirmed:
+       6 unselected care icons  #c8ddE2 on white          1.41 : 1
+       1 selected care icon     #ffffff on the teal tint   1.13 : 1
+       8 service icons          rgba(255,255,255,.88)
+                                on a white button          1.00 : 1
+     The last group is INVISIBLE. Chrome captured pixels: every service row
+     renders its label and toggle with a blank 14px gap where the icon is.
+     Eight icons that a family cannot see at all.
+     WCAG 1.4.11 wants 3:1 for non-text graphics.
+     --blue #3d7a8a is 4.55:1 on cream and 4.83 on white, so it clears the
+     floor with room. It is the same token the section already uses for text.
+     ====================================================================== */
+  /* The attribute selectors that redirected to --teal-light. Same shape,
+     pointed at a colour that works on a light ground. */
+  .builder-section svg[stroke="var(--blue2)"],
+  .builder-section svg[stroke="var(--blue)"]{
+    stroke:var(--blue)!important;
+  }
+  /* The selected state went to white on a 10% teal tint: 1.13:1. On a light
+     ground the selected icon needs to go DARKER, not lighter. */
+  .builder-section .care-type.selected .care-type-icon svg{
+    stroke:var(--blue3)!important;
+    filter:none!important;
+  }
+  /* The eight invisible ones. .service-icon sets no colour, so currentColor
+     inherited rgba(255,255,255,.88) from an ancestor built for dark. */
+  .builder-section .service-toggle,
+  .builder-section .service-icon{
+    color:var(--blue)!important;
+  }
+  .builder-section .service-icon svg{stroke:var(--blue)!important;}
+  /* An active toggle's icon can carry the deeper tone, still above 3:1. */
+  .builder-section .service-toggle.active .service-icon svg{
+    stroke:var(--blue3)!important;
+  }
+
+  /* ======================================================================
+     THE CONTACT FORM. This is where the lead is actually captured, and it
+     was styled for the DARK builder throughout.
+     MEASURED, all three inputs inline-styled:
+       background rgba(255,255,255,0.06)  on a white card   1.00 : 1
+       color      #fff                    on a white card   1.00 : 1
+       border     rgba(255,255,255,0.15)  on white          1.03 : 1
+     So the field boundary is invisible AND the text a family types is
+     invisible. They cannot see what they are entering.
+     WCAG 1.4.11 wants 3:1 for a form field boundary.
+     Inline styles beat any class selector, so these must be !important.
+     ====================================================================== */
+  .builder-section #plan-inline-form input{
+    background:var(--white)!important;
+    color:var(--text)!important;
+    /* --border is 1.35:1 on white: fine as a section divider, below the
+       3:1 that WCAG 1.4.11 wants for the boundary of a CONTROL someone has
+       to find and click into. --muted is 6.55:1 and already in the file. */
+    border:1px solid var(--muted)!important;
+  }
+  .builder-section #plan-inline-form input::placeholder{
+    color:var(--muted)!important;opacity:1;
+  }
+  .builder-section #plan-inline-form input:focus-visible{
+    outline:2px solid var(--blue);outline-offset:2px;
+    border-color:var(--blue)!important;
+  }
+  /* An invalid field needs more than a red border: aria-invalid is what a
+     screen reader reads, and the message is what everyone else reads. */
+  .builder-section #plan-inline-form input[aria-invalid="true"]{
+    border-color:#c0392b!important;
+  }
+  .pf-error{
+    display:none;
+    font-size:14px;line-height:1.4;color:#c0392b;
+    margin-top:6px;
+  }
+  .pf-error.show{display:block;}
 </style>
 <script src="https://unpkg.com/lenis@1.1.14/dist/lenis.min.js"></script>
   <meta property="og:title" content="Proximity Care Services: In Home Senior Care in Mississauga and Brampton">
@@ -2276,7 +2357,7 @@ a:focus-visible,button:focus-visible,.btn:focus-visible,.btn-primary:focus-visib
       <div class="builder-steps">
         <!-- STEP 1 -->
         <div class="step active" id="step1">
-          <button class="step-header" onclick="toggleStep(1)" type="button" aria-expanded="false">
+          <button class="step-header" onclick="toggleStep(1)" type="button" aria-expanded="true">
             <div class="step-num">1</div>
             <span class="step-title">What kind of care does your loved one need?</span>
             <span class="step-check">✓</span>
@@ -2407,7 +2488,8 @@ a:focus-visible,button:focus-visible,.btn:focus-visible,.btn-primary:focus-visib
             <input type="text" id="pf-name" placeholder="Your name" style="display:block;width:100%;box-sizing:border-box;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.15);color:#fff;padding:10px 12px;font-size:16px;font-family:inherit;margin-bottom:8px;outline:none;border-radius:4px">
             <input type="tel" id="pf-phone" placeholder="Phone number" style="display:block;width:100%;box-sizing:border-box;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.15);color:#fff;padding:10px 12px;font-size:16px;font-family:inherit;margin-bottom:8px;outline:none;border-radius:4px">
             <input type="email" id="pf-email" placeholder="Email (optional)" style="display:block;width:100%;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.15);color:#fff;padding:10px 12px;font-size:16px;font-family:inherit;margin-bottom:12px;outline:none;border-radius:4px">
-            <button class="plan-cta" id="pf-submit" onclick="submitPlanForm()" style="margin-top:0;font-size:16px">Book My Free Assessment</button>
+            <div class="pf-error" id="pf-error" role="alert" aria-live="polite"></div>
+              <button class="plan-cta" id="pf-submit" onclick="submitPlanForm()" style="margin-top:0;font-size:16px">Book My Free Assessment</button>
             <a href="tel:6473828047" class="plan-call">Or call 647 382 8047</a>
             <div id="pf-confirm" style="display:none;text-align:center;padding:14px;color:#6ab4c8;font-size:13px;line-height:1.6"></div>
           </div>
@@ -3951,11 +4033,39 @@ async function submitPlanForm() {
   var phone = (document.getElementById('pf-phone').value || '').trim();
   var email = (document.getElementById('pf-email').value || '').trim();
 
-  if (!name || !phone) {
-    document.getElementById('pf-name').style.borderColor = !name ? '#f85149' : 'rgba(255,255,255,0.15)';
-    document.getElementById('pf-phone').style.borderColor = !phone ? '#f85149' : 'rgba(255,255,255,0.15)';
+  // VALIDATION. What was here set a red border and returned. Three problems:
+  //   the reset colour was rgba(255,255,255,0.15), a DARK-builder border
+  //   that is 1.03:1 on the light card, so a valid field lost its outline
+  //   there was no aria-invalid, so a screen reader was told nothing
+  //   there was no message and no focus move, so someone who missed the
+  //   colour change just thought the button was broken
+  // And email was read and SENT to the webhook but never checked at all.
+  var _pf=function(id){return document.getElementById(id);};
+  var _err=_pf('pf-error');
+  var bad=[];
+  if(!name) bad.push(['pf-name','your name']);
+  if(!phone) bad.push(['pf-phone','a phone number']);
+  // Email is optional here, but if it is given it has to be usable: it is
+  // sent to the webhook and it is how the plan gets emailed back.
+  if(email && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) bad.push(['pf-email','a valid email address']);
+  ['pf-name','pf-phone','pf-email'].forEach(function(id){
+    var el=_pf(id); if(!el) return;
+    var isBad=bad.some(function(b){return b[0]===id;});
+    el.setAttribute('aria-invalid', isBad?'true':'false');
+    // Clear the inline border so the stylesheet rule decides the colour.
+    el.style.borderColor='';
+  });
+  if(bad.length){
+    if(_err){
+      _err.textContent='Please enter '+bad.map(function(b){return b[1];}).join(' and ')+'.';
+      _err.classList.add('show');
+    }
+    // Move focus to the first problem, or a keyboard user has no idea
+    // which field to fix.
+    var first=_pf(bad[0][0]); if(first)first.focus();
     return;
   }
+  if(_err){_err.textContent='';_err.classList.remove('show');}
 
   var btn = document.getElementById('pf-submit');
   btn.disabled = true;
