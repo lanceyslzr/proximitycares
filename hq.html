@@ -13717,13 +13717,49 @@ async function broadcastShift(bookingId) {
 async function exportPayrollCSV() {
   try {
     showToast('Generating payroll CSV...', 'ok');
+    // B140. hqFetch, not a bare fetch. hq.html:4112 adds x-hq-token from
+    // window._hqToken || sessionStorage and returns the raw fetch promise,
+    // so .blob() below is unchanged. 68 other call sites already use it.
+    //
+    // A BARE fetch here sent NO HEADERS AT ALL and validateHQToken answered
+    // 401, so this button has never worked. Measured live 2026-09-12: 47
+    // bytes of JSON and no file. The same URL WITH a token returned 200 and
+    // 1404 bytes, so the 401 was the header and not an empty period.
+    //
+    // NO DATES ARE SENT ON PURPOSE. B139 makes the server resolve the pay
+    // period through payPeriodFor rather than a rolling fortnight, so this
+    // exports a period someone can name. DO NOT ADD DATE ARITHMETIC HERE:
+    // divergence.test.js section 1 asserts hq.html computes ZERO pay periods.
     const url = `${API}/hq/payroll-csv?operator_id=${currentOp}`;
-    const res = await fetch(url);
+    const res = await hqFetch(url);
     if (!res.ok) { const d = await res.json(); throw new Error(d.error||'Export failed'); }
     const blob = await res.blob();
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
-    a.download = `payroll_${new Date().toLocaleDateString('en-CA',{timeZone:'America/Toronto'})}.csv`;
+    // B140. THE FILENAME NAMES THE PERIOD IT COVERS.
+    //
+    // It was payroll_<today>.csv, which records when it was downloaded and
+    // nothing about what is inside. Two exports a week apart are
+    // indistinguishable on disk, and a payroll file nobody can identify
+    // afterwards is a dispute nobody can answer.
+    //
+    // The server already sends the window in Content-Disposition. Reading it
+    // here rather than rebuilding the name means the two cannot disagree:
+    // the paystub filename is built independently on both sides and they
+    // agree only by coincidence of identical string-building.
+    //
+    // FALLS BACK TO THE OLD NAME if the header is unreadable. It is not in
+    // Access-Control-Expose-Headers today, so cross-origin JS CANNOT SEE IT
+    // and the fallback is what will actually run until that changes. That is
+    // deliberate: a named file when the header is exposed, today's name when
+    // it is not, and never a throw.
+    let _fname = `payroll_${new Date().toLocaleDateString('en-CA',{timeZone:'America/Toronto'})}.csv`;
+    try {
+      const _cd = res.headers.get('content-disposition') || '';
+      const _m  = _cd.match(/filename="?([^";]+)"?/i);
+      if (_m && _m[1]) _fname = _m[1];
+    } catch (e) {}
+    a.download = _fname;
     a.click();
     showToast('Payroll CSV downloaded', 'ok');
   } catch(e) { showToast(e.message, 'err'); }
