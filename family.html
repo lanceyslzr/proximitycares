@@ -2100,6 +2100,17 @@ async function loadFamilyDocs() {
   } catch (e) {
     window._famDocs = null;
   }
+  // B150. The documents arrive AFTER the tab has rendered. markFamilyTabDirty()
+  // at the top of the portal runs BEFORE this fetch is fired, so the care tab is
+  // already built and clean when they land, and showTab returns early for a built
+  // clean tab. Without this the Agreements section never appears on a restored
+  // session, and a card still reads NEEDS SIGNATURE after a signature was
+  // recorded. Mark the tab dirty, and rebuild it only if the family is looking at
+  // it, so no other tab is disturbed. The early return above, taken when the fetch
+  // fails, deliberately skips this: there are no documents to show.
+  markFamilyTabDirty('care');
+  const _b150Nav = document.getElementById('nav-care');
+  if (_b150Nav && _b150Nav.classList.contains('on')) showTab('care');
 }
 
 // Opens the PDF through a short lived signed URL. The server never returns a
