@@ -12594,17 +12594,23 @@ function _calMonthRange(which) {
   return { from: ym(py, pm) + '-01', to: tzAddDaysStr(thisFirst, -1) };
 }
 
-async function hqPeriodRange(preset) {
+async function hqPeriodRange(preset, pswName) {
+  // B160. pswName is OPTIONAL. Given one, that caregiver's own recorded period
+  // wins over the agency's (B101b), as /hq/pay-period already honours. origin
+  // is where the SERVER says the period came from: recorded, schedule or
+  // computed (B159). The two callers that existed before pass no name and read
+  // only from, to and source, so they are unchanged.
   const which = preset === 'last' ? 'previous' : 'current';
+  const pswQ = pswName ? '&psw_name=' + encodeURIComponent(pswName) : '';
   try {
-    const r = await hqFetch(`${API}/hq/pay-period?which=${which}&operator_id=${currentOp}`);
+    const r = await hqFetch(`${API}/hq/pay-period?which=${which}&operator_id=${currentOp}${pswQ}`);
     const d = await r.json();
     if (d && d.success && d.periodStart && d.periodEnd) {
-      return { from: d.periodStart, to: d.periodEnd, source: 'server' };
+      return { from: d.periodStart, to: d.periodEnd, source: 'server', origin: d.source || null };
     }
   } catch (e) { /* fall through to the calendar */ }
   const c = _calMonthRange(preset);
-  return { from: c.from, to: c.to, source: 'calendar' };
+  return { from: c.from, to: c.to, source: 'calendar', origin: null };
 }
 
 async function cspSetPreset(preset) {
@@ -17939,6 +17945,7 @@ function _applyActiveSectionFlex() {
       <button id="psp-preset-this" onclick="setPaystubPeriod('this')" style="padding:10px 6px;border-radius:8px;border:1px solid var(--border);background:var(--bg3);font-family:var(--mono);font-size:10px;letter-spacing:1px;color:var(--muted);min-height:44px;cursor:pointer;transition:all .15s;">This Month</button>
       <button id="psp-preset-custom" onclick="setPaystubPeriod('custom')" style="padding:10px 6px;border-radius:8px;border:1px solid var(--border);background:var(--bg3);font-family:var(--mono);font-size:10px;letter-spacing:1px;color:var(--muted);min-height:44px;cursor:pointer;transition:all .15s;">Custom</button>
     </div>
+    <div id="psp-period-src" style="font-size:12px;color:var(--muted);margin:-8px 0 12px;line-height:1.4;"></div>
     <div class="srow2" style="margin-bottom:14px;">
       <div><div class="slbl">Start Date</div><input class="sinput" type="date" id="psp-start" oninput="clearPaystubPreview()" style="font-size:16px;"></div>
       <div><div class="slbl">End Date</div><input class="sinput" type="date" id="psp-end" oninput="clearPaystubPreview()" style="font-size:16px;"></div>
@@ -18694,9 +18701,15 @@ function openPSWPaystubPicker(pswName, pswEmail, pswRate) {
   openSheet('psw-paystub-picker-sheet');
 }
 
+// B160. THE PRESETS ASK THE SERVER. They were calendar month arithmetic on Date
+// objects converted to UTC, so east of Greenwich every date moved back a day:
+// in Manila "Last" gave 2026-07-31 to 2026-08-30 (4.66, seen live at 4.68).
+// They now take the operator's pay period from /hq/pay-period, this
+// caregiver's own recorded period first, and SAY where it came from. Typed
+// dates are never touched. An answer that arrives after a later click is
+// dropped, so a slow request cannot overwrite what was chosen since.
+var _pspPeriodSeq = 0;
 function setPaystubPeriod(preset) {
-  var now = new Date();
-  var startDate, endDate;
   ['last','this','custom'].forEach(function(p) {
     var el = document.getElementById('psp-preset-' + p);
     if (!el) return;
@@ -18706,16 +18719,34 @@ function setPaystubPeriod(preset) {
     el.style.background  = active ? 'rgba(109,185,116,.08)' : 'var(--bg3)';
     el.style.fontWeight  = active ? '600' : '400';
   });
-  if (preset === 'last') {
-    startDate = new Date(now.getFullYear(), now.getMonth()-1, 1).toISOString().slice(0,10);
-    endDate   = new Date(now.getFullYear(), now.getMonth(),  0).toISOString().slice(0,10);
-  } else if (preset === 'this') {
-    startDate = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0,10);
-    endDate   = now.toISOString().slice(0,10);
-  }
-  if (startDate) document.getElementById('psp-start').value = startDate;
-  if (endDate)   document.getElementById('psp-end').value   = endDate;
+  var seq = ++_pspPeriodSeq;
+  var src = document.getElementById('psp-period-src');
   clearPaystubPreview();
+  if (preset !== 'last' && preset !== 'this') {
+    if (src) { src.textContent = 'Custom dates, used exactly as typed.'; src.style.color = 'var(--muted)'; }
+    return Promise.resolve(null);
+  }
+  var s = document.getElementById('psp-start'), e = document.getElementById('psp-end');
+  if (s) s.value = '';
+  if (e) e.value = '';
+  if (src) { src.textContent = 'Loading the pay period...'; src.style.color = 'var(--muted)'; }
+  var name = (_pspClient && _pspClient.pswName) || null;
+  return hqPeriodRange(preset, name).then(function(r) {
+    if (seq !== _pspPeriodSeq) return null;
+    if (s) s.value = r.from;
+    if (e) e.value = r.to;
+    if (src) {
+      var span = r.from + ' to ' + r.to;
+      src.textContent = r.source === 'calendar'
+        ? 'Calendar month ' + span + '. The pay period could not be loaded, so check these dates before sending.'
+        : r.origin === 'recorded' ? 'Pay period ' + span + ', from your recorded pay periods.'
+        : r.origin === 'schedule' ? 'Pay period ' + span + ', from the pay schedule.'
+        : 'Pay period ' + span + ', computed from the pay schedule.';
+      src.style.color = r.source === 'calendar' ? 'var(--amber)' : 'var(--muted)';
+    }
+    clearPaystubPreview();
+    return r;
+  });
 }
 
 function clearPaystubPreview() {
