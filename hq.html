@@ -5835,7 +5835,7 @@ async function genInvoice(clientName, clientEmail, pswName, clientRate, pswRate)
 async function triggerOnboardClient(slug) {
   if(!slug) { showToast('No slug, add client to Supabase first','err'); return; }
   try {
-    const r = await fetch(`${API}/client/onboard`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({slug})});
+    const r = await fetch(`${API}/client/onboard`,{method:'POST',headers:hqHeaders(),body:JSON.stringify({slug})});
     const d = await r.json();
     if(!d.success) throw new Error(d.error);
     showToast('Welcome email sent ✓','ok');
@@ -6003,7 +6003,7 @@ async function sendIntakeLinkFromLead(email, familyName, clientName) {
   try {
     const res = await fetch(API + '/client/onboard/init', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: hqHeaders(),
       body: JSON.stringify({ operator_id, family_email: email, family_name: familyName || null, client_name: clientName || null })
     });
     const data = await res.json();
@@ -6032,7 +6032,7 @@ async function sendIntakeLink() {
   try {
     const res = await fetch(API + '/client/onboard/init', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: hqHeaders(),
       body: JSON.stringify({ operator_id, family_email, family_name: family_name || null, client_name: client_name || null })
     });
     const data = await res.json();
@@ -6073,7 +6073,7 @@ async function onboardClientFull() {
   btn.disabled = true; btn.textContent = 'Onboarding...';
   try {
     const r = await fetch(`${API}/client/onboard`, {
-      method:'POST', headers:{'Content-Type':'application/json'},
+      method:'POST', headers:hqHeaders(),
       body: JSON.stringify({
         operator_id: currentOp,
         client_name: name, slug: slug, portal_pin: pin, family_email: familyEmail,
