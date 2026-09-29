@@ -4812,7 +4812,7 @@ function selectMood(el, mood) {
 async function loadClients() {
   const el = document.getElementById('clients-list');
   try {
-    const res = await fetch(`${API}/psw/clients/${encodeURIComponent(pswName)}?pin=${pswPin}`);
+    const res = await fetch(`${API}/psw/clients/${encodeURIComponent(pswName)}?pin=${pswPin}&operator_id=${pswOperatorId}`);
     const d = await res.json();
     const clients = d.clients || [];
     window._pswClients = clients; // C3, store for DNR lookup at checkin
