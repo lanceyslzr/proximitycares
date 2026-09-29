@@ -2196,7 +2196,7 @@ body.sidebar-rail .sidebar{width:64px;overflow:visible;}
   <div class="card" style="padding:18px 16px;margin-bottom:16px;">
     <div style="font-family:var(--mono);font-size:12px;letter-spacing:2px;text-transform:uppercase;color:var(--teal2);margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid var(--border);">Send Client Intake Link</div>
     <div style="font-size:12px;color:var(--muted2);line-height:1.6;margin-bottom:14px;">Generate a 7-day secure link and email it to the family. They fill the full care intake form and sign the agreement themselves. Client row creates automatically on submission.</div>
-    <div class="sheet-row"><div class="slbl">Family Email *</div><input class="sinput" id="intake-family-email" placeholder="family@email.com" type="email" style="font-size:16px;"></div>
+    <div class="sheet-row"><div class="slbl">Family Email *</div><input class="sinput" id="intake-family-email" placeholder="family@example.com" type="email" style="font-size:16px;"></div>
     <div class="sheet-row"><div class="slbl">Family Name</div><input class="sinput" id="intake-family-name" placeholder="e.g. John Williams" style="font-size:16px;"></div>
     <div class="sheet-row"><div class="slbl">Client Name (optional)</div><input class="sinput" id="intake-client-name" placeholder="e.g. Margaret Williams" style="font-size:16px;"></div>
     <div class="sheet-row" style="display:none;"><div class="slbl">Operator</div><input class="sinput" id="intake-operator-id" value="" style="font-size:16px;"></div>
@@ -2220,8 +2220,8 @@ body.sidebar-rail .sidebar{width:64px;overflow:visible;}
       <div class="slbl">New PSW Full Name</div>
       <input class="sinput" id="pa-newname" placeholder="First Last" oninput="onNewPSWNameInput()">
     </div>
-    <div class="sheet-row"><div class="slbl">Email</div><input class="sinput" id="pa-email" placeholder="psw@email.com" type="email"></div>
-    <div class="sheet-row"><div class="slbl">Phone</div><input class="sinput" id="pa-phone" placeholder="647 000 0000" type="tel"></div>
+    <div class="sheet-row"><div class="slbl">Email</div><input class="sinput" id="pa-email" placeholder="caregiver@example.com" type="email"></div>
+    <div class="sheet-row"><div class="slbl">Phone</div><input class="sinput" id="pa-phone" placeholder="416 555 0100" type="tel"></div>
     <div class="sheet-row">
       <div class="slbl">Portal PIN</div>
       <div style="display:flex;align-items:center;gap:10px;">
@@ -2247,8 +2247,8 @@ body.sidebar-rail .sidebar{width:64px;overflow:visible;}
         </div>
       </div>
     </div>
-    <div class="sheet-row"><div class="slbl">Family Email</div><input class="sinput" id="co-family-email" placeholder="family@email.com" type="email"></div>
-    <div class="sheet-row"><div class="slbl">Family Contact Name</div><input class="sinput" id="co-family-name" placeholder="e.g. Connie (used in welcome email greeting)"></div>
+    <div class="sheet-row"><div class="slbl">Family Email</div><input class="sinput" id="co-family-email" placeholder="family@example.com" type="email"></div>
+    <div class="sheet-row"><div class="slbl">Family Contact Name</div><input class="sinput" id="co-family-name" placeholder="e.g. Anne (used in welcome email greeting)"></div>
     <div class="srow2">
       <div><div class="slbl">Client Rate ($/hr)</div><input class="sinput" id="co-client-rate" placeholder="22" type="number" step="0.50"></div>
       <div><div class="slbl">PSW Rate ($/hr)</div><input class="sinput" id="co-psw-rate" placeholder="19" type="number" step="0.50"></div>
@@ -3941,7 +3941,7 @@ body.sidebar-rail .sidebar{width:64px;overflow:visible;}
     <div class="sheet-row"><div class="slbl">Client Name</div><input class="sinput" id="bf-name" placeholder="Full name"></div>
     <div class="srow2">
       <div><div class="slbl">Email</div><input class="sinput" id="bf-email" placeholder="email" type="email"></div>
-      <div><div class="slbl">Phone</div><input class="sinput" id="bf-phone" placeholder="647-000-0000" type="tel"></div>
+      <div><div class="slbl">Phone</div><input class="sinput" id="bf-phone" placeholder="416-555-0100" type="tel"></div>
     </div>
     <div class="srow2">
       <div><div class="slbl">Type</div><select class="sselect" id="bf-type"><option value="assessment">Assessment</option><option value="consultation">Consultation</option><option value="follow-up">Follow-up</option><option value="visit">Visit</option></select></div>
@@ -7953,14 +7953,10 @@ const CRM_STAGE_LABELS_CARE = {cold:'Inquiry',contacted:'Contacted',demo:'Assess
 const CRM_STAGE_LABELS_SYS = {cold:'Cold',contacted:'Contacted',demo:'Demo',call:'Call',closed:'Closed'};
 const CRM_STAGE_LABELS = CRM_STAGE_LABELS_CARE;
 
-// Known pipeline, pre-seed if not in Supabase leads yet
+// P1 (BUILD_PLAN 4.96). EMPTY ON PURPOSE. This file is served to every agency
+// and is public: leads live only in the database, under their own agency.
+// renderCRM, crmDelete and crmMove are safe with an empty array (measured).
 const CRM_SEED = [
-  {id:'holger-seed',first_name:'Holger',last_name:'Fischer',care_needed_for:'Always Best Care KW',city:'Kitchener',phone:'519-900-3303',email:'hfischer@abc-seniors.com',status:'contacted',source:'outreach',created_at:new Date(Date.now()-3*86400000).toISOString(),notes:'Called May 5, said no to $3K. Sent $0/mo until first client offer May 6. Awaiting reply.'},
-  {id:'jennifer-seed',first_name:'Jennifer',last_name:'Crowley',care_needed_for:'LCM Experts',city:'Remote',phone:'(406) 212-0620',email:'jennifer@thelifecareexperts.com',status:'call',source:'outreach',created_at:new Date(Date.now()-14*86400000).toISOString(),notes:'Said stand by. Do not chase. Hormozi rule.'},
-  {id:'sajid-seed',first_name:'Sajid',last_name:'Virani',care_needed_for:'NND Richmond South',city:'Richmond BC',phone:'',email:'',status:'cold',source:'outreach',created_at:new Date(Date.now()-7*86400000).toISOString(),notes:'Actuary. Franchise angle 400+ NND. Lead with care, grandfather has brain cancer.'},
-  {id:'douglas-seed',first_name:'Douglas',last_name:'Brown',care_needed_for:'Manage2Retain',city:'Waterloo ON',phone:'',email:'',status:'cold',source:'outreach',created_at:new Date(Date.now()-10*86400000).toISOString(),notes:'Waiting.'},
-  {id:'nancy-seed',first_name:'Nancy',last_name:'Dahdah',care_needed_for:'Ideal Caregivers 4U',city:'Ottawa / Mississauga',phone:'',email:'',status:'cold',source:'outreach',created_at:new Date(Date.now()-5*86400000).toISOString(),notes:'DM not sent yet.'},
-  {id:'matt-seed',first_name:'Matt',last_name:'Field',care_needed_for:'Right at Home Chicago',city:'Chicago IL',phone:'',email:'',status:'cold',source:'outreach',created_at:new Date(Date.now()-2*86400000).toISOString(),notes:'Multi-location. Former rabbi. Mission-led. Not yet contacted.'},
 ];
 
 function renderCRM() {
@@ -11656,7 +11652,7 @@ function setAuditDateDefaults() {
 
 // ── IMPORT TEMPLATE DOWNLOADS ──
 function downloadPSWTemplate() {
-  const csv = ['first_name,last_name,email,phone,psw_rate,city,languages','Carolina,Hermida,carolina@email.com,647-555-0101,22.00,Mississauga,English'].join('\n');
+  const csv = ['first_name,last_name,email,phone,psw_rate,city,languages','Ana,Reyes,ana.reyes@example.com,416-555-0101,22.00,Mississauga,English'].join('\n');
   const blob = new Blob([csv], { type: 'text/csv' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a'); a.href = url; a.download = 'PSW_Import_Template.csv';
@@ -11666,7 +11662,7 @@ function downloadPSWTemplate() {
 }
 
 function downloadClientTemplate() {
-  const csv = ['first_name,last_name,family_email,family_phone,family_name,assigned_psw,client_rate,psw_rate,care_notes','Rosetta,Ferrari,family@email.com,905-555-0202,Maria Ferrari,Carolina Hermida,28.00,22.00,Requires assistance with morning routine'].join('\n');
+  const csv = ['first_name,last_name,family_email,family_phone,family_name,assigned_psw,client_rate,psw_rate,care_notes','Helen,Martin,family@example.com,905-555-0102,Paul Martin,Ana Reyes,28.00,22.00,Requires assistance with morning routine'].join('\n');
   const blob = new Blob([csv], { type: 'text/csv' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a'); a.href = url; a.download = 'Client_Import_Template.csv';
@@ -12114,7 +12110,7 @@ async function openPSWDetail(pswId) {
 
     <div class="prof-tab-body" id="ppt-edit">
       <div class="srow2" style="padding:0;">
-        <div><div class="slbl">Phone</div><input class="sinput" id="pe-phone" type="tel" value="${p.phone||rec.phone||''}" style="font-size:16px;" placeholder="+1 416 555 0000"></div>
+        <div><div class="slbl">Phone</div><input class="sinput" id="pe-phone" type="tel" value="${p.phone||rec.phone||''}" style="font-size:16px;" placeholder="+1 416 555 0100"></div>
         <div><div class="slbl">Email</div><input class="sinput" id="pe-email" type="email" value="${p.email||rec.email||''}" style="font-size:16px;"></div>
       </div>
       <div class="sheet-row"><div class="slbl">Address</div><input class="sinput" id="pe-address" type="text" value="${p.address||rec.address||''}" placeholder="Full address" style="font-size:15px;"></div>
@@ -12561,11 +12557,11 @@ function openClientSendPayment(clientName, clientEmail, clientRate, clientId) {
 // B102c. SUBTRACT WHAT HAS ALREADY BEEN RECEIVED.
 //
 // WHY. Nothing read a prior payment, so both sheets computed the balance as
-// (period total) minus (the one amount typed now), every time. Carolina's
-// August is $6,285.20 with $3,000 already sent. Send the second $3,000 and
+// (period total) minus (the one amount typed now), every time. A caregiver's
+// month of $6,285.20 with $3,000 already sent: send the second $3,000 and
 // the email said "Remaining balance: $3,285.20" when the truth is $285.20:
-// a wage figure overstated by $3,000, in writing. Connie's side reads the
-// mirror image, telling her she still owes $3,000 on the day she clears it.
+// a wage figure overstated by $3,000, in writing. The family's side reads the
+// mirror image, telling them they still owe $3,000 on the day they clear it.
 // There is no way to type around it: enter the increment and the balance
 // lies, enter the cumulative and the "PARTIAL PAYMENT $X" line lies.
 //
@@ -13476,7 +13472,7 @@ function openClientDetail(id) {
           <div><div class="slbl">Name</div><input class="sinput" id="ce-ec1-name" type="text" value="${c.emergency_contact_1_name||''}" placeholder="Full name" style="font-size:14px;"></div>
           <div><div class="slbl">Relation</div><input class="sinput" id="ce-ec1-relation" type="text" value="${c.emergency_contact_1_relation||''}" placeholder="e.g. Daughter, Son" style="font-size:14px;"></div>
         </div>
-        <div><div class="slbl">Phone</div><input class="sinput" id="ce-ec1-phone" type="tel" value="${c.emergency_contact_1_phone||''}" placeholder="+1 416 555 0000" style="font-size:14px;"></div>
+        <div><div class="slbl">Phone</div><input class="sinput" id="ce-ec1-phone" type="tel" value="${c.emergency_contact_1_phone||''}" placeholder="+1 416 555 0101" style="font-size:14px;"></div>
       </div>
       <div style="padding:10px 12px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;">
         <div style="font-size:11px;font-weight:600;color:var(--muted);font-family:var(--mono);letter-spacing:1px;margin-bottom:8px;">EC 2, Secondary</div>
@@ -13484,7 +13480,7 @@ function openClientDetail(id) {
           <div><div class="slbl">Name</div><input class="sinput" id="ce-ec2-name" type="text" value="${c.emergency_contact_2_name||''}" placeholder="Full name" style="font-size:14px;"></div>
           <div><div class="slbl">Relation</div><input class="sinput" id="ce-ec2-relation" type="text" value="${c.emergency_contact_2_relation||''}" placeholder="e.g. Son, Spouse" style="font-size:14px;"></div>
         </div>
-        <div><div class="slbl">Phone</div><input class="sinput" id="ce-ec2-phone" type="tel" value="${c.emergency_contact_2_phone||''}" placeholder="+1 647 555 0000" style="font-size:14px;"></div>
+        <div><div class="slbl">Phone</div><input class="sinput" id="ce-ec2-phone" type="tel" value="${c.emergency_contact_2_phone||''}" placeholder="+1 647 555 0102" style="font-size:14px;"></div>
       </div>
       <div style="margin:14px 0 10px;font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--teal2);">Home Access</div>
       <div class="sheet-row"><div class="slbl">Access Instructions</div><textarea class="sinput" id="ce-home-access" rows="2" style="min-height:60px;resize:none;" placeholder="Key safe code, door code, building buzzer...">${c.home_access_instructions||''}</textarea></div>
@@ -13577,7 +13573,7 @@ function openClientDetail(id) {
         `).join('')}
       </div>
       <!-- AG2. DATE OF BIRTH AND CONSENT, inline.
-           Vitor received care from Aug 15 with neither on file, because the
+           A client received care for weeks with neither on file, because the
            only way to set them was Supabase. A step that needs a database
            client is a step that gets skipped. -->
       <div style="margin:16px 0 0;padding:14px;border:1px solid var(--border);border-radius:10px;background:var(--bg2);">
@@ -16801,9 +16797,9 @@ async function uploadPSWDoc(event, pswName, docType) {
     // certificate stored with a null expiry.
     //
     // AND A NULL EXPIRY READS AS VALID. docSt returns VALID when expiry is
-    // null, and so does the PSW portal. Carolina Hermida's police check is
-    // dated 2024-03-20 and her portal said "valid". Her First Aid certificate
-    // carries 2027-02-22 on its face and nothing captured it.
+    // null, and so does the PSW portal. A caregiver's police check two years
+    // old read "valid" in her portal, and a First Aid certificate's printed
+    // expiry was never captured.
     //
     // SCOPED TO THIS FUNCTION ON PURPOSE: uploadClientDoc has the IDENTICAL
     // line and is a different document set. A file-wide replace hits both.
@@ -16861,7 +16857,7 @@ function openVisitEditById(visitId) {
 // guessing: a WRONG cap shown here would be worse than none.
 //
 // Option A set payable_hours_per_day and billable_hours_per_day to NULL on the
-// Ferrari agreement deliberately, so the clock governs. A null cap must mean
+// first live agreement deliberately, so the clock governs. A null cap must mean
 // NO CAP, never zero.
 function _vemAgreementCap(visit) {
   try {
@@ -17884,8 +17880,8 @@ function _applyActiveSectionFlex() {
   <div style="font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--teal2);margin-bottom:20px;">Invite PSW</div>
 
   <div class="sheet-row"><div class="slbl">Full Name *</div><input class="sinput" id="inv-name" placeholder="First Last" style="font-size:16px;" oninput="document.getElementById('inv-btn').disabled=!this.value.trim()||!document.getElementById('inv-email').value.trim()"></div>
-  <div class="sheet-row"><div class="slbl">Email *</div><input class="sinput" id="inv-email" placeholder="psw@email.com" type="email" style="font-size:16px;" oninput="document.getElementById('inv-btn').disabled=!this.value.trim()||!document.getElementById('inv-name').value.trim()"></div>
-  <div class="sheet-row"><div class="slbl">Phone</div><input class="sinput" id="inv-phone" placeholder="647 000 0000" type="tel" style="font-size:16px;"></div>
+  <div class="sheet-row"><div class="slbl">Email *</div><input class="sinput" id="inv-email" placeholder="caregiver@example.com" type="email" style="font-size:16px;" oninput="document.getElementById('inv-btn').disabled=!this.value.trim()||!document.getElementById('inv-name').value.trim()"></div>
+  <div class="sheet-row"><div class="slbl">Phone</div><input class="sinput" id="inv-phone" placeholder="416 555 0103" type="tel" style="font-size:16px;"></div>
 
   <div style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:12px 14px;margin:16px 0;">
     <div style="font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:8px;">What Happens</div>
@@ -18298,19 +18294,19 @@ function _applyActiveSectionFlex() {
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
       <div style="grid-column:1/-1;">
         <div style="font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:4px;">Agency Name *</div>
-        <input id="cd-agency" class="sinput" type="text" placeholder="e.g. LCM Experts Home Care" style="font-size:14px;padding:11px;">
+        <input id="cd-agency" class="sinput" type="text" placeholder="e.g. Demo Home Care" style="font-size:14px;padding:11px;">
       </div>
       <div>
         <div style="font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:4px;">Owner Name *</div>
-        <input id="cd-name" class="sinput" type="text" placeholder="Jennifer Crowley" style="font-size:14px;padding:11px;">
+        <input id="cd-name" class="sinput" type="text" placeholder="Owner full name" style="font-size:14px;padding:11px;">
       </div>
       <div>
         <div style="font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:4px;">Owner Email *</div>
-        <input id="cd-email" class="sinput" type="email" placeholder="jennifer@lcmexperts.com" style="font-size:14px;padding:11px;">
+        <input id="cd-email" class="sinput" type="email" placeholder="owner@example.com" style="font-size:14px;padding:11px;">
       </div>
       <div>
         <div style="font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:4px;">Phone</div>
-        <input id="cd-phone" class="sinput" type="tel" placeholder="+1 406 555 0100" style="font-size:14px;padding:11px;">
+        <input id="cd-phone" class="sinput" type="tel" placeholder="+1 416 555 0100" style="font-size:14px;padding:11px;">
       </div>
       <div>
         <div style="font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:4px;">Province</div>
@@ -18347,7 +18343,7 @@ function _applyActiveSectionFlex() {
       </div>
       <div style="grid-column:1/-1;">
         <div style="font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:4px;">Notes (internal)</div>
-        <input id="cd-notes" class="sinput" type="text" placeholder="e.g. Closed on call June 1. Jennifer was referred by..." style="font-size:13px;padding:11px;">
+        <input id="cd-notes" class="sinput" type="text" placeholder="e.g. Closed on call June 1. Referred by a partner agency." style="font-size:13px;padding:11px;">
       </div>
     </div>
     <div id="cd-result" style="display:none;padding:14px;background:rgba(109,185,116,.06);border:1px solid rgba(109,185,116,.25);border-radius:8px;margin-bottom:12px;">
@@ -18834,7 +18830,7 @@ function recalcInvTotal() {
   //
   // This function ran unconditionally right after the engine total was written,
   // so the correct figure appeared for an instant and was then replaced. On the
-  // Ferrari engagement that is roughly $2,277 of Vitor's second person charge
+  // first two person engagement that is roughly $2,277 of the second person charge
   // missing from the number the operator reads before sending. The invoice the
   // family received was always right; the preview was not.
   //
