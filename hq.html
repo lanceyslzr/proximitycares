@@ -1208,6 +1208,10 @@ body.sidebar-hidden #sidebar-reopen-tab{ display:flex; }
 .prof-tab-body.active{display:block;}
 .prof-act-row{display:flex;gap:6px;margin-bottom:14px;}
 .prof-act-row .sbtn{flex:1;font-size:11px;letter-spacing:1px;padding:9px 6px;}
+/* R3. The client card has six actions. Five across already broke INVOICE and
+   SEND PAYMENT mid word at phone width; six in two columns do not. */
+.prof-act-row.prof-act-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));}
+.prof-act-row.prof-act-grid .sbtn{margin-top:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .doc-vault-row{display:flex;justify-content:space-between;align-items:center;padding:9px 12px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;margin-bottom:5px;}
 .doc-vault-row:last-child{margin-bottom:0;}
 .doc-vault-name{font-size:12px;color:var(--text);}
@@ -2651,6 +2655,20 @@ body.sidebar-rail .sidebar{width:64px;overflow:visible;}
     <label class="slabel">Notification Email</label>
     <input id="set-notification-email" type="email" class="sinput" style="margin-bottom:4px;">
     <div style="font-family:var(--mono);font-size:9px;color:var(--muted2);margin-bottom:12px;">Where daily digests and alerts are sent.</div>
+    <!-- R3. Read by payment reminders (R2): contact under Questions, the
+         e-transfer address under How to pay, and the agency's automatic switch. -->
+    <label class="slabel">Contact Email for Families</label>
+    <input id="set-contact-email" type="email" class="sinput" style="margin-bottom:4px;">
+    <div style="font-family:var(--mono);font-size:9px;color:var(--muted2);margin-bottom:12px;">Shown in payment reminders as where families reach you.</div>
+    <label class="slabel">E-transfer Email</label>
+    <input id="set-payment-email" type="email" class="sinput" style="margin-bottom:4px;">
+    <div style="font-family:var(--mono);font-size:9px;color:var(--muted2);margin-bottom:12px;">Where families send payment. Shown under How to pay.</div>
+    <label class="slabel">Automatic Payment Reminders</label>
+    <select id="set-auto-reminders" class="sinput" style="margin-bottom:4px;">
+      <option value="true">On: day 3, 7 and 14 after an invoice</option>
+      <option value="false">Off</option>
+    </select>
+    <div style="font-family:var(--mono);font-size:9px;color:var(--muted2);margin-bottom:12px;">Each client can override this in its Remind sheet. Nothing is sent once an invoice is paid.</div>
     <button class="sbtn" onclick="saveSettings()" style="width:100%;">Save Agency Settings</button>
   </div>
 
@@ -5234,7 +5252,7 @@ function renderClients() {
     // BUILD 29, overdue badge
     const overdueInv = (window._arData||[]).find(inv => inv.client_name === name && inv.overdue);
     const overdueBadge = overdueInv
-      ? `<div style="font-family:var(--mono);font-size:11px;letter-spacing:1px;padding:2px 6px;border-radius:100px;border:1px solid rgba(224,85,85,.4);color:var(--red);margin-top:2px;">OVERDUE $${parseFloat(overdueInv.client_total||0).toFixed(0)}</div>`
+      ? `<div style="font-family:var(--mono);font-size:11px;letter-spacing:1px;padding:2px 6px;border-radius:100px;border:1px solid rgba(224,85,85,.4);color:var(--red);margin-top:2px;">OVERDUE $${_arOwed(overdueInv).toFixed(0)}</div>`
       : '';
     // C2, consent badge
     const consentBadge = !c.consent_given
@@ -9750,6 +9768,10 @@ async function loadSettings(){
     put('set-owner-phone', s.owner_phone);
     put('set-province', s.province);
     put('set-notification-email', s.notification_email);
+    put('set-contact-email', s.contact_email);
+    put('set-payment-email', s.payment_email);
+    const _ar = document.getElementById('set-auto-reminders');
+    if (_ar) _ar.value = s.auto_invoice_reminders === false ? 'false' : 'true';
     put('set-pay-timezone', s.pay_timezone);
     const sel = document.getElementById('set-pay-schedule');
     if (sel) sel.value = s.pay_schedule || 'last_friday';
@@ -9773,7 +9795,10 @@ async function saveSettings(){
     owner_email: val('set-owner-email'),
     owner_phone: val('set-owner-phone'),
     province: val('set-province'),
-    notification_email: val('set-notification-email')
+    notification_email: val('set-notification-email'),
+    contact_email: val('set-contact-email'),
+    payment_email: val('set-payment-email'),
+    auto_invoice_reminders: (document.getElementById('set-auto-reminders')?.value || 'true') === 'true'
   }, 'Agency settings saved');
 }
 async function savePaySettings(){
@@ -10996,11 +11021,12 @@ async function renderRevenue() {
             </div>
             <div style="display:flex;align-items:center;gap:8px;">
               <span style="font-family:var(--mono);font-size:9px;letter-spacing:1px;padding:2px 6px;border-radius:4px;background:${bs.bg};border:1px solid ${bs.border};color:${bs.color};">${bs.label}</span>
-              <div style="font-family:var(--mono);font-size:14px;font-weight:600;color:${isOverdue ? 'var(--red)' : 'var(--teal2)'};">$${parseFloat(inv.client_total||0).toFixed(0)}</div>
+              <div style="font-family:var(--mono);font-size:14px;font-weight:600;color:${isOverdue ? 'var(--red)' : 'var(--teal2)'};">$${_arOwed(inv).toFixed(0)}${inv.received > 0 ? '<div style="font-size:10px;font-weight:400;color:var(--muted);text-align:right;">of $' + parseFloat(inv.client_total||0).toFixed(0) + '</div>' : ''}</div>
             </div>
           </div>
           <div style="display:flex;gap:6px;">
-            <button onclick="markInvoicePaid('${inv.id}')" style="flex:1;font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;padding:8px 10px;border-radius:6px;border:1px solid rgba(74,154,110,.4);background:rgba(74,154,110,.08);color:var(--green2);cursor:pointer;min-height:44px;touch-action:manipulation;">✓ Mark Paid</button>
+            <button data-rm-from="revenue" data-rm-inv="${inv.id}" data-rm-name="${escHtml(inv.client_name||'')}" onclick="openRemindSheet('', this.dataset.rmName, this.dataset.rmInv)" style="flex:1;font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;padding:8px 10px;border-radius:6px;border:1px solid rgba(200,169,110,.35);background:rgba(200,169,110,.07);color:var(--gold);cursor:pointer;min-height:44px;touch-action:manipulation;">Remind</button>
+            <button onclick="arMarkPaidGuard(this,'${inv.id}',${_arOwed(inv)},'revenue')" style="flex:1;font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;padding:8px 10px;border-radius:6px;border:1px solid rgba(74,154,110,.4);background:rgba(74,154,110,.08);color:var(--green2);cursor:pointer;min-height:44px;touch-action:manipulation;">✓ Mark Paid</button>
           </div>
         </div>`;
       });
@@ -11200,7 +11226,8 @@ async function loadAgingReport() {
     renderAgingList();
     const unpaid = (d.invoices || []).filter(i => !i.paid);
     const byBucket = { current: 0, '31-60': 0, '61-90': 0, '90+': 0 };
-    unpaid.forEach(i => { byBucket[i.aging_bucket] = (byBucket[i.aging_bucket] || 0) + parseFloat(i.client_total || 0); });
+    // R3. The server's balance, not the invoice total (R2 sends both).
+    unpaid.forEach(i => { byBucket[i.aging_bucket] = (byBucket[i.aging_bucket] || 0) + _arOwed(i); });
     if (sumEl) {
       sumEl.innerHTML = Object.entries(byBucket).map(([bucket, amt]) => {
         const s = _agingBucketStyle[bucket];
@@ -11244,7 +11271,7 @@ function renderAgingList() {
   } else if (!filtered.length) {
     html += '<div style="font-family:var(--mono);font-size:12px;color:var(--muted);padding:12px 0;">No invoices in this bucket</div>';
   } else {
-    html += `<div style="font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:8px;">${filtered.length} unpaid · $${filtered.reduce((s,i) => s + parseFloat(i.client_total||0), 0).toFixed(0)} outstanding</div>`;
+    html += `<div style="font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:8px;">${filtered.length} unpaid · $${filtered.reduce((s,i) => s + _arOwed(i), 0).toFixed(0)} outstanding</div>`;
     filtered.forEach(inv => {
       const bs = _agingBucketStyle[inv.aging_bucket] || _agingBucketStyle['current'];
       const isOverdue = inv.days_outstanding >= 30;
@@ -11253,11 +11280,11 @@ function renderAgingList() {
       html += `<div style="padding:10px 12px;background:${isOverdue?'rgba(224,85,85,.03)':'var(--bg2)'};border:1px solid ${isOverdue?'rgba(224,85,85,.2)':'var(--border)'};border-radius:8px;margin-bottom:6px;">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
           <div><div style="font-size:12px;font-weight:500;color:var(--text);">${inv.client_name||'—'}</div><div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:2px;">${periodLabel} · ${inv.days_outstanding}d outstanding</div></div>
-          <div style="display:flex;align-items:center;gap:8px;"><span style="font-family:var(--mono);font-size:9px;padding:2px 6px;border-radius:4px;background:${bs.bg};border:1px solid ${bs.border};color:${bs.color};">${bs.label}</span><div style="font-family:var(--mono);font-size:14px;font-weight:600;color:${isOverdue?'var(--red)':'var(--teal2)'};">$${parseFloat(inv.client_total||0).toFixed(0)}</div></div>
+          <div style="display:flex;align-items:center;gap:8px;"><span style="font-family:var(--mono);font-size:9px;padding:2px 6px;border-radius:4px;background:${bs.bg};border:1px solid ${bs.border};color:${bs.color};">${bs.label}</span><div style="font-family:var(--mono);font-size:14px;font-weight:600;color:${isOverdue?'var(--red)':'var(--teal2)'};">$${_arOwed(inv).toFixed(0)}${inv.received > 0 ? '<div style="font-size:10px;font-weight:400;color:var(--muted);text-align:right;">of $' + parseFloat(inv.client_total||0).toFixed(0) + '</div>' : ''}</div></div>
         </div>
         <div style="display:flex;gap:6px;">
-          <button onclick="sendInvoiceReminder('${inv.id}',this)" ${hasEmail?'':'disabled title="No email on file"'} style="flex:1;font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;padding:8px 10px;border-radius:6px;border:1px solid rgba(200,169,110,.35);background:rgba(200,169,110,.07);color:var(--gold);cursor:pointer;min-height:44px;touch-action:manipulation;${hasEmail?'':'opacity:.4;cursor:not-allowed;'}">Send Reminder</button>
-          <button onclick="markInvoicePaidFromAging('${inv.id}')" style="flex:1;font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;padding:8px 10px;border-radius:6px;border:1px solid rgba(74,154,110,.4);background:rgba(74,154,110,.08);color:var(--green2);cursor:pointer;min-height:44px;touch-action:manipulation;">&#x2713; Mark Paid</button>
+          <button data-rm-from="aging" data-rm-inv="${inv.id}" data-rm-name="${escHtml(inv.client_name||'')}" onclick="openRemindSheet('', this.dataset.rmName, this.dataset.rmInv)" style="flex:1;font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;padding:8px 10px;border-radius:6px;border:1px solid rgba(200,169,110,.35);background:rgba(200,169,110,.07);color:var(--gold);cursor:pointer;min-height:44px;touch-action:manipulation;">Remind</button>
+          <button onclick="arMarkPaidGuard(this,'${inv.id}',${_arOwed(inv)},'aging')" style="flex:1;font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;padding:8px 10px;border-radius:6px;border:1px solid rgba(74,154,110,.4);background:rgba(74,154,110,.08);color:var(--green2);cursor:pointer;min-height:44px;touch-action:manipulation;">&#x2713; Mark Paid</button>
         </div>
       </div>`;
     });
@@ -12524,8 +12551,11 @@ function openClientSendPayment(clientName, clientEmail, clientRate, clientId) {
   document.getElementById('csp-summary').style.display = 'none';
   document.getElementById('csp-owed-row').style.display = 'none';
   cspSetType('full');
-  cspSetPreset('last');
+  const _cw = document.getElementById('csp-warn'); if (_cw) _cw.style.display = 'none';
   openSheet('client-send-payment-sheet');
+  // R3. The invoice decides the period when there is one; otherwise the
+  // last period, as before.
+  cspLoadInvoices();
 }
 
 // B102c. SUBTRACT WHAT HAS ALREADY BEEN RECEIVED.
@@ -12667,13 +12697,16 @@ function cspLoadVisits() {
       const totalHrs  = allV.reduce((s,v) => s + parseFloat(v.manual_hours_override ?? v.hours_worked ?? 0), 0);
       _cspInvoiceTotal = totalHrs * _cspRate;
       _cspPaid = paidSoFar('client', _cspClientName, from, to);
+      // R3. With an invoice chosen, its total and what the server has linked
+      // to it, never a recompute from visits or a match by name.
+      if (_cspInv) { _cspInvoiceTotal = Number(_cspInv.invoice_total) || 0; _cspPaid = Number(_cspInv.received) || 0; }
 
       document.getElementById('csp-sum-visits').textContent = allV.length + ' visit' + (allV.length!==1?'s':'') + ' in period';
       document.getElementById('csp-sum-hours').textContent  = totalHrs.toFixed(1) + 'h · $' + _cspRate + '/hr';
-      document.getElementById('csp-sum-total').textContent  = _cspPaid > 0
-        ? '$' + Math.max(0, _cspInvoiceTotal - _cspPaid).toFixed(2) + ' due  \u00b7  $'
-          + _cspInvoiceTotal.toFixed(2) + ' total, $' + _cspPaid.toFixed(2) + ' received'
-        : '$' + _cspInvoiceTotal.toFixed(2);
+      // R3. The amount due on one line; what it is made of beneath it.
+      document.getElementById('csp-sum-total').textContent = '$' + Math.max(0, _cspInvoiceTotal - _cspPaid).toFixed(2);
+      const _sub = document.getElementById('csp-sum-sub');
+      if (_sub) _sub.textContent = _cspPaid > 0 ? 'of $' + _cspInvoiceTotal.toFixed(2) + ', $' + _cspPaid.toFixed(2) + ' received' : '';
       if (sum) sum.style.display = 'block';
 
       const amtInput = document.getElementById('csp-amount');
@@ -12697,6 +12730,7 @@ function cspLoadVisits() {
       const totalHrs = allV.reduce((s,v) => s + parseFloat(v.manual_hours_override ?? v.hours_worked ?? 0), 0);
       _cspInvoiceTotal = totalHrs * _cspRate;
       _cspPaid = paidSoFar('client', _cspClientName, from, to);
+      if (_cspInv) { _cspInvoiceTotal = Number(_cspInv.invoice_total) || 0; _cspPaid = Number(_cspInv.received) || 0; }
       if (sum) { document.getElementById('csp-sum-total').textContent = '$' + _cspInvoiceTotal.toFixed(2); sum.style.display = 'block'; }
       window._cspVisits = allV;
     });
@@ -12715,7 +12749,11 @@ function cspUpdateOwed() {
   }
 }
 
-async function submitClientPayment() {
+async function submitClientPayment(confirmed) {
+  const _w0 = document.getElementById('csp-warn'); if (_w0) _w0.style.display = 'none';
+  // R3. With open invoices, one must be chosen: a payment with no invoice
+  // blocks that client's reminders until it is linked.
+  if (_cspInvList.length && !_cspInv) { showToast('Choose the invoice this payment is for', 'err'); return; }
   const from   = (document.getElementById('csp-from')?.value||'').trim();
   const to     = (document.getElementById('csp-to')?.value||'').trim();
   const amount = parseFloat(document.getElementById('csp-amount')?.value||'0');
@@ -12760,22 +12798,285 @@ async function submitClientPayment() {
         email_override: email, notes: notes || undefined,
         // B110c. Same two fields as the caregiver sheet, same reasons.
         method: (document.getElementById('csp-method')||{}).value || undefined,
-        notify
+        notify,
+        // R3.
+        invoice_id: _cspInv ? _cspInv.invoice_id : undefined,
+        confirm: confirmed === true
       })
     });
-    const d = await r.json();
-    if (!r.ok || !d.success) throw new Error(d.error || 'Send failed');
+    const d = await r.json().catch(() => ({}));
+    if (r.status === 409 && (d.duplicate || d.overpayment)) { cspWarn(d.error); return; }
+    if (!r.ok || !d.success) throw new Error(d.error || 'The payment was not recorded');
     closeSheet('client-send-payment-sheet');
-    const label = _cspPayType === 'partial' ? 'Partial payment confirmation' : 'Payment confirmation';
-    showToast(`${label} sent to ${_cspClientName}'s family ✓`, 'ok');
+    const _left = d.balance == null ? '' : (d.invoice_paid ? ', invoice paid in full' : ', ' + _rmMoney(d.balance) + ' still owed');
+    showToast('Payment recorded' + _left + (notify ? ', family emailed' : ''), 'ok');
     loadAll(false);
   } catch(e) {
     showToast(e.message || 'Failed to send', 'err');
   } finally {
-    if (btn) { btn.disabled = false; btn.textContent = 'Send Confirmation'; }
+    if (btn) { btn.disabled = false; btn.textContent = 'Record Payment'; }
   }
 }
 // ── END CLIENT SEND PAYMENT SHEET ────────────────────────────────────────────
+
+// ── R3. PAYMENT REMINDERS AND RECORDING A PAYMENT AGAINST AN INVOICE ───────
+// BUILD_PLAN 4.94, OUTSTANDING item 18, the HQ half of R2 (server 4.93).
+//
+// THE BALANCE IS THE SERVER'S. Nothing below adds up an invoice total, a
+// visit total or a payment: every amount shown comes from /hq/ar (balance,
+// received) or /hq/client/:id/reminders (open_invoices). The only arithmetic
+// is formatting.
+//
+// NO NATIVE DIALOGS. confirm() blocks automation and a person on a phone
+// misreads it; every second step is a button inside the sheet.
+function _arOwed(inv) {
+  if (!inv) return 0;
+  if (inv.balance !== undefined && inv.balance !== null) return Number(inv.balance) || 0;
+  return inv.paid ? 0 : (parseFloat(inv.client_total || 0) || 0);
+}
+function _rmMoney(n) {
+  return '$' + (Number(n) || 0).toLocaleString('en-CA', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+function _rmClientIdByName(name) {
+  const want = String(name || '').trim();
+  const hits = (D.clients || []).filter(c => ((c.first_name || '') + ' ' + (c.last_name || '')).trim() === want);
+  return hits.length === 1 ? hits[0].id : '';
+}
+// Mark Paid with money still owed takes a second tap. It marks the invoice
+// settled and emails the family a receipt for payment in full.
+function arMarkPaidGuard(btn, id, owed, where) {
+  if (owed > 0.004 && btn.dataset.armed !== '1') {
+    btn.dataset.armed = '1';
+    btn.textContent = 'Owed $' + Number(owed).toFixed(0) + ' · Tap again';
+    setTimeout(() => { if (btn.isConnected && btn.dataset.armed === '1') { btn.dataset.armed = ''; btn.textContent = '✓ Mark Paid'; } }, 6000);
+    return;
+  }
+  btn.dataset.armed = '';
+  return where === 'aging' ? markInvoicePaidFromAging(id) : markInvoicePaid(id);
+}
+
+// ── THE REMIND SHEET ──
+let _rm = { clientId: '', clientName: '', invoices: [], invoiceId: '', override: null, agencyDefault: 'on', sentFor: '' };
+const _RM_KIND = { manual: 'Sent from HQ', auto_day3: 'Automatic, day 3', auto_day7: 'Automatic, day 7', auto_day14: 'Automatic, day 14' };
+const _RM_STATUS = { sent: 'Sent', failed: 'Not sent', skipped_paid: 'Skipped, already paid', skipped_off: 'Skipped, reminders off', skipped_no_email: 'Skipped, no email on file', skipped_superseded: 'Skipped, invoice replaced' };
+function _rmBox(id, html, tone) {
+  const el = document.getElementById(id); if (!el) return;
+  if (!html) { el.style.display = 'none'; el.innerHTML = ''; return; }
+  const c = tone === 'warn' ? 'rgba(224,154,61,' : 'rgba(61,138,122,';
+  el.style.cssText = 'display:block;padding:12px 14px;margin-bottom:14px;border-radius:8px;border:1px solid ' + c + '.3);background:' + c + '.07);font-size:13px;line-height:1.5;color:var(--text);overflow-wrap:anywhere;';
+  el.innerHTML = html;
+}
+async function openRemindSheet(clientId, clientName, invoiceId) {
+  _rm = { clientId: clientId || _rmClientIdByName(clientName), clientName: clientName || '', invoices: [], invoiceId: invoiceId || '', override: null, agencyDefault: 'on', sentFor: '' };
+  document.getElementById('rm-meta').textContent = _rm.clientName;
+  document.getElementById('rm-invoices').innerHTML = '<div style="font-family:var(--mono);font-size:12px;color:var(--muted);">Loading...</div>';
+  document.getElementById('rm-preview-wrap').style.display = 'none';
+  document.getElementById('rm-note').value = '';
+  document.getElementById('rm-history').innerHTML = '';
+  document.getElementById('rm-auto').innerHTML = '';
+  _rmBox('rm-refuse', ''); _rmBox('rm-warn', '');
+  openSheet('remind-sheet');
+  if (!_rm.clientId) {
+    document.getElementById('rm-invoices').innerHTML = '';
+    _rmBox('rm-refuse', 'This client could not be matched to one record. Open Remind from the client card instead.', 'warn');
+    return;
+  }
+  await rmLoad(false);
+}
+async function rmLoad(keepPreview) {
+  try {
+    const r = await hqFetch(`${API}/hq/client/${encodeURIComponent(_rm.clientId)}/reminders`);
+    const d = await r.json().catch(() => ({}));
+    if (!r.ok || !d.success) throw new Error(d.error || 'Could not load reminders');
+    _rm.invoices = d.open_invoices || [];
+    _rm.override = d.override;
+    _rm.agencyDefault = d.agency_default || 'on';
+    rmRenderAuto();
+    rmRenderHistory(d.history || []);
+    if (keepPreview) { rmRenderInvoices(); return; }
+    if (!_rm.invoices.length) {
+      document.getElementById('rm-invoices').innerHTML = '';
+      _rmBox('rm-refuse', 'Nothing is owed. Every invoice for this client is paid.');
+      return;
+    }
+    if (!_rm.invoices.some(i => i.invoice_id === _rm.invoiceId)) {
+      _rm.invoiceId = _rm.invoices.length === 1 ? _rm.invoices[0].invoice_id : '';
+    }
+    rmRenderInvoices();
+    if (_rm.invoiceId) rmPreview();
+  } catch (e) {
+    document.getElementById('rm-invoices').innerHTML = '';
+    _rmBox('rm-refuse', escHtml(e.message || 'Could not load reminders'), 'warn');
+  }
+}
+function _invCard(inv, selected, onclick) {
+  const sub = inv.received > 0
+    ? 'of ' + _rmMoney(inv.invoice_total) + ' · ' + _rmMoney(inv.received) + ' received'
+    : 'invoice total ' + _rmMoney(inv.invoice_total);
+  return `<button type="button" aria-pressed="${selected ? 'true' : 'false'}" onclick="${onclick}('${escHtml(inv.invoice_id)}')" style="display:block;width:100%;text-align:left;margin-bottom:8px;padding:12px 14px;border-radius:8px;cursor:pointer;min-height:48px;touch-action:manipulation;border:1px solid ${selected ? 'rgba(200,169,110,.55)' : 'var(--border)'};background:${selected ? 'rgba(200,169,110,.08)' : 'var(--bg3)'};color:var(--text);">
+    <div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;">
+      <span style="font-size:13px;min-width:0;overflow-wrap:anywhere;">${escHtml(inv.period || 'Invoice')}</span>
+      <span style="font-family:var(--mono);font-size:15px;color:var(--gold);white-space:nowrap;">${_rmMoney(inv.balance)}</span>
+    </div>
+    <div style="font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:4px;overflow-wrap:anywhere;">Balance due, ${sub}</div>
+  </button>`;
+}
+function rmRenderInvoices() {
+  const el = document.getElementById('rm-invoices');
+  if (!_rm.invoices.length) { el.innerHTML = ''; return; }
+  el.innerHTML = '<div style="font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:8px;">' + (_rm.invoices.length === 1 ? 'Open invoice' : 'Choose the invoice') + '</div>'
+    + _rm.invoices.map(i => _invCard(i, i.invoice_id === _rm.invoiceId, 'rmPick')).join('');
+}
+function rmPick(id) { _rm.invoiceId = id; _rm.sentFor = ''; rmRenderInvoices(); rmPreview(); }
+async function rmPreview() {
+  if (!_rm.invoiceId) return;
+  const wrap = document.getElementById('rm-preview-wrap'), btn = document.getElementById('rm-send-btn');
+  _rmBox('rm-warn', ''); _rmBox('rm-refuse', '');
+  btn.disabled = true; btn.textContent = 'Loading preview...';
+  try {
+    const note = (document.getElementById('rm-note').value || '').trim();
+    const r = await hqFetch(`${API}/hq/invoice/${encodeURIComponent(_rm.invoiceId)}/reminder?note=${encodeURIComponent(note)}`);
+    const d = await r.json().catch(() => ({}));
+    if (!r.ok || !d.success) throw new Error(d.error || 'Could not build the preview');
+    if (!d.can_send) { wrap.style.display = 'none'; _rmBox('rm-refuse', escHtml(d.reason || 'This reminder cannot be sent.'), 'warn'); return; }
+    wrap.style.display = 'block';
+    document.getElementById('rm-to').innerHTML = 'To <strong>' + escHtml(d.to) + '</strong><br>' + escHtml(d.subject);
+    const fr = document.getElementById('rm-frame');
+    fr.onload = () => { try { fr.style.height = Math.max(320, fr.contentDocument.documentElement.scrollHeight + 4) + 'px'; } catch (e) {} };
+    fr.srcdoc = d.html;
+    if (_rm.sentFor === _rm.invoiceId) { btn.textContent = 'Sent ✓'; return; }
+    btn.disabled = false; btn.textContent = 'Send reminder for ' + _rmMoney(d.balance);
+  } catch (e) {
+    wrap.style.display = 'none';
+    _rmBox('rm-refuse', escHtml(e.message || 'Could not build the preview'), 'warn');
+  }
+}
+async function rmSend(confirmed) {
+  const btn = document.getElementById('rm-send-btn');
+  const label = btn.textContent;
+  btn.disabled = true; btn.textContent = 'Sending...';
+  _rmBox('rm-warn', '');
+  try {
+    const note = (document.getElementById('rm-note').value || '').trim();
+    const r = await hqFetch(`${API}/hq/invoice/${encodeURIComponent(_rm.invoiceId)}/remind`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ operator_id: currentOp, note: note || undefined, confirm: confirmed === true })
+    });
+    const d = await r.json().catch(() => ({}));
+    if (r.status === 409 && d.recent) {
+      _rmBox('rm-warn', escHtml(d.error) + '<div style="margin-top:10px;"><button type="button" class="sbtn" onclick="rmSend(true)" style="margin:0;background:rgba(224,154,61,.1);color:var(--amber);border-color:rgba(224,154,61,.35);">Send another</button></div>', 'warn');
+      btn.disabled = false; btn.textContent = label;
+      return;
+    }
+    if (!r.ok || !d.success) throw new Error(d.error || 'The reminder was not sent');
+    _rm.sentFor = _rm.invoiceId;
+    btn.textContent = 'Sent ✓';
+    showToast('Reminder sent for ' + _rmMoney(d.balance), 'ok');
+    rmLoad(true);
+  } catch (e) {
+    btn.disabled = false; btn.textContent = label;
+    _rmBox('rm-warn', escHtml(e.message || 'The reminder was not sent'), 'warn');
+  }
+}
+function rmRenderAuto() {
+  const el = document.getElementById('rm-auto');
+  const opts = [['agency', 'Agency default', 'now ' + (_rm.agencyDefault === 'off' ? 'Off' : 'On')], ['on', 'On', ''], ['off', 'Off', '']];
+  const cur = _rm.override || 'agency';
+  el.innerHTML = opts.map(([m, t, s]) => `<button type="button" aria-pressed="${cur === m ? 'true' : 'false'}" onclick="rmSetAuto('${m}')" style="min-height:48px;border-radius:8px;cursor:pointer;touch-action:manipulation;font-size:13px;line-height:1.2;padding:6px 4px;border:1px solid ${cur === m ? 'var(--border2)' : 'transparent'};background:${cur === m ? 'var(--bg3)' : 'transparent'};color:${cur === m ? 'var(--text)' : 'var(--muted2)'};">${t}${s ? '<br><span style="font-family:var(--mono);font-size:10px;color:var(--muted);">' + s + '</span>' : ''}</button>`).join('');
+}
+async function rmSetAuto(mode) {
+  try {
+    const r = await hqFetch(`${API}/hq/client/${encodeURIComponent(_rm.clientId)}/reminders`, {
+      method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ operator_id: currentOp, mode })
+    });
+    const d = await r.json().catch(() => ({}));
+    if (!r.ok || !d.success) throw new Error(d.error || 'Could not save');
+    _rm.override = mode === 'agency' ? null : mode;
+    rmRenderAuto();
+    showToast(mode === 'agency' ? 'Automatic reminders follow the agency setting' : 'Automatic reminders ' + mode + ' for this client', 'ok');
+  } catch (e) { showToast(e.message || 'Could not save', 'err'); }
+}
+function rmRenderHistory(rows) {
+  const el = document.getElementById('rm-history');
+  if (!rows.length) {
+    el.innerHTML = '<div style="padding:14px;border:1px solid var(--border);border-radius:8px;background:var(--bg3);"><div style="font-size:14px;color:var(--text);">No reminders sent yet</div><div style="font-size:12px;line-height:1.5;color:var(--muted);margin-top:6px;">Each reminder, manual or automatic, shows here with its date, the amount it stated, and whether it was sent or skipped.</div></div>';
+    return;
+  }
+  el.innerHTML = rows.map(h => {
+    const ok = h.status === 'sent';
+    return `<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;padding:10px 12px;border:1px solid var(--border);border-radius:8px;margin-bottom:6px;background:var(--bg2);">
+      <div style="min-width:0;">
+        <div style="font-size:13px;color:var(--text);">${escHtml(_RM_KIND[h.kind] || h.kind)}</div>
+        <div style="font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:3px;overflow-wrap:anywhere;">${escHtml(fmtdt(h.created_at))} · ${escHtml(_RM_STATUS[h.status] || h.status)}${h.error ? ', ' + escHtml(h.error) : ''}</div>
+      </div>
+      <div style="font-family:var(--mono);font-size:13px;white-space:nowrap;color:${ok ? 'var(--gold)' : 'var(--muted)'};">${h.amount_stated != null ? _rmMoney(h.amount_stated) : ''}</div>
+    </div>`;
+  }).join('');
+}
+
+// ── RECORD PAYMENT: THE INVOICE IT IS FOR ──
+let _cspInv = null, _cspInvList = [];
+async function cspLoadInvoices() {
+  const el = document.getElementById('csp-invoices');
+  _cspInv = null; _cspInvList = [];
+  if (!el) return;
+  const plain = t => '<div style="font-size:12px;line-height:1.5;color:var(--muted);padding:10px 12px;border:1px solid var(--border);border-radius:8px;background:var(--bg3);">' + t + '</div>';
+  if (!_cspClientId) { el.innerHTML = plain('Open this from the client card to record against an invoice.'); cspSetPreset('last'); return; }
+  el.innerHTML = plain('Loading invoices...');
+  try {
+    const [r1, r2] = await Promise.all([
+      hqFetch(`${API}/hq/client/${encodeURIComponent(_cspClientId)}/reminders`),
+      hqFetch(`${API}/hq/ar?operator_id=${encodeURIComponent(currentOp)}`)
+    ]);
+    const d1 = await r1.json().catch(() => ({})), d2 = await r2.json().catch(() => ({}));
+    if (!r1.ok || !d1.success) throw new Error(d1.error || 'Could not load invoices');
+    const dates = {};
+    ((d2 && d2.invoices) || []).forEach(i => { dates[i.id] = { start: i.start_date, end: i.end_date }; });
+    _cspInvList = (d1.open_invoices || []).map(i => Object.assign({}, i, dates[i.invoice_id] || {}));
+  } catch (e) {
+    el.innerHTML = plain(escHtml(e.message || 'Could not load invoices') + '. A payment recorded now is not attached to an invoice.');
+    cspSetPreset('last');
+    return;
+  }
+  if (!_cspInvList.length) {
+    el.innerHTML = plain('No unpaid invoice. This payment will be recorded without one and will not change any invoice balance.');
+    cspSetPreset('last');
+    return;
+  }
+  cspRenderInvoices();
+  if (_cspInvList.length === 1) cspPickInvoice(_cspInvList[0].invoice_id); else cspSetPreset('last');
+}
+function cspRenderInvoices() {
+  const el = document.getElementById('csp-invoices');
+  el.innerHTML = _cspInvList.map(i => _invCard(i, !!_cspInv && _cspInv.invoice_id === i.invoice_id, 'cspPickInvoice')).join('')
+    + (_cspInv ? '' : '<div style="font-family:var(--mono);font-size:11px;color:var(--amber);">Choose the invoice this payment is for.</div>');
+}
+function cspPickInvoice(id) {
+  _cspInv = _cspInvList.find(i => i.invoice_id === id) || null;
+  const w = document.getElementById('csp-warn'); if (w) w.style.display = 'none';
+  cspRenderInvoices();
+  if (!_cspInv) return;
+  if (_cspInv.start && _cspInv.end) {
+    document.getElementById('csp-from').value = _cspInv.start;
+    document.getElementById('csp-to').value = _cspInv.end;
+    ['last', 'this', 'custom'].forEach(p => {
+      const b = document.getElementById('csp-pre-' + p);
+      if (b) { b.style.borderColor = 'var(--border)'; b.style.background = 'var(--bg3)'; b.style.color = 'var(--muted)'; }
+    });
+  }
+  const amt = document.getElementById('csp-amount');
+  if (amt) amt.value = _cspInv.balance > 0 ? Number(_cspInv.balance).toFixed(2) : '';
+  cspSetType('full');
+  cspLoadVisits();
+}
+function cspWarn(msg) {
+  const w = document.getElementById('csp-warn'); if (!w) return;
+  w.style.display = 'block';
+  w.innerHTML = '<div style="font-size:13px;line-height:1.5;color:var(--text);overflow-wrap:anywhere;">' + escHtml(msg) + '</div>'
+    + '<div style="display:flex;gap:8px;margin-top:10px;"><button type="button" class="sbtn" onclick="submitClientPayment(true)" style="margin:0;flex:1;background:rgba(224,154,61,.1);color:var(--amber);border-color:rgba(224,154,61,.35);">Record anyway</button>'
+    + '<button type="button" class="sbtn" onclick="document.getElementById(\'csp-warn\').style.display=\'none\'" style="margin:0;flex:1;background:none;color:var(--muted);border-color:var(--border);">Back</button></div>';
+}
 
 // ── SEND PAY SHEET ────────────────────────────────────────────────────────────
 let _sspPswName = '', _sspPswEmail = '', _sspPswRate = 19, _sspPayType = 'full', _sspCalcTotal = 0;
@@ -13089,11 +13390,12 @@ function openClientDetail(id) {
     : '<div style="font-family:var(--mono);font-size:12px;color:var(--muted);padding:12px 0;">No visits in last 90 days</div>';
 
   document.getElementById('client-sheet-body').innerHTML = `
-    <div class="prof-act-row">
+    <div class="prof-act-row prof-act-grid">
       <button class="sbtn" onclick="closeSheet('client-sheet');openClientSchedule('${name}')">+ Shift</button>
       <button class="sbtn" style="background:rgba(200,169,110,.1);color:var(--gold);border-color:rgba(200,169,110,.3);" onclick="openInvoicePicker('${name}','${c.family_email||c.email||''}','${c.assigned_psw||''}',${c.client_rate||22},${c.psw_rate||19})">Invoice</button>
       <button class="sbtn" onclick="openHoursPanel('client','${name}')">⏱ Hours</button>
-      <button class="sbtn" data-csp-id="${c.id||''}" data-csp-name="${name}" data-csp-email="${c.family_email||c.email||''}" data-csp-rate="${c.client_rate||22}" onclick="openClientSendPayment(this.dataset.cspName,this.dataset.cspEmail,parseFloat(this.dataset.cspRate),this.dataset.cspId)" style="background:rgba(109,185,116,.06);color:var(--green2);border-color:rgba(109,185,116,.2);">Send Payment</button>
+      <button class="sbtn" data-rm-id="${c.id||''}" data-rm-name="${name}" onclick="openRemindSheet(this.dataset.rmId,this.dataset.rmName)" style="background:rgba(200,169,110,.1);color:var(--gold);border-color:rgba(200,169,110,.3);">Remind</button>
+      <button class="sbtn" data-csp-id="${c.id||''}" data-csp-name="${name}" data-csp-email="${c.family_email||c.email||''}" data-csp-rate="${c.client_rate||22}" onclick="openClientSendPayment(this.dataset.cspName,this.dataset.cspEmail,parseFloat(this.dataset.cspRate),this.dataset.cspId)" style="background:rgba(109,185,116,.06);color:var(--green2);border-color:rgba(109,185,116,.2);">Record Payment</button>
       <button class="sbtn" data-cn="${name}" onclick="openClientStatement(this.dataset.cn)" style="background:rgba(200,169,110,.06);color:var(--gold);border-color:rgba(200,169,110,.25);">Statement</button>
     </div>
     <div class="prof-tabs">
@@ -18061,12 +18363,20 @@ function _applyActiveSectionFlex() {
   <div class="sheet-handle"></div>
   <div class="sheet-header">
     <div>
-      <div class="sheet-label">Send Payment Confirmation</div>
+      <div class="sheet-label">Record Payment Received</div>
       <div id="csp-meta" style="font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:2px;"></div>
     </div>
     <button class="sheet-close" onclick="closeSheet('client-send-payment-sheet')">✕</button>
   </div>
   <div style="padding:0 16px 24px;overflow-y:auto;max-height:calc(88vh - 80px);">
+    <!-- R3. THE INVOICE THIS PAYMENT IS FOR. Picked here, sent as invoice_id,
+         checked by the server (this agency, this client, not replaced). With
+         one open invoice it is chosen, its period filled and its balance
+         put in Amount. The totals shown are the server's. -->
+    <div style="margin-bottom:14px;">
+      <div style="font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:8px;">Invoice</div>
+      <div id="csp-invoices"></div>
+    </div>
     <div style="margin-bottom:14px;">
       <div style="font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:8px;">Billing Period</div>
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;">
@@ -18091,6 +18401,15 @@ function _applyActiveSectionFlex() {
         <div>
           <div id="csp-sum-visits" style="font-family:var(--mono);font-size:12px;color:var(--muted);"></div>
           <div id="csp-sum-hours" style="font-family:var(--mono);font-size:12px;color:var(--muted);margin-top:2px;"></div>
+        </div>
+        <div style="text-align:right;min-width:0;">
+          <div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-bottom:2px;">Amount Due</div>
+          <div id="csp-sum-total" style="font-family:var(--mono);font-size:18px;color:var(--gold);white-space:nowrap;"></div>
+          <div id="csp-sum-sub" style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:2px;"></div>
+        </div>
+      </div>
+    </div>
+    <!-- R3. The method and notify blocks below sat inside the summary box. -->
     <!-- B110. HOW the money moved, and WHETHER to tell them.
          payments.method has existed since the table was created and NOTHING
          has ever written it, so every payment recorded before this drop has
@@ -18129,13 +18448,6 @@ function _applyActiveSectionFlex() {
         </span>
       </label>
     </div>
-        </div>
-        <div style="text-align:right;">
-          <div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-bottom:2px;">Invoice Total</div>
-          <div id="csp-sum-total" style="font-family:var(--mono);font-size:20px;color:var(--gold);"></div>
-        </div>
-      </div>
-    </div>
     <!-- Amount paid -->
     <div style="margin-bottom:14px;">
       <div style="font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;">Amount Received ($)</div>
@@ -18164,13 +18476,53 @@ function _applyActiveSectionFlex() {
       <div style="font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;">Family Email</div>
       <input type="email" id="csp-email" class="sinput" placeholder="Family contact email" style="font-size:13px;padding:10px;">
     </div>
+    <div id="csp-warn" style="display:none;padding:12px 14px;margin-bottom:14px;border-radius:8px;border:1px solid rgba(224,154,61,.3);background:rgba(224,154,61,.07);"></div>
     <div style="display:flex;gap:8px;">
-      <button onclick="submitClientPayment()" id="csp-send-btn" style="flex:2;padding:14px;background:rgba(109,185,116,.12);border:1px solid rgba(109,185,116,.35);border-radius:8px;font-family:var(--mono);font-size:12px;letter-spacing:1px;text-transform:uppercase;color:var(--green2);cursor:pointer;min-height:50px;touch-action:manipulation;">Send Confirmation</button>
+      <button onclick="submitClientPayment()" id="csp-send-btn" style="flex:2;padding:14px;background:rgba(109,185,116,.12);border:1px solid rgba(109,185,116,.35);border-radius:8px;font-family:var(--mono);font-size:12px;letter-spacing:1px;text-transform:uppercase;color:var(--green2);cursor:pointer;min-height:50px;touch-action:manipulation;">Record Payment</button>
       <button onclick="closeSheet('client-send-payment-sheet')" style="flex:1;padding:14px;background:none;border:1px solid var(--border);border-radius:8px;font-family:var(--mono);font-size:12px;color:var(--muted);cursor:pointer;min-height:50px;touch-action:manipulation;">Cancel</button>
     </div>
   </div>
 </div>
 <!-- ── END CLIENT SEND PAYMENT SHEET ──────────────────────────────────────── -->
+<!-- ── R3. PAYMENT REMINDER SHEET. BUILD_PLAN 4.94, item 18 ─────────────────
+     Opened from the client card's Remind button and from AR's Remind. It shows
+     the client's open invoices with the server's balance, a preview of the
+     exact email (the server renders it; sends nothing), an optional note, and
+     one Send. Below: the client's automatic reminder switch and its history.
+     The preview frame has no scripts: sandbox allows same origin only so the
+     sheet can size it to its content. -->
+<div class="sheet" id="remind-sheet" style="z-index:1058;">
+  <div class="sheet-handle"></div>
+  <div class="sheet-header">
+    <div style="min-width:0;">
+      <div class="sheet-label">Payment Reminder</div>
+      <div id="rm-meta" style="font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:2px;overflow-wrap:anywhere;"></div>
+    </div>
+    <button class="sheet-close" onclick="closeSheet('remind-sheet')">✕</button>
+  </div>
+  <div style="padding:0 16px 24px;overflow-y:auto;overflow-x:hidden;max-height:calc(88vh - 80px);">
+    <div id="rm-invoices" style="margin-bottom:6px;"></div>
+    <div id="rm-refuse" style="display:none;"></div>
+    <div id="rm-preview-wrap" style="display:none;">
+      <div id="rm-to" style="font-size:12px;line-height:1.5;color:var(--muted2);margin-bottom:8px;overflow-wrap:anywhere;"></div>
+      <iframe id="rm-frame" sandbox="allow-same-origin" title="Email preview" style="display:block;width:100%;height:560px;border:1px solid var(--border);border-radius:8px;background:#e9ebee;margin-bottom:14px;"></iframe>
+      <div style="font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;">Note to family (optional)</div>
+      <textarea id="rm-note" class="sinput" rows="2" maxlength="1000" placeholder="Shown above the sign off" style="font-size:14px;padding:10px;resize:vertical;width:100%;box-sizing:border-box;margin-bottom:8px;"></textarea>
+      <button type="button" onclick="rmPreview()" style="width:100%;margin-bottom:14px;padding:10px;border-radius:8px;border:1px solid var(--border);background:none;font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--muted2);cursor:pointer;min-height:44px;touch-action:manipulation;">Update preview</button>
+      <div id="rm-warn" style="display:none;"></div>
+      <div style="display:flex;gap:8px;margin-bottom:22px;">
+        <button id="rm-send-btn" onclick="rmSend(false)" style="flex:2;padding:14px 10px;background:rgba(200,169,110,.12);border:1px solid rgba(200,169,110,.4);border-radius:8px;font-family:var(--mono);font-size:12px;letter-spacing:1px;text-transform:uppercase;color:var(--gold);cursor:pointer;min-height:50px;touch-action:manipulation;">Send reminder</button>
+        <button onclick="closeSheet('remind-sheet')" style="flex:1;padding:14px 10px;background:none;border:1px solid var(--border);border-radius:8px;font-family:var(--mono);font-size:12px;color:var(--muted);cursor:pointer;min-height:50px;touch-action:manipulation;">Close</button>
+      </div>
+    </div>
+    <div style="font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:8px;">Automatic reminders</div>
+    <div id="rm-auto" style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:6px;margin-bottom:8px;"></div>
+    <div style="font-size:12px;line-height:1.5;color:var(--muted);margin-bottom:20px;">Off stops the automatic day 3, 7 and 14 emails for this family, including any already queued. Remind still works. Nothing is ever sent for an invoice that is paid.</div>
+    <div style="font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:8px;">Reminder history</div>
+    <div id="rm-history"></div>
+  </div>
+</div>
+<!-- ── END PAYMENT REMINDER SHEET ─────────────────────────────────────────── -->
 
 <div class="sheet" id="invoice-picker-sheet" style="z-index:1052;">
   <div class="sheet-handle"></div>
