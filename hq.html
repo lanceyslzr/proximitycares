@@ -6318,7 +6318,7 @@ async function openPSWMsg(name) {
   document.getElementById('psw-msg-body').innerHTML = '<div class="empty-state" style="padding:16px;">Loading...</div>';
   openSheet('psw-msg-sheet');
   try {
-    const r = await fetch(`${API}/psw/notes/${encodeURIComponent(name)}?pin=hq-operator-bypass-2026`);
+    const r = await hqFetch(`${API}/psw/notes/${encodeURIComponent(name)}`);
     const d = await r.json();
     const notes = d.notes||[];
     if(!notes.length) { document.getElementById('psw-msg-body').innerHTML='<div class="empty-state" style="padding:16px;">No messages yet</div>'; return; }
@@ -6625,7 +6625,7 @@ async function openThread(name) {
   body.innerHTML = '<div class="empty-state" style="padding:16px;">Loading...</div>';
   activePSW = name;
   try {
-    const r = await fetch(`${API}/psw/notes/${encodeURIComponent(name)}?pin=hq-operator-bypass-2026`);
+    const r = await hqFetch(`${API}/psw/notes/${encodeURIComponent(name)}`);
     const d = await r.json();
     const notes = d.notes||[];
     if (!notes.length) { body.innerHTML = '<div class="empty-state" style="padding:16px;">No messages yet</div>'; return; }
@@ -11936,7 +11936,7 @@ async function openPSWDetail(pswId) {
 
   // Fetch full PSW record
   try {
-    const res = await fetch(`${API}/psw/notes/${encodeURIComponent(name)}?pin=hq-operator-bypass-2026`);
+    const res = await hqFetch(`${API}/psw/notes/${encodeURIComponent(name)}`);
     const d = await res.json();
     const rec = d.psw_record || {};
 
