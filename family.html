@@ -385,7 +385,7 @@ button:active{transform:scale(0.98);}
    tabular monospace: hours, money, dates and times all align, and a digit
    changing does not shift the characters beside it. The family portal defines
    the SAME --mono token and already uses it on thirteen classes, but none of
-   the classes that carry actual numbers. So Connie's hours, dates and message
+   the classes that carry actual numbers. So a family's hours, dates and message
    times render in proportional type, where a 1 is narrower than an 8 and a
    live-updating value visibly reflows.
 
@@ -1380,7 +1380,7 @@ button:active{transform:scale(0.98);}
       </div>
       <div class="pin-error" id="pinError">Wrong code. Try again.</div>
     </div>
-    <div class="gate-help">Lost your code? Call 647-382-8047</div>
+    <div class="gate-help">Lost your code? Contact your care agency.</div>
   </div>
 </div>
 
@@ -1617,6 +1617,28 @@ function pinDel() {
   pinVal = pinVal.slice(0, -1);
   updateDots();
 }
+
+// P2 (4.102). Agency values are typed by an operator, so they are escaped
+// before they reach the page.
+function famEsc(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
+// KB (BUILD_PLAN 4.102). THE KEYBOARD DRIVES THE PIN PAD ON A LAPTOP. A digit
+// on the top row or the number pad presses the same key a tap does, and
+// Backspace deletes one. Only while this pad is on screen; never while a field
+// that is on screen has focus; never with Ctrl, Cmd or
+// Alt held; never a repeat from a key held down. The pad's own functions are
+// called, so the PIN reaches the server exactly as a tap sends it.
+document.addEventListener('keydown', function (e) {
+  if (e.ctrlKey || e.metaKey || e.altKey || e.repeat) return;
+  const t = e.target;
+  if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT' || t.isContentEditable) && t.getClientRects().length) return;
+  const pad = document.querySelector('#gate .pin-pad');
+  if (!pad || pad.getClientRects().length === 0) return;
+  if (/^[0-9]$/.test(e.key)) { e.preventDefault(); pinPress(e.key); }
+  else if (e.key === 'Backspace') { e.preventDefault(); pinDel(); }
+});
 
 function updateDots() {
   for (let i = 0; i < 4; i++) {
@@ -2482,7 +2504,7 @@ function showTab(tab) {
     const pswPhone = (todayPsw?.phone || psw?.phone || '').replace(/[^0-9+]/g,'');
     const pswFirst = pswName.split(' ')[0] || 'Your Caregiver';
     const pswInitials = pswName.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
-    const agencyPhone = (portalData?.branding?.owner_phone||'647-382-8047').replace(/[^0-9+]/g,'');
+    const agencyPhone = (portalData?.branding?.owner_phone||'').replace(/[^0-9+]/g,'');
     const shiftLabel = isActive ? 'On shift now' : isComplete ? 'Completed today' : 'Your caregiver';
     const contactRow = pswName ? `
       <div style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:14px 16px;margin-bottom:20px;">
@@ -2503,7 +2525,7 @@ function showTab(tab) {
           ${pswPhone ? `<a href="tel:${pswPhone}" style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;min-height:44px;background:rgba(74,154,110,.1);border:1px solid rgba(74,154,110,.25);border-radius:10px;text-decoration:none;">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14" style="color:var(--green2)"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.39 2 2 0 0 1 3.6 1.22h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L7.91 8.96a16 16 0 0 0 6 6l.96-.96a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
             <span style="font-size:12px;font-weight:600;color:var(--green2);">Call ${pswFirst}</span>
-          </a>` : `<a href="tel:${agencyPhone}" style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;min-height:44px;background:var(--bg3);border:1px solid var(--border);border-radius:10px;text-decoration:none;">
+          </a>` : !agencyPhone ? '' : `<a href="tel:${agencyPhone}" style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;min-height:44px;background:var(--bg3);border:1px solid var(--border);border-radius:10px;text-decoration:none;">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.39 2 2 0 0 1 3.6 1.22h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L7.91 8.96a16 16 0 0 0 6 6l.96-.96a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
             <span style="font-size:12px;font-weight:600;color:var(--muted2);">Call Agency</span>
           </a>`}
@@ -2842,7 +2864,7 @@ function showTab(tab) {
 
           <div style="margin-bottom:12px;">
             <div style="font-size:10px;font-weight:600;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px;">Your Notes</div>
-            <textarea id="private-note-input" placeholder="e.g. Carolina was wonderful today, Mom seemed much happier. Or: the timing felt rushed..." rows="3" style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px;font-size:16px;color:var(--text);resize:none;font-family:'Inter',sans-serif;line-height:1.5;outline:none;box-sizing:border-box;" maxlength="600" oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,120)+'px';updateNoteCount(this)"></textarea>
+            <textarea id="private-note-input" placeholder="e.g. Our caregiver was wonderful today, Mom seemed much happier. Or: the timing felt rushed..." rows="3" style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px;font-size:16px;color:var(--text);resize:none;font-family:'Inter',sans-serif;line-height:1.5;outline:none;box-sizing:border-box;" maxlength="600" oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,120)+'px';updateNoteCount(this)"></textarea>
           </div>
 
           <div style="display:flex;align-items:center;justify-content:space-between;margin-top:4px;">
@@ -2965,8 +2987,7 @@ function showTab(tab) {
       <div class="section">
         <div class="section-title">Contact</div>
         <div class="card">
-          <div class="card-row"><span class="card-row-label">Lance Salazar</span><span class="card-row-value green">647-382-8047</span></div>
-          <div class="card-row"><span class="card-row-label">Email</span><span class="card-row-value" style="font-size:12px;">healthcareproximity@gmail.com</span></div>
+          <div class="card-row"><span class="card-row-label">${famEsc(portalData.branding?.agency_name || 'Your care agency')}</span><span class="card-row-value green">${famEsc(portalData.branding?.owner_phone || 'Ask your coordinator')}</span></div>
         </div>
       </div>`;
   }
@@ -3036,7 +3057,7 @@ function showTab(tab) {
     const visitCtx = _askVisits.length
       ? 'Visits, newest first:\n' + _askVisits.map(_fmtAsk).join('\n')
       : 'No recent visits on file.';
-    window._askCtx = { visitCtx, clientName, phone: portalData.branding?.owner_phone || '647-382-8047' };
+    window._askCtx = { visitCtx, clientName, phone: portalData.branding?.owner_phone || '' };
     html = `
       <div class="section">
         <div class="section-title">Ask About Care</div>
@@ -3098,7 +3119,7 @@ function showTab(tab) {
         <div class="section-title">Payment</div>
         <div class="card">
           <div class="card-row"><span class="card-row-label">Rate</span><span class="card-row-value">$${(portalData.client?.client_rate || 22).toFixed(2)} / hour</span></div>
-          <div class="card-row"><span class="card-row-label">E-transfer to</span><span class="card-row-value green" style="font-size:13px;">${portalData.branding?.payment_email || 'lancesalazar56@yahoo.ca'}</span></div>
+          <div class="card-row"><span class="card-row-label">E-transfer to</span><span class="card-row-value green" style="font-size:13px;">${famEsc(portalData.branding?.payment_email || 'Ask your agency')}</span></div>
           <div class="card-row"><span class="card-row-label">Due</span><span class="card-row-value">First of the month</span></div>
         </div>
       </div>`;
@@ -3135,7 +3156,7 @@ async function _sendAskMessageImpl() {
   msgs.scrollTop = msgs.scrollHeight;
 
   const ctx = window._askCtx || {};
-  const systemPrompt = `You are a helpful care assistant for a home care agency. A family member is asking about their loved one's care. Answer warmly and concisely based only on the visit information provided. If you don't have information to answer the question, say so honestly and suggest they contact their coordinator at ${ctx.phone||'647-382-8047'}. Never make up information.`;
+  const systemPrompt = `You are a helpful care assistant for a home care agency. A family member is asking about their loved one's care. Answer warmly and concisely based only on the visit information provided. If you don't have information to answer the question, say so honestly and suggest they contact their coordinator${ctx.phone ? ' at ' + ctx.phone : ''}. Never make up information.`;
   const userMsg = `Visit context: ${ctx.visitCtx||'No visits on file.'}\n\nFamily question: ${q}`;
 
   try {
@@ -3155,7 +3176,7 @@ async function _sendAskMessageImpl() {
     thinking.textContent = reply;
   } catch {
     thinking.style.color = 'var(--muted)';
-    thinking.textContent = `I'm having trouble connecting right now. Please call your coordinator at ${ctx.phone||'647-382-8047'}.`;
+    thinking.textContent = ctx.phone ? `I'm having trouble connecting right now. Please call your coordinator at ${ctx.phone}.` : `I'm having trouble connecting right now. Please contact your coordinator.`;
   }
   msgs.scrollTop = msgs.scrollHeight;
 }
@@ -3290,7 +3311,7 @@ function requestScheduleChange(){
 // nothing left in it is removed entirely rather than left as an empty shell.
 //
 // THIS IS THE DISPLAY HALF ONLY. The bytes are still gone and still only on
-// Carolina's phone. Recovery is a separate decision, recorded in
+// the caregiver's phone. Recovery is a separate decision, recorded in
 // OUTSTANDING.md; this section stops the family seeing the damage.
 // =====================================================================
 function famDropPhoto(img) {
@@ -3344,7 +3365,7 @@ function famDropPhoto(img) {
 // Missed in the first cut of this section: famDropPhoto recounted the per
 // group label and removed empty groups, but the section title is rendered as
 // "Visit Photos · ${totalPhotos}" from the payload and never touched again.
-// For Rosetta that is 63, and every one of her 63 objects is zero length, so
+// For one client that is 63, and every one of her 63 objects is zero length, so
 // the family was left looking at a heading claiming 63 photos above a section
 // with nothing in it. That is the same false claim this section exists to
 // remove, one level up.

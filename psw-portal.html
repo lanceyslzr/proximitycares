@@ -102,7 +102,7 @@ a{color:inherit;text-decoration:none;}
 .drawer-lbl{flex:1;}
 .drawer-badge{font-family:var(--mono);font-size:12px;background:var(--teal2);color:#000;border-radius:100px;padding:2px 7px;}
 /* B0b. THE TOPBAR COLLISION.
-   Carolina reported on 2026-08-26 that the three lines at the right corner
+   A caregiver reported on 2026-08-26 that the three lines at the right corner
    would not respond. The screenshot showed her name overlapping the clock and
    the unread badge sitting ON TOP of the hamburger, which is why it did not
    take a tap.
@@ -833,7 +833,7 @@ a{color:inherit;text-decoration:none;}
 
       <div style="margin-bottom:20px;">
         <label style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted,#6a7a72);display:block;margin-bottom:8px;">Emergency Contact Name</label>
-        <input id="inv-emg-name" type="text" placeholder="e.g. Maria Hernandez" autocomplete="off" style="width:100%;padding:14px 16px;background:var(--bg2,#0d1117);border:1px solid var(--border,rgba(255,255,255,.1));border-radius:10px;color:var(--text,#e8e4dc);font-size:16px;box-sizing:border-box;">
+        <input id="inv-emg-name" type="text" placeholder="Full name" autocomplete="off" style="width:100%;padding:14px 16px;background:var(--bg2,#0d1117);border:1px solid var(--border,rgba(255,255,255,.1));border-radius:10px;color:var(--text,#e8e4dc);font-size:16px;box-sizing:border-box;">
       </div>
       <div style="margin-bottom:20px;">
         <label style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted,#6a7a72);display:block;margin-bottom:8px;">Emergency Contact Phone</label>
@@ -875,7 +875,7 @@ a{color:inherit;text-decoration:none;}
   <div class="lock-sub">Personal Support Worker</div>
   <div class="lock-step active" id="lock-step-1">
     <div class="lock-label">Your name</div>
-    <input class="lock-input" id="lock-name" placeholder="e.g. Maria Chen" autocomplete="name">
+    <input class="lock-input" id="lock-name" placeholder="Your full name" autocomplete="name">
     <button class="lock-btn" onclick="goToPin()">Continue</button>
   </div>
   <div class="lock-step" id="lock-step-2">
@@ -1276,7 +1276,7 @@ a{color:inherit;text-decoration:none;}
 <div class="section" id="sect-messages">
   <div class="section-header" style="flex-shrink:0;padding:12px 14px;">
     <span class="section-title">Message HQ</span>
-    <span style="font-family:var(--rb-mono);font-size:10px;color:var(--psw);letter-spacing:.5px;">Lance notified instantly</span>
+    <span style="font-family:var(--rb-mono);font-size:10px;color:var(--psw);letter-spacing:.5px;">Your coordinator is notified instantly</span>
   </div>
   <!-- Incident history, read-only, only shows if PSW has incident records -->
   <div id="psw-incident-history" style="display:none;flex-shrink:0;margin:0 12px 8px;background:var(--rb-panel);border:1px solid var(--rb-line);border-radius:12px;overflow:hidden;">
@@ -1295,7 +1295,7 @@ a{color:inherit;text-decoration:none;}
     <div class="skeleton-row" style="border-radius:10px;height:44px;max-width:60%;margin-left:auto;"></div>
   </div>
   <div class="msg-input-wrap">
-    <textarea class="msg-input" id="msg-input" placeholder="Type a message to Lance..." rows="1" oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,100)+'px';"></textarea>
+    <textarea class="msg-input" id="msg-input" placeholder="Type a message to your coordinator..." rows="1" oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,100)+'px';"></textarea>
     <button class="msg-send" onclick="sendMsg()">→</button>
   </div>
 </div>
@@ -1320,7 +1320,7 @@ a{color:inherit;text-decoration:none;}
     <div id="docs-visit-list"><div class="empty-state" style="padding:20px;">Loading...</div></div>
   </div>
   <div style="margin:4px 12px 16px;padding:10px 14px;background:var(--rb-panel);border:1px solid var(--rb-line);border-radius:8px;font-family:var(--rb-mono);font-size:11px;color:var(--rb-dim);letter-spacing:1px;">
-    Certifications are managed by your coordinator. Contact Lance to update your files.
+    Certifications are managed by your coordinator. Contact them to update your files.
   </div>
 
   <!-- ONTARIO FORMS SECTION -->
@@ -1883,7 +1883,7 @@ a{color:inherit;text-decoration:none;}
   <div class="success-title" id="success-title">Visit Complete</div>
   <div class="success-msg" id="success-msg">Visit logged. Family has been notified.</div>
   <button class="success-btn" id="incident-refile-btn" onclick="refileIncident()" style="display:none;background:var(--amber);color:#0a0e14;border:none;border-radius:10px;padding:14px 28px;font-family:var(--mono);font-size:12px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;min-height:48px;touch-action:manipulation;width:100%;max-width:280px;">Re submit incident report</button>
-  <a id="incident-call-link" href="tel:6473828047" style="display:none;font-family:var(--mono);font-size:12px;color:var(--muted2);text-decoration:none;margin-bottom:4px;">or call the office, 647 382 8047</a>
+  <a id="incident-call-link" href="tel:" style="display:none;font-family:var(--mono);font-size:12px;color:var(--muted2);text-decoration:none;margin-bottom:4px;">or call the office</a>
   <button class="success-btn" id="success-note-btn" onclick="openNoteSheet()" style="background:var(--teal);color:#fff;border:none;border-radius:10px;padding:14px 28px;font-family:var(--mono);font-size:12px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;min-height:48px;touch-action:manipulation;width:100%;max-width:280px;">Write Visit Note →</button>
   <button class="success-btn" onclick="closeSuccess()" style="background:none;border:1px solid var(--border2);color:var(--muted2);">Done, Skip Note</button>
 </div>
@@ -1992,7 +1992,7 @@ function initPSWRealtime(){
 //
 // AND THE TWO THAT BADGE IT READ THE WRONG COLUMN. NINE server paths write
 // cancellation_reason on a cancel; only the HOLD paths write status_reason.
-// Measured against real rows: Carolina's five cancelled September shifts carry
+// Measured against real rows: one caregiver's five cancelled September shifts carry
 // cancellation_reason with the full explanation and status_reason NULL, so the
 // calendar shows "Cancelled" and a blank reason.
 //
@@ -2347,6 +2347,22 @@ function lk(k) {
   }
 }
 function ld() { lockIn = lockIn.slice(0,-1); updateDots(); }
+
+// KB (BUILD_PLAN 4.102). THE KEYBOARD DRIVES THE PIN PAD ON A LAPTOP. A digit
+// on the top row or the number pad presses the same key a tap does, and
+// Backspace deletes one. Only while this pad is on screen; never while a field
+// that is on screen has focus (the caregiver's name); never with Ctrl, Cmd or
+// Alt held; never a repeat from a key held down. The pad's own functions are
+// called, so the PIN reaches the server exactly as a tap sends it.
+document.addEventListener('keydown', function (e) {
+  if (e.ctrlKey || e.metaKey || e.altKey || e.repeat) return;
+  const t = e.target;
+  if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT' || t.isContentEditable) && t.getClientRects().length) return;
+  const pad = document.querySelector('#lock .lock-pad');
+  if (!pad || pad.getClientRects().length === 0) return;
+  if (/^[0-9]$/.test(e.key)) { e.preventDefault(); lk(e.key); }
+  else if (e.key === 'Backspace') { e.preventDefault(); ld(); }
+});
 function updateDots() { for (let i = 0; i < 4; i++) document.getElementById('ld'+i).classList.toggle('filled', i < lockIn.length); }
 
 async function verifyPin() {
@@ -4105,7 +4121,11 @@ function handleIncidentFailedCheckout(d, payload) {
   const _rb = document.getElementById('incident-refile-btn');
   const _cl = document.getElementById('incident-call-link');
   if (_rb) { _rb.style.display = _canRefile ? 'block' : 'none'; _rb.disabled = false; _rb.textContent = 'Re submit incident report'; }
-  if (_cl) _cl.style.display = 'block';
+  if (_cl) {
+    const _ph = (window._agencyPhone || '').replace(/[^0-9+]/g, '');
+    if (_ph) { _cl.href = 'tel:' + _ph; _cl.textContent = 'or call the office, ' + window._agencyPhone; _cl.style.display = 'block'; }
+    else _cl.style.display = 'none';
+  }
   document.getElementById('success-overlay').classList.add('show');
   loadSchedule(); loadHomeData();
   return true;
@@ -4902,7 +4922,7 @@ async function loadMessages(scroll=true) {
 
 // B0. PATCH /psw/note/:id/read has existed since the messages feature shipped
 // and the portal has never called it, so read was never written and the badge
-// counted every message ever sent. Carolina reached 129.
+// counted every message ever sent. One caregiver reached 129.
 //
 // Deliberately NOT called from inside loadMessages: that runs in the background
 // on phone unlock (L1878), on the auto refresh interval (L2265) and on initial
@@ -5003,7 +5023,7 @@ async function sendMsg() {
   if (btn) btn.disabled = true;
   const _pending = pswPendingBubble(msg);
   try {
-    // /psw/message-hq sets direction:'psw_to_hq', read:false, emails Lance immediately,
+    // /psw/message-hq sets direction:'psw_to_hq', read:false, emails the agency immediately,
     // and stores in psw_notes so it appears in the HQ inbox panel.
     const res = await fetch(`${API}/psw/message-hq`, {
       method: 'POST',
@@ -5021,7 +5041,7 @@ async function sendMsg() {
     const d = await res.json();
     if (!d.success) throw new Error(d.error || 'Send failed');
     document.getElementById('msg-input').value = '';
-    showToast('Sent, Lance has been notified', 'ok');
+    showToast('Sent, your coordinator has been notified', 'ok');
     await loadMessages();
   } catch(e) {
     // B68. Mark the bubble in the thread, not only a toast: a toast is gone in
@@ -5109,7 +5129,7 @@ async function loadDocuments() {
           <svg viewBox="0 0 24 24" fill="none" stroke="${urgent?'var(--red)':'var(--amber)'}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18" style="flex-shrink:0;margin-top:1px;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
           <div>
             <div style="font-size:12px;font-weight:600;color:${urgent?'var(--red)':'var(--amber)'};">${expiring[0].name} expires in ${daysLeft} day${daysLeft!==1?'s':''}</div>
-            <div style="font-size:11px;color:var(--rb-dim);margin-top:2px;">Contact Lance to renew · expired certs prevent new client assignments.</div>
+            <div style="font-size:11px;color:var(--rb-dim);margin-top:2px;">Contact your coordinator to renew · expired certs prevent new client assignments.</div>
           </div>
         </div>`;
       } else {
@@ -5121,9 +5141,9 @@ async function loadDocuments() {
       // B125. THE FALLBACK SAID "a file exists, therefore valid". The server
       // now computes this properly via CERT_RULES, but if it ever sends no
       // status this line silently restored the old behaviour, which is what
-      // told Carolina Hermida her police check from 2024-03-20 was valid.
+      // told a caregiver an old police check was valid.
       //
-      // ONLY CPR AND FIRST AID EXPIRE on a hired caregiver, which is Lance's
+      // ONLY CPR AND FIRST AID EXPIRE on a hired caregiver, which is the agency's
       // policy: PSW and NACC certificates do not expire, and a police check
       // and VSC are checked once at APPLICATION and never again.
       // B127. THE ROW'S TWO SIGNALS DISAGREED. The meta line said "On file"
@@ -5189,7 +5209,7 @@ async function loadDocuments() {
   } catch { el.innerHTML = '<div class="empty-state" style="padding:20px;">Could not load documents</div>'; }
 }
 
-// Document upload removed, managed by Lance in HQ only
+// Document upload removed, managed by the agency in HQ only
 
 // ── HOME DATA (pay card) ──
 // ── PAY DATE RANGE HELPER ──
@@ -5582,7 +5602,7 @@ async function loadPaySummary() {
 //
 // WHY. /psw/sign-document shipped with no way to reach it, because
 // /psw/profile never selected employment_agreement_url. document_signatures
-// had ZERO rows and Carolina worked roughly $6,420 of August against terms
+// had ZERO rows and a caregiver worked a month against terms
 // nobody signed. The route existed; the button did not.
 //
 // THREE STATES, and each is a different thing to tell her:
@@ -5860,7 +5880,7 @@ function showSect(name) {
 // shift times and a signature date, where a short form is right and a year
 // would be noise. Only the certificate meta line needs the year.
 //
-// AND ONLY WHERE THE YEAR CARRIES URGENCY, which is Lance's call: expired and
+// AND ONLY WHERE THE YEAR CARRIES URGENCY, which is the agency's call: expired and
 // expiring get the full date as a warning; valid stays short. A caregiver
 // scanning a clean row does not need 2027 spelled out.
 //
@@ -6078,7 +6098,7 @@ function openClientSheetByName(clientName) {
   // ─────────────────────────────────────────────────────────────────────
 
   // B66. The caregiver can now message this client's family directly. Before
-  // this, anything Carolina wanted the family to know went through a phone
+  // this, anything a caregiver wanted the family to know went through a phone
   // call to the office and back out again: there was NO route from a
   // caregiver to a family at all.
   //
@@ -6274,15 +6294,15 @@ function openSOS() {
   }
 
   // Agency / coordinator contact, white-labelled to operator
-  const _sosAgency = window._agencyName || 'Proximity Care Services';
-  const _sosPhone = (window._agencyPhone || '647-382-8047').replace(/[^0-9+]/g,'');
-  const _sosPhoneFormatted = window._agencyPhone || '647-382-8047';
+  const _sosAgency = window._agencyName || 'Your agency';
+  const _sosPhone = (window._agencyPhone || '').replace(/[^0-9+]/g,'');
+  const _sosPhoneFormatted = window._agencyPhone || '';
   html += `<div class="sos-contact-row" style="background:rgba(86,200,245,.04);">
     <div class="sos-contact-info">
       <div class="sos-contact-name">${_sosAgency} Coordinator</div>
       <div class="sos-contact-role">AGENCY</div>
     </div>
-    <a href="tel:${_sosPhone}" class="sos-call-btn"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" style="display:inline;vertical-align:middle;margin-right:4px"><path d="M2 2h2.5l1 2.5-1.5 1a6 6 0 0 0 3 3l1-1.5L10.5 8V10c-5 .5-9-4-8.5-8z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/></svg>Call</a>
+    ${_sosPhone ? `<a href="tel:${_sosPhone}" class="sos-call-btn"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" style="display:inline;vertical-align:middle;margin-right:4px"><path d="M2 2h2.5l1 2.5-1.5 1a6 6 0 0 0 3 3l1-1.5L10.5 8V10c-5 .5-9-4-8.5-8z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/></svg>Call</a>` : '<div style="font-family:var(--mono);font-size:11px;color:var(--muted);">No phone on file</div>'}
   </div>`;
 
   el.innerHTML = html;
@@ -7497,7 +7517,7 @@ if ('serviceWorker' in navigator) {
   // a newly deployed worker takes control of ALREADY OPEN pages. controllerchange
   // then fired and reloaded the page at whatever moment the PSW happened to be at.
   // Mid checkout that kills the in flight photo uploads and drops her back to the
-  // lock screen, which is exactly what Carolina reported on 2026-08-26:
+  // lock screen, which is exactly what a caregiver reported on 2026-08-26:
   // "I submitted the photos as I always do, but didn't charge and as it's a step
   //  when logging out, it just logged me out."
   //
@@ -7763,15 +7783,17 @@ function applyTranslations() {
 
 // Apply on load
 // ── S34 BRANDING, fetch agency name on load, before lock screen shows ──
-window._agencyName = 'Proximity Care Services'; // default fallback
-window._agencyPhone = '647-382-8047';
+// P2 (4.102). Nothing until this agency's own branding arrives: never
+// another agency's name, never a named person's phone.
+window._agencyName = '';
+window._agencyPhone = '';
 (async function applyBranding() {
   try {
     const res = await fetch(`${API}/hq/branding?operator_id=${pswOperatorId}`);
     const d = await res.json();
     if (!d.success) return;
     window._agencyName = d.agency_name || 'Proximity Care Services';
-    window._agencyPhone = d.owner_phone || '647-382-8047';
+    window._agencyPhone = d.owner_phone || '';
     // L14, page title
     document.title = `${window._agencyName}, PSW Portal`;
     // L647, header subtitle (post-login)

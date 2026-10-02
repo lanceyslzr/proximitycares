@@ -4252,7 +4252,7 @@ async function initHQRealtime(){
       //
       // HQ already subscribes to five tables in realtime, but neither
       // psw_notes nor family_messages was among them. So an inbound message
-      // reached the office ONLY as an email to healthcareproximity@gmail.com,
+      // reached the office ONLY as an email to the agency mailbox,
       // which is precisely the email this project is trying to remove.
       //
       // This is deliberately NOT a push notification. HQ has no service
@@ -4348,6 +4348,22 @@ function lk(k) {
   }
 }
 function ld() { lockIn = lockIn.slice(0,-1); updateDots(); }
+
+// KB (BUILD_PLAN 4.102). THE KEYBOARD DRIVES THE PIN PAD ON A LAPTOP. A digit
+// on the top row or the number pad presses the same key a tap does, and
+// Backspace deletes one. Only while this pad is on screen; never while a field
+// that is on screen has focus (the caregiver's name); never with Ctrl, Cmd or
+// Alt held; never a repeat from a key held down. The pad's own functions are
+// called, so the PIN reaches the server exactly as a tap sends it.
+document.addEventListener('keydown', function (e) {
+  if (e.ctrlKey || e.metaKey || e.altKey || e.repeat) return;
+  const t = e.target;
+  if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT' || t.isContentEditable) && t.getClientRects().length) return;
+  const pad = document.querySelector('#lock .lock-pad');
+  if (!pad || pad.getClientRects().length === 0) return;
+  if (/^[0-9]$/.test(e.key)) { e.preventDefault(); lk(e.key); }
+  else if (e.key === 'Backspace') { e.preventDefault(); ld(); }
+});
 function updateDots() { for(let i=0;i<4;i++) document.getElementById('d'+i).classList.toggle('filled', i < lockIn.length); }
 
 // ── OPERATOR ──
