@@ -2225,7 +2225,7 @@ body.sidebar-rail .sidebar{width:64px;overflow:visible;}
     <div class="sheet-row">
       <div class="slbl">Portal PIN</div>
       <div style="display:flex;align-items:center;gap:10px;">
-        <span style="font-family:var(--mono);font-size:24px;letter-spacing:6px;color:var(--teal2);" id="pa-pin">0000</span>
+        <span style="font-family:var(--mono);font-size:24px;letter-spacing:6px;color:var(--teal2);" id="pa-pin"></span>
         <button onclick="regenPIN('pa-pin')" style="font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--muted2);padding:7px 11px;border:1px solid var(--border2);border-radius:4px;cursor:pointer;background:var(--bg3);min-height:44px;">Regenerate</button>
       </div>
     </div>
@@ -2242,7 +2242,7 @@ body.sidebar-rail .sidebar{width:64px;overflow:visible;}
       <div>
         <div class="slbl">Portal PIN</div>
         <div style="display:flex;align-items:center;gap:8px;">
-          <span style="font-family:var(--mono);font-size:18px;letter-spacing:4px;color:var(--teal2);" id="co-pin">0000</span>
+          <span style="font-family:var(--mono);font-size:18px;letter-spacing:4px;color:var(--teal2);" id="co-pin"></span>
           <button onclick="regenPIN('co-pin')" style="font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--muted2);padding:6px 9px;border:1px solid var(--border2);border-radius:4px;cursor:pointer;background:var(--bg3);min-height:44px;">New</button>
         </div>
       </div>
@@ -5880,7 +5880,20 @@ async function triggerOnboardClient(slug) {
 // ONBOARD TAB, PSW activation + Full client onboarding
 // ══════════════════════════════════════════════════════════════
 
-function genPIN() { return String(Math.floor(1000 + Math.random() * 9000)); }
+function genPIN() {
+  // OA1. A new PIN comes from the browser crypto source, 1000 to 9999 as
+  // before, and is never one digit repeated, a run of four or a year shape.
+  const buf = new Uint32Array(1);
+  for (;;) {
+    crypto.getRandomValues(buf);
+    if (buf[0] >= 4294967296 - (4294967296 % 9000)) continue;
+    const p = String(1000 + (buf[0] % 9000));
+    if (/^([0-9])\1{3}$/.test(p)) continue;
+    if ('0123456789'.indexOf(p) >= 0 || '9876543210'.indexOf(p) >= 0) continue;
+    if (/^(19|20)[0-9]{2}$/.test(p)) continue;
+    return p;
+  }
+}
 
 function regenPIN(id) {
   const el = document.getElementById(id);
@@ -5977,8 +5990,8 @@ function populateOnboardSelects() {
     coSelect.appendChild(opt2);
   });
 
-  if(document.getElementById('pa-pin')?.textContent === '0000') regenPIN('pa-pin');
-  if(document.getElementById('co-pin')?.textContent === '0000') regenPIN('co-pin');
+  if(!/^[0-9]{4}$/.test(document.getElementById('pa-pin')?.textContent || '')) regenPIN('pa-pin');
+  if(!/^[0-9]{4}$/.test(document.getElementById('co-pin')?.textContent || '')) regenPIN('co-pin');
   const startField = document.getElementById('co-start');
   if(startField && !startField.value) {
     const today = new Date();
@@ -5999,11 +6012,12 @@ async function activatePSW() {
   const pin = document.getElementById('pa-pin')?.textContent;
   if(!name) { showToast(selectedValue === '__NEW__' ? 'Enter the new PSW full name' : 'Select a PSW','err'); return; }
   if(!email) { showToast('Enter PSW email','err'); return; }
+  if(!/^[0-9]{4}$/.test(pin || '')) { showToast('The PIN is not ready. Tap Regenerate, then try again.','err'); return; }
   const btn = document.getElementById('pa-btn');
   btn.disabled = true; btn.textContent = 'Activating...';
   try {
     const r = await fetch(`${API}/psw/activate`, {
-      method:'POST', headers:{'Content-Type':'application/json'},
+      method:'POST', headers: hqHeaders(),
       body: JSON.stringify({
         operator_id: currentOp,
         psw_name: name, psw_email: email, psw_phone: phone, psw_pin: pin
@@ -6103,6 +6117,7 @@ async function onboardClientFull() {
   if(!name) { showToast('Enter client name','err'); return; }
   if(!slug) { showToast('Slug is required','err'); return; }
   if(!familyEmail) { showToast('Enter family email','err'); return; }
+  if(!/^[0-9]{4}$/.test(pin || '')) { showToast('The PIN is not ready. Tap Regenerate, then try again.','err'); return; }
   const btn = document.getElementById('co-btn');
   btn.disabled = true; btn.textContent = 'Onboarding...';
   try {
@@ -6383,7 +6398,7 @@ async function sendPSWMsg() {
   _hqMsgSending.add(activePSW);
   const _pending = hqPendingBubble(msg);
   try {
-    const r = await fetch(`${API}/psw/note`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({psw_name:activePSW,sender:'lance',message:msg,operator_id:currentOp})});
+    const r = await fetch(`${API}/psw/note`,{method:'POST',headers:hqHeaders(),body:JSON.stringify({psw_name:activePSW,sender:'lance',message:msg,operator_id:currentOp})});
     const d = await r.json(); if(!d.success) throw new Error();
     // Clear only on success: a failed send must not lose what was typed.
     input.value='';
@@ -6664,7 +6679,7 @@ async function sendThreadMsg() {
   const msg = document.getElementById('thread-input').value.trim();
   if (!msg || !activePSW) return;
   try {
-    const r = await fetch(`${API}/psw/note`, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({psw_name:activePSW,sender:'lance',message:msg,operator_id:currentOp})});
+    const r = await fetch(`${API}/psw/note`, {method:'POST',headers:hqHeaders(),body:JSON.stringify({psw_name:activePSW,sender:'lance',message:msg,operator_id:currentOp})});
     const d = await r.json(); if(!d.success) throw new Error();
     document.getElementById('thread-input').value = '';
     showToast('Sent ✓','ok');
@@ -7054,8 +7069,8 @@ async function triggerSequences() {
   showToast('Running sequences...','ok');
   try {
     await Promise.all([
-      fetch(`${API}/onboarding/run-leads`,{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'}),
-      fetch(`${API}/onboarding/run-clients`,{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'})
+      fetch(`${API}/onboarding/run-leads`,{method:'POST',headers:hqHeaders(),body:'{}'}),
+      fetch(`${API}/onboarding/run-clients`,{method:'POST',headers:hqHeaders(),body:'{}'})
     ]);
     showToast('Sequences done ✓','ok');
     await loadAll(false);
@@ -8303,14 +8318,14 @@ async function openApplicantSheet(id) {
 async function hireAndActivate(id, name, email, phone) {
   try {
     const r1 = await fetch(`${API}/psw/hire`, {
-      method:'POST', headers:{'Content-Type':'application/json'},
+      method:'POST', headers: hqHeaders(),
       body: JSON.stringify({applicant_id: id, operator_id: currentOp})
     });
     if(!r1.ok) { const d = await r1.json(); throw new Error(d.error||'Hire failed'); }
     const nm = name.split(' ');
     const first = nm.shift(); const last = nm.join(' ');
     const r2 = await fetch(`${API}/psw/activate`, {
-      method:'POST', headers:{'Content-Type':'application/json'},
+      method:'POST', headers: hqHeaders(),
       body: JSON.stringify({operator_id: currentOp, psw_name: name, psw_email: email, psw_phone: phone||null, first_name: first, last_name: last})
     });
     const d2 = await r2.json();
@@ -8351,7 +8366,7 @@ async function initiateOnboarding(applicantId, email) {
 async function hireApplicant(id) {
   try {
     const res = await fetch(`${API}/psw/hire`, {
-      method: 'POST', headers: {'Content-Type':'application/json'},
+      method: 'POST', headers: hqHeaders(),
       body: JSON.stringify({applicant_id: id, operator_id: currentOp})
     });
     const data = await res.json();
@@ -8484,7 +8499,7 @@ async function activateApplicantAsStaff(id, name, email, phone) {
   try {
     const res = await fetch(`${API}/psw/activate`, {
       method:'POST',
-      headers:{'Content-Type':'application/json'},
+      headers: hqHeaders(),
       body: JSON.stringify({
         operator_id: currentOp,
         psw_name: name,
