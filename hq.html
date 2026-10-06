@@ -2283,7 +2283,7 @@ body.sidebar-rail .sidebar{width:64px;overflow:visible;}
   <!-- BULK IMPORT -->
   <div class="card" style="padding:18px 16px;margin-top:8px;">
     <div style="font-family:var(--mono);font-size:12px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);margin-bottom:6px;padding-bottom:8px;border-bottom:1px solid var(--border);">Bulk Import, 50 PSWs or Clients at Once</div>
-    <p style="font-size:12px;color:var(--muted2);line-height:1.6;margin-bottom:14px;">Upload a CSV to activate multiple PSWs or onboard multiple clients in one shot. Each row fires the full welcome email flow.</p>
+    <p style="font-size:12px;color:var(--muted2);line-height:1.6;margin-bottom:14px;">Upload a CSV to add multiple PSWs or clients in one shot. Nobody is emailed at import: each new person waits in Portal Access below, where you send them their own PIN.</p>
     <div style="margin-bottom:18px;">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
         <div style="font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted2);">Import PSWs</div>
@@ -2308,6 +2308,25 @@ body.sidebar-rail .sidebar{width:64px;overflow:visible;}
       </div>
       <div id="bulk-client-result" style="display:none;font-size:12px;color:var(--teal2);font-family:var(--mono);padding:8px 10px;background:rgba(61,138,122,.06);border:1px solid rgba(61,138,122,.2);border-radius:6px;line-height:1.6;"></div>
     </div>
+  </div>
+
+  <!-- PORTAL ACCESS. S4 and P4 (BUILD_PLAN 4.113, OUTSTANDING item 7): imports send
+       nothing; the office sends each person their own portal PIN from here, one
+       person or everyone waiting, and a resend sends the same PIN. No PIN reaches
+       this page: the server emails it to the person and returns only who was sent. -->
+  <style>#pacc-card button:disabled{opacity:.4;cursor:not-allowed;}</style>
+  <div class="card" id="pacc-card" style="padding:18px 16px;margin-top:8px;">
+    <div style="font-family:var(--mono);font-size:12px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);margin-bottom:6px;padding-bottom:8px;border-bottom:1px solid var(--border);">Portal Access, Send Each Person Their PIN</div>
+    <p style="font-size:12px;color:var(--muted2);line-height:1.6;margin-bottom:12px;">Each person is emailed their own PIN at their own address, in your agency's name. Sending again sends the same PIN. Nobody in the office sees a PIN.</p>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
+      <button class="sect-action" id="pacc-tab-psw" onclick="loadPortalAccess('psw')">Caregivers</button>
+      <button class="sect-action" id="pacc-tab-family" onclick="loadPortalAccess('family')">Families</button>
+      <button class="sect-action" id="pacc-show" onclick="paccToggleShow()">Show everyone</button>
+    </div>
+    <div id="pacc-summary" style="font-size:12px;color:var(--muted);font-family:var(--mono);margin-bottom:10px;"></div>
+    <button class="sbtn" id="pacc-send-all" onclick="paccSendAll()" disabled>Send to all waiting</button>
+    <div id="pacc-result" style="display:none;font-size:12px;color:var(--teal2);font-family:var(--mono);padding:8px 10px;margin-top:10px;background:rgba(61,138,122,.06);border:1px solid rgba(61,138,122,.2);border-radius:6px;line-height:1.6;"></div>
+    <div id="pacc-list" style="margin-top:12px;"></div>
   </div>
 
 </div>
@@ -3442,8 +3461,6 @@ body.sidebar-rail .sidebar{width:64px;overflow:visible;}
   <input id="op-city" /><select id="op-tier"></select><input id="op-id" /><input id="op-color" value="#3d7a8a"/>
   <textarea id="op-notes"></textarea><button id="op-create-btn"></button>
   <div id="op-color-preview"></div><div id="op-result"></div>
-  <input id="psw-csv-file" type="file" /><div id="psw-import-result"></div>
-  <input id="client-csv-file" type="file" /><div id="client-import-result"></div>
   <input id="pc-agency" /><input id="pc-owner" /><input id="pc-email" />
   <div id="pc-result"></div>
 </div>
@@ -7419,7 +7436,7 @@ function showSect(name) {
   const bi=bm.indexOf(name);
   const bnavs=document.querySelectorAll('.bnav-item');
   if(bi>=0&&bnavs[bi]) bnavs[bi].classList.add('active');
-  if(name==='onboard') populateOnboardSelects();
+  if(name==='onboard') { populateOnboardSelects(); loadPortalAccess(); }
   if(name==='forms') loadPSWForms();
   if(name==='messages') {
     window._dirtyMessages=false; renderMessages(); loadFamilyNotes();
@@ -8531,10 +8548,15 @@ async function bulkImportPSWs() {
     const res = await fetch(`${API}/operator/import-psws`, { method: 'POST', headers: { 'x-hq-token': window._hqToken || sessionStorage.getItem('hq_token') || '' }, body: fd });
     const data = await res.json();
     if (!res.ok || !data.success) throw new Error(data.error || 'Failed');
-    result.innerHTML = `✓ ${data.activated.length} PSWs activated · ${data.failed.length} failed · ${data.skipped.length} skipped`;
-    if (data.activated.length) result.innerHTML += '<br>' + data.activated.map(p => `${p.name} → PIN:${p.pin}`).join('<br>');
-    showToast(data.activated.length + ' PSWs activated ✓', 'ok');
+    // S4 and P4. The server sends nothing at import and returns no PIN; every value shown is escaped.
+    result.innerHTML = `✓ ${data.activated.length} PSWs added · ${data.failed.length} failed · ${data.skipped.length} skipped`;
+    if (data.activated.length) result.innerHTML += '<br>' + data.activated.map(p => `${escHtml(p.name)} (${escHtml(p.psw_code)})`).join('<br>');
+    if (data.skipped.length) result.innerHTML += '<br>' + data.skipped.map(s => escHtml(s)).join('<br>');
+    if (data.failed.length) result.innerHTML += '<br>' + data.failed.map(f => `${escHtml(f.name)}: ${escHtml(f.error)}`).join('<br>');
+    if (data.activated.length) result.innerHTML += '<br>Send them their PINs in Portal Access below.';
+    showToast(data.activated.length + ' PSWs added ✓', 'ok');
     loadAll(false);
+    loadPortalAccess('psw');
   } catch(e) { result.textContent = 'Error: ' + e.message; showToast('Import failed', 'err'); }
 }
 
@@ -8550,51 +8572,143 @@ async function bulkImportClients() {
     const res = await fetch(`${API}/operator/import-clients`, { method: 'POST', headers: { 'x-hq-token': window._hqToken || sessionStorage.getItem('hq_token') || '' }, body: fd });
     const data = await res.json();
     if (!res.ok || !data.success) throw new Error(data.error || 'Failed');
-    result.innerHTML = `✓ ${data.onboarded.length} clients onboarded · ${data.failed.length} failed · ${data.skipped.length} skipped`;
-    if (data.onboarded.length) result.innerHTML += '<br>' + data.onboarded.map(c => `${c.name} → ${c.client_code}`).join('<br>');
-    showToast(data.onboarded.length + ' clients onboarded ✓', 'ok');
+    // S4 and P4. The server sends nothing at import and returns no PIN; every value shown is escaped.
+    result.innerHTML = `✓ ${data.onboarded.length} clients added · ${data.failed.length} failed · ${data.skipped.length} skipped`;
+    if (data.onboarded.length) result.innerHTML += '<br>' + data.onboarded.map(c => `${escHtml(c.name)} (${escHtml(c.client_code)})${c.has_family_email ? '' : ', no family email'}`).join('<br>');
+    if (data.skipped.length) result.innerHTML += '<br>' + data.skipped.map(s => escHtml(s)).join('<br>');
+    if (data.failed.length) result.innerHTML += '<br>' + data.failed.map(f => `${escHtml(f.name)}: ${escHtml(f.error)}`).join('<br>');
+    if (data.onboarded.length) result.innerHTML += '<br>Send the families their PINs in Portal Access below.';
+    showToast(data.onboarded.length + ' clients added ✓', 'ok');
     loadAll(false);
+    loadPortalAccess('family');
   } catch(e) { result.textContent = 'Error: ' + e.message; showToast('Import failed', 'err'); }
 }
 
-async function importPSWs() {
-  const fileInput = document.getElementById('psw-csv-file');
-  const result = document.getElementById('psw-import-result');
-  if(!fileInput.files[0]) { showToast('Select a CSV file first','err'); return; }
-  result.style.display = 'block';
-  result.textContent = 'Importing...';
-  const fd = new FormData();
-  fd.append('file', fileInput.files[0]);
-  fd.append('operator_id', currentOp);
-  try {
-    const res = await fetch(`${API}/operator/import-psws`, { method:'POST', headers: { 'x-hq-token': window._hqToken || sessionStorage.getItem('hq_token') || '' }, body: fd });
-    const data = await res.json();
-    if(!res.ok || !data.success) throw new Error(data.error||'Failed');
-    result.innerHTML = `✓ ${data.activated.length} PSWs activated · ${data.failed.length} failed · ${data.skipped.length} skipped`;
-    if(data.activated.length) result.innerHTML += '<br>' + data.activated.map(p=>`${p.name} → ${p.psw_code} PIN:${p.pin}`).join('<br>');
-    showToast(data.activated.length + ' PSWs activated ✓','ok');
-    loadAll(false);
-  } catch(e) { result.textContent = 'Error: '+e.message; showToast('Import failed','err'); }
+// ── PORTAL ACCESS. S4 and P4 (BUILD_PLAN 4.113, OUTSTANDING item 7) ──
+// Imports add people and send nothing. Here the office sends each person their
+// own portal PIN: one person, or every person waiting, 100 to a call. A resend
+// sends the same PIN. The server emails the PIN and answers only with who was
+// sent, skipped or failed, so no PIN ever reaches this page. Every name, address
+// and reason the server returns is escaped before it is shown.
+let _paccKind = 'psw', _paccShowAll = false, _paccData = null, _paccBusy = false;
+const PACC_ID = /^[0-9a-f-]{36}$/i;
+function paccTabs() {
+  ['psw', 'family'].forEach(k => {
+    const b = document.getElementById('pacc-tab-' + k);
+    if (b) { b.style.background = k === _paccKind ? 'rgba(201,169,110,.12)' : ''; b.style.color = k === _paccKind ? 'var(--gold)' : ''; }
+  });
+  const s = document.getElementById('pacc-show');
+  if (s) s.textContent = _paccShowAll ? 'Show waiting only' : 'Show everyone';
 }
-
-async function importClients() {
-  const fileInput = document.getElementById('client-csv-file');
-  const result = document.getElementById('client-import-result');
-  if(!fileInput.files[0]) { showToast('Select a CSV file first','err'); return; }
-  result.style.display = 'block';
-  result.textContent = 'Importing...';
-  const fd = new FormData();
-  fd.append('file', fileInput.files[0]);
-  fd.append('operator_id', currentOp);
+async function loadPortalAccess(kind) {
+  // While a send runs, the tab stays where it was: the send is for the group it started with.
+  if (_paccBusy && kind && kind !== _paccKind) { showToast('Wait for the send to finish', 'err'); return; }
+  if ((kind === 'psw' || kind === 'family') && kind !== _paccKind) {
+    _paccKind = kind;
+    const box = document.getElementById('pacc-result'); if (box) box.style.display = 'none';
+  }
+  const list = document.getElementById('pacc-list');
+  if (!list) return;
+  paccTabs();
+  list.innerHTML = '<div style="font-size:12px;color:var(--muted);font-family:var(--mono);">Loading...</div>';
   try {
-    const res = await fetch(`${API}/operator/import-clients`, { method:'POST', headers: { 'x-hq-token': window._hqToken || sessionStorage.getItem('hq_token') || '' }, body: fd });
-    const data = await res.json();
-    if(!res.ok || !data.success) throw new Error(data.error||'Failed');
-    result.innerHTML = `✓ ${data.onboarded.length} clients onboarded · ${data.failed.length} failed · ${data.skipped.length} skipped`;
-    if(data.onboarded.length) result.innerHTML += '<br>' + data.onboarded.map(c=>`${c.name} → ${c.client_code}`).join('<br>');
-    showToast(data.onboarded.length + ' clients onboarded ✓','ok');
-    loadAll(false);
-  } catch(e) { result.textContent = 'Error: '+e.message; showToast('Import failed','err'); }
+    const res = await hqFetch(`${API}/hq/portal-access?kind=${_paccKind}`);
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data.success) throw new Error(data.error || 'Could not load portal access');
+    _paccData = data;
+  } catch (e) {
+    _paccData = null;
+    list.innerHTML = `<div style="font-size:12px;color:var(--red);font-family:var(--mono);">${escHtml(e.message || 'Could not load portal access')}</div>`;
+  }
+  renderPortalAccess();
+}
+function paccToggleShow() { _paccShowAll = !_paccShowAll; paccTabs(); renderPortalAccess(); }
+function paccStatus(p) {
+  if (!p.sendable) return { t: p.skip_reason === 'no email on file' ? 'No email on file' : p.skip_reason === 'not active' ? 'Not active' : 'Care ended', c: 'var(--muted)' };
+  if (p.waiting) return { t: 'Waiting', c: 'var(--gold)' };
+  if (p.sent_at) return { t: 'Sent ' + new Date(p.sent_at).toLocaleDateString('en-CA', { month: 'short', day: 'numeric' }), c: 'var(--teal2)' };
+  return { t: 'Has a PIN', c: 'var(--muted)' };
+}
+function renderPortalAccess() {
+  const list = document.getElementById('pacc-list'), sum = document.getElementById('pacc-summary'), all = document.getElementById('pacc-send-all');
+  if (!list || !sum || !all) return;
+  const d = _paccData, who = _paccKind === 'psw' ? 'caregivers' : 'families';
+  if (!d) { sum.textContent = ''; all.disabled = true; all.textContent = 'Send to all waiting'; return; }
+  const c = d.counts || {};
+  sum.textContent = `${c.waiting || 0} waiting, ${c.waiting_sendable || 0} ready to send, ${c.no_email || 0} with no email, ${c.total || 0} ${who} in all`;
+  all.textContent = `Send to all waiting (${c.waiting_sendable || 0})`;
+  all.disabled = _paccBusy || !(c.waiting_sendable > 0);
+  const rows = (d.people || []).filter(p => _paccShowAll || p.waiting);
+  if (!rows.length) {
+    list.innerHTML = `<div style="font-size:12px;color:var(--muted);font-family:var(--mono);">${_paccShowAll ? 'No ' + who + ' yet.' : 'Nobody is waiting. New ' + who + ' from an import appear here.'}</div>`;
+    return;
+  }
+  list.innerHTML = rows.map(p => {
+    const st = paccStatus(p), id = PACC_ID.test(p.id || '') ? p.id : '';
+    const label = p.waiting && !p.sent_at ? 'Send' : 'Send again';
+    return `<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 0;border-bottom:1px solid var(--border);">
+      <div style="flex:1;min-width:160px;">
+        <div style="font-size:14px;color:var(--text);">${escHtml(p.name || '(no name)')}</div>
+        <div style="font-size:11px;color:var(--muted);font-family:var(--mono);word-break:break-all;">${p.has_email ? escHtml(p.email) : 'no email on file'}</div>
+      </div>
+      <span style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:${st.c};">${escHtml(st.t)}</span>
+      <button class="sect-action" data-pacc-id="${id}" onclick="paccSendOne(this.getAttribute('data-pacc-id'))" ${p.sendable && id && !_paccBusy ? '' : 'disabled'}>${label}</button>
+    </div>`;
+  }).join('');
+}
+function paccReport(r) {
+  const box = document.getElementById('pacc-result');
+  if (!box) return;
+  const lines = [`Sent ${r.sent}${r.skipped.length ? ', skipped ' + r.skipped.length : ''}${r.failed.length ? ', not sent ' + r.failed.length : ''}.`];
+  r.skipped.forEach(x => lines.push(`${escHtml(x.name || 'someone')}: ${escHtml(x.reason)}`));
+  r.failed.forEach(x => lines.push(`${escHtml(x.name || 'someone')}: not sent (${escHtml(x.reason)})`));
+  box.style.display = 'block';
+  box.style.color = r.failed.length ? 'var(--amber)' : 'var(--teal2)';
+  box.innerHTML = lines.join('<br>');
+}
+async function paccPost(body) {
+  const res = await hqFetch(`${API}/hq/portal-access/send`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok || !data.success) throw new Error(data.error || 'Send failed');
+  return data;
+}
+async function paccSendOne(id) {
+  if (_paccBusy || !PACC_ID.test(id || '') || !_paccData) return;
+  const kind = _paccKind, p = (_paccData.people || []).find(x => x.id === id);
+  if (!p) return;
+  if ((!p.waiting || p.sent_at) && !confirm(`Send ${p.name} their portal PIN again? They get the same PIN they already have.`)) return;
+  _paccBusy = true; renderPortalAccess();
+  try {
+    const r = await paccPost({ kind, ids: [id] });
+    paccReport(r);
+    showToast(r.sent ? 'PIN sent to ' + p.name : 'Not sent', r.sent ? 'ok' : 'err');
+  } catch (e) { showToast(e.message || 'Send failed', 'err'); }
+  _paccBusy = false;
+  await loadPortalAccess();
+}
+async function paccSendAll() {
+  if (_paccBusy || !_paccData) return;
+  const kind = _paccKind, n = (_paccData.counts || {}).waiting_sendable || 0, max = _paccData.send_max || 100;
+  if (!n) return;
+  if (!confirm(`Email ${n} ${kind === 'psw' ? 'caregivers' : 'families'} their portal PIN? Each is sent their own PIN at their own address.`)) return;
+  _paccBusy = true; renderPortalAccess();
+  const total = { sent: 0, skipped: [], failed: [] };
+  try {
+    // The server takes the waiting people who can be sent in id order, `max` a call,
+    // after the cursor it hands back. Each person is tried once per click, and the
+    // loop is bounded by the count shown when the office confirmed.
+    let after = null;
+    for (let i = 0; i < Math.ceil(n / max) + 1; i++) {
+      const r = await paccPost({ kind, all_waiting: true, after });
+      total.sent += r.sent; total.skipped.push(...r.skipped); total.failed.push(...r.failed);
+      if (!r.next_after) break;
+      after = r.next_after;
+    }
+    paccReport(total);
+    showToast(total.sent + ' PIN' + (total.sent === 1 ? '' : 's') + ' sent', total.failed.length ? 'err' : 'ok');
+  } catch (e) { paccReport(total); showToast(e.message || 'Send failed', 'err'); }
+  _paccBusy = false;
+  await loadPortalAccess();
 }
 
 async function firePostClose() {
