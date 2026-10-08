@@ -2222,14 +2222,7 @@ body.sidebar-rail .sidebar{width:64px;overflow:visible;}
     </div>
     <div class="sheet-row"><div class="slbl">Email</div><input class="sinput" id="pa-email" placeholder="caregiver@example.com" type="email"></div>
     <div class="sheet-row"><div class="slbl">Phone</div><input class="sinput" id="pa-phone" placeholder="416 555 0100" type="tel"></div>
-    <div class="sheet-row">
-      <div class="slbl">Portal PIN</div>
-      <div style="display:flex;align-items:center;gap:10px;">
-        <span style="font-family:var(--mono);font-size:24px;letter-spacing:6px;color:var(--teal2);" id="pa-pin"></span>
-        <button onclick="regenPIN('pa-pin')" style="font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--muted2);padding:7px 11px;border:1px solid var(--border2);border-radius:4px;cursor:pointer;background:var(--bg3);min-height:44px;">Regenerate</button>
-      </div>
-    </div>
-    <p style="font-size:12px;color:var(--muted);line-height:1.6;margin:8px 0 14px;">PSW receives a branded welcome email with their PIN and direct link to psw.proximitycares.ca. They tap the link, enter the PIN, and they are in.</p>
+    <p style="font-size:12px;color:var(--muted);line-height:1.6;margin:8px 0 14px;">The server makes the PSW's PIN and emails it to them with a direct link to their portal. Nobody in the office sees it.</p>
     <button class="sbtn" id="pa-btn" onclick="activatePSW()" disabled>Activate PSW + Send Welcome Email</button>
   </div>
 
@@ -2237,16 +2230,7 @@ body.sidebar-rail .sidebar{width:64px;overflow:visible;}
   <div class="card" style="padding:18px 16px;">
     <div style="font-family:var(--mono);font-size:12px;letter-spacing:2px;text-transform:uppercase;color:var(--teal2);margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid var(--border);">Onboard New Client</div>
     <div class="sheet-row"><div class="slbl">Client Full Name</div><input class="sinput" id="co-name" placeholder="First Last" oninput="autoSlug()"></div>
-    <div class="srow2">
-      <div><div class="slbl">Slug</div><input class="sinput" id="co-slug" placeholder="auto"></div>
-      <div>
-        <div class="slbl">Portal PIN</div>
-        <div style="display:flex;align-items:center;gap:8px;">
-          <span style="font-family:var(--mono);font-size:18px;letter-spacing:4px;color:var(--teal2);" id="co-pin"></span>
-          <button onclick="regenPIN('co-pin')" style="font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--muted2);padding:6px 9px;border:1px solid var(--border2);border-radius:4px;cursor:pointer;background:var(--bg3);min-height:44px;">New</button>
-        </div>
-      </div>
-    </div>
+    <div class="sheet-row"><div class="slbl">Slug</div><input class="sinput" id="co-slug" placeholder="auto"></div>
     <div class="sheet-row"><div class="slbl">Family Email</div><input class="sinput" id="co-family-email" placeholder="family@example.com" type="email"></div>
     <div class="sheet-row"><div class="slbl">Family Contact Name</div><input class="sinput" id="co-family-name" placeholder="e.g. Anne (used in welcome email greeting)"></div>
     <div class="srow2">
@@ -2711,7 +2695,7 @@ body.sidebar-rail .sidebar{width:64px;overflow:visible;}
     <label class="slabel">Current PIN</label>
     <input id="set-pin-current" type="password" inputmode="numeric" class="sinput" style="margin-bottom:10px;">
     <label class="slabel">New PIN</label>
-    <input id="set-pin-new" type="password" inputmode="numeric" class="sinput" placeholder="4 to 8 digits" style="margin-bottom:12px;">
+    <input id="set-pin-new" type="password" inputmode="numeric" class="sinput" placeholder="4 digits" maxlength="4" style="margin-bottom:12px;">
     <button class="sbtn" onclick="saveHQPin()" style="width:100%;">Change PIN</button>
   </div>
 </div>
@@ -5897,26 +5881,6 @@ async function triggerOnboardClient(slug) {
 // ONBOARD TAB, PSW activation + Full client onboarding
 // ══════════════════════════════════════════════════════════════
 
-function genPIN() {
-  // OA1. A new PIN comes from the browser crypto source, 1000 to 9999 as
-  // before, and is never one digit repeated, a run of four or a year shape.
-  const buf = new Uint32Array(1);
-  for (;;) {
-    crypto.getRandomValues(buf);
-    if (buf[0] >= 4294967296 - (4294967296 % 9000)) continue;
-    const p = String(1000 + (buf[0] % 9000));
-    if (/^([0-9])\1{3}$/.test(p)) continue;
-    if ('0123456789'.indexOf(p) >= 0 || '9876543210'.indexOf(p) >= 0) continue;
-    if (/^(19|20)[0-9]{2}$/.test(p)) continue;
-    return p;
-  }
-}
-
-function regenPIN(id) {
-  const el = document.getElementById(id);
-  if(el) el.textContent = genPIN();
-}
-
 function autoSlug() {
   const name = document.getElementById('co-name').value.trim();
   const slugField = document.getElementById('co-slug');
@@ -6007,8 +5971,6 @@ function populateOnboardSelects() {
     coSelect.appendChild(opt2);
   });
 
-  if(!/^[0-9]{4}$/.test(document.getElementById('pa-pin')?.textContent || '')) regenPIN('pa-pin');
-  if(!/^[0-9]{4}$/.test(document.getElementById('co-pin')?.textContent || '')) regenPIN('co-pin');
   const startField = document.getElementById('co-start');
   if(startField && !startField.value) {
     const today = new Date();
@@ -6026,10 +5988,8 @@ async function activatePSW() {
   const name = (selectedValue === '__NEW__') ? newName : selectedValue;
   const email = document.getElementById('pa-email').value.trim();
   const phone = document.getElementById('pa-phone').value.trim();
-  const pin = document.getElementById('pa-pin')?.textContent;
   if(!name) { showToast(selectedValue === '__NEW__' ? 'Enter the new PSW full name' : 'Select a PSW','err'); return; }
   if(!email) { showToast('Enter PSW email','err'); return; }
-  if(!/^[0-9]{4}$/.test(pin || '')) { showToast('The PIN is not ready. Tap Regenerate, then try again.','err'); return; }
   const btn = document.getElementById('pa-btn');
   btn.disabled = true; btn.textContent = 'Activating...';
   try {
@@ -6037,7 +5997,7 @@ async function activatePSW() {
       method:'POST', headers: hqHeaders(),
       body: JSON.stringify({
         operator_id: currentOp,
-        psw_name: name, psw_email: email, psw_phone: phone, psw_pin: pin
+        psw_name: name, psw_email: email, psw_phone: phone
       })
     });
     if(!r.ok) {
@@ -6050,7 +6010,6 @@ async function activatePSW() {
     document.getElementById('pa-newname-row').style.display = 'none';
     document.getElementById('pa-email').value = '';
     document.getElementById('pa-phone').value = '';
-    regenPIN('pa-pin');
     await loadAll(false);
     // Repopulate dropdowns so the newly-activated PSW shows up immediately
     populateOnboardSelects();
@@ -6125,7 +6084,6 @@ async function onboardClientFull() {
   const slug = document.getElementById('co-slug').value.trim();
   const familyEmail = document.getElementById('co-family-email').value.trim();
   const familyContactName = document.getElementById('co-family-name').value.trim();
-  const pin = document.getElementById('co-pin')?.textContent;
   const psw = document.getElementById('co-psw').value;
   const clientRate = parseFloat(document.getElementById('co-client-rate').value) || 22;
   const pswRate = parseFloat(document.getElementById('co-psw-rate').value) || 19;
@@ -6134,7 +6092,6 @@ async function onboardClientFull() {
   if(!name) { showToast('Enter client name','err'); return; }
   if(!slug) { showToast('Slug is required','err'); return; }
   if(!familyEmail) { showToast('Enter family email','err'); return; }
-  if(!/^[0-9]{4}$/.test(pin || '')) { showToast('The PIN is not ready. Tap Regenerate, then try again.','err'); return; }
   const btn = document.getElementById('co-btn');
   btn.disabled = true; btn.textContent = 'Onboarding...';
   try {
@@ -6142,7 +6099,7 @@ async function onboardClientFull() {
       method:'POST', headers:hqHeaders(),
       body: JSON.stringify({
         operator_id: currentOp,
-        client_name: name, slug: slug, portal_pin: pin, family_email: familyEmail,
+        client_name: name, slug: slug, family_email: familyEmail,
         family_contact_name: familyContactName || null,
         assigned_psw: psw, client_rate: clientRate, psw_rate: pswRate,
         start_date: startDate, care_notes: notes
@@ -6157,7 +6114,6 @@ async function onboardClientFull() {
       const el = document.getElementById(id);
       if(el) el.value = '';
     });
-    regenPIN('co-pin');
     await loadAll(false);
   } catch(e) {
     showToast(e.message || 'Failed','err');
@@ -8686,6 +8642,22 @@ async function paccSendOne(id) {
   _paccBusy = false;
   await loadPortalAccess();
 }
+// S5 and P5. From a client's profile: email that family its own portal PIN, the same one it
+// has, through Portal Access, so the send is recorded like any other. The PIN never comes here.
+async function paccSendClient(id) {
+  if (_paccBusy || !PACC_ID.test(id || '')) return;
+  const c = (D.clients || []).find(x => x.id === id);
+  const who = c ? `${c.first_name || ''} ${c.last_name || ''}`.trim() : 'this client';
+  if (!confirm(`Email ${who}'s family their portal PIN? They get the same PIN they have now.`)) return;
+  _paccBusy = true;
+  try {
+    const r = await paccPost({ kind: 'family', ids: [id] });
+    const why = (r.skipped[0] || r.failed[0] || {}).reason;
+    showToast(r.sent ? 'Portal PIN emailed to the family' : 'Not sent: ' + (why || 'unknown'), r.sent ? 'ok' : 'err');
+  } catch (e) { showToast(e.message || 'Send failed', 'err'); }
+  _paccBusy = false;
+}
+
 async function paccSendAll() {
   if (_paccBusy || !_paccData) return;
   const kind = _paccKind, n = (_paccData.counts || {}).waiting_sendable || 0, max = _paccData.send_max || 100;
@@ -9952,7 +9924,7 @@ async function saveHQPin(){
   const cur = (document.getElementById('set-pin-current')?.value || '').trim();
   const nw  = (document.getElementById('set-pin-new')?.value || '').trim();
   if (!cur || !nw) { showToast('Enter your current and new PIN', 'err'); return; }
-  if (!/^\d{4,8}$/.test(nw)) { showToast('New PIN must be 4 to 8 digits', 'err'); return; }
+  if (!/^[0-9]{4}$/.test(nw)) { showToast('The new PIN must be 4 digits', 'err'); return; }
   try {
     const r = await fetch(`${API}/hq/settings/pin`, { method: 'POST', headers: _setHdrs(), body: JSON.stringify({ operator_id: currentOp, current_pin: cur, new_pin: nw }) });
     const d = await r.json().catch(() => ({}));
@@ -12557,10 +12529,10 @@ async function submitCloseDeal() {
     const detailEl = document.getElementById('cd-result-details');
     if (resultEl) resultEl.style.display = 'block';
     if (detailEl) detailEl.innerHTML =
-      `Operator ID: ${d.operator_id}<br>` +
-      `HQ PIN: <strong style="color:var(--gold);letter-spacing:4px;">${d.hq_pin}</strong><br>` +
-      `URL: <a href="${d.hq_url}" target="_blank" style="color:var(--teal2);">${d.hq_url}</a><br>` +
-      `Credentials emailed to ${email}`;
+      `Operator ID: ${escHtml(d.operator_id)}<br>` +
+      `HQ PIN: emailed to the owner only<br>` +
+      `URL: <a href="${escHtml(d.hq_url)}" target="_blank" style="color:var(--teal2);">${escHtml(d.hq_url)}</a><br>` +
+      `Credentials emailed to ${escHtml(email)}`;
 
     showToast(`${agency} activated! Credentials sent ✓`, 'ok');
     loadAll(false);
@@ -13788,7 +13760,7 @@ function openClientDetail(id) {
     <!-- TAB: PORTAL -->
     <div class="prof-tab-body" id="cpt-portal">
       <div class="cpf"><div class="cpf-lbl">Portal Slug</div><div class="cpf-val" style="font-family:var(--mono);color:var(--teal2);">${slug||'—'}</div></div>
-      <div class="cpf"><div class="cpf-lbl">Family PIN</div><div class="cpf-val" style="font-family:var(--mono);">${c.portal_pin||'—'}</div></div>
+      <div class="cpf"><div class="cpf-lbl">Family portal PIN</div><div class="cpf-val"><button class="sect-action" data-pacc-client="${PACC_ID.test(c.id || '') ? c.id : ''}" onclick="paccSendClient(this.getAttribute('data-pacc-client'))">Email it to the family</button></div></div>
       <div class="cpf"><div class="cpf-lbl">Start Date</div><div class="cpf-val">${c.start_date?fmtd(c.start_date):'Not set'}</div></div>
       <div class="cpf"><div class="cpf-lbl">Referral Source</div><div class="cpf-val">${c.referral_source||'—'}${c.referral_detail?' · '+c.referral_detail:''}</div></div>
       <div style="margin:14px 0 10px;">
