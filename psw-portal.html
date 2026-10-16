@@ -873,6 +873,7 @@ a{color:inherit;text-decoration:none;}
 <div id="lock">
   <div class="lock-logo" id="branding-lock-logo">Proximity <em>PSW</em></div>
   <div class="lock-sub">Personal Support Worker</div>
+  <div class="lock-agency" id="lock-agency" style="font-size:12px;color:var(--muted);text-align:center;margin:-4px 0 14px;"></div>
   <div class="lock-step active" id="lock-step-1">
     <div class="lock-label">Your name</div>
     <input class="lock-input" id="lock-name" placeholder="Your full name" autocomplete="name">
@@ -895,6 +896,7 @@ a{color:inherit;text-decoration:none;}
       <div class="lock-key empty"></div><button class="lock-key" onclick="lk('0')">0</button><button class="lock-key del" onclick="ld()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 5.5 3.5 12l6 6.5H20a1.5 1.5 0 0 0 1.5-1.5V7A1.5 1.5 0 0 0 20 5.5Z"/><path d="m13 9.5 4 5"/><path d="m17 9.5-4 5"/></svg></button>
     </div>
     <div class="lock-err" id="lock-err">Incorrect PIN. Try again.</div>
+    <button type="button" onclick="pswNotYou()" style="display:block;margin:10px auto 0;background:none;border:none;color:var(--muted);font-size:12px;text-decoration:underline;cursor:pointer;">Not you? Use another name</button>
   </div>
 </div>
 
@@ -2316,37 +2318,36 @@ async function pswSetupPush() {
 }
 
 function lk(k) {
-  if (lockIn.length >= 4) return;
+  if (_pswChecking || lockIn.length >= 4) return;
   lockIn += k; updateDots();
   if (lockIn.length === 4) {
+    _pswChecking = true;
     setTimeout(async () => {
+      // P6 (BUILD_PLAN 2.14, bug 8). The app opens only on a 200. A wrong PIN says so; a 429
+      // says how long to wait; anything else, or no answer, keeps the lock up and says the PIN
+      // could not be checked. A failed try never replaces a PIN this session already proved.
+      // One check at a time: the pad and the delete key wait for its answer, and the answer
+      // opens the app only for the name it was asked about.
+      const prevPin = pswPin, who = pswName;
       pswPin = lockIn;
-      try {
-        const valid = await verifyPin();
-        if (valid) { unlockApp(); }
-        else {
-          haptic([40,60,40]);
-          const _step = document.querySelector('.lock-step.active');
-          if (_step) { _step.classList.remove('shake'); void _step.offsetWidth; _step.classList.add('shake'); setTimeout(()=>_step.classList.remove('shake'),400); }
-          const _errEl = document.getElementById('lock-err');
-          _errEl.textContent = 'Incorrect PIN';
-          _errEl.classList.add('show');
-          for (let i = 0; i < 4; i++) document.getElementById('ld'+i).classList.remove('filled');
-          lockIn = '';
-          setTimeout(() => { _errEl.classList.remove('show'); _errEl.textContent = 'Incorrect PIN'; }, 2500);
-        }
-      } catch (e) {
-        const _errEl = document.getElementById('lock-err');
-        _errEl.textContent = navigator.onLine ? 'Server error, try again' : 'No connection';
-        _errEl.classList.add('show');
-        for (let i = 0; i < 4; i++) document.getElementById('ld'+i).classList.remove('filled');
-        lockIn = '';
-        setTimeout(() => { _errEl.classList.remove('show'); _errEl.textContent = 'Incorrect PIN'; }, 3000);
+      const st = await verifyPin();
+      _pswChecking = false;
+      if (st === 200 && pswName === who) { unlockApp(); return; }
+      pswPin = prevPin;
+      if (st === 401) {
+        haptic([40,60,40]);
+        const _step = document.querySelector('.lock-step.active');
+        if (_step) { _step.classList.remove('shake'); void _step.offsetWidth; _step.classList.add('shake'); setTimeout(()=>_step.classList.remove('shake'),400); }
       }
+      pswLockMsg(st === 401 ? 'Incorrect PIN'
+        : st === 429 ? 'Too many tries. Wait 15 minutes and try again.'
+        : (navigator.onLine ? 'Could not check your PIN. Try again.' : 'No connection. Try again when you are online.'), st === 429 ? 6000 : 3000);
+      for (let i = 0; i < 4; i++) document.getElementById('ld'+i).classList.remove('filled');
+      lockIn = '';
     }, 120);
   }
 }
-function ld() { lockIn = lockIn.slice(0,-1); updateDots(); }
+function ld() { if (_pswChecking) return; lockIn = lockIn.slice(0,-1); updateDots(); }
 
 // KB (BUILD_PLAN 4.102). THE KEYBOARD DRIVES THE PIN PAD ON A LAPTOP. A digit
 // on the top row or the number pad presses the same key a tap does, and
@@ -2365,11 +2366,71 @@ document.addEventListener('keydown', function (e) {
 });
 function updateDots() { for (let i = 0; i < 4; i++) document.getElementById('ld'+i).classList.toggle('filled', i < lockIn.length); }
 
+// P6 (BUILD_PLAN 2.14). THE PIN TRAVELS IN A HEADER, NEVER IN AN ADDRESS. A PIN in a URL
+// is kept by browser history, by every proxy on the way and by Railway's request log. The
+// server has read x-psw-pin first since S3a (4.111); every GET this page makes now sends it
+// there, and no address the page builds carries a PIN. POST bodies are not addresses and are
+// unchanged.
+function pswHeaders(extra) { return Object.assign({ 'x-psw-pin': pswPin }, extra || {}); }
+function pswGet(url, opts) { return fetch(url, Object.assign({ headers: pswHeaders() }, opts || {})); }
+
+// P6 (BUILD_PLAN 2.14, bug 8). The answer, read, never guessed: 200 with success true opens
+// the app, 401 is a wrong PIN, 429 is too many tries; anything else, or no answer, leaves the
+// lock up. psw-sw.js answers an API call it could not make with a 200 whose body is
+// { success: false, error: 'Offline' }, so a 200 alone is not an answer: offline, any four
+// digits opened the app.
+// One message line under the pad, one timer: a newer message is never wiped by an older one's.
+let _pswMsgTimer = null;
+function pswLockMsg(text, ms) {
+  const e = document.getElementById('lock-err'); if (!e) return;
+  clearTimeout(_pswMsgTimer);
+  e.textContent = text; e.classList.add('show');
+  _pswMsgTimer = setTimeout(() => { e.classList.remove('show'); e.textContent = 'Incorrect PIN'; }, ms || 3000);
+}
+
+// A check that never answers (weak signal, a captive portal) ends after 12 seconds as no
+// answer, so the pad is never held.
+let _pswChecking = false;
 async function verifyPin() {
+  const ac = new AbortController(), timer = setTimeout(() => ac.abort(), 12000);
   try {
-    const res = await fetch(`${API}/psw/notes/${encodeURIComponent(pswName)}?pin=${pswPin}&operator_id=${pswOperatorId}`);
-    return res.ok;
-  } catch { return false; }
+    const res = await pswGet(`${API}/psw/notes/${encodeURIComponent(pswName)}?operator_id=${pswOperatorId}`, { signal: ac.signal });
+    if (res.status !== 200) return res.status;
+    const d = await res.json().catch(() => null);
+    return d && d.success === true ? 200 : 0;
+  } catch { return 0; } finally { clearTimeout(timer); }
+}
+
+// P6. Which agency this phone signs in to, on the lock screen, so a phone left on another
+// agency (a link opened once for a test) is visible instead of reading as a wrong PIN.
+// The name comes from the agency's own branding; until it arrives, its id.
+function pswShowAgency() {
+  const host = document.getElementById('lock-agency');
+  if (!host) return;
+  host.textContent = 'Signing in to ' + (window._agencyName || pswOperatorId) + '. ';
+  const b = document.createElement('button');
+  b.type = 'button';
+  b.textContent = 'Wrong agency?';
+  b.style.cssText = 'background:none;border:none;padding:0;color:var(--gold,#c8a96e);font:inherit;text-decoration:underline;cursor:pointer;';
+  b.onclick = pswWrongAgency;
+  host.appendChild(b);
+}
+// Written on the lock screen itself: a toast sits under it (z-index 500 against 999).
+function pswWrongAgency() {
+  const host = document.getElementById('lock-agency');
+  if (!host) return;
+  let help = document.getElementById('lock-agency-help');
+  if (!help) { help = document.createElement('div'); help.id = 'lock-agency-help'; help.style.cssText = 'margin-top:6px;'; host.appendChild(help); }
+  help.textContent = 'This phone is set to ' + (window._agencyName || pswOperatorId) + '. To switch, open the sign in link your agency emailed you.';
+}
+// P6. Step 2 remembers the name for the tab; another caregiver on the same phone starts over
+// on a fresh page, as signOut does, so nothing of the last caregiver's stays in memory.
+// Offline, a reload would land on the browser's offline page (no HTML is cached), so it waits.
+function pswNotYou() {
+  if (navigator.onLine === false) { pswLockMsg('No connection. Connect, then tap again.'); return; }
+  pswName = ''; pswPin = ''; lockIn = '';
+  try { sessionStorage.removeItem('psw_name'); sessionStorage.removeItem('psw_pin'); } catch (e) {}
+  location.reload();
 }
 
 // ── INSTANT-LOAD CACHE (Pass 1: render last-known data immediately on open) ──
@@ -2424,7 +2485,9 @@ function showUpdatingCue(on){
 
 function unlockApp() {
   appUnlocked = true;
-  try { sessionStorage.setItem('psw_name', pswName); sessionStorage.setItem('psw_pin', pswPin); } catch {}
+  // P6 (BUILD_PLAN 2.14). The name is kept for this tab, never the PIN: a reload asks for the PIN again.
+  try { sessionStorage.setItem('psw_name', pswName); sessionStorage.removeItem('psw_pin'); } catch {}
+  try { initBiometricBtn(); } catch (e) {} // the PIN is proved now, so a later lock may offer the fingerprint
   // E1: Offer biometric registration if WebAuthn supported and not yet registered
   setTimeout(checkBiometricOffer, 1500);
   // W1: ask for notification permission after the biometric prompt has settled,
@@ -2475,7 +2538,7 @@ function unlockApp() {
 // pswEmail fetched for future use in email-based features
 async function fetchPSWEmail() {
   try {
-    const res = await fetch(`${API}/psw/notes/${encodeURIComponent(pswName)}?pin=${pswPin}&operator_id=${pswOperatorId}`);
+    const res = await pswGet(`${API}/psw/notes/${encodeURIComponent(pswName)}?operator_id=${pswOperatorId}`);
     const d = await res.json();
     if (d.psw_email) pswEmail = d.psw_email;
     // Show PSW email in topbar if available
@@ -2496,7 +2559,7 @@ async function loadSchedule() {
     // Start from 14 days ago to show recent history, extend 60 days forward for next-month shifts
     const past = new Date(now.getFullYear(), now.getMonth(), 1); // Start of current month
     const fromDate = new Date(now.getFullYear(), now.getMonth(), 1).toLocaleDateString('en-CA', {timeZone:'America/Toronto'});
-    const res = await fetch(`${API}/psw/schedule-upcoming?psw_name=${encodeURIComponent(pswName)}&pin=${pswPin}&operator_id=${pswOperatorId}&from_date=${fromDate}`);
+    const res = await pswGet(`${API}/psw/schedule-upcoming?psw_name=${encodeURIComponent(pswName)}&operator_id=${pswOperatorId}&from_date=${fromDate}`);
     const d = await res.json();
     if (!d.success) return;
     scheduleData = d;
@@ -4832,7 +4895,7 @@ function selectMood(el, mood) {
 async function loadClients() {
   const el = document.getElementById('clients-list');
   try {
-    const res = await fetch(`${API}/psw/clients/${encodeURIComponent(pswName)}?pin=${pswPin}&operator_id=${pswOperatorId}`);
+    const res = await pswGet(`${API}/psw/clients/${encodeURIComponent(pswName)}?operator_id=${pswOperatorId}`);
     const d = await res.json();
     const clients = d.clients || [];
     window._pswClients = clients; // C3, store for DNR lookup at checkin
@@ -4881,8 +4944,8 @@ async function loadMessages(scroll=true) {
   try {
     // Load messages and PSW incident history in parallel
     const [msgRes, incRes] = await Promise.all([
-      fetch(`${API}/psw/notes/${encodeURIComponent(pswName)}?pin=${pswPin}&operator_id=${pswOperatorId}`),
-      fetch(`${API}/psw/incidents?psw_name=${encodeURIComponent(pswName)}&pin=${pswPin}&operator_id=${pswOperatorId}`)
+      pswGet(`${API}/psw/notes/${encodeURIComponent(pswName)}?operator_id=${pswOperatorId}`),
+      pswGet(`${API}/psw/incidents?psw_name=${encodeURIComponent(pswName)}&operator_id=${pswOperatorId}`)
         .then(r => r.json()).catch(() => ({ incidents: [] }))
     ]);
     const d = await msgRes.json();
@@ -5100,7 +5163,7 @@ async function loadDocuments() {
   const el = document.getElementById('docs-list');
   const vl = document.getElementById('docs-visit-list');
   try {
-    const res = await fetch(`${API}/psw/profile?psw_name=${encodeURIComponent(pswName)}&pin=${pswPin}&operator_id=${pswOperatorId}`);
+    const res = await pswGet(`${API}/psw/profile?psw_name=${encodeURIComponent(pswName)}&operator_id=${pswOperatorId}`);
     const d = await res.json();
     const rec = d.psw_record;
     if (!rec) { el.innerHTML = '<div class="empty-state" style="padding:20px;">No records on file</div>'; return; }
@@ -5343,7 +5406,7 @@ function renderPayCard() {
 
 async function loadHomeData() {
   try {
-    const res = await fetch(`${API}/psw/pay-summary?psw_name=${encodeURIComponent(pswName)}&pin=${pswPin}&operator_id=${pswOperatorId}`);
+    const res = await pswGet(`${API}/psw/pay-summary?psw_name=${encodeURIComponent(pswName)}&operator_id=${pswOperatorId}`);
     const d = await res.json();
     window._lastPayData = d; // Cache so loadPaySummary and renderHomeFeed can reuse
     if (!d.success) { console.warn('[PSW] pay-summary failed:', d); return; }
@@ -5460,7 +5523,7 @@ async function loadPaySummary() {
   if (!el) return;
   el.innerHTML = '<div class="empty-state">Loading...</div>';
   try {
-    const res = await fetch(`${API}/psw/pay-summary?psw_name=${encodeURIComponent(pswName)}&pin=${pswPin}&operator_id=${pswOperatorId}`);
+    const res = await pswGet(`${API}/psw/pay-summary?psw_name=${encodeURIComponent(pswName)}&operator_id=${pswOperatorId}`);
     const d = await res.json();
     if (!d.success) throw new Error(d.error);
     const rate = d.rate || 19;
@@ -5779,8 +5842,8 @@ function pswDocUrl(raw) {
   const marker = '/psw-documents/';
   const i = String(raw).indexOf(marker);
   const path = i >= 0 ? String(raw).slice(i + marker.length) : String(raw);
+  // P6 (BUILD_PLAN 2.14). No PIN in the address: pswOpenDoc sends it in the header.
   return `${API}/psw/document?psw_name=${encodeURIComponent(pswName)}`
-       + `&pin=${encodeURIComponent(pswPin)}`
        + `&operator_id=${encodeURIComponent(pswOperatorId || 'proximity-care')}`
        + `&path=${encodeURIComponent(path)}`;
 }
@@ -5789,7 +5852,7 @@ async function pswOpenDoc(raw) {
   const u = pswDocUrl(raw);
   if (!u) return;
   try {
-    const res = await fetch(u);
+    const res = await pswGet(u);
     const d = await res.json().catch(() => null);
     if (!res.ok || !d?.url) throw new Error(d?.error || 'Could not open that document');
     window.open(d.url, '_blank', 'noopener');
@@ -5798,32 +5861,38 @@ async function pswOpenDoc(raw) {
   }
 }
 
-function pswPhotoUrl(entry) {
-  const raw = (entry && (entry.url || entry.path)) || entry;
-  if (!raw) return '';
-  const marker = '/visit-photos/';
-  const i = String(raw).indexOf(marker);
-  const path = i >= 0 ? String(raw).slice(i + marker.length) : String(raw);
-  return `${API}/psw/visit-photo?psw_name=${encodeURIComponent(pswName)}`
-       + `&pin=${encodeURIComponent(pswPin)}`
-       + `&operator_id=${encodeURIComponent(pswOperatorId || 'proximity-care')}`
-       + `&path=${encodeURIComponent(path)}`;
+// P6 (BUILD_PLAN 2.14). A photo opens through the link the server signed for it (S6): this
+// caregiver, this agency, this path, for 10 to 15 minutes, and no PIN. The schedule sends
+// task_photo_links beside task_photos at the same index, so the index is read before an empty
+// entry is skipped. With no link there is no photo, never a PIN in an address.
+function pswPhotoUrl(link) {
+  return (typeof link === 'string' && link.indexOf('/psw/visit-photo?') === 0) ? API + link : '';
 }
 
-// Thumbnail strip for a completed visit. Returns an empty string when there
-// are no photos, so it adds nothing to a visit that has none.
+// Thumbnail strip for a completed visit. Returns an empty string when there are no photos
+// with a link, so it adds nothing to a visit that has none.
 function pswPhotoStrip(v) {
-  const photos = Array.isArray(v && v.task_photos) ? v.task_photos.filter(Boolean) : [];
-  if (!photos.length) return '';
+  const photos = Array.isArray(v && v.task_photos) ? v.task_photos : [];
+  const links = Array.isArray(v && v.task_photo_links) ? v.task_photo_links : [];
+  const urls = [];
+  photos.forEach((p, i) => { if (!p) return; const u = pswPhotoUrl(links[i]); if (u) urls.push(u); });
+  if (!urls.length) return '';
   return '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;">'
-    + photos.map(p => {
-        const u = pswPhotoUrl(p);
-        return '<a href="' + u + '" target="_blank" rel="noopener">'
-             + '<img src="' + u + '" loading="lazy" alt="Visit photo" '
+    + urls.map(u => '<a href="' + u + '" target="_blank" rel="noopener">'
+             + '<img src="' + u + '" loading="lazy" alt="Visit photo" onerror="pswPhotoGone(this)" '
              + 'style="width:56px;height:56px;object-fit:cover;border-radius:8px;'
-             + 'border:1px solid var(--rb-line);background:var(--rb-panel);"></a>';
-      }).join('')
+             + 'border:1px solid var(--rb-line);background:var(--rb-panel);"></a>').join('')
     + '</div>';
+}
+// A photo that will not load (its link expired on a page left open or the day's cache, or the
+// network is down) becomes words, never a silent gap. The schedule refreshes every 30 seconds
+// and signs new links, so opening the day again shows it.
+function pswPhotoGone(img) {
+  const a = img.closest('a') || img;
+  const s = document.createElement('span');
+  s.textContent = 'Photo unavailable. Close this and open it again.';
+  s.style.cssText = 'font-size:11px;color:var(--muted);';
+  a.replaceWith(s);
 }
 
 function showSect(name) {
@@ -7069,7 +7138,7 @@ function _addDeclinedId(id) {
 
 async function loadShiftOffers() {
   try {
-    const r = await fetch(`${API}/psw/shift-offers?psw_name=${encodeURIComponent(pswName)}&pin=${pswPin}&operator_id=${pswOperatorId}`);
+    const r = await pswGet(`${API}/psw/shift-offers?psw_name=${encodeURIComponent(pswName)}&operator_id=${pswOperatorId}`);
     if (!r.ok) return;
     const d = await r.json();
     const declinedIds = _getDeclinedIds();
@@ -7301,31 +7370,21 @@ async function submitForm(formIdx) {
   loadVisitForms(); // re-render
 }
 
-// ── SESSION RESTORE, skip PIN if already authenticated ──
+// SESSION RESTORE.
+// P6 (BUILD_PLAN 2.14, bug 8). Only the name is kept for the tab. A reload shows the PIN pad,
+// as a lock does: the app never opens on a stored PIN, and never on an answer it could not
+// read. It used to open on any status but 401, a 429 and a 5xx included, and on no answer at
+// all, with the PIN it kept in sessionStorage; a locked phone opened on a reload.
 (function() {
   try {
+    sessionStorage.removeItem('psw_pin'); // left by an earlier version of this page
     const savedName = sessionStorage.getItem('psw_name');
-    const savedPin = sessionStorage.getItem('psw_pin');
-    if (savedName && savedPin) {
-      pswName = savedName; pswPin = savedPin;
-      fetch(`${API}/psw/notes/${encodeURIComponent(savedName)}?pin=${savedPin}&operator_id=${pswOperatorId}`)
-        .then(r => {
-          if (r.ok) {
-            unlockApp(); // 200, valid session, unlock
-          } else if (r.status === 401) {
-            // Only clear on explicit auth failure, PIN wrong or PSW deactivated
-            sessionStorage.removeItem('psw_name');
-            sessionStorage.removeItem('psw_pin');
-          } else {
-            // Server error (5xx), deploy in progress, etc, keep credentials and unlock
-            // PSW shouldn't be locked out because Railway is restarting
-            unlockApp();
-          }
-        })
-        .catch(() => {
-          // Network down, restore anyway so refresh doesn't log them out
-          unlockApp();
-        });
+    if (savedName) {
+      pswName = savedName;
+      const lbl = document.getElementById('lock-pin-label');
+      if (lbl) lbl.textContent = 'Hi ' + savedName.split(' ')[0] + ', enter your PIN';
+      document.getElementById('lock-step-1').classList.remove('active');
+      document.getElementById('lock-step-2').classList.add('active');
     }
   } catch(e) {}
 })();
@@ -7558,14 +7617,17 @@ function u8ToB64(u8) {
 function initBiometricBtn() {
   const credId = localStorage.getItem(WA_STORE + '_' + (pswName||''));
   const btn = document.getElementById('biometric-btn');
-  if (btn && credId && waSupported()) {
+  // P6. Fingerprint only stands in for a PIN this session already proved; after a reload
+  // there is none, so the PIN pad.
+  if (btn && credId && waSupported() && pswPin) {
     btn.style.display = 'flex';
   }
 }
 
 async function tryBiometric() {
   const credId = localStorage.getItem(WA_STORE + '_' + pswName);
-  if (!credId) return;
+  if (!credId || _pswChecking) return;
+  if (!pswPin) { pswLockMsg('Enter your PIN'); return; }
   try {
     const challenge = crypto.getRandomValues(new Uint8Array(32));
     const assertion = await navigator.credentials.get({
@@ -7794,6 +7856,7 @@ window._agencyPhone = '';
     if (!d.success) return;
     window._agencyName = d.agency_name || 'Proximity Care Services';
     window._agencyPhone = d.owner_phone || '';
+    pswShowAgency();
     // L14, page title
     document.title = `${window._agencyName}, PSW Portal`;
     // L647, header subtitle (post-login)
@@ -7810,6 +7873,7 @@ window._agencyPhone = '';
 document.addEventListener('DOMContentLoaded', () => {
   applyTranslations();
   initBiometricBtn();
+  pswShowAgency();
 });
 
 
