@@ -1,0 +1,48 @@
+# proximitycares.ca
+
+# Crawling is open on purpose.
+#
+# The staff and client portals (hq.html, psw-portal.html, family.html and the onboarding
+# and interview forms) are deliberately NOT disallowed here, even though they should not
+# appear in search results. Disallow is the wrong tool for that job: it stops a crawler
+# fetching the page, which means a noindex tag added to those pages later would never be
+# seen, and the bare URL can still be listed from external links. The correct fix is a
+# noindex meta tag on each of those pages while they remain crawlable. Those files belong
+# to another owner, so that change is a separate drop.
+#
+# Note also that GitHub Pages cannot serve HTTP authentication, so anything in this
+# repository is publicly reachable by URL regardless of what this file says.
+
+User-agent: *
+Allow: /
+
+# Named explicitly so the intent survives a future blanket rule. These agents are already
+# permitted by the wildcard above; listing them records that it is deliberate.
+User-agent: GPTBot
+Allow: /
+
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: Claude-SearchBot
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: Applebot-Extended
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+Sitemap: https://proximitycares.ca/sitemap.xml
