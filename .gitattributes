@@ -1,5 +1,6 @@
 # Binary files must never be line ending converted. core.autocrlf is true on at least one
 # machine working on this repository, and a single CRLF inserted into a png corrupts it.
+# An og-image.png was already lost this way once.
 *.png binary
 *.ico binary
 *.jpg binary
@@ -7,3 +8,15 @@
 *.webp binary
 *.woff binary
 *.woff2 binary
+
+# These files are pinned by md5 by the drop tooling, so their bytes must be identical in the
+# repository and in every working copy. With core.autocrlf true git would rewrite LF to CRLF on
+# checkout, changing the digest of a file nobody edited and making every state check report an
+# unknown file. The -text attribute switches that conversion off in both directions.
+*.html -text
+*.txt -text
+*.xml -text
+*.json -text
+*.csv -text
+*.js -text
+*.sh -text
