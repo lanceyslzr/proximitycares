@@ -530,6 +530,10 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
 .cta-section{background:var(--white);padding:100px 48px;border-top:1px solid var(--border);}
 .cta-inner{max-width:840px;margin:0 auto;text-align:center;}
 .cta-title{font-family:var(--serif);font-size:clamp(32px,5vw,60px);font-weight:300;color:var(--navy);line-height:1.05;margin-bottom:16px;}
+/* PCFIX2. From 1280px wide the first half of this headline is a few pixels wider than its 840px box,
+   so "chats" was left alone on a line before the forced break. Balanced wrapping splits that half
+   into even lines instead. Browsers without text-wrap support keep the old wrapping. */
+.cta-title{text-wrap:balance;}
 .cta-title em{font-style:italic;color:var(--blue3);}
 .cta-sub{font-size:16px;color:var(--muted);margin-bottom:40px;font-weight:300;line-height:1.7;}
 .cta-badges{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:48px;}
