@@ -451,9 +451,10 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
 .feed-card-title{font-size:13px;font-weight:500;color:var(--white);margin-bottom:3px;}
 .feed-card-meta{font-size:11px;color:rgba(255,255,255,.4);}
 .feed-card-time{font-size:10px;color:var(--blue2);letter-spacing:1px;flex-shrink:0;}
-.feed-dots{display:flex;gap:8px;margin-top:20px;}
-.feed-dot-btn{width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,.2);border:none;padding:0;cursor:pointer;transition:background .3s;}
-.feed-dot-btn.active{background:var(--blue2);}
+.feed-dots{display:flex;justify-content:center;gap:0;margin-top:10px;}
+.feed-dot-btn{width:24px;height:24px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:none;border:none;padding:0;cursor:pointer;}
+.feed-dot-btn::before{content:"";width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,.2);transition:background .3s;}
+.feed-dot-btn.active::before{background:var(--blue2);}
 
 /* ══════════════════════════════════════
    TESTIMONIALS
@@ -608,6 +609,19 @@ footer{background:var(--navy);padding:60px 48px 32px;border-top:1px solid rgba(2
 .footer-links li{margin-bottom:8px;}
 .footer-links a{font-size:13px;color:rgba(255,255,255,.4);text-decoration:none;transition:color .2s;font-weight:300;}
 .footer-links a:hover{color:var(--blue2);}
+/* PCNAV1. On phones these links measured 17px tall, under the 24px minimum and far from the 44px a
+   thumb needs. Each gets a 44px tall tap area there; the list spacing is taken back so it reads the same. */
+@media(max-width:900px){
+  .footer-links li{margin-bottom:0;}
+  .footer-links a{display:inline-flex;align-items:center;min-height:44px;}
+  .footer-contact a{min-height:44px;margin-bottom:0;}
+  .powered-link{display:inline-flex;align-items:center;min-height:44px;padding-bottom:0;}
+  /* On phones the footer is one column; it is centred like every section above it. */
+  .footer-top{text-align:center;}
+  .footer-desc{margin-left:auto;margin-right:auto;}
+  .footer-contact a{justify-content:center;}
+  .footer-bottom{align-items:center;text-align:center;}
+}
 .footer-bottom{border-top:1px solid rgba(255,255,255,.06);padding-top:24px;display:flex;justify-content:space-between;align-items:center;}
 .footer-copy{font-size:12px;color:rgba(255,255,255,.2);letter-spacing:1px;}
 .footer-areas{font-size:12px;color:rgba(255,255,255,.2);letter-spacing:1px;}
@@ -1175,10 +1189,19 @@ a:focus-visible,button:focus-visible,.btn:focus-visible,.btn-primary:focus-visib
   .builder-grid{grid-template-columns:1fr 320px;}
 }
 
-@media(min-width:901px){
+/* PCNAV1. Measured: from 901 to 1200px every menu item wrapped onto two lines, the logo and phone
+   number included. From 1204px it fits on one line but touches the logo (1px apart); from 1240px the two
+   sit at least 37px apart, more than the 32px between menu items. Below 1240px the menu button and the
+   full screen menu take over, as they already did on phones. */
+@media(min-width:1240px){
   .nav-links{display:flex!important;}
   .nav-cta{display:inline-flex!important;}
   .hamburger{display:none!important;}
+}
+@media(max-width:1239px){
+  .nav-links{display:none!important;}
+  .nav-cta{display:none!important;}
+  .hamburger{display:block;}
 }
 
 @media(max-width:900px){
@@ -2372,6 +2395,18 @@ a:focus-visible,button:focus-visible,.btn:focus-visible,.btn-primary:focus-visib
     .builder-section .pk-h{font-size:26px;}
     .builder-section .pk-opt{padding:20px 40px;}
   }
+  /* PCNAV1, text on dark backgrounds is white. These styles drew white at 20 to 80% opacity, which
+     reads as grey on navy (as low as 1.9 to 1). Placeholders and unavailable calendar days stay dim on
+     purpose; the cream sections keep their dark grey; the phone mockups in the live demo are unchanged. */
+  .nav-links a,.hero-sub,.hero-sub strong,.trust-item,.hms-lbl,.hero-card-label,.hcard-live,
+  .live-feed-sub,.feed-card-meta,.test-quote,.test-author,.test-author strong,
+  .about-body,.about-quote p,.about-quote cite,.about-img-role,.about-stat-lbl,.map-city-desc,
+  .footer-desc,.footer-contact a,.footer-col-title,.footer-links a,.footer-copy,.footer-areas,
+  .chat-info p,.chat-close-btn,.cmsg.b .cbub,.cmsg.u .cbub,.chat-chip,.chat-field label,.chat-cal-label,
+  .chat-cal-month,.chat-cal-dow,.chat-cal-day:not(.empty):not(.past):not(.booked),.chat-time-btn,
+  .builder-section .pk-incl,.builder-section .pk-fine{color:#fff;}
+  .builder-section .pk-book .plan-call{color:#fff!important;}
+  .nav-links a:hover,.footer-links a:hover,.footer-contact a:hover{color:var(--blue2);}
 </style>
 <script src="https://unpkg.com/lenis@1.1.14/dist/lenis.min.js"></script>
   <meta property="og:title" content="Proximity Care Services: In Home Senior Care in Mississauga and Brampton">
@@ -3104,7 +3139,7 @@ a:focus-visible,button:focus-visible,.btn:focus-visible,.btn-primary:focus-visib
     <li><a href="tel:6473828047" class="nav-phone" aria-label="Call Proximity Care Services"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg><span>647 382 8047</span></a></li>
       <li><a href="#builder" class="nav-cta">Book Assessment</a></li>
   </ul>
-  <button class="hamburger" id="hamburger" aria-label="Menu"><span></span><span></span><span></span></button>
+  <button class="hamburger" id="hamburger" aria-label="Menu" aria-controls="mobile-menu" aria-expanded="false"><span></span><span></span><span></span></button>
 </nav>
 <div class="mobile-menu" id="mobile-menu">
       <a href="tel:6473828047" class="mm-phone">Call 647 382 8047</a>
@@ -3785,7 +3820,7 @@ a:focus-visible,button:focus-visible,.btn:focus-visible,.btn-primary:focus-visib
         <div class="footer-contact">
           <a href="tel:6473828047"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.47 2 2 0 0 1 3.6 1.27h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L7.91 9a16 16 0 0 0 6 6l.92-.92a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg> 647-382-8047</a>
           <a href="mailto:healthcareproximity@gmail.com"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg> healthcareproximity@gmail.com</a>
-          <a href="#"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg> Mississauga, Ontario</a>
+          <a href="#coverage"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg> Mississauga, Ontario</a>
         </div>
       </div>
       <div>
@@ -3801,12 +3836,12 @@ a:focus-visible,button:focus-visible,.btn:focus-visible,.btn-primary:focus-visib
       <div>
         <div class="footer-col-title">Areas We Serve</div>
         <ul class="footer-links">
-          <li><a href="#">Mississauga</a></li>
-          <li><a href="#">Brampton</a></li>
-          <li><a href="#">Caledon</a></li>
-          <li><a href="#">Port Credit</a></li>
-          <li><a href="#">Streetsville</a></li>
-          <li><a href="#">Meadowvale</a></li>
+          <li><a href="#coverage">Mississauga</a></li>
+          <li><a href="#coverage">Brampton</a></li>
+          <li><a href="#coverage">Caledon</a></li>
+          <li><a href="#coverage">Port Credit</a></li>
+          <li><a href="#coverage">Streetsville</a></li>
+          <li><a href="#coverage">Meadowvale</a></li>
         </ul>
       </div>
     </div>
@@ -3869,8 +3904,8 @@ window.addEventListener('scroll',()=>{
 /* ── HAMBURGER ── */
 var burger=document.getElementById('hamburger');
 var mobileMenu=document.getElementById('mobile-menu');
-burger.addEventListener('click',function(){burger.classList.toggle('open');mobileMenu.classList.toggle('open');});
-function closeMenu(){burger.classList.remove('open');mobileMenu.classList.remove('open');}
+burger.addEventListener('click',function(){burger.classList.toggle('open');mobileMenu.classList.toggle('open');burger.setAttribute('aria-expanded',mobileMenu.classList.contains('open')?'true':'false');});
+function closeMenu(){burger.classList.remove('open');mobileMenu.classList.remove('open');burger.setAttribute('aria-expanded','false');}
 
 /* ── HERO PARTICLE CANVAS ── */
 window.addEventListener('load',function(){
@@ -4149,7 +4184,7 @@ function pkSummary(){
   const fw=document.getElementById('feedWrap');
   const fd=document.getElementById('feedDots');
   if(!fw||!fd)return;
-  items.forEach((_,i)=>{const d=document.createElement('button');d.className='feed-dot-btn'+(i===0?' active':'');d.onclick=()=>sf(i);fd.appendChild(d);});
+  items.forEach((_,i)=>{const d=document.createElement('button');d.className='feed-dot-btn'+(i===0?' active':'');d.setAttribute('aria-label','Show update '+(i+1)+' of '+items.length);d.onclick=()=>sf(i);fd.appendChild(d);});
   items.forEach((item,i)=>{const c=document.createElement('div');c.className='feed-card'+(i===0?' feed-active':'');c.id='fc'+i;c.innerHTML=`<div class="feed-card-icon">${item.icon}</div><div class="feed-card-text"><div class="feed-card-title">${item.title}</div><div class="feed-card-meta">${item.meta}</div></div><div class="feed-card-time">${item.time}</div>`;fw.appendChild(c);});
   function sf(i){document.querySelectorAll('.feed-card').forEach(c=>c.classList.remove('feed-active'));document.querySelectorAll('.feed-dot-btn').forEach(d=>d.classList.remove('active'));document.getElementById('fc'+i).classList.add('feed-active');fd.children[i].classList.add('active');fi=i;}
   setInterval(()=>sf((fi+1)%items.length),3500);
@@ -4927,7 +4962,7 @@ async function submitPlanForm() {
     if (leadId) {
       await showSlotPicker(leadId, firstName, confirmEl, btn);
     } else {
-      confirmEl.innerHTML = '<strong style="color:#fff;font-size:15px">You are all set, ' + firstName + '.</strong><br><br>We will call you at ' + phone + ' within 2 hours. He does every first call personally.<br><br><span style="color:rgba(255,255,255,0.5);font-size:11px">Your first 6 hours of care are free.</span>';
+      confirmEl.innerHTML = '<strong style="color:#fff;font-size:15px">You are all set, ' + firstName + '.</strong><br><br>We will call you at ' + phone + ' within 2 hours. He does every first call personally.<br><br><span style="color:#fff;font-size:11px">Your first 6 hours of care are free.</span>';
     }
   } catch(e) {
     confirmEl.innerHTML = '<strong style="color:#fff;font-size:15px">You are all set.</strong><br><br>We will call you at ' + phone + ' within 2 hours.';
@@ -4942,7 +4977,7 @@ async function submitPlanForm() {
 async function showSlotPicker(leadId, firstName, confirmEl, submitBtn) {
   if (!confirmEl) return; // guard null
   confirmEl.style.display = 'block';
-  confirmEl.innerHTML = '<div style="text-align:center;padding:20px;color:rgba(255,255,255,0.6);font-family:\'DM Mono\',monospace;font-size:12px;letter-spacing:1px;">LOADING AVAILABLE TIMES...</div>';
+  confirmEl.innerHTML = '<div style="text-align:center;padding:20px;color:#fff;font-family:\'DM Mono\',monospace;font-size:12px;letter-spacing:1px;">LOADING AVAILABLE TIMES...</div>';
 
   let slots = [];
   try {
@@ -4950,12 +4985,12 @@ async function showSlotPicker(leadId, firstName, confirmEl, submitBtn) {
     const d = await r.json();
     slots = d.slots || [];
   } catch(e) {
-    confirmEl.innerHTML = '<strong style="color:#fff;">You\'re on the list, ' + firstName + '.</strong><br><br><span style="color:rgba(255,255,255,0.6);font-size:13px;">We will reach out within 2 hours to confirm a time.</span>';
+    confirmEl.innerHTML = '<strong style="color:#fff;">You\'re on the list, ' + firstName + '.</strong><br><br><span style="color:#fff;font-size:13px;">We will reach out within 2 hours to confirm a time.</span>';
     return;
   }
 
   if (!slots.length) {
-    confirmEl.innerHTML = '<strong style="color:#fff;">You\'re booked, ' + firstName + '.</strong><br><br><span style="color:rgba(255,255,255,0.6);font-size:13px;">We will call you within 2 hours.</span>';
+    confirmEl.innerHTML = '<strong style="color:#fff;">You\'re booked, ' + firstName + '.</strong><br><br><span style="color:#fff;font-size:13px;">We will call you within 2 hours.</span>';
     return;
   }
 
@@ -4971,18 +5006,18 @@ async function showSlotPicker(leadId, firstName, confirmEl, submitBtn) {
 
   let html = '<div style="margin-bottom:14px;">'
     + '<strong style="color:#fff;font-size:15px;">Pick a time for your call</strong>'
-    + '<p style="color:rgba(255,255,255,0.55);font-size:12px;margin:4px 0 0;font-family:\'DM Mono\',monospace;letter-spacing:.5px;">15 min · We call you</p>'
+    + '<p style="color:#fff;font-size:12px;margin:4px 0 0;font-family:\'DM Mono\',monospace;letter-spacing:.5px;">15 min · We call you</p>'
     + '</div>';
 
   dateKeys.forEach((date, di) => {
     html += '<div style="margin-bottom:12px;">'
-      + '<div style="font-family:\'DM Mono\',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.4);margin-bottom:6px;">' + date + '</div>'
+      + '<div style="font-family:\'DM Mono\',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#fff;margin-bottom:6px;">' + date + '</div>'
       + '<div style="display:flex;gap:8px;flex-wrap:wrap;">';
     byDate[date].forEach(slot => {
       const time = slot.label.split(' at ')[1] || slot.label;
       html += '<button onclick="bookSlot(\'' + leadId + '\',\'' + slot.value + '\',\'' + firstName + '\',this)" '
         + 'style="min-height:44px;padding:8px 16px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.15);'
-        + 'border-radius:8px;color:rgba(255,255,255,0.85);font-family:\'DM Mono\',monospace;font-size:12px;'
+        + 'border-radius:8px;color:#fff;font-family:\'DM Mono\',monospace;font-size:12px;'
         + 'cursor:pointer;transition:all .2s;touch-action:manipulation;"'
         + ' onmouseover="this.style.background=\'rgba(61,138,122,0.2)\';this.style.borderColor=\'rgba(61,138,122,0.5)\'"'
         + ' onmouseout="this.style.background=\'rgba(255,255,255,0.06)\';this.style.borderColor=\'rgba(255,255,255,0.15)\'">'
@@ -5028,7 +5063,7 @@ async function bookSlot(leadId, slotValue, firstName, btn) {
       + '<br><br><div style="background:rgba(61,138,122,0.15);border:1px solid rgba(61,138,122,0.3);border-radius:10px;padding:14px 16px;margin-top:4px;">'
       + '<div style="font-family:\'DM Mono\',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:rgba(61,138,122,0.8);margin-bottom:6px;">CONFIRMED</div>'
       + '<div style="color:#fff;font-size:14px;">' + slotLabel + '</div>'
-      + '<div style="color:rgba(255,255,255,0.5);font-size:12px;margin-top:4px;">We call you · check your email for confirmation</div>'
+      + '<div style="color:#fff;font-size:12px;margin-top:4px;">We call you · check your email for confirmation</div>'
       + '</div>';
   } catch(e) {
     try { btn.textContent = 'Error, try again'; btn.disabled = false; } catch(e2){}
