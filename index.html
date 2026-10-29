@@ -69,7 +69,7 @@
     "addressRegion": "ON",
     "addressCountry": "CA"
   },
-  "priceRange": "$800 to $5,000 per month",
+  "priceRange": "$60 per visit to $440 per day",
   "openingHours": "Mo-Su 00:00-23:59",
   "hasOfferCatalog": {
     "@type": "OfferCatalog",
@@ -2298,6 +2298,80 @@ a:focus-visible,button:focus-visible,.btn:focus-visible,.btn-primary:focus-visib
     margin-top:6px;
   }
   .pf-error.show{display:block;}
+
+  /* PCPKG1. The package builder, one centred column like every other section. The booking card is
+     navy, so the call slot picker (white text, drawn into #pf-confirm) reads on it. */
+  .builder-section .pk-steps{list-style:none;display:flex;flex-wrap:wrap;justify-content:center;gap:8px 22px;margin:0 0 36px;font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);}
+  .builder-section .pk-steps li{display:flex;align-items:center;gap:8px;}
+  .builder-section .pk-steps li::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--blue);}
+  .builder-section .pk-col{max-width:820px;margin:0 auto;display:flex;flex-direction:column;gap:20px;}
+  .builder-section .pk-card{background:var(--white);border:1px solid var(--border);border-radius:8px;padding:28px;text-align:center;display:flex;flex-direction:column;gap:18px;}
+  .builder-section .pk-step{font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--blue3);}
+  .builder-section .pk-h{font-family:var(--serif);font-weight:400;font-size:30px;line-height:1.15;color:var(--text);margin-top:-12px;}
+  .builder-section .pk-note{font-size:14px;line-height:1.5;color:var(--muted);}
+  .builder-section .pk-label{font-size:14px;font-weight:500;color:var(--text);}
+  .builder-section .pk-block{display:flex;flex-direction:column;gap:10px;}
+  .builder-section .pk-block[hidden],.builder-section .pk-stepper[hidden],.builder-section .pk-offer[hidden],.builder-section .pk-offer-line[hidden],.builder-section .pk-note[hidden],.builder-section .pk-offer-btn[hidden]{display:none;}
+  .builder-section .pk-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px;}
+  .builder-section .pk-opt{position:relative;display:flex;flex-direction:column;align-items:center;text-align:center;gap:8px;padding:22px 44px;background:var(--white);border:1.5px solid var(--border);border-radius:6px;color:var(--text);transition:border-color .15s,box-shadow .15s;}
+  .builder-section .pk-opt:hover{border-color:var(--blue2);}
+  .builder-section .pk-opt:focus-visible{outline:2px solid var(--blue);outline-offset:2px;}
+  .builder-section .pk-opt[aria-pressed="true"]{border-color:var(--blue);box-shadow:0 0 0 1px var(--blue),0 10px 30px rgba(61,122,138,.14);}
+  .builder-section .pk-tick{position:absolute;top:16px;right:16px;width:22px;height:22px;border-radius:50%;border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;color:var(--white);}
+  .builder-section .pk-opt[aria-pressed="true"] .pk-tick{background:var(--blue);border-color:var(--blue);}
+  .builder-section .pk-icon{display:flex;align-items:center;justify-content:center;width:52px;height:52px;border-radius:50%;background:#eef4f5;color:var(--blue);}
+  .builder-section .pk-opt[aria-pressed="true"] .pk-icon{background:var(--blue);color:var(--white);}
+  .builder-section .pk-kicker{font-size:11px;letter-spacing:2.5px;text-transform:uppercase;color:var(--blue3);}
+  .builder-section .pk-name{font-family:var(--serif);font-size:28px;font-weight:400;line-height:1.1;}
+  .builder-section .pk-opt-title{font-size:16px;font-weight:500;}
+  .builder-section .pk-desc{font-size:14px;line-height:1.5;color:var(--muted);}
+  .builder-section .pk-row{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;}
+  .builder-section .pk-chip{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;min-width:58px;padding:10px 16px;background:var(--white);border:1.5px solid var(--border);border-radius:999px;font-size:14px;color:var(--text);transition:border-color .15s,background .15s;}
+  .builder-section .pk-chip:hover{border-color:var(--blue2);}
+  .builder-section .pk-chip:focus-visible{outline:2px solid var(--blue);outline-offset:2px;}
+  .builder-section .pk-chip[aria-pressed="true"]{border-color:var(--blue);background:var(--blue);color:var(--white);}
+  .builder-section .pk-chip.pk-fixed,.builder-section .pk-chip.pk-fixed:hover{cursor:default;border-color:var(--blue);background:#eef4f5;color:var(--text);}
+  .builder-section .pk-seg{display:flex;gap:4px;padding:4px;background:var(--cream2);border-radius:6px;}
+  .builder-section .pk-segbtn{flex:1 1 0;display:flex;flex-direction:column;align-items:center;gap:2px;min-height:44px;padding:10px 14px;border-radius:4px;font-size:14px;color:var(--text);text-align:center;}
+  .builder-section .pk-segbtn:focus-visible{outline:2px solid var(--blue);outline-offset:2px;}
+  .builder-section .pk-segbtn[aria-pressed="true"]{background:var(--white);box-shadow:0 1px 4px rgba(19,24,28,.12);}
+  .builder-section .pk-strong{font-weight:500;}
+  .builder-section .pk-small{font-size:13px;color:var(--muted);}
+  .builder-section .pk-stepper{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:16px;padding:16px 18px;background:var(--cream2);border-radius:6px;}
+  .builder-section .pk-stepper-text{flex:1 1 100%;display:flex;flex-direction:column;gap:4px;font-size:15px;color:var(--text);}
+  .builder-section .pk-stepper-ctrl{display:flex;align-items:center;gap:14px;}
+  .builder-section .pk-round{width:44px;height:44px;display:inline-flex;align-items:center;justify-content:center;border:1.5px solid var(--border);border-radius:50%;background:var(--white);color:var(--text);}
+  .builder-section .pk-round:hover{border-color:var(--blue);}
+  .builder-section .pk-round:focus-visible{outline:2px solid var(--blue);outline-offset:2px;}
+  .builder-section .pk-st-val{min-width:64px;text-align:center;font-size:20px;font-weight:500;color:var(--text);}
+  .builder-section .pk-book{background:var(--navy);color:var(--white);border-radius:8px;padding:32px 28px;text-align:center;display:flex;flex-direction:column;gap:16px;}
+  .builder-section .pk-step-dark{color:var(--blue2);}
+  .builder-section .pk-book-h{font-family:var(--serif);font-size:30px;font-weight:300;color:var(--white);margin-top:-8px;}
+  .builder-section .pk-book-price{font-size:22px;font-weight:500;margin-top:-10px;}
+  .builder-section .pk-incl{list-style:none;align-self:center;text-align:left;display:flex;flex-direction:column;gap:6px;font-size:14px;line-height:1.5;color:rgba(255,255,255,.8);}
+  .builder-section .pk-incl li{display:flex;gap:10px;}
+  .builder-section .pk-incl li::before{content:"";flex:none;width:12px;height:7px;margin-top:6px;border-left:1.8px solid var(--blue2);border-bottom:1.8px solid var(--blue2);transform:rotate(-45deg);}
+  .builder-section .pk-offer-line{display:flex;justify-content:center;gap:12px;font-size:14px;color:var(--teal-light);}
+  .builder-section .pk-fine{font-size:12px;line-height:1.5;color:rgba(255,255,255,.66);}
+  .builder-section .pk-offer-btn{display:flex;align-items:center;justify-content:center;gap:10px;min-height:48px;padding:12px 18px;background:var(--blue);color:var(--white);font-size:13px;font-weight:600;letter-spacing:1px;border-radius:3px;}
+  .builder-section .pk-offer-btn:hover{background:var(--blue3);}
+  .builder-section .pk-offer-btn:focus-visible{outline:2px solid var(--teal-light);outline-offset:3px;}
+  .builder-section .pk-offer{display:flex;flex-direction:column;gap:12px;padding:18px;background:var(--blue);border-radius:6px;}
+  .builder-section .pk-offer-text{font-size:14px;line-height:1.5;color:var(--white);}
+  .builder-section .pk-offer-btns{display:flex;gap:10px;}
+  .builder-section .pk-ghost{flex:1;min-height:48px;padding:12px 18px;border:1.5px solid rgba(255,255,255,.55);color:var(--white);font-size:13px;font-weight:500;letter-spacing:1px;border-radius:3px;}
+  .builder-section .pk-ghost:hover{border-color:var(--white);}
+  .builder-section .pk-ghost:focus-visible{outline:2px solid var(--teal-light);outline-offset:3px;}
+  .builder-section .pk-ghost[aria-pressed="true"]{background:var(--white);color:var(--navy);border-color:var(--white);}
+  .builder-section .pk-book #plan-inline-form{width:100%;max-width:420px;margin:8px auto 0;text-align:left;}
+  .builder-section .pk-book #plan-inline-form input{min-height:48px;}
+  .builder-section .pk-book .plan-call{color:rgba(255,255,255,.8)!important;}
+  .builder-section .pk-book .plan-call:hover{color:var(--white)!important;}
+  @media (max-width:600px){
+    .builder-section .pk-card,.builder-section .pk-book{padding:24px 18px;}
+    .builder-section .pk-h{font-size:26px;}
+    .builder-section .pk-opt{padding:20px 40px;}
+  }
 </style>
 <script src="https://unpkg.com/lenis@1.1.14/dist/lenis.min.js"></script>
   <meta property="og:title" content="Proximity Care Services: In Home Senior Care in Mississauga and Brampton">
@@ -2329,7 +2403,7 @@ a:focus-visible,button:focus-visible,.btn:focus-visible,.btn-primary:focus-visib
       "@id": "https://proximitycares.ca/#webpage",
       "url": "https://proximitycares.ca/",
       "name": "Proximity Care Services: In-Home Senior Care in Mississauga & Brampton",
-      "description": "Same PSW every visit. Real home care for families in Mississauga, Brampton, and Caledon. First 6 hours free. Founded and run by a PSW. Book a free in-home assessment today.",
+      "description": "Same PSW every visit. Real home care for families in Mississauga, Brampton, and Caledon. First 6 hours free. Founded and run by a PSW. Book an in-home assessment today.",
       "isPartOf": {
         "@id": "https://proximitycares.ca/#website"
       },
@@ -2957,7 +3031,7 @@ a:focus-visible,button:focus-visible,.btn:focus-visible,.btn-primary:focus-visib
       "name": "How much does in home care cost?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Care is billed monthly based on hours. Essential is $800 to $1,600 a month for 4 to 20 hours a week. Standard is $1,600 to $3,000 for 20 to 40 hours. Full Time is $3,000 to $5,000 for 40 to 80 hours. Your first 6 hours are completely free, so you can see the care before you decide anything."
+        "text": "Care is priced by package. A Visit is $60 for 2 hours. A 6 Hour Day is $180, split into morning, noon and evening or as one respite visit between 7am and 10pm. Overnight care is $180 for any 6 hours between 10pm and 7am. A Full Day of 8 hours or more is $25 an hour. Live-in is $440 a day, and 12 to 24 hour care is quoted at your assessment. Extra hours are $25 each. The in-home assessment is $449 and includes your PSW match, training, a walkthrough and your first 6 hours of care free."
       }
     },
     {
@@ -2981,7 +3055,7 @@ a:focus-visible,button:focus-visible,.btn:focus-visible,.btn-primary:focus-visib
       "name": "How do we get started?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Build a care plan in under two minutes, or book a free assessment. We call you back within 2 hours to confirm a time, and your first 6 hours are free with no risk."
+        "text": "Build a care plan in under two minutes, or book an assessment. We call you back within 2 hours to confirm a time, and your first 6 hours of care are free."
       }
     },
     {
@@ -3028,7 +3102,7 @@ a:focus-visible,button:focus-visible,.btn:focus-visible,.btn-primary:focus-visib
     <li><a href="#about">About Us</a></li>
     <li><a href="careers.html">Join Our Team</a></li>
     <li><a href="tel:6473828047" class="nav-phone" aria-label="Call Proximity Care Services"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg><span>647 382 8047</span></a></li>
-      <li><a href="#builder" class="nav-cta">Book Free Assessment</a></li>
+      <li><a href="#builder" class="nav-cta">Book Assessment</a></li>
   </ul>
   <button class="hamburger" id="hamburger" aria-label="Menu"><span></span><span></span><span></span></button>
 </nav>
@@ -3038,7 +3112,7 @@ a:focus-visible,button:focus-visible,.btn:focus-visible,.btn-primary:focus-visib
   <a href="#how" onclick="closeMenu()">How It Works</a>
   <a href="#about" onclick="closeMenu()">About Us</a>
   <a href="careers.html" onclick="closeMenu()">Join Our Team</a>
-  <a href="#builder" onclick="closeMenu()">Book Free Assessment</a>
+  <a href="#builder" onclick="closeMenu()">Book Assessment</a>
 </div>
 
 <!-- HERO -->
@@ -3059,7 +3133,7 @@ a:focus-visible,button:focus-visible,.btn:focus-visible,.btn-primary:focus-visib
 <p class="hero-sub">Same PSW. Every visit. No agencies, no strangers, no guessing. We started this as PSWs ourselves. That is still how it runs.</p>
     <div class="hero-btns">
       <a href="#builder" class="btn-primary">Build Your Care Plan</a>
-      <a href="#builder" class="btn-outline">Book Free Assessment</a>
+      <a href="#builder" class="btn-outline">Book Assessment</a>
     </div>
     <div class="hero-trust">
       <div class="trust-item"><span class="trust-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="var(--blue2)"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></span>100% five-star reviews</div>
@@ -3070,7 +3144,7 @@ a:focus-visible,button:focus-visible,.btn:focus-visible,.btn-primary:focus-visib
     <div class="hero-mobile-stats">
       <div class="hms-item"><span class="hms-val">100%</span><span class="hms-lbl">5-Star Reviews</span></div>
       <div class="hms-div"></div>
-      <div class="hms-item"><span class="hms-val">6hrs</span><span class="hms-lbl">Free to Start</span></div>
+      <div class="hms-item"><span class="hms-val">6hrs</span><span class="hms-lbl">Free with Assessment</span></div>
       <div class="hms-div"></div>
       <div class="hms-item"><span class="hms-val">Same</span><span class="hms-lbl">PSW Every Visit</span></div>
       <div class="hms-div"></div>
@@ -3111,161 +3185,102 @@ a:focus-visible,button:focus-visible,.btn:focus-visible,.btn-primary:focus-visib
 </section>
 
 <!-- CARE BUILDER -->
+<!-- PCPKG1. Packages replace the hours slider. Prices are Lance's rate card, set 2026 10 28 and 29:
+     Visit 2 hours, 6 Hour Day split or respite, Overnight 6 hours, Full Day 8 hours or more at $25 an
+     hour, 12 to 24 Hour Care quoted at assessment, Live-in. Extra hours $25 each. The assessment is
+     $449 and includes the first 6 hours of care. The booking form ids, checks and webhook are the
+     ones that were here before. -->
 <section class="builder-section" id="builder">
   <div class="builder-inner">
     <div class="builder-eyebrow reveal"><div class="ey-line"></div><span class="ey-tag" style="color:var(--blue2)">Interactive Care Builder</span></div>
     <h2 class="builder-title reveal">Build your parent's <br><em>care plan in minutes.</em></h2>
-    <p class="builder-sub reveal">Tell us what your loved one needs. We'll show you exactly what to expect, hours, services, and estimated cost, before you ever speak to anyone.</p>
-    <div class="builder-progress"><div class="builder-progress-fill" id="builder-progress-fill"></div></div>
-    <div class="builder-grid">
-      <div class="builder-steps">
-        <!-- STEP 1 -->
-        <div class="step active" id="step1">
-          <button class="step-header" onclick="toggleStep(1)" type="button" aria-expanded="true">
-            <div class="step-num">1</div>
-            <span class="step-title">What kind of care does your loved one need?</span>
-            <span class="step-check">✓</span>
-          </button>
-          <div class="step-body">
-            <div class="care-types">
-              <button class="care-type selected" onclick="selectCare(this,'Daily Living Support')" type="button" aria-pressed="true">
-                <div class="care-type-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--blue2)" stroke-width="1.5"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg></div>
-                <span class="care-type-name">Daily Living Support</span>
-                <span class="care-type-desc">Meals, hygiene, companionship, medication reminders</span>
-              </button>
-              <button class="care-type" onclick="selectCare(this,'Dementia & Memory Care')" type="button" aria-pressed="false">
-                <div class="care-type-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--blue2)" stroke-width="1.5"><path d="M9.5 2a4.5 4.5 0 0 1 4.5 4.5v1a4.5 4.5 0 0 1-9 0v-1A4.5 4.5 0 0 1 9.5 2z"/><path d="M14 6.5a4 4 0 0 1 4 4v.5a4 4 0 0 1-4 4"/><path d="M5.5 14c-1.5.5-3 2-3 4v1h14v-1c0-2-1.5-3.5-3-4"/></svg></div>
-                <span class="care-type-name">Dementia &amp; Memory Care</span>
-                <span class="care-type-desc">Specialized routines for cognitive conditions</span>
-              </button>
-              <button class="care-type" onclick="selectCare(this,'Post-Hospital Recovery')" type="button" aria-pressed="false">
-                <div class="care-type-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--blue2)" stroke-width="1.5"><rect x="3" y="2" width="18" height="20" rx="2"/><path d="M12 6v4M10 8h4"/><path d="M7 14h10M7 18h6"/></svg></div>
-                <span class="care-type-name">Post-Hospital Recovery</span>
-                <span class="care-type-desc">Support after surgery or hospital discharge</span>
-              </button>
-              <button class="care-type" onclick="selectCare(this,'Overnight & Intensive Care')" type="button" aria-pressed="false">
-                <div class="care-type-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--blue2)" stroke-width="1.5"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></div>
-                <span class="care-type-name">Overnight &amp; Intensive</span>
-                <span class="care-type-desc">Round-the-clock support and monitoring</span>
-              </button>
-            </div>
-            <button class="step-next" onclick="nextStep(2)">Continue →</button>
+    <p class="builder-sub reveal">Tell us what your loved one needs, pick a package and the days, and book your in-home assessment.</p>
+    <ol class="pk-steps" aria-label="Steps"><li>Care</li><li>Package</li><li>Schedule</li><li>Services</li><li>Book</li></ol>
+    <div class="pk-col">
+      <section class="pk-card" aria-labelledby="pk-s1">
+        <div class="pk-step">Step 1</div>
+        <h3 class="pk-h" id="pk-s1">What kind of care does your loved one need?</h3>
+        <div class="pk-grid" id="pk-care"></div>
+      </section>
+      <section class="pk-card" aria-labelledby="pk-s2">
+        <div class="pk-step">Step 2</div>
+        <h3 class="pk-h" id="pk-s2">Choose a package</h3>
+        <p class="pk-note">Extra hours on any package are $25 an hour.</p>
+        <div class="pk-grid" id="pk-packages"></div>
+      </section>
+      <section class="pk-card" aria-labelledby="pk-s3">
+        <div class="pk-step">Step 3</div>
+        <h3 class="pk-h" id="pk-s3">Set the schedule</h3>
+        <p class="pk-note" id="pk-pick-first">Choose a package first.</p>
+        <div class="pk-block" id="pk-six" hidden>
+          <div class="pk-label">How should the 6 hours run?</div>
+          <div class="pk-seg" role="group" aria-label="How the 6 hours run">
+            <button type="button" class="pk-segbtn" data-six="split" aria-pressed="true"><span class="pk-strong">Split across the day</span><span class="pk-small">2 hours morning, noon and evening</span></button>
+            <button type="button" class="pk-segbtn" data-six="respite" aria-pressed="false"><span class="pk-strong">One respite visit</span><span class="pk-small">6 hours together</span></button>
           </div>
         </div>
-        <!-- STEP 2 -->
-        <div class="step" id="step2">
-          <button class="step-header" onclick="toggleStep(2)" type="button" aria-expanded="false">
-            <div class="step-num">2</div>
-            <span class="step-title">How many hours per week?</span>
-            <span class="step-check">✓</span>
-          </button>
-          <div class="step-body">
-            <div class="hours-wrap">
-              <div class="hours-display"><span class="hours-val" id="hours-display">20</span><span class="hours-unit">hrs / week</span></div>
-              <div class="care-tier-display" id="care-tier-display">
-                <div class="care-tier-name" id="care-tier-name">Standard Care</div>
-                <div class="care-tier-desc" id="care-tier-desc">Daily support and routines, a few visits per week</div>
-              </div>
-              <input type="range" min="4" max="80" value="20" step="2" id="hours-slider" oninput="updateHours(this.value)">
-              <div class="hours-markers"><span>4hrs</span><span>20hrs</span><span>40hrs</span><span>60hrs</span><span>80hrs</span></div>
-              <div class="plan-compare" id="plan-compare">
-                <div class="pc-card" id="pc-essential"><div class="pc-label">Essential</div><div class="pc-hrs">4-20 hrs/week</div><div class="pc-price">~$800-$1,600<span>/mo</span></div><div class="pc-feat">Personal hygiene</div><div class="pc-feat">Meal prep</div><div class="pc-feat">Medication reminders</div><div class="pc-feat">Companionship</div></div>
-                <div class="pc-card active" id="pc-standard"><div class="pc-label">Standard</div><div class="pc-hrs">20-40 hrs/week</div><div class="pc-price">~$1,600-$3,000<span>/mo</span></div><div class="pc-feat">Everything in Essential</div><div class="pc-feat">Daily routines</div><div class="pc-feat">Appointment accompany</div><div class="pc-feat">Weekly family updates</div></div>
-                <div class="pc-card" id="pc-fulltime"><div class="pc-label">Full-Time</div><div class="pc-hrs">40-80 hrs/week</div><div class="pc-price">~$3,000-$5,000<span>/mo</span></div><div class="pc-feat">Everything in Standard</div><div class="pc-feat">Dementia support</div><div class="pc-feat">Overnight care</div><div class="pc-feat">Priority 24/7</div></div>
-              </div>
-            </div>
-            <button class="step-next" onclick="nextStep(3)">Continue →</button>
+        <div class="pk-block" id="pk-windows-wrap" hidden>
+          <div class="pk-label" id="pk-win-title"></div>
+          <p class="pk-note" id="pk-win-hint"></p>
+          <div class="pk-row" id="pk-windows"></div>
+        </div>
+        <div class="pk-block" id="pk-rc-wrap" hidden>
+          <div class="pk-label">How many hours a day?</div>
+          <div class="pk-row" id="pk-rc"></div>
+          <p class="pk-note">1 to 2 PSWs on a rotation, so your parent always has a rested caregiver.</p>
+        </div>
+        <div class="pk-block" id="pk-days-wrap" hidden>
+          <div class="pk-label" id="pk-days-title">Which days each week?</div>
+          <div class="pk-row" id="pk-days"></div>
+        </div>
+        <div class="pk-stepper" id="pk-stepper" hidden>
+          <div class="pk-stepper-text"><span class="pk-strong" id="pk-st-title"></span><span class="pk-small" id="pk-st-note"></span></div>
+          <div class="pk-stepper-ctrl">
+            <button type="button" class="pk-round" id="pk-minus" aria-label="One hour less"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button>
+            <span class="pk-st-val" id="pk-st-val" aria-live="polite"></span>
+            <button type="button" class="pk-round" id="pk-plus" aria-label="One hour more"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h10M8 3v10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button>
           </div>
         </div>
-        <!-- STEP 3 -->
-        <div class="step" id="step3">
-          <button class="step-header" onclick="toggleStep(3)" type="button" aria-expanded="false">
-            <div class="step-num">3</div>
-            <span class="step-title">Which services do you want included?</span>
-            <span class="step-check">✓</span>
-          </button>
-          <div class="step-body">
-            <div class="services-grid-build" id="services-list">
-              <button class="service-toggle active" onclick="toggleService(this,'Personal Hygiene & Grooming')" type="button" aria-pressed="true"><div class="service-toggle-left"><span class="service-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 7H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/><path d="M12 11v2M8 11v2M16 11v2"/></svg></span><span class="service-name">Personal Hygiene &amp; Grooming</span></div><div class="toggle-switch"><div class="toggle-knob"></div></div></button>
-              <button class="service-toggle active" onclick="toggleService(this,'Meal Preparation')" type="button" aria-pressed="true"><div class="service-toggle-left"><span class="service-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3zm0 0v7"/></svg></span><span class="service-name">Meal Preparation</span></div><div class="toggle-switch"><div class="toggle-knob"></div></div></button>
-              <button class="service-toggle active" onclick="toggleService(this,'Medication Reminders')" type="button" aria-pressed="true"><div class="service-toggle-left"><span class="service-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg></span><span class="service-name">Medication Reminders</span></div><div class="toggle-switch"><div class="toggle-knob"></div></div></button>
-              <button class="service-toggle active" onclick="toggleService(this,'Companionship & Social Support')" type="button" aria-pressed="true"><div class="service-toggle-left"><span class="service-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span><span class="service-name">Companionship &amp; Social Support</span></div><div class="toggle-switch"><div class="toggle-knob"></div></div></button>
-              <button class="service-toggle" onclick="toggleService(this,'Mobility Assistance')" type="button" aria-pressed="false"><div class="service-toggle-left"><span class="service-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="4" r="2"/><path d="M19 13c0 4-3.13 7-7 7s-7-3-7-7c0-2.5 1.5-4.5 3-6l2-3h4l2 3c1.5 1.5 3 3.5 3 6z"/></svg></span><span class="service-name">Mobility Assistance</span></div><div class="toggle-switch"><div class="toggle-knob"></div></div></button>
-              <button class="service-toggle" onclick="toggleService(this,'Accompany to Appointments')" type="button" aria-pressed="false"><div class="service-toggle-left"><span class="service-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="M16 8h4l3 3v5h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg></span><span class="service-name">Accompany to Appointments</span></div><div class="toggle-switch"><div class="toggle-knob"></div></div></button>
-              <button class="service-toggle" onclick="toggleService(this,'Light Housekeeping')" type="button" aria-pressed="false"><div class="service-toggle-left"><span class="service-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></span><span class="service-name">Light Housekeeping</span></div><div class="toggle-switch"><div class="toggle-knob"></div></div></button>
-              <button class="service-toggle" onclick="toggleService(this,'Indoor Camera Setup')" type="button" aria-pressed="false"><div class="service-toggle-left"><span class="service-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg></span><span class="service-name">Indoor Camera Setup</span><span class="service-badge">Standard+</span></div><div class="toggle-switch"><div class="toggle-knob"></div></div></button>
-            </div>
-            <button class="step-next" onclick="nextStep(4)">See My Plan →</button>
+      </section>
+      <section class="pk-card" aria-labelledby="pk-s4">
+        <div class="pk-step">Step 4</div>
+        <h3 class="pk-h" id="pk-s4">Services, place and start</h3>
+        <div class="pk-block"><div class="pk-label">Services to include</div><div class="pk-row" id="pk-services"></div></div>
+        <div class="pk-block"><div class="pk-label">City</div><div class="pk-row" id="pk-cities"></div></div>
+        <div class="pk-block"><div class="pk-label">When should care start?</div><div class="pk-row" id="pk-timings"></div></div>
+      </section>
+      <section class="pk-book" aria-labelledby="pk-s5">
+        <div class="pk-step pk-step-dark">Step 5 · To start</div>
+        <h3 class="pk-book-h" id="pk-s5">In-home assessment</h3>
+        <div class="pk-book-price">$449</div>
+        <ul class="pk-incl">
+          <li>An assessment at home to build the care plan</li>
+          <li>A PSW matched to your parent's care plan</li>
+          <li>Training and a walkthrough with your PSW</li>
+          <li>Your first 6 hours of care free</li>
+        </ul>
+        <div class="pk-offer-line" id="pk-offer-line" hidden><span>2 free hours, one booked day</span><span id="pk-offer-saving"></span></div>
+        <p class="pk-fine">Nothing is charged online.</p>
+        <button type="button" class="pk-offer-btn" id="pk-offer-check"><svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><path d="M2.5 7.5h13v3h-13zM3.5 10.5h11V16h-11zM9 7.5V16M9 7.5C7.5 4 4.5 4 4.8 5.8 5 7 7 7.5 9 7.5zM9 7.5c1.5-3.5 4.5-3.5 4.2-1.7C13 7 11 7.5 9 7.5z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>Check if you're eligible for 2 free hours</button>
+        <div class="pk-offer" id="pk-offer" hidden>
+          <div class="pk-strong">Good news, you're eligible</div>
+          <p class="pk-offer-text">2 free hours of care, once, on any day you book. Worth <span id="pk-offer-value">$50</span>.</p>
+          <div class="pk-offer-btns" role="group" aria-label="Add the 2 free hours">
+            <button type="button" class="pk-ghost" data-offer="added" aria-pressed="false">Add to my plan</button>
+            <button type="button" class="pk-ghost" data-offer="declined" aria-pressed="false">No thanks</button>
           </div>
         </div>
-        <!-- STEP 4 -->
-        <div class="step" id="step4">
-          <button class="step-header" onclick="toggleStep(4)" type="button" aria-expanded="false">
-            <div class="step-num">4</div>
-            <span class="step-title">Where is your loved one located?</span>
-            <span class="step-check">✓</span>
-          </button>
-          <div class="step-body">
-            <div class="care-types care-types-city">
-              <button class="care-type" onclick="selectCity(this,'Mississauga')" type="button" aria-pressed="false"><div class="care-type-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--blue2)" stroke-width="1.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></div><span class="care-type-name">Mississauga</span></button>
-              <button class="care-type" onclick="selectCity(this,'Brampton')" type="button" aria-pressed="false"><div class="care-type-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--blue2)" stroke-width="1.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></div><span class="care-type-name">Brampton</span></button>
-              <button class="care-type" onclick="selectCity(this,'Caledon')" type="button" aria-pressed="false"><div class="care-type-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--blue2)" stroke-width="1.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></div><span class="care-type-name">Caledon</span></button>
-            </div>
-            <button class="step-next" onclick="nextStep(5)" type="button">Continue Free Assessment →</button>
-          </div>
+        <div id="plan-inline-form">
+          <div style="font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--blue2);font-family:var(--sans);margin-bottom:10px;font-weight:600">Your details, we call you within 2 hours</div>
+          <input type="text" id="pf-name" placeholder="Your name" aria-label="Your name" autocomplete="name" style="display:block;width:100%;box-sizing:border-box;padding:10px 12px;font-size:16px;font-family:inherit;margin-bottom:8px;border-radius:4px">
+          <input type="tel" id="pf-phone" placeholder="Phone number" aria-label="Phone number" autocomplete="tel" style="display:block;width:100%;box-sizing:border-box;padding:10px 12px;font-size:16px;font-family:inherit;margin-bottom:8px;border-radius:4px">
+          <input type="email" id="pf-email" placeholder="Email (optional)" aria-label="Email (optional)" autocomplete="email" style="display:block;width:100%;padding:10px 12px;font-size:16px;font-family:inherit;margin-bottom:12px;border-radius:4px">
+          <div class="pf-error" id="pf-error" role="alert" aria-live="polite"></div>
+          <button class="plan-cta" id="pf-submit" onclick="submitPlanForm()" style="margin-top:0;font-size:16px">Book My Assessment</button>
+          <a href="tel:6473828047" class="plan-call">Or call 647 382 8047</a>
+          <div id="pf-confirm" style="display:none;text-align:center;padding:14px;color:#6ab4c8;font-size:13px;line-height:1.6"></div>
         </div>
-          <div class="step" id="step5">
-            <!-- WHEN CARE STARTS. The one question the builder never asked,
-                 and the most important one for triage.
-                 urgency was being DERIVED from the hours slider:
-                   plan.hours >= 40 ? 'hot' : plan.hours >= 20 ? 'warm' : 'cold'
-                 So a family planning 40h/week for next month arrived as
-                 "hot, respond within 1 hour", and a family needing 8h
-                 tomorrow arrived as "cold". The email said respond within
-                 an hour because someone dragged a slider.
-                 Plain words, not hot/warm/cold: traced server.js and NOTHING
-                 branches on urgency. It appears in the email subject and one
-                 table row, with zero comparisons against those keywords. So
-                 the field can finally say what the family actually said. -->
-            <button class="step-header" onclick="toggleStep(5)" type="button" aria-expanded="false">
-              <div class="step-num">5</div>
-              <span class="step-title">When does care need to start?</span>
-              <span class="step-check">✓</span>
-            </button>
-            <div class="step-body">
-              <div class="care-types care-types-city">
-                <button class="care-type" onclick="selectTiming(this,'Within a week')" type="button" aria-pressed="false"><div class="care-type-name">Within a week</div><div class="care-type-desc">We can usually start in 48 hours</div></button>
-                <button class="care-type" onclick="selectTiming(this,'Within a month')" type="button" aria-pressed="false"><div class="care-type-name">Within a month</div><div class="care-type-desc">Time to meet your PSW first</div></button>
-                <button class="care-type" onclick="selectTiming(this,'Just planning ahead')" type="button" aria-pressed="false"><div class="care-type-name">Just planning ahead</div><div class="care-type-desc">No rush, we will keep it on file</div></button>
-              </div>
-              <button class="step-next" onclick="finalizePlan()" type="button">Book My Free Assessment →</button>
-            </div>
-          </div>
-      </div>
-      <!-- PLAN CARD -->
-      <div class="plan-card" id="planCard">
-        <div class="plan-card-label">Your Care Plan</div>
-        <div id="plan-summary"><div class="plan-empty">Complete the steps on the left to build your loved one's personalized care plan.</div></div>
-        <div id="plan-cta-wrap" style="display:none">
-          <div id="plan-inline-form" style="display:none;margin-bottom:12px">
-            <div style="font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--blue2);font-family:var(--sans);margin-bottom:10px;font-weight:600">Your details, we call you within 2 hours</div>
-            <input type="text" id="pf-name" placeholder="Your name" style="display:block;width:100%;box-sizing:border-box;padding:10px 12px;font-size:16px;font-family:inherit;margin-bottom:8px;border-radius:4px">
-            <input type="tel" id="pf-phone" placeholder="Phone number" style="display:block;width:100%;box-sizing:border-box;padding:10px 12px;font-size:16px;font-family:inherit;margin-bottom:8px;border-radius:4px">
-            <input type="email" id="pf-email" placeholder="Email (optional)" style="display:block;width:100%;padding:10px 12px;font-size:16px;font-family:inherit;margin-bottom:12px;border-radius:4px">
-            <div class="pf-error" id="pf-error" role="alert" aria-live="polite"></div>
-              <button class="plan-cta" id="pf-submit" onclick="submitPlanForm()" style="margin-top:0;font-size:16px">Book My Free Assessment</button>
-            <a href="tel:6473828047" class="plan-call">Or call 647 382 8047</a>
-            <div id="pf-confirm" style="display:none;text-align:center;padding:14px;color:#6ab4c8;font-size:13px;line-height:1.6"></div>
-          </div>
-          <button class="plan-cta" id="plan-cta-btn" onclick="showPlanForm()">Book Free In-Home Assessment</button>
-          <button class="plan-email-btn" onclick="emailPlan()">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
-            Email This Plan to Myself
-          </button>
-          <div class="plan-email-confirm" id="plan-email-confirm"></div>
-          <div class="plan-free">✓ First 6 hours completely free · No obligation · No contracts</div>
-        </div>
-      </div>
+      </section>
     </div>
   </div>
 </section>
@@ -3392,7 +3407,7 @@ a:focus-visible,button:focus-visible,.btn:focus-visible,.btn-primary:focus-visib
         <p>"When my dad was in the hospital, Lance was the only PSW who stayed in touch to see how he was doing."</p>
         <cite> Harbinger Bhangu, verified client</cite>
       </div>
-      <a href="#builder" class="btn-primary reveal" style="display:inline-block">Book a Free Assessment</a>
+      <a href="#builder" class="btn-primary reveal" style="display:inline-block">Book an Assessment</a>
     </div>
     <div class="about-img-wrap reveal">
       <div class="about-img-frame">
@@ -3403,7 +3418,7 @@ a:focus-visible,button:focus-visible,.btn:focus-visible,.btn-primary:focus-visib
         </div>
         <div class="about-stats">
           <div class="about-stat"><div class="about-stat-val">100%</div><div class="about-stat-lbl">5-star reviews</div></div>
-          <div class="about-stat"><div class="about-stat-val">6hrs</div><div class="about-stat-lbl">Free to start</div></div>
+          <div class="about-stat"><div class="about-stat-val">6hrs</div><div class="about-stat-lbl">Free with assessment</div></div>
           <div class="about-stat"><div class="about-stat-val">Same</div><div class="about-stat-lbl">PSW every visit</div></div>
           <div class="about-stat"><div class="about-stat-val">24/7</div><div class="about-stat-lbl">Direct access</div></div>
         </div>
@@ -3413,7 +3428,7 @@ a:focus-visible,button:focus-visible,.btn:focus-visible,.btn-primary:focus-visib
     <!-- Mobile-only stats strip, shown below 900px when frame is hidden -->
     <div class="about-mobile-stats">
       <div class="about-stat"><div class="about-stat-val">100%</div><div class="about-stat-lbl">5-star reviews</div></div>
-      <div class="about-stat"><div class="about-stat-val">6hrs</div><div class="about-stat-lbl">Free to start</div></div>
+      <div class="about-stat"><div class="about-stat-val">6hrs</div><div class="about-stat-lbl">Free with assessment</div></div>
       <div class="about-stat"><div class="about-stat-val">Same</div><div class="about-stat-lbl">PSW every visit</div></div>
       <div class="about-stat"><div class="about-stat-val">24/7</div><div class="about-stat-lbl">Direct access</div></div>
     </div>
@@ -3431,7 +3446,7 @@ a:focus-visible,button:focus-visible,.btn:focus-visible,.btn-primary:focus-visib
     <div class="faq-list reveal">
       <div class="faq-item">
         <div class="faq-q">How much does in home care cost?<span class="faq-icon"></span></div>
-        <div class="faq-a"><div class="faq-a-inner">Care is billed monthly based on hours. <strong>Essential</strong> is $800 to $1,600 a month for 4 to 20 hours a week. <strong>Standard</strong> is $1,600 to $3,000 for 20 to 40 hours. <strong>Full Time</strong> is $3,000 to $5,000 for 40 to 80 hours. Your first 6 hours are completely free, so you can see the care before you decide anything.</div></div>
+        <div class="faq-a"><div class="faq-a-inner">Care is priced by package. A Visit is $60 for 2 hours. A 6 Hour Day is $180, split into morning, noon and evening or as one respite visit between 7am and 10pm. Overnight care is $180 for any 6 hours between 10pm and 7am. A Full Day of 8 hours or more is $25 an hour. Live-in is $440 a day, and 12 to 24 hour care is quoted at your assessment. Extra hours are $25 each. The in-home assessment is $449 and includes your PSW match, training, a walkthrough and your first 6 hours of care free.</div></div>
       </div>
       <div class="faq-item">
         <div class="faq-q">Which areas do you serve?<span class="faq-icon"></span></div>
@@ -3443,7 +3458,7 @@ a:focus-visible,button:focus-visible,.btn:focus-visible,.btn-primary:focus-visib
       </div>
       <div class="faq-item">
         <div class="faq-q">How do we get started?<span class="faq-icon"></span></div>
-        <div class="faq-a"><div class="faq-a-inner">Build a care plan above in under two minutes, or book a free assessment. We call you back <strong>within 2 hours</strong> to confirm a time, and your first 6 hours are free with no risk.</div></div>
+        <div class="faq-a"><div class="faq-a-inner">Build a care plan above in under two minutes, or book an assessment. We call you back <strong>within 2 hours</strong> to confirm a time, and your first 6 hours of care are free.</div></div>
       </div>
       <div class="faq-item">
         <div class="faq-q">Who actually runs Proximity Care?<span class="faq-icon"></span></div>
@@ -3456,13 +3471,13 @@ a:focus-visible,button:focus-visible,.btn:focus-visible,.btn-primary:focus-visib
 <!-- CTA -->
 <section class="cta-section">
   <div class="cta-inner">
-    <div class="section-eyebrow reveal" style="justify-content:center"><div class="ey-line"></div><span class="ey-tag">Book a Free Assessment</span></div>
+    <div class="section-eyebrow reveal" style="justify-content:center"><div class="ey-line"></div><span class="ey-tag">Book an Assessment</span></div>
     <h2 class="cta-title reveal">Still running your family on group chats<br>and <em>hoping for the best?</em></h2>
-    <p class="cta-sub reveal">Book a free in-home assessment. We come to you, meet your loved one, and build a real care plan. First 6&nbsp;hours are free, no risk, no commitment.</p>
-    <div class="reveal"><a href="#builder" class="btn-primary" style="font-size:13px;padding:18px 48px">Book a Free Assessment</a></div>
+    <p class="cta-sub reveal">Book an in-home assessment. We come to you, meet your loved one, build a real care plan and match the right PSW. Your first 6&nbsp;hours of care are free.</p>
+    <div class="reveal"><a href="#builder" class="btn-primary" style="font-size:13px;padding:18px 48px">Book an Assessment</a></div>
     <picture class="cta-photo reveal"><source type="image/webp" srcset="img/home/care-visit-800-2ba94261.webp 800w, img/home/care-visit-1600-6c721929.webp 1600w" sizes="(max-width: 900px) 100vw, 840px"><img src="img/home/care-visit-800-4cfc47b4.jpg" srcset="img/home/care-visit-800-4cfc47b4.jpg 800w, img/home/care-visit-1600-8606a48b.jpg 1600w" sizes="(max-width: 900px) 100vw, 840px" width="800" height="450" alt="An older person's hand held gently in another's" loading="lazy" decoding="async"></picture>
     <div class="cta-badges reveal">
-      <div class="cta-badge"><div class="cta-badge-icon">✓</div><span class="cta-badge-label">First 6 Hours Free</span><span class="cta-badge-sub">No obligation, no commitment</span></div>
+      <div class="cta-badge"><div class="cta-badge-icon">✓</div><span class="cta-badge-label">First 6 Hours Free</span></div>
       <div class="cta-badge"><div class="cta-badge-icon">✓</div><span class="cta-badge-label">No Contracts</span><span class="cta-badge-sub">Month to month, cancel anytime</span></div>
       <div class="cta-badge"><div class="cta-badge-icon">✓</div><span class="cta-badge-label">2-Hour Callback</span><span class="cta-badge-sub">We respond fast, every time</span></div>
       <div class="cta-badge"><div class="cta-badge-icon">✓</div><span class="cta-badge-label">Same PSW Every Visit</span><span class="cta-badge-sub">No strangers, no surprises</span></div>
@@ -3826,7 +3841,7 @@ a:focus-visible,button:focus-visible,.btn:focus-visible,.btn-primary:focus-visib
 
 <!-- STICKY MOBILE CTA, hidden on desktop -->
 <div id="mobile-sticky-cta">
-  <a href="#builder" id="mobile-sticky-btn">Book Free Assessment</a>
+  <a href="#builder" id="mobile-sticky-btn">Book Assessment</a>
 </div>
 
 <script>
@@ -3974,141 +3989,151 @@ if(howSec)howObs.observe(howSec);
 })();
 
 /* ── CARE BUILDER ── */
-const plan={careType:'Daily Living Support',hours:20,services:['Personal Hygiene & Grooming','Meal Preparation','Medication Reminders','Companionship & Social Support'],city:'',timing:''};
+// PCPKG1. Packages from Lance's rate card. `plan` keeps the four fields the lead webhook reads
+// (careType, services, city, timing); `pk` holds the package choices that go into the lead's notes.
+const plan={careType:'Daily Living Support',services:['Personal Hygiene & Grooming','Meal Preparation','Medication Reminders','Companionship & Social Support'],city:'',timing:''};
+const pk={pkg:'',sixMode:'split',win:'',dayStart:7,nightStart:22,days:[false,false,false,false,false,false,false],extra:0,fullHours:8,rc:0,offer:''};
+const PK_CARE=[
+  ['Daily Living Support','Meals, hygiene, companionship, medication reminders'],
+  ['Dementia & Memory Care','Specialized routines for cognitive conditions'],
+  ['Post-Hospital Recovery','Support after surgery or hospital discharge'],
+  ['Overnight & Intensive Care','Overnight and around the clock support']
+];
+const PK_PACKAGES=[
+  ['visit','A few hours','Visit','One 2 hour visit in the morning, at noon or in the evening.'],
+  ['six','Most of the day','6 Hour Day','Split into morning, noon and evening, or one 6 hour respite visit.'],
+  ['night','Through the night','Overnight','Any 6 hours between 10pm and 7am.'],
+  ['full','A full shift','Full Day','8 hours or more in one day.'],
+  ['rc','Round the clock','12 to 24 Hour Care','12 or 24 hours a day with 1 to 2 PSWs rotating.'],
+  ['livein','Lives in','Live-in','Your caregiver stays in the home, day and night.']
+];
+// Line icons for the package cards, drawn in the site's blue, 24px, stroke only.
+const PK_ICONS={
+  visit:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  six:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
+  night:'<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>',
+  full:'<rect x="3" y="4" width="18" height="17" rx="2"/><path d="M8 2v4M16 2v4M3 10h18"/>',
+  rc:'<path d="M21 12a9 9 0 0 1-15.5 6.2M3 12a9 9 0 0 1 15.5-6.2"/><path d="M18.5 2v4h-4M5.5 22v-4h4"/>',
+  livein:'<path d="M3 10.5 12 3l9 7.5"/><path d="M5 9v11h14V9"/><path d="M10 20v-6h4v6"/>'
+};
+function pkIcon(k){return '<span class="pk-icon" aria-hidden="true"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">'+PK_ICONS[k]+'</svg></span>';}
+const PK_WINDOWS=[['am','Morning','7am to 10am'],['noon','Noon','12pm to 3pm'],['eve','Evening','6pm to 9pm']];
+const PK_DAYS=[['Mon','Monday'],['Tue','Tuesday'],['Wed','Wednesday'],['Thu','Thursday'],['Fri','Friday'],['Sat','Saturday'],['Sun','Sunday']];
+const PK_SERVICES=['Personal Hygiene & Grooming','Meal Preparation','Medication Reminders','Companionship & Social Support','Mobility Assistance','Accompany to Appointments','Light Housekeeping','Indoor Camera Setup'];
+const PK_CITIES=['Mississauga','Brampton','Caledon','Etobicoke'];
+const PK_TIMINGS=['Within a week','Within a month','Just planning ahead'];
+const PK_TICK='<span class="pk-tick" aria-hidden="true"><svg width="12" height="12" viewBox="0 0 12 12"><path d="M2.5 6.2l2.3 2.3 4.7-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>';
 
-function selectCare(el,type){
-  // SCOPED to step 1. This queried '.care-type' globally, but the CITY
-  // buttons in step 4 use the same class, so picking a care type cleared
-  // the city's selected state while plan.city kept its value: the summary
-  // showed a city that looked unselected.
-  document.querySelectorAll('#step1 .care-type').forEach(c=>{
-    c.classList.remove('selected');
-    c.setAttribute('aria-pressed','false');
-  });
-  el.classList.add('selected');
-  el.setAttribute('aria-pressed','true');
-  plan.careType=type;updatePlanCard();
+function pkEsc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function pkHour(h){h=((h%24)+24)%24;var x=h%12===0?12:h%12;return x+(h<12?'am':'pm');}
+// Respite runs any 6 hours from 7am to 10pm, Overnight any 6 hours from 10pm to 7am. Extra hours
+// make the visit longer, so the latest start moves earlier.
+function pkStarts(){
+  var len=6+pk.extra, first=0, last=-1;
+  if(pk.pkg==='six'&&pk.sixMode==='respite'){first=7;last=22-len;}
+  if(pk.pkg==='night'){first=22;last=31-len;}
+  var out=[];for(var h=first;h<=last;h++)out.push(h);
+  return {len:len,list:out};
 }
-function updateHours(val){
-  plan.hours=parseInt(val);
-  document.getElementById('hours-display').textContent=val;
-  let name,desc,monthly,active;
-  if(val<=20){name='Essential Support';desc='A few visits per week, light daily assistance';monthly=800+Math.round(((val-4)/16)*(1600-800));active='pc-essential';}
-  else if(val<=40){name='Standard Care';desc='Daily support and routines, consistent visits';monthly=1600+Math.round(((val-20)/20)*(3000-1600));active='pc-standard';}
-  else{name='Full-Time Care';desc='Intensive daily support, around-the-clock care';monthly=3000+Math.round(((val-40)/40)*(5000-3000));active='pc-fulltime';}
-  document.getElementById('care-tier-name').textContent=name;
-  document.getElementById('care-tier-desc').textContent=desc;
-  ['pc-essential','pc-standard','pc-fulltime'].forEach(id=>document.getElementById(id).classList.toggle('active',id===active));
-  plan.monthly=monthly;updatePlanCard();
+function pkStart(){
+  var s=pkStarts(); if(!s.list.length) return null;
+  var want=pk.pkg==='night'?pk.nightStart:pk.dayStart;
+  return Math.min(Math.max(want,s.list[0]),s.list[s.list.length-1]);
 }
-function toggleService(el,name){
-  el.classList.toggle('active');
-  var on=el.classList.contains('active');
-  // A screen reader cannot see a CSS class. aria-pressed is the only way
-  // the on/off state of these eight toggles gets announced at all.
-  el.setAttribute('aria-pressed',on?'true':'false');
-  if(on){if(!plan.services.includes(name))plan.services.push(name);}
-  else{plan.services=plan.services.filter(s=>s!==name);}
-  updatePlanCard();
-}
-function selectTiming(el,when){
-  // Scoped to step 5, for the same reason selectCare had to be: a global
-  // '.care-type' query would also clear the care types and the cities.
-  document.querySelectorAll('#step5 .care-type').forEach(c=>{
-    c.classList.remove('selected');
-    c.setAttribute('aria-pressed','false');
-  });
-  el.classList.add('selected');
-  el.setAttribute('aria-pressed','true');
-  plan.timing=when;updatePlanCard();
-}
-function selectCity(el,city){
-  document.querySelectorAll('#step4 .care-type').forEach(c=>{
-    c.classList.remove('selected');
-    c.setAttribute('aria-pressed','false');
-  });
-  el.classList.add('selected');
-  el.setAttribute('aria-pressed','true');
-  plan.city=city;updatePlanCard();
-}
-function toggleStep(n){
-  var st=document.getElementById('step'+n);
-  if(!st)return;
-  st.classList.toggle('active');
-  // The header is a real button now, so its expanded state must be
-  // announced or a keyboard user cannot tell whether the step is open.
-  var hdr=st.querySelector('.step-header');
-  if(hdr)hdr.setAttribute('aria-expanded',st.classList.contains('active')?'true':'false');
-}
-function nextStep(n){
-  const prev=document.getElementById('step'+(n-1));
-  if(prev){prev.classList.remove('active');prev.classList.add('done');}
-  const next=document.getElementById('step'+n);
-  if(next){next.classList.add('active');next.scrollIntoView({behavior:'smooth',block:'nearest'});}
-  // 5 steps now, not 4. This was hardcoded (n-1)*25.
-  document.getElementById('builder-progress-fill').style.width=((n-1)*20)+'%';
-  updatePlanCard();
-}
-function finalizePlan(){
-  updatePlanCard(true);
-  document.getElementById('plan-cta-wrap').style.display='block';
-  // CTA shows inline form, no external navigation needed
-  document.getElementById('builder-progress-fill').style.width='100%';
-  const pc=document.getElementById('planCard');
-  if(pc){pc.classList.add('mobile-show');if(window.innerWidth<=900)pc.scrollIntoView({behavior:'smooth',block:'start'});}
-  // Builder complete, contact info captured on form submit, not here
-}
+function pkMaxExtra(){return pk.pkg==='visit'?1:3;}
+function pkOpt(attr,val,on,inner){return '<button type="button" class="pk-opt" '+attr+'="'+pkEsc(val)+'" aria-pressed="'+(on?'true':'false')+'">'+PK_TICK+inner+'</button>';}
+function pkChip(attr,val,on,inner,extraCls){return '<button type="button" class="pk-chip'+(extraCls||'')+'" '+attr+'="'+pkEsc(val)+'" aria-pressed="'+(on?'true':'false')+'">'+inner+'</button>';}
 
-function emailPlan(){
-  let monthly=plan.monthly||800;
-  if(!plan.monthly){
-    if(plan.hours<=20)monthly=800+Math.round(((plan.hours-4)/16)*(1600-800));
-    else if(plan.hours<=40)monthly=1600+Math.round(((plan.hours-20)/20)*(3000-1600));
-    else monthly=3000+Math.round(((plan.hours-40)/40)*(5000-3000));
+function pkRender(){
+  var $=function(id){return document.getElementById(id);};
+  if(!$('pk-care')) return;
+  $('pk-care').innerHTML=PK_CARE.map(function(c){return pkOpt('data-care',c[0],plan.careType===c[0],'<span class="pk-opt-title">'+pkEsc(c[0])+'</span><span class="pk-desc">'+pkEsc(c[1])+'</span>');}).join('');
+  $('pk-packages').innerHTML=PK_PACKAGES.map(function(p){return pkOpt('data-pkg',p[0],pk.pkg===p[0],pkIcon(p[0])+'<span class="pk-kicker">'+pkEsc(p[1])+'</span><span class="pk-name">'+pkEsc(p[2])+'</span><span class="pk-desc">'+pkEsc(p[3])+'</span>');}).join('');
+  var has=!!pk.pkg, six=pk.pkg==='six', split=six&&pk.sixMode==='split', respite=six&&pk.sixMode==='respite', night=pk.pkg==='night';
+  $('pk-pick-first').hidden=has;
+  $('pk-six').hidden=!six;
+  document.querySelectorAll('#pk-six .pk-segbtn').forEach(function(b){b.setAttribute('aria-pressed',b.getAttribute('data-six')===pk.sixMode?'true':'false');});
+  var showWin=pk.pkg==='visit'||six||night;
+  $('pk-windows-wrap').hidden=!showWin;
+  if(showWin){
+    var title='Pick a time window', hint='Your caregiver’s 2 hours sit anywhere inside the window.', html='';
+    if(split){title='Your three windows';hint='All three are included. Each 2 hour visit sits anywhere inside its window.';html=PK_WINDOWS.map(function(w){return '<span class="pk-chip pk-fixed"><span class="pk-strong">'+w[1]+'</span><span>'+w[2]+'</span></span>';}).join('');}
+    else if(respite||night){
+      title='Pick a start time';hint=respite?'One 6 hour visit any time between 7am and 10pm, so the family caregiver can rest.':'Any 6 hours between 10pm and 7am.';
+      var s=pkStarts(), st=pkStart();
+      html=s.list.map(function(h){return pkChip('data-start',h,h===st,'<span class="pk-strong">'+pkHour(h)+'</span><span>to '+pkHour(h+s.len)+'</span>');}).join('');
+    } else html=PK_WINDOWS.map(function(w){return pkChip('data-win',w[0],pk.win===w[0],'<span class="pk-strong">'+w[1]+'</span><span>'+w[2]+'</span>');}).join('');
+    $('pk-win-title').textContent=title; $('pk-win-hint').textContent=hint; $('pk-windows').innerHTML=html;
   }
-  const city=plan.city||'Peel Region';
-  const services=plan.services.length?plan.services.join(', '):'Not specified';
-  const subject=encodeURIComponent('My Proximity Care Plan, '+plan.careType);
-  const body=encodeURIComponent(
-    'Hi,\n\n'+
-    'Here is the care plan I built on the Proximity Care Services website:\n\n'+
-    'Care Type: '+plan.careType+'\n'+
-    'Hours: '+plan.hours+' hrs/week\n'+
-    'Location: '+city+'\n'+
-    'Services: '+services+'\n'+
-    'Estimated Monthly Cost: ~$'+monthly.toLocaleString()+'\n\n'+
-    'To book a free in-home assessment and get an exact quote, visit:\n'+
-    'https://proximitycares.ca/#builder\n\n'+
-    'Or call us directly at 647-382-8047.\n\n'+
-    ' Sent from proximitycares.ca'
-  );
-  window.location.href='mailto:?subject='+subject+'&body='+body;
-  // Show confirmation
-  const confirm=document.getElementById('plan-email-confirm');
-  if(confirm){confirm.textContent='✓ Email client opened';setTimeout(()=>{confirm.textContent='';},4000);}
-}
-function updatePlanCard(final=false){
-  let monthly=plan.monthly||800;
-  if(!plan.monthly){
-    if(plan.hours<=20)monthly=800+Math.round(((plan.hours-4)/16)*(1600-800));
-    else if(plan.hours<=40)monthly=1600+Math.round(((plan.hours-20)/20)*(3000-1600));
-    else monthly=3000+Math.round(((plan.hours-40)/40)*(5000-3000));
+  $('pk-rc-wrap').hidden=pk.pkg!=='rc';
+  $('pk-rc').innerHTML=[[12,'12 hours','half the day'],[24,'24 hours','around the clock']].map(function(o){return pkChip('data-rc',o[0],pk.rc===o[0],'<span class="pk-strong">'+o[1]+'</span><span>'+o[2]+'</span>');}).join('');
+  $('pk-days-wrap').hidden=!has;
+  $('pk-days-title').textContent=night?'Which nights each week?':'Which days each week?';
+  $('pk-days').innerHTML=PK_DAYS.map(function(d,i){return '<button type="button" class="pk-chip" data-day="'+i+'" aria-pressed="'+(pk.days[i]?'true':'false')+'" aria-label="'+d[1]+'">'+d[0]+'</button>';}).join('');
+  var stepper=pk.pkg==='visit'||six||night||pk.pkg==='full';
+  $('pk-stepper').hidden=!stepper;
+  if(stepper){
+    var full=pk.pkg==='full';
+    $('pk-st-title').textContent=full?'Hours each day':'Extra hours each day';
+    $('pk-st-note').textContent=full?'$25 an hour, from 8 hours.':'$25 for each extra hour.';
+    $('pk-st-val').textContent=full?pk.fullHours+' h':'+'+pk.extra+' h';
   }
-  const svcs=plan.services.map(s=>`<div class="plan-service-item">${s}</div>`).join('');
-  const city=plan.city?` · ${plan.city}`:'';
-  // The family should see what they answered before they submit.
-  const timing=plan.timing?` · ${plan.timing}`:'';
-  document.getElementById('plan-summary').innerHTML=`
-    <div class="plan-care-type">${plan.careType}</div>
-    <div class="plan-hours">${plan.hours} hrs/week${city}${timing}</div>
-    ${plan.services.length?`<div class="plan-divider"></div><div class="plan-services-lbl">Services Included</div>${svcs}`:''}
-    <div class="plan-price-wrap">
-      <div class="plan-price-lbl">Estimated Monthly</div>
-      <div class="plan-price-val">~$${monthly.toLocaleString()}</div>
-      <div class="plan-price-note">Based on ${plan.hours}hrs/week · Exact quote at assessment</div>
-    </div>`;
-  if(final)document.getElementById('plan-cta-wrap').style.display='block';
+  $('pk-services').innerHTML=PK_SERVICES.map(function(s){return pkChip('data-svc',s,plan.services.indexOf(s)>-1,pkEsc(s));}).join('');
+  $('pk-cities').innerHTML=PK_CITIES.map(function(c){return pkChip('data-city',c,plan.city===c,pkEsc(c));}).join('');
+  $('pk-timings').innerHTML=PK_TIMINGS.map(function(t){return pkChip('data-timing',t,plan.timing===t,pkEsc(t));}).join('');
+  var worth=pk.pkg==='livein'?44:50;
+  $('pk-offer-check').hidden=!!pk.offer;
+  $('pk-offer').hidden=!pk.offer;
+  $('pk-offer-value').textContent='$'+worth;
+  document.querySelectorAll('#pk-offer .pk-ghost').forEach(function(b){b.setAttribute('aria-pressed',b.getAttribute('data-offer')===pk.offer?'true':'false');});
+  $('pk-offer-line').hidden=pk.offer!=='added';
+  $('pk-offer-saving').textContent='$'+worth+' off';
 }
+// One summary line for the lead, in plain words, so Lance sees what the family picked.
+function pkSummary(){
+  var name={visit:'Visit',six:'6 Hour Day',night:'Overnight',full:'Full Day',rc:'12 to 24 Hour Care',livein:'Live-in'}[pk.pkg]||'not chosen';
+  var bits=['Package: '+name];
+  if(pk.pkg==='visit'){var w=PK_WINDOWS.filter(function(x){return x[0]===pk.win;})[0];bits.push('Window: '+(w?w[1]+' '+w[2]:'not chosen'));}
+  if(pk.pkg==='six'&&pk.sixMode==='split')bits.push('Split: morning, noon and evening');
+  if((pk.pkg==='six'&&pk.sixMode==='respite')||pk.pkg==='night'){var s=pkStarts(),st=pkStart();bits.push((pk.pkg==='night'?'Overnight':'Respite')+': '+(st===null?'not chosen':pkHour(st)+' to '+pkHour(st+s.len)));}
+  if(pk.pkg==='full')bits.push('Hours a day: '+pk.fullHours);
+  if(pk.pkg==='rc')bits.push('Hours a day: '+(pk.rc||'not chosen'));
+  if(pk.pkg==='visit'||pk.pkg==='six'||pk.pkg==='night')bits.push('Extra hours a day: '+pk.extra);
+  var d=PK_DAYS.filter(function(x,i){return pk.days[i];}).map(function(x){return x[0];});
+  bits.push((pk.pkg==='night'?'Nights':'Days')+': '+(d.length?d.join(' '):'not chosen'));
+  bits.push('2 free hours: '+({added:'added',declined:'declined',shown:'checked, no answer'}[pk.offer]||'not checked'));
+  return bits.join('. ')+'.';
+}
+(function pkInit(){
+  var root=document.getElementById('builder'); if(!root) return;
+  root.addEventListener('click',function(e){
+    var b=e.target.closest('button'); if(!b||!root.contains(b)) return;
+    var a=function(n){return b.getAttribute(n);};
+    if(a('data-care')!==null)plan.careType=a('data-care');
+    else if(a('data-pkg')!==null){if(pk.pkg!==a('data-pkg')){pk.pkg=a('data-pkg');pk.extra=0;}}
+    else if(a('data-six')!==null)pk.sixMode=a('data-six');
+    else if(a('data-win')!==null)pk.win=a('data-win');
+    else if(a('data-start')!==null){var h=parseInt(a('data-start'),10);if(pk.pkg==='night')pk.nightStart=h;else pk.dayStart=h;}
+    else if(a('data-rc')!==null)pk.rc=parseInt(a('data-rc'),10);
+    else if(a('data-day')!==null){var i=parseInt(a('data-day'),10);pk.days[i]=!pk.days[i];}
+    else if(a('data-svc')!==null){var s=a('data-svc');plan.services=plan.services.indexOf(s)>-1?plan.services.filter(function(x){return x!==s;}):plan.services.concat([s]);}
+    else if(a('data-city')!==null)plan.city=a('data-city');
+    else if(a('data-timing')!==null)plan.timing=a('data-timing');
+    else if(b.id==='pk-minus'){if(pk.pkg==='full')pk.fullHours=Math.max(8,pk.fullHours-1);else pk.extra=Math.max(0,pk.extra-1);}
+    else if(b.id==='pk-plus'){if(pk.pkg==='full')pk.fullHours=Math.min(16,pk.fullHours+1);else pk.extra=Math.min(pkMaxExtra(),pk.extra+1);}
+    else if(b.id==='pk-offer-check')pk.offer='shown';
+    else if(a('data-offer')!==null)pk.offer=a('data-offer');
+    else return;
+    var keep=b.id||null;
+    pkRender();
+    // A re-render replaces the clicked button; keep keyboard focus on its replacement.
+    var sel=keep?'#'+keep:null;
+    if(!sel){['data-care','data-pkg','data-six','data-win','data-start','data-rc','data-day','data-svc','data-city','data-timing','data-offer'].some(function(n){var v=b.getAttribute(n);if(v!==null){sel='['+n+'="'+v.replace(/"/g,'\\"')+'"]';return true;}return false;});}
+    var nb=sel&&root.querySelector(sel); if(nb&&document.activeElement!==nb&&!b.isConnected) nb.focus();
+    if(b.id==='pk-offer-check'){var f=root.querySelector('#pk-offer .pk-ghost');if(f)f.focus();}
+  });
+  pkRender();
+}());
 
 /* ── LIVE FEED ── */
 (function(){
@@ -4136,25 +4161,29 @@ function updatePlanCard(final=false){
    Phase 2: Inline booking form with calendar
 ════════════════════════════════════════ */
 
-var CHAT_SYSTEM = `You are the care intake assistant for Proximity Care Services, a premium in-home senior care agency run by a working PSW in Peel Region, Ontario. The founder is a working PSW who founded this agency because he saw how unreliable and impersonal other agencies were. He personally visits every new client's home for free before care begins.
+var CHAT_SYSTEM = `You are the care intake assistant for Proximity Care Services, a premium in-home senior care agency run by a working PSW in Peel Region, Ontario. The founder is a working PSW who founded this agency because he saw how unreliable and impersonal other agencies were. He personally visits every new client's home for an in-home assessment before care begins.
 
 WHAT MAKES PROXIMITY CARE DIFFERENT:
 - Same PSW every single visit, no rotating strangers
 - We personally match the caregiver to the client's personality
-- We visit every new client's home for free before care starts
+- We visit every new client's home for an in-home assessment before care starts
 - Families get updates after every visit
 - 100 percent five-star reviews from every family served
-- First 6 hours completely free, no contracts, no commitment
+- The first 6 hours of care are free with the $449 in-home assessment
 
 SERVICE AREA: Mississauga, Brampton, Caledon and Etobicoke, Ontario
 
 SERVICES: Personal hygiene and grooming, meal preparation, medication reminders, mobility assistance and fall prevention, companionship, accompany to medical appointments, light housekeeping, dementia and memory care, post-hospital recovery support, respite care, live in care, 24 hour care, overnight care.
 
-PRICING, always monthly never hourly:
-- Essential: $800 to $1,600 per month for 4 to 20 hours per week
-- Standard: $1,600 to $3,000 per month for 20 to 40 hours per week
-- Full-Time: $3,000 to $5,000 per month for 40 to 80 hours per week
-- First 6 hours completely free, no risk, no obligation, no contracts
+PRICING, by package:
+- Visit: $60 for 2 hours, in the morning (7am to 10am), noon (12pm to 3pm) or evening (6pm to 9pm) window
+- 6 Hour Day: $180, 2 hours each in the morning, noon and evening windows, or one 6 hour respite visit any time between 7am and 10pm
+- Overnight: $180 for any 6 hours between 10pm and 7am
+- Full Day: 8 hours or more in one day at $25 an hour
+- 12 to 24 Hour Care: 12 or 24 hours a day with 1 to 2 PSWs rotating, quoted at the assessment
+- Live-in: $440 a day
+- Extra hours on any package: $25 each
+- In-home assessment: $449, includes the PSW match, training, a walkthrough and the first 6 hours of care free
 
 TONE:
 - Warm and knowledgeable, like a trusted neighbor
@@ -4163,7 +4192,7 @@ TONE:
 - Never use bullet points, write conversationally
 - Never use em dashes or hyphens for emphasis, write in plain sentences
 - Never mention Calendly or any external booking tool
-- Always quote monthly pricing, never hourly
+- Quote package prices exactly as listed under PRICING
 - Phone: 647-382-8047. Email: healthcareproximity@gmail.com
 
 YOUR JOB IN THIS CHAT, READ CAREFULLY:
@@ -4294,7 +4323,7 @@ function buildBookingForm() {
   var selectedDate = null;
   var selectedTime = null;
 
-  card.innerHTML = '<div class="chat-booking-title">Book a Free Assessment</div>' +
+  card.innerHTML = '<div class="chat-booking-title">Book an Assessment</div>' +
     '<div class="chat-field"><label>Your Name</label><input type="text" id="bk-name" placeholder="Full name" autocomplete="name"></div>' +
     '<div class="chat-fields-row">' +
       '<div class="chat-field"><label>Phone</label><input type="tel" id="bk-phone" placeholder="647-000-0000" autocomplete="tel"></div>' +
@@ -4310,7 +4339,7 @@ function buildBookingForm() {
       '<button class="chat-time-btn" data-time="Evening 4-7">Evening<br>4pm-7pm</button>' +
     '</div>' +
     '<button class="chat-book-btn" id="bk-submit" disabled>Book My Assessment</button>' +
-    '<div class="chat-spots">Only 2 spots left this week, first 6 hours free</div>';
+    '<div class="chat-spots">First 6 hours of care free</div>';
 
   // Attach events after inserting
   setTimeout(function(){
@@ -4466,7 +4495,7 @@ async function submitBooking(selectedDate, selectedTime) {
   showChips(CHIP_SETS.post_book);
 
   // Switch to open Q&A mode, no more intake flow
-  chatConfig.system = 'You are the care assistant for Proximity Care Services, run by a working PSW in Peel Region, Ontario. This person has already booked their free assessment with us. Your job is to answer follow-up questions about services, pricing, what to expect, how caregivers are matched, what the first visit looks like, dementia care, overnight care, or anything else they ask. STRICT RULES: Keep every reply to 2-3 sentences maximum. Never use bullet points. Write conversationally like a trusted neighbor, not a brochure. End every reply naturally, never ask a follow-up question. Pricing: Essential $800-$1,600/month (4-20hrs/week), Standard $1,600-$3,000/month (20-40hrs/week), Full-Time $3,000-$5,000/month (40-80hrs/week). First 6 hours free. Same PSW every visit. Service area: Mississauga, Brampton, Caledon. Phone: 647-382-8047.';
+  chatConfig.system = 'You are the care assistant for Proximity Care Services, run by a working PSW in Peel Region, Ontario. This person has already booked their assessment with us. Your job is to answer follow-up questions about services, pricing, what to expect, how caregivers are matched, what the first visit looks like, dementia care, overnight care, or anything else they ask. STRICT RULES: Keep every reply to 2-3 sentences maximum. Never use bullet points. Write conversationally like a trusted neighbor, not a brochure. End every reply naturally, never ask a follow-up question. Pricing: a Visit is $60 for 2 hours, a 6 Hour Day is $180 (split across the day or one respite visit), Overnight is $180 for 6 hours between 10pm and 7am, a Full Day of 8 hours or more is $25 an hour, Live-in is $440 a day, 12 to 24 hour care is quoted at the assessment, and extra hours are $25 each. The in-home assessment is $449 and includes the first 6 hours of care free. Same PSW every visit. Service area: Mississauga, Brampton, Caledon and Etobicoke. Phone: 647-382-8047.';
 }
 
 /* ── UI HELPERS ── */
@@ -4818,13 +4847,6 @@ var pcBooked=false;
 }());
 
 
-function showPlanForm() {
-  document.getElementById('plan-cta-btn').style.display = 'none';
-  document.getElementById('plan-inline-form').style.display = 'block';
-  var nameEl = document.getElementById('pf-name');
-  if (nameEl) setTimeout(function(){ nameEl.focus(); }, 100);
-}
-
 async function submitPlanForm() {
   var name = (document.getElementById('pf-name').value || '').trim();
   var phone = (document.getElementById('pf-phone').value || '').trim();
@@ -4869,12 +4891,6 @@ async function submitPlanForm() {
   btn.textContent = 'Booking...';
 
   var nm = name.split(/\s+/);
-  var monthly = plan.monthly || 800;
-  if (!plan.monthly) {
-    if (plan.hours <= 20) monthly = 800 + Math.round(((plan.hours - 4) / 16) * (1600 - 800));
-    else if (plan.hours <= 40) monthly = 1600 + Math.round(((plan.hours - 20) / 20) * (3000 - 1600));
-    else monthly = 3000 + Math.round(((plan.hours - 40) / 40) * (5000 - 3000));
-  }
 
   // Hide form fields
   document.getElementById('pf-submit').style.display = 'none';
@@ -4902,7 +4918,7 @@ async function submitPlanForm() {
         care_needed_for: plan.services && plan.services.length ? plan.services.join(', ') : '',
         urgency: plan.timing || 'not specified',
         source: 'care_builder_cta',
-        notes: 'Built via care plan builder. Hours: ' + (plan.hours || 0) + '/wk. Est monthly: $' + monthly
+        notes: 'Built via care plan builder. ' + pkSummary()
       })
     });
     var d = await r.json();
@@ -4911,7 +4927,7 @@ async function submitPlanForm() {
     if (leadId) {
       await showSlotPicker(leadId, firstName, confirmEl, btn);
     } else {
-      confirmEl.innerHTML = '<strong style="color:#fff;font-size:15px">You are all set, ' + firstName + '.</strong><br><br>We will call you at ' + phone + ' within 2 hours. He does every first call personally.<br><br><span style="color:rgba(255,255,255,0.5);font-size:11px">First 6 hours are completely free. No obligation.</span>';
+      confirmEl.innerHTML = '<strong style="color:#fff;font-size:15px">You are all set, ' + firstName + '.</strong><br><br>We will call you at ' + phone + ' within 2 hours. He does every first call personally.<br><br><span style="color:rgba(255,255,255,0.5);font-size:11px">Your first 6 hours of care are free.</span>';
     }
   } catch(e) {
     confirmEl.innerHTML = '<strong style="color:#fff;font-size:15px">You are all set.</strong><br><br>We will call you at ' + phone + ' within 2 hours.';
