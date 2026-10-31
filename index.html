@@ -1232,6 +1232,12 @@ a:focus-visible,button:focus-visible,.btn:focus-visible,.btn-primary:focus-visib
   .steps-grid{grid-template-columns:1fr;}
   .steps-grid::before{display:none;}
   .how-step{margin-bottom:16px;}
+  /* PCHOW1. The icon box repeats what the photo shows and the faint corner number repeats the Step pill,
+     so both go below 901px. A wide photo and a tighter gap take How it works from 1,825 to about
+     1,500px on a 390px phone. */
+  .steps-grid{gap:16px;}
+  .how-step-icon,.how-step-num{display:none;}
+  .how-photo img{aspect-ratio:16/9;}
 
   /* Services */
   .services-list{grid-template-columns:1fr;column-gap:0;}
@@ -1282,6 +1288,17 @@ a:focus-visible,button:focus-visible,.btn:focus-visible,.btn-primary:focus-visib
   .care-types-city{grid-template-columns:repeat(3,1fr);}
 
   /* Services grid, remove gap background so no grey lines on mobile */
+}
+
+/* PCHOW1. Tablets, 601 to 900px: each step is its photo beside its text, the text centred as one block.
+   At 768px a step was 698px tall, 459px of it photo; side by side it is 260px. */
+@media(min-width:601px) and (max-width:900px){
+  .how-step{display:grid;grid-template-columns:minmax(0,40%) minmax(0,1fr);grid-template-rows:1fr auto auto auto 1fr;column-gap:24px;}
+  .how-photo{grid-column:1;grid-row:1 / -1;align-self:center;margin:0;}
+  .how-photo img{aspect-ratio:4/3;}
+  .how-step-pill{grid-column:2;grid-row:2;justify-self:start;}
+  .how-step-title{grid-column:2;grid-row:3;}
+  .how-step-desc{grid-column:2;grid-row:4;}
 }
 
 @media(max-width:768px){
