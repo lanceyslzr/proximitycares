@@ -1261,7 +1261,10 @@ a:focus-visible,button:focus-visible,.btn:focus-visible,.btn-primary:focus-visib
   .map-inner{grid-template-columns:1fr;gap:32px;}
 
   /* Footer */
-  .footer-top{grid-template-columns:1fr;gap:32px;}
+  /* PCFTR1. The brand and contact lines stay full width; Navigate and Areas We Serve sit side by side, each
+     link still a 44px tap target. One column under the other they made the footer 1,092px on a 390px phone. */
+  .footer-top{grid-template-columns:1fr 1fr;gap:24px 16px;}
+  .footer-top>div:first-child{grid-column:1 / -1;}
   .footer-bottom{flex-direction:column;gap:8px;align-items:flex-start;}
 
   /* Chat */
