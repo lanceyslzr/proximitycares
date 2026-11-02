@@ -1478,8 +1478,13 @@ a:focus-visible,button:focus-visible,.btn:focus-visible,.btn-primary:focus-visib
     white-space:nowrap!important;
   }
   #flow-demo-wrap > div:first-child{padding:0 12px!important;}
+  /* PCPWR1. A gap either side of the stage text, and the live badge never wraps. */
+  #stageLabel{margin:0 10px!important;}
+  #flow-demo-wrap .lp-live{white-space:nowrap;flex-shrink:0;}
 }
 @media(max-width:480px){
+  /* PCPWR1. Too narrow for the words: the pulsing dot alone says live. */
+  #flow-demo-wrap .lp-live{font-size:0!important;letter-spacing:0!important;}
   #flow-demo-wrap .lp-mob-active{width:180px!important;height:340px!important;}
   #flow-demo-wrap .lp-map-phone.lp-mob-active{width:180px!important;}
   /* 16px top offset + 380px phone + room. 370 clipped it by 26px. */
@@ -3593,7 +3598,7 @@ a:focus-visible,button:focus-visible,.btn:focus-visible,.btn-primary:focus-visib
         Proximity<span style="color:#6a9eaa;font-style:italic;font-family:'Cormorant Garamond',serif;font-size:15px;">Care</span>
       </div>
       <div id="stageLabel" style="font-family:'DM Mono',monospace;font-size:8px;letter-spacing:2.5px;text-transform:uppercase;color:rgba(90,173,160,.65);transition:opacity .3s;">Initializing...</div>
-      <div style="display:flex;align-items:center;gap:5px;font-family:'DM Mono',monospace;font-size:7.5px;letter-spacing:2px;text-transform:uppercase;color:#6a9eaa;">
+      <div class="lp-live" style="display:flex;align-items:center;gap:5px;font-family:'DM Mono',monospace;font-size:7.5px;letter-spacing:2px;text-transform:uppercase;color:#6a9eaa;">
         <div style="width:5px;height:5px;border-radius:50%;background:#3fb950;box-shadow:0 0 8px #3fb950;animation:lp-glow-g 2s infinite;"></div>Running Live
       </div>
       <div id="stageProgress" style="position:absolute;bottom:0;left:0;height:2px;background:linear-gradient(90deg,#6a9eaa,#3fb950);width:0%;transition:width .1s linear;"></div>
@@ -5150,9 +5155,10 @@ function setStep(n){
   for(var i=1;i<=5;i++){
     var el=document.getElementById('lpstep'+i);
     if(!el)continue;
-    if(i<n)el.className='lp-step done';
-    else if(i===n)el.className='lp-step active';
-    else el.className='lp-step';
+    // PCPWR1. Toggle the state classes rather than replace className, so lp-desktop-step stays and the
+    // named steps stay hidden at 700px and narrower once the demo starts.
+    el.classList.toggle('done',i<n);
+    el.classList.toggle('active',i===n);
   }
 }
 
