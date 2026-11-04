@@ -503,9 +503,6 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
 .about-title{font-family:var(--serif);font-size:clamp(28px,4vw,48px);font-weight:300;color:var(--white);line-height:1.1;margin-bottom:20px;}
 .about-title em{font-style:italic;color:var(--blue2);}
 .about-body{font-size:18px;line-height:1.9;color:rgba(255,255,255,.55);font-weight:300;margin-bottom:28px;}
-.about-quote{border-left:2px solid var(--blue);padding:16px 24px;margin-bottom:28px;}
-.about-quote p{font-family:var(--serif);font-size:18px;font-style:italic;color:rgba(255,255,255,.65);line-height:1.6;}
-.about-quote cite{font-size:11px;color:rgba(255,255,255,.3);letter-spacing:1px;text-transform:uppercase;margin-top:8px;display:block;}
 .about-img-wrap{position:relative;}
 .about-img-frame{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);padding:32px;}
 .about-img-inner{background:rgba(106,158,170,.08);border:1px solid rgba(106,158,170,.15);padding:48px 32px;text-align:center;}
@@ -515,9 +512,6 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
 .about-stat{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);padding:20px;text-align:center;}
 .about-stat-val{font-family:var(--serif);font-size:36px;color:var(--blue2);font-weight:300;margin-bottom:4px;}
 .about-stat-lbl{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.3);}
-.about-badge{position:absolute;bottom:-16px;right:-16px;background:var(--blue);color:var(--white);padding:14px 18px;text-align:center;z-index:2;}
-.about-badge-num{font-family:var(--serif);font-size:28px;font-weight:300;line-height:1;display:block;}
-.about-badge-lbl{font-size:9px;letter-spacing:2px;text-transform:uppercase;font-weight:600;display:block;margin-top:2px;}
 /* Mobile stats strip, hidden on desktop, shown below 900px */
 .about-mobile-stats{display:none;}
 
@@ -2460,7 +2454,7 @@ a:focus-visible,button:focus-visible,.btn:focus-visible,.btn-primary:focus-visib
      purpose; the cream sections keep their dark grey; the phone mockups in the live demo are unchanged. */
   .nav-links a,.hero-sub,.hero-sub strong,.trust-item,.hms-lbl,.hero-card-label,.hcard-live,
   .live-feed-sub,.feed-card-meta,.test-quote,.test-author,.test-author strong,
-  .about-body,.about-quote p,.about-quote cite,.about-img-role,.about-stat-lbl,.map-city-desc,
+  .about-body,.about-img-role,.about-stat-lbl,.map-city-desc,
   .footer-desc,.footer-contact a,.footer-col-title,.footer-links a,.footer-copy,.footer-areas,
   .chat-info p,.chat-close-btn,.cmsg.b .cbub,.cmsg.u .cbub,.chat-chip,.chat-field label,.chat-cal-label,
   .chat-cal-month,.chat-cal-dow,.chat-cal-day:not(.empty):not(.past):not(.booked),.chat-time-btn,
@@ -3505,10 +3499,6 @@ a:focus-visible,button:focus-visible,.btn:focus-visible,.btn-primary:focus-visib
       <div class="about-tag reveal"><span class="about-tag-text">Built by Someone Who Shows Up</span></div>
       <h2 class="about-title reveal">Started as a PSW.<br><em>Built the agency he wished existed.</em></h2>
       <p class="about-body reveal">Lance Salazar founded Proximity Care Services after years as a PSW himself, personally caring for dozens of seniors across Peel Region. He saw firsthand how chaotic and unreliable home care could be. Different PSWs every week. Families left in the dark. Seniors treated like a shift on a schedule.</p>
-      <div class="about-quote reveal">
-        <p>"When my dad was in the hospital, Lance was the only PSW who stayed in touch to see how he was doing."</p>
-        <cite> Harbinger Bhangu, verified client</cite>
-      </div>
       <a href="#builder" class="btn-primary reveal" style="display:inline-block">Book an Assessment</a>
     </div>
     <div class="about-img-wrap reveal">
@@ -3525,7 +3515,6 @@ a:focus-visible,button:focus-visible,.btn:focus-visible,.btn-primary:focus-visib
           <div class="about-stat"><div class="about-stat-val">24/7</div><div class="about-stat-lbl">Direct access</div></div>
         </div>
       </div>
-      <div class="about-badge"><span class="about-badge-num">5★</span><span class="about-badge-lbl">Every Review</span></div>
     </div>
     <!-- Mobile-only stats strip, shown below 900px when frame is hidden -->
     <div class="about-mobile-stats">
@@ -4823,17 +4812,7 @@ showChips(CHIP_SETS.initial);
         var t=el.textContent.trim();
         if(t==='100%')countUp(el,100,'%');
         else if(t==='6hrs')countUp(el,6,'hrs');
-        else if(t==='24/7'){
-          // animate 24 then /7
-          el.textContent='0/7';
-          var s=performance.now(),d=1400;
-          (function tick(now){
-            var p=Math.min((now-s)/d,1),ease=1-Math.pow(1-p,3);
-            el.textContent=Math.round(ease*24)+'/7';
-            if(p<1)requestAnimationFrame(tick);
-          })(s);
-        }
-        // "Same" stays as text
+        // PCABT1. "24/7" and "Same" stay as text: counting 24/7 up showed "17/7" on the way.
       });
       aboutObs.disconnect();
     },{threshold:0.4});
