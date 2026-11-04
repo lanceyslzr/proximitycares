@@ -1483,17 +1483,25 @@ a:focus-visible,button:focus-visible,.btn:focus-visible,.btn-primary:focus-visib
   }
   .lp-desktop-step{display:none!important;}
   #lp-mob-steps{display:flex!important;}
+  /* PCSTG1. The stage text tells the story. On phones it takes its own full width row under the logo and the
+     live dot: 9px, up to two balanced lines, in a fixed two line height so nothing jumps as it changes. In the
+     bar it was 7px and cut to "GPS VE...". The padding rule that stood here targeted the canvas, not the bar. */
+  #flow-demo-wrap .lp-topbar{height:auto!important;flex-wrap:wrap;padding:9px 14px 0!important;}
   #stageLabel{
-    font-size:7px!important;
+    order:3;
+    flex:0 0 100%;
+    font-size:9px!important;
     letter-spacing:1.5px!important;
-    max-width:190px!important;
-    overflow:hidden!important;
-    text-overflow:ellipsis!important;
-    white-space:nowrap!important;
+    line-height:13px;
+    height:26px;
+    margin:7px 0 8px!important;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+    text-wrap:balance;
+    color:rgba(90,173,160,.9)!important;
   }
-  #flow-demo-wrap > div:first-child{padding:0 12px!important;}
-  /* PCPWR1. A gap either side of the stage text, and the live badge never wraps. */
-  #stageLabel{margin:0 10px!important;}
   #flow-demo-wrap .lp-live{white-space:nowrap;flex-shrink:0;}
 }
 @media(max-width:480px){
@@ -3610,7 +3618,7 @@ a:focus-visible,button:focus-visible,.btn:focus-visible,.btn-primary:focus-visib
     <canvas id="bg" style="position:absolute;inset:0;z-index:0;pointer-events:none;width:100%;height:100%;"></canvas>
 
     <!-- Top bar: logo + stage label + live badge -->
-    <div style="position:relative;z-index:10;height:38px;background:rgba(7,9,12,.98);border-bottom:1px solid rgba(90,173,160,.15);display:flex;align-items:center;justify-content:space-between;padding:0 20px;">
+    <div class="lp-topbar" style="position:relative;z-index:10;height:38px;background:rgba(7,9,12,.98);border-bottom:1px solid rgba(90,173,160,.15);display:flex;align-items:center;justify-content:space-between;padding:0 20px;">
       <div style="display:flex;align-items:center;gap:7px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;color:#e8ddc8;">
         <div style="width:20px;height:20px;border-radius:4px;background:linear-gradient(135deg,#3d7a8a,#6a9eaa);display:flex;align-items:center;justify-content:center;font-family:'DM Mono',monospace;font-size:7px;font-weight:600;color:#fff;">PC</div>
         Proximity<span style="color:#6a9eaa;font-style:italic;font-family:'Cormorant Garamond',serif;font-size:15px;">Care</span>
