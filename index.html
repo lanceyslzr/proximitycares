@@ -208,7 +208,7 @@ input,select,textarea{font-family:var(--sans);}
 ══════════════════════════════════════ */
 @keyframes navIn{from{opacity:0;transform:translateY(-100%);}to{opacity:1;transform:none;}}
 nav{position:fixed;top:0;left:0;right:0;z-index:500;padding:0 48px;height:70px;display:flex;align-items:center;justify-content:space-between;transition:background .4s,backdrop-filter .4s;animation:navIn .6s var(--ease) both;}
-.nav-logo{font-family:var(--serif);font-size:20px;color:var(--white);letter-spacing:2px;text-decoration:none;font-weight:400;opacity:0;animation:fadeUp .6s .5s var(--ease) both;}
+.nav-logo{font-family:var(--serif);font-size:20px;color:var(--white);letter-spacing:2px;text-decoration:none;font-weight:400;padding:10px 0;opacity:0;animation:fadeUp .6s .5s var(--ease) both;}
 .nav-logo em{color:var(--blue2);font-style:italic;}
 .nav-links{display:flex;align-items:center;gap:32px;list-style:none;opacity:0;animation:fadeUp .6s .65s var(--ease) both;}
 .nav-links a{color:rgba(255,255,255,.7);font-size:12px;letter-spacing:2px;text-transform:uppercase;text-decoration:none;transition:color .2s;}
@@ -216,7 +216,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:500;padding:0 48px;height:70px;d
 .nav-cta{background:var(--blue);color:var(--white)!important;padding:10px 24px;font-size:11px!important;letter-spacing:2px;text-transform:uppercase;font-weight:600;transition:all .2s!important;opacity:0;animation:fadeUp .6s .8s var(--ease) both;border-radius:100px;}
 .nav-cta:hover{background:var(--blue2)!important;transform:translateY(-1px);}
 nav.scrolled{background:rgba(10,22,40,.96);backdrop-filter:blur(20px);}
-.hamburger{display:none;background:none;border:none;cursor:pointer;padding:8px;z-index:600;}
+.hamburger{display:none;background:none;border:none;cursor:pointer;padding:9px 11px;margin-right:-3px;z-index:600;}
 .hamburger span{display:block;width:22px;height:2px;background:#fff;margin:5px 0;transition:all .3s;}
 .hamburger.open span:nth-child(1){transform:rotate(45deg) translate(5px,5px);}
 .hamburger.open span:nth-child(2){opacity:0;}
@@ -746,6 +746,11 @@ body::after{content:'';position:fixed;inset:0;background-image:url("data:image/s
 .plan-cta:hover{clip-path:polygon(0 0,100% 0,100% calc(100% - 14px),calc(100% - 14px) 100%,0 100%)}
 .step-next{clip-path:polygon(0 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%);border-radius:0!important;transition:background 0.2s,clip-path 0.2s!important}
 .step-next:hover{clip-path:polygon(0 0,100% 0,100% calc(100% - 11px),calc(100% - 11px) 100%,0 100%)}
+/* PCTAP1. The phone Book Assessment bar. Its base rules were deleted on 2026 05 03, leaving a plain text link
+   under the footer on every width. Shown by the 900px block; hidden by the script while the hero buttons show. */
+#mobile-sticky-cta{display:none;position:fixed;left:0;right:0;bottom:0;z-index:490;padding:12px 16px max(12px,env(safe-area-inset-bottom));background:rgba(19,24,28,.96);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);border-top:1px solid rgba(255,255,255,.08)}
+#mobile-sticky-btn{display:flex;align-items:center;justify-content:center;width:100%;min-height:48px;padding:0 16px;background:var(--blue);color:var(--white);font-size:12px;letter-spacing:2px;text-transform:uppercase;font-weight:600;text-decoration:none;touch-action:manipulation}
+#mobile-sticky-btn:active{background:var(--blue2)}
 #mobile-sticky-btn{clip-path:polygon(0 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%);border-radius:0!important}
 
 /* ═══ PASS 1 PREMIUM LAYER (Systems) ═══ */
@@ -1226,7 +1231,7 @@ a:focus-visible,button:focus-visible,.btn:focus-visible,.btn-primary:focus-visib
   .cta-section{padding:56px 20px;}
   .live-feed-section{padding:48px 20px;}
   .map-section{padding:48px 20px;}
-  footer{padding:48px 20px 24px;}
+  footer{padding:48px 20px calc(132px + max(12px,env(safe-area-inset-bottom)));}
 
   /* Builder */
   .builder-grid{grid-template-columns:1fr;}
@@ -1290,11 +1295,16 @@ a:focus-visible,button:focus-visible,.btn:focus-visible,.btn-primary:focus-visib
   .hero-trust{display:none;}
 
   /* Sticky CTA, offset so it doesn't overlap chatbot */
-  #mobile-sticky-cta{display:block;padding-bottom:max(12px,env(safe-area-inset-bottom));}
+  #mobile-sticky-cta{display:block;}
 
-  /* Push chat widget above sticky bar */
-  #chat-widget{bottom:80px;}
-  #chat-overlay{bottom:144px;}
+  /* Push chat widget above sticky bar. PCTAP1: the bar is 60px plus the larger of 12px and the home bar. */
+  #chat-widget{bottom:calc(68px + max(12px,env(safe-area-inset-bottom)));}
+  #chat-overlay{bottom:calc(132px + max(12px,env(safe-area-inset-bottom)));}
+
+  /* PCTAP1. Each feed dot a 44 by 44 tap target; the dot itself stays 5px, and the row gives the 20px back in
+     its margins so the dots and the card below sit where they did. */
+  .feed-dot-btn{width:44px;height:44px;}
+  .feed-dots{margin:0 0 -10px;}
 
   /* City selector, stays 3 col on tablet */
   .care-types-city{grid-template-columns:repeat(3,1fr);}
@@ -1331,7 +1341,7 @@ a:focus-visible,button:focus-visible,.btn:focus-visible,.btn-primary:focus-visib
   .builder-section,.how-section,.services-section,.about-section,.cta-section{padding:48px 16px;}
   .live-feed-section,.map-section{padding:40px 16px;}
   nav{padding:0 16px;}
-  footer{padding:40px 16px 24px;}
+  footer{padding:40px 16px calc(132px + max(12px,env(safe-area-inset-bottom)));}
   .hero-content{padding:0 16px;padding-top:76px;}
 
   /* Builder step next btn full width */
@@ -1402,9 +1412,6 @@ a:focus-visible,button:focus-visible,.btn:focus-visible,.btn-primary:focus-visib
   /* Stat strip slightly smaller */
   .hms-val{font-size:18px;}
   .hms-lbl{font-size:13px;}
-
-  /* Sticky CTA padding */
-  #mobile-sticky-cta{padding:10px 14px;}
 }
 
 @media(max-width:390px){
@@ -1421,13 +1428,12 @@ a:focus-visible,button:focus-visible,.btn:focus-visible,.btn-primary:focus-visib
   .care-types{grid-template-columns:1fr;}
   .test-grid{min-height:480px;}
   .cta-badges{gap:10px;}
-  footer{padding:36px 14px 20px;}
+  footer{padding:36px 14px calc(132px + max(12px,env(safe-area-inset-bottom)));}
   #chat-overlay{width:calc(100vw - 28px);right:14px;}
-  #chat-widget{right:14px;bottom:14px;}
+  #chat-widget{right:14px;bottom:calc(68px + max(12px,env(safe-area-inset-bottom)));}
   .care-types-city{grid-template-columns:repeat(3,1fr);}
   .hms-item{gap:2px;}
   .hms-val{font-size:16px;}
-  #mobile-sticky-btn{font-size:16px;padding:13px;}
 }
 @media(hover:none){
   #cursor,#cursor-ring,.cursor,.cur,.cur-ring{display:none!important}
@@ -3887,7 +3893,7 @@ a:focus-visible,button:focus-visible,.btn:focus-visible,.btn-primary:focus-visib
           <li><a href="#how">How It Works</a></li>
           <li><a href="#about">About Us</a></li>
           <li><a href="#builder">Book Assessment</a></li>
-          <li><a href="chatbot.html">Talk to Our AI</a></li>
+          <li><a href="chatbot.html">Talk to Our 24/7&nbsp;Care&nbsp;Agent</a></li>
         </ul>
       </div>
       <div>
