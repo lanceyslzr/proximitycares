@@ -4922,8 +4922,8 @@ showChips(CHIP_SETS.initial);
 var pcBooked=false;
 
 (function initBehaviorEngine(){
-  var params=new URLSearchParams(window.location.search);
-  var src=params.get('src')||params.get('utm_source')||'direct';
+  // PCSRC1. Note where this visit came from as the page opens; every family lead sends it.
+  pcbSource();
 
   // Booking flag, track any CTA click
   document.querySelectorAll('.btn-primary,.step-next,#mobile-sticky-btn,#plan-cta-btn,#pf-submit').forEach(function(el){
@@ -5024,6 +5024,9 @@ async function submitPlanForm() {
         care_needed_for: plan.services && plan.services.length ? plan.services.join(', ') : '',
         urgency: plan.timing || 'not specified',
         source: 'care_builder_cta',
+        utm_source: pcbSource().utm_source,
+        utm_medium: pcbSource().utm_medium,
+        utm_campaign: pcbSource().utm_campaign,
         notes: 'Built via care plan builder. ' + pkSummary()
       })
     });
@@ -5047,6 +5050,37 @@ async function submitPlanForm() {
 // is actually booked, never from the server label: after 7 PM Toronto that label names the next day,
 // because the server clock is UTC. A day shows Full only when the server marks every time on it taken.
 var PCB_API = 'https://proximity-agent-production.up.railway.app';
+// PCSRC1. Where this visit came from, worked out once and kept for the visit, so every family lead says it the way
+// the careers form asks how people heard. Only a short name is kept (google, facebook, a site name), never a full
+// address, a search or anything typed. The server already saves these three fields on every lead. Never throws.
+function pcbSource() {
+  var K = 'pc_src_v1', none = { utm_source: null, utm_medium: null, utm_campaign: null };
+  try {
+    var s = null;
+    try { s = JSON.parse(sessionStorage.getItem(K) || 'null'); } catch (e) { s = null; }
+    if (s && typeof s.utm_source === 'string' && s.utm_source) return { utm_source: s.utm_source, utm_medium: s.utm_medium || null, utm_campaign: s.utm_campaign || null };
+    var clip = function (v) { v = String(v || '').toLowerCase().replace(/[^a-z0-9._ ]+/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 60); return v || null; };
+    var q = new URLSearchParams(location.search);
+    var src = clip(q.get('utm_source') || q.get('src')), med = clip(q.get('utm_medium')), cmp = clip(q.get('utm_campaign'));
+    if (!src && q.get('gclid')) { src = 'google'; med = med || 'cpc'; }
+    if (!src && q.get('fbclid')) { src = 'facebook'; med = med || 'social'; }
+    if (!src) {
+      var h = '';
+      try { h = new URL(document.referrer).hostname.toLowerCase().replace(/^www\./, ''); } catch (e) { h = ''; }
+      var M = [[/^mail\.google\./, 'gmail', 'email'], [/(^|\.)google\.[a-z.]+$/, 'google', 'organic'], [/(^|\.)bing\.com$/, 'bing', 'organic'],
+        [/(^|\.)duckduckgo\.com$/, 'duckduckgo', 'organic'], [/(^|\.)yahoo\.com$/, 'yahoo', 'organic'], [/(^|\.)ecosia\.org$/, 'ecosia', 'organic'],
+        [/(^|\.)(facebook\.com|fb\.com|fb\.me)$/, 'facebook', 'social'], [/(^|\.)instagram\.com$/, 'instagram', 'social'],
+        [/(^|\.)linkedin\.com$|^lnkd\.in$/, 'linkedin', 'social'], [/^(t\.co|x\.com|twitter\.com)$/, 'x', 'social'],
+        [/(^|\.)(youtube\.com|youtu\.be)$/, 'youtube', 'social'], [/(^|\.)reddit\.com$/, 'reddit', 'social'], [/(^|\.)tiktok\.com$/, 'tiktok', 'social'],
+        [/(^|\.)proximitycares\.ca$/, 'proximitycares.ca', 'internal']];
+      if (!h) { src = 'direct'; med = 'none'; }
+      else { src = clip(h) || 'referral'; med = 'referral'; for (var i = 0; i < M.length; i++) if (M[i][0].test(h)) { src = M[i][1]; med = M[i][2]; break; } }
+    }
+    s = { utm_source: src, utm_medium: med, utm_campaign: cmp };
+    try { sessionStorage.setItem(K, JSON.stringify(s)); } catch (e) {}
+    return s;
+  } catch (e) { return none; }
+}
 var PCB_LINE = "Within 24 hours you'll get a call from us, sometimes sooner when a slot opens up.";
 var PCB_WD = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
 var PCB_MO = ['January','February','March','April','May','June','July','August','September','October','November','December'];
@@ -5140,6 +5174,7 @@ function pcbCheck(name, phone, email) {
 }
 // Saves the lead (with the picked time on it), then books the time. Rejects only if the lead was not saved.
 function pcbSend(lead, value) {
+  var s = pcbSource(); lead.utm_source = s.utm_source; lead.utm_medium = s.utm_medium; lead.utm_campaign = s.utm_campaign;
   var p = value ? pcbSplit(value) : null;
   if (p) { lead.preferred_time = pcbDayLong(p.iso) + ' at ' + p.time; lead.appointment_at = pcbInstant(value).toISOString(); }
   var post = function (path, body) { return fetch(PCB_API + path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }); };
