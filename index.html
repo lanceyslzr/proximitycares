@@ -4588,14 +4588,11 @@ async function submitBooking(value) {
   if (overlay) overlay.classList.remove('booking-mode');
 
   // Format phone nicely, strip leading 1 if present
-  var displayPhone = phone.replace(/\D/g,'');
-  if(displayPhone.length === 11 && displayPhone[0] === '1') displayPhone = displayPhone.slice(1);
-  if(displayPhone.length === 10) displayPhone = displayPhone.slice(0,3)+'-'+displayPhone.slice(3,6)+'-'+displayPhone.slice(6);
-  else displayPhone = phone; // fallback to what they typed
+  var displayPhone = pcbFmt(phone);
 
   // Show confirmation message, no name to avoid "Lance. Lance will call..."
   var picked = value ? pcbSplit(value) : null;
-  var confirmMsg = "You're all set. " + (picked ? 'You picked ' + pcbDayLong(picked.iso) + ' at ' + picked.time + '. ' : '') + "Within 24 hours you'll get a call from us at " + displayPhone + ', sometimes sooner when a slot opens up. He does every initial call personally, expect a real conversation, not a sales pitch.';
+  var confirmMsg = "You're all set. " + (picked ? 'You picked ' + pcbDayLong(picked.iso) + ' at ' + picked.time + '. ' : '') + "Within 24 hours you'll get a call from us at " + displayPhone + ', sometimes sooner when a slot opens up. We do every first call ourselves. Expect a real conversation, not a sales pitch.';
   addCMsg('b', confirmMsg);
   chatHistory.push({role:'assistant', content: confirmMsg});
 
@@ -5034,7 +5031,7 @@ async function submitPlanForm() {
     if (leadId) {
       await showSlotPicker(leadId, firstName, confirmEl, !!email, phone);
     } else {
-      pcbBuilderDone(confirmEl, firstName, null, false, phone, 'He does every first call personally. Your first 6 hours of care are free.');
+      pcbBuilderDone(confirmEl, firstName, null, false, phone, 'We do every first call ourselves. Expect a real conversation, not a sales pitch. Your first 6 hours of care are free.');
     }
   } catch(e) {
     pcbBuilderRetry(confirmEl, btn);
