@@ -687,22 +687,6 @@ footer{background:var(--navy);padding:60px 48px 32px;border-top:1px solid rgba(2
 .chat-field input::placeholder{color:rgba(255,255,255,.2);}
 .chat-field select option{background:#1a2027;color:#fff;}
 .chat-fields-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
-.chat-cal-label{font-size:9px;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,.35);margin-bottom:8px;margin-top:12px;}
-.chat-cal-month{font-size:11px;color:rgba(255,255,255,.5);text-align:center;margin-bottom:6px;letter-spacing:1px;}
-.chat-cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:10px;touch-action:manipulation;}
-.chat-cal-dow{font-size:11px;color:rgba(255,255,255,.2);text-align:center;padding:3px 0;letter-spacing:.5px;}
-.chat-cal-day{position:relative;aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:11px;cursor:pointer;border-radius:50%;border:1px solid transparent;transition:all .15s;color:rgba(255,255,255,.55);}
-.chat-cal-day.empty,.chat-cal-day.past{color:rgba(255,255,255,.12);cursor:default;}
-.chat-cal-day.booked{color:rgba(255,255,255,.2);cursor:not-allowed;}
-.chat-cal-day.booked::after{content:'';position:absolute;width:4px;height:4px;border-radius:50%;background:rgba(239,68,68,.5);bottom:1px;left:50%;transform:translateX(-50%);}
-.chat-cal-day.today{border-color:rgba(61,143,214,.4);color:var(--blue2);}
-.chat-cal-day.available:hover{background:rgba(61,143,214,.18);border-color:rgba(61,143,214,.35);color:var(--white);}
-.chat-cal-day.selected{background:var(--blue)!important;border-color:var(--blue)!important;color:var(--white)!important;font-weight:600;}
-.chat-time-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin-bottom:12px;touch-action:manipulation;}
-.chat-time-btn{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09);color:rgba(255,255,255,.5);font-family:var(--sans);font-size:10px;padding:7px 3px;border-radius:6px;cursor:pointer;transition:all .15s;text-align:center;line-height:1.3;}
-.chat-time-btn:hover:not(.unavailable){background:rgba(61,143,214,.15);border-color:rgba(61,143,214,.3);color:var(--white);}
-.chat-time-btn.selected{background:var(--blue);border-color:var(--blue);color:var(--white);font-weight:500;}
-.chat-time-btn.unavailable{opacity:.25;cursor:not-allowed;}
 .chat-book-btn{width:100%;background:var(--blue);color:var(--white);border:none;font-family:var(--sans);font-size:11px;letter-spacing:2px;text-transform:uppercase;font-weight:600;padding:12px;border-radius:100px;cursor:pointer;transition:all .25s;margin-top:2px;}
 .chat-book-btn:hover{background:var(--blue2);transform:translateY(-1px);}
 .chat-book-btn:disabled{background:rgba(255,255,255,.08);color:rgba(255,255,255,.25);cursor:not-allowed;transform:none;}
@@ -2468,11 +2452,99 @@ a:focus-visible,button:focus-visible,.btn:focus-visible,.btn-primary:focus-visib
   .live-feed-sub,.feed-card-meta,.test-quote,.test-author,.test-author strong,
   .about-body,.about-img-role,.about-stat-lbl,.map-city-desc,
   .footer-desc,.footer-contact a,.footer-col-title,.footer-links a,.footer-copy,.footer-areas,
-  .chat-info p,.chat-close-btn,.cmsg.b .cbub,.cmsg.u .cbub,.chat-chip,.chat-field label,.chat-cal-label,
-  .chat-cal-month,.chat-cal-dow,.chat-cal-day:not(.empty):not(.past):not(.booked),.chat-time-btn,
+  .chat-info p,.chat-close-btn,.cmsg.b .cbub,.cmsg.u .cbub,.chat-chip,.chat-field label,
   .builder-section .pk-incl,.builder-section .pk-fine{color:#fff;}
   .builder-section .pk-book .plan-call{color:#fff!important;}
   .nav-links a:hover,.footer-links a:hover,.footer-contact a:hover{color:var(--blue2);}
+  /* PCBK1. The Book a free call sheet, and the one call time picker it shares with the chat and the
+     builder. Its own block at the end of the stylesheet; every rule is scoped to a .pcb class, so no
+     earlier rule reaches it and it reaches nothing else. Fonts: Cormorant Garamond and DM Sans. */
+  html.pcb-lock,html.pcb-lock body{overflow:hidden;}
+  .pcb-ov{position:fixed;inset:0;z-index:2000;display:flex;align-items:center;justify-content:center;padding:24px;background:rgba(10,13,16,.62);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);opacity:0;transition:opacity .24s ease;overscroll-behavior:contain;}
+  .pcb-ov[hidden]{display:none;}
+  .pcb-ov.pcb-on{opacity:1;}
+  .pcb-ov [hidden]{display:none!important;}
+  .pcb{position:relative;box-sizing:border-box;width:100%;max-width:540px;max-height:calc(100dvh - 48px);overflow-y:auto;overscroll-behavior:contain;padding:40px 48px 26px;background:var(--cream);color:var(--navy);border-radius:22px;box-shadow:0 30px 80px rgba(0,0,0,.35);font-family:'DM Sans',sans-serif;font-variant-numeric:lining-nums;text-align:center;transform:translateY(16px);transition:transform .24s ease;}
+  .pcb-on .pcb{transform:none;}
+  .pcb:focus{outline:none;}
+  .pcb-grab{display:none;}
+  .pcb-x{position:absolute;top:14px;right:14px;width:44px;height:44px;padding:0;border:0;border-radius:50%;background:transparent;color:var(--navy);display:flex;align-items:center;justify-content:center;cursor:pointer;touch-action:manipulation;}
+  .pcb-x:hover{background:rgba(19,24,28,.06);}
+  .pcb button:focus-visible,.pcb a:focus-visible{outline:2px solid var(--blue3);outline-offset:2px;}
+  .pcb-h{font-family:var(--serif);font-weight:500;font-size:40px;line-height:1.05;letter-spacing:0;color:var(--navy);margin:0 0 12px;text-wrap:balance;}
+  .pcb-h:focus{outline:none;}
+  .pcb-sub{font-size:15px;line-height:1.6;color:var(--muted);max-width:380px;margin:0 auto;text-wrap:pretty;}
+  .pcb-prog{display:grid;grid-template-columns:1fr 1fr;gap:6px;width:120px;margin:24px auto;}
+  .pcb-prog i{height:3px;border-radius:2px;background:var(--border);}
+  .pcb-prog i.on{background:var(--blue3);}
+  .pcb-ph{font-family:var(--serif);font-weight:500;font-size:26px;line-height:1.1;color:var(--navy);margin:0 0 14px;}
+  .pcb-days{display:flex;justify-content:safe center;gap:8px;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;padding:2px;margin:0 -2px 22px;}
+  .pcb-days::-webkit-scrollbar{display:none;}
+  .pcb-day{flex:1 0 58px;max-width:80px;height:88px;padding:0;scroll-snap-align:start;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;background:#fff;border:1px solid var(--border);border-radius:14px;color:var(--navy);font-family:'DM Sans',sans-serif;cursor:pointer;touch-action:manipulation;}
+  .pcb-day small{font-size:12px;color:var(--muted);}
+  .pcb-day b{font-family:var(--serif);font-weight:500;font-size:30px;line-height:1;font-variant-numeric:lining-nums;}
+  .pcb-day.on{background:var(--navy);border-color:var(--navy);color:#fff;}
+  .pcb-day.on small{color:#c9d2d4;}
+  .pcb-day.full{background:transparent;border-style:dashed;color:#8a857b;cursor:default;}
+  .pcb-day.full b{text-decoration:line-through;text-decoration-thickness:1px;}
+  .pcb-times{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:18px;}
+  .pcb-time{min-height:50px;padding:0 4px;background:#fff;border:1px solid var(--border);border-radius:12px;color:var(--navy);font:500 16px 'DM Sans',sans-serif;font-variant-numeric:tabular-nums;cursor:pointer;touch-action:manipulation;}
+  .pcb-time.on{border-color:var(--blue3);box-shadow:inset 0 0 0 1px var(--blue3);background:#eef4f5;color:#1f4a56;}
+  .pcb-time:disabled{background:transparent;border-style:dashed;color:#8a857b;text-decoration:line-through;cursor:default;}
+  .pcb-go{display:flex;align-items:center;justify-content:center;width:100%;min-height:54px;border:0;border-radius:100px;background:var(--blue3);color:#fff;font:600 16px 'DM Sans',sans-serif;cursor:pointer;touch-action:manipulation;box-shadow:0 8px 20px rgba(44,93,107,.28);}
+  .pcb-go:hover{background:#244e5a;}
+  .pcb-go:disabled{opacity:.65;cursor:default;}
+  .pcb-ghost{display:flex;align-items:center;justify-content:center;width:100%;min-height:50px;margin-top:10px;border:1px solid #cfc7ba;border-radius:100px;background:transparent;color:var(--navy);font:500 15px 'DM Sans',sans-serif;cursor:pointer;touch-action:manipulation;}
+  .pcb-foot{font-size:14px;color:var(--muted);margin:14px 0 0;}
+  .pcb-foot a{display:inline-flex;align-items:center;min-height:44px;margin-left:4px;color:var(--blue3);text-decoration:underline;text-underline-offset:3px;}
+  .pcb-err{font-size:14px;line-height:1.5;color:#a3302a;margin:0 0 12px;}
+  .pcb-err:empty{display:none;}
+  .pcb-load{font-size:15px;line-height:1.55;color:var(--muted);padding:24px 0;margin:0;}
+  .pcb-sum{display:flex;flex-direction:column;align-items:center;padding:14px 16px 4px;margin-bottom:18px;background:#fff;border:1px solid var(--border);border-radius:14px;}
+  .pcb-sum strong{font-family:var(--serif);font-weight:500;font-size:22px;line-height:1.2;}
+  .pcb-sum span{font-size:15px;}
+  .pcb-change{min-height:44px;padding:0 12px;border:0;background:transparent;color:var(--blue3);font:14px 'DM Sans',sans-serif;text-decoration:underline;text-underline-offset:3px;cursor:pointer;}
+  .pcb label{display:block;font-size:14px;font-weight:500;color:var(--navy);margin:0 0 6px;}
+  .pcb input{display:block;width:100%;box-sizing:border-box;height:52px;padding:0 16px;margin:0 0 14px;background:#fff;border:1px solid #cfc7ba;border-radius:12px;color:var(--navy);font-family:'DM Sans',sans-serif;text-align:left;}
+  .pcb input:focus{outline:none;border-color:var(--blue3);box-shadow:0 0 0 3px rgba(44,93,107,.18);}
+  .pcb input[aria-invalid="true"]{border-color:#a3302a;}
+  .pcb-hint{font-size:13px;color:var(--muted);margin:-8px 0 16px;}
+  .pcb-ok{width:52px;height:52px;margin:6px auto 16px;border:1.5px solid var(--blue3);border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--blue3);}
+  .pcb-when{padding:16px 0;margin:4px 0 16px;border-top:1px solid var(--border);border-bottom:1px solid var(--border);}
+  .pcb-when strong{display:block;font-family:var(--serif);font-weight:500;font-size:30px;line-height:1.1;}
+  .pcb-when span{font-size:16px;color:#3a403c;}
+  .pcb-note{font-size:14px;line-height:1.55;color:var(--muted);max-width:400px;margin:0 auto 18px;}
+  /* The picker on navy: the chat and the builder's booking card. */
+  .pcb-dark .pcb-ph{font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;color:#fff;margin:14px 0 8px;}
+  .pcb-dark .pcb-days{margin-bottom:6px;}
+  .pcb-dark .pcb-day,.pcb-dark .pcb-time{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.2);color:#fff;}
+  .pcb-dark .pcb-day small{color:rgba(255,255,255,.8);}
+  .pcb-dark .pcb-day.on{background:#fff;border-color:#fff;color:var(--navy);}
+  .pcb-dark .pcb-day.on small{color:var(--muted);}
+  .pcb-dark .pcb-time.on{background:rgba(106,158,170,.28);border-color:var(--blue2);box-shadow:inset 0 0 0 1px var(--blue2);color:#fff;}
+  .pcb-dark .pcb-day.full,.pcb-dark .pcb-time:disabled{background:transparent;border-style:dashed;color:rgba(255,255,255,.55);}
+  .pcb-dark button:focus-visible,#pf-confirm .pcb-go:focus-visible{outline:2px solid #fff;outline-offset:2px;}
+  .pcb-dark .pcb-load,.pcb-bnote{font-size:13px;line-height:1.55;color:#fff;margin:0 0 10px;padding:0;}
+  .pcb-small .pcb-days{gap:6px;}
+  .pcb-small .pcb-day{flex-basis:48px;height:68px;border-radius:10px;}
+  .pcb-small .pcb-day b{font-size:23px;}
+  .pcb-small .pcb-times{gap:6px;margin-bottom:12px;}
+  .pcb-small .pcb-time{min-height:44px;font-size:14px;border-radius:10px;}
+  .pcb-bh{display:block;font-size:15px;color:#fff;margin-bottom:6px;}
+  .pcb-bwhen{margin:10px 0;padding:12px 14px;border:1px solid rgba(255,255,255,.2);border-radius:10px;}
+  .pcb-bwhen b{display:block;font-family:var(--serif);font-weight:500;font-size:22px;color:#fff;font-variant-numeric:lining-nums;}
+  .pcb-bwhen span{font-size:14px;color:#fff;}
+  #pf-confirm .pcb-err,.chat-booking-card .pcb-err{color:#ffc2bb;font-size:13px;}
+  @media(max-width:599px){
+    .pcb-ov{align-items:flex-end;padding:0;}
+    .pcb{max-width:none;max-height:94dvh;padding:14px 20px calc(10px + env(safe-area-inset-bottom));border-radius:22px 22px 0 0;transform:translateY(100%);}
+    .pcb-grab{display:block;width:40px;height:4px;margin:0 auto 18px;border-radius:2px;background:#d6cfc3;}
+    .pcb-x{top:6px;right:6px;}
+    .pcb-h{font-size:32px;}
+    .pcb-ph{font-size:24px;}
+    .pcb-prog{margin:18px auto;}
+  }
+  @media(prefers-reduced-motion:reduce){.pcb-ov,.pcb{transition:none;}}
 </style>
 <script src="https://unpkg.com/lenis@1.1.14/dist/lenis.min.js"></script>
   <meta property="og:title" content="Proximity Care Services: In Home Senior Care in Mississauga and Brampton">
@@ -3156,7 +3228,7 @@ a:focus-visible,button:focus-visible,.btn:focus-visible,.btn-primary:focus-visib
       "name": "How do we get started?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Build a care plan in under two minutes, or book an assessment. We call you back within 2 hours to confirm a time, and your first 6 hours of care are free."
+        "text": "Build a care plan in under two minutes, or book an assessment. We call you back within 24 hours to confirm a time, and your first 6 hours of care are free."
       }
     },
     {
@@ -3203,7 +3275,7 @@ a:focus-visible,button:focus-visible,.btn:focus-visible,.btn-primary:focus-visib
     <li><a href="#about">About Us</a></li>
     <li><a href="careers.html">Join Our Team</a></li>
     <li><a href="tel:6473828047" class="nav-phone" aria-label="Call Proximity Care Services"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg><span>647 382 8047</span></a></li>
-      <li><a href="#builder" class="nav-cta">Book Assessment</a></li>
+      <li><a href="#builder" class="nav-cta" data-book>Book Assessment</a></li>
   </ul>
   <button class="hamburger" id="hamburger" aria-label="Menu" aria-controls="mobile-menu" aria-expanded="false"><span></span><span></span><span></span></button>
 </nav>
@@ -3213,7 +3285,7 @@ a:focus-visible,button:focus-visible,.btn:focus-visible,.btn-primary:focus-visib
   <a href="#how" onclick="closeMenu()">How It Works</a>
   <a href="#about" onclick="closeMenu()">About Us</a>
   <a href="careers.html" onclick="closeMenu()">Join Our Team</a>
-  <a href="#builder" onclick="closeMenu()">Book Assessment</a>
+  <a href="#builder" onclick="closeMenu()" data-book>Book Assessment</a>
 </div>
 
 <!-- HERO -->
@@ -3234,7 +3306,7 @@ a:focus-visible,button:focus-visible,.btn:focus-visible,.btn-primary:focus-visib
 <p class="hero-sub">Same PSW. Every visit. No agencies, no strangers, no guessing. We started this as PSWs ourselves. That is still how it runs.</p>
     <div class="hero-btns">
       <a href="#builder" class="btn-primary">Build Your Care Plan</a>
-      <a href="#builder" class="btn-outline">Book Assessment</a>
+      <a href="#builder" class="btn-outline" data-book>Book Assessment</a>
     </div>
     <div class="hero-trust">
       <div class="trust-item"><span class="trust-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="var(--blue2)"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></span>100% five-star reviews</div>
@@ -3249,7 +3321,7 @@ a:focus-visible,button:focus-visible,.btn:focus-visible,.btn-primary:focus-visib
       <div class="hms-div"></div>
       <div class="hms-item"><span class="hms-val">Same</span><span class="hms-lbl">PSW Every Visit</span></div>
       <div class="hms-div"></div>
-      <div class="hms-item"><span class="hms-val">2hrs</span><span class="hms-lbl">Callback Guarantee</span></div>
+      <div class="hms-item"><span class="hms-val">24hrs</span><span class="hms-lbl">Callback Guarantee</span></div>
     </div>
   </div>
   <div class="hero-right">
@@ -3372,7 +3444,7 @@ a:focus-visible,button:focus-visible,.btn:focus-visible,.btn-primary:focus-visib
           </div>
         </div>
         <div id="plan-inline-form">
-          <div style="font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--blue2);font-family:var(--sans);margin-bottom:10px;font-weight:600">Your details, we call you within 2 hours</div>
+          <div style="font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--blue2);font-family:var(--sans);margin-bottom:10px;font-weight:600">Your details, we call you within 24 hours</div>
           <input type="text" id="pf-name" placeholder="Your name" aria-label="Your name" autocomplete="name" style="display:block;width:100%;box-sizing:border-box;padding:10px 12px;font-size:16px;font-family:inherit;margin-bottom:8px;border-radius:4px">
           <input type="tel" id="pf-phone" placeholder="Phone number" aria-label="Phone number" autocomplete="tel" style="display:block;width:100%;box-sizing:border-box;padding:10px 12px;font-size:16px;font-family:inherit;margin-bottom:8px;border-radius:4px">
           <input type="email" id="pf-email" placeholder="Email (optional)" aria-label="Email (optional)" autocomplete="email" style="display:block;width:100%;padding:10px 12px;font-size:16px;font-family:inherit;margin-bottom:12px;border-radius:4px">
@@ -3511,7 +3583,7 @@ a:focus-visible,button:focus-visible,.btn:focus-visible,.btn-primary:focus-visib
       <div class="about-tag reveal"><span class="about-tag-text">Built by Someone Who Shows Up</span></div>
       <h2 class="about-title reveal">Started as a PSW.<br><em>Built the agency he wished existed.</em></h2>
       <p class="about-body reveal">Lance Salazar founded Proximity Care Services after years as a PSW himself, personally caring for dozens of seniors across Peel Region. He saw firsthand how chaotic and unreliable home care could be. Different PSWs every week. Families left in the dark. Seniors treated like a shift on a schedule.</p>
-      <a href="#builder" class="btn-primary reveal" style="display:inline-block">Book an Assessment</a>
+      <a href="#builder" class="btn-primary reveal" style="display:inline-block" data-book>Book an Assessment</a>
     </div>
     <div class="about-img-wrap reveal">
       <div class="about-img-frame">
@@ -3561,7 +3633,7 @@ a:focus-visible,button:focus-visible,.btn:focus-visible,.btn-primary:focus-visib
       </div>
       <div class="faq-item">
         <div class="faq-q">How do we get started?<span class="faq-icon"></span></div>
-        <div class="faq-a"><div class="faq-a-inner">Build a care plan above in under two minutes, or book an assessment. We call you back <strong>within 2 hours</strong> to confirm a time, and your first 6 hours of care are free.</div></div>
+        <div class="faq-a"><div class="faq-a-inner">Build a care plan above in under two minutes, or book an assessment. We call you back <strong>within 24 hours</strong> to confirm a time, and your first 6 hours of care are free.</div></div>
       </div>
       <div class="faq-item">
         <div class="faq-q">Who actually runs Proximity Care?<span class="faq-icon"></span></div>
@@ -3577,12 +3649,12 @@ a:focus-visible,button:focus-visible,.btn:focus-visible,.btn-primary:focus-visib
     <div class="section-eyebrow reveal" style="justify-content:center"><div class="ey-line"></div><span class="ey-tag">Book an Assessment</span></div>
     <h2 class="cta-title reveal">Still running your family on group chats<br>and <em>hoping for the best?</em></h2>
     <p class="cta-sub reveal">Book an in-home assessment. We come to you, meet your loved one, build a real care plan and match the right PSW. Your first 6&nbsp;hours of care are free.</p>
-    <div class="reveal"><a href="#builder" class="btn-primary" style="font-size:13px;padding:18px 48px">Book an Assessment</a></div>
+    <div class="reveal"><a href="#builder" class="btn-primary" style="font-size:13px;padding:18px 48px" data-book>Book an Assessment</a></div>
     <picture class="cta-photo reveal"><source type="image/webp" srcset="img/home/care-visit-800-2ba94261.webp 800w, img/home/care-visit-1600-6c721929.webp 1600w" sizes="(max-width: 900px) 100vw, 840px"><img src="img/home/care-visit-800-4cfc47b4.jpg" srcset="img/home/care-visit-800-4cfc47b4.jpg 800w, img/home/care-visit-1600-8606a48b.jpg 1600w" sizes="(max-width: 900px) 100vw, 840px" width="800" height="450" alt="An older person's hand held gently in another's" loading="lazy" decoding="async"></picture>
     <div class="cta-badges reveal">
       <div class="cta-badge"><div class="cta-badge-icon">✓</div><span class="cta-badge-label">First 6 Hours Free</span></div>
       <div class="cta-badge"><div class="cta-badge-icon">✓</div><span class="cta-badge-label">No Contracts</span><span class="cta-badge-sub">Month to month, cancel anytime</span></div>
-      <div class="cta-badge"><div class="cta-badge-icon">✓</div><span class="cta-badge-label">2-Hour Callback</span><span class="cta-badge-sub">We respond fast, every time</span></div>
+      <div class="cta-badge"><div class="cta-badge-icon">✓</div><span class="cta-badge-label">24 Hour Callback</span><span class="cta-badge-sub">Sometimes sooner when a slot opens up</span></div>
       <div class="cta-badge"><div class="cta-badge-icon">✓</div><span class="cta-badge-label">Same PSW Every Visit</span><span class="cta-badge-sub">No strangers, no surprises</span></div>
     </div>
   </div>
@@ -3592,7 +3664,7 @@ a:focus-visible,button:focus-visible,.btn:focus-visible,.btn-primary:focus-visib
 <section class="map-section" id="coverage">
   <div class="map-inner">
     <div class="map-info">
-      <div><div class="live-feed-label"><span class="live-feed-dot"></span>Where We Serve</div><h2 class="live-feed-title">Right here in <em>Peel&nbsp;Region and Etobicoke.</em></h2><p class="live-feed-sub" style="margin-bottom:32px">Same-day response. Local caregivers. Families in Mississauga, Brampton, Caledon and Etobicoke trust Proximity Care.</p></div>
+      <div><div class="live-feed-label"><span class="live-feed-dot"></span>Where We Serve</div><h2 class="live-feed-title">Right here in <em>Peel&nbsp;Region and Etobicoke.</em></h2><p class="live-feed-sub" style="margin-bottom:32px">A call back within 24 hours. Local caregivers. Families in Mississauga, Brampton, Caledon and Etobicoke trust Proximity Care.</p></div>
       <div class="map-city-item"><div class="map-city-dot" style="background:#6a9eaa;box-shadow:0 0 8px #6a9eaa"></div><div><div class="map-city-name">Mississauga</div><div class="map-city-desc">Port&nbsp;Credit&nbsp;· Streetsville&nbsp;· Meadowvale&nbsp;· Erin&nbsp;Mills</div></div></div>
       <div class="map-city-item"><div class="map-city-dot" style="background:#e8b84b;box-shadow:0 0 8px #e8b84b"></div><div><div class="map-city-name">Brampton</div><div class="map-city-desc">Churchville&nbsp;· Heart&nbsp;Lake&nbsp;· Bramalea&nbsp;· Springdale</div></div></div>
       <div class="map-city-item"><div class="map-city-dot" style="background:#4a9de8;box-shadow:0 0 8px #4a9de8"></div><div><div class="map-city-name">Caledon</div><div class="map-city-desc">Bolton&nbsp;· Caledon&nbsp;East&nbsp;· Inglewood&nbsp;· Palgrave</div></div></div>
@@ -3898,7 +3970,7 @@ a:focus-visible,button:focus-visible,.btn:focus-visible,.btn-primary:focus-visib
           <li><a href="#builder">Build Your Care Plan</a></li>
           <li><a href="#how">How It Works</a></li>
           <li><a href="#about">About Us</a></li>
-          <li><a href="#builder">Book Assessment</a></li>
+          <li><a href="#builder" data-book>Book Assessment</a></li>
           <li><a href="chatbot.html">Talk to Our 24/7&nbsp;Care&nbsp;Agent</a></li>
         </ul>
       </div>
@@ -3946,7 +4018,47 @@ a:focus-visible,button:focus-visible,.btn:focus-visible,.btn-primary:focus-visib
 
 <!-- STICKY MOBILE CTA, hidden on desktop -->
 <div id="mobile-sticky-cta">
-  <a href="#builder" id="mobile-sticky-btn">Book Assessment</a>
+  <a href="#builder" id="mobile-sticky-btn" data-book>Book Assessment</a>
+</div>
+<!-- PCBK1. Book a free call. Every Book button opens this; the Build buttons still go to the builder. -->
+<div class="pcb-ov" id="pcb" hidden data-lenis-prevent>
+  <div class="pcb" role="dialog" aria-modal="true" aria-labelledby="pcb-title" tabindex="-1">
+    <span class="pcb-grab" aria-hidden="true"></span>
+    <button type="button" class="pcb-x" id="pcb-x" aria-label="Close"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 3l10 10M13 3L3 13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></button>
+    <div id="pcb-head">
+      <h2 class="pcb-h" id="pcb-title">Book a free call with us</h2>
+      <p class="pcb-sub" id="pcb-sub">Pick a time that suits you. Within 24 hours you'll get a call from us, sometimes sooner when a slot opens up.</p>
+      <div class="pcb-prog" aria-hidden="true"><i class="on"></i><i id="pcb-prog2"></i></div>
+    </div>
+    <div id="pcb-s1">
+      <div class="pcb-pick" id="pcb-pick"></div>
+      <p class="pcb-err" id="pcb-err1" role="alert"></p>
+      <button type="button" class="pcb-go" id="pcb-next">Continue</button>
+    </div>
+    <div id="pcb-s2" hidden>
+      <div class="pcb-sum" id="pcb-sum"><strong id="pcb-sum-day"></strong><span id="pcb-sum-time"></span><button type="button" class="pcb-change" id="pcb-change">Change</button></div>
+      <form id="pcb-form" novalidate>
+        <label for="pcb-name">Your name</label>
+        <input id="pcb-name" name="name" type="text" autocomplete="name" required>
+        <label for="pcb-phone">Phone</label>
+        <input id="pcb-phone" name="tel" type="tel" inputmode="tel" autocomplete="tel" required>
+        <label for="pcb-email">Email</label>
+        <input id="pcb-email" name="email" type="email" autocomplete="email" aria-describedby="pcb-hint">
+        <p class="pcb-hint" id="pcb-hint">Your confirmation goes here.</p>
+        <p class="pcb-err" id="pcb-err2" role="alert"></p>
+        <button type="submit" class="pcb-go" id="pcb-book">Book my call</button>
+      </form>
+    </div>
+    <div id="pcb-s3" hidden>
+      <div class="pcb-ok" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <h2 class="pcb-h" id="pcb-done-h" tabindex="-1"></h2>
+      <div class="pcb-when" id="pcb-when"><strong id="pcb-when-day"></strong><span id="pcb-when-time"></span></div>
+      <p class="pcb-note" id="pcb-note"></p>
+      <button type="button" class="pcb-go" id="pcb-done">Done</button>
+      <button type="button" class="pcb-ghost" id="pcb-ics">Add to my calendar</button>
+    </div>
+    <p class="pcb-foot" id="pcb-foot">Prefer to talk now?<a href="tel:6473828047">647 382 8047</a></p>
+  </div>
 </div>
 
 <script>
@@ -4381,182 +4493,92 @@ function pickChips(botText) {
   return null;
 }
 
-/* ── CALENDAR BUILDER ── */
+/* ── CALL TIME FORM (PCBK1). The chat books on the same real times as the Book sheet. The calendar
+   here marked days booked from a fixed list nobody booked, offered windows the server does not have,
+   and never booked the time, so no confirmation email and no reminders went out. ── */
 function buildBookingForm() {
   var card = document.createElement('div');
   card.className = 'chat-booking-card';
   card.id = 'chat-booking-card';
-
-  // Today
-  var today = new Date();
-  today.setHours(0,0,0,0);
-
-  // Generate next 20 days, some randomly "booked"
-  // Fixed booked pattern so it looks consistent (not random on each open)
-  var bookedOffsets = [1,3,5,8,12,14,17]; // days from today that are "booked"
-  var bookedDates = new Set(bookedOffsets.map(function(o){
-    var d = new Date(today); d.setDate(d.getDate()+o);
-    return d.toDateString();
-  }));
-
-  // Build calendar for current + next month if needed
-  var calStart = new Date(today);
-  calStart.setDate(calStart.getDate()+1); // start from tomorrow
-
-  // Group days by month
-  var months = [];
-  var cur = new Date(calStart.getFullYear(), calStart.getMonth(), 1);
-  var end20 = new Date(today); end20.setDate(end20.getDate()+21);
-  while (cur <= end20) {
-    months.push(new Date(cur.getFullYear(), cur.getMonth(), 1));
-    cur.setMonth(cur.getMonth()+1);
-  }
-  months = months.filter(function(m,i,a){ return a.findIndex(function(x){return x.getTime()===m.getTime()})===i; });
-
-  var selectedDate = null;
-  var selectedTime = null;
-
-  card.innerHTML = '<div class="chat-booking-title">Book an Assessment</div>' +
-    '<div class="chat-field"><label>Your Name</label><input type="text" id="bk-name" placeholder="Full name" autocomplete="name"></div>' +
+  var picker = null, noSlots = false;
+  card.innerHTML = '<div class="chat-booking-title">Book a free call with us</div>' +
+    '<div class="chat-field"><label for="bk-name">Your Name</label><input type="text" id="bk-name" placeholder="Full name" autocomplete="name"></div>' +
     '<div class="chat-fields-row">' +
-      '<div class="chat-field"><label>Phone</label><input type="tel" id="bk-phone" placeholder="647-000-0000" autocomplete="tel"></div>' +
-      '<div class="chat-field"><label>Email</label><input type="email" id="bk-email" placeholder="you@email.com" autocomplete="email"></div>' +
+      '<div class="chat-field"><label for="bk-phone">Phone</label><input type="tel" id="bk-phone" placeholder="647-000-0000" autocomplete="tel"></div>' +
+      '<div class="chat-field"><label for="bk-email">Email</label><input type="email" id="bk-email" placeholder="you@email.com" autocomplete="email"></div>' +
     '</div>' +
-    '<div class="chat-field"><label>City</label><select id="bk-city"><option value="">Select city</option><option>Mississauga</option><option>Brampton</option><option>Caledon</option><option>Etobicoke</option><option>Other</option></select></div>' +
-    '<div class="chat-cal-label">Pick a Date, <span style="color:rgba(239,68,68,.7)">● booked</span></div>' +
-    buildCalHTML(months, today, calStart, end20, bookedDates) +
-    '<div class="chat-cal-label" style="margin-top:8px">Preferred Time</div>' +
-    '<div class="chat-time-grid" id="bk-times">' +
-      '<button class="chat-time-btn" data-time="Morning 9-12">Morning<br>9am-12pm</button>' +
-      '<button class="chat-time-btn" data-time="Afternoon 12-4">Afternoon<br>12pm-4pm</button>' +
-      '<button class="chat-time-btn" data-time="Evening 4-7">Evening<br>4pm-7pm</button>' +
-    '</div>' +
-    '<button class="chat-book-btn" id="bk-submit" disabled>Book My Assessment</button>' +
+    '<div class="chat-field"><label for="bk-city">City</label><select id="bk-city"><option value="">Select city</option><option>Mississauga</option><option>Brampton</option><option>Caledon</option><option>Etobicoke</option><option>Other</option></select></div>' +
+    '<div class="pcb-pick pcb-dark pcb-small" id="bk-pick"><p class="pcb-load" aria-live="polite">Loading the times</p></div>' +
+    '<p class="pcb-err" id="bk-err" role="alert"></p>' +
+    '<button class="chat-book-btn" id="bk-submit" disabled>Book my call</button>' +
     '<div class="chat-spots">First 6 hours of care free</div>';
 
-  // Attach events after inserting
-  setTimeout(function(){
-    // Date selection
-    card.querySelectorAll('.chat-cal-day.available').forEach(function(el){
-      el.addEventListener('click', function(){
-        card.querySelectorAll('.chat-cal-day').forEach(function(d){ d.classList.remove('selected'); });
-        el.classList.add('selected');
-        selectedDate = el.dataset.date;
-        checkSubmit();
-      });
-    });
-    // Time selection
-    card.querySelectorAll('.chat-time-btn').forEach(function(btn){
-      btn.addEventListener('click', function(){
-        card.querySelectorAll('.chat-time-btn').forEach(function(b){ b.classList.remove('selected'); });
-        btn.classList.add('selected');
-        selectedTime = btn.dataset.time;
-        checkSubmit();
-      });
-    });
-    // Submit
-    document.getElementById('bk-submit').addEventListener('click', function(){
-      submitBooking(selectedDate, selectedTime);
-    });
-  }, 50);
-
   function checkSubmit() {
-    var name = document.getElementById('bk-name') && document.getElementById('bk-name').value.trim();
-    var phone = document.getElementById('bk-phone') && document.getElementById('bk-phone').value.trim();
-    var city = document.getElementById('bk-city') && document.getElementById('bk-city').value;
-    var btn = document.getElementById('bk-submit');
-    if (btn) btn.disabled = !(name && (phone) && city && selectedDate && selectedTime);
+    var val = function (id) { var el = card.querySelector('#' + id); return el ? el.value.trim() : ''; };
+    var btn = card.querySelector('#bk-submit');
+    if (btn) btn.disabled = !(val('bk-name') && val('bk-phone') && val('bk-city') && (noSlots || (picker && picker.get())));
   }
-  // Live validation
-  setTimeout(function(){
-    ['bk-name','bk-phone','bk-email','bk-city'].forEach(function(id){
-      var el = document.getElementById(id);
-      if(el) el.addEventListener('input', checkSubmit), el.addEventListener('change', checkSubmit);
-    });
-  }, 100);
+  ['bk-name','bk-phone','bk-email','bk-city'].forEach(function(id){
+    var el = card.querySelector('#' + id);
+    if(el) { el.addEventListener('input', checkSubmit); el.addEventListener('change', checkSubmit); }
+  });
+  card.querySelector('#bk-submit').addEventListener('click', function(){
+    submitBooking(noSlots ? null : (picker ? picker.get() : null));
+  });
+  var pickEl = card.querySelector('#bk-pick');
+  pcbLoadSlots().then(function(days){
+    if (!days.length || days.every(function(d){ return d.full; })) throw new Error('no times');
+    picker = pcbPicker(pickEl, days, checkSubmit);
+  }).catch(function(){
+    noSlots = true;
+    pickEl.innerHTML = '<p class="pcb-load">The times did not load. Send your details anyway. ' + PCB_LINE + '</p>';
+    checkSubmit();
+  });
 
   return card;
 }
 
-function buildCalHTML(months, today, calStart, end20, bookedDates) {
-  var html = '';
-  var DAYS = ['Su','Mo','Tu','We','Th','Fr','Sa'];
-  var MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-
-  months.forEach(function(monthStart){
-    var year = monthStart.getFullYear();
-    var month = monthStart.getMonth();
-    var daysInMonth = new Date(year, month+1, 0).getDate();
-    var firstDow = monthStart.getDay();
-
-    html += '<div class="chat-cal-month">' + MONTHS[month] + ' ' + year + '</div>';
-    html += '<div class="chat-cal-grid">';
-    DAYS.forEach(function(d){ html += '<div class="chat-cal-dow">'+d+'</div>'; });
-    for(var i=0;i<firstDow;i++) html += '<div class="chat-cal-day empty"></div>';
-    for(var day=1;day<=daysInMonth;day++){
-      var d = new Date(year,month,day);
-      d.setHours(0,0,0,0);
-      var isPast = d < calStart;
-      var isBeyond = d > end20;
-      var isBooked = bookedDates.has(d.toDateString());
-      var isToday = d.toDateString() === today.toDateString();
-      var dow = d.getDay(); // 0=Sun, 6=Sat
-      var isWeekend = (dow===0||dow===6);
-      var cls = 'chat-cal-day';
-      if(isPast||isBeyond||isWeekend) cls += ' past';
-      else if(isBooked) cls += ' booked';
-      else cls += ' available';
-      if(isToday) cls += ' today';
-      var dateStr = d.toISOString().split('T')[0];
-      html += '<div class="'+cls+'" data-date="'+dateStr+'">'+day+'</div>';
-    }
-    html += '</div>';
-  });
-  return html;
-}
-
-async function submitBooking(selectedDate, selectedTime) {
+async function submitBooking(value) {
   var name = document.getElementById('bk-name')?.value.trim() || '';
   var phone = document.getElementById('bk-phone')?.value.trim() || '';
   var email = document.getElementById('bk-email')?.value.trim() || '';
   var city = document.getElementById('bk-city')?.value || '';
   var btn = document.getElementById('bk-submit');
+  var err = document.getElementById('bk-err');
 
-  if(!name||!phone||!city||!selectedDate||!selectedTime) return;
+  if(!name||!phone||!city) return;
+  var chk = pcbCheck(name, phone, email);
+  if (chk.bad.length) {
+    if (err) err.textContent = chk.bad.indexOf('phone') !== -1 ? 'Please enter a 10 digit phone number.' : chk.bad.indexOf('email') !== -1 ? 'Please enter a valid email address.' : 'Please enter your name.';
+    return;
+  }
+  if (err) err.textContent = '';
 
   btn.disabled = true;
   btn.textContent = 'Booking...';
 
-  // Format date nicely
-  var d = new Date(selectedDate+'T12:00:00');
-  var DAYS_FULL = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
-  var MONTHS_FULL = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-  var dateLabel = DAYS_FULL[d.getDay()] + ', ' + MONTHS_FULL[d.getMonth()] + ' ' + d.getDate();
-
   var nm = name.split(/\s+/);
   try {
-    await fetch('https://proximity-agent-production.up.railway.app/webhook/lead', {
-      method: 'POST',
-      headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({
-        operator_id: 'proximity-care',
-        first_name: nm.shift()||'',
-        last_name: nm.join(' '),
-        phone: phone,
-        email: email,
-        city: city,
-        care_type_interest: intakeData.care_type||'',
-        care_needed_for: intakeData.care_for||'',
-        urgency: intakeData.urgency||'',
-        source: 'index_widget_calendar',
-        preferred_time: dateLabel + ' ' + selectedTime,
-        appointment_at: (function() {
-          var hr = selectedTime.indexOf('Morning') !== -1 ? 10 : selectedTime.indexOf('Afternoon') !== -1 ? 13 : 17;
-          return new Date(selectedDate + 'T' + String(hr).padStart(2,'0') + ':00:00-05:00').toISOString();
-        })()
-      })
-    });
-  } catch(e){ console.error('Webhook error:', e); }
+    await pcbSend({
+      operator_id: 'proximity-care',
+      lead_type: 'family',
+      first_name: nm.shift()||'',
+      last_name: nm.join(' '),
+      phone: phone,
+      email: email,
+      city: city,
+      care_type_interest: intakeData.care_type||'',
+      care_needed_for: intakeData.care_for||'',
+      urgency: intakeData.urgency||'',
+      source: 'index_widget_calendar'
+    }, value);
+  } catch(e){
+    console.error('Webhook error:', e);
+    btn.disabled = false;
+    btn.textContent = 'Book my call';
+    if (err) err.textContent = 'That did not go through. Try again, or call 647 382 8047.';
+    return;
+  }
 
   // Remove booking form
   var card = document.getElementById('chat-booking-card');
@@ -4572,7 +4594,8 @@ async function submitBooking(selectedDate, selectedTime) {
   else displayPhone = phone; // fallback to what they typed
 
   // Show confirmation message, no name to avoid "Lance. Lance will call..."
-  var confirmMsg = 'You\'re all set. We will call you ' + dateLabel + ' during ' + selectedTime.toLowerCase() + ' at ' + displayPhone + '. He does every initial call personally, expect a real conversation, not a sales pitch.';
+  var picked = value ? pcbSplit(value) : null;
+  var confirmMsg = "You're all set. " + (picked ? 'You picked ' + pcbDayLong(picked.iso) + ' at ' + picked.time + '. ' : '') + "Within 24 hours you'll get a call from us at " + displayPhone + ', sometimes sooner when a slot opens up. He does every initial call personally, expect a real conversation, not a sales pitch.';
   addCMsg('b', confirmMsg);
   chatHistory.push({role:'assistant', content: confirmMsg});
 
@@ -5004,120 +5027,317 @@ async function submitPlanForm() {
         notes: 'Built via care plan builder. ' + pkSummary()
       })
     });
+    if (!r.ok) throw new Error('lead ' + r.status);
     var d = await r.json();
     var leadId = d.lead_id || null;
     var firstName = name.split(' ')[0];
     if (leadId) {
-      await showSlotPicker(leadId, firstName, confirmEl, btn);
+      await showSlotPicker(leadId, firstName, confirmEl, !!email, phone);
     } else {
-      confirmEl.innerHTML = '<strong style="color:#fff;font-size:15px">You are all set, ' + firstName + '.</strong><br><br>We will call you at ' + phone + ' within 2 hours. He does every first call personally.<br><br><span style="color:#fff;font-size:11px">Your first 6 hours of care are free.</span>';
+      pcbBuilderDone(confirmEl, firstName, null, false, phone, 'He does every first call personally. Your first 6 hours of care are free.');
     }
   } catch(e) {
-    confirmEl.innerHTML = '<strong style="color:#fff;font-size:15px">You are all set.</strong><br><br>We will call you at ' + phone + ' within 2 hours.';
+    pcbBuilderRetry(confirmEl, btn);
   }
 }
 
 
-// ── IN-HOUSE SLOT PICKER, replaces Calendly ──────────────────────────────
-// Called after webhook/lead returns lead_id
-// Fetches /leads/call-slots, renders picker, POSTs /leads/book-call
+// PCBK1 CALL TIMES. One picker for the Book sheet, the chat and the builder.
+// Days and times come only from /leads/call-slots. Each day is named from the slot value, the date that
+// is actually booked, never from the server label: after 7 PM Toronto that label names the next day,
+// because the server clock is UTC. A day shows Full only when the server marks every time on it taken.
+var PCB_API = 'https://proximity-agent-production.up.railway.app';
+var PCB_LINE = "Within 24 hours you'll get a call from us, sometimes sooner when a slot opens up.";
+var PCB_WD = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+var PCB_MO = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+// A 10 digit number (a leading 1 is fine) shown as 416 555 0100 on one line; anything else as typed.
+function pcbFmt(phone) { var d = String(phone || '').replace(/\D/g, ''); if (d.length === 11 && d.charAt(0) === '1') d = d.slice(1); return d.length === 10 ? d.slice(0, 3) + '\u00a0' + d.slice(3, 6) + '\u00a0' + d.slice(6) : String(phone || ''); }
+function pcbLineAt(phone) { return "Within 24 hours you'll get a call from us at " + pcbFmt(phone) + ', sometimes sooner when a slot opens up.'; }
+function pcbParts(iso) { var p = iso.split('-'); var d = new Date(Date.UTC(+p[0], +p[1] - 1, +p[2])); return { wd: d.getUTCDay(), mo: d.getUTCMonth(), day: d.getUTCDate() }; }
+function pcbDayLong(iso) { var x = pcbParts(iso); return PCB_WD[x.wd] + ', ' + PCB_MO[x.mo] + ' ' + x.day; }
+// "2026-11-10_100PM" gives { iso: "2026-11-10", time: "1:00 PM", h: 13, min: 0 }; anything else gives null.
+function pcbSplit(value) {
+  var m = /^(\d{4}-\d{2}-\d{2})_(\d{1,2})(\d{2})(AM|PM)$/.exec(String(value || ''));
+  if (!m || +m[2] < 1 || +m[2] > 12 || +m[3] > 59) return null;
+  return { iso: m[1], time: (+m[2]) + ':' + m[3] + ' ' + m[4], h: (+m[2]) % 12 + (m[4] === 'PM' ? 12 : 0), min: +m[3] };
+}
+function pcbLoadSlots() {
+  return fetch(PCB_API + '/leads/call-slots').then(function (r) {
+    if (!r.ok) throw new Error('call slots ' + r.status);
+    return r.json();
+  }).then(function (d) {
+    var days = [], by = {};
+    (d && Array.isArray(d.slots) ? d.slots : []).forEach(function (s) {
+      var p = pcbSplit(s && s.value); if (!p) return;
+      if (!by[p.iso]) { by[p.iso] = { iso: p.iso, times: [] }; days.push(by[p.iso]); }
+      if (!by[p.iso].times.some(function (t) { return t.value === s.value; })) by[p.iso].times.push({ value: s.value, time: p.time, taken: s.taken === true, h: p.h * 60 + p.min });
+    });
+    days.sort(function (a, b) { return a.iso < b.iso ? -1 : a.iso > b.iso ? 1 : 0; });
+    days.forEach(function (x) { x.times.sort(function (a, b) { return a.h - b.h; }); x.full = x.times.every(function (t) { return t.taken; }); });
+    return days;
+  });
+}
+// The Toronto clock time of a slot as one instant, in EST or EDT, whichever that date is in.
+function pcbInstant(value) {
+  var p = pcbSplit(value); if (!p) return null;
+  var y = +p.iso.slice(0, 4), mo = +p.iso.slice(5, 7) - 1, d = +p.iso.slice(8, 10);
+  var f = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Toronto', hour: 'numeric', minute: 'numeric', hour12: false });
+  for (var off = 4; off <= 5; off++) {
+    var t = new Date(Date.UTC(y, mo, d, p.h + off, p.min)), hh = -1, mm = -1;
+    f.formatToParts(t).forEach(function (x) { if (x.type === 'hour') hh = +x.value % 24; if (x.type === 'minute') mm = +x.value; });
+    if (hh === p.h && mm === p.min) return t;
+  }
+  return new Date(Date.UTC(y, mo, d, p.h + 5, p.min));
+}
+// Draws Choose a day and Choose a time into root. onPick(value or null) runs on every change.
+function pcbPicker(root, days, onPick) {
+  var cur = { iso: null, value: null }, open = days.filter(function (d) { return !d.full; })[0];
+  cur.iso = open ? open.iso : null;
+  root.innerHTML = '<h3 class="pcb-ph" id="' + root.id + '-dl">Choose a day</h3><div class="pcb-days" role="group" aria-labelledby="' + root.id + '-dl"></div>' +
+    '<h3 class="pcb-ph" id="' + root.id + '-tl">Choose a time</h3><div class="pcb-times" role="group" aria-labelledby="' + root.id + '-tl"></div>';
+  var dEl = root.querySelector('.pcb-days'), tEl = root.querySelector('.pcb-times');
+  function draw() {
+    dEl.innerHTML = days.map(function (d) {
+      var x = pcbParts(d.iso), on = d.iso === cur.iso;
+      return '<button type="button" class="pcb-day' + (on ? ' on' : '') + (d.full ? ' full' : '') + '" data-iso="' + d.iso + '" aria-pressed="' + on + '"' + (d.full ? ' disabled' : '') +
+        ' aria-label="' + pcbDayLong(d.iso) + (d.full ? ', full' : '') + '"><small>' + PCB_WD[x.wd].slice(0, 3) + '</small><b>' + x.day + '</b><small>' + (d.full ? 'Full' : PCB_MO[x.mo].slice(0, 3)) + '</small></button>';
+    }).join('');
+    var day = days.filter(function (d) { return d.iso === cur.iso; })[0];
+    tEl.innerHTML = day ? day.times.map(function (t) {
+      var on = t.value === cur.value;
+      return '<button type="button" class="pcb-time' + (on ? ' on' : '') + '" data-value="' + t.value + '" aria-pressed="' + on + '"' + (t.taken ? ' disabled aria-label="' + t.time + ', taken"' : '') + '>' + t.time + '</button>';
+    }).join('') : '';
+  }
+  root.onclick = function (e) {
+    var b = e.target.closest ? e.target.closest('button') : null;
+    if (!b || b.disabled || !root.contains(b)) return;
+    var key;
+    if (b.getAttribute('data-iso')) { key = '[data-iso="' + b.getAttribute('data-iso') + '"]'; if (cur.iso !== b.getAttribute('data-iso')) { cur.iso = b.getAttribute('data-iso'); cur.value = null; } }
+    else if (b.getAttribute('data-value')) { key = '[data-value="' + b.getAttribute('data-value') + '"]'; cur.value = b.getAttribute('data-value'); }
+    else return;
+    draw();
+    var nb = root.querySelector(key); if (nb) nb.focus();
+    onPick(cur.value);
+  };
+  draw();
+  return {
+    get: function () { return cur.value; },
+    set: function (v) {
+      var p = pcbSplit(v), d = p ? days.filter(function (x) { return x.iso === p.iso; })[0] : null;
+      if (!d || !d.times.some(function (t) { return t.value === v && !t.taken; })) return false;
+      cur.iso = p.iso; cur.value = v; draw(); return true;
+    }
+  };
+}
+// Name, a 10 digit phone (a leading 1 is fine) and, when given, an email the server accepts.
+function pcbCheck(name, phone, email) {
+  var digits = phone.replace(/\D/g, ''); if (digits.length === 11 && digits.charAt(0) === '1') digits = digits.slice(1);
+  var bad = [];
+  if (!name) bad.push('name');
+  if (digits.length !== 10) bad.push('phone');
+  if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) bad.push('email');
+  return { bad: bad, phone: pcbFmt(phone) };
+}
+// Saves the lead (with the picked time on it), then books the time. Rejects only if the lead was not saved.
+function pcbSend(lead, value) {
+  var p = value ? pcbSplit(value) : null;
+  if (p) { lead.preferred_time = pcbDayLong(p.iso) + ' at ' + p.time; lead.appointment_at = pcbInstant(value).toISOString(); }
+  var post = function (path, body) { return fetch(PCB_API + path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }); };
+  return post('/webhook/lead', lead).then(function (r) {
+    if (!r.ok) throw new Error('lead ' + r.status);
+    return r.json();
+  }).then(function (d) {
+    var id = d && d.lead_id ? d.lead_id : null;
+    if (!id || !p) return { id: id, booked: false };
+    return post('/leads/book-call', { lead_id: id, slot: value, operator_id: 'proximity-care' })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (b) { return { id: id, booked: !!(b && b.success) }; }, function () { return { id: id, booked: false }; });
+  });
+}
+// A calendar file made on the visitor's own device. Nothing is sent anywhere.
+function pcbIcs(value, phone) {
+  var t = pcbInstant(value), e = new Date(t.getTime() + 15 * 60000);
+  var f = function (d) { return d.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, ''); };
+  return ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Proximity Care Services//proximitycares.ca//EN', 'CALSCALE:GREGORIAN', 'METHOD:PUBLISH',
+    'BEGIN:VEVENT', 'UID:' + f(t) + '.' + Math.random().toString(36).slice(2) + '@proximitycares.ca', 'DTSTAMP:' + f(new Date()), 'DTSTART:' + f(t), 'DTEND:' + f(e),
+    'SUMMARY:Call from Proximity Care Services', 'DESCRIPTION:We call you at ' + String(phone).replace(/\u00a0/g, ' ') + '. To change the time call 647 382 8047.', 'END:VEVENT', 'END:VCALENDAR'].join('\r\n') + '\r\n';
+}
 
-async function showSlotPicker(leadId, firstName, confirmEl, submitBtn) {
-  if (!confirmEl) return; // guard null
+// THE BOOK SHEET. Opened by any link marked data-book. A real dialog: focus moves in and comes back,
+// Tab stays inside, Escape, the X and a tap outside close it, the page behind does not scroll.
+(function pcbSheet() {
+  var ov = document.getElementById('pcb'); if (!ov) return;
+  var box = ov.querySelector('.pcb'), g = function (id) { return document.getElementById(id); };
+  var opener = null, picker = null, chosen = null, days = null, timer = null, done = false, ics = null;
+  function step(n) {
+    g('pcb-s1').hidden = n !== 1; g('pcb-s2').hidden = n !== 2; g('pcb-s3').hidden = n !== 3;
+    g('pcb-head').hidden = n === 3; g('pcb-sub').hidden = n !== 1; g('pcb-foot').hidden = n === 3;
+    g('pcb-prog2').className = n === 2 ? 'on' : '';
+    box.setAttribute('aria-labelledby', n === 3 ? 'pcb-done-h' : 'pcb-title');
+    box.scrollTop = 0;
+  }
+  function noTimes(msg) { days = []; chosen = null; picker = null; g('pcb-pick').innerHTML = '<p class="pcb-load">' + msg + '</p>'; }
+  function load() {
+    var pk = g('pcb-pick');
+    days = null; picker = null;
+    pk.innerHTML = '<p class="pcb-load" aria-live="polite">Loading the times</p>';
+    pcbLoadSlots().then(function (d) {
+      if (ov.hidden) return;
+      if (!d.length) { noTimes('The times did not load. Continue and leave your number.'); return; }
+      if (d.every(function (x) { return x.full; })) { noTimes('Every time on the list is taken right now. Continue and leave your number.'); return; }
+      days = d;
+      picker = pcbPicker(pk, d, function (v) { chosen = v; g('pcb-err1').textContent = ''; });
+      if (chosen && !picker.set(chosen)) chosen = null;
+    }, function () { if (!ov.hidden) noTimes('The times did not load. Continue and leave your number.'); });
+  }
+  function open(a) {
+    clearTimeout(timer);
+    opener = a || null;
+    if (done) {
+      done = false; chosen = null; ics = null; g('pcb-form').reset(); g('pcb-err2').textContent = '';
+      ['name', 'phone', 'email'].forEach(function (k) { g('pcb-' + k).removeAttribute('aria-invalid'); });
+    }
+    g('pcb-err1').textContent = '';
+    step(1);
+    ov.hidden = false;
+    document.documentElement.classList.add('pcb-lock');
+    void ov.offsetWidth;
+    ov.classList.add('pcb-on');
+    box.focus({ preventScroll: true });
+    load();
+  }
+  function close() {
+    if (ov.hidden || !ov.classList.contains('pcb-on')) return;
+    ov.classList.remove('pcb-on');
+    document.documentElement.classList.remove('pcb-lock');
+    timer = setTimeout(function () { ov.hidden = true; }, 260);
+    if (opener && document.contains(opener)) { try { opener.focus({ preventScroll: true }); } catch (x) {} }
+  }
+  g('pcb-next').addEventListener('click', function () {
+    var err = g('pcb-err1');
+    if (days === null) { err.textContent = 'The times are still loading.'; return; }
+    if (days.length && !chosen) {
+      err.textContent = 'Choose a time to continue.';
+      var t = g('pcb-pick').querySelector('.pcb-time:not(:disabled)'); if (t) t.focus();
+      return;
+    }
+    var p = chosen ? pcbSplit(chosen) : null;
+    g('pcb-sum').hidden = !p;
+    if (p) { g('pcb-sum-day').textContent = pcbDayLong(p.iso); g('pcb-sum-time').textContent = 'at ' + p.time; }
+    step(2);
+    g('pcb-name').focus();
+  });
+  g('pcb-change').addEventListener('click', function () {
+    step(1);
+    var b = g('pcb-pick').querySelector('.pcb-time.on') || g('pcb-pick').querySelector('.pcb-time:not(:disabled)'); if (b) b.focus();
+  });
+  g('pcb-form').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var name = g('pcb-name').value.trim(), phone = g('pcb-phone').value.trim(), email = g('pcb-email').value.trim();
+    var c = pcbCheck(name, phone, email), err = g('pcb-err2'), btn = g('pcb-book');
+    ['name', 'phone', 'email'].forEach(function (k) { g('pcb-' + k).setAttribute('aria-invalid', c.bad.indexOf(k) >= 0 ? 'true' : 'false'); });
+    if (c.bad.length) {
+      var words = { name: 'your name', phone: 'a 10 digit phone number', email: 'a valid email address' };
+      err.textContent = 'Please enter ' + c.bad.map(function (k) { return words[k]; }).join(' and ') + '.';
+      g('pcb-' + c.bad[0]).focus();
+      return;
+    }
+    if (btn.disabled) return;
+    err.textContent = '';
+    btn.disabled = true; btn.textContent = 'Booking...';
+    var nm = name.split(/\s+/), first = nm[0], value = chosen;
+    pcbSend({ operator_id: 'proximity-care', lead_type: 'family', first_name: nm.shift() || '', last_name: nm.join(' '), phone: phone, email: email, source: 'book_sheet' }, value).then(function (res) {
+      btn.disabled = false; btn.textContent = 'Book my call';
+      pcBooked = true;
+      var p = value ? pcbSplit(value) : null;
+      g('pcb-done-h').textContent = (p && res.booked ? 'You are booked, ' : 'Thanks, ') + first;
+      g('pcb-when').hidden = !p;
+      if (p) { g('pcb-when-day').textContent = pcbDayLong(p.iso); g('pcb-when-time').textContent = 'at ' + p.time; }
+      g('pcb-note').textContent = pcbLineAt(c.phone) + (email && res.booked ? ' A confirmation email is on its way.' : '');
+      ics = p ? [value, c.phone] : null;
+      g('pcb-ics').hidden = !ics;
+      done = true;
+      step(3);
+      g('pcb-done-h').focus();
+    }, function () {
+      btn.disabled = false; btn.textContent = 'Book my call';
+      err.textContent = 'That did not go through. Try again, or call 647 382 8047.';
+    });
+  });
+  g('pcb-done').addEventListener('click', close);
+  g('pcb-x').addEventListener('click', close);
+  g('pcb-ics').addEventListener('click', function () {
+    if (!ics) return;
+    var u = URL.createObjectURL(new Blob([pcbIcs(ics[0], ics[1])], { type: 'text/calendar;charset=utf-8' })), a = document.createElement('a');
+    a.href = u; a.download = 'proximity-care-call.ics'; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function () { URL.revokeObjectURL(u); }, 4000);
+  });
+  ov.addEventListener('click', function (e) { if (e.target === ov) close(); });
+  document.addEventListener('keydown', function (e) {
+    if (ov.hidden || !ov.classList.contains('pcb-on')) return;
+    if (e.key === 'Escape') { e.preventDefault(); close(); return; }
+    if (e.key !== 'Tab') return;
+    var f = [].slice.call(box.querySelectorAll('button,a[href],input')).filter(function (el) { return !el.disabled && el.offsetParent !== null; });
+    if (!f.length) return;
+    if (e.shiftKey && (document.activeElement === f[0] || document.activeElement === box)) { e.preventDefault(); f[f.length - 1].focus(); }
+    else if (!e.shiftKey && document.activeElement === f[f.length - 1]) { e.preventDefault(); f[0].focus(); }
+  });
+  document.addEventListener('click', function (e) {
+    var a = e.target.closest ? e.target.closest('a[data-book]') : null;
+    if (!a || e.defaultPrevented || e.button || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    e.preventDefault();
+    open(a);
+  });
+}());
+
+// THE BUILDER. After its form saves the lead, the same picker on the navy booking card.
+async function showSlotPicker(leadId, firstName, confirmEl, hasEmail, phone) {
+  if (!confirmEl) return;
   confirmEl.style.display = 'block';
-  confirmEl.innerHTML = '<div style="text-align:center;padding:20px;color:#fff;font-family:\'DM Mono\',monospace;font-size:12px;letter-spacing:1px;">LOADING AVAILABLE TIMES...</div>';
-
-  let slots = [];
-  try {
-    const r = await fetch('https://proximity-agent-production.up.railway.app/leads/call-slots');
-    const d = await r.json();
-    slots = d.slots || [];
-  } catch(e) {
-    confirmEl.innerHTML = '<strong style="color:#fff;">You\'re on the list, ' + firstName + '.</strong><br><br><span style="color:#fff;font-size:13px;">We will reach out within 2 hours to confirm a time.</span>';
-    return;
-  }
-
-  if (!slots.length) {
-    confirmEl.innerHTML = '<strong style="color:#fff;">You\'re booked, ' + firstName + '.</strong><br><br><span style="color:#fff;font-size:13px;">We will call you within 2 hours.</span>';
-    return;
-  }
-
-  // Group slots by date
-  const byDate = {};
-  slots.forEach(s => {
-    const date = s.label.split(' at ')[0];
-    if (!byDate[date]) byDate[date] = [];
-    byDate[date].push(s);
+  confirmEl.innerHTML = '<p class="pcb-bnote" aria-live="polite">Loading the times</p>';
+  var days = [];
+  try { days = await pcbLoadSlots(); } catch (e) { days = []; }
+  if (!days.length || days.every(function (d) { return d.full; })) { pcbBuilderDone(confirmEl, firstName, null, false, phone); return; }
+  confirmEl.innerHTML = '<strong class="pcb-bh">Pick a time for your call</strong><p class="pcb-bnote">' + PCB_LINE + '</p>' +
+    '<div class="pcb-pick pcb-dark pcb-small" id="pcb-bpick"></div><p class="pcb-err" id="pcb-berr" role="alert"></p>' +
+    '<button type="button" class="pcb-go" id="pcb-bgo">Book this time</button>';
+  var err = document.getElementById('pcb-berr');
+  var pk = pcbPicker(document.getElementById('pcb-bpick'), days, function () { err.textContent = ''; });
+  document.getElementById('pcb-bgo').addEventListener('click', async function () {
+    var v = pk.get(), btn = this;
+    if (!v) { err.textContent = 'Choose a time first.'; return; }
+    if (btn.disabled) return;
+    btn.disabled = true; btn.textContent = 'Booking...';
+    var ok = false;
+    try {
+      var r = await fetch(PCB_API + '/leads/book-call', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ lead_id: leadId, slot: v, operator_id: 'proximity-care' }) });
+      var b = r.ok ? await r.json() : null;
+      ok = !!(b && b.success);
+    } catch (e) { ok = false; }
+    if (!ok) { btn.disabled = false; btn.textContent = 'Book this time'; err.textContent = 'That did not go through. Try again, or call 647 382 8047.'; return; }
+    pcBooked = true;
+    pcbBuilderDone(confirmEl, firstName, v, hasEmail, phone);
   });
-
-  const dateKeys = Object.keys(byDate).slice(0, 5);
-
-  let html = '<div style="margin-bottom:14px;">'
-    + '<strong style="color:#fff;font-size:15px;">Pick a time for your call</strong>'
-    + '<p style="color:#fff;font-size:12px;margin:4px 0 0;font-family:\'DM Mono\',monospace;letter-spacing:.5px;">15 min · We call you</p>'
-    + '</div>';
-
-  dateKeys.forEach((date, di) => {
-    html += '<div style="margin-bottom:12px;">'
-      + '<div style="font-family:\'DM Mono\',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#fff;margin-bottom:6px;">' + date + '</div>'
-      + '<div style="display:flex;gap:8px;flex-wrap:wrap;">';
-    byDate[date].forEach(slot => {
-      const time = slot.label.split(' at ')[1] || slot.label;
-      html += '<button onclick="bookSlot(\'' + leadId + '\',\'' + slot.value + '\',\'' + firstName + '\',this)" '
-        + 'style="min-height:44px;padding:8px 16px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.15);'
-        + 'border-radius:8px;color:#fff;font-family:\'DM Mono\',monospace;font-size:12px;'
-        + 'cursor:pointer;transition:all .2s;touch-action:manipulation;"'
-        + ' onmouseover="this.style.background=\'rgba(61,138,122,0.2)\';this.style.borderColor=\'rgba(61,138,122,0.5)\'"'
-        + ' onmouseout="this.style.background=\'rgba(255,255,255,0.06)\';this.style.borderColor=\'rgba(255,255,255,0.15)\'">'
-        + time + '</button>';
-    });
-    html += '</div></div>';
-  });
-
-  confirmEl.innerHTML = html;
 }
-
-async function bookSlot(leadId, slotValue, firstName, btn) {
-  // Safely disable sibling slot buttons without crashing
-  try {
-    const wrap = btn.closest('.slot-picker');
-    if (wrap) { wrap.querySelectorAll('button').forEach(b => { b.disabled = true; }); }
-    else { btn.disabled = true; }
-  } catch(e) { try { btn.disabled = true; } catch(e2){} }
-  try { btn.textContent = 'Booking...'; btn.style.background = 'rgba(61,138,122,0.3)'; } catch(e){}
-
-  try {
-    const r = await fetch('https://proximity-agent-production.up.railway.app/leads/book-call', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ lead_id: leadId, slot: slotValue, operator_id: 'proximity-care' })
-    });
-    const d = await r.json();
-    const slotLabel = slotValue.replace(/_/g, ' ');
-    // Find container safely
-    let container = null;
-    try { container = btn.closest('.slot-picker'); } catch(e) {}
-    if (!container) {
-      let el = btn;
-      for (let i = 0; i < 6; i++) {
-        if (!el || !el.parentElement) break;
-        el = el.parentElement;
-        if (el.classList && el.classList.contains('slot-picker')) { container = el; break; }
-        if (el.id) { container = el; break; }
-      }
-    }
-    const target = container || (btn.parentElement ? btn.parentElement.parentElement || btn.parentElement : document.body);
-    if (target) target.innerHTML = '<strong style="color:#fff;font-size:15px;">You\'re booked, ' + firstName + '.</strong>'
-      + '<br><br><div style="background:rgba(61,138,122,0.15);border:1px solid rgba(61,138,122,0.3);border-radius:10px;padding:14px 16px;margin-top:4px;">'
-      + '<div style="font-family:\'DM Mono\',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:rgba(61,138,122,0.8);margin-bottom:6px;">CONFIRMED</div>'
-      + '<div style="color:#fff;font-size:14px;">' + slotLabel + '</div>'
-      + '<div style="color:#fff;font-size:12px;margin-top:4px;">We call you · check your email for confirmation</div>'
-      + '</div>';
-  } catch(e) {
-    try { btn.textContent = 'Error, try again'; btn.disabled = false; } catch(e2){}
-  }
+function pcbBuilderDone(el, firstName, value, hasEmail, phone, extra) {
+  var p = value ? pcbSplit(value) : null;
+  el.style.display = 'block';
+  el.innerHTML = '<strong class="pcb-bh"></strong>' + (p ? '<div class="pcb-bwhen"><b></b><span></span></div>' : '') + '<p class="pcb-bnote"></p>';
+  el.querySelector('.pcb-bh').textContent = (p ? "You're booked" : "You're all set") + (firstName ? ', ' + firstName : '') + '.';
+  if (p) { el.querySelector('.pcb-bwhen b').textContent = pcbDayLong(p.iso); el.querySelector('.pcb-bwhen span').textContent = 'at ' + p.time; }
+  el.querySelector('.pcb-bnote').textContent = (phone ? pcbLineAt(phone) : PCB_LINE) + (p && hasEmail ? ' A confirmation email is on its way.' : '') + (extra ? ' ' + extra : '');
 }
-// ── END SLOT PICKER ───────────────────────────────────────────────────────
+// The lead did not save (the server refused it or the network failed): bring the form back with a reason,
+// instead of telling the family they are all set.
+function pcbBuilderRetry(confirmEl, btn) {
+  if (confirmEl) { confirmEl.innerHTML = ''; confirmEl.style.display = 'none'; }
+  document.querySelectorAll('#plan-inline-form input').forEach(function (el) { el.style.display = 'block'; });
+  var fc = document.querySelector('#plan-inline-form div:first-child'); if (fc) fc.style.display = '';
+  if (btn) { btn.style.display = ''; btn.disabled = false; btn.textContent = 'Book My Assessment'; }
+  var er = document.getElementById('pf-error');
+  if (er) { er.textContent = 'That did not go through. Check your phone number and try again, or call 647 382 8047.'; er.classList.add('show'); }
+}
+// END PCBK1 CALL TIMES
 
 </script>
 <script>if("serviceWorker" in navigator){window.addEventListener("load",function(){navigator.serviceWorker.register("/sw.js").catch(function(){});});}</script>
