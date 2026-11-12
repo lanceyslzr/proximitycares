@@ -16,7 +16,7 @@
 <meta name="geo.placename" content="Mississauga, Ontario">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500&family=Space+Grotesk:wght@300;400;500;600;700&family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@300;400;500&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500&family=Space+Grotesk:wght@300;400;500;600;700&family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
 <link rel="manifest" href="/manifest.json">
 <link rel="icon" type="image/png" href="/favicon-32.png">
 <link rel="shortcut icon" href="/favicon.ico">
@@ -2549,7 +2549,7 @@ a:focus-visible,button:focus-visible,.btn:focus-visible,.btn-primary:focus-visib
   }
   @media(prefers-reduced-motion:reduce){.pcb-ov,.pcb{transition:none;}}
 </style>
-<script src="https://unpkg.com/lenis@1.1.14/dist/lenis.min.js"></script>
+<script defer src="https://unpkg.com/lenis@1.1.14/dist/lenis.min.js"></script>
   <meta property="og:title" content="Proximity Care Services: In Home Senior Care in Mississauga and Brampton">
   <meta property="og:description" content="Same PSW every visit. Real home care for families in Mississauga, Brampton, Caledon and Etobicoke. Your first 6 hours are free.">
   <meta property="og:url" content="https://proximitycares.ca">
@@ -4880,7 +4880,8 @@ showChips(CHIP_SETS.initial);
    ============================================================ */
 
 // LENIS SMOOTH SCROLL
-(function initLenis(){
+// PCPERF1. Lenis loads with defer, so it has run by the time the page has parsed; start it then, not as this line is read.
+document.addEventListener('DOMContentLoaded', function initLenis(){
   if(typeof Lenis==='undefined') return;
   document.documentElement.style.scrollBehavior='auto';
   var lenis=new Lenis({
@@ -4894,7 +4895,7 @@ showChips(CHIP_SETS.initial);
   });
   function raf(time){lenis.raf(time);requestAnimationFrame(raf);}
   requestAnimationFrame(raf);
-}());
+});
 
 // CUSTOM CURSOR
 (function initCursor(){
