@@ -5356,6 +5356,12 @@ function pcbIcs(value, phone) {
     e.preventDefault();
     open(a);
   });
+  // PCLNK1. Arriving at /#book (the careers page's Book Assessment links) opens the sheet; #book leaves the address so a
+  // refresh does not open it again.
+  if (location.hash === '#book') {
+    try { history.replaceState(null, '', location.pathname + location.search); } catch (x) {}
+    open(null);
+  }
 }());
 
 // THE BUILDER. After its form saves the lead, the same picker on the navy booking card.
