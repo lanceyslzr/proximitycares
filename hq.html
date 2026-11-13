@@ -17573,7 +17573,7 @@ async function startWatchdogScan() {
     document.head.appendChild(st);
   }
 
-  const counts = { ok: 0, warn: 0, crit: 0, total: 0 };
+  const counts = { ok: 0, warn: 0, crit: 0, skip: 0, total: 0 };
   let currentGroup = null;
   let groupEl = null;
 
@@ -17582,6 +17582,7 @@ async function startWatchdogScan() {
     warn: { bg: 'rgba(224,154,61,.08)',  border: 'rgba(224,154,61,.25)',  text: 'var(--gold,#e09a3d)',  icon: '⚠' },
     crit: { bg: 'rgba(224,85,85,.08)',   border: 'rgba(224,85,85,.25)',   text: 'var(--red,#e05555)',   icon: '✕' },
     info: { bg: 'rgba(106,172,240,.06)', border: 'rgba(106,172,240,.2)',  text: 'var(--blue2,#6aacf0)', icon: '·' },
+    skip: { bg: 'rgba(140,140,140,.06)', border: 'rgba(140,140,140,.2)',  text: 'var(--muted)',          icon: '○' },
   };
 
   function addResult(item) {
@@ -17612,10 +17613,11 @@ async function startWatchdogScan() {
   }
 
   try {
-    const res = await fetch(`${API}/system/run-tests`, {
+    // W1. The scan runs with this HQ session, for this session's agency. No PIN is held here.
+    const res = await hqFetch(`${API}/system/run-tests`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ pin: WATCHDOG_PIN, operator_id: currentOp })
+      body: JSON.stringify({})
     });
 
     if (!res.ok) {
@@ -17627,7 +17629,7 @@ async function startWatchdogScan() {
     const decoder = new TextDecoder();
     let   buf     = '';
     // Approximate total tests from scan handler (adjust if needed)
-    const TOTAL_TESTS = 85;
+    const TOTAL_TESTS = 136; // W1: 127 named probes and 9 in the cron loop, counted 2026-10-19; skipped probes are counted too
 
     while (true) {
       const { done, value } = await reader.read();
@@ -17657,11 +17659,12 @@ async function startWatchdogScan() {
           if (item.status === 'ok')   counts.ok++;
           if (item.status === 'warn') counts.warn++;
           if (item.status === 'crit') counts.crit++;
+          if (item.status === 'skip') counts.skip++;
 
           const pct = Math.min(99, Math.round((counts.total / TOTAL_TESTS) * 100));
           bar.style.width = pct + '%';
           statusLn.textContent = `${counts.total}/${TOTAL_TESTS} · ${item.group || ''}: ${item.name || ''}`;
-          badge.textContent = `${counts.ok}ok ${counts.warn}warn ${counts.crit}crit`;
+          badge.textContent = `${counts.ok}ok ${counts.warn}warn ${counts.crit}crit ${counts.skip}skip`;
 
           addResult(item);
         } catch {}
@@ -17675,13 +17678,15 @@ async function startWatchdogScan() {
     summary.style.background = hasCrit ? 'rgba(224,85,85,.08)' : allOk ? 'rgba(74,154,110,.08)' : 'rgba(224,154,61,.08)';
     summary.style.border = hasCrit ? '1px solid rgba(224,85,85,.25)' : allOk ? '1px solid rgba(74,154,110,.25)' : '1px solid rgba(224,154,61,.25)';
     summary.style.color = hasCrit ? 'var(--red,#e05555)' : allOk ? 'var(--teal2,#4a9a6e)' : 'var(--gold,#e09a3d)';
-    summary.textContent = hasCrit
+    // W1. Probes that did not run are counted and shown, so the summary never claims checks that did not run.
+    const skipped = counts.skip ? ` · ${counts.skip} not run, see the rows marked ○` : '';
+    summary.textContent = (hasCrit
       ? `${counts.crit} CRITICAL · ${counts.warn} warnings · ${counts.ok} passing`
       : allOk
-        ? `All ${counts.ok} checks passed`
-        : `${counts.warn} warnings · ${counts.ok} passing`;
+        ? `All ${counts.ok} checks that ran passed`
+        : `${counts.warn} warnings · ${counts.ok} passing`) + skipped;
 
-    badge.textContent = hasCrit ? `${counts.crit} CRIT` : allOk ? 'All clear' : `${counts.warn} warn`;
+    badge.textContent = hasCrit ? `${counts.crit} CRIT` : allOk ? (counts.skip ? `Clear, ${counts.skip} not run` : 'All clear') : `${counts.warn} warn`;
 
   } catch (err) {
     results.innerHTML = `<div style="padding:12px;background:rgba(224,85,85,.08);border:1px solid rgba(224,85,85,.25);border-radius:8px;font-family:var(--mono);font-size:12px;color:var(--red,#e05555);">Scan failed: ${escHtml(err.message)}</div>`;
@@ -17694,8 +17699,7 @@ async function startWatchdogScan() {
   }
 }
 
-// WATCHDOG_PIN from existing HQ constants, falls back to proximity-watchdog-2026
-const WATCHDOG_PIN = 'proximity-watchdog-2026';
+// W1. No watchdog PIN lives in this page; the scan uses the HQ session.
 
 
 // ── BUILD 1: PSW INVITE FLOW ──────────────────────────────────
