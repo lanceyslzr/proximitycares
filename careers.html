@@ -236,16 +236,22 @@ nav{position:fixed;top:0;left:0;right:0;z-index:200;height:60px;display:flex;ali
 /* MOBILE STICKY */
 .mobile-sticky{display:none;position:fixed;bottom:0;left:0;right:0;padding:12px 18px calc(12px + var(--safe-bottom));background:rgba(247,250,255,.97);border-top:1px solid var(--border);backdrop-filter:blur(12px);z-index:100;}
 .mobile-sticky a{display:block;background:var(--navy);color:#fff;text-align:center;padding:14px;font-size:11px;letter-spacing:2px;text-transform:uppercase;font-weight:600;border-radius:100px;}
+/* PCAPP1. The Apply bar steps away while any part of the form is on screen: it sat where the form's Continue button
+   is, and over the footer's last line at the end of the page. It slides back once the form is out of view. */
+.mobile-sticky{transition:transform .3s ease,visibility 0s;}
+.mobile-sticky.away{transform:translateY(100%);visibility:hidden;transition:transform .3s ease,visibility 0s .3s;}
 
 /* FOOTER */
 footer{background:var(--navy);padding:52px 48px;text-align:center;}
 .ft-logo{font-family:var(--serif);font-size:22px;color:#fff;font-weight:300;margin-bottom:6px;letter-spacing:1px;}
 .ft-logo em{color:var(--gold);font-style:italic;}
-.ft-sub{font-family:var(--mono);font-size:8.5px;letter-spacing:2.5px;text-transform:uppercase;color:rgba(255,255,255,.3);margin-bottom:20px;}
+/* PCAPP1. Text on the navy footer is white, as on the home page (PCNAV1): at 30, 40 and 20% white it measured 2.67,
+   3.72 and 1.89 to 1. The links are 44px tall to tap. */
+.ft-sub{font-family:var(--mono);font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:#fff;margin-bottom:20px;text-wrap:balance;}
 .ft-links{display:flex;justify-content:center;gap:24px;margin-bottom:20px;flex-wrap:wrap;}
-.ft-link{font-size:12px;color:rgba(255,255,255,.4);transition:color .2s;}
-.ft-link:hover{color:rgba(255,255,255,.7);}
-.ft-copy{font-size:11px;color:rgba(255,255,255,.2);}
+.ft-link{font-size:14px;color:#fff;min-height:44px;display:inline-flex;align-items:center;}
+.ft-link:hover{text-decoration:underline;text-underline-offset:4px;}
+.ft-copy{font-size:12px;color:#fff;}
 
 /* REVEAL */
 .reveal{opacity:0;transform:translateY(16px);transition:opacity .7s var(--ease),transform .7s var(--ease);}
@@ -597,6 +603,13 @@ function buildSummary(){
     (certs.length?'<div>Certs: '+certs.join(', ')+'</div>':'');
 }
 
+// PCAPP1. The phone Apply bar steps away while any part of the form is on screen and comes back away from it; after a
+// send it stays hidden (submitApplication sets display none).
+(function(){
+  var bar=document.querySelector('.mobile-sticky'),form=document.getElementById('apply');
+  if(!bar||!form||!('IntersectionObserver' in window))return;
+  new IntersectionObserver(function(en){bar.classList.toggle('away',en[0].isIntersecting);}).observe(form);
+}());
 async function submitApplication(){
   const btn=document.getElementById('f-submit');
   btn.disabled=true; btn.textContent='Submitting...';
