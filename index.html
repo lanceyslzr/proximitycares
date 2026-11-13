@@ -678,6 +678,11 @@ footer{background:var(--navy);padding:60px 48px 32px;border-top:1px solid rgba(2
 .chat-inp::placeholder{color:rgba(255,255,255,.2);}
 .chat-send{background:var(--blue);border:none;color:var(--white);font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .2s;flex-shrink:0;align-self:flex-end;width:44px;height:44px;min-width:44px;border-radius:50%;}
 .chat-send:hover{background:var(--blue2);}
+/* PCCHAT1. The calendar beside the message box: books a call at any point once the intake is done. */
+.chat-cal{background:transparent;border:1px solid rgba(255,255,255,.18);color:var(--white);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;align-self:flex-end;width:44px;height:44px;min-width:44px;border-radius:50%;touch-action:manipulation;transition:border-color .2s,background .2s;}
+.chat-cal:hover{border-color:var(--blue2);background:rgba(61,143,214,.12);}
+.chat-cal:focus-visible{outline:2px solid var(--blue2);outline-offset:2px;}
+.chat-cal[hidden]{display:none;}
 
 /* ── CHAT BOOKING FORM ── */
 .chat-booking-card{background:rgba(255,255,255,.04);border:1px solid rgba(61,143,214,.25);border-top:2px solid var(--blue);padding:16px;margin:4px 14px 8px;border-radius:8px;}
@@ -4015,6 +4020,7 @@ a:focus-visible,button:focus-visible,.btn:focus-visible,.btn-primary:focus-visib
   <div class="chat-chips" id="chat-chips"></div>
   <div class="chat-inp-wrap">
     <textarea class="chat-inp" id="cinp" placeholder="Type a message..." rows="1" onkeydown="chk(event)" oninput="crs(this)"></textarea>
+    <button type="button" class="chat-cal" id="chat-cal" hidden onclick="pcOpenBooking()" aria-label="Book a call" title="Book a call"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18M12 13.5v4M10 15.5h4"/></svg></button>
     <button class="chat-send" onclick="csend()"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg></button>
   </div>
 </div>
@@ -4420,7 +4426,7 @@ EXACT BOOKING TRIGGER:
 After the 3rd user answer, your reply must be EXACTLY this format and nothing else:
 
 <!--READY_FOR_BOOKING:{"care_for":"[who]","care_type":"[type]","urgency":"[when]"}-->
-Great. Let me pull up the next available spots so you can book directly with our team.
+Thanks, that helps. Would you like to book a free call now, or keep asking questions first?
 
 Replace [who], [type], [when] with whatever the user actually said. If they were vague on any of the 3, write your best guess based on context. Never leave them empty.
 
@@ -4448,6 +4454,45 @@ var intakeData = {};
 var chatConfig = { system: null }; // use object so reassignment works inside closures
 var bookingComplete = false; // set true after submitBooking so pickChips returns post_book
 
+/* PCCHAT1. After the intake the family chooses: book now, or keep asking. Keep asking (or any question typed after the
+   choice) switches the chat to answering questions with the same facts and shows the calendar beside the message box.
+   The booking card never closes the message box, so a question can always be asked. */
+var bookingOffered = false; // the book now or keep asking choice has been offered
+var qaMode = false;         // the family chose to keep asking
+function pcCal(on) { var b = document.getElementById('chat-cal'); if (b) b.hidden = !on; }
+function pcQASystem() {
+  return CHAT_SYSTEM.split('YOUR JOB IN THIS CHAT, READ CAREFULLY:')[0] + 'YOUR JOB NOW:\nThis family has finished the short intake and chose to keep asking questions before booking. Answer each question warmly and accurately from the facts above, in 2 to 3 sentences. Never ask another intake question. Never output a READY_FOR_BOOKING block. Do not pressure them to book; a calendar button beside the message box books a free call whenever they are ready. If they ask how to book, tell them to tap that calendar button or call 647-382-8047. End every reply with <!--CHIPS:none-->.';
+}
+function pcEnterQA() {
+  qaMode = true; bookingOffered = true;
+  chatConfig.system = pcQASystem();
+  pcCal(true);
+  var inp = document.getElementById('cinp'); if (inp) { inp.disabled = false; inp.placeholder = 'Ask anything...'; }
+}
+function pcOpenBooking() {
+  if (bookingComplete) return;
+  var msgsEl = document.getElementById('cmsgs');
+  var have = document.getElementById('chat-booking-card');
+  bookingOffered = true;
+  pcCal(true);
+  var w = document.getElementById('chat-chips'); w.innerHTML = ''; w.classList.add('hidden');
+  if (have) { msgsEl.scrollTop = have.offsetTop - 8; return; }
+  var form = buildBookingForm();
+  msgsEl.appendChild(form);
+  var overlay = document.getElementById('chat-overlay');
+  if (overlay) overlay.classList.add('booking-mode');
+  setTimeout(function(){ msgsEl.scrollTop = form.offsetTop - 8; }, 100);
+  var inp = document.getElementById('cinp'); if (inp) { inp.disabled = false; inp.placeholder = 'Ask a question while you book...'; }
+}
+function pcChoose(book) {
+  var said = book ? 'Book now' : 'Keep asking';
+  addCMsg('u', said); chatHistory.push({role:'user', content:said});
+  if (book) { pcOpenBooking(); return; }
+  pcEnterQA();
+  addCMsg('b', 'Of course, ask me anything. When you are ready, tap the calendar beside the message box to book a free call.'); chatHistory.push({role:'assistant', content:'Of course, ask me anything. When you are ready, tap the calendar beside the message box to book a free call.'});
+  var inp = document.getElementById('cinp'); if (inp) setTimeout(function(){ inp.focus(); }, 100);
+}
+
 var CHIP_SETS = {
   initial:   ['A parent','My spouse','Myself','Someone else'],
   care_type: ['Personal care & hygiene','Dementia care','Post-hospital recovery','Companionship','Overnight care'],
@@ -4462,6 +4507,7 @@ function countUserTurns() {
 
 function pickChips(botText) {
   if (bookingComplete) return CHIP_SETS.post_book;
+  if (qaMode || bookingOffered) return null; // PCCHAT1. Questions now; the calendar books.
   var userTurns = countUserTurns();
   if (userTurns >= 3) return null;
   // 1. Authoritative: the AI tags its own question so buttons always match what it asked.
@@ -4602,6 +4648,7 @@ async function submitBooking(value) {
   // Re-enable input so they can keep asking questions
   chatProcessing = false; // make sure not stuck
   bookingComplete = true; // switch pickChips to always return post_book chips
+  pcCal(false); // PCCHAT1. Booked: the calendar goes away.
   var inp = document.getElementById('cinp');
   if(inp) {
     inp.disabled = false;
@@ -4646,7 +4693,7 @@ function showChips(chips) {
   chips.forEach(function(c){
     var b = document.createElement('button');
     b.className = 'chat-chip'; b.textContent = c;
-    b.onclick = function(){ w.innerHTML=''; w.classList.add('hidden'); sendChat(c); };
+    b.onclick = function(){ w.innerHTML=''; w.classList.add('hidden'); if (bookingOffered && !bookingComplete && (c === 'Book now' || c === 'Keep asking')) { pcChoose(c === 'Book now'); return; } sendChat(c); };
     w.appendChild(b);
   });
   w.classList.remove('hidden');
@@ -4675,7 +4722,7 @@ async function sendChat(text) {
 
   // Hard failsafe: count user turns. After 3, force booking trigger if AI doesn't.
   var userTurns = chatHistory.filter(function(m){ return m.role === 'user'; }).length;
-  var shouldForceBooking = userTurns >= 3 && !bookingComplete;
+  var shouldForceBooking = userTurns >= 3 && !bookingComplete && !bookingOffered;
 
   // Detect explicit skip-ahead intent from user, use word boundaries to avoid false positives
   var lc = text.toLowerCase();
@@ -4689,6 +4736,8 @@ async function sendChat(text) {
     /\bjust (book|get) me\b/.test(lc) ||
     /\bget me booked\b/.test(lc)
   );
+  // PCCHAT1. A question typed after the choice means keep asking; asking to book opens the card.
+  if (bookingOffered && !qaMode && !bookingComplete && !userWantsToSkip) pcEnterQA();
 
   try {
     var response = await fetch('https://proximity-agent-production.up.railway.app/chat', {
@@ -4732,7 +4781,7 @@ async function sendChat(text) {
       if(!intakeData.urgency && fsMsgs[2]) intakeData.urgency = fsMsgs[2].slice(0,80);
       bookingMatch = ['forced','{}']; // truthy sentinel to trigger form below
       // Override the AI text with a clean handoff message
-      raw = "Got it. Let me pull up the next available spots so you can book directly with our team.";
+      raw = userWantsToSkip ? "Got it. Let me pull up the next available spots so you can book directly with our team." : "Thanks, that helps. Would you like to book a free call now, or keep asking questions first?";
     }
 
     setTimeout(function(){
@@ -4740,37 +4789,20 @@ async function sendChat(text) {
       addCMsg('b', display);
       chatHistory.push({role:'assistant', content:display});
 
-      if(bookingMatch && !bookingComplete) {
-        // Show booking form after short delay
-        setTimeout(function(){
-          var msgsEl = document.getElementById('cmsgs');
-          // Guard against duplicate forms if user somehow triggers twice
-          if (document.getElementById('chat-booking-card')) return;
-          var form = buildBookingForm();
-          msgsEl.appendChild(form);
-          // Expand chat overlay to give booking form more room
-          var overlay = document.getElementById('chat-overlay');
-          if (overlay) overlay.classList.add('booking-mode');
-          // Scroll the messages container itself (not the page) so form is visible at top
-          setTimeout(function(){
-            // Scroll container to show top of booking form
-            msgsEl.scrollTop = form.offsetTop - 8;
-          }, 100);
-          // Disable chat input while booking form is shown
-          var inp = document.getElementById('cinp');
-          if(inp) { inp.disabled=true; inp.placeholder='Fill in your details above to book'; }
-          document.getElementById('chat-chips').innerHTML='';
-          document.getElementById('chat-chips').classList.add('hidden');
-          // Now safe to release the processing lock, form is mounted, input is disabled
-          chatProcessing = false;
-        }, 600);
+      if(bookingMatch && !bookingComplete && userWantsToSkip) {
+        // PCCHAT1. They asked to book: open the card; the message box stays open.
+        setTimeout(function(){ pcOpenBooking(); chatProcessing = false; }, 600);
+      } else if(bookingMatch && !bookingComplete && !qaMode && !bookingOffered) {
+        // PCCHAT1. Intake done: offer book now or keep asking instead of forcing the card.
+        bookingOffered = true;
+        setTimeout(function(){ showChips(['Book now','Keep asking']); chatProcessing = false; }, 350);
       } else if (!bookingComplete) {
         var chips = pickChips(raw);
         // Always include "Book directly with Lance" chip from turn 2 onward
         // so users can skip ahead if they want
         if (chips && countUserTurns() >= 1) {
           chips = chips.concat(['Skip ahead and book']);
-        } else if (countUserTurns() >= 2 && !chips) {
+        } else if (countUserTurns() >= 2 && !chips && !bookingOffered) {
           chips = ['Skip ahead and book'];
         }
         setTimeout(function(){
