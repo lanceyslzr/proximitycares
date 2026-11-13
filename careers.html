@@ -204,6 +204,10 @@ nav{position:fixed;top:0;left:0;right:0;z-index:200;height:60px;display:flex;ali
 .ftextarea{resize:none;min-height:80px;}
 .fselect{appearance:none;background-image:url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%235a6a7a' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;padding-right:36px;}
 .finput.err,.fselect.err{border-color:#e05555;}
+/* PCFRM1. What is wrong, in words, under the field; the step heading takes focus without a ring. */
+.ferr{font-size:12px;line-height:1.4;color:#b3261e;margin:6px 0 0;}
+.ferr:empty{display:none;}
+.step-heading:focus{outline:none;}
 
 /* CHIPS */
 .chip-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:6px;}
@@ -367,18 +371,18 @@ footer{background:var(--navy);padding:52px 48px;text-align:center;}
         <h3 class="step-heading">About <em>you</em></h3>
         <p class="step-sub">Just the basics to get started.</p>
         <div class="frow">
-          <div><label class="flabel">First Name *</label><input class="finput" id="f-first" type="text" placeholder="First name" autocomplete="given-name"></div>
-          <div><label class="flabel">Last Name *</label><input class="finput" id="f-last" type="text" placeholder="Last name" autocomplete="family-name"></div>
+          <div><label class="flabel" for="f-first">First Name *</label><input class="finput" id="f-first" aria-describedby="err-f-first" type="text" placeholder="First name" autocomplete="given-name"><p class="ferr" id="err-f-first" aria-live="polite"></p></div>
+          <div><label class="flabel" for="f-last">Last Name *</label><input class="finput" id="f-last" aria-describedby="err-f-last" type="text" placeholder="Last name" autocomplete="family-name"><p class="ferr" id="err-f-last" aria-live="polite"></p></div>
         </div>
         <div class="frow">
-          <div><label class="flabel">Phone *</label><input class="finput" id="f-phone" type="tel" placeholder="647-000-0000" autocomplete="tel"></div>
-          <div><label class="flabel">Email</label><input class="finput" id="f-email" type="email" placeholder="your@email.com" autocomplete="email"></div>
+          <div><label class="flabel" for="f-phone">Phone *</label><input class="finput" id="f-phone" aria-describedby="err-f-phone" type="tel" placeholder="647-000-0000" autocomplete="tel"><p class="ferr" id="err-f-phone" aria-live="polite"></p></div>
+          <div><label class="flabel" for="f-email">Email</label><input class="finput" id="f-email" aria-describedby="err-f-email" type="email" placeholder="your@email.com" autocomplete="email"><p class="ferr" id="err-f-email" aria-live="polite"></p></div>
         </div>
         <div class="frow">
-          <div><label class="flabel">City</label><input class="finput" id="f-city" type="text" placeholder="Mississauga, Brampton, etc."></div>
-          <div><label class="flabel">Do you have a vehicle?</label><select class="fselect" id="f-vehicle"><option value="">Select...</option><option value="yes">Yes — driver license and vehicle</option><option value="license">Driver license, no vehicle</option><option value="no">No — transit only</option></select></div>
+          <div><label class="flabel" for="f-city">City</label><input class="finput" id="f-city" autocomplete="address-level2" type="text" placeholder="Mississauga, Brampton, etc."></div>
+          <div><label class="flabel" for="f-vehicle">Do you have a vehicle?</label><select class="fselect" id="f-vehicle"><option value="">Select...</option><option value="yes">Yes — driver license and vehicle</option><option value="license">Driver license, no vehicle</option><option value="no">No — transit only</option></select></div>
         </div>
-        <div class="fgroup"><label class="flabel">Languages you speak</label><input class="finput" id="f-languages" type="text" placeholder="English, Tagalog, Hindi, French, Punjabi, etc."></div>
+        <div class="fgroup"><label class="flabel" for="f-languages">Languages you speak</label><input class="finput" id="f-languages" type="text" placeholder="English, Tagalog, Hindi, French, Punjabi, etc."></div>
         <div class="form-nav"><button class="btn-next" onclick="nextStep(1)">Continue →</button></div>
       </div>
 
@@ -387,12 +391,12 @@ footer{background:var(--navy);padding:52px 48px;text-align:center;}
         <h3 class="step-heading">Your <em>experience</em></h3>
         <p class="step-sub">Tell us about your background in care work.</p>
         <div class="frow">
-          <div><label class="flabel">Years of PSW Experience *</label><select class="fselect" id="f-exp"><option value="">Select...</option><option>Less than 1 year</option><option>1 to 2 years</option><option>3 to 5 years</option><option>6 to 10 years</option><option>10 or more years</option></select></div>
-          <div><label class="flabel">Comfortable with transfers?</label><select class="fselect" id="f-transfers"><option value="">Select...</option><option value="yes">Yes — comfortable</option><option value="light">Light assistance only</option><option value="no">No</option></select></div>
+          <div><label class="flabel" for="f-exp">Years of PSW Experience *</label><select class="fselect" id="f-exp" aria-describedby="err-f-exp"><option value="">Select...</option><option>Less than 1 year</option><option>1 to 2 years</option><option>3 to 5 years</option><option>6 to 10 years</option><option>10 or more years</option></select><p class="ferr" id="err-f-exp" aria-live="polite"></p></div>
+          <div><label class="flabel" for="f-transfers">Comfortable with transfers?</label><select class="fselect" id="f-transfers"><option value="">Select...</option><option value="yes">Yes — comfortable</option><option value="light">Light assistance only</option><option value="no">No</option></select></div>
         </div>
         <div class="fgroup">
-          <label class="flabel">Care experience (select all that apply)</label>
-          <div class="chip-grid two-col" id="f-care-types">
+          <span class="flabel" id="lbl-f-care-types">Care experience (select all that apply)</span>
+          <div class="chip-grid two-col" id="f-care-types" role="group" aria-labelledby="lbl-f-care-types">
             <button type="button" class="sel-chip" data-val="Personal hygiene and grooming" onclick="toggleChip(this)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>Personal hygiene</button>
             <button type="button" class="sel-chip" data-val="Dementia and memory care" onclick="toggleChip(this)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3M12 17h.01"/><circle cx="12" cy="12" r="10"/></svg>Dementia care</button>
             <button type="button" class="sel-chip" data-val="Post-hospital recovery" onclick="toggleChip(this)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><path d="M22 4L12 14.01l-3-3"/></svg>Post-hospital</button>
@@ -402,8 +406,8 @@ footer{background:var(--navy);padding:52px 48px;text-align:center;}
           </div>
         </div>
         <div class="fgroup">
-          <label class="flabel">Certifications you have</label>
-          <div class="chip-grid two-col" id="f-certs">
+          <span class="flabel" id="lbl-f-certs">Certifications you have</span>
+          <div class="chip-grid two-col" id="f-certs" role="group" aria-labelledby="lbl-f-certs">
             <button type="button" class="sel-chip" data-val="PSW Certificate" onclick="toggleChip(this)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18M9 16l2 2 4-4"/></svg>PSW Certificate</button>
             <button type="button" class="sel-chip" data-val="Police Check" onclick="toggleChip(this)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>Police Check</button>
             <button type="button" class="sel-chip" data-val="CPR Certified" onclick="toggleChip(this)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>CPR Certified</button>
@@ -417,10 +421,10 @@ footer{background:var(--navy);padding:52px 48px;text-align:center;}
       <div class="form-step" id="step-3">
         <h3 class="step-heading">Your <em>availability</em></h3>
         <p class="step-sub">Be specific — this helps us find the right match for you.</p>
-        <div class="fgroup"><label class="flabel">Hours per week *</label><select class="fselect" id="f-hours"><option value="">Select...</option><option>Full time — 30 or more hours/week</option><option>Part time — 15 to 29 hours/week</option><option>Casual — under 15 hours/week</option></select></div>
+        <div class="fgroup"><label class="flabel" for="f-hours">Hours per week *</label><select class="fselect" id="f-hours" aria-describedby="err-f-hours"><option value="">Select...</option><option>Full time — 30 or more hours/week</option><option>Part time — 15 to 29 hours/week</option><option>Casual — under 15 hours/week</option></select><p class="ferr" id="err-f-hours" aria-live="polite"></p></div>
         <div class="fgroup">
-          <label class="flabel">Preferred days</label>
-          <div class="chip-grid four-col" id="f-days">
+          <span class="flabel" id="lbl-f-days">Preferred days</span>
+          <div class="chip-grid four-col" id="f-days" role="group" aria-labelledby="lbl-f-days">
             <button type="button" class="sel-chip" data-val="Monday" onclick="toggleChip(this)">Mon</button>
             <button type="button" class="sel-chip" data-val="Tuesday" onclick="toggleChip(this)">Tue</button>
             <button type="button" class="sel-chip" data-val="Wednesday" onclick="toggleChip(this)">Wed</button>
@@ -431,15 +435,15 @@ footer{background:var(--navy);padding:52px 48px;text-align:center;}
           </div>
         </div>
         <div class="fgroup">
-          <label class="flabel">Preferred shift times</label>
-          <div class="chip-grid two-col" id="f-shifts">
+          <span class="flabel" id="lbl-f-shifts">Preferred shift times</span>
+          <div class="chip-grid two-col" id="f-shifts" role="group" aria-labelledby="lbl-f-shifts">
             <button type="button" class="sel-chip" data-val="Morning 7am to 12pm" onclick="toggleChip(this)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>Morning 7am–12pm</button>
             <button type="button" class="sel-chip" data-val="Afternoon 12pm to 6pm" onclick="toggleChip(this)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>Afternoon 12–6pm</button>
             <button type="button" class="sel-chip" data-val="Evening 6pm to 10pm" onclick="toggleChip(this)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>Evening 6–10pm</button>
             <button type="button" class="sel-chip" data-val="Overnight 10pm to 7am" onclick="toggleChip(this)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M12 3a6 6 0 009 9 9 9 0 11-9-9z"/></svg>Overnight</button>
           </div>
         </div>
-        <div class="fgroup"><label class="flabel">How did you hear about us?</label><select class="fselect" id="f-heard"><option value="">Select...</option><option>Indeed</option><option>Facebook or Instagram</option><option>Google search</option><option>Friend or colleague</option><option>Other</option></select></div>
+        <div class="fgroup"><label class="flabel" for="f-heard">How did you hear about us?</label><select class="fselect" id="f-heard"><option value="">Select...</option><option>Indeed</option><option>Facebook or Instagram</option><option>Google search</option><option>Friend or colleague</option><option>Other</option></select></div>
         <div class="form-nav"><button class="btn-back" onclick="prevStep(3)">← Back</button><button class="btn-next" onclick="nextStep(3)">Continue →</button></div>
       </div>
 
@@ -447,8 +451,9 @@ footer{background:var(--navy);padding:52px 48px;text-align:center;}
       <div class="form-step" id="step-4">
         <h3 class="step-heading">Almost <em>done</em></h3>
         <p class="step-sub">One last thing before we reach out.</p>
-        <div class="fgroup"><label class="flabel">Anything else you want us to know (optional)</label><textarea class="ftextarea" id="f-msg" placeholder="Other languages, specific experience, questions for us, anything..."></textarea></div>
+        <div class="fgroup"><label class="flabel" for="f-msg">Anything else you want us to know (optional)</label><textarea class="ftextarea" id="f-msg" placeholder="Other languages, specific experience, questions for us, anything..."></textarea></div>
         <div id="f-summary" style="background:#fff;border:1px solid var(--border);padding:18px 20px;margin-bottom:8px;font-size:12px;color:var(--muted);line-height:1.9;"></div>
+        <p class="ferr" id="f-send-err" role="alert"></p>
         <div class="form-nav">
           <button class="btn-back" onclick="prevStep(4)">← Back</button>
           <button class="btn-next" id="f-submit" onclick="submitApplication()">Submit Application</button>
@@ -532,26 +537,45 @@ function setStep(n){
     if(ps){ps.classList.remove('active','done');if(i<n)ps.classList.add('done');if(i===n)ps.classList.add('active');}
   }
   const s=document.getElementById('step-'+n); if(s)s.classList.add('active');
+  const hd=s&&s.querySelector('.step-heading'); if(hd){hd.setAttribute('tabindex','-1');hd.focus({preventScroll:true});}
   currentStep=n;
   const apply=document.getElementById('apply');
   if(apply) window.scrollTo({top:apply.offsetTop-80,behavior:'smooth'});
 }
 
+// PCFRM1. Each checked field says what is wrong, in words, when the person leaves it or presses Continue, and the
+// message clears as soon as it is fixed. Same rules and words as the home page booking sheet (a 10 digit phone, a
+// leading 1 is fine; an email only when given).
+const FRM_RULES={
+  'f-first':v=>v?'':'Please enter your first name.',
+  'f-last':v=>v?'':'Please enter your last name.',
+  'f-phone':v=>{let d=v.replace(/\D/g,'');if(d.length===11&&d.charAt(0)==='1')d=d.slice(1);return d.length===10?'':'Please enter a 10 digit phone number.';},
+  'f-email':v=>!v||/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v)?'':'Please enter a valid email address.',
+  'f-exp':v=>v?'':'Please choose your years of experience.',
+  'f-hours':v=>v?'':'Please choose your hours per week.'
+};
+const FRM_STEPS={1:['f-first','f-last','f-phone','f-email'],2:['f-exp'],3:['f-hours']};
+function frmCheck(id){
+  const el=document.getElementById(id),msg=FRM_RULES[id](el.value.trim()),out=document.getElementById('err-'+id);
+  el.classList.toggle('err',!!msg); el.setAttribute('aria-invalid',msg?'true':'false'); if(out)out.textContent=msg;
+  return !msg;
+}
+Object.keys(FRM_RULES).forEach(id=>{
+  const el=document.getElementById(id); if(!el)return;
+  // Leaving a field with something in it checks it; an untouched empty field waits for Continue.
+  el.addEventListener('blur',()=>{if(el.value.trim()||el.classList.contains('err'))frmCheck(id);});
+  const fix=()=>{if(el.classList.contains('err'))frmCheck(id);};
+  el.addEventListener('input',fix); el.addEventListener('change',fix);
+});
+document.querySelectorAll('.sel-chip').forEach(c=>c.setAttribute('aria-pressed','false'));
 function nextStep(from){
-  if(from===1){
-    const fi=document.getElementById('f-first').value.trim(),la=document.getElementById('f-last').value.trim(),ph=document.getElementById('f-phone').value.trim();
-    let ok=true;
-    if(!fi){document.getElementById('f-first').classList.add('err');ok=false;}else document.getElementById('f-first').classList.remove('err');
-    if(!la){document.getElementById('f-last').classList.add('err');ok=false;}else document.getElementById('f-last').classList.remove('err');
-    if(!ph){document.getElementById('f-phone').classList.add('err');ok=false;}else document.getElementById('f-phone').classList.remove('err');
-    if(!ok)return;
-  }
-  if(from===2){const e=document.getElementById('f-exp');if(!e.value){e.classList.add('err');return;}e.classList.remove('err');}
-  if(from===3){const h=document.getElementById('f-hours');if(!h.value){h.classList.add('err');return;}h.classList.remove('err');buildSummary();}
+  const bad=(FRM_STEPS[from]||[]).filter(id=>!frmCheck(id));
+  if(bad.length){document.getElementById(bad[0]).focus();return;}
+  if(from===3)buildSummary();
   setStep(from+1);
 }
 function prevStep(from){setStep(from-1);}
-function toggleChip(el){el.classList.toggle('selected');}
+function toggleChip(el){el.classList.toggle('selected');el.setAttribute('aria-pressed',el.classList.contains('selected')?'true':'false');}
 function getChips(id){return[...document.querySelectorAll('#'+id+' .sel-chip.selected')].map(c=>c.dataset.val);}
 
 function buildSummary(){
@@ -576,6 +600,7 @@ function buildSummary(){
 async function submitApplication(){
   const btn=document.getElementById('f-submit');
   btn.disabled=true; btn.textContent='Submitting...';
+  const sendErr=document.getElementById('f-send-err'); if(sendErr)sendErr.textContent='';
   const careTypes=getChips('f-care-types');
   const certs=getChips('f-certs');
   const days=getChips('f-days');
@@ -592,7 +617,7 @@ async function submitApplication(){
     const apply=document.getElementById('apply');
     if(apply)window.scrollTo({top:apply.offsetTop-80,behavior:'smooth'});
   }catch(e){
-    alert('Something went wrong. Please call Lance at 647-382-8047 or try again.');
+    if(sendErr)sendErr.textContent='That did not go through. Try again, or call 647 382 8047.';
     btn.disabled=false; btn.textContent='Submit Application';
   }
 }
