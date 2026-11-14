@@ -4213,6 +4213,9 @@ if(howSec)howObs.observe(howSec);
 // PCPKG1. Packages from Lance's rate card. `plan` keeps the four fields the lead webhook reads
 // (careType, services, city, timing); `pk` holds the package choices that go into the lead's notes.
 const plan={careType:'Daily Living Support',services:['Personal Hygiene & Grooming','Meal Preparation','Medication Reminders','Companionship & Social Support'],city:'',timing:''};
+// PCPLAN1. Which of the page's presets the family changed (care type, services), and whether they used the
+// builder at all. pkLeadFields says how each reaches a lead.
+const pkPicked={care:false,svc:false,any:false};
 const pk={pkg:'',sixMode:'split',win:'',dayStart:7,nightStart:22,days:[false,false,false,false,false,false,false],extra:0,fullHours:8,rc:0,offer:''};
 const PK_CARE=[
   ['Daily Living Support','Meals, hygiene, companionship, medication reminders'],
@@ -4325,19 +4328,33 @@ function pkSummary(){
   bits.push('2 free hours: '+({added:'added',declined:'declined',shown:'checked, no answer'}[pk.offer]||'not checked'));
   return bits.join('. ')+'.';
 }
+// PCPLAN1. The builder's answers as lead fields. City and timing start empty, so they are always the family's own.
+// A care type the family never changed is marked as a preset. Services are not marked: the server writes
+// care_needed_for into the family's own follow up email, so they go there only when the family chose them, and
+// whether they were presets is said in the notes.
+function pkLeadFields(){
+  var f = {
+    city: plan.city || '',
+    care_type_interest: plan.careType ? plan.careType + (pkPicked.care ? '' : ' (preset)') : '',
+    urgency: plan.timing || 'not specified',
+    notes: 'Built via care plan builder. ' + pkSummary() + (pkPicked.svc ? '' : ' Services: the page presets, not changed.')
+  };
+  if (pkPicked.svc && plan.services.length) f.care_needed_for = plan.services.join(', ');
+  return f;
+}
 (function pkInit(){
   var root=document.getElementById('builder'); if(!root) return;
   root.addEventListener('click',function(e){
     var b=e.target.closest('button'); if(!b||!root.contains(b)) return;
     var a=function(n){return b.getAttribute(n);};
-    if(a('data-care')!==null)plan.careType=a('data-care');
+    if(a('data-care')!==null){plan.careType=a('data-care');pkPicked.care=true;}
     else if(a('data-pkg')!==null){if(pk.pkg!==a('data-pkg')){pk.pkg=a('data-pkg');pk.extra=0;}}
     else if(a('data-six')!==null)pk.sixMode=a('data-six');
     else if(a('data-win')!==null)pk.win=a('data-win');
     else if(a('data-start')!==null){var h=parseInt(a('data-start'),10);if(pk.pkg==='night')pk.nightStart=h;else pk.dayStart=h;}
     else if(a('data-rc')!==null)pk.rc=parseInt(a('data-rc'),10);
     else if(a('data-day')!==null){var i=parseInt(a('data-day'),10);pk.days[i]=!pk.days[i];}
-    else if(a('data-svc')!==null){var s=a('data-svc');plan.services=plan.services.indexOf(s)>-1?plan.services.filter(function(x){return x!==s;}):plan.services.concat([s]);}
+    else if(a('data-svc')!==null){var s=a('data-svc');plan.services=plan.services.indexOf(s)>-1?plan.services.filter(function(x){return x!==s;}):plan.services.concat([s]);pkPicked.svc=true;}
     else if(a('data-city')!==null)plan.city=a('data-city');
     else if(a('data-timing')!==null)plan.timing=a('data-timing');
     else if(b.id==='pk-minus'){if(pk.pkg==='full')pk.fullHours=Math.max(8,pk.fullHours-1);else pk.extra=Math.max(0,pk.extra-1);}
@@ -4345,6 +4362,7 @@ function pkSummary(){
     else if(b.id==='pk-offer-check')pk.offer='shown';
     else if(a('data-offer')!==null)pk.offer=a('data-offer');
     else return;
+    pkPicked.any=true;
     var keep=b.id||null;
     pkRender();
     // A re-render replaces the clicked button; keep keyboard focus on its replacement.
@@ -5063,14 +5081,14 @@ async function submitPlanForm() {
         phone: phone,
         email: email,
         city: plan.city || '',
-        care_type_interest: plan.careType || '',
+        care_type_interest: pkLeadFields().care_type_interest,
         care_needed_for: plan.services && plan.services.length ? plan.services.join(', ') : '',
         urgency: plan.timing || 'not specified',
         source: 'care_builder_cta',
         utm_source: pcbSource().utm_source,
         utm_medium: pcbSource().utm_medium,
         utm_campaign: pcbSource().utm_campaign,
-        notes: 'Built via care plan builder. ' + pkSummary()
+        notes: pkLeadFields().notes
       })
     });
     if (!r.ok) throw new Error('lead ' + r.status);
@@ -5324,7 +5342,10 @@ function pcbIcs(value, phone) {
     err.textContent = '';
     btn.disabled = true; btn.textContent = 'Booking...';
     var nm = name.split(/\s+/), first = nm[0], value = chosen;
-    pcbSend({ operator_id: 'proximity-care', lead_type: 'family', first_name: nm.shift() || '', last_name: nm.join(' '), phone: phone, email: email, source: 'book_sheet' }, value).then(function (res) {
+    var lead = { operator_id: 'proximity-care', lead_type: 'family', first_name: nm.shift() || '', last_name: nm.join(' '), phone: phone, email: email, source: 'book_sheet' };
+    // PCPLAN1. A family that used the builder brings its answers along; one that did not sends what the sheet always sent.
+    if (pkPicked.any) Object.assign(lead, pkLeadFields());
+    pcbSend(lead, value).then(function (res) {
       btn.disabled = false; btn.textContent = 'Book my call';
       pcBooked = true;
       var p = value ? pcbSplit(value) : null;
