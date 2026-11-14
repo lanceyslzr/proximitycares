@@ -2378,9 +2378,12 @@ a:focus-visible,button:focus-visible,.btn:focus-visible,.btn-primary:focus-visib
 
   /* PCPKG1. The package builder, one centred column like every other section. The booking card is
      navy, so the call slot picker (white text, drawn into #pf-confirm) reads on it. */
-  .builder-section .pk-steps{list-style:none;display:flex;flex-wrap:wrap;justify-content:center;gap:8px 22px;margin:0 0 36px;font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);}
-  .builder-section .pk-steps li{display:flex;align-items:center;gap:8px;}
-  .builder-section .pk-steps li::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--blue);}
+  /* PCSTEP1. The five steps are one numbered row joined by a line, as on the careers form: loose dots wrapped to two
+     rows on phones (320 to 430) and read in no clear order. The line runs from the first circle's centre to the last. */
+  .builder-section .pk-steps{list-style:none;display:flex;justify-content:space-between;position:relative;max-width:520px;margin:0 auto 36px;padding:0;font-size:12px;letter-spacing:.3px;color:var(--muted);counter-reset:pk;}
+  .builder-section .pk-steps::before{content:"";position:absolute;top:13px;left:10%;right:10%;height:2px;background:var(--blue);opacity:.35;}
+  .builder-section .pk-steps li{flex:1 1 0;min-width:0;display:flex;flex-direction:column;align-items:center;gap:8px;position:relative;z-index:1;text-align:center;counter-increment:pk;}
+  .builder-section .pk-steps li::before{content:counter(pk);width:28px;height:28px;border-radius:50%;background:var(--blue);color:#fff;font-size:12px;font-weight:600;display:flex;align-items:center;justify-content:center;}
   .builder-section .pk-col{max-width:820px;margin:0 auto;display:flex;flex-direction:column;gap:20px;}
   .builder-section .pk-card{background:var(--white);border:1px solid var(--border);border-radius:8px;padding:28px;text-align:center;display:flex;flex-direction:column;gap:18px;}
   .builder-section .pk-step{font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--blue3);}
