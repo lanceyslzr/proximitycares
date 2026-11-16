@@ -64,7 +64,7 @@
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Jost:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://unpkg.com/lenis@1.1.14/dist/lenis.min.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
@@ -76,7 +76,7 @@
   --border:#d0e4f5;--border2:#b8d4ee;
   --gold:#b87010;--green:#1a6b5a;
   --serif:'Cormorant Garamond',serif;
-  --sans:'Jost',sans-serif;
+  --sans:'DM Sans',sans-serif;
   --mono:'DM Mono',monospace;
   --ease:cubic-bezier(.16,1,.3,1);
   --safe-bottom:env(safe-area-inset-bottom,0px);
@@ -147,8 +147,6 @@ nav{position:fixed;top:0;left:0;right:0;z-index:200;height:60px;display:flex;ali
 /* SECTIONS */
 .section{padding:88px 48px;}
 .section-inner{max-width:1200px;margin:0 auto;}
-.sec-eyebrow{font-family:var(--mono);font-size:9px;letter-spacing:4px;text-transform:uppercase;color:var(--gold);margin-bottom:16px;display:flex;align-items:center;gap:12px;}
-.sec-eyebrow::before{content:'';width:20px;height:1px;background:var(--gold);}
 .sec-h2{font-family:var(--serif);font-size:clamp(34px,4vw,52px);color:var(--navy);font-weight:300;line-height:1.0;margin-bottom:14px;}
 .sec-h2 em{font-style:italic;}
 .sec-sub{font-size:14px;color:var(--muted);line-height:1.8;max-width:500px;margin-bottom:52px;font-weight:300;}
@@ -264,6 +262,31 @@ footer{background:var(--navy);padding:52px 48px;text-align:center;}
 @media(max-width:480px){.hero-h1{font-size:34px;}.chip-grid,.chip-grid.four-col,.chip-grid.two-col{grid-template-columns:1fr 1fr;}.ps-label{display:none;}}
 @media(max-width:390px){#hero{padding:76px 16px 48px;}.section{padding:48px 16px;}.form-wrap{padding:48px 16px;}.hero-h1{font-size:30px;}}
 @media(hover:none){body{cursor:auto;}a,button{cursor:auto;}}
+
+/* PCTYP1. The type, in one place, as on proximitysystems.ca (PSTYP1) and the home page. Headlines in Cormorant
+   Garamond, text in DM Sans, mono only for numbers. Words that were set in capitals with wide spacing read as written.
+   One italic line, the hero's; the logo keeps its own. Form labels 14px, nothing else under 12px. Text that read
+   under 4.5 to 1 takes a darker shade of its own colour: gold #9a5d0c reads 4.7 to 5.3 to 1 on these grounds, grey
+   --muted 4.9 to 5.6, blue #2a6aa8 5.4 to 5.6, white at 70% 8.6 on the navy. The faint 01 to 04 and the quote mark
+   are decoration. Boxes rounded on the home page's scale: the hero card and the two tile grids 16px on the outside,
+   their tiles still joined by the hairlines; small items and fields 8px. Buttons keep their shape here; they get
+   their own drop. This block sits after every media block so it holds at every width. */
+.nav-link,.nav-cta,.hero-tag,.btn-primary,.btn-ghost,.hc-badge,.hc-stat-l,.quote-attr,.ps-label,.flabel,.btn-next,
+.btn-back,.mobile-sticky a,.ft-sub{
+  font-family:var(--sans)!important; text-transform:none!important; letter-spacing:normal!important; }
+.flabel{ font-size:14px!important; }
+.nav-cta,.hero-tag,.btn-primary,.btn-ghost,.hc-badge,.hc-stat-l,.quote-attr,.ps-label,.ps-dot,.mobile-sticky a,.ft-sub{
+  font-size:12px!important; }
+.hero-tag{ color:#9a5d0c!important; }
+.hc-stat-l,.progress-step:not(.done):not(.active) .ps-label,.progress-step:not(.done):not(.active) .ps-dot{
+  color:var(--muted)!important; }
+.progress-step.active .ps-dot{ color:#2a6aa8!important; }
+.quote-attr{ color:rgba(255,255,255,.7)!important; }
+h2 em,h3 em,.quote-text{ font-style:normal!important; }
+body *{ font-variant-numeric:lining-nums; }
+h1,h2,h3{ text-wrap:balance; }
+.hero-card,.offer-grid,.steps-grid{ border-radius:16px!important; overflow:hidden; }
+.hc-item,.hc-badge,.finput,.fselect,.ftextarea,#f-summary{ border-radius:8px!important; }
 </style>
 </head>
 <body>
@@ -291,13 +314,13 @@ footer{background:var(--navy);padding:52px 48px;text-align:center;}
       <h1 class="hero-h1">Do work that<br><em>actually matters.</em></h1>
       <p class="hero-sub">We are looking for PSWs who take care seriously. Same client every visit. Real relationships. A team built by someone who started as a PSW.</p>
       <div class="hero-btns">
-        <a href="#apply" class="btn-primary">Apply Now — 3 Minutes</a>
+        <a href="#apply" class="btn-primary">Apply in 3 minutes</a>
         <a href="#what-we-offer" class="btn-ghost">What We Offer</a>
       </div>
       <div class="hero-trust">
-        <div class="hero-trust-item"><div class="ht-dot"></div>Same client every visit — no rotating strangers</div>
+        <div class="hero-trust-item"><div class="ht-dot"></div>Same client every visit, no rotating strangers</div>
         <div class="hero-trust-item"><div class="ht-dot"></div>Competitive pay, paid on time, every time</div>
-        <div class="hero-trust-item"><div class="ht-dot"></div>Founded by a PSW — we understand the work</div>
+        <div class="hero-trust-item"><div class="ht-dot"></div>Founded by a PSW, so we understand the work</div>
         <div class="hero-trust-item"><div class="ht-dot"></div>Mississauga, Brampton, Caledon only</div>
       </div>
     </div>
@@ -321,7 +344,6 @@ footer{background:var(--navy);padding:52px 48px;text-align:center;}
 
 <section class="section" id="what-we-offer">
   <div class="section-inner">
-    <div class="sec-eyebrow reveal">What You Get</div>
     <h2 class="sec-h2 reveal">A place worth <em>staying.</em></h2>
     <p class="sec-sub reveal">We built this agency on one idea: if you take care of your PSWs, they take care of your clients.</p>
     <div class="offer-grid reveal">
@@ -345,13 +367,12 @@ footer{background:var(--navy);padding:52px 48px;text-align:center;}
 
 <section class="section" style="background:#fff;">
   <div class="section-inner">
-    <div class="sec-eyebrow reveal">The Process</div>
     <h2 class="sec-h2 reveal">From application to <em>first shift.</em></h2>
     <div class="steps-grid reveal">
       <div class="step-card"><div class="step-num">01</div><div><div class="step-title">Apply in 3 minutes</div><div class="step-desc">Tell us about your experience and availability. No resume required.</div></div></div>
       <div class="step-card"><div class="step-num">02</div><div><div class="step-title">We review and reach out</div><div class="step-desc">If your experience matches we reach out within 2 to 3 business days to schedule a call.</div></div></div>
       <div class="step-card"><div class="step-num">03</div><div><div class="step-title">15-minute phone interview</div><div class="step-desc">With Lance personally. Have your PSW certificate, police check, CPR, and two references ready.</div></div></div>
-      <div class="step-card"><div class="step-num">04</div><div><div class="step-title">Onboarding and first shift</div><div class="step-desc">We walk you through the visit app and you are on your first shift — usually within a week.</div></div></div>
+      <div class="step-card"><div class="step-num">04</div><div><div class="step-title">Onboarding and first shift</div><div class="step-desc">We walk you through the visit app and you are on your first shift, usually within a week.</div></div></div>
     </div>
   </div>
 </section>
@@ -360,7 +381,6 @@ footer{background:var(--navy);padding:52px 48px;text-align:center;}
 
 <div class="form-section" id="apply">
   <div class="form-wrap">
-    <div class="sec-eyebrow">Apply Now</div>
     <h2 class="sec-h2" style="margin-bottom:8px;">Tell us about <em>yourself.</em></h2>
     <p style="font-size:13px;color:var(--muted);margin-bottom:40px;font-weight:300;line-height:1.7;">4 quick steps. About 3 minutes. We read every application personally.</p>
 
@@ -386,7 +406,7 @@ footer{background:var(--navy);padding:52px 48px;text-align:center;}
         </div>
         <div class="frow">
           <div><label class="flabel" for="f-city">City</label><input class="finput" id="f-city" autocomplete="address-level2" type="text" placeholder="Mississauga, Brampton, etc."></div>
-          <div><label class="flabel" for="f-vehicle">Do you have a vehicle?</label><select class="fselect" id="f-vehicle"><option value="">Select...</option><option value="yes">Yes — driver license and vehicle</option><option value="license">Driver license, no vehicle</option><option value="no">No — transit only</option></select></div>
+          <div><label class="flabel" for="f-vehicle">Do you have a vehicle?</label><select class="fselect" id="f-vehicle"><option value="">Select...</option><option value="yes">Yes, driver license and vehicle</option><option value="license">Driver license, no vehicle</option><option value="no">No, transit only</option></select></div>
         </div>
         <div class="fgroup"><label class="flabel" for="f-languages">Languages you speak</label><input class="finput" id="f-languages" type="text" placeholder="English, Tagalog, Hindi, French, Punjabi, etc."></div>
         <div class="form-nav"><button class="btn-next" onclick="nextStep(1)">Continue →</button></div>
@@ -398,7 +418,7 @@ footer{background:var(--navy);padding:52px 48px;text-align:center;}
         <p class="step-sub">Tell us about your background in care work.</p>
         <div class="frow">
           <div><label class="flabel" for="f-exp">Years of PSW Experience *</label><select class="fselect" id="f-exp" aria-describedby="err-f-exp"><option value="">Select...</option><option>Less than 1 year</option><option>1 to 2 years</option><option>3 to 5 years</option><option>6 to 10 years</option><option>10 or more years</option></select><p class="ferr" id="err-f-exp" aria-live="polite"></p></div>
-          <div><label class="flabel" for="f-transfers">Comfortable with transfers?</label><select class="fselect" id="f-transfers"><option value="">Select...</option><option value="yes">Yes — comfortable</option><option value="light">Light assistance only</option><option value="no">No</option></select></div>
+          <div><label class="flabel" for="f-transfers">Comfortable with transfers?</label><select class="fselect" id="f-transfers"><option value="">Select...</option><option value="yes">Yes, comfortable</option><option value="light">Light assistance only</option><option value="no">No</option></select></div>
         </div>
         <div class="fgroup">
           <span class="flabel" id="lbl-f-care-types">Care experience (select all that apply)</span>
@@ -426,8 +446,8 @@ footer{background:var(--navy);padding:52px 48px;text-align:center;}
       <!-- STEP 3 -->
       <div class="form-step" id="step-3">
         <h3 class="step-heading">Your <em>availability</em></h3>
-        <p class="step-sub">Be specific — this helps us find the right match for you.</p>
-        <div class="fgroup"><label class="flabel" for="f-hours">Hours per week *</label><select class="fselect" id="f-hours" aria-describedby="err-f-hours"><option value="">Select...</option><option>Full time — 30 or more hours/week</option><option>Part time — 15 to 29 hours/week</option><option>Casual — under 15 hours/week</option></select><p class="ferr" id="err-f-hours" aria-live="polite"></p></div>
+        <p class="step-sub">Be specific. This helps us find the right match for you.</p>
+        <div class="fgroup"><label class="flabel" for="f-hours">Hours per week *</label><select class="fselect" id="f-hours" aria-describedby="err-f-hours"><option value="">Select...</option><option>Full time, 30 or more hours a week</option><option>Part time, 15 to 29 hours a week</option><option>Casual, under 15 hours a week</option></select><p class="ferr" id="err-f-hours" aria-live="polite"></p></div>
         <div class="fgroup">
           <span class="flabel" id="lbl-f-days">Preferred days</span>
           <div class="chip-grid four-col" id="f-days" role="group" aria-labelledby="lbl-f-days">
@@ -443,9 +463,9 @@ footer{background:var(--navy);padding:52px 48px;text-align:center;}
         <div class="fgroup">
           <span class="flabel" id="lbl-f-shifts">Preferred shift times</span>
           <div class="chip-grid two-col" id="f-shifts" role="group" aria-labelledby="lbl-f-shifts">
-            <button type="button" class="sel-chip" data-val="Morning 7am to 12pm" onclick="toggleChip(this)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>Morning 7am–12pm</button>
-            <button type="button" class="sel-chip" data-val="Afternoon 12pm to 6pm" onclick="toggleChip(this)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>Afternoon 12–6pm</button>
-            <button type="button" class="sel-chip" data-val="Evening 6pm to 10pm" onclick="toggleChip(this)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>Evening 6–10pm</button>
+            <button type="button" class="sel-chip" data-val="Morning 7am to 12pm" onclick="toggleChip(this)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>Morning 7am to 12pm</button>
+            <button type="button" class="sel-chip" data-val="Afternoon 12pm to 6pm" onclick="toggleChip(this)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>Afternoon 12pm to 6pm</button>
+            <button type="button" class="sel-chip" data-val="Evening 6pm to 10pm" onclick="toggleChip(this)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>Evening 6pm to 10pm</button>
             <button type="button" class="sel-chip" data-val="Overnight 10pm to 7am" onclick="toggleChip(this)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M12 3a6 6 0 009 9 9 9 0 11-9-9z"/></svg>Overnight</button>
           </div>
         </div>
@@ -464,7 +484,7 @@ footer{background:var(--navy);padding:52px 48px;text-align:center;}
           <button class="btn-back" onclick="prevStep(4)">← Back</button>
           <button class="btn-next" id="f-submit" onclick="submitApplication()">Submit Application</button>
         </div>
-        <p style="font-family:var(--mono);font-size:8.5px;letter-spacing:1px;color:var(--muted2);text-align:center;margin-top:12px;text-transform:uppercase;">We respond within 2 to 3 business days · 647-382-8047</p>
+        <p style="font-family:var(--sans);font-size:12px;color:var(--muted);text-align:center;margin-top:12px;">We respond within 2 to 3 business days · 647-382-8047</p>
       </div>
     </div>
 
@@ -476,7 +496,7 @@ footer{background:var(--navy);padding:52px 48px;text-align:center;}
   </div>
 </div>
 
-<div class="mobile-sticky"><a href="#apply">Apply Now — 3 Minutes</a></div>
+<div class="mobile-sticky"><a href="#apply">Apply in 3 minutes</a></div>
 
 <footer>
   <div class="ft-logo">Proximity <em>Care</em></div>
@@ -595,7 +615,7 @@ function buildSummary(){
   const certs=getChips('f-certs');
   const el=document.getElementById('f-summary');
   if(!el)return;
-  el.innerHTML='<div style="font-family:var(--mono);font-size:8.5px;letter-spacing:2px;text-transform:uppercase;color:var(--muted2);margin-bottom:10px;">Application summary</div>'+
+  el.innerHTML='<div style="font-family:var(--sans);font-size:12px;color:var(--muted);margin-bottom:10px;">Application summary</div>'+
     '<div><strong style="color:var(--text)">'+first+'</strong> · '+phone+(city?' · '+city:'')+'</div>'+
     '<div>'+exp+(hours?' · '+hours:'')+'</div>'+
     (days.length?'<div>Days: '+days.join(', ')+'</div>':'')+
