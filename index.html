@@ -727,21 +727,11 @@ body::after{content:'';position:fixed;inset:0;background-image:url("data:image/s
 .pc-cursor-ring{position:fixed;width:30px;height:30px;border:1px solid rgba(143,184,195,0.3);border-radius:50%;pointer-events:none;z-index:9998;transform:translate(-50%,-50%);transition:width 0.25s ease,height 0.25s ease,border-color 0.25s ease}
 .pc-cursor-ring.hover{width:44px;height:44px;border-color:var(--blue2)}
 
-/* ASYMMETRIC CUT, clip-path on all CTAs */
-.btn-primary{clip-path:polygon(0 0,100% 0,100% calc(100% - 10px),calc(100% - 10px) 100%,0 100%);border-radius:0!important;transition:background 0.2s,clip-path 0.2s,transform 0.15s!important}
-.btn-primary:hover{clip-path:polygon(0 0,100% 0,100% calc(100% - 14px),calc(100% - 14px) 100%,0 100%);transform:translateY(-2px)}
-.btn-secondary{clip-path:polygon(0 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%);border-radius:0!important;transition:background 0.2s,clip-path 0.2s!important}
-.btn-secondary:hover{clip-path:polygon(0 0,100% 0,100% calc(100% - 11px),calc(100% - 11px) 100%,0 100%)}
-.plan-cta{clip-path:polygon(0 0,100% 0,100% calc(100% - 10px),calc(100% - 10px) 100%,0 100%);border-radius:0!important;transition:background 0.2s,clip-path 0.2s!important}
-.plan-cta:hover{clip-path:polygon(0 0,100% 0,100% calc(100% - 14px),calc(100% - 14px) 100%,0 100%)}
-.step-next{clip-path:polygon(0 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%);border-radius:0!important;transition:background 0.2s,clip-path 0.2s!important}
-.step-next:hover{clip-path:polygon(0 0,100% 0,100% calc(100% - 11px),calc(100% - 11px) 100%,0 100%)}
 /* PCTAP1. The phone Book Assessment bar. Its base rules were deleted on 2026 05 03, leaving a plain text link
    under the footer on every width. Shown by the 900px block; hidden by the script while the hero buttons show. */
 #mobile-sticky-cta{display:none;position:fixed;left:0;right:0;bottom:0;z-index:490;padding:12px 16px max(12px,env(safe-area-inset-bottom));background:rgba(19,24,28,.96);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);border-top:1px solid rgba(255,255,255,.08)}
 #mobile-sticky-btn{display:flex;align-items:center;justify-content:center;width:100%;min-height:48px;padding:0 16px;background:var(--blue);color:var(--white);font-size:12px;letter-spacing:2px;text-transform:uppercase;font-weight:600;text-decoration:none;touch-action:manipulation}
 #mobile-sticky-btn:active{background:var(--blue2)}
-#mobile-sticky-btn{clip-path:polygon(0 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%);border-radius:0!important}
 
 /* ═══ PASS 1 PREMIUM LAYER (Systems) ═══ */
 .live-feed-inner,.about-grid,.map-inner{ grid-template-columns:1fr!important; max-width:760px!important; gap:40px!important; justify-items:center; text-align:center; }
@@ -2577,6 +2567,15 @@ h1,h2,h3{ text-wrap:balance; }
 .about-img-inner,.about-stat,.feed-card,.cta-badge,.map-city-item{ border-radius:12px!important; }
 .hero-location,.how-step-icon,.how-step-pill,.feed-card-icon,.how-photo img,#pf-name,#pf-phone,#pf-email{
   border-radius:8px!important; }
+
+/* PCBTN1. The buttons, in one place. Every action button on this page is a pill; the cut corner is Proximity Systems'
+   own mark and stays on that site. Text 15px, weight 600, as written, at least 48px tall, the menu button 14px and
+   44px. Each button keeps its own colour, and keyboard focus keeps the ring already set for links and buttons. This
+   block sits after every media block so it holds at every width, and it names only what this page has. */
+.btn-primary,.btn-outline,.plan-cta,#mobile-sticky-btn,.pk-offer-btn,.chat-book-btn{
+  font-size:15px!important; font-weight:600!important; letter-spacing:normal!important; min-height:48px;
+  border-radius:100px!important; }
+.nav-cta{ font-size:14px!important; min-height:44px; display:inline-flex; align-items:center; justify-content:center; }
 </style>
 <script defer src="https://unpkg.com/lenis@1.1.14/dist/lenis.min.js"></script>
   <meta property="og:title" content="Proximity Care Services: In Home Senior Care in Mississauga and Brampton">
@@ -3973,7 +3972,7 @@ h1,h2,h3{ text-wrap:balance; }
 
   </div><!-- /flow-demo-wrap -->
 </div>
-    <a class="powered-link" href="https://proximitysystems.ca" target="_blank" rel="noopener">See the technology behind your care &rarr;</a>
+    <a class="powered-link" href="https://proximitysystems.ca" target="_blank" rel="noopener">See the technology behind your care</a>
   </div>
 </section>
 

@@ -287,6 +287,18 @@ body *{ font-variant-numeric:lining-nums; }
 h1,h2,h3{ text-wrap:balance; }
 .hero-card,.offer-grid,.steps-grid{ border-radius:16px!important; overflow:hidden; }
 .hc-item,.hc-badge,.finput,.fselect,.ftextarea,#f-summary{ border-radius:8px!important; }
+
+/* PCBTN1. The buttons, as on the home page. Every action button is a pill, text 15px, weight 600, as written, at least
+   48px tall, the menu button 14px and 44px. The choice chips in the form are pills too, at 14px. A keyboard user sees
+   a navy ring on every button and chip. On phones the two hero buttons stack full width, as on the home page; at
+   15px they no longer fit side by side. This block sits after every media block so it holds at every width. */
+.btn-primary,.btn-ghost,.btn-next,.btn-back,.mobile-sticky a{ font-size:15px!important; font-weight:600!important; }
+.nav-cta{ font-size:14px!important; min-height:44px; }
+.sel-chip{ border-radius:100px; font-size:14px; padding-left:16px; padding-right:16px; }
+.nav-cta:focus-visible,.btn-primary:focus-visible,.btn-ghost:focus-visible,.btn-next:focus-visible,.btn-back:focus-visible,
+.mobile-sticky a:focus-visible,.sel-chip:focus-visible{ outline:2px solid var(--navy); outline-offset:2px; }
+@media(max-width:600px){
+  .hero-btns .btn-primary,.hero-btns .btn-ghost{ width:100%; justify-content:center; } }
 </style>
 </head>
 <body>
@@ -409,7 +421,7 @@ h1,h2,h3{ text-wrap:balance; }
           <div><label class="flabel" for="f-vehicle">Do you have a vehicle?</label><select class="fselect" id="f-vehicle"><option value="">Select...</option><option value="yes">Yes, driver license and vehicle</option><option value="license">Driver license, no vehicle</option><option value="no">No, transit only</option></select></div>
         </div>
         <div class="fgroup"><label class="flabel" for="f-languages">Languages you speak</label><input class="finput" id="f-languages" type="text" placeholder="English, Tagalog, Hindi, French, Punjabi, etc."></div>
-        <div class="form-nav"><button class="btn-next" onclick="nextStep(1)">Continue →</button></div>
+        <div class="form-nav"><button class="btn-next" onclick="nextStep(1)">Continue</button></div>
       </div>
 
       <!-- STEP 2 -->
@@ -440,7 +452,7 @@ h1,h2,h3{ text-wrap:balance; }
             <button type="button" class="sel-chip" data-val="First Aid" onclick="toggleChip(this)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><path d="M22 4L12 14.01l-3-3"/></svg>First Aid</button>
           </div>
         </div>
-        <div class="form-nav"><button class="btn-back" onclick="prevStep(2)">← Back</button><button class="btn-next" onclick="nextStep(2)">Continue →</button></div>
+        <div class="form-nav"><button class="btn-back" onclick="prevStep(2)">← Back</button><button class="btn-next" onclick="nextStep(2)">Continue</button></div>
       </div>
 
       <!-- STEP 3 -->
@@ -470,7 +482,7 @@ h1,h2,h3{ text-wrap:balance; }
           </div>
         </div>
         <div class="fgroup"><label class="flabel" for="f-heard">How did you hear about us?</label><select class="fselect" id="f-heard"><option value="">Select...</option><option>Indeed</option><option>Facebook or Instagram</option><option>Google search</option><option>Friend or colleague</option><option>Other</option></select></div>
-        <div class="form-nav"><button class="btn-back" onclick="prevStep(3)">← Back</button><button class="btn-next" onclick="nextStep(3)">Continue →</button></div>
+        <div class="form-nav"><button class="btn-back" onclick="prevStep(3)">← Back</button><button class="btn-next" onclick="nextStep(3)">Continue</button></div>
       </div>
 
       <!-- STEP 4 -->
