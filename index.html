@@ -3235,7 +3235,7 @@ h1,h2,h3{ text-wrap:balance; }
       "name": "How much does in home care cost?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Care is priced by package. A Visit is $60 for 2 hours. A 6 Hour Day is $180, split into morning, noon and evening or as one respite visit between 7am and 10pm. Overnight care is $180 for any 6 hours between 10pm and 7am. A Full Day of 8 hours or more is $25 an hour. Live-in is $440 a day, and 12 to 24 hour care is quoted at your assessment. Extra hours are $25 each. The in-home assessment is $449 and includes your PSW match, training, a walkthrough and your first 6 hours of care free."
+        "text": "Care is priced by package. A visit is $60 for 2 hours. A 6 hour day is $180, split into morning, noon and evening or as one respite visit between 7am and 10pm. Overnight care is $180 for any 6 hours between 10pm and 7am. A full day of 8 hours or more is $25 an hour. Live-in is $440 a day, and 12 to 24 hour care is quoted at your assessment. Extra hours are $25 each. The in-home assessment is $449 and includes your PSW match, training, a walkthrough and your first 6 hours of care free."
       }
     },
     {
@@ -3646,7 +3646,7 @@ h1,h2,h3{ text-wrap:balance; }
     <div class="faq-list reveal">
       <div class="faq-item">
         <div class="faq-q">How much does in home care cost?<span class="faq-icon"></span></div>
-        <div class="faq-a"><div class="faq-a-inner">Care is priced by package. A Visit is $60 for 2 hours. A 6 Hour Day is $180, split into morning, noon and evening or as one respite visit between 7am and 10pm. Overnight care is $180 for any 6 hours between 10pm and 7am. A Full Day of 8 hours or more is $25 an hour. Live-in is $440 a day, and 12 to 24 hour care is quoted at your assessment. Extra hours are $25 each. The in-home assessment is $449 and includes your PSW match, training, a walkthrough and your first 6 hours of care free.</div></div>
+        <div class="faq-a"><div class="faq-a-inner">Care is priced by package. A visit is $60 for 2 hours. A 6 hour day is $180, split into morning, noon and evening or as one respite visit between 7am and 10pm. Overnight care is $180 for any 6 hours between 10pm and 7am. A full day of 8 hours or more is $25 an hour. Live-in is $440 a day, and 12 to 24 hour care is quoted at your assessment. Extra hours are $25 each. The in-home assessment is $449 and includes your PSW match, training, a walkthrough and your first 6 hours of care free.</div></div>
       </div>
       <div class="faq-item">
         <div class="faq-q">Which areas do you serve?<span class="faq-icon"></span></div>
@@ -4221,23 +4221,23 @@ if(howSec)howObs.observe(howSec);
 /* ── CARE BUILDER ── */
 // PCPKG1. Packages from Lance's rate card. `plan` keeps the four fields the lead webhook reads
 // (careType, services, city, timing); `pk` holds the package choices that go into the lead's notes.
-const plan={careType:'Daily Living Support',services:['Personal Hygiene & Grooming','Meal Preparation','Medication Reminders','Companionship & Social Support'],city:'',timing:''};
+const plan={careType:'Daily living support',services:['Personal hygiene & grooming','Meal preparation','Medication reminders','Companionship & social support'],city:'',timing:''};
 // PCPLAN1. Which of the page's presets the family changed (care type, services), and whether they used the
 // builder at all. pkLeadFields says how each reaches a lead.
 const pkPicked={care:false,svc:false,any:false};
 const pk={pkg:'',sixMode:'split',win:'',dayStart:7,nightStart:22,days:[false,false,false,false,false,false,false],extra:0,fullHours:8,rc:0,offer:''};
 const PK_CARE=[
-  ['Daily Living Support','Meals, hygiene, companionship, medication reminders'],
-  ['Dementia & Memory Care','Specialized routines for cognitive conditions'],
-  ['Post-Hospital Recovery','Support after surgery or hospital discharge'],
-  ['Overnight & Intensive Care','Overnight and around the clock\u00a0support']
+  ['Daily living support','Meals, hygiene, companionship, medication reminders'],
+  ['Dementia & memory care','Specialized routines for cognitive conditions'],
+  ['Post-hospital recovery','Support after surgery or hospital discharge'],
+  ['Overnight & intensive care','Overnight and around the clock\u00a0support']
 ];
 const PK_PACKAGES=[
   ['visit','A few hours','Visit','One 2 hour visit in the morning, at noon or in the evening.'],
-  ['six','Most of the day','6 Hour Day','Split into morning, noon and evening, or one 6 hour respite visit.'],
+  ['six','Most of the day','6 hour day','Split into morning, noon and evening, or one 6 hour respite visit.'],
   ['night','Through the night','Overnight','Any 6 hours between 10pm and 7am.'],
-  ['full','A full shift','Full Day','8 hours or more in one day.'],
-  ['rc','Round the clock','12 to 24 Hour Care','12 or 24 hours a day with 1 to 2 PSWs rotating.'],
+  ['full','A full shift','Full day','8 hours or more in one day.'],
+  ['rc','Round the clock','12 to 24 hour care','12 or 24 hours a day with 1 to 2 PSWs rotating.'],
   ['livein','Lives in','Live-in','Your caregiver stays in the home, day and night.']
 ];
 // Line icons for the package cards, drawn in the site's blue, 24px, stroke only.
@@ -4252,7 +4252,7 @@ const PK_ICONS={
 function pkIcon(k){return '<span class="pk-icon" aria-hidden="true"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">'+PK_ICONS[k]+'</svg></span>';}
 const PK_WINDOWS=[['am','Morning','7am to 10am'],['noon','Noon','12pm to 3pm'],['eve','Evening','6pm to 9pm']];
 const PK_DAYS=[['Mon','Monday'],['Tue','Tuesday'],['Wed','Wednesday'],['Thu','Thursday'],['Fri','Friday'],['Sat','Saturday'],['Sun','Sunday']];
-const PK_SERVICES=['Personal Hygiene & Grooming','Meal Preparation','Medication Reminders','Companionship & Social Support','Mobility Assistance','Accompany to Appointments','Light Housekeeping','Indoor Camera Setup'];
+const PK_SERVICES=['Personal hygiene & grooming','Meal preparation','Medication reminders','Companionship & social support','Mobility assistance','Accompany to appointments','Light housekeeping','Indoor camera setup'];
 const PK_CITIES=['Mississauga','Brampton','Caledon','Etobicoke'];
 const PK_TIMINGS=['Within a week','Within a month','Just planning ahead'];
 const PK_TICK='<span class="pk-tick" aria-hidden="true"><svg width="12" height="12" viewBox="0 0 12 12"><path d="M2.5 6.2l2.3 2.3 4.7-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>';
@@ -4324,7 +4324,7 @@ function pkRender(){
 }
 // One summary line for the lead, in plain words, so Lance sees what the family picked.
 function pkSummary(){
-  var name={visit:'Visit',six:'6 Hour Day',night:'Overnight',full:'Full Day',rc:'12 to 24 Hour Care',livein:'Live-in'}[pk.pkg]||'not chosen';
+  var name={visit:'Visit',six:'6 hour day',night:'Overnight',full:'Full day',rc:'12 to 24 hour care',livein:'Live-in'}[pk.pkg]||'not chosen';
   var bits=['Package: '+name];
   if(pk.pkg==='visit'){var w=PK_WINDOWS.filter(function(x){return x[0]===pk.win;})[0];bits.push('Window: '+(w?w[1]+' '+w[2]:'not chosen'));}
   if(pk.pkg==='six'&&pk.sixMode==='split')bits.push('Split: morning, noon and evening');
@@ -4425,10 +4425,10 @@ SERVICES: Personal hygiene and grooming, meal preparation, medication reminders,
 
 PRICING, by package:
 - Visit: $60 for 2 hours, in the morning (7am to 10am), noon (12pm to 3pm) or evening (6pm to 9pm) window
-- 6 Hour Day: $180, 2 hours each in the morning, noon and evening windows, or one 6 hour respite visit any time between 7am and 10pm
+- 6 hour day: $180, 2 hours each in the morning, noon and evening windows, or one 6 hour respite visit any time between 7am and 10pm
 - Overnight: $180 for any 6 hours between 10pm and 7am
-- Full Day: 8 hours or more in one day at $25 an hour
-- 12 to 24 Hour Care: 12 or 24 hours a day with 1 to 2 PSWs rotating, quoted at the assessment
+- Full day: 8 hours or more in one day at $25 an hour
+- 12 to 24 hour care: 12 or 24 hours a day with 1 to 2 PSWs rotating, quoted at the assessment
 - Live-in: $440 a day
 - Extra hours on any package: $25 each
 - In-home assessment: $449, includes the PSW match, training, a walkthrough and the first 6 hours of care free
@@ -4692,7 +4692,7 @@ async function submitBooking(value) {
   showChips(CHIP_SETS.post_book);
 
   // Switch to open Q&A mode, no more intake flow
-  chatConfig.system = 'You are the care assistant for Proximity Care Services, run by a working PSW in Peel Region, Ontario. This person has already booked their assessment with us. Your job is to answer follow-up questions about services, pricing, what to expect, how caregivers are matched, what the first visit looks like, dementia care, overnight care, or anything else they ask. STRICT RULES: Keep every reply to 2-3 sentences maximum. Never use bullet points. Write conversationally like a trusted neighbor, not a brochure. End every reply naturally, never ask a follow-up question. Pricing: a Visit is $60 for 2 hours, a 6 Hour Day is $180 (split across the day or one respite visit), Overnight is $180 for 6 hours between 10pm and 7am, a Full Day of 8 hours or more is $25 an hour, Live-in is $440 a day, 12 to 24 hour care is quoted at the assessment, and extra hours are $25 each. The in-home assessment is $449 and includes the first 6 hours of care free. Same PSW every visit. Service area: Mississauga, Brampton, Caledon and Etobicoke. Phone: 647-382-8047.';
+  chatConfig.system = 'You are the care assistant for Proximity Care Services, run by a working PSW in Peel Region, Ontario. This person has already booked their assessment with us. Your job is to answer follow-up questions about services, pricing, what to expect, how caregivers are matched, what the first visit looks like, dementia care, overnight care, or anything else they ask. STRICT RULES: Keep every reply to 2-3 sentences maximum. Never use bullet points. Write conversationally like a trusted neighbor, not a brochure. End every reply naturally, never ask a follow-up question. Pricing: a visit is $60 for 2 hours, a 6 hour day is $180 (split across the day or one respite visit), overnight is $180 for 6 hours between 10pm and 7am, a full day of 8 hours or more is $25 an hour, live-in is $440 a day, 12 to 24 hour care is quoted at the assessment, and extra hours are $25 each. The in-home assessment is $449 and includes the first 6 hours of care free. Same PSW every visit. Service area: Mississauga, Brampton, Caledon and Etobicoke. Phone: 647-382-8047.';
 }
 
 /* ── UI HELPERS ── */
