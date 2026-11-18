@@ -2360,12 +2360,23 @@ a:focus-visible,button:focus-visible,.btn:focus-visible,.btn-primary:focus-visib
   /* PCSTEP1. The five steps are one numbered row joined by a line, as on the careers form: loose dots wrapped to two
      rows on phones (320 to 430) and read in no clear order. The line runs from the first circle's centre to the last. */
   .builder-section .pk-steps{list-style:none;display:flex;justify-content:space-between;position:relative;max-width:520px;margin:0 auto 36px;padding:0;font-size:12px;letter-spacing:.3px;color:var(--muted);counter-reset:pk;}
-  .builder-section .pk-steps::before{content:"";position:absolute;top:13px;left:10%;right:10%;height:2px;background:var(--blue);opacity:.35;}
+  .builder-section .pk-steps::before{content:"";position:absolute;top:13px;left:10%;right:10%;height:2px;background:linear-gradient(90deg,#2f6b57,#3d7a8a,#8c5a17,#4b5d8c,#13181c);opacity:.35;}
   .builder-section .pk-steps li{flex:1 1 0;min-width:0;display:flex;flex-direction:column;align-items:center;gap:8px;position:relative;z-index:1;text-align:center;counter-increment:pk;}
   .builder-section .pk-steps li::before{content:counter(pk);width:28px;height:28px;border-radius:50%;background:var(--blue);color:#fff;font-size:12px;font-weight:600;display:flex;align-items:center;justify-content:center;}
   .builder-section .pk-col{max-width:820px;margin:0 auto;display:flex;flex-direction:column;gap:20px;}
-  .builder-section .pk-card{background:var(--white);border:1px solid var(--border);border-radius:8px;padding:28px;text-align:center;display:flex;flex-direction:column;gap:18px;}
-  .builder-section .pk-step{font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--blue3);}
+  /* PCGFT1. Each step has its own quiet colour: Care sage, Package teal, Schedule ochre, Services slate, Book navy.
+     It shows on the step top edge, its label, its progress dot and what is picked in it. Each colour is at least
+     4.5 to 1 against white and the cream. */
+  .builder-section{--pk-c:var(--blue);--pk-c2:var(--blue2);--pk-c3:var(--blue3);--pk-t:#eef4f5;--pk-sh:rgba(61,122,138,.14);}
+  .builder-section .pk-card{background:var(--white);border:1px solid var(--border);border-top:3px solid var(--pk-c);border-radius:8px;padding:28px;text-align:center;display:flex;flex-direction:column;gap:18px;}
+  .builder-section .pk-hue-care{--pk-c:#2f6b57;--pk-c2:#7fa898;--pk-c3:#2f6b57;--pk-t:#ecf3ef;--pk-sh:rgba(47,107,87,.14);}
+  .builder-section .pk-hue-sched{--pk-c:#8c5a17;--pk-c2:#c49a5e;--pk-c3:#8c5a17;--pk-t:#f7f0e5;--pk-sh:rgba(140,90,23,.14);}
+  .builder-section .pk-hue-svc{--pk-c:#4b5d8c;--pk-c2:#8e9cc0;--pk-c3:#4b5d8c;--pk-t:#eef0f6;--pk-sh:rgba(75,93,140,.14);}
+  .builder-section .pk-steps li:nth-child(1)::before{background:#2f6b57;}
+  .builder-section .pk-steps li:nth-child(3)::before{background:#8c5a17;}
+  .builder-section .pk-steps li:nth-child(4)::before{background:#4b5d8c;}
+  .builder-section .pk-steps li:nth-child(5)::before{background:var(--navy);}
+  .builder-section .pk-step{font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--pk-c3);}
   .builder-section .pk-h{font-family:var(--serif);font-weight:400;font-size:30px;line-height:1.15;color:var(--text);margin-top:-12px;}
   .builder-section .pk-note{font-size:14px;line-height:1.5;color:var(--muted);}
   .builder-section .pk-label{font-size:14px;font-weight:500;color:var(--text);}
@@ -2373,28 +2384,28 @@ a:focus-visible,button:focus-visible,.btn:focus-visible,.btn-primary:focus-visib
   .builder-section .pk-block[hidden],.builder-section .pk-stepper[hidden],.builder-section .pk-offer[hidden],.builder-section .pk-offer-line[hidden],.builder-section .pk-note[hidden],.builder-section .pk-offer-btn[hidden]{display:none;}
   .builder-section .pk-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px;}
   .builder-section .pk-opt{position:relative;display:flex;flex-direction:column;align-items:center;text-align:center;gap:8px;padding:22px 44px;background:var(--white);border:1.5px solid var(--border);border-radius:6px;color:var(--text);transition:border-color .15s,box-shadow .15s;}
-  .builder-section .pk-opt:hover{border-color:var(--blue2);}
-  .builder-section .pk-opt:focus-visible{outline:2px solid var(--blue);outline-offset:2px;}
-  .builder-section .pk-opt[aria-pressed="true"]{border-color:var(--blue);box-shadow:0 0 0 1px var(--blue),0 10px 30px rgba(61,122,138,.14);}
+  .builder-section .pk-opt:hover{border-color:var(--pk-c2);}
+  .builder-section .pk-opt:focus-visible{outline:2px solid var(--pk-c);outline-offset:2px;}
+  .builder-section .pk-opt[aria-pressed="true"]{border-color:var(--pk-c);box-shadow:0 0 0 1px var(--pk-c),0 10px 30px var(--pk-sh);}
   /* PCBLD2. The empty tick circle was the card border colour, 1.35 to 1 on white. This darker shade of the
      same grey is 3.43 to 1, the contrast an outline needs to be seen. */
   .builder-section .pk-tick{position:absolute;top:16px;right:16px;width:22px;height:22px;border-radius:50%;border:1.5px solid #8f8a80;display:flex;align-items:center;justify-content:center;color:var(--white);}
-  .builder-section .pk-opt[aria-pressed="true"] .pk-tick{background:var(--blue);border-color:var(--blue);}
-  .builder-section .pk-icon{display:flex;align-items:center;justify-content:center;width:52px;height:52px;border-radius:50%;background:#eef4f5;color:var(--blue);}
-  .builder-section .pk-opt[aria-pressed="true"] .pk-icon{background:var(--blue);color:var(--white);}
-  .builder-section .pk-kicker{font-size:11px;letter-spacing:2.5px;text-transform:uppercase;color:var(--blue3);}
+  .builder-section .pk-opt[aria-pressed="true"] .pk-tick{background:var(--pk-c);border-color:var(--pk-c);}
+  .builder-section .pk-icon{display:flex;align-items:center;justify-content:center;width:52px;height:52px;border-radius:50%;background:var(--pk-t);color:var(--pk-c);}
+  .builder-section .pk-opt[aria-pressed="true"] .pk-icon{background:var(--pk-c);color:var(--white);}
+  .builder-section .pk-kicker{font-size:11px;letter-spacing:2.5px;text-transform:uppercase;color:var(--pk-c3);}
   .builder-section .pk-name{font-family:var(--serif);font-size:28px;font-weight:400;line-height:1.1;}
   .builder-section .pk-opt-title{font-size:16px;font-weight:500;}
   .builder-section .pk-desc{font-size:14px;line-height:1.5;color:var(--muted);}
   .builder-section .pk-row{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;}
   .builder-section .pk-chip{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;min-width:58px;padding:10px 16px;background:var(--white);border:1.5px solid var(--border);border-radius:999px;font-size:14px;color:var(--text);transition:border-color .15s,background .15s;}
-  .builder-section .pk-chip:hover{border-color:var(--blue2);}
-  .builder-section .pk-chip:focus-visible{outline:2px solid var(--blue);outline-offset:2px;}
-  .builder-section .pk-chip[aria-pressed="true"]{border-color:var(--blue);background:var(--blue);color:var(--white);}
-  .builder-section .pk-chip.pk-fixed,.builder-section .pk-chip.pk-fixed:hover{cursor:default;border-color:var(--blue);background:#eef4f5;color:var(--text);}
+  .builder-section .pk-chip:hover{border-color:var(--pk-c2);}
+  .builder-section .pk-chip:focus-visible{outline:2px solid var(--pk-c);outline-offset:2px;}
+  .builder-section .pk-chip[aria-pressed="true"]{border-color:var(--pk-c);background:var(--pk-c);color:var(--white);}
+  .builder-section .pk-chip.pk-fixed,.builder-section .pk-chip.pk-fixed:hover{cursor:default;border-color:var(--pk-c);background:var(--pk-t);color:var(--text);}
   .builder-section .pk-seg{display:flex;gap:4px;padding:4px;background:var(--cream2);border-radius:6px;}
   .builder-section .pk-segbtn{flex:1 1 0;display:flex;flex-direction:column;align-items:center;gap:2px;min-height:44px;padding:10px 14px;border-radius:4px;font-size:14px;color:var(--text);text-align:center;}
-  .builder-section .pk-segbtn:focus-visible{outline:2px solid var(--blue);outline-offset:2px;}
+  .builder-section .pk-segbtn:focus-visible{outline:2px solid var(--pk-c);outline-offset:2px;}
   .builder-section .pk-segbtn[aria-pressed="true"]{background:var(--white);box-shadow:0 1px 4px rgba(19,24,28,.12);}
   .builder-section .pk-strong{font-weight:500;}
   .builder-section .pk-small{font-size:13px;color:var(--muted);}
@@ -2402,28 +2413,46 @@ a:focus-visible,button:focus-visible,.btn:focus-visible,.btn-primary:focus-visib
   .builder-section .pk-stepper-text{flex:1 1 100%;display:flex;flex-direction:column;gap:4px;font-size:15px;color:var(--text);}
   .builder-section .pk-stepper-ctrl{display:flex;align-items:center;gap:14px;}
   .builder-section .pk-round{width:44px;height:44px;display:inline-flex;align-items:center;justify-content:center;border:1.5px solid var(--border);border-radius:50%;background:var(--white);color:var(--text);}
-  .builder-section .pk-round:hover{border-color:var(--blue);}
-  .builder-section .pk-round:focus-visible{outline:2px solid var(--blue);outline-offset:2px;}
+  .builder-section .pk-round:hover{border-color:var(--pk-c);}
+  .builder-section .pk-round:focus-visible{outline:2px solid var(--pk-c);outline-offset:2px;}
   .builder-section .pk-st-val{min-width:64px;text-align:center;font-size:20px;font-weight:500;color:var(--text);}
   .builder-section .pk-book{background:var(--navy);color:var(--white);border-radius:8px;padding:32px 28px;text-align:center;display:flex;flex-direction:column;gap:16px;}
   .builder-section .pk-step-dark{color:var(--blue2);}
   .builder-section .pk-book-h{font-family:var(--serif);font-size:30px;font-weight:300;color:var(--white);margin-top:-8px;}
-  .builder-section .pk-book-price{font-size:22px;font-weight:500;margin-top:-10px;}
   .builder-section .pk-incl{list-style:none;align-self:center;text-align:left;display:flex;flex-direction:column;gap:6px;font-size:14px;line-height:1.5;color:rgba(255,255,255,.8);}
   .builder-section .pk-incl li{display:flex;gap:10px;}
   .builder-section .pk-incl li::before{content:"";flex:none;width:12px;height:7px;margin-top:6px;border-left:1.8px solid var(--blue2);border-bottom:1.8px solid var(--blue2);transform:rotate(-45deg);}
-  .builder-section .pk-offer-line{display:flex;justify-content:center;gap:12px;font-size:14px;color:var(--teal-light);}
   .builder-section .pk-fine{font-size:12px;line-height:1.5;color:rgba(255,255,255,.66);}
   .builder-section .pk-offer-btn{display:flex;align-items:center;justify-content:center;gap:10px;min-height:48px;padding:12px 18px;background:var(--blue);color:var(--white);font-size:13px;font-weight:600;letter-spacing:1px;border-radius:3px;}
   .builder-section .pk-offer-btn:hover{background:var(--blue3);}
   .builder-section .pk-offer-btn:focus-visible{outline:2px solid var(--teal-light);outline-offset:3px;}
-  .builder-section .pk-offer{display:flex;flex-direction:column;gap:12px;padding:18px;background:var(--blue);border-radius:6px;}
+  /* PCGFT1. The gift wheel. The wheel is drawn by pkDrawWheel from PK_GIFTS, each slice as wide as its chance, and turns
+     once, about 3 seconds, to the gift drawn; with reduced motion it is already there. The gift, its answer and the
+     form share one 420px column. */
+  .builder-section .pk-gift{width:100%;max-width:420px;margin:0 auto;display:flex;flex-direction:column;align-items:stretch;gap:14px;}
+  .builder-section .pk-wheel-wrap{position:relative;width:216px;height:216px;margin:4px auto 0;}
+  .builder-section .pk-wheel{display:block;width:216px;height:216px;transform:rotate(0deg);transition:transform 3.2s cubic-bezier(.12,.7,.15,1);}
+  .builder-section .pk-wheel.pk-still{transition:none;}
+  .builder-section .pk-pointer{position:absolute;top:-6px;left:50%;z-index:1;width:0;height:0;margin-left:-11px;border-left:11px solid transparent;border-right:11px solid transparent;border-top:20px solid var(--white);filter:drop-shadow(0 2px 2px rgba(0,0,0,.35));}
+  .builder-section .pk-odds-d{text-align:center;margin-top:-6px;}
+  .builder-section .pk-odds-d summary{display:inline-flex;align-items:center;min-height:44px;padding:0 10px;font-size:13px;color:rgba(255,255,255,.82);text-decoration:underline;text-underline-offset:3px;cursor:pointer;list-style:none;touch-action:manipulation;}
+  .builder-section .pk-odds-d summary::-webkit-details-marker{display:none;}
+  .builder-section .pk-odds-d summary:focus-visible{outline:2px solid var(--teal-light);outline-offset:2px;}
+  .builder-section .pk-odds{font-size:12px;line-height:1.55;color:#fff;text-align:center;}
+  .builder-section .pk-offer{display:flex;flex-direction:column;gap:10px;padding:20px 14px;background:var(--blue3);border:1px solid rgba(255,255,255,.18);border-radius:10px;text-align:center;}
+  .builder-section .pk-gift-kicker{font-size:13px;color:var(--teal-light);}
+  .builder-section .pk-gift-name{font-family:var(--serif);font-size:26px;font-weight:400;line-height:1.15;color:var(--white);text-wrap:balance;}
   .builder-section .pk-offer-text{font-size:14px;line-height:1.5;color:var(--white);}
-  .builder-section .pk-offer-btns{display:flex;gap:10px;}
-  .builder-section .pk-ghost{flex:1;min-height:48px;padding:12px 18px;border:1.5px solid rgba(255,255,255,.55);color:var(--white);font-size:13px;font-weight:500;letter-spacing:1px;border-radius:3px;}
+  .builder-section .pk-offer-btns{display:flex;flex-wrap:wrap;gap:10px;margin-top:4px;}
+  .builder-section .pk-ghost{flex:1 1 130px;min-height:48px;padding:12px 10px;white-space:nowrap;border:1.5px solid rgba(255,255,255,.7);color:var(--white);font-size:15px;font-weight:600;border-radius:100px;}
   .builder-section .pk-ghost:hover{border-color:var(--white);}
   .builder-section .pk-ghost:focus-visible{outline:2px solid var(--teal-light);outline-offset:3px;}
   .builder-section .pk-ghost[aria-pressed="true"]{background:var(--white);color:var(--navy);border-color:var(--white);}
+  .builder-section .pk-offer-line{display:flex;justify-content:center;align-items:center;gap:8px;font-size:14px;color:var(--white);}
+  .builder-section .pk-offer-line svg{flex:none;}
+  .builder-section .pk-form-h{font-size:15px;font-weight:500;color:var(--white);margin-bottom:12px;}
+  .builder-section .pk-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;}
+  @media (prefers-reduced-motion:reduce){.builder-section .pk-wheel{transition:none;}}
   .builder-section .pk-book #plan-inline-form{width:100%;max-width:420px;margin:8px auto 0;text-align:left;}
   .builder-section .pk-book #plan-inline-form input{min-height:48px;}
   .builder-section .pk-book .plan-call{color:rgba(255,255,255,.8)!important;}
@@ -3400,7 +3429,7 @@ h1,h2,h3{ text-wrap:balance; }
     <p class="builder-sub reveal">Tell us what your loved one needs, pick a package and the days, and book your in-home assessment.</p>
     <ol class="pk-steps" aria-label="Steps"><li>Care</li><li>Package</li><li>Schedule</li><li>Services</li><li>Book</li></ol>
     <div class="pk-col">
-      <section class="pk-card" aria-labelledby="pk-s1">
+      <section class="pk-card pk-hue-care" aria-labelledby="pk-s1">
         <div class="pk-step">Step 1</div>
         <h3 class="pk-h" id="pk-s1">What kind of care does your loved one need?</h3>
         <div class="pk-grid" id="pk-care"></div>
@@ -3411,7 +3440,7 @@ h1,h2,h3{ text-wrap:balance; }
         <p class="pk-note">Extra hours on any package are $25 an hour.</p>
         <div class="pk-grid" id="pk-packages"></div>
       </section>
-      <section class="pk-card" aria-labelledby="pk-s3">
+      <section class="pk-card pk-hue-sched" aria-labelledby="pk-s3">
         <div class="pk-step">Step 3</div>
         <h3 class="pk-h" id="pk-s3">Set the schedule</h3>
         <p class="pk-note" id="pk-pick-first">Choose a package first.</p>
@@ -3445,7 +3474,7 @@ h1,h2,h3{ text-wrap:balance; }
           </div>
         </div>
       </section>
-      <section class="pk-card" aria-labelledby="pk-s4">
+      <section class="pk-card pk-hue-svc" aria-labelledby="pk-s4">
         <div class="pk-step">Step 4</div>
         <h3 class="pk-h" id="pk-s4">Services, place and start</h3>
         <div class="pk-block"><div class="pk-label">Services to include</div><div class="pk-row" id="pk-services"></div></div>
@@ -3455,26 +3484,31 @@ h1,h2,h3{ text-wrap:balance; }
       <section class="pk-book" aria-labelledby="pk-s5">
         <div class="pk-step pk-step-dark">Step 5 · To start</div>
         <h3 class="pk-book-h" id="pk-s5">In-home assessment</h3>
-        <div class="pk-book-price">$449</div>
         <ul class="pk-incl">
           <li>An assessment at home to build the care plan</li>
           <li>A PSW matched to your parent's care plan</li>
           <li>Training and a walkthrough with your PSW</li>
           <li>Your first 6 hours of care free</li>
         </ul>
-        <div class="pk-offer-line" id="pk-offer-line" hidden><span>2 extra free hours, one booked day</span><span id="pk-offer-saving"></span></div>
         <p class="pk-fine">Nothing is charged online.</p>
-        <button type="button" class="pk-offer-btn" id="pk-offer-check"><svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><path d="M2.5 7.5h13v3h-13zM3.5 10.5h11V16h-11zM9 7.5V16M9 7.5C7.5 4 4.5 4 4.8 5.8 5 7 7 7.5 9 7.5zM9 7.5c1.5-3.5 4.5-3.5 4.2-1.7C13 7 11 7.5 9 7.5z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>Check if you're eligible for 2 extra free hours</button>
-        <div class="pk-offer" id="pk-offer" hidden>
-          <div class="pk-strong">Good news, you're eligible</div>
-          <p class="pk-offer-text">2 extra free hours of care, on top of your first 6. Use them once, on any day you book. Worth <span id="pk-offer-value">$50</span>.</p>
-          <div class="pk-offer-btns" role="group" aria-label="Add the 2 extra free hours">
-            <button type="button" class="pk-ghost" data-offer="added" aria-pressed="false">Add to my plan</button>
-            <button type="button" class="pk-ghost" data-offer="declined" aria-pressed="false">No thanks</button>
+        <div class="pk-gift" id="pk-gift">
+          <div class="pk-wheel-wrap" aria-hidden="true"><span class="pk-pointer"></span><svg class="pk-wheel" id="pk-wheel" viewBox="-104 -104 208 208" width="216" height="216"></svg></div>
+          <button type="button" class="pk-offer-btn" id="pk-offer-check"><svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><path d="M2.5 7.5h13v3h-13zM3.5 10.5h11V16h-11zM9 7.5V16M9 7.5C7.5 4 4.5 4 4.8 5.8 5 7 7 7.5 9 7.5zM9 7.5c1.5-3.5 4.5-3.5 4.2-1.7C13 7 11 7.5 9 7.5z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg><span id="pk-spin-t">Spin for your gift</span></button>
+          <div class="pk-offer" id="pk-offer" hidden>
+            <div class="pk-gift-kicker">Your gift</div>
+            <div class="pk-gift-name" id="pk-gift-name"></div>
+            <p class="pk-offer-text" id="pk-gift-text"></p>
+            <div class="pk-offer-btns" role="group" aria-label="Add your gift to your plan">
+              <button type="button" class="pk-ghost" data-offer="added" aria-pressed="false">Add to my plan</button>
+              <button type="button" class="pk-ghost" data-offer="declined" aria-pressed="false">No thanks</button>
+            </div>
+            <p class="pk-offer-line" id="pk-offer-line" hidden></p>
           </div>
+          <details class="pk-odds-d"><summary>Chances and rules</summary><p class="pk-odds" id="pk-odds"></p></details>
+          <p class="pk-sr" id="pk-gift-live" role="status" aria-live="polite"></p>
         </div>
         <div id="plan-inline-form">
-          <div style="font-size:12px;color:var(--blue2);font-family:var(--sans);margin-bottom:10px;font-weight:600">Your details, we call you within 24 hours</div>
+          <div class="pk-form-h">Your details, we call you within 24 hours</div>
           <input type="text" id="pf-name" placeholder="Your name" aria-label="Your name" autocomplete="name" style="display:block;width:100%;box-sizing:border-box;padding:10px 12px;font-size:16px;font-family:inherit;margin-bottom:8px;border-radius:4px">
           <input type="tel" id="pf-phone" placeholder="Phone number" aria-label="Phone number" autocomplete="tel" style="display:block;width:100%;box-sizing:border-box;padding:10px 12px;font-size:16px;font-family:inherit;margin-bottom:8px;border-radius:4px">
           <input type="email" id="pf-email" placeholder="Email (optional)" aria-label="Email (optional)" autocomplete="email" style="display:block;width:100%;padding:10px 12px;font-size:16px;font-family:inherit;margin-bottom:12px;border-radius:4px">
@@ -4225,7 +4259,7 @@ const plan={careType:'Daily living support',services:['Personal hygiene & groomi
 // PCPLAN1. Which of the page's presets the family changed (care type, services), and whether they used the
 // builder at all. pkLeadFields says how each reaches a lead.
 const pkPicked={care:false,svc:false,any:false};
-const pk={pkg:'',sixMode:'split',win:'',dayStart:7,nightStart:22,days:[false,false,false,false,false,false,false],extra:0,fullHours:8,rc:0,offer:''};
+const pk={pkg:'',sixMode:'split',win:'',dayStart:7,nightStart:22,days:[false,false,false,false,false,false,false],extra:0,fullHours:8,rc:0,offer:'',gift:'',spinDeg:0,spinning:false};
 const PK_CARE=[
   ['Daily living support','Meals, hygiene, companionship, medication reminders'],
   ['Dementia & memory care','Specialized routines for cognitive conditions'],
@@ -4314,13 +4348,68 @@ function pkRender(){
   $('pk-services').innerHTML=PK_SERVICES.map(function(s){return pkChip('data-svc',s,plan.services.indexOf(s)>-1,pkEsc(s));}).join('');
   $('pk-cities').innerHTML=PK_CITIES.map(function(c){return pkChip('data-city',c,plan.city===c,pkEsc(c));}).join('');
   $('pk-timings').innerHTML=PK_TIMINGS.map(function(t){return pkChip('data-timing',t,plan.timing===t,pkEsc(t));}).join('');
-  var worth=pk.pkg==='livein'?44:50;
+  var worth=pk.pkg==='livein'?44:50, g=pkGift();
+  $('pk-wheel').style.transform='rotate('+pk.spinDeg+'deg)';
   $('pk-offer-check').hidden=!!pk.offer;
+  $('pk-offer-check').disabled=pk.spinning;
+  $('pk-spin-t').textContent=pk.spinning?'Spinning...':'Spin for your gift';
   $('pk-offer').hidden=!pk.offer;
-  $('pk-offer-value').textContent='$'+worth;
+  $('pk-gift-name').textContent=g?g[2]:'';
+  $('pk-gift-text').textContent=g?g[3]+(g[4]?' Worth $'+worth+'.':''):'';
   document.querySelectorAll('#pk-offer .pk-ghost').forEach(function(b){b.setAttribute('aria-pressed',b.getAttribute('data-offer')===pk.offer?'true':'false');});
-  $('pk-offer-line').hidden=pk.offer!=='added';
-  $('pk-offer-saving').textContent='$'+worth+' off';
+  var done=pk.offer==='added'||pk.offer==='declined';
+  $('pk-offer-line').hidden=!done;
+  $('pk-offer-line').innerHTML=pk.offer==='added'?'<svg width="16" height="16" viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 6.2l2.3 2.3 4.7-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Added to your plan.</span>':pk.offer==='declined'?'<span>Not added. You can still add it before you book.</span>':'';
+  $('pk-odds').textContent=pkOdds(worth);
+}
+// PCGFT1. The three gifts: key, chance in percent, name, what it means, whether it is hours (worth $50, or $44 with
+// Live-in, as before). Every family wins one; the chances add up to 100 and the card states them (pkOdds). The 10%
+// gift shows no dollar figure itself; the stated chances give its approximate value.
+const PK_GIFTS=[
+  ['first',40,'2 more free hours on your first visit','Your first 6 free hours become 8.',true,['+2 hours','first visit']],
+  ['day',40,'2 free hours on any day you book','Use them once, on any day of care you book.',true,['2 free hours','any day']],
+  ['ten',20,'10% off your assessment','Taken off your assessment when you book.',false,['10% off','assessment']]
+];
+const PK_GIFT_KEY='pc_gift_v1';
+function pkGift(){return PK_GIFTS.filter(function(g){return g[0]===pk.gift;})[0]||null;}
+function pkOdds(worth){return 'Every family wins one gift. The chances: 2 more free hours on your first visit, worth $'+worth+', '+PK_GIFTS[0][1]+'%. 2 free hours on any day you book, worth $'+worth+', '+PK_GIFTS[1][1]+'%. 10% off your assessment, about $45, '+PK_GIFTS[2][1]+'%. One spin per family.';}
+// Slices clockwise from the top, each as wide as its chance. A label is drawn upright at the top of the wheel and
+// turned to the middle of its slice, so the winning label reads upright under the pointer when the wheel stops.
+function pkDrawWheel(){
+  var svg=document.getElementById('pk-wheel'); if(!svg) return;
+  var fills=['#3d7a8a','#2c5d6b','#c8dde2'], inks=['#ffffff','#ffffff','#13181c'], a=0, out='';
+  var pt=function(d,r){var t=d*Math.PI/180;return (r*Math.sin(t)).toFixed(2)+' '+(-r*Math.cos(t)).toFixed(2);};
+  PK_GIFTS.forEach(function(g,i){
+    var w=g[1]*3.6, b=a+w, m=a+w/2;
+    out+='<path d="M0 0L'+pt(a,100)+'A100 100 0 '+(w>180?1:0)+' 1 '+pt(b,100)+'Z" fill="'+fills[i]+'" stroke="#13181c" stroke-width="2"/>';
+    out+='<g transform="rotate('+m.toFixed(2)+')" fill="'+inks[i]+'" text-anchor="middle" font-family="DM Sans,sans-serif"><text y="-66" font-size="14" font-weight="600">'+g[5][0]+'</text><text y="-50" font-size="11">'+g[5][1]+'</text></g>';
+    a=b;
+  });
+  out+='<circle r="100" fill="none" stroke="#ffffff" stroke-width="4"/><circle r="15" fill="#13181c" stroke="#ffffff" stroke-width="2"/>';
+  svg.innerHTML=out;
+}
+// A fair draw: the browser's own random numbers, one for the gift at the stated chances and one for where in its slice
+// the wheel stops. The result is kept in this browser, so the family keeps the same gift when they come back.
+function pkRand(){var u=new Uint32Array(1);crypto.getRandomValues(u);return u[0]/4294967296;}
+function pkSpin(){
+  if(pk.spinning||pk.gift) return;
+  var r=pkRand()*100, acc=0, start=0, pick=PK_GIFTS[PK_GIFTS.length-1], from=0;
+  for(var i=0;i<PK_GIFTS.length;i++){acc+=PK_GIFTS[i][1];if(r<acc){pick=PK_GIFTS[i];break;}}
+  PK_GIFTS.some(function(g){if(g===pick){from=start;return true;}start+=g[1]*3.6;return false;});
+  var w=pick[1]*3.6, land=from+6+pkRand()*(w-12);
+  var still=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  pk.gift=pick[0]; pk.spinning=true; pk.spinDeg=2160-land; pkPicked.any=true;
+  try{localStorage.setItem(PK_GIFT_KEY,JSON.stringify({k:pick[0],a:land}));}catch(e){}
+  pkRender();
+  setTimeout(function(){
+    pk.spinning=false; pk.offer='shown'; pkRender();
+    var live=document.getElementById('pk-gift-live'); if(live) live.textContent='Your gift: '+pick[2]+'.';
+    var f=document.querySelector('#pk-offer .pk-ghost'); if(f) f.focus({preventScroll:true});
+  },still?0:3400);
+}
+function pkRestoreGift(){
+  try{var s=JSON.parse(localStorage.getItem(PK_GIFT_KEY)||'null');
+    if(s&&typeof s.a==='number'&&PK_GIFTS.some(function(g){return g[0]===s.k;})){pk.gift=s.k;pk.spinDeg=2160-s.a;pk.offer='shown';}}catch(e){}
 }
 // One summary line for the lead, in plain words, so Lance sees what the family picked.
 function pkSummary(){
@@ -4334,7 +4423,8 @@ function pkSummary(){
   if(pk.pkg==='visit'||pk.pkg==='six'||pk.pkg==='night')bits.push('Extra hours a day: '+pk.extra);
   var d=PK_DAYS.filter(function(x,i){return pk.days[i];}).map(function(x){return x[0];});
   bits.push((pk.pkg==='night'?'Nights':'Days')+': '+(d.length?d.join(' '):'not chosen'));
-  bits.push('2 free hours: '+({added:'added',declined:'declined',shown:'checked, no answer'}[pk.offer]||'not checked'));
+  var g=pkGift(), gw=pk.pkg==='livein'?44:50;
+  bits.push('Gift: '+(g?g[2]+(g[4]?' (worth $'+gw+')':'')+', '+({added:'added',declined:'declined'}[pk.offer]||'spun, no answer'):'not spun'));
   return bits.join('. ')+'.';
 }
 // PCPLAN1. The builder's answers as lead fields. City and timing start empty, so they are always the family's own.
@@ -4368,7 +4458,7 @@ function pkLeadFields(){
     else if(a('data-timing')!==null)plan.timing=a('data-timing');
     else if(b.id==='pk-minus'){if(pk.pkg==='full')pk.fullHours=Math.max(8,pk.fullHours-1);else pk.extra=Math.max(0,pk.extra-1);}
     else if(b.id==='pk-plus'){if(pk.pkg==='full')pk.fullHours=Math.min(16,pk.fullHours+1);else pk.extra=Math.min(pkMaxExtra(),pk.extra+1);}
-    else if(b.id==='pk-offer-check')pk.offer='shown';
+    else if(b.id==='pk-offer-check'){pkSpin();return;}
     else if(a('data-offer')!==null)pk.offer=a('data-offer');
     else return;
     pkPicked.any=true;
@@ -4378,8 +4468,10 @@ function pkLeadFields(){
     var sel=keep?'#'+keep:null;
     if(!sel){['data-care','data-pkg','data-six','data-win','data-start','data-rc','data-day','data-svc','data-city','data-timing','data-offer'].some(function(n){var v=b.getAttribute(n);if(v!==null){sel='['+n+'="'+v.replace(/"/g,'\\"')+'"]';return true;}return false;});}
     var nb=sel&&root.querySelector(sel); if(nb&&document.activeElement!==nb&&!b.isConnected) nb.focus();
-    if(b.id==='pk-offer-check'){var f=root.querySelector('#pk-offer .pk-ghost');if(f)f.focus();}
   });
+  pkDrawWheel();
+  pkRestoreGift();
+  if(pk.gift){var w=document.getElementById('pk-wheel');if(w)w.classList.add('pk-still');}
   pkRender();
 }());
 
